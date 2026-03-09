@@ -1,51 +1,41 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants as DB,
-        ExtendingLayoutsConstants as EL,
-        ProjectsConstants as PJ,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\{ProjectTask, TaskStage, Timesheet, Utility};
-    use Illuminate\Support\Facades\{Auth, Route, Gate};
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
+    try {
+$user        = Auth::user();
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        $lang        = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
 
-    $user        = Auth::user();
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-    $lang        = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $dashUrl     = Route::has('dashboard') ? route('dashboard') : '#';
+        $dashGuard   = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-    $dashUrl     = Route::has('dashboard') ? route('dashboard') : '#';
-    $dashGuard   = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+        $idxBase     = VW::PRJ_RPT . '.index';
+        $idxKebab    = Str::kebab($idxBase);
+        $canViewIdx  = Gate::check('manage project') || Gate::check('view project report');
+        $idxName     = ($canViewIdx && Route::has($idxBase)) ? $idxBase : (($canViewIdx && Route::has($idxKebab)) ? $idxKebab : null);
+        $idxUrl      = $idxName ? route($idxName) : '#';
+        $idxGuard    = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_index_route_unavailable') : 'Project report index route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project report index route is unavailable. Please contact technical support or your domain administrator.');
 
-    $idxBase     = VW::PRJ_RPT . '.index';
-    $idxKebab    = Str::kebab($idxBase);
-    $canViewIdx  = Gate::check('manage project') || Gate::check('view project report');
-    $idxName     = ($canViewIdx && Route::has($idxBase)) ? $idxBase : (($canViewIdx && Route::has($idxKebab)) ? $idxKebab : null);
-    $idxUrl      = $idxName ? route($idxName) : '#';
-    $idxGuard    = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_index_route_unavailable') : 'Project report index route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project report index route is unavailable. Please contact technical support or your domain administrator.');
+        $tasksList = [];
+        if (is_array($tasks ?? null) && count($tasks)) {
+            $tasksList = $tasks;
+        } elseif (($tasks ?? null) instanceof Collection && $tasks->isNotEmpty()) {
+            $tasksList = $tasks;
+        }
 
-    $tasksList = [];
-    if (is_array($tasks ?? null) && count($tasks)) {
-        $tasksList = $tasks;
-    } elseif (($tasks ?? null) instanceof Collection && $tasks->isNotEmpty()) {
-        $tasksList = $tasks;
-    }
+        $projUsers = [];
+        if (is_array($project->users ?? null) && count($project->users)) {
+            $projUsers = $project->users;
+        } elseif (($project->users ?? null) instanceof Collection && $project->users->isNotEmpty()) {
+            $projUsers = $project->users;
+        }
 
-    $projUsers = [];
-    if (is_array($project->users ?? null) && count($project->users)) {
-        $projUsers = $project->users;
-    } elseif (($project->users ?? null) instanceof Collection && $project->users->isNotEmpty()) {
-        $projUsers = $project->users;
-    }
-
-    $projMilestones = [];
-    if (is_array($project->milestones ?? null) && count($project->milestones)) {
-        $projMilestones = $project->milestones;
-    } elseif (($project->milestones ?? null) instanceof Collection && $project->milestones->isNotEmpty()) {
-        $projMilestones = $project->milestones;
+        $projMilestones = [];
+        if (is_array($project->milestones ?? null) && count($project->milestones)) {
+            $projMilestones = $project->milestones;
+        } elseif (($project->milestones ?? null) instanceof Collection && $project->milestones->isNotEmpty()) {
+            $projMilestones = $project->milestones;
+        }
+    } catch (\Throwable $e) {
+        \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
 @endphp
 
@@ -57,31 +47,31 @@
 
 @section('title')
     <div class="d-inline-block">
-        <h5 class="h4 d-inline-block font-weight-400 mb-0">{{ __('Project Reports') }}</h5>
+        <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB0 }}">{{ __('Project Reports') }}</h5>
     </div>
 @endsection
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a id="project-report-index-link"
            href="{{ $idxUrl }}"
            data-url="{{ $idxUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $idxGuard }}"
+           data-guard-msg="{{ base64_encode($idxGuard) }}"
            {{ $idxUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Project Report') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ ucwords($project->project_name ?? __('(no name)')) }}</li>
+    <li class="{{ VC::BCI }}">{{ ucwords($project->project_name ?? __('(no name)')) }}</li>
 @endsection
 
 @push(ST::ADM_CSS)
@@ -106,10 +96,10 @@
                 <div class="{{ VC::RW }}" id="printableArea">
                     <div class="{{ VC::CM6 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <h5>{{ __('Overview') }}</h5>
                             </div>
-                            <div class="card-body" style="min-height:280px;">
+                            <div class="{{ VC::CD_BD }}" style="min-height:280px;">
                                 <div class="{{ VC::R_ALC }}">
                                     <div class="col-7">
                                         <table class="{{ VC::TB }}">
@@ -123,7 +113,7 @@
                                                     <td class="border-0">
                                                         @php
                                                             $pStat = $project[PJ::COL_STAT] ?? null;
-                                                        @endphp
+@endphp
                                                         @if($pStat === PJ::STT_INP_K)
                                                             <div class="{{ VC::BDG }} {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded">{{ __('In Progress') }}</div>
                                                         @elseif($pStat === PJ::STT_ONH_K)
@@ -152,13 +142,17 @@
                                     </div>
                                     <div class="col-5">
                                         @php
-                                            $ppCalc = (method_exists($project,'projectProgress') && isset($last_task?->id))
-                                                ? $project->projectProgress($project, $last_task->id)
-                                                : ['percentage'=>'0%'];
-                                            $ppText = (string)($ppCalc['percentage'] ?? '0%');
-                                            $ppNum  = (int)trim($ppText, '%');
-                                            $status = $ppNum>0 && $ppNum<=25 ? 'red' : ($ppNum<=50 ? 'orange' : ($ppNum<=75 ? 'blue' : ($ppNum<=100 ? 'green' : '')));
-                                        @endphp
+                                            try {
+                                                $ppCalc = (method_exists($project,'projectProgress') && isset($lastTask?->id))
+                                                    ? $project->projectProgress($project, $lastTask->id)
+                                                    : ['percentage'=>'0%'];
+                                                $ppText = (string)($ppCalc['percentage'] ?? '0%');
+                                                $ppNum  = (int)trim($ppText, '%');
+                                                $status = $ppNum>0 && $ppNum<=25 ? 'red' : ($ppNum<=50 ? 'orange' : ($ppNum<=75 ? 'blue' : ($ppNum<=100 ? 'green' : '')));
+                                            } catch (\Throwable $e) {
+                                                \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="circular-progressbar p-0">
                                             <div class="flex-wrapper">
                                                 <div class="single-chart">
@@ -179,17 +173,17 @@
                     @php
                         $milePctRaw = $project->projectMilestoneProgress()['percentage'] ?? '0%';
                         $milePct = (int)trim($milePctRaw,'%');
-                    @endphp
+@endphp
                     <div class="{{ VC::CM6 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header" style="padding:25px 35px!important;">
+                            <div class="{{ VC::CD_HD }}" style="padding:25px 35px!important;">
                                 <div class="{{ VC::DFL_AIC_JCB }}">
                                     <div class="{{ VC::RW }}">
                                         <h5 class="{{ VC::MB0 }}">{{ __('Milestone Progress') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="chart">
                                     <div id="milestone-chart" class="chart-canvas" height="150" data-progress="{{ $milePct }}"></div>
                                 </div>
@@ -199,49 +193,49 @@
 
                     <div class="{{ VC::CM3 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Refferals') }}"><i></i></a></div>
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
                                 <h5>{{ __('Task Priority') }}</h5>
                             </div>
-                            <div class="card-body" style="min-height:280px;">
-                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="col-12"><div id="chart_priority"></div></div></div>
+                            <div class="{{ VC::CD_BD }}" style="min-height:280px;">
+                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="{{ VC::C12 }}"><div id="chart_priority"></div></div></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-5">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Refferals') }}"><i></i></a></div>
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
                                 <h5>{{ __('Task Status') }}</h5>
                             </div>
-                            <div class="card-body" style="min-height:280px;">
-                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="col-12"><div id="chart"></div></div></div>
+                            <div class="{{ VC::CD_BD }}" style="min-height:280px;">
+                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="{{ VC::C12 }}"><div id="chart"></div></div></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="{{ VC::CM4 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Refferals') }}"><i></i></a></div>
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
                                 <h5>{{ __('Hours Estimation') }}</h5>
                             </div>
-                            <div class="card-body" style="min-height:280px;">
-                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="col-12"><div id="chart-hours"></div></div></div>
+                            <div class="{{ VC::CD_BD }}" style="min-height:280px;">
+                                <div class="{{ VC::RW }} {{ VC::ALC }}"><div class="{{ VC::C12 }}"><div id="chart-hours"></div></div></div>
                             </div>
                         </div>
                     </div>
 
                     @php
-                        $lastStage = TaskStage::where(DB::COL_TABLE_CREATOR, $user?->creatorId())->orderBy('id','desc')->first();
-                    @endphp
+                        $lastStage = TaskStage::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->orderBy('id','desc')->first();
+@endphp
 
                     <div class="col-md-5">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Users') }}</h5></div>
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive milestone">
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Users') }}</h5></div>
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }} milestone">
                                     <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
@@ -255,30 +249,34 @@
                                             @if(Utility::isFilled($projUsers) ?? [])
                                                 @foreach($projUsers as $usr)
                                                     @php
-                                                        $total_user_task = ProjectTask::where(PJ::COL_PJ_ID, $project->id)
-                                                            ->whereRaw("FIND_IN_SET(?, ".PJ::COL_ASGN.") > 0", [$usr?->id])
-                                                            ->count();
-
-                                                        $total_complete_task = 0;
-                                                        if($lastStage){
-                                                            $total_complete_task = ProjectTask::where(PJ::COL_PJ_ID, $project->id)
-                                                                ->where('stage_id', $lastStage->id)
+                                                        try {
+                                                            $total_user_task = ProjectTask::where(PJ::COL_PJ_ID, $project->id)
                                                                 ->whereRaw("FIND_IN_SET(?, ".PJ::COL_ASGN.") > 0", [$usr?->id])
                                                                 ->count();
-                                                        }
 
-                                                        $timesheets = Timesheet::where(PJ::COL_PJ_ID, $project->id)
-                                                            ->where(DB::COL_TABLE_CREATOR, $usr?->id)
-                                                            ->get();
+                                                            $total_complete_task = 0;
+                                                            if($lastStage){
+                                                                $total_complete_task = ProjectTask::where(PJ::COL_PJ_ID, $project->id)
+                                                                    ->where('stage_id', $lastStage->id)
+                                                                    ->whereRaw("FIND_IN_SET(?, ".PJ::COL_ASGN.") > 0", [$usr?->id])
+                                                                    ->count();
+                                                            }
 
-                                                        $logged_hours = 0;
-                                                        foreach($timesheets as $t){
-                                                            $h = (int)date('H', strtotime($t->time));
-                                                            $m = (int)date('i', strtotime($t->time));
-                                                            $logged_hours += $h + ($m/60);
+                                                            $timesheets = Timesheet::where(PJ::COL_PJ_ID, $project->id)
+                                                                ->where(DC::COL_TABLE_CREATOR, $usr?->id)
+                                                                ->get();
+
+                                                            $logged_hours = 0;
+                                                            foreach($timesheets as $t){
+                                                                $h = (int)date('H', strtotime($t->time));
+                                                                $m = (int)date('i', strtotime($t->time));
+                                                                $logged_hours += $h + ($m/60);
+                                                            }
+                                                            $hours_format_number = number_format($logged_hours, 2, '.', '');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                         }
-                                                        $hours_format_number = number_format($logged_hours, 2, '.', '');
-                                                    @endphp
+@endphp
                                                     <tr>
                                                         <td>{{ $usr?->name ?? __('(no name)') }}</td>
                                                         <td>{{ $total_user_task }}</td>
@@ -287,7 +285,7 @@
                                                     </tr>
                                                 @endforeach
                                             @else
-                                                <tr><td colspan="4" class="text-center text-muted">{{ __('No users found.') }}</td></tr>
+                                                <tr><td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No users found.') }}</td></tr>
                                             @endif
                                         </tbody>
                                     </table>
@@ -298,9 +296,9 @@
 
                     <div class="col-md-7">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Milestones') }}</h5></div>
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive milestone">
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Milestones') }}</h5></div>
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }} milestone">
                                     <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
@@ -340,7 +338,7 @@
                                                     </tr>
                                                 @endforeach
                                             @else
-                                                <tr><td colspan="6" class="text-center text-muted">{{ __('No milestones found.') }}</td></tr>
+                                                <tr><td colspan="6" class="{{ VC::TXCT_MT }}">{{ __('No milestones found.') }}</td></tr>
                                             @endif
                                         </tbody>
                                     </table>
@@ -354,19 +352,23 @@
                     <div class="{{ VC::RW }} {{ VC::DFL_AIC }} {{ VC::JCE }}">
                         <div class="col-1">
                             @php
-                                $expBase   = VW::PRJ_RPT . '.export';
-                                $expKebab  = Str::kebab($expBase);
-                                $expName   = (Route::has($expBase) ? $expBase : (Route::has($expKebab) ? $expKebab : null));
-                                $expUrl    = $expName ? route($expName, $project->id) : '#';
-                                $expGuard  = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_export_route_unavailable') : 'Project report export route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project report export route is unavailable. Please contact technical support or your domain administrator.');
-                                $expId     = 'project-report-export-link-'.$project->id;
-                            @endphp
-                            <a id="{{ $expId }}" href="{{ $expUrl }}" data-url="{{ $expUrl }}" data-sv-localized="true" data-guard-msg="{{ $expGuard }}" class="{{ VC::BT_PRM }} {{ VC::TXT_WT }}">{{ __('Export') }}</a>
+                                try {
+                                    $expBase   = VW::PRJ_RPT . '.export';
+                                    $expKebab  = Str::kebab($expBase);
+                                    $expName   = (Route::has($expBase) ? $expBase : (Route::has($expKebab) ? $expKebab : null));
+                                    $expUrl    = $expName ? route($expName, $project->id) : '#';
+                                    $expGuard  = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_export_route_unavailable') : 'Project report export route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project report export route is unavailable. Please contact technical support or your domain administrator.');
+                                    $expId     = 'project-report-export-link-'.$project->id;
+                                } catch (\Throwable $e) {
+                                    \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
+                            <a id="{{ $expId }}" href="{{ $expUrl }}" data-url="{{ $expUrl }}" data-sv-localized="true" data-guard-msg="{{ base64_encode($expGuard) }}" class="{{ VC::BT_PRM }} {{ VC::TXT_WT }}">{{ __('Export') }}</a>
                         </div>
                     </div>
                 </div>
             @else
-                <div class="alert alert-danger mb-4" role="alert">
+                <div class="{{ VC::ALT_DNG }} {{ VC::MB4 }}" role="alert">
                     {{ __('No project data available to display the report.') }}
                 </div>
             @endif
@@ -374,7 +376,7 @@
                 <div class="{{ VC::CD }}">
                     <div class="card-body {{ VC::MT3 }} mx-2">
                         <div class="{{ VC::RW }} mt-2">
-                            <div class="table-responsive">
+                            <div class="{{ VC::TB_RSP }}">
                                 <table class="{{ VC::TB }} datatable">
                                     <thead>
                                         <tr>
@@ -392,33 +394,37 @@
                                     @if(is_array($tasksList) && count($tasksList) || ($tasksList instanceof Collection && $tasksList->isNotEmpty()))
                                         @foreach($tasksList as $task)
                                             @php
-                                                $tTimes = Timesheet::where(PJ::COL_PJ_ID, $project->id)->where('task_id',$task->id)->get();
-                                                $tHours = 0;
-                                                foreach($tTimes as $ts){ $tHours += (int)date('H',strtotime($ts->time)) + ((int)date('i',strtotime($ts->time)) / 60); }
-                                                $hours_format_number = number_format($tHours, 2, '.', '');
+                                                try {
+                                                    $tTimes = Timesheet::where(PJ::COL_PJ_ID, $project->id)->where('task_id',$task->id)->get();
+                                                    $tHours = 0;
+                                                    foreach($tTimes as $ts){ $tHours += (int)date('H',strtotime($ts->time)) + ((int)date('i',strtotime($ts->time)) / 60); }
+                                                    $hours_format_number = number_format($tHours, 2, '.', '');
 
-                                                $showBase = VW::PRJ . '.tasks.show';
-                                                $showK    = Str::kebab($showBase);
-                                                $showName = Route::has($showBase) ? $showBase : (Route::has($showK) ? $showK : null);
-                                                $showUrl  = $showName ? route($showName, [$project->id, $task->id]) : '#';
-                                                $showId   = 'project-task-show-link-'.$project->id.'-'.$task->id;
-                                                $showGuard= ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ, 'project_tasks_show_route_unavailable') : 'Project tasks show route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project tasks show route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $showBase = VW::PRJ . '.tasks.show';
+                                                    $showK    = Str::kebab($showBase);
+                                                    $showName = Route::has($showBase) ? $showBase : (Route::has($showK) ? $showK : null);
+                                                    $showUrl  = $showName ? route($showName, [$project->id, $task->id]) : '#';
+                                                    $showId   = 'project-task-show-link-'.$project->id.'-'.$task->id;
+                                                    $showGuard= ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ, 'project_tasks_show_route_unavailable') : 'Project tasks show route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project tasks show route is unavailable. Please contact technical support or your domain administrator.');
 
-                                                $taskUsers = $task->users();
-                                                $taskUsersArr = [];
-                                                if (is_array($taskUsers ?? null) && count($taskUsers)) { $taskUsersArr = $taskUsers; }
-                                                elseif (($taskUsers ?? null) instanceof Collection && $taskUsers->isNotEmpty()) { $taskUsersArr = $taskUsers; }
-                                            @endphp
+                                                    $taskUsers = $task->users();
+                                                    $taskUsersArr = [];
+                                                    if (is_array($taskUsers ?? null) && count($taskUsers)) { $taskUsersArr = $taskUsers; }
+                                                    elseif (($taskUsers ?? null) instanceof Collection && $taskUsers->isNotEmpty()) { $taskUsersArr = $taskUsers; }
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>
                                                     <a id="{{ $showId }}"
                                                        href="{{ $showUrl }}"
                                                        data-url="{{ $showUrl }}"
                                                        data-sv-localized="true"
-                                                       data-guard-msg="{{ $showGuard }}"
+                                                       data-guard-msg="{{ base64_encode($showGuard) }}"
                                                        data-size="md"
                                                        data-ajax-popup="true"
-                                                       class="dropdown-item">
+                                                       class="{{ VC::DRP_IT }}">
                                                         {{ $task->name ?? __('(no name)') }}
                                                     </a>
                                                 </td>
@@ -433,7 +439,9 @@
                                                                     <a href="#" class="{{ VC::AV_CC_SM }}"><img src="{{ $tu->getImgImageAttribute() }}" title="{{ $tu?->name }}"></a>
                                                                 @else @break @endif
                                                             @endforeach
-                                                            @php $extra = is_array($taskUsersArr)?count($taskUsersArr):$taskUsersArr->count(); @endphp
+                                                            @php
+ $extra = is_array($taskUsersArr)?count($taskUsersArr):$taskUsersArr->count();
+@endphp
                                                             @if($extra>3)
                                                                 <a href="#" class="{{ VC::AV_CC_SM }}"><img avatar="+ {{ $extra-3 }}"></a>
                                                             @endif
@@ -445,17 +453,21 @@
                                                 <td>{{ $hours_format_number }}</td>
                                                 <td>
                                                     @php
-                                                        $pKey = $task->priority ?? null;
-                                                        $pTxt = ProjectTask::$priority[$pKey] ?? __('Unknown');
-                                                        $pClr = ProjectTask::$priority_color[$pKey] ?? 'secondary';
-                                                    @endphp
+                                                        try {
+                                                            $pKey = $task->priority ?? null;
+                                                            $pTxt = ProjectTask::$priority[$pKey] ?? __('Unknown');
+                                                            $pClr = ProjectTask::$priority_color[$pKey] ?? 'secondary';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('project_reports/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <span class="{{ VC::BDG }} p-2 {{ VC::PX3 }} status_badge rounded bg-{{ $pClr }}">{{ $pTxt }}</span>
                                                 </td>
                                                 <td>{{ !empty($task->stage) && isset($task->stage->name) ? $task->stage->name : __('No name available for Task stage') }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td colspan="8" class="text-center text-muted">{{ __('No tasks found.') }}</td></tr>
+                                        <tr><td colspan="8" class="{{ VC::TXCT_MT }}">{{ __('No tasks found.') }}</td></tr>
                                     @endif
                                     </tbody>
                                 </table>
@@ -470,6 +482,7 @@
 @endsection
 
 @push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script src="{{ asset('assets/js/datatables.min.js') }}"></script>
     <script src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
     <script async src="{{ asset('assets/js/plugins/apexcharts.min.js')}}"></script>
@@ -506,7 +519,7 @@
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -524,7 +537,7 @@
 
             const renderChart=(selector, options, key)=>{
             try{
-                if(typeof ApexCharts==='undefined'){ 
+                if(typeof ApexCharts==='undefined'){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"

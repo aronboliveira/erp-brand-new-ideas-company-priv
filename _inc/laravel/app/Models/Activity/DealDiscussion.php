@@ -15,9 +15,9 @@ class DealDiscussion extends Model
     protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal'];
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
     }
     public function deal(): BelongsTo
     {

@@ -1,23 +1,43 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Auth, Facades\Route, Str};
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $storeBase  = VW::WRN;
-    $storeTry   = [$storeBase, $storeBase . '.store', Str::kebab($storeBase), Str::kebab($storeBase) . '.store'];
-    $storeName  = collect($storeTry)->first(fn($n) => Route::has($n));
-    $storeUrl   = $storeName ? route($storeName) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'store_warning_route_unavailable') ?? 'Store warning route is unavailable. Please contact technical support or your domain administrator.';
-    $formId     = 'create_warning';
+$user ??= null;
+	$lang ??= 'en';
+	$storeBase ??= '';
+	$storeTry ??= [];
+	$storeName ??= null;
+	$storeUrl ??= '#';
+	$storeGuard ??= '';
+	$formId ??= 'create_warning';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$storeBase = VW::WRN;
+		$storeTry = [$storeBase, $storeBase . '.store', Str::kebab($storeBase), Str::kebab($storeBase) . '.store'];
+		$storeName = collect($storeTry)->first(fn($n) => Route::has($n));
+		$storeUrl = $storeName ? (route($storeName) ?? '#') : '#';
+		$storeGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'store_warning_route_unavailable')
+			?? 'Store warning route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in warnings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in warnings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in warnings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -29,16 +49,27 @@
     'data-sv-localized'    => 'true',
 ]) !!}
     <div class="modal-body">
-        @php($plan = Utility::getChatGPTSettings())
-        @if(($plan?->{PlansConstants::COL_GPT} ?? 0) == 1)
-            @php
-                $genBase  = 'generate';
-                $genName  = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-                $genUrl   = $genName ? route($genName, ['warning']) : '#';
-                $genGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'ai_generate_content_unavailable') ?? 'AI content generation for warnings is unavailable. Please contact technical support or your domain administrator.';
-                $genId    = 'warning-ai-generate-link';
-            @endphp
-            <div class="text-end">
+        @php
+	$showAiGenerate = false;
+	$genBase  = 'generate';
+	$genName  = null;
+	$genUrl   = '#';
+	$genGuard = 'AI content generation for warnings is unavailable. Please contact technical support or your domain administrator.';
+	$genId    = 'warning-ai-generate-link';
+	try {
+		$plan = Utility::getChatGPTSettings();
+		if (($plan?->{PlansConstants::COL_GPT} ?? 0) == 1) {
+			$showAiGenerate = true;
+			$genName  = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+			$genUrl   = $genName ? route($genName, ['warning']) : '#';
+			$genGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'ai_generate_content_unavailable') ?? $genGuard;
+		}
+	} catch (\Throwable $e) {
+		\Log::error('warnings/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
+			@if($showAiGenerate)
+            <div class="{{ VC::TX_END }}">
                 <a id="{{ $genId }}"
                    href="{{ $genUrl }}"
                    data-url="{{ $genUrl }}"
@@ -46,7 +77,7 @@
                    data-size="md"
                    data-title="{{ __('Generate content with AI') }}"
                    data-bs-placement="top"
-                   data-guard-msg="{{ $genGuard }}"
+                   data-guard-msg="{{ base64_encode($genGuard) }}"
                    data-sv-localized="true"
                    class="{{ VC::BT_SM_PM }} btn-icon">
                     <i class="{{ VC::FAS_RB }}"></i>

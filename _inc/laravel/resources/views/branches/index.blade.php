@@ -1,25 +1,18 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang = Utility::fetchUserLang();
-    $branchCreateRoute = Route::has(ViewsConstants::BRC . '.create')
-        ? route(ViewsConstants::BRC . '.create')
-        : '#';
-    $branchCreateBtnId = 'branch-create-btn';
-    $branchCreateMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BRC,
-        'branch_create_route_unavailable'
-    ) ?? 'Branch create route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $branchCreateRoute = Route::has(ViewsConstants::BRC . '.create')
+            ? route(ViewsConstants::BRC . '.create')
+            : '#';
+        $branchCreateBtnId = 'branch-create-btn';
+        $branchCreateMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::BRC,
+            'branch_create_route_unavailable'
+        ) ?? 'Branch create route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('branches/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -29,13 +22,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Branch') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Branch') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -45,7 +38,7 @@
                 id="{{ $branchCreateBtnId }}"
                 href="#"
                 data-url="{{ $branchCreateRoute }}"
-                data-guard-msg="{{ $branchCreateMsg }}"
+                data-guard-msg="{{ base64_encode($branchCreateMsg) }}"
                 data-ajax-popup="true"
                 data-title="{{ __('Create New Branch') }}"
                 class="{{ VC::BT_SM_PM }}"
@@ -60,13 +53,13 @@
 @if(!empty($branches) && ((is_array($branches) && $branches->count()) || ($branches instanceof Collection && $branches->isNotEmpty())))
     @section(YieldingConstants::ADM_CTT)
         <div class="{{ VC::RW }}">
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 @include('layouts.hrm_setup')
             </div>
-            <div class="col-9">
+            <div class="{{ VC::C9 }}">
                 <div class="{{ VC::CD }}">
                     <div class="{{ VC::CD }}-body table-border-style">
-                        <div class="table-responsive">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                     <tr>
@@ -77,37 +70,41 @@
                                 <tbody class="font-style">
                                     @foreach ($branches as $branch)
                                         @php
-                                            $branchEditRoute    = Route::has(ViewsConstants::BRC . '.edit')
-                                                ? route(ViewsConstants::BRC . '.edit', $branch->id)
-                                                : '#';
-                                            $branchEditBtnId    = 'branch-edit-btn-' . $branch->id;
-                                            $branchEditMsg      = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::BRC,
-                                                'branch_edit_route_unavailable'
-                                            ) ?? 'Branch edit route is unavailable. Please contact technical support or your domain administrator.';
+                                            try {
+                                                $branchEditRoute    = Route::has(ViewsConstants::BRC . '.edit')
+                                                    ? route(ViewsConstants::BRC . '.edit', $branch->id)
+                                                    : '#';
+                                                $branchEditBtnId    = 'branch-edit-btn-' . $branch->id;
+                                                $branchEditMsg      = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    ViewsConstants::BRC,
+                                                    'branch_edit_route_unavailable'
+                                                ) ?? 'Branch edit route is unavailable. Please contact technical support or your domain administrator.';
 
-                                            $branchDestroyRoute = Route::has(ViewsConstants::BRC . '.destroy')
-                                                ? route(ViewsConstants::BRC . '.destroy', $branch->id)
-                                                : '#';
-                                            $branchDestroyBtnId = 'branch-delete-btn-' . $branch->id;
-                                            $branchDestroyFormId= 'delete-form-' . $branch->id;
-                                            $branchDestroyMsg   = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::BRC,
-                                                'branch_destroy_route_unavailable'
-                                            ) ?? 'Branch destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                                $branchDestroyRoute = Route::has(ViewsConstants::BRC . '.destroy')
+                                                    ? route(ViewsConstants::BRC . '.destroy', $branch->id)
+                                                    : '#';
+                                                $branchDestroyBtnId = 'branch-delete-btn-' . $branch->id;
+                                                $branchDestroyFormId= 'delete-form-' . $branch->id;
+                                                $branchDestroyMsg   = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    ViewsConstants::BRC,
+                                                    'branch_destroy_route_unavailable'
+                                                ) ?? 'Branch destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('branches/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $branch->name }}</td>
-                                            <td class="Action text-end">
+                                            <td class="Action {{ VC::TX_END }}">
                                                 @can('edit branch')
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                         <a
                                                             id="{{ $branchEditBtnId }}"
                                                             href="#"
                                                             data-url="{{ $branchEditRoute }}"
-                                                            data-guard-msg="{{ $branchEditMsg }}"
+                                                            data-guard-msg="{{ base64_encode($branchEditMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Branch') }}"
                                                             class="{{ VC::BT_SM_CT }}"
@@ -153,58 +150,20 @@
         </div>
     @endsection
     @push(StacksConstants::ADM_SCR_PG)
+        <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
         <script defer>
-            (() => {
-                const guardClick = id => {
-                    const el = document.getElementById(id);
-                    if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                    el.setAttribute('data-listener-active', 'true');
-                    el.addEventListener('click', event => {
-                        try {
-                            const href = el.getAttribute('href');
-                            const url  = el.getAttribute('data-url');
-                            if ((href && href !== '#') || (url && url !== '#')) return;
-                            event.preventDefault();
-                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container       = document.getElementById('toast-container');
-                            if (!container) {
-                                container       = document.createElement('div');
-                                container.id    = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl      = document.createElement('div');
-                                toastEl.className  = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body         = document.createElement('div');
-                                body.className     = 'toast-body';
-                                body.textContent   = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
-                            el.setAttribute('data-failed-route', 'true');
-                        } catch (e) {}
-                    });
-                };
-
-                guardClick('{{ $branchCreateBtnId }}');
-
+            window.RouteGuard?.guardMultiple?.(
+                '{{ $branchCreateBtnId }}',
                 @foreach ($branches as $branch)
-                    guardClick('branch-edit-btn-{{ $branch->id }}');
-                    guardClick('branch-delete-btn-{{ $branch->id }}');
+                    'branch-edit-btn-{{ $branch->id ?? '' }}',
+                    'branch-delete-btn-{{ $branch->id ?? '' }}',
                 @endforeach
-            })();
+            );
         </script>
     @endpush
 @else
-    <div class="text-center">
+    <div class="{{ VC::TXCT }}">
         <h5>{{ __('No branches found') }}</h5>
-        <p class="text-muted">{{ __('Please create a new branch to get started.') }}</p>
+        <p class="{{ VC::TXT_MT }}">{{ __('Please create a new branch to get started.') }}</p>
     </div>
 @endif

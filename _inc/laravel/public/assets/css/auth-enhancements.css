@@ -1,0 +1,1025 @@
+/**
+ * @file auth-enhancements.css
+ * @description UI polish for /login, /register, /forgot-password pages.
+ * Fixes: background aggressiveness, button styling, animations, hover states.
+ */
+
+/* ────────────────────────────────────────────────────────────
+   1. Smooth the aggressive green background (issue #11)
+   ──────────────────────────────────────────────────────────── */
+.custom-login .bg-login {
+  background: linear-gradient(
+    135deg,
+    rgba(12, 175, 96, 0.72) 0%,
+    rgba(12, 175, 96, 0.55) 40%,
+    rgba(12, 175, 96, 0.4) 100%
+  ) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.custom-login .login-bg-img img {
+  opacity: 0.35;
+  filter: blur(1px) saturate(0.8) brightness(0.95);
+  animation: bgSettle 1.8s ease-out both;
+}
+
+@keyframes bgSettle {
+  0% {
+    opacity: 0;
+    filter: blur(4px) saturate(0.4) brightness(0.8);
+  }
+  60% {
+    opacity: 0.28;
+    filter: blur(2px) saturate(0.6) brightness(0.9);
+  }
+  100% {
+    opacity: 0.35;
+    filter: blur(1px) saturate(0.8) brightness(0.95);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   2. Login/Register button styling (issue #6)
+   ──────────────────────────────────────────────────────────── */
+.custom-login .navbar .nav-link.btn,
+.custom-login .navbar a.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+
+.custom-login .navbar .btn-primary,
+.custom-login .navbar .btn-login {
+  background-color: var(--bs-green, #0caf60);
+  border-color: var(--bs-green, #0caf60);
+  color: #fff !important;
+}
+
+.custom-login .navbar .btn-primary:hover,
+.custom-login .navbar .btn-primary:focus-visible {
+  background-color: #0a9e55;
+  border-color: #0a9e55;
+  box-shadow: 0 4px 12px rgba(12, 175, 96, 0.35);
+  transform: translateY(-1px);
+}
+
+.custom-login .navbar .btn-outline-dark {
+  border-color: var(--bs-green, #0caf60);
+  color: var(--bs-green, #0caf60) !important;
+  background: transparent;
+}
+
+.custom-login .navbar .btn-outline-dark:hover,
+.custom-login .navbar .btn-outline-dark:focus-visible {
+  background-color: var(--bs-green, #0caf60);
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(12, 175, 96, 0.25);
+  transform: translateY(-1px);
+}
+
+.custom-login .navbar .btn-outline-dark:active {
+  background-color: #0a9e55;
+  border-color: #0a9e55;
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(12, 175, 96, 0.2);
+}
+
+/* ────────────────────────────────────────────────────────────
+   3. Blue-gradient banner stripe + hover states (#7)
+   ──────────────────────────────────────────────────────────── */
+.common-banner.bg-primary {
+  margin-top: 110px;
+  padding: 1rem 0 1.5rem;
+  background: linear-gradient(
+    135deg,
+    #0a1628 0%,
+    #1a365d 35%,
+    #2c5282 70%,
+    #0d503c 100%
+  ) !important;
+}
+
+.common-banner.bg-primary > .container,
+.common-banner.bg-primary > div[class*="container"] {
+  background: linear-gradient(
+    145deg,
+    rgba(10, 22, 40, 0.35) 0%,
+    rgba(26, 54, 93, 0.25) 40%,
+    rgba(44, 82, 130, 0.15) 100%
+  );
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+}
+
+.common-banner.bg-primary .row.align-items-center {
+  padding-top: 6px;
+}
+
+.common-banner.bg-primary .title h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Anchor/button hover states inside the green stripe */
+.common-banner a,
+.common-banner button {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.common-banner a:hover,
+.common-banner button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.common-banner a:focus-visible,
+.common-banner button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.common-banner a:active,
+.common-banner button:active {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
+/* ────────────────────────────────────────────────────────────
+   3b. Login card — hide scrollbar + remove border + position
+   ──────────────────────────────────────────────────────────── */
+
+/* Remove grey border on the card */
+.custom-login .custom-wrapper .card,
+.custom-login .custom-row .card,
+.custom-login .custom-wrapper > .custom-row > div {
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Move card closer to navbar */
+.custom-login .custom-wrapper {
+  padding-top: 1rem;
+  margin-top: 0;
+}
+
+.custom-login .custom-row {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Hide scrollbar during animations */
+.custom-login .custom-wrapper .card,
+.custom-login .custom-row > div {
+  overflow: hidden;
+  animation: allowScroll 0s 2.5s forwards;
+}
+
+@keyframes allowScroll {
+  to {
+    overflow: visible;
+  }
+}
+
+/* Also hide the outer scrollbar briefly */
+.custom-login .custom-wrapper .card .card-body {
+  overflow: hidden;
+  animation: allowScrollBody 0s 2.5s forwards;
+}
+
+@keyframes allowScrollBody {
+  to {
+    overflow: visible;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   4. Login page entry animation (#8)
+   ──────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.custom-login {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.custom-login .dash-header {
+  animation: fadeInUp 0.45s ease-out 0.1s both;
+}
+
+.custom-login .custom-wrapper .card .card-body {
+  animation: fadeInUp 0.55s ease-out 0.2s both;
+}
+
+.custom-login .bg-login {
+  animation: fadeIn 0.8s ease-out 0.15s both;
+}
+
+.custom-login .login-bg-img img {
+  animation: fadeIn 1s ease-out 0.3s both;
+}
+
+.custom-login .auth-footer {
+  animation: fadeIn 0.6s ease-out 0.4s both;
+}
+
+/* @starting-style for browsers that support it (Chrome 117+) */
+@supports (selector(:has(*))) {
+  .custom-login .custom-wrapper .card .card-body {
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   5. Navbar links hover/focus/active polish
+   ──────────────────────────────────────────────────────────── */
+.custom-login .navbar .nav-link {
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+  border-radius: 6px;
+}
+
+.custom-login .navbar .nav-link:hover {
+  color: var(--bs-green, #0caf60) !important;
+  background-color: rgba(12, 175, 96, 0.06);
+}
+
+.custom-login .navbar .nav-link:focus-visible {
+  outline: 2px solid var(--bs-green, #0caf60);
+  outline-offset: 2px;
+}
+
+.custom-login .navbar .nav-link:active {
+  color: #0a9e55 !important;
+}
+
+/* ────────────────────────────────────────────────────────────
+   6. Login form submit button polish
+   ──────────────────────────────────────────────────────────── */
+.custom-login .btn-primary#saveBtn,
+.custom-login .d-grid .btn-primary {
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.custom-login .btn-primary#saveBtn:hover,
+.custom-login .d-grid .btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(12, 175, 96, 0.35);
+  transform: translateY(-1px);
+}
+
+.custom-login .btn-primary#saveBtn:active,
+.custom-login .d-grid .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(12, 175, 96, 0.2);
+}
+
+/* ────────────────────────────────────────────────────────────
+   7. Language dropdown polish
+   ──────────────────────────────────────────────────────────── */
+.custom-login .dropdown-item {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  border-radius: 4px;
+}
+
+.custom-login .dropdown-item:hover {
+  background-color: rgba(12, 175, 96, 0.08);
+  color: var(--bs-green, #0caf60);
+}
+
+.custom-login .dropdown-item:focus-visible {
+  outline: 2px solid var(--bs-green, #0caf60);
+  outline-offset: -2px;
+}
+
+/* ────────────────────────────────────────────────────────────
+   8. Custom page button styles
+   ──────────────────────────────────────────────────────────── */
+
+/* Login/Register buttons on custom pages */
+.main-header .btn-outline-dark {
+  transition: all 0.2s ease;
+}
+
+.main-header .btn-outline-dark:hover {
+  background-color: var(--bs-dark, #212529);
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.main-header .btn-outline-dark:focus-visible {
+  outline: 2px solid var(--bs-dark, #212529);
+  outline-offset: 2px;
+}
+
+.main-header .btn-outline-dark:active {
+  transform: scale(0.97);
+}
+
+/* ────────────────────────────────────────────────────────────
+   9. Footer "Talk to Nova Prestech" / Join-Us section (issue #3)
+   ──────────────────────────────────────────────────────────── */
+
+/* Footer base */
+.site-footer {
+  background: rgba(225, 230, 235, 0.85) !important;
+  border-top: 2px solid rgba(100, 116, 130, 0.45) !important;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Remove overly dark border-bottom from footer container */
+.site-footer > .container,
+.site-footer > div[class*="container"] {
+  border-bottom: none !important;
+}
+
+.site-footer .footer-row {
+  border-bottom: none !important;
+}
+
+/* Footer container — centered layout */
+.site-footer > .container,
+.site-footer > div[class*="container"] {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Login/Register buttons alignment on custom pages */
+.main-header .ms-auto {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem;
+}
+
+.main-header .ms-auto .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 1.1rem;
+  white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Auth-content navbar: fix for long-text languages (desktop)
+   ──────────────────────────────────────────────────────────── */
+
+/* Let nav items wrap and shrink instead of overflowing */
+.auth-content > nav .navbar-nav {
+  flex-wrap: wrap;
+  gap: 0.15rem 0.25rem;
+  align-items: center;
+}
+
+.auth-content > nav .navbar-nav .nav-item {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.auth-content > nav .navbar-nav .nav-link {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 16rem;
+  font-size: clamp(0.78rem, 0.65vw + 0.55rem, 0.95rem);
+  padding: 0.35rem 0.6rem !important;
+  line-height: 1.35;
+}
+
+/* Keep the language dropdown toggle from being ellipsized */
+.auth-content > nav .lang-dropdown-only-desk .nav-link,
+.auth-content > nav .drp-language .nav-link,
+.auth-content > nav [class*="lang-dropdown"] .drp-text {
+  max-width: none;
+  white-space: nowrap;
+}
+
+/* Ensure the collapse container can wrap on desktop */
+.auth-content > nav .navbar-collapse {
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  justify-content: flex-end;
+}
+
+/* Reduce gap between navbar and the login card */
+.auth-content > .card {
+  margin-top: 0.25rem;
+}
+
+.auth-content > nav {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+/* Extra breathing room for the collapse toggle on smaller desktops */
+@media (min-width: 992px) and (max-width: 1280px) {
+  .auth-content > nav .navbar-nav .nav-link {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.45rem !important;
+    max-width: 12rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .auth-content > nav .navbar-nav .nav-link {
+    max-width: none;
+    white-space: normal;
+    font-size: 0.9rem;
+  }
+}
+
+/* Logo hover animation */
+.navbar-brand img,
+.footer-logo a img,
+.header-left a img {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+.navbar-brand:hover img,
+.navbar-brand:focus img,
+.footer-logo a:hover img,
+.footer-logo a:focus img,
+.header-left a:hover img,
+.header-left a:focus img {
+  transform: translate3d(0, -3px, 0) scale(1.03);
+}
+
+/* Logo / nav spacing */
+.main-header .navbar .header-left {
+  margin-right: 2rem;
+  flex-shrink: 0;
+}
+
+/* Left-align logo to viewport edge */
+.main-header .navbar {
+  padding-left: 0 !important;
+}
+
+.main-header > .container,
+.main-header > div[class*="container"] {
+  padding-left: 0.5rem;
+}
+
+/* Smooth anchor wrapper for logo */
+.main-header .header-left a {
+  display: inline-block;
+  transition:
+    transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.3s ease,
+    opacity 0.2s ease;
+  will-change: transform, filter;
+}
+
+.main-header .header-left a:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
+}
+
+.main-header .header-left a:focus,
+.main-header .header-left a:focus-visible {
+  outline: 2px solid #0a6b5a;
+  outline-offset: 4px;
+  border-radius: 6px;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.main-header .header-left a:active {
+  transform: translateY(0) scale(1);
+  filter: none;
+  opacity: 0.9;
+}
+
+/* Nav anchor styles for Features/Plan/Faq */
+.main-header .navbar .nav-link {
+  position: relative;
+  padding: 0.5rem 0.85rem !important;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.main-header .navbar .nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition:
+    width 0.25s ease,
+    left 0.25s ease;
+}
+
+.main-header .navbar .nav-link:hover::after,
+.main-header .navbar .nav-link:focus::after {
+  width: 70%;
+  left: 15%;
+}
+
+.main-header .navbar .nav-link:visited {
+  color: #4a5568;
+}
+
+.main-header .navbar .nav-link:hover {
+  color: #0a6b5a !important;
+  background-color: rgba(10, 107, 90, 0.06) !important;
+  opacity: 1;
+}
+
+.main-header .navbar .nav-link:focus,
+.main-header .navbar .nav-link:focus-visible {
+  outline: 2px solid #0a6b5a !important;
+  outline-offset: 3px;
+  border-radius: 4px;
+  color: #0a6b5a !important;
+}
+
+.main-header .navbar .nav-link:active {
+  color: #064d3e !important;
+  background-color: rgba(10, 107, 90, 0.1) !important;
+  opacity: 0.9;
+}
+
+/* Footer heading */
+.site-footer .ftr-subscribe h2 {
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: #002332;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+/* Footer description */
+.site-footer .ftr-subscribe p {
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+/* Input wrapper — pill-shaped */
+.site-footer .ftr-subscribe .input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 2px solid #dee2e6 !important;
+  border-radius: 50px;
+  overflow: hidden;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.site-footer .ftr-subscribe .input-wrapper:focus-within {
+  border-color: #198754 !important;
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+}
+
+/* Email input */
+.site-footer .ftr-subscribe .input-wrapper input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #212529;
+}
+
+.site-footer .ftr-subscribe .input-wrapper input::placeholder {
+  color: #adb5bd;
+}
+
+/* Join Us submit button */
+.site-footer .ftr-subscribe .input-wrapper .btn {
+  position: relative;
+  top: unset;
+  right: unset;
+  flex-shrink: 0;
+  margin: 4px;
+  padding: 0.6rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 50px;
+  background: #198754;
+  border-color: #198754;
+  color: #fff;
+  transition:
+    background 0.25s ease,
+    transform 0.15s ease,
+    box-shadow 0.25s ease;
+}
+
+.site-footer .ftr-subscribe .input-wrapper .btn:hover {
+  background: #157347;
+  border-color: #146c43;
+  box-shadow: 0 3px 10px rgba(25, 135, 84, 0.3);
+  transform: translateY(-1px);
+}
+
+.site-footer .ftr-subscribe .input-wrapper .btn:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.25);
+}
+
+.site-footer .ftr-subscribe .input-wrapper .btn:active {
+  background: #146c43;
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* Footer column headings */
+.site-footer .ftr-col h5,
+.site-footer .ftr-col h4 {
+  font-weight: 600;
+  color: #002332;
+  margin-bottom: 1rem;
+}
+
+/* Footer links */
+.site-footer .ftr-col .list-unstyled li a {
+  color: #4a5568;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    padding-left 0.2s ease;
+}
+
+.site-footer .ftr-col .list-unstyled li a:hover {
+  color: #198754;
+  padding-left: 4px;
+}
+
+.site-footer .ftr-col .list-unstyled li a:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Copyright bar */
+.site-footer .border-top {
+  border-color: rgba(100, 116, 130, 0.35) !important;
+  background: transparent;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+}
+
+.site-footer .border-top.border-dark {
+  border-color: rgba(100, 116, 130, 0.35) !important;
+}
+
+.site-footer .border-top p {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Space before footer + blue gradient background for static content */
+.static-content.section-gap {
+  padding-bottom: 1.5rem;
+  background: linear-gradient(
+    180deg,
+    #0a1628 0%,
+    #1a365d 20%,
+    #2c5282 50%,
+    #1e3a5f 80%,
+    #0a1628 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.static-content.section-gap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(
+      ellipse at 20% 20%,
+      rgba(16, 185, 129, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 80%,
+      rgba(99, 179, 237, 0.08) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.static-content.section-gap > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ────────────────────────────────────────────────────────────
+   10. Static content layout (custom pages)
+   ──────────────────────────────────────────────────────────── */
+
+/* Container: left-aligned text, full width */
+.static-content .container,
+.static-content > div[class*="container"] {
+  max-width: 100% !important;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  text-align: left;
+}
+
+/* Unified article styling */
+.static-content article,
+.static-content .content-article {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(206, 212, 218, 0.2);
+}
+
+.static-content article:last-child,
+.static-content .content-article:last-child {
+  border-bottom: none;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0;
+}
+
+/* Article headings */
+.static-content article h2,
+.static-content article h3,
+.static-content .content-article h2,
+.static-content .content-article h3 {
+  font-weight: 600;
+  color: #002332;
+  margin-bottom: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+/* Friendlier list spacing */
+.static-content ul,
+.static-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.static-content li {
+  margin-bottom: 0.35rem;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.static-content li + li {
+  margin-top: 0.15rem;
+}
+
+/* Paragraphs */
+.static-content p {
+  margin-bottom: 0.6rem;
+  line-height: 1.65;
+  color: #374151;
+}
+
+/* Tables */
+.static-content table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+.static-content th,
+.static-content td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.static-content th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Keep content clear of the fixed logo */
+.static-content.section-gap {
+  padding-top: 1rem;
+  min-height: 60vh;
+}
+
+/* ────────────────────────────────────────────────────────────
+   11. Avatar hover/focus scale (testimonials)
+   ──────────────────────────────────────────────────────────── */
+.theme-avatar img,
+.avatar img {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+.theme-avatar:hover img,
+.theme-avatar:focus-within img,
+.avatar:hover img,
+.avatar:focus-within img {
+  transform: scale(1.12);
+}
+
+/* ────────────────────────────────────────────────────────────
+   12. Gold-filled feather star icons (testimonials)
+   ──────────────────────────────────────────────────────────── */
+[data-feather="star"],
+.feather-star,
+svg.feather.feather-star {
+  fill: #fbbf24 !important;
+  stroke: #f59e0b !important;
+  color: #f59e0b !important;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* ────────────────────────────────────────────────────────────
+   13. Header logo smooth hover/focus
+   ──────────────────────────────────────────────────────────── */
+#headerLogo {
+  transition:
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    filter 0.3s ease;
+  will-change: transform, filter;
+}
+
+a:hover > #headerLogo,
+a:focus > #headerLogo {
+  transform: scale(1.08) translateY(-2px) !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+a:active > #headerLogo {
+  transform: scale(1.04) translateY(0) !important;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .site-footer .ftr-subscribe h2 {
+    font-size: 1.35rem;
+  }
+
+  .site-footer .ftr-subscribe .input-wrapper {
+    flex-direction: column;
+    border-radius: 12px;
+  }
+
+  .site-footer .ftr-subscribe .input-wrapper input {
+    border-radius: 12px 12px 0 0;
+    text-align: center;
+  }
+
+  .site-footer .ftr-subscribe .input-wrapper .btn {
+    border-radius: 0 0 12px 12px;
+    width: 100%;
+    margin: 0;
+    padding: 0.75rem;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   12. RTL & CJK Language Support
+   ──────────────────────────────────────────────────────────── */
+
+/* System fonts fallback chain for CJK and RTL languages */
+:root {
+  --font-sans-cjk:
+    "Noto Sans SC", "Noto Sans TC", "Noto Sans JP", "Noto Sans KR",
+    "PingFang SC", "Microsoft YaHei", "SimHei", "Heiti SC", "Yu Gothic",
+    "Meiryo", "Hiragino Kaku Gothic Pro", "Malgun Gothic",
+    "Apple SD Gothic Neo", sans-serif;
+
+  --font-sans-rtl:
+    "Noto Sans Arabic", "Noto Sans Hebrew", "Noto Naskh Arabic", "Geeza Pro",
+    "Arial Hebrew", "Tahoma", "Segoe UI", sans-serif;
+
+  --font-sans-indic:
+    "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil",
+    "Kohinoor Devanagari", "Nirmala UI", "Lohit Devanagari", sans-serif;
+
+  --font-sans-thai: "Noto Sans Thai", "Sarabun", "Tahoma", "Prompt", sans-serif;
+
+  --font-sans-vietnamese:
+    "Be Vietnam Pro", "Roboto", "Arial Unicode MS", sans-serif;
+}
+
+/* Language dropdown items: ensure CJK/RTL text fits nicely */
+.dropdown-item[data-lang-code^="zh"],
+.dropdown-item[data-lang-code="ja"],
+.dropdown-item[data-lang-code="ko"] {
+  font-family: var(--font-sans-cjk), var(--bs-body-font-family);
+  font-size: 0.95em;
+  letter-spacing: 0.02em;
+}
+
+.dropdown-item[data-lang-code="ar"],
+.dropdown-item[data-lang-code="he"],
+.dropdown-item[data-lang-code="fa"],
+.dropdown-item[data-lang-code="ur"] {
+  font-family: var(--font-sans-rtl), var(--bs-body-font-family);
+  font-size: 1em;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: isolate;
+}
+
+.dropdown-item[data-lang-code="th"] {
+  font-family: var(--font-sans-thai), var(--bs-body-font-family);
+}
+
+.dropdown-item[data-lang-code="hi"],
+.dropdown-item[data-lang-code="bn"],
+.dropdown-item[data-lang-code="ta"] {
+  font-family: var(--font-sans-indic), var(--bs-body-font-family);
+}
+
+.dropdown-item[data-lang-code="vi"] {
+  font-family: var(--font-sans-vietnamese), var(--bs-body-font-family);
+}
+
+/* RTL dropdown menu positioning */
+[dir="rtl"] .dropdown-menu,
+html[lang^="ar"] .dropdown-menu,
+html[lang="he"] .dropdown-menu,
+html[lang="fa"] .dropdown-menu,
+html[lang="ur"] .dropdown-menu {
+  text-align: right;
+}
+
+/* Ensure dropdown items have enough width for CJK characters */
+.lang-dropdown-only-desk .dropdown-menu,
+.drp-language .dropdown-menu {
+  min-width: 160px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(12, 175, 96, 0.4) transparent;
+}
+
+.lang-dropdown-only-desk .dropdown-menu::-webkit-scrollbar,
+.drp-language .dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lang-dropdown-only-desk .dropdown-menu::-webkit-scrollbar-thumb,
+.drp-language .dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(12, 175, 96, 0.4);
+  border-radius: 3px;
+}
+
+.lang-dropdown-only-desk .dropdown-menu::-webkit-scrollbar-track,
+.drp-language .dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* CJK language display text in toggle button */
+.drp-text {
+  font-family:
+    var(--bs-body-font-family), var(--font-sans-cjk), var(--font-sans-rtl),
+    var(--font-sans-indic), var(--font-sans-thai), sans-serif;
+}

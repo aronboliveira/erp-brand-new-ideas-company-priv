@@ -1,19 +1,15 @@
 
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        YieldingConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $logo = Utility::getFile('uploads/logo/');
-    $dark_logo   = Utility::getValByName('dark_logo');
-    $img = asset($logo . '/' . (isset($dark_logo) && !empty($dark_logo) ? $dark_logo : SettingsConstants::CPN_LG_DK_DEF));
-    $settings = Utility::settings();
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $logo = Utility::getFile('uploads/logo/');
+        $dark_logo   = Utility::getValByName('dark_logo');
+        $img = asset($logo . '/' . (isset($dark_logo) && !empty($dark_logo) ? $dark_logo : SettingsConstants::CPN_LG_DK_DEF));
+        $settings = Utility::settings();
+    } catch (\Throwable $e) {
+        \Log::error('contracts/template — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::CTC)
 @if(!empty($contract) && isset($contract->id))
@@ -23,22 +19,26 @@
                 <div class="{{ VC::CT }}">
                     <div>
                         <div class="{{ VC::CD }} mt-5" id="printTable" style="margin-left: 180px;margin-right: -57px;">
-                            <div class="card-body" id="boxes">
+                            <div class="{{ VC::CD_BD }}" id="boxes">
                                 @php
-                                    $hasPriceFormat = method_exists($user,'priceFormat');
-                                    $hasDateFormat = method_exists($user,'dateFormat');
-                                    $hasContractNumberFormat = method_exists($user,'contractNumberFormat');
-                                    $contractNumber = (isset($contract->id) && $hasContractNumberFormat) ? ($user?->contractNumberFormat($contract->id) ?? __('Failed to format contract number')) : __('No contract number available');
-                                    $typeName = data_get($contract,'types.name') ?: __('No contract type available');
-                                    $valueText = isset($contract->value) && is_numeric($contract->value) ? ($hasPriceFormat ? ($user?->priceFormat($contract->value) ?? __('Failed to format contract value')) : __('Failed to format contract value')) : __('No contract value available');
-                                    $startDateText = isset($contract->start_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->start_date) ?? __('Failed to format start date')) : __('Failed to format start date')) : __('No start date available');
-                                    $endDateText = isset($contract->end_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->end_date) ?? __('Failed to format end date')) : __('Failed to format end date')) : __('No end date available');
-                                    $logoSrc = !empty($img) ? $img : '';
-                                    $descHtml = !empty($contract->description) ? $contract->description : e(__('No description available'));
-                                    $contractDescHtml = !empty($contract->contract_description) ? $contract->contract_description : e(__('No contract description available'));
-                                    $companySig = !empty($contract->company_signature) ? $contract->company_signature : null;
-                                    $clientSig = !empty($contract->client_signature) ? $contract->client_signature : null;
-                                @endphp
+                                    try {
+                                        $hasPriceFormat = method_exists($user,'priceFormat');
+                                        $hasDateFormat = method_exists($user,'dateFormat');
+                                        $hasContractNumberFormat = method_exists($user,'contractNumberFormat');
+                                        $contractNumber = (isset($contract->id) && $hasContractNumberFormat) ? ($user?->contractNumberFormat($contract->id) ?? __('Failed to format contract number')) : __('No contract number available');
+                                        $typeName = data_get($contract,'types.name') ?: __('No contract type available');
+                                        $valueText = isset($contract->value) && is_numeric($contract->value) ? ($hasPriceFormat ? ($user?->priceFormat($contract->value) ?? __('Failed to format contract value')) : __('Failed to format contract value')) : __('No contract value available');
+                                        $startDateText = isset($contract->start_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->start_date) ?? __('Failed to format start date')) : __('Failed to format start date')) : __('No start date available');
+                                        $endDateText = isset($contract->end_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->end_date) ?? __('Failed to format end date')) : __('Failed to format end date')) : __('No end date available');
+                                        $logoSrc = !empty($img) ? $img : '';
+                                        $descHtml = !empty($contract->description) ? $contract->description : e(__('No description available'));
+                                        $contractDescHtml = !empty($contract->contract_description) ? $contract->contract_description : e(__('No contract description available'));
+                                        $companySig = !empty($contract->company_signature) ? $contract->company_signature : null;
+                                        $clientSig = !empty($contract->client_signature) ? $contract->client_signature : null;
+                                    } catch (\Throwable $e) {
+                                        \Log::error('contracts/template — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::RW }} invoice-title mt-2">
                                     <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} {{ VC::C12 }}">
                                         <img src="{{ $logoSrc }}" alt="{{ $logoSrc ? __('Company Logo') : __('No logo available') }}" style="max-width: 150px;"/>
@@ -51,23 +51,23 @@
                                     <div class="col-sm-6 mb-3 mb-sm-0 {{ VC::MT3 }}">
                                         <div class="col-lg-12 col-md-8 {{ VC::MB3 }}">
                                             <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Type  :') }}</h6>
-                                            <span class="col-md-8"><span class="text-md">{{ $typeName }}</span></span>
+                                            <span class="{{ VC::CM8 }}"><span class="text-md">{{ $typeName }}</span></span>
                                         </div>
-                                        <div class="col-lg-6 col-md-8">
+                                        <div class="{{ VC::CL6 }} {{ VC::CM8 }}">
                                             <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Value   :') }}</h6>
-                                            <span class="col-md-8"><span class="text-md">{{ $valueText }}</span></span>
+                                            <span class="{{ VC::CM8 }}"><span class="text-md">{{ $valueText }}</span></span>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6 text-sm-end">
+                                    <div class="{{ VC::CS6 }} text-sm-end">
                                         <div>
                                             <div class="{{ VC::FEND }}">
                                                 <div>
                                                     <h6 class="d-inline-block m-0 d-print-none">{{ __('Start Date   :') }}</h6>
-                                                    <span class="col-md-8"><span class="text-md">{{ $startDateText }}</span></span>
+                                                    <span class="{{ VC::CM8 }}"><span class="text-md">{{ $startDateText }}</span></span>
                                                 </div>
                                                 <div class="{{ VC::MT3 }}">
                                                     <h6 class="d-inline-block m-0 d-print-none">{{ __('End Date   :') }}</h6>
-                                                    <span class="col-md-8"><span class="text-md">{{ $endDateText }}</span></span>
+                                                    <span class="{{ VC::CM8 }}"><span class="text-md">{{ $endDateText }}</span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -79,23 +79,23 @@
                                     <div>{!! $contractDescHtml !!}</div>
                                 </p>
                                 <div class="{{ VC::RW }}">
-                                    <div class="col-6">
+                                    <div class="{{ VC::C6 }}">
                                         <div>
                                             @if($companySig)
                                                 <img width="200px" src="{{ $companySig }}" alt="{{ __('Company Signature') }}">
                                             @else
-                                                <span class="text-muted">{{ __('No company signature available') }}</span>
+                                                <span class="{{ VC::TXT_MT }}">{{ __('No company signature available') }}</span>
                                             @endif
                                         </div>
                                         <div>
                                             <h5 class="mt-auto">{{ __('Company Signature') }}</h5>
                                         </div>
                                     </div>
-                                    <div class="col-6 text-end">
+                                    <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                         @if($clientSig)
                                             <img width="150px" src="{{ $clientSig }}" alt="{{ __('Client Signature') }}">
                                         @else
-                                            <span class="text-muted">{{ __('No client signature available') }}</span>
+                                            <span class="{{ VC::TXT_MT }}">{{ __('No client signature available') }}</span>
                                         @endif
                                         <h5 class="mt-auto">{{ __('Client Signature') }}</h5>
                                     </div>
@@ -151,7 +151,7 @@
                     t.setAttribute("aria-live", "assertive");
                     t.setAttribute("aria-atomic", "true");
                     t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                     container.appendChild(t);
                 }
                 const body = t.querySelector(".toast-body");
@@ -305,5 +305,5 @@
         </script>
     @endpush
 @else
-    <div class="alert alert-danger">{{ __('No contract found') }}</div>
+    <div class="{{ VC::ALT_DNG }}">{{ __('No contract found') }}</div>
 @endif

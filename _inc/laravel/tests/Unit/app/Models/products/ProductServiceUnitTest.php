@@ -13,6 +13,11 @@ use Tests\TestCase;
 
 class ProductServiceUnitTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 *
@@ -21,8 +26,19 @@ class ProductServiceUnitTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(ProductServiceUnit::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'product_service_id',
+			'name',
+			'code',
+			'status',
+			'measurement_unit',
+			'purchase_index',
+			'base_price',
+			'discount',
+			'currency_id',
+			'attributes',
+			'notes',
+		];
 
 		$this->assertSame($expected, (new ProductServiceUnit)->getFillable());
 	}
@@ -30,18 +46,18 @@ class ProductServiceUnitTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** user() must be a HasOne relation mapping
-	 ** users.id ← product_service_units.created_by.
+	 ** user() must be a BelongsTo relation mapping
+	 ** product_service_units.created_by → users.id.
 	 **/
 	public function user_relation_is_has_one(): void
 	{
 		$rel = (new ProductServiceUnit)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('created_by', $rel->getForeignKeyName());
+		$this->assertSame('id',         $rel->getOwnerKeyName());
 	}
 }

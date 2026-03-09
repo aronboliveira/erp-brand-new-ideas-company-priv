@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{InvoiceProduct, Invoice, ProductService};
 
 class InvoiceProductTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -33,9 +38,7 @@ class InvoiceProductTest extends TestCase
 
 		$line = InvoiceProduct::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $line->$field);
-		}
+		$this->assertFillableMatches($data, $line);
 	}
 
 	/**
@@ -66,9 +69,9 @@ class InvoiceProductTest extends TestCase
 	{
 		$relation = (new InvoiceProduct)->product();
 
-		$this->assertInstanceOf(HasOne::class,       $relation);
+		$this->assertInstanceOf(BelongsTo::class,       $relation);
 		$this->assertSame(ProductService::class,     get_class($relation->getRelated()));
-		$this->assertSame('id',                      $relation->getForeignKeyName());
-		$this->assertSame('product_id',              $relation->getLocalKeyName());
+		$this->assertSame('product_id',                      $relation->getForeignKeyName());
+		$this->assertSame('id',              $relation->getOwnerKeyName());
 	}
 }

@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\TrackPhoto;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrackPhotoTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 **
@@ -17,8 +23,10 @@ class TrackPhotoTest extends TestCase
 		$expected = [
 			'track_id',
 			'user_id',
-			'img_path',
+			'image_path',
+			'url',
 			'time',
+			'visibility',
 			'status',
 		];
 

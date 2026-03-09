@@ -1,28 +1,27 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
-    $routeKey        = ViewsConstants::DL . '.emails.store';
-    $kebabRouteKey   = Str::kebab($routeKey);
-    $hasRoute        = Route::has($routeKey);
-    $hasKebab        = Route::has($kebabRouteKey);
-    $storeRouteName  = $hasRoute
-        ? $routeKey
-        : ($hasKebab ? $kebabRouteKey : null);
-    $storeRouteArr   = $storeRouteName
-        ? [$storeRouteName, $deal->id]
-        : ['#'];
-    $storeRouteUrl   = $storeRouteName
-        ? route($storeRouteName, $deal->id)
-        : '#';
-    $storeGuardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::DL,
-        'deal_emails_store_route_unavailable'
-    ) ?? 'Deal emails store route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $routeKey        = ViewsConstants::DL . '.emails.store';
+        $kebabRouteKey   = Str::kebab($routeKey);
+        $hasRoute        = Route::has($routeKey);
+        $hasKebab        = Route::has($kebabRouteKey);
+        $storeRouteName  = $hasRoute
+            ? $routeKey
+            : ($hasKebab ? $kebabRouteKey : null);
+        $storeRouteArr   = $storeRouteName
+            ? [$storeRouteName, $deal->id]
+            : ['#'];
+        $storeRouteUrl   = $storeRouteName
+            ? route($storeRouteName, $deal->id)
+            : '#';
+        $storeGuardMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::DL,
+            'deal_emails_store_route_unavailable'
+        ) ?? 'Deal emails store route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deals/emails — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'route'          => $storeRouteArr,
@@ -61,28 +60,7 @@
                     if (url !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (error) {}
             });

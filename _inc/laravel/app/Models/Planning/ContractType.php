@@ -4,7 +4,8 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
 
 class ContractType extends Model
 {

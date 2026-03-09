@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{Award, AwardType, Employee};
 
 class AwardTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -20,10 +25,10 @@ class AwardTest extends TestCase
 	{
 		$relation = (new Award)->awardType();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(AwardType::class, get_class($relation->getRelated()));
-		$this->assertSame('id', $relation->getForeignKeyName());
-		$this->assertSame('award_type', $relation->getLocalKeyName());
+		$this->assertSame('award_type', $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -35,9 +40,9 @@ class AwardTest extends TestCase
 	{
 		$relation = (new Award)->employee();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('id', $relation->getForeignKeyName());
-		$this->assertSame('employee_id', $relation->getLocalKeyName());
+		$this->assertSame('employee_id', $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 }

@@ -1,37 +1,18 @@
 @php
-	use App\Config\Constants\{DatabaseConstants, ExtendingLayoutsConstants,
-        SettingsConstants,StacksConstants, ViewsConstants,
-        ViewClassNamesConstants,YieldingConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{App,Log,Route};
-	use Illuminate\Support\Str;
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$filePath??='';
+$filePath??='';
 	$settings??=[];
 	$logo??='';
-	$languages??=[DatabaseConstants::DEFAULT_LANG];
+	$languages??=[DC::DEFAULT_LANG];
 	$company_logo??='';
 	$lang = Utility::fetchUserLang();
 	try {
 		$filePath=collect(array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),'file'))
 			->first(fn($p)=>str_ends_with($p,'.blade.php'))??'';
-		Log::debug(
-			"Rendering Verify User Blade ({$filePath})",
-			[
-				'route'=>request()?->getRequestUri()??'Undefined URI',
-				'user'=>optional(auth()->user())->id??'Unidentified User'
-			]
-		);
-		(new ConsoleOutput)
-			->writeln(
-				"Rendering Verify User Blade ({$filePath}) for "
-				.(request()?->getRequestUri()??'Undefined URI')
-			);
 		$settings=Utility::settings()?:[];
 		$logo=Utility::getFile()?:'';
-		$languages=Utility::languages()?:[DatabaseConstants::DEFAULT_LANG];
-		$company_logo=Utility::getValByName(SettingsConstants::CPN_LG)?:'';
-		$lang=App::getLocale('lang')?:DatabaseConstants::DEFAULT_LANG;
+		$languages=Utility::languages()?:[DC::DEFAULT_LANG];
+		$company_logo=Utility::getValByName(SC::CPN_LG)?:'';
+		$lang=App::getLocale('lang')?:DC::DEFAULT_LANG;
 	} catch (\Error $e) {
 		Log::error(
 			'Error fetching data for Verify User Blade',
@@ -67,42 +48,47 @@
 		);
 	}
 @endphp
-@extends(ExtendingLayoutsConstants::AUTH)
-@section(YieldingConstants::AUTH_PG_TTL)
+@extends(ELC::AUTH)
+@section(YC::AUTH_PG_TTL)
     {{ __('Verify Email') }}
 @endsection
-@section(YieldingConstants::AUTH_LG_BAR)
-    <div class="{{ ViewClassNamesConstants::LNG_DD_DSK }}">
-        <li class="{{ ViewClassNamesConstants::LNG_DD_IT }}">
-            <a class="{{ ViewClassNamesConstants::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DatabaseConstants::DEFAULT_LANG) }}
+@section(YC::AUTH_LG_BAR)
+    <div class="{{ VC::LNG_DD_DSK }}">
+        <li class="{{ VC::LNG_DD_IT }}">
+            <a class="{{ VC::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DC::DEFAULT_LANG) }}
                 </span>
             </a>
-            <div class="{{ ViewClassNamesConstants::DRP_MN_DSH_END }}">
+            <div class="{{ VC::DRP_MN_DSH_END }}">
+                @foreach ($languages as $code => $language)
                 @php
-                    $verificationNoticeRoute = Route::has('verification.notice')
-                        ? route('verification.notice', $code)
-                        : (Route::has(Str::kebab('verification.notice'))
-                            ? route(Str::kebab('verification.notice'), $code)
-                            : '#');
-                    $verificationNoticeLinkId = 'verification-notice-link-' . $code;
-                    $verificationNoticeMsg    = Utility::fetchLinkMessage(
-                        $lang,
-                        ViewsConstants::AUT,
-                        'verification_notice_route_unavailable'
-                    ) ?? 'Verification notice route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
+                    try {
+                        $verificationNoticeRoute = Route::has('verification.notice')
+                            ? route('verification.notice', $code)
+                            : (Route::has(Str::kebab('verification.notice'))
+                                ? route(Str::kebab('verification.notice'), $code)
+                                : '#');
+                        $verificationNoticeLinkId = 'verification-notice-link-' . $code;
+                        $verificationNoticeMsg    = Utility::fetchLinkMessage(
+                            $lang,
+                            VW::AUT,
+                            'verification_notice_route_unavailable'
+                        ) ?? 'Verification notice route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Throwable $e) {
+                        \Log::error('auth/verify — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <a
                     id="{{ $verificationNoticeLinkId }}"
                     href="{{ $verificationNoticeRoute }}"
                     tabindex="0"
-                    class="dropdown-item"
+                    class="{{ VC::DRP_IT }}"
                     data-url="{{ $verificationNoticeRoute }}"
-                    data-guard-msg="{{ $verificationNoticeMsg }}"
+                    data-guard-msg="{{ base64_encode($verificationNoticeMsg) }}"
                 >
                     <span>{{ Str::upper($language) }}</span>
                 </a>
-                @push(StacksConstants::AUTH_CST_SCR)
+                @push(ST::AUTH_CST_SCR)
                     <script defer>
                         (() => {
                             const el = document.getElementById('{{ $verificationNoticeLinkId }}');
@@ -149,96 +135,99 @@
     </div>
 @endsection
 
-@section(YieldingConstants::AUTH_CTT)
-    <div class="card-body">
+@section(YC::AUTH_CTT)
+    <div class="{{ VC::CD_BD }}">
         @if (session('status') == 'verification-link-sent')
-            <div class="mb-4 font-medium text-sm text-green-600 text-primary">
+            <div class="{{ VC::MB4 }} font-medium {{ VC::TXSM }} text-green-600 {{ VC::TX_PM }}">
                 {{ __('A new verification link has been sent to the email address you provided during registration.') }}
             </div>
         @endif
-        <div class="mb-4 text-sm text-gray-600">
+        <div class="{{ VC::MB4 }} {{ VC::TXSM }} text-gray-600">
             {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
         </div>
-        <div class="mt-4 flex items-center justify-between">
+        <div class="{{ VC::MT4 }} flex items-center justify-between">
             @php
-                $resendRoute    = Route::has('verification.send')
-                    ? route('verification.send')
-                    : (Route::has(Str::kebab('verification.send'))
-                        ? route(Str::kebab('verification.send'))
-                        : '#');
-                $resendFormId   = 'resend-verification-form';
-                $resendMsg      = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::AUT,
-                    'verification_send_route_unavailable'
-                ) ?? 'Resend verification route is unavailable. Please contact technical support or your domain administrator.';
-                $logoutRoute    = Route::has('logout')
-                    ? route('logout')
-                    : (Route::has(Str::kebab('logout'))
-                        ? route(Str::kebab('logout'))
-                        : '#');
-                $logoutFormId   = 'logout-form';
-                $logoutMsg      = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::AUT,
-                    'logout_route_unavailable'
-                ) ?? 'Logout route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <div class="row">
-                <div class="col-auto">
+                try {
+                    $resendRoute    = Route::has('verification.send')
+                        ? route('verification.send')
+                        : (Route::has(Str::kebab('verification.send'))
+                            ? route(Str::kebab('verification.send'))
+                            : '#');
+                    $resendFormId   = 'resend-verification-form';
+                    $resendMsg      = Utility::fetchLinkMessage(
+                        $lang,
+                        VW::AUT,
+                        'verification_send_route_unavailable'
+                    ) ?? 'Resend verification route is unavailable. Please contact technical support or your domain administrator.';
+                    $logoutRoute    = Route::has('logout')
+                        ? route('logout')
+                        : (Route::has(Str::kebab('logout'))
+                            ? route(Str::kebab('logout'))
+                            : '#');
+                    $logoutFormId   = 'logout-form';
+                    $logoutMsg      = Utility::fetchLinkMessage(
+                        $lang,
+                        VW::AUT,
+                        'logout_route_unavailable'
+                    ) ?? 'Logout route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('auth/verify — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::C_AT }}">
                     <form
                         method="POST"
                         action="{{ $resendRoute }}"
                         id="{{ $resendFormId }}"
                         data-url="{{ $resendRoute }}"
-                        data-guard-msg="{{ $resendMsg }}"
+                        data-guard-msg="{{ base64_encode($resendMsg) }}"
                     >
                         @csrf
-                        <button type="submit" class="btn btn-primary btn-sm">{{ __('Resend Verification Email') }}</button>
+                        <button type="submit" class="{{ VC::BT_SM_PM }}">{{ __('Resend Verification Email') }}</button>
                     </form>
                 </div>
-                <div class="col-auto">
+                <div class="{{ VC::C_AT }}">
                     <form
                         method="POST"
                         action="{{ $logoutRoute }}"
                         id="{{ $logoutFormId }}"
                         data-url="{{ $logoutRoute }}"
-                        data-guard-msg="{{ $logoutMsg }}"
+                        data-guard-msg="{{ base64_encode($logoutMsg) }}"
                     >
                         @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">{{ __('Logout') }}</button>
+                        <button type="submit" class="{{ VC::BT_SM_DG }}">{{ __('Logout') }}</button>
                     </form>
                 </div>
             </div>
-            @push(StacksConstants::AUTH_CST_SCR)
+            @push(ST::AUTH_CST_SCR)
                 <script defer src="{{ asset('assets/js/routes/auth/login/verify.js') }}"></script>
             @endpush
         </div>
     </div>
 @endsection
 
-
 {{-- @section(YieldingConstants::AUTH_CTT)
-    <div class="col-xl-12">
+    <div class="{{ VC::CXL12 }}">
         <div class="">
             @if (session('status') == 'verification-link-sent')
-                <div class="mb-4 font-medium text-sm text-green-600 text-primary">
+                <div class="{{ VC::MB4 }} font-medium {{ VC::TXSM }} text-green-600 {{ VC::TX_PM }}">
                     {{ __('A new verification link has been sent to the email address you provided during registration.') }}
                 </div>
             @endif
-            <div class="mb-4 text-sm text-gray-600">
+            <div class="{{ VC::MB4 }} {{ VC::TXSM }} text-gray-600">
                 {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
             </div>
-            <div class="mt-4 flex items-center justify-between">
+            <div class="{{ VC::MT4 }} flex items-center justify-between">
                 <div class="row">
-                    <div class="col-auto">
+                    <div class="{{ VC::C_AT }}">
                         <form method="POST" action="{{ route('verification.send') }}">
                             @csrf
-                            <button type="submit" class="btn btn-primary btn-sm"> {{ __('Resend Verification Email') }}
+                            <button type="submit" class="{{ VC::BT_PRM }} btn-sm"> {{ __('Resend Verification Email') }}
                             </button>
                         </form>
                     </div>
-                    <div class="col-auto">
+                    <div class="{{ VC::C_AT }}">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="btn btn-danger btn-sm">{{ __('Logout') }}</button>

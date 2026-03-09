@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const f = document.getElementById("vendor-import-form");
     if (!f || f.getAttribute("data-listener-active") === "true") return;
@@ -18,39 +26,8 @@
       e.preventDefault();
 
       const msg =
-        f.getAttribute("data-guard-msg") ||
-        "Import vendor route is unavailable. Please contact technical support or your domain administrator.";
-      let c = document.getElementById("toast-container");
-      if (!c) {
-        c = document.createElement("div");
-        c.id = "toast-container";
-        document.body.appendChild(c);
-      }
-
-      const hasBS =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap &&
-        window.bootstrap.Toast;
-      if (hasBS) {
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = msg;
-        t.appendChild(b);
-        c.appendChild(t);
-        try {
-          window.bootstrap.Toast.getOrCreateInstance(t).show();
-        } catch {
-          alert(msg);
-        }
-      } else {
-        alert(msg);
-      }
-
+        f.getAttribute("data-guard-msg") || getMsg("import_vendor_unavailable");
+      scheduleError(msg, "submit");
       f.setAttribute("data-failed-route", "true");
     });
 
@@ -58,7 +35,7 @@
     if (fileInput) {
       fileInput.addEventListener("change", () => {
         const target = document.querySelector(
-          "." + (fileInput.getAttribute("data-filename") || "upload_file")
+          "." + (fileInput.getAttribute("data-filename") || "upload_file"),
         );
         if (target) target.textContent = fileInput.files?.[0]?.name || "";
       });

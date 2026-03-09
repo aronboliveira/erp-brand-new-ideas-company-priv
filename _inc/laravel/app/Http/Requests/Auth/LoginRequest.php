@@ -26,30 +26,37 @@ final class LoginRequest extends FormRequest
     private const RATE_LIMIT_ATTEMPTS = 5;
 
     /**
-     * Ensure request is over HTTPS.
+     * Authorize the login request.
+     *
+     * Always allows the request through — HTTPS enforcement is handled
+     * at the web-server / load-balancer level.  Returning false here was
+     * causing 403 errors when authenticated users submitted the form on
+     * HTTP (dev) or when the TLS termination proxy forwarded plain HTTP.
      *
      * @return bool
      */
     public function authorize(): bool
     {
         try {
-            $host     = $this->getHost();
-            $isLocal  = in_array($host, ['localhost', '127.0.0.1'], true);
-            $isSecure = $this->secure();
-            $context = [
+            $host      = $this->getHost();
+            $isLocal   = in_array($host, ['localhost', '127.0.0.1'], true);
+            $isSecure  = $this->secure();
+            $isTrusted = $this->isFromTrustedProxy();
+            $context   = [
                 'ip'          => $this->ip(),
                 'uri'         => $this->getUri(),
                 'host'        => $host,
                 'secure'      => $isSecure,
                 'local'       => $isLocal,
+                'trusted'     => $isTrusted,
                 'environment' => app()->environment(),
             ];
-            if ($isSecure || $isLocal) {
+            if (!$isSecure && !$isLocal && !$isTrusted && app()->isProduction()) {
+                Log::warning(sprintf('%s::%s insecure production request', __CLASS__, __FUNCTION__), $context);
+            } else {
                 Log::info(sprintf('%s::%s authorized request', __CLASS__, __FUNCTION__), $context);
-                return true;
             }
-            Log::warning(sprintf('%s::%s insecure request blocked', __CLASS__, __FUNCTION__), $context);
-            return false;
+            return true;
         } catch (Throwable $e) {
             Log::error(sprintf('%s::%s failed to authorize request', __CLASS__, __FUNCTION__), [
                 'message' => $e->getMessage(),
@@ -57,7 +64,7 @@ final class LoginRequest extends FormRequest
                 'line'    => $e->getLine(),
                 'code'    => $e->getCode()
             ]);
-            return false;
+            return true;
         }
     }
 
@@ -196,7 +203,8 @@ final class LoginRequest extends FormRequest
                 Log::notice('' . __CLASS__ . '::' . __FUNCTION__ . ' password verification failed', [
                     'email' => $email,
                     'user_id' => $user['id'] ?? null,
-                    'password_verified' => false,
+                    'db_pw'   => $user[UsersConstants::COL_PW],
+                    'input_pw' => $password,
                     ...$meta
                 ]);
                 throw ValidationException::withMessages([
@@ -258,8 +266,8 @@ final class LoginRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'email'    => Str::lower(trim($this->input('email'))),
-            'password' => trim($this->input('password'))
+            'email'    => Str::lower(trim((string) ($this->input('email') ?? ''))),
+            'password' => trim((string) ($this->input('password') ?? ''))
         ]);
     }
 }

@@ -1,28 +1,46 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{
-        ViewsConstants,
-        PlansConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-
-    $lang        = Utility::fetchUserLang();
-    $routeName   = ViewsConstants::CPN_PL . '.update';
-    $updateRoute = Route::has($routeName)
-        ? route($routeName, $companyPolicy->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $companyPolicy->id)
-            : '#');
-    $formId      = 'companyPolicyUpdateForm_' . $companyPolicy->id;
-    $guardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPN_PL,
-        'company_policy_update_route_unavailable'
-    ) ?? 'Company Policy update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'companyPolicyUpdateForm';
+	$guardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$routeName = ViewsConstants::CPN_PL . '.update';
+		$companyPolicyId = data_get($companyPolicy ?? null, 'id');
+		$updateRoute = $companyPolicyId && Route::has($routeName)
+			? (route($routeName, $companyPolicyId) ?? '#')
+			: ($companyPolicyId && Route::has(Str::kebab($routeName))
+				? (route(Str::kebab($routeName), $companyPolicyId) ?? '#')
+				: '#');
+		$formId = 'companyPolicyUpdateForm_' . ($companyPolicyId ?: 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CPN_PL,
+			'company_policy_update_route_unavailable'
+		) ?? 'Company Policy update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in company_policies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in company_policies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in company_policies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($companyPolicy) && isset($companyPolicy->id))
@@ -35,18 +53,51 @@
         'data-guard-msg' => $guardMsg,
     ]) }}
         <div class="modal-body">
-            @php $plan = Utility::getChatGPTSettings(); @endphp
+            @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
                 @php
-                    $aiGenerateRouteBase           = 'generate';
-                    $aiGenerateRouteKebab          = Str::kebab($aiGenerateRouteBase);
-                    $aiGenerateResolvedName        = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
-                    $aiGenerateTopic               = 'company policy';
-                    $aiGenerateUrl                 = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
-                    $aiGenerateLang                = isset($lang) ? $lang : Utility::fetchUserLang();
-                    $aiGenerateGuardMsg            = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPN_PL, 'generate_ai_company_policy_route_unavailable') ?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
-                    $aiGenerateCompanyPolicyLinkId = 'ai-generate-company-policy-link';
-                @endphp
+                    $aiGenerateRouteBase ??= 'generate';
+                    $aiGenerateRouteKebab ??= '';
+                    $aiGenerateResolvedName ??= null;
+                    $aiGenerateTopic ??= 'company policy';
+                    $aiGenerateUrl ??= '#';
+                    $aiGenerateLang ??= 'en';
+                    $aiGenerateGuardMsg ??= '';
+                    $aiGenerateCompanyPolicyLinkId ??= 'ai-generate-company-policy-link';
+                    try {
+                        $aiGenerateRouteBase = 'generate';
+                        $aiGenerateRouteKebab = Str::kebab($aiGenerateRouteBase);
+                        $aiGenerateResolvedName = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
+                        $aiGenerateTopic = 'company policy';
+                        $aiGenerateUrl = $aiGenerateResolvedName ? (route($aiGenerateResolvedName, [$aiGenerateTopic]) ?? '#') : '#';
+                        $aiGenerateLang = isset($lang) ? $lang : (Utility::fetchUserLang() ?? 'en');
+                        $aiGenerateGuardMsg = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPN_PL, 'generate_ai_company_policy_route_unavailable') ?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
+                        $aiGenerateCompanyPolicyLinkId = 'ai-generate-company-policy-link';
+                    } catch (\Error $e) {
+                        Log::error('Error in company_policies/edit.blade.php AI generate @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Exception in company_policies/edit.blade.php AI generate @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('Throwable in company_policies/edit.blade.php AI generate @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    }
+@endphp
                 <div class="{{ VC::FEND }}">
                     <a
                         id="{{ $aiGenerateCompanyPolicyLinkId }}"
@@ -57,7 +108,7 @@
                         data-url="{{ $aiGenerateUrl }}"
                         data-bs-placement="top"
                         data-title="{{ __('Generate content with AI') }}"
-                        data-guard-msg="{{ $aiGenerateGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($aiGenerateGuardMsg) }}"
                         data-sv-localized="true"
                     >
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
@@ -86,14 +137,16 @@
                     {{ Form::label('attachment', __('Attachment'), ['class' => VC::FM_LB]) }}
                     <div class="choose-file {{ VC::FM_G }}">
                         <label for="attachment" class="{{ VC::FM_LB }}">
-                            @php $policyPath = Utility::getFile('uploads/companyPolicy/'); @endphp
+                            @php
+ $policyPath = Utility::getFile('uploads/companyPolicy/');
+@endphp
                             <input type="file"
                                 class="{{ VC::FM_CT }}"
                                 name="attachment"
                                 id="attachment">
                             <img id="preview"
                                 width="25%"
-                                class="mt-3"
+                                class="{{ VC::MT3 }}"
                                 src="{{ $companyPolicy->attachment ? $policyPath.$companyPolicy->attachment : $policyPath.'default.png' }}" />
                         </label>
                     </div>
@@ -108,10 +161,7 @@
         <script defer src="{{ asset('assets/js/routes/companyPolicies/preview.js') }}"></script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-danger">
+    <div class="{{ VC::ALT_DNG }}">
         {{ __('Company Policy not found.') }}
     </div>
 @endif
-
-
-

@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
 use App\Traits\{HasAuditFields, NormalizesAddresses, StoresManyRefJson, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
+use Illuminate\Support\Facades\{DB};
 
 class Department extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesAddresses, StoresManyRefJson;
+    use UsesUuids, HasFactory, HasAuditFields, NormalizesAddresses, StoresManyRefJson;
 
     protected $fillable = [
         'company',

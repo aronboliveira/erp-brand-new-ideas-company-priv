@@ -1,24 +1,30 @@
 @php
-    use App\Config\Constants\{ViewClassNamesConstants as VC};
-    use Illuminate\Support\{Arr, Collection};
-    $titles = [
-        5 => __('Outstanding – 5 stars'),
-        4 => __('Very Good – 4 stars'),
-        3 => __('Satisfactory – 3 stars'),
-        2 => __('Needs Improvement – 2 stars'),
-        1 => __('Unsatisfactory – 1 star'),
-    ];
+    try {
+$titles = [
+            5 => __('Outstanding – 5 stars'),
+            4 => __('Very Good – 4 stars'),
+            3 => __('Satisfactory – 3 stars'),
+            2 => __('Needs Improvement – 2 stars'),
+            1 => __('Unsatisfactory – 1 star'),
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('appraisals/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="modal-body">
     @if(!empty($appraisal) && isset($appraisal))
         @php
-            $details = [
-                ['col' => 'col-md-12',        'label' => __('Branch'),         'value' => data_get($appraisal, 'branches.name', __('Failed to get branch name'))],
-                ['col' => 'col-md-6 mt-3',    'label' => __('Employee'),       'value' => data_get($appraisal, 'employees.name', __('Failed to get employee name'))],
-                ['col' => 'col-md-6 mt-3',    'label' => __('Appraisal Date'), 'value' => $appraisal->appraisal_date ?? __('Failed to get appraisal date')],
-            ];
-        @endphp
+            try {
+                $details = [
+                    ['col' => 'col-md-12',        'label' => __('Branch'),         'value' => data_get($appraisal, 'branches.name', __('Failed to get branch name'))],
+                    ['col' => 'col-md-6 mt-3',    'label' => __('Employee'),       'value' => data_get($appraisal, 'employees.name', __('Failed to get employee name'))],
+                    ['col' => 'col-md-6 mt-3',    'label' => __('Appraisal Date'), 'value' => $appraisal->appraisal_date ?? __('Failed to get appraisal date')],
+                ];
+            } catch (\Throwable $e) {
+                \Log::error('appraisals/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::RW }} py-4">
             @foreach($details as $d)
                 <div class="{{ $d['col'] }}">
@@ -32,11 +38,11 @@
         <div class="{{ VC::RW }}">{{ __('No appraisal details found.') }}</div>
     @endif
     <div class="{{ VC::RW }}">
-        <div class="col-5 text-end" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
-        <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
+        <div class="col-5 {{ VC::TX_END }}" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
+        <div class="col-4 {{ VC::TX_END }}"><h5>{{ __('Appraisal') }}</h5></div>
         @if(!empty($performance_types) && ((is_array($performance_types) && count($performance_types) > 0) || ($performance_types instanceof Collection && $performance_types->isNotEmpty())))
             @foreach($performance_types as $pt)
-                <div class="col-md-12 mt-3"><h6>{{ $pt->name ?? __('No name for Performance type group found') }}</h6><hr class="mt-0"></div>
+                <div class="{{ VC::CM12 }} {{ VC::MT3 }}"><h6>{{ $pt->name ?? __('No name for Performance type group found') }}</h6><hr class="mt-0"></div>
                 @if($pt->types && count($pt->types) > 0 || $pt->types instanceof Collection && $pt->types->isNotEmpty())
                     @foreach($pt->types as $type)
                         <div class="col-4">{{ $type->name ?? __('No name for type found') }}</div>
@@ -76,13 +82,13 @@
                 @endif
             @endforeach
         @else
-            <div class="col-3 text-end"><h5>{{ __('No Indicator group found') }}</h5></div>
+            <div class="{{ VC::C3 }} {{ VC::TX_END }}"><h5>{{ __('No Indicator group found') }}</h5></div>
         @endif
     </div>
     @if(!empty($appraisal) && isset($appraisal))
         <div class="{{ VC::RW }}">
-            <div class="col-md-12"><hr><h6>{{ __('Remark') }}</h6></div>
-            <div class="col-md-12 mt-3"><p class="{{ VC::TXSM }}">{{ $appraisal->remark ?? __('No remark found.') }}</p></div>
+            <div class="{{ VC::CM12 }}"><hr><h6>{{ __('Remark') }}</h6></div>
+            <div class="{{ VC::CM12 }} {{ VC::MT3 }}"><p class="{{ VC::TXSM }}">{{ $appraisal->remark ?? __('No remark found.') }}</p></div>
         </div>
     @else
         <div class="{{ VC::RW }}">{{ __('No appraisal found.') }}</div>

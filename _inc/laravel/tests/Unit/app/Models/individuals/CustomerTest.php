@@ -7,9 +7,12 @@ use Tests\TestCase;
 use App\Models\{Customer, Invoice, Proposal, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Carbon, Facades\Auth};
+use Tests\Concerns\SafeAliasMock;
 
 class CustomerTest extends TestCase
 {
+	use SafeAliasMock;
+
 	use RefreshDatabase;
 
 	private User $user;
@@ -17,8 +20,9 @@ class CustomerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// stub Utility::settings and Utility::getValByName
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('settings')->andReturn([
 				'site_currency_symbol'           => '€',
 				'site_currency_symbol_position'  => 'pre',
@@ -27,7 +31,7 @@ class CustomerTest extends TestCase
 				'invoice_prefix'                 => 'INV-',
 				'proposal_prefix'                => 'PR-',
 			])->byDefault();
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('getValByName')->with('decimal_number')->andReturn(2)
 			->byDefault();
 
@@ -39,7 +43,6 @@ class CustomerTest extends TestCase
 		]);
 		Auth::login($this->user);
 	}
-
 	/**
 	 ** @test
 	 **

@@ -19,6 +19,14 @@ class CheckForMaintenanceModeTest extends TestCase
 		})->middleware(CheckForMaintenanceMode::class);
 	}
 
+	protected function tearDown(): void
+	{
+		// Always bring the app back up to prevent maintenance mode from
+		// leaking to subsequent tests if an assertion fails mid-test.
+		Artisan::call('up');
+		parent::tearDown();
+	}
+
 	/**
 	 ** @test
 	 **

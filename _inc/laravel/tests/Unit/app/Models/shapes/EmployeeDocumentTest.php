@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\EmployeeDocument;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeDocumentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -16,7 +22,26 @@ class EmployeeDocumentTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'employee_id', 'document_id', 'document_value', 'created_by',
+			'file_path',
+			'url',
+			'name',
+			'extension',
+			'mime_type',
+			'last_accessed',
+			'size',
+			'description',
+			'notes',
+			'download_count',
+			'file_size',
+			'permission_rules',
+			'viewers',
+			'editors',
+			'executors',
+			'expiration_date',
+			'type',
+			'employee_id',
+			'document_id',
+			'document_value',
 		];
 
 		$this->assertSame($expected, (new EmployeeDocument)->getFillable());

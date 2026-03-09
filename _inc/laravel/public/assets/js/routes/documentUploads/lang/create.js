@@ -1,3 +1,6 @@
+/**
+ * @requires ERPUtils (translations infrastructure)
+ */
 (() => {
   const imgPatch = {
     ar: { image_preview_failed: "تعذر معاينة الصورة." },

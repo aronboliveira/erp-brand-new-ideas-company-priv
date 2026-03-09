@@ -32,7 +32,10 @@ class TransactionSeeder extends Seeder
 	private const OTHER_MAX  = 256;
 	private const MAX_AMOUNT = 8000.00;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutes
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
+
+	private const HARD_CAP = 2;
 
 	/**
 	 * Opção CLI:
@@ -110,6 +113,7 @@ class TransactionSeeder extends Seeder
 
 		$minTarget = 8 * $baseCount;
 		$target    = max($minTarget, $cliCount > 0 ? $cliCount : $minTarget);
+		$target    = min(self::HARD_CAP, $target); /* original: 8 × baseCount, OTHER_MAX(256) */
 
 		$opt       = self::OPTIONALITY;
 		$maxAmount = self::MAX_AMOUNT;

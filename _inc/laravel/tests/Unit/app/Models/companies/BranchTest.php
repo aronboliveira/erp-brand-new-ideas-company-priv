@@ -8,25 +8,27 @@ use App\Models\Branch;
 
 class BranchTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
 	 ** @test
 	 **
-	 ** Branch is mass assignable for name and created_by
+	 ** Branch is mass assignable for name
 	 **/
 	public function branch_is_fillable()
 	{
 		$data = [
 			'name'       => 'Main Office',
-			'created_by' => 'admin_user',
 		];
 
 		$branch = Branch::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $branch->$field);
-		}
+		$this->assertFillableMatches($data, $branch);
 	}
 
 	/**

@@ -1,24 +1,52 @@
 @php
-	use App\Config\Constants\{PlansConstants, StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-
-	$formId = 'edit_training';
-
-	$updateBase  = VW::TNG . '.update';
-	$updateKebab = Str::kebab($updateBase);
-	$updateName  = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-	$trainingId  = data_get($training ?? null, 'id', '');
-	$updateUrl   = ($updateName && $trainingId) ? route($updateName, [$trainingId]) : '#';
-	$updateGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'update_training_route_unavailable') ?? 'Update training route is unavailable. Please contact technical support or your domain administrator.';
-	$genBase     = 'generate';
-	$genName     = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-	$genUrl      = $genName ? route($genName, ['training']) : '#';
-	$genGuard    = Utility::fetchLinkMessage($lang, VW::TNG, 'generate_training_edit_route_unavailable') ?? 'Generate training content for editing route is unavailable. Please contact technical support or your domain administrator.';
-	$genId       = 'training-generate-link-edit';
+$lang ??= 'en';
+	$formId ??= 'edit_training';
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateName ??= null;
+	$trainingId ??= '';
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$genBase ??= 'generate';
+	$genName ??= null;
+	$genUrl ??= '#';
+	$genGuard ??= '';
+	$genId ??= 'training-generate-link-edit';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$updateBase = VW::TNG . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateName = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$trainingId = data_get($training ?? null, 'id', '');
+		$updateUrl = ($updateName && $trainingId) ? (route($updateName, [$trainingId]) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'update_training_route_unavailable')
+			?? 'Update training route is unavailable. Please contact technical support or your domain administrator.';
+		$genName = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+		$genUrl = $genName ? (route($genName, ['training']) ?? '#') : '#';
+		$genGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'generate_training_edit_route_unavailable')
+			?? 'Generate training content for editing route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in trainings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in trainings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in trainings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($training, [
@@ -32,7 +60,7 @@
 	<div class="modal-body">
 		@php($plan = Utility::getChatGPTSettings())
 		@if($plan?->{PlansConstants::COL_GPT} == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a href="{{ $genUrl }}"
 				   id="{{ $genId }}"
 				   data-size="md"
@@ -41,7 +69,7 @@
 				   data-url="{{ $genUrl }}"
 				   data-bs-placement="top"
 				   data-title="{{ __('Generate content with AI') }}"
-				   data-guard-msg="{{ $genGuard }}"
+				   data-guard-msg="{{ base64_encode($genGuard) }}"
 				   data-sv-localized="true">
 					<i class="{{ VC::FAS_RB }}"></i>
 					<span>{{ __('Generate with AI') }}</span>
@@ -104,4 +132,3 @@
 	</div>
     <script defer src="{{ asset('assets/js/routes/trainings/update.js') }}"></script>
 {!! Form::close() !!}
-

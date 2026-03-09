@@ -1,12 +1,18 @@
 <?php
 
-namespace Tests\Unit\Models;
+namespace Tests\Unit\app\Models\planning;
 
 use App\Models\TaskChecklist;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TaskChecklistTest extends TestCase
+class TaskChecklistsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,24 @@ class TaskChecklistTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$ref     = new \ReflectionClass(TaskChecklist::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'name',
+			'description',
+			'url',
+			'completed',
+			'completed_at',
+			'due_date',
+			'is_favorite',
+			'task_id',
+			'user_type',
+			'status',
+			'order',
+			'stage',
+			'involved',
+			'attachments',
+			'tags',
+			'positioning',
+		];
 
 		$this->assertSame($expected, (new TaskChecklist)->getFillable());
 	}
@@ -27,13 +49,13 @@ class TaskChecklistTest extends TestCase
 	 **/
 	public function user_relation_is_has_one(): void
 	{
-		$rel = (new TaskChecklist)->user();
+		$rel = (new TaskChecklist)->createdBy();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',            $rel->getForeignKeyName());
-		$this->assertSame('created_by',    $rel->getLocalKeyName());
+		$this->assertSame('created_by',            $rel->getForeignKeyName());
+		$this->assertSame('id',    $rel->getOwnerKeyName());
 	}
 }

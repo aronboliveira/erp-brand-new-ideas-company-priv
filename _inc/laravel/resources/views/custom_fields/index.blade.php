@@ -1,52 +1,48 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('custom_fields/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Custom Field')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Custom Field')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Custom Field')}}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create constant custom field')
             @php
-                $linkId   = 'create-custom-field-link';
-                $createUrl = Route::has(ViewsConstants::CST_FD.'.create')
-                    ? route(ViewsConstants::CST_FD.'.create')
-                    : '#';
-                $createCustomFieldMsg = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::CST_FD,
-                    'custom_field_create_route_unavailable'
-                ) ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                $linkId   ??= 'create-custom-field-link';
+                try {
+                    $createUrl = Route::has(ViewsConstants::CST_FD.'.create')
+                        ? route(ViewsConstants::CST_FD.'.create')
+                        : '#';
+                    $createCustomFieldMsg = Utility::fetchLinkMessage(
+                        $lang,
+                        ViewsConstants::CST_FD,
+                        'custom_field_create_route_unavailable'
+                    ) ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('custom_fields/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 href="#"
                 id="{{ $linkId }}"
                 data-url="{{ $createUrl }}"
                 data-sv-localized="true"
-                data-guard-msg=" {{ $createCustomFieldMsg }} "
+                data-guard-msg="{{ base64_encode($createCustomFieldMsg) }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
                 data-ajax-popup="true"
@@ -61,13 +57,13 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.account_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -80,7 +76,7 @@
                             <tbody>
                                 @php
                                     $list = ((is_array($custom_fields ?? null) && count($custom_fields ?? [])) || (($custom_fields ?? null) instanceof Collection && ($custom_fields)->isNotEmpty())) ? $custom_fields : [];
-                                @endphp
+@endphp
                                 @forelse($list as $field)
                                     <tr>
                                         <td>{{ isset($field->name) && $field->name !== '' ? $field->name : __('No name available') }}</td>
@@ -91,10 +87,14 @@
                                                 <span>
                                                     @can('edit constant custom field')
                                                         @php
-                                                            $linkId = 'edit-custom-field-link-'.($field->id ?? '0');
-                                                            $editUrl = route(ViewsConstants::CST_FD.'.edit', $field->id);
-                                                            $editCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_edit_route_unavailable') ?? 'Edit Custom Field route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $linkId = 'edit-custom-field-link-'.($field->id ?? '0');
+                                                                $editUrl = route(ViewsConstants::CST_FD.'.edit', $field->id);
+                                                                $editCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_edit_route_unavailable') ?? 'Edit Custom Field route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('custom_fields/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a href="#"
                                                             id="{{ $linkId }}"
@@ -102,7 +102,7 @@
                                                             data-route-guard
                                                             data-url="{{ $editUrl }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $editCustomFieldMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editCustomFieldMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Custom Field') }}"
                                                             data-bs-toggle="tooltip"
@@ -113,11 +113,15 @@
                                                     @endcan
                                                     @can('delete constant custom field')
                                                         @php
-                                                            $delLinkId = 'delete-custom-field-link-'.($field->id ?? '0');
-                                                            $delFormId = 'delete-custom-field-form-'.($field->id ?? '0');
-                                                            $destroyUrl = route(ViewsConstants::CST_FD.'.destroy', $field->id);
-                                                            $deleteCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_delete_unavailable') ?? 'Delete Custom Field route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $delLinkId = 'delete-custom-field-link-'.($field->id ?? '0');
+                                                                $delFormId = 'delete-custom-field-form-'.($field->id ?? '0');
+                                                                $destroyUrl = route(ViewsConstants::CST_FD.'.destroy', $field->id);
+                                                                $deleteCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_delete_unavailable') ?? 'Delete Custom Field route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('custom_fields/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             {!! Form::open(['method' => 'DELETE','url' => $destroyUrl,'id' => $delFormId]) !!}
                                                                 <a href="#"
@@ -126,7 +130,7 @@
                                                                 data-route-guard
                                                                 data-url="{{ $destroyUrl }}"
                                                                 data-sv-localized="true"
-                                                                data-guard-msg="{{ $deleteCustomFieldMsg }}"
+                                                                data-guard-msg="{{ base64_encode($deleteCustomFieldMsg) }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
@@ -143,7 +147,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="4">
-                                            <div class="text-center">
+                                            <div class="{{ VC::TXCT }}">
                                                 <i class="{{ VC::TI_INB }} {{ VC::FS_3X }} {{ VC::TX_MUTED }}"></i>
                                                 <p class="{{ VC::TX_MUTED }} mt-2">{{ __('No custom fields found') }}</p>
                                             </div>
@@ -168,4 +172,3 @@
         <script defer src="{{ asset('assets/js/routes/customFields/delete.js') }}"></script>
     @endcan
 @endpush
-

@@ -1,58 +1,10 @@
 (() => {
-  try {
-    const btn = document.getElementById("reset-quarterly-cashflow");
-    if (!btn) {
-      return;
-    }
-    if (btn.getAttribute("data-listener-active") === "true") {
-      return;
-    }
-    btn.setAttribute("data-listener-active", "true");
+  const guard = window.ERPGuard;
+  if (!guard) return;
 
-    btn.addEventListener("click", e => {
-      try {
-        const href = btn.getAttribute("href") ?? "#";
-        const url = btn.getAttribute("data-url") ?? href ?? "#";
-        if (url !== "#" && href !== "#") {
-          return;
-        }
-
-        e.preventDefault();
-        const msg =
-          btn.getAttribute("data-guard-msg") ??
-          "Reset quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-
-        if (hasBootstrap) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-
-        btn.setAttribute("data-failed-route", "true");
-      } catch (err) {}
-    });
-  } catch (err) {}
+  guard.bindClickGuard("#reset-quarterly-cashflow", {
+    msgKey: "action_unavailable",
+    fallbackMsg:
+      "Reset quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.",
+  });
 })();

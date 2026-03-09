@@ -1,16 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Http\Controllers\EmployeeAttendanceController as EAC;
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('attendances/bulk — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -21,36 +15,40 @@
     <script defer src="{{ asset('assets/js/routes/attendances/bulk/toggle.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Attendance')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Attendance')}}</li>
 @endsection
 {{--@section('action-btn')--}}
-{{--    <div class="float-end">--}}
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--    <div class="{{ VC::FEND }}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 {{--    </div>--}}
 {{--@endsection--}}
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        <div class="col-sm-12">
+        <div class="{{ VC::CS12 }}">
             <div id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $bulkBase = VW::EMP_ATD.'.'.EAVC::BK_ATD;
-                            $bulkKebab = Str::kebab($bulkBase);
-                            $bulkResolved = Route::has($bulkBase) ? $bulkBase : (Route::has($bulkKebab) ? $bulkKebab : null);
-                            $bulkUrl = $bulkResolved ? route($bulkResolved) : '#';
-                            $formId = 'bulkattendance_filter';
-                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'apply_bulk_attendance_route_unavailable') ?? 'Apply bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $bulkBase = VW::EMP_ATD.'.'.EAC::BK_ATD;
+                                $bulkKebab = Str::kebab($bulkBase);
+                                $bulkResolved = Route::has($bulkBase) ? $bulkBase : (Route::has($bulkKebab) ? $bulkKebab : null);
+                                $bulkUrl = $bulkResolved ? route($bulkResolved) : '#';
+                                $formId = 'bulkattendance_filter';
+                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'apply_bulk_attendance_route_unavailable') ?? 'Apply bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('attendances/bulk — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method' => 'GET',
                             'url' => $bulkUrl,
@@ -60,7 +58,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::DFL }} {{ VC::ALC }} {{ VC::JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CLMS3 }}">
                                             <div class="btn-box"></div>
@@ -83,7 +81,7 @@
                                     <a href="#"
                                     class="{{ VC::BT_SM_PM }} apply-bulkattendance"
                                     data-form-id="{{ $formId }}"
-                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                     data-sv-localized="true"
                                     title="{{__('Apply')}}">
                                         <i class="{{ VC::TI_SRC }}"></i>
@@ -100,18 +98,22 @@
         </div>
     </div>
    <div class="{{ VC::RW }}">
-        <div class="col-xl-12">
+        <div class="{{ VC::CXL12 }}">
             <div class="{{ VC::CD }}">
                 <div class="card-header {{ VC::CD_MT }}">
                     @php
-                        $bulkPostBase = VW::EMP_ATD.'.'.EAVC::BK_ATD;
-                        $bulkPostKebab = Str::kebab($bulkPostBase);
-                        $bulkPostResolved = Route::has($bulkPostBase) ? $bulkPostBase : (Route::has($bulkPostKebab) ? $bulkPostKebab : null);
-                        $bulkPostUrl = $bulkPostResolved ? route($bulkPostResolved) : '#';
-                        $bulkPostFormId = 'bulkattendance_post';
-                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                        $submitGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'submit_bulk_attendance_route_unavailable') ?? 'Submit bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $bulkPostBase = VW::EMP_ATD.'.'.EAC::BK_ATD;
+                            $bulkPostKebab = Str::kebab($bulkPostBase);
+                            $bulkPostResolved = Route::has($bulkPostBase) ? $bulkPostBase : (Route::has($bulkPostKebab) ? $bulkPostKebab : null);
+                            $bulkPostUrl = $bulkPostResolved ? route($bulkPostResolved) : '#';
+                            $bulkPostFormId = 'bulkattendance_post';
+                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                            $submitGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'submit_bulk_attendance_route_unavailable') ?? 'Submit bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('attendances/bulk — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     {{ Form::open([
                         'method' => 'POST',
                         'url' => $bulkPostUrl,
@@ -120,7 +122,7 @@
                         'data-guard-msg' => $submitGuardMsg,
                         'data-sv-localized' => 'true',
                     ]) }}
-                        <div class="table-responsive">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB_AL }}" id="pc-dt-simple">
                                 <thead>
                                     <tr>
@@ -129,10 +131,10 @@
                                         <th>{{ __('Branch') }}</th>
                                         <th>{{ __('Department') }}</th>
                                         <th>
-                                            <div class="form-group my-auto">
-                                                <div class="custom-control ">
+                                            <div class="{{ VC::FM_G }} my-auto">
+                                                <div class="{{ VC::CST_CTL }}">
                                                     <input class="form-check-input" type="checkbox" name="present_all" id="present_all" {{ old('remember') ? 'checked' : '' }}>
-                                                    <label class="custom-control-label" for="present_all">{{ __('Attendance') }}</label>
+                                                    <label class="{{ VC::CST_LB }}" for="present_all">{{ __('Attendance') }}</label>
                                                 </div>
                                             </div>
                                         </th>
@@ -142,25 +144,29 @@
                                     @if(!empty($employees) && ((is_array($employees) && count($employees) > 0) || ($employees instanceof Collection && $employees->isNotEmpty())))
                                         @foreach($employees as $employee)
                                             @php
-                                                $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
-                                                $empShowBase = ViewsConstants::EMP.'.show';
-                                                $empShowKebab = Str::kebab($empShowBase);
-                                                $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
-                                                $empIdVal = isset($employee->id) ? (int)$employee->id : 0;
-                                                $empEncryptedId = $empIdVal ? encrypt($empIdVal) : null;
-                                                $empShowUrl = ($empShowResolved && $empEncryptedId) ? route($empShowResolved, $empEncryptedId) : '#';
-                                                $langLocal = $langValue;
-                                                $empShowGuardMsg = Utility::fetchLinkMessage($langLocal, ViewsConstants::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                $empAnchorId = 'employee-show-link-'.$empIdVal;
-                                            @endphp
+                                                try {
+                                                    $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
+                                                    $empShowBase = ViewsConstants::EMP.'.show';
+                                                    $empShowKebab = Str::kebab($empShowBase);
+                                                    $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
+                                                    $empIdVal = isset($employee->id) ? (int)$employee->id : 0;
+                                                    $empEncryptedId = $empIdVal ? encrypt($empIdVal) : null;
+                                                    $empShowUrl = ($empShowResolved && $empEncryptedId) ? route($empShowResolved, $empEncryptedId) : '#';
+                                                    $langLocal = $langValue;
+                                                    $empShowGuardMsg = Utility::fetchLinkMessage($langLocal, ViewsConstants::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $empAnchorId = 'employee-show-link-'.$empIdVal;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('attendances/bulk — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>
                                                     <input type="hidden" name="employee_id[]" value="{{ $employee->id }}">
                                                     <a id="{{ $empAnchorId }}"
                                                     href="{{ $empShowUrl }}"
-                                                    class="btn btn-outline-primary"
+                                                    class="{{ VC::BT_OUTPM }}"
                                                     data-url="{{ $empShowUrl }}"
-                                                    data-guard-msg="{{ $empShowGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($empShowGuardMsg) }}"
                                                     data-sv-localized="true">
                                                         {{ !empty($employee->employee_id) ? $user->employeeIdFormat($employee->employee_id) : __('Failed to get employee id') }}
                                                     </a>
@@ -180,21 +186,21 @@
                                                                 <label class="{{ VC::CST_LB }}" for="present{{ $employee->id }}"></label>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-8 {{ $attendance?'':'d-none' }}">
+                                                        <div class="{{ VC::CM8 }} {{ $attendance?'':'d-none' }}">
                                                             <div class="{{ VC::RW }}">
                                                                 <label class="{{ VC::CM3 }} {{ VC::FM_LB }}">{{ __('In') }}</label>
                                                                 <div class="{{ VC::CM4 }}">
                                                                     <input type="time"
                                                                         class="{{ VC::FM_CT }}"
                                                                         name="in-{{ $employee->id }}"
-                                                                        value="{{ $attendance->clock_in!='00:00:00'?$attendance->clock_in:Utility::getValByName('company_start_time') }}">
+                                                                        value="{{ (($attendance->clock_in ?? '00:00:00') !== '00:00:00') ? $attendance->clock_in : (Utility::getValByName('company_start_time') ?? '00:00:00') }}">
                                                                 </div>
                                                                 <label class="{{ VC::CM2 }} {{ VC::FM_LB }}">{{ __('Out') }}</label>
                                                                 <div class="{{ VC::CM4 }}">
                                                                     <input type="time"
                                                                         class="{{ VC::FM_CT }}"
                                                                         name="out-{{ $employee->id }}"
-                                                                        value="{{ $attendance->clock_out!='00:00:00'?$attendance->clock_out:Utility::getValByName('company_end_time') }}">
+                                                                        value="{{ (($attendance->clock_out ?? '00:00:00') !== '00:00:00') ? $attendance->clock_out : (Utility::getValByName('company_end_time') ?? '00:00:00') }}">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -216,28 +222,7 @@
                                                                     if (url !== '#' && href !== '#') { return; }
                                                                     e.preventDefault();
                                                                     const msg = el.getAttribute('data-guard-msg') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (hasBootstrap) {
-                                                                        const toast = document.createElement('div');
-                                                                        toast.className = 'toast';
-                                                                        toast.setAttribute('role', 'alert');
-                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toast.appendChild(body);
-                                                                        container.appendChild(toast);
-                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
+                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                     el.setAttribute('data-failed-route', 'true');
                                                                 } catch (err) {}
                                                             });
@@ -249,7 +234,7 @@
                                     @else
                                         <tr>
                                             <td colspan="5">
-                                                <div class="text-center">
+                                                <div class="{{ VC::TXCT }}">
                                                     {{ __('No employees found for the selected criteria.') }}
                                                 </div>
                                             </td>

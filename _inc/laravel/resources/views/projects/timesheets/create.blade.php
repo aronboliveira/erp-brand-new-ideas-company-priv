@@ -1,19 +1,18 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
-    $timesheetStoreBaseName     = ViewsConstants::TMS.'.store';
-    $timesheetStoreKebabName    = Str::kebab($timesheetStoreBaseName);
-    $timesheetStoreResolvedName = Route::has($timesheetStoreBaseName)
-        ? $timesheetStoreBaseName
-        : (Route::has($timesheetStoreKebabName) ? $timesheetStoreKebabName : null);
-    $timesheetStoreRouteArray   = $timesheetStoreResolvedName ? [$timesheetStoreResolvedName] : ['#'];
-    $timesheetStoreUrl          = $timesheetStoreResolvedName ? route($timesheetStoreResolvedName) : '#';
-    $timesheetStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'create_timesheet_route_unavailable') ?? 'Create timesheet route is unavailable. Please contact technical support or your domain administrator.';
-    $timesheetStoreFormId       = 'project_form';
+    try {
+$lang = Utility::fetchUserLang();
+        $timesheetStoreBaseName     = ViewsConstants::TMS.'.store';
+        $timesheetStoreKebabName    = Str::kebab($timesheetStoreBaseName);
+        $timesheetStoreResolvedName = Route::has($timesheetStoreBaseName)
+            ? $timesheetStoreBaseName
+            : (Route::has($timesheetStoreKebabName) ? $timesheetStoreKebabName : null);
+        $timesheetStoreRouteArray   = $timesheetStoreResolvedName ? [$timesheetStoreResolvedName] : ['#'];
+        $timesheetStoreUrl          = $timesheetStoreResolvedName ? route($timesheetStoreResolvedName) : '#';
+        $timesheetStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'create_timesheet_route_unavailable') ?? 'Create timesheet route is unavailable. Please contact technical support or your domain administrator.';
+        $timesheetStoreFormId       = 'project_form';
+    } catch (\Throwable $e) {
+        \Log::error('projects/timesheets/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'route'          => $timesheetStoreRouteArray,
@@ -84,49 +83,55 @@
             <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PRM }}">
         </div>
     @else
-        <div class="alert alert-warning">
+        <div class="{{ VC::ALT_WRN }}">
             {{ __('No data available to create timesheet') }}
         </div>
     @endif
 {{ Form::close() }}
 <script defer>
-    (() => {
-        try {
-            const f = document.getElementById('{{ $timesheetStoreFormId }}');
-            if (!f || f.getAttribute('data-listener-active') === 'true') return;
-            f.setAttribute('data-listener-active', 'true');
-            f.addEventListener('submit', e => {
-                try {
-                    const url = f.getAttribute('data-url') || '#';
-                    const action = f.getAttribute('action') || '#';
-                    if (url !== '#' || action !== '#') return;
-                    e.preventDefault();
-                    const msg = f.getAttribute('data-guard-msg') || 'Create timesheet route is unavailable. Please contact technical support or your domain administrator.';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    f.setAttribute('data-failed-route', 'true');
-                } catch (err) {}
-            });
-        } catch (error) {}
-    })();
+    if (typeof window.TimesheetCreateHandler === 'undefined') {
+        window.TimesheetCreateHandler = {
+            init() {
+                const f = document.getElementById('{{ $timesheetStoreFormId }}');
+                if (f) this.attachFormGuard(f);
+            },
+            attachFormGuard(f) {
+                f.addEventListener('submit', e => {
+                    try {
+                        const url = f.getAttribute('data-url') || '#';
+                        const action = f.getAttribute('action') || '#';
+                        if (url !== '#' && action !== '#') return;
+                        e.preventDefault();
+                        const msg = f.getAttribute('data-guard-msg') || 'Create timesheet route is unavailable. Please contact technical support or your domain administrator.';
+                        this.showToast(msg);
+                    } catch (err) {}
+                });
+            },
+            showToast(msg) {
+                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                if (hasBootstrap) {
+                    const toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    const body = document.createElement('div');
+                    body.className = 'toast-body';
+                    body.textContent = msg;
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                } else {
+                    alert(msg);
+                }
+            }
+        };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.TimesheetCreateHandler.init()) : window.TimesheetCreateHandler.init();
+    }
 </script>

@@ -1,30 +1,27 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId     = 'jb-cat-store-form';
+        $storeBase  = VW::JB_CAT;
+        $storeKebab = Str::kebab($storeBase);
+        $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+        $storeUrl   = $storeRes ? route($storeRes) : '#';
+        $storeGuard = Utility::fetchLinkMessage($lang, VW::JB_CAT, 'store_route_unavailable') ?? __('Job category store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId     = 'jb-cat-store-form';
-    $storeBase  = VW::JB_CAT;
-    $storeKebab = Str::kebab($storeBase);
-    $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-    $storeUrl   = $storeRes ? route($storeRes) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::JB_CAT, 'store_route_unavailable') ?? __('Job category store route is unavailable. Please contact technical support or your domain administrator.');
-
-    $titleErr   = $errors->has('title');
-    $titleAttrs = [
-        'id'               => 'title',
-        'class'            => trim(VC::FM_CT . ' ' . ($titleErr ? 'is-invalid' : '')),
-        'placeholder'      => __('Enter category title'),
-        'required'         => 'required',
-        'aria-invalid'     => $titleErr ? 'true' : 'false',
-        'aria-describedby' => $titleErr ? 'title-error' : null,
-        'autocomplete'     => 'off',
-    ];
+        $titleErr   = $errors->has('title');
+        $titleAttrs = [
+            'id'               => 'title',
+            'class'            => trim(VC::FM_CT . ' ' . ($titleErr ? 'is-invalid' : '')),
+            'placeholder'      => __('Enter category title'),
+            'required'         => 'required',
+            'aria-invalid'     => $titleErr ? 'true' : 'false',
+            'aria-describedby' => $titleErr ? 'title-error' : null,
+            'autocomplete'     => 'off',
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('job_categories/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -41,7 +38,7 @@
                 {{ Form::label('title', __('Title'), ['class' => VC::FM_LB]) }}
                 {{ Form::text('title', null, $titleAttrs) }}
                 @error('title')
-                    <span id="title-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="title-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
         </div>

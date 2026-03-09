@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\PurchaseProduct;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseProductTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -31,10 +37,10 @@ class PurchaseProductTest extends TestCase
 		$rel = (new PurchaseProduct)->product();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('product_id', $rel->getLocalKeyName());
+		$this->assertSame('product_id',         $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

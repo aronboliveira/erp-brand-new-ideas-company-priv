@@ -1,45 +1,12 @@
 (() => {
-  const BS_LINK = 'link[href*="bootstrap"]';
-  const toastContainer = (() => {
-    const c = document.createElement("div");
-    c.className = "toast-container position-fixed bottom-0 end-0 p-3";
-    document.body.append(c);
-    return c;
-  })();
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  if (!guard) return;
 
   const showError = key => {
-    const errFb = "# ERROR";
-    let lang = (
-      window.sessionStorage.getItem("erp-np-lang") ||
-      document.documentElement.lang ||
-      "en"
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-    const msg =
-      window.translations?.[lang]?.[key] ||
-      window.translations?.["en"]?.[key] ||
-      errFb;
-    if (toastContainer.querySelector(`.toast[data-error-key="${key}"]`)) return;
-    if (document.querySelector(BS_LINK) && window.bootstrap?.Toast) {
-      const toast = document.createElement("div");
-      toast.className = "toast align-items-center text-bg-danger border-0";
-      toast.dataset.errorKey = key;
-      toast.setAttribute("role", "alert");
-      toast.setAttribute("aria-live", "assertive");
-      toast.setAttribute("aria-atomic", "true");
-      toast.innerHTML = `
-                <div class="d-flex">
-                <div class="toast-body">${msg}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>`;
-      toastContainer.append(toast);
-      new window.bootstrap.Toast(toast).show();
-    } else {
-      alert(msg);
-    }
+    const utils = window.ERPUtils;
+    if (!utils) return;
+    const msg = utils.getTranslation(key) || "# ERROR";
+    guard.showToast(msg);
   };
 
   try {
@@ -70,7 +37,7 @@
           show_toastr(
             "success",
             window.translations?.["en"]?.copy_link_success || "Link copied",
-            "success"
+            "success",
           );
         } catch (err) {
           if (

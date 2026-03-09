@@ -58,7 +58,9 @@ final class EventEmployeeSeeder extends Seeder
 				$this->command->warn("EventEmployeeSeeder: valor inválido para --count ({$raw}); usando {$defaultTarget}.");
 			}
 		}
-		$targetCount = min($targetCount, $absoluteMax);
+		// original: $targetCount = min($targetCount, $absoluteMax);
+		$HARD_CAP = 2;
+		$targetCount = min($HARD_CAP, $targetCount, $absoluteMax);
 
 		// Helpers
 		$maybe  = fn(callable $producer) => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? $producer() : null;
@@ -199,9 +201,9 @@ final class EventEmployeeSeeder extends Seeder
 
 						// Marcar par como usado
 						$existingPairs[$evId][$empId] = true;
-						$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Funcionário em Chamada para event={$evId} employee={$ref} como " . $role);
+						// $ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Funcionário em Chamada para event={$evId} employee={$ref} como " . $role);
 						$totalPlanned++;
 						$madeProgress = true;
 

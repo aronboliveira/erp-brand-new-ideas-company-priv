@@ -10,8 +10,27 @@
 		- Always use {} spreading for the imports, preventing repetition;
 		- The intention is to prevent at all costs that we get a sever crash by a null pointer leaking or an error being thrown without being catched;
 		- DO NOT import Error or Exception, just call them by \Error and \Exception;
+				- When it's due, implement nullish checks with empty(). Also check for points of failure due to "array to string conversion" => for that, implement boolean checks with is_array(), is_object(), is_string(), etc. If it's an array or an object converted into an array and it's not obvious that it's not an associate array, check it be iterating or recusing each inner level to see if it's an array or an scalar value;
 	</instructions>
 	<block>
 
 	</block>
 </task>
+
+
+	#REMEMBER:
+	<instructions>
+		- Always sort imports alphabetically at all levels;
+		- Use a tab spacing for all lines inside of the @php/@endphp block;
+		- Give a more log errors, with details about the files, the class of the error, etc, but DO NOT add stack tracing
+		- Never use more than one newline to separate lines, EXCEPT for breaking 80+ columns lines;
+		- Don't add comments;
+		- I will be giving you php blocks that you must initialize the variables with their desired types as defaulted variations (with ??=, NOT =), and then start the procedures WITHIN try/catches to give their proper values (always with coalescence);
+		- Include different types of exception catches if you see windows for diverse ones (besides the general \Throwable), including the corresponding import;
+		- Always use {} spreading for the imports, preventing repetition;
+		- The intention is to prevent at all costs that we get a sever crash by a null pointer leaking or an error being thrown without being catched;
+		- DO NOT import Error or Exception, just call them by \Error and \Exception;
+		- When it's due, implement nullish checks with empty(). Also check for points of failure due to "array to string conversion" => for that, implement boolean checks with is_array(), is_object(), is_string(), etc. If it's an array or an object converted into an array and it's not obvious that it's not an associate array, check it be iterating or recusing each inner level to see if it's an array or an scalar value;
+		- For constants dictionaries, like ActivitiesConstants, always alias following the pattern [Initial Letter] ?[If more than one constants with same initial letter, then add another significant one here]+ C (ex.: ActivitiesConstants => AC; BillsConstants => BC; PermissionsConstants => PMC; ProjectsConstants => PJC, etc.);
+		- Be mindful of the possibilities of helpers given by the Utility class, within the models;
+	</instructions>

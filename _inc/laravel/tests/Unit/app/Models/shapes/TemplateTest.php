@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class TemplateTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 **

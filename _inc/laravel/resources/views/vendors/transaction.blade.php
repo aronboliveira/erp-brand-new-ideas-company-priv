@@ -1,28 +1,21 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        YieldingConstants as YW,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Collection, Facades\Auth, Facades\Route, Str};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+        $indexBase  = VW::VND . '.transaction';
+        $indexKebab = Str::kebab($indexBase);
+        $indexName  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+        $indexUrl   = $indexName ? route($indexName) : '#';
+        $indexGuard = Utility::fetchLinkMessage($lang, VW::VND, 'vendor_transaction_route_unavailable')
+            ?? 'Vendor transaction route is unavailable. Please contact technical support or your domain administrator.';
+        $formId     = 'vendor-transaction-filter-form';
+        $resetId    = 'vendor-transaction-reset-link';
 
-    $indexBase  = VW::VND . '.transaction';
-    $indexKebab = Str::kebab($indexBase);
-    $indexName  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
-    $indexUrl   = $indexName ? route($indexName) : '#';
-    $indexGuard = Utility::fetchLinkMessage($lang, VW::VND, 'vendor_transaction_route_unavailable')
-        ?? 'Vendor transaction route is unavailable. Please contact technical support or your domain administrator.';
-    $formId     = 'vendor-transaction-filter-form';
-    $resetId    = 'vendor-transaction-reset-link';
-
-    $categoryOptions = (($category ?? null) instanceof Collection) ? $category->toArray() : (is_array($category ?? null) ? $category : []);
+        $categoryOptions = (($category ?? null) instanceof Collection) ? $category->toArray() : (is_array($category ?? null) ? $category : []);
+    } catch (\Throwable $e) {
+        \Log::error('vendors/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -33,9 +26,9 @@
 
 @section(YW::ADM_CTT)
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
+                <div class="{{ VC::CD_BD_TB_BD }}">
                     {!! Form::open([
                         'url'                  => $indexUrl,
                         'method'               => 'GET',
@@ -44,7 +37,7 @@
                         'data-guard-msg'       => $indexGuard,
                         'data-sv-localized'    => 'true',
                     ]) !!}
-                        <div class="row d-flex justify-content-end mt-2">
+                        <div class="row {{ VC::DFL_JCE }} {{ VC::MT2 }}">
                             <div class="{{ VC::CL_XL3 }}">
                                 <div class="all-select-box">
                                     <div class="btn-box">
@@ -61,14 +54,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-auto my-auto">
+                            <div class="{{ VC::C_AT }} my-auto">
                                 <button type="submit" class="apply-btn" data-bs-toggle="tooltip" title="{{ __('apply') }}">
                                     <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                 </button>
                                 <a id="{{ $resetId }}"
                                    href="{{ $indexUrl }}"
                                    data-url="{{ $indexUrl }}"
-                                   data-guard-msg="{{ $indexGuard }}"
+                                   data-guard-msg="{{ base64_encode($indexGuard) }}"
                                    data-sv-localized="true"
                                    class="reset-btn"
                                    data-bs-toggle="tooltip"
@@ -79,8 +72,8 @@
                         </div>
                     {!! Form::close() !!}
 
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped mb-0 dataTable">
+                    <div class="{{ VC::TB_RSP }} {{ VC::MT3 }}">
+                        <table class="table table-striped {{ VC::MB0 }} dataTable">
                             <thead>
                                 <tr>
                                     <th>{{ __('Date') }}</th>
@@ -94,35 +87,39 @@
                             <tbody>
                                 @php
                                     $rows = (($transactions ?? null) instanceof Collection || is_array($transactions ?? null)) ? $transactions : [];
-                                @endphp
+@endphp
                                 @forelse($rows as $tx)
                                     @php
-                                        $dateRaw = data_get($tx, 'date');
-                                        $dateStr = $dateRaw
-                                            ? ($user && method_exists($user, 'dateFormat') ? ($user->dateFormat($dateRaw) ?? (string) $dateRaw) : (string) $dateRaw)
-                                            : __('No date available');
+                                        try {
+                                            $dateRaw = data_get($tx, 'date');
+                                            $dateStr = $dateRaw
+                                                ? ($user && method_exists($user, 'dateFormat') ? ($user->dateFormat($dateRaw) ?? (string) $dateRaw) : (string) $dateRaw)
+                                                : __('No date available');
 
-                                        $amtRaw = data_get($tx, 'amount');
-                                        $amtStr = (isset($amtRaw) && $amtRaw !== '' && is_numeric($amtRaw))
-                                            ? ($user && method_exists($user, 'priceFormat') ? ($user->priceFormat($amtRaw) ?? (string) $amtRaw) : (string) $amtRaw)
-                                            : __('No amount available');
+                                            $amtRaw = data_get($tx, 'amount');
+                                            $amtStr = (isset($amtRaw) && $amtRaw !== '' && is_numeric($amtRaw))
+                                                ? ($user && method_exists($user, 'priceFormat') ? ($user->priceFormat($amtRaw) ?? (string) $amtRaw) : (string) $amtRaw)
+                                                : __('No amount available');
 
-                                        $bank   = (is_object($tx) && method_exists($tx, 'bankAccount')) ? $tx->bankAccount() : null;
-                                        $bankNm = data_get($bank, 'bank_name');
-                                        $holdNm = data_get($bank, 'holder_name');
-                                        $acctStr = ($bankNm || $holdNm)
-                                            ? trim(($bankNm ?? '') . ' ' . ($holdNm ?? ''))
-                                            : __('No account available');
+                                            $bank   = (is_object($tx) && method_exists($tx, 'bankAccount')) ? $tx->bankAccount() : null;
+                                            $bankNm = data_get($bank, 'bank_name');
+                                            $holdNm = data_get($bank, 'holder_name');
+                                            $acctStr = ($bankNm || $holdNm)
+                                                ? trim(($bankNm ?? '') . ' ' . ($holdNm ?? ''))
+                                                : __('No account available');
 
-                                        $typeRaw = data_get($tx, 'type');
-                                        $typeStr = (isset($typeRaw) && $typeRaw !== '') ? (string) $typeRaw : __('No type available');
+                                            $typeRaw = data_get($tx, 'type');
+                                            $typeStr = (isset($typeRaw) && $typeRaw !== '') ? (string) $typeRaw : __('No type available');
 
-                                        $catRaw  = data_get($tx, 'category');
-                                        $catStr  = (isset($catRaw) && $catRaw !== '') ? (string) $catRaw : __('No category available');
+                                            $catRaw  = data_get($tx, 'category');
+                                            $catStr  = (isset($catRaw) && $catRaw !== '') ? (string) $catRaw : __('No category available');
 
-                                        $descRaw = data_get($tx, 'description');
-                                        $descStr = (isset($descRaw) && $descRaw !== '') ? (string) $descRaw : __('No description available');
-                                    @endphp
+                                            $descRaw = data_get($tx, 'description');
+                                            $descStr = (isset($descRaw) && $descRaw !== '') ? (string) $descRaw : __('No description available');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('vendors/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ $dateStr }}</td>
                                         <td>{{ $amtStr }}</td>
@@ -133,7 +130,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">
+                                        <td colspan="6" class="{{ VC::TXCT_MT }}">
                                             {{ __('No transaction information available') }}
                                         </td>
                                     </tr>

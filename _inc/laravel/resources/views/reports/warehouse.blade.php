@@ -1,25 +1,21 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use Illuminate\Support\Facades\Route;
+    try {
+} catch (\Throwable $e) {
+        \Log::error('reports/warehouse — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Warehouse Report')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Warehouse Report') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Warehouse Report') }}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
@@ -35,7 +31,7 @@
             const dataGuardMsg = "data-guard-msg";
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
-            if (!$) { try { 
+            if (!$) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -68,7 +64,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -103,7 +99,7 @@
             const name = ($("#filename").val() ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { 
+                if (typeof window.html2pdf !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -116,7 +112,7 @@
             const initChart = () => {
             const container = qs("#warehouse_report");
             if (!container) { return; }
-            if (typeof window.ApexCharts !== "function") { try { 
+            if (typeof window.ApexCharts !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -182,14 +178,14 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::C6 }}">
                                 <h6 class="{{ VC::MB0 }}">{{ __('Warehouse Report') }}</h6>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div id="warehouse_report" role="img" aria-label="{{ __('Warehouse Report Chart') }}"></div>
                         <div id="warehouse_report_empty" class="text-center text-muted {{ VC::MT3 }}" hidden>
                             {{ __('No data to display.') }}

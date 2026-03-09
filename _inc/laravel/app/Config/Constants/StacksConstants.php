@@ -11,4 +11,7 @@ class StacksConstants
 	public const CTC_HD = 'head';
 	public const SHR_PRJ_HD = 'head';
 	public const SHR_PRJ_SCR_PG = 'script-page';
+
+	// Delegated from SettingsConstants — used as ST::CST_DRK in several views
+	public const CST_DRK = 'cust_darklayout';
 }

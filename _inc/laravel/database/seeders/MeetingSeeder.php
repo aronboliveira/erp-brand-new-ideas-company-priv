@@ -43,8 +43,9 @@ final class MeetingSeeder extends Seeder
 			// Geração
 			$created = 0;
 			$updated = 0;
+			$HARD_CAP = 2; // original: self::TOTAL_MEETINGS (256)
 
-			for ($i = 0; $i < self::TOTAL_MEETINGS; $i++) {
+			for ($i = 0; $i < $HARD_CAP; $i++) {
 				try {
 					// Data até 30 dias à frente
 					$startDate = $today->addDays(random_int(0, 30));
@@ -73,8 +74,8 @@ final class MeetingSeeder extends Seeder
 						'Acompanhamento de Implantação',
 					];
 					$title = $faker->randomElement($titlePool);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Chamada para as {$startDate->toDateString()} às {$time} com título '{$title}'");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Chamada para as {$startDate->toDateString()} \u00e0s {$time} com t\u00edtulo '{$title}'");
 
 					// Relacionamentos opcionais
 					$employeeId   = $employees->isNotEmpty()   ? $employees->random()->id : null;

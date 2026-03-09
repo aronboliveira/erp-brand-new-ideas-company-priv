@@ -1,15 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    $lang = Utility::fetchUserLang();
+    $data ??= [];
+    $warehouse ??= $warehouses ?? [];
+    $customer ??= $customers ?? [];
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('reports/monthly_pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -17,23 +14,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Daily Pos Report') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Daily Pos Report') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('download report')
             @php
-                $funcName  = 'saveAsPDF';
+                $funcName  ??= 'saveAsPDF';
                 $guardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'download_montly_pos_unavailable') ?? 'Download function for monthly POS is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <a href="#" id="download-report-link" class="{{ VC::BT_SM_PM }} download-report-link" data-func-name="{{ $funcName }}" data-sv-localized="true" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
+@endphp
+            <a href="#" id="download-report-link" class="{{ VC::BT_SM_PM }} download-report-link" data-func-name="{{ $funcName }}" data-sv-localized="true" data-guard-msg="{{ base64_encode($guardMsg) }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
                 <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
             </a>
         @endcan
@@ -42,9 +39,9 @@
 
 @section(YieldingConstants::ADM_CTT)
     <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
-        <li class="nav-item">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link"
+                class="{{ VC::NV_LK }}"
                 id="pills-home-tab"
                 data-bs-toggle="pill"
                 href="{{ Route::has(VW::RPT . '.daily.pos') ? route(VW::RPT . '.daily.pos') : '#' }}"
@@ -56,9 +53,9 @@
                 {{ __('Daily') }}
             </a>
         </li>
-        <li class="nav-item">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link active"
+                class="{{ VC::NV_LK }} active"
                 id="pills-profile-tab"
                 data-bs-toggle="pill"
                 href="#monthly-chart"
@@ -71,17 +68,21 @@
         </li>
     </ul>
     @php
-        $flagAttr = 'data-dailyPos-listener-added';
-        $guardAttr = 'data-url';
-        $urlAttr = 'data-url';
-        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_pos_unavailable')
-            ?? 'Daily pos route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        $flagAttr ??= 'data-dailyPos-listener-added';
+        $guardAttr ??= 'data-url';
+        $urlAttr ??= 'data-url';
+        try {
+            $message = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_pos_unavailable')
+                ?? 'Daily pos route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('reports/monthly_pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="row">
-        <div class="col-sm-12">
-            <div class="mt-2" >
+        <div class="{{ VC::CS12 }}">
+            <div class="{{ VC::MT2 }}" >
                 <div class="card">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         {{ Form::open([
                             'url' => Route::has(VW::RPT . '.monthly.pos') ? route(VW::RPT . '.monthly.pos') : '#',
                             'method' => 'GET',
@@ -132,13 +133,17 @@
                         {{ Form::close() }}
                     </div>
                     @php
-                        $flagApply = 'data-monthlyPosApply-listener-added';
-                        $flagReset = 'data-monthlyPosReset-listener-added';
-                        $guardAttr = 'data-url';
-                        $urlAttr = 'data-url';
-                        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_pos_unavailable') 
-                            ?? 'Monthly pos route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp              
+                        $flagApply ??= 'data-monthlyPosApply-listener-added';
+                        $flagReset ??= 'data-monthlyPosReset-listener-added';
+                        $guardAttr ??= 'data-url';
+                        $urlAttr ??= 'data-url';
+                        try {
+                            $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_pos_unavailable')
+                                ?? 'Monthly pos route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('reports/monthly_pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                 </div>
             </div>
         </div>
@@ -176,20 +181,20 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="{{ VC::C12 }}">
                 <div class="card">
                     <div class="setting-tab">
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="monthly-chart" role="tabpanel">
-                                <div class="col-lg-12">
-                                    <div class="card-header">
+                            <div class="{{ VC::TAB_FD_SH }} active" id="monthly-chart" role="tabpanel">
+                                <div class="{{ VC::CL12 }}">
+                                    <div class="{{ VC::CD_HD }}">
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <h6>{{ __('Monthly Report') }}</h6>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <div id="monthly-pos"></div>
                                     </div>
                                 </div>
@@ -230,75 +235,31 @@
             tr: { chart_fail: "Aylık POS grafiği oluşturulamadı" },
             zh: { chart_fail: "无法渲染月度POS图表" }
           };
-        
-          let toastContainer = null;
-          const getToastContainer = () => {
-            if (!toastContainer) {
-              toastContainer = document.querySelector('.toast-container') || document.createElement('div');
-              toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-              if (!toastContainer.isConnected) document.body.append(toastContainer);
-            }
-            return toastContainer;
-          };
-        
+
+          const RG = window.RouteGuard || {};
           const showError = (key) => {
-            const errFb = "# ERROR";
-            const dataClientLocalized = "data-client-localized";
-            const dataGuardMsg = "data-guard-msg";
-            let msg = errFb;
-            if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(dataClientLocalized) === "true")
-            msg = el.getAttribute(dataGuardMsg) || errFb;
-            else {
-            let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
-                .toLowerCase()
-                .replace(/_/g, "-");
-            lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            const msgKey = key;
-            msg =
-                window.translations?.[lang]?.[msgKey] ||
-                el.getAttribute(dataGuardMsg) ||
-                window.translations?.["en"]?.[msgKey] ||
-                errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, "true");
-            }
-            }
-            const hasBootstrap = document.querySelector(BS_LINK) && window.bootstrap?.Toast;
-            
-            if (hasBootstrap) {
-              const container = getToastContainer();
-              const toast = document.createElement('div');
-              toast.className = 'toast align-items-center text-bg-danger border-0';
-              toast.setAttribute('role','alert');
-              toast.setAttribute('aria-live','assertive');
-              toast.setAttribute('aria-atomic','true');
-              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
-              container.append(toast);
-              new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
-            } else {
-              alert(msg);
-            }
+            const msg = RG.getMsg ? RG.getMsg(key, document.body) : (window.translations?.[((sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en').toLowerCase().replace(/_/g,'-').slice(0,2))]?.[key] || '# ERROR');
+            (RG.showToast || (m => alert(m)))(msg);
           };
-        
+
           const renderChart = () => {
             try {
               const chartContainer = document.querySelector(CHART_CONTAINER);
               if (!chartContainer) return;
-              
+
               const data = JSON.parse(JSON.stringify({!! json_encode($data) !!})) ?? [];
               const categories = JSON.parse(JSON.stringify({!! json_encode($monthList) !!})) ?? [];
-              
+
               if (!data.length || !categories.length) {
                 showError('chart_fail');
                 return;
               }
-        
+
               if (typeof ApexCharts === 'undefined') {
                 showError('chart_fail');
                 return;
               }
-        
+
               const chartOptions = {
                 series: [{ name: '{{ __("Pos") }}', data }],
                 chart: {
@@ -328,16 +289,16 @@
                 legend: { show: false },
                 yaxis: { title: { text: '{{ __("Amount") }}' } }
               };
-        
+
               if (chartContainer.chart) chartContainer.chart.destroy();
-              
+
               chartContainer.chart = new ApexCharts(chartContainer, chartOptions);
               chartContainer.chart.render();
             } catch (e) {
               showError('chart_fail');
             }
           };
-        
+
           const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
               mutation.removedNodes.forEach(node => {
@@ -350,9 +311,9 @@
               });
             });
           });
-        
+
           observer.observe(document.body, { childList: true, subtree: true });
-        
+
           if (document.readyState !== 'loading') {
             renderChart();
           } else {
@@ -366,7 +327,7 @@
         const GUARD_ATTR = @json($guardAttr);
         const URL_ATTR = @json($urlAttr);
         const TAB_ID = "pills-home-tab";
-        
+
         const showPermissionError = (message) => {
             if (window.bootstrap?.Toast) {
             const toastEl = document.querySelector(".toast");
@@ -383,7 +344,7 @@
             alert(message);
             }
         };
-        
+
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
             mutation.removedNodes.forEach(node => {
@@ -394,25 +355,25 @@
             });
             });
         });
-        
+
         try {
             const el = document.getElementById(TAB_ID);
             if (!el) return;
-            
+
             if (el.getAttribute(FLAG_ATTR) === "true") return;
             el.setAttribute(FLAG_ATTR, "true");
-            
+
             observer.observe(document.body, { childList: true, subtree: true });
-            
+
             const dataUrl = el.getAttribute(GUARD_ATTR) ?? el.getAttribute(URL_ATTR);
             const hrefAttr = el.getAttribute("href");
             const url = dataUrl ?? hrefAttr;
-            
+
             if (dataUrl === "#" && hrefAttr === "#") {
             showPermissionError(@json($message));
             return;
             }
-            
+
             const handler = (e) => {
             e.preventDefault();
             window.location.href = url;
@@ -431,7 +392,7 @@
         const APPLY_ID = "monthly-pos-apply";
         const RESET_ID = "monthly-pos-reset";
         const FORM_ID = "monthly_pos_report_submit";
-        
+
         const showPermissionError = (message) => {
             if (window.bootstrap?.Toast) {
             const toastEl = document.querySelector(".toast");
@@ -448,7 +409,7 @@
             alert(message);
             }
         };
-        
+
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
             mutation.removedNodes.forEach(node => {
@@ -463,21 +424,21 @@
             });
             });
         });
-        
+
         try {
             observer.observe(document.body, { childList: true, subtree: true });
-        
+
             const applyEl = document.getElementById(APPLY_ID);
             if (applyEl && applyEl.getAttribute(FLAG_ATTR_APPLY) !== "true") {
             applyEl.setAttribute(FLAG_ATTR_APPLY, "true");
-            
+
             const formEl = document.getElementById(FORM_ID);
             if (!formEl) return;
-            
+
             const dataUrl = formEl.getAttribute(GUARD_ATTR) ?? formEl.getAttribute(URL_ATTR);
             const actionAttr = formEl.getAttribute("action");
             const url = dataUrl ?? actionAttr;
-            
+
             if (dataUrl === "#" && actionAttr === "#") {
                 showPermissionError(@json($message));
             } else {
@@ -490,15 +451,15 @@
                 applyEl.addEventListener("click", handler);
             }
             }
-        
+
             const resetEl = document.getElementById(RESET_ID);
             if (resetEl && resetEl.getAttribute(FLAG_ATTR_RESET) !== "true") {
             resetEl.setAttribute(FLAG_ATTR_RESET, "true");
-            
+
             const dataUrl = resetEl.getAttribute(GUARD_ATTR) ?? resetEl.getAttribute(URL_ATTR);
             const hrefAttr = resetEl.getAttribute("href");
             const url = dataUrl ?? hrefAttr;
-            
+
             if (dataUrl === "#" && hrefAttr === "#") {
                 showPermissionError(@json($message));
             } else {

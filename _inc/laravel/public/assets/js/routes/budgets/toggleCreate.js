@@ -1,86 +1,9 @@
 (() => {
-  const errFb = "# ERROR";
-  const guardMsg = "data-guard-msg";
-  const clientFlag = "data-client-localized";
-  const langKey = "erp-np-lang";
-  let errorMessage = "";
-
-  function getLocalizedMessage(key, el) {
-    let msg = errFb;
-    if (el.getAttribute(clientFlag) === "true") {
-      msg = el.getAttribute(guardMsg) || msg;
-    } else {
-      let lang = (
-        sessionStorage.getItem(langKey) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        translations?.[lang]?.[key] ||
-        el.getAttribute(guardMsg) ||
-        translations?.["en"]?.[key] ||
-        msg;
-      if (msg !== errFb) {
-        el.setAttribute(guardMsg, msg);
-        el.setAttribute(clientFlag, "true");
-      }
-    }
-    return msg;
-  }
-
-  function showError(message) {
-    try {
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      const bs =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
-      if (bs) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = message;
-        toast.appendChild(body);
-        container.appendChild(toast);
-        bootstrap.Toast.getOrCreateInstance(toast).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
-  }
-
-  const onErrorPointerUp = () => {
-    if (errorMessage) {
-      showError(errorMessage);
-      errorMessage = "";
-    }
-  };
-  document.addEventListener("pointerup", onErrorPointerUp);
-  new MutationObserver((ms, obs) => {
-    ms.forEach(m =>
-      Array.from(m.removedNodes).forEach(n => {
-        if (n === document.documentElement) {
-          document.removeEventListener("pointerup", onErrorPointerUp);
-          obs.disconnect();
-        }
-      })
-    );
-  }).observe(document.body, { childList: true, subtree: true });
+  const $ = window.jQuery;
+  const guard = window.ERPGuard;
+  const utils = window.ERPUtils;
+  const scheduleError = msg => guard?.scheduleError?.("pointerup", msg);
+  const getMsg = key => utils?.getMsg?.(key) ?? "# ERROR";
 
   $(() => {
     const bindHandler = (selector, event, handler, errorKey) => {
@@ -88,7 +11,7 @@
         try {
           handler.call(this);
         } catch {
-          errorMessage = getLocalizedMessage(errorKey, this);
+          scheduleError(getMsg(errorKey));
         }
       });
     };
@@ -117,7 +40,7 @@
           .each((_, i) => (grand += parseFloat($(i).text()) || 0));
         $row.parent().find(".income").text(grand);
       },
-      "income_calculation_failed"
+      "income_calculation_failed",
     );
 
     bindHandler(
@@ -144,7 +67,7 @@
           .each((_, i) => (grand += parseFloat($(i).text()) || 0));
         $row.parent().find(".expense").text(grand);
       },
-      "expense_calculation_failed"
+      "expense_calculation_failed",
     );
 
     bindHandler(
@@ -155,7 +78,7 @@
         $(".budget_plan").addClass("d-none");
         $(`#${v}`).removeClass("d-none").addClass("d-block");
       },
-      "period_toggle_failed"
+      "period_toggle_failed",
     );
 
     $(".period").trigger("change");

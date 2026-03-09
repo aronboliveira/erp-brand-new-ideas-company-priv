@@ -8,6 +8,11 @@ use App\Models\Meeting;
 
 class MeetingTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -30,9 +35,7 @@ class MeetingTest extends TestCase
 
 		$meeting = Meeting::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $meeting->$field);
-		}
+		$this->assertFillableMatches($data, $meeting);
 	}
 
 	/**

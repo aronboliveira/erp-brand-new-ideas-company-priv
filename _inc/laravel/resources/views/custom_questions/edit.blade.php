@@ -1,20 +1,48 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Gate, Route};
-    use App\Models\Utility;
-
-    $lang = Utility::fetchUserLang();
-    $canUpdate = Gate::check('edit custom question');
-    $routeName = $canUpdate ? VW::CST_QT . '.update' : null;
-    $hasRoute  = $routeName && Route::has($routeName);
-    $actionUrl = $hasRoute ? route($routeName, $customQuestion->id ?? '') : '#';
-    $guardMsg  = Utility::fetchLinkMessage($lang, VW::CST_QT, 'update_custom_question_route_unavailable')
-                ?? 'Update Custom Question route is unavailable. Please contact technical support or your domain administrator.';
-    $formId    = 'edit-custom-question-form-'.($customQuestion->id ?? 'x');
-    $isRequiredOptions = (is_array($is_required ?? null) && $is_required)
-        ? $is_required
-        : ['0' => __('No'), '1' => __('Yes')];
+$lang ??= 'en';
+	$canUpdate ??= false;
+	$routeName ??= null;
+	$hasRoute ??= false;
+	$actionUrl ??= '#';
+	$guardMsg ??= '';
+	$formId ??= 'edit-custom-question-form-x';
+	$isRequiredOptions ??= [];
+	$customQuestionId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$canUpdate = Gate::check('edit custom question');
+		$customQuestionId = data_get($customQuestion ?? null, 'id');
+		$routeName = $canUpdate ? VW::CST_QT . '.update' : null;
+		$hasRoute = $routeName && Route::has($routeName);
+		$actionUrl = ($hasRoute && $customQuestionId) ? (route($routeName, $customQuestionId) ?? '#') : '#';
+		$guardMsg = Utility::fetchLinkMessage($lang, VW::CST_QT, 'update_custom_question_route_unavailable')
+			?? 'Update Custom Question route is unavailable. Please contact technical support or your domain administrator.';
+		$formId = 'edit-custom-question-form-' . ($customQuestionId ?? 'x');
+		$isRequiredOptions = (is_array($is_required ?? null) && $is_required)
+			? $is_required
+			: ['0' => __('No'), '1' => __('Yes')];
+	} catch (\Error $e) {
+		Log::error('Error in custom_questions/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in custom_questions/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in custom_questions/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($customQuestion) && isset($customQuestion->id))
     {!! Form::model($customQuestion, [
@@ -58,7 +86,7 @@
                                 var t=document.createElement('div');
                                 t.className='toast align-items-center text-bg-danger border-0';
                                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                                t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                                t.innerHTML='<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                                 t.querySelector('.toast-body').textContent = msg || '#';
                                 c.appendChild(t);
                                 bootstrap.Toast.getOrCreateInstance(t,{delay:4000}).show();
@@ -79,8 +107,10 @@
         </script>
     {!! Form::close() !!}
 @else
-    <div class="alert alert-danger">
+    <div class="{{ VC::ALT_DNG }}">
         {{ __('Invalid Custom Question data.') }}
     </div>
-    @php return; @endphp
+    @php
+ return;
+@endphp
 @endif

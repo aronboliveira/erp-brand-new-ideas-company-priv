@@ -1,22 +1,14 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\{ProjectTask,Utility};
-    use App\Models\{ProjectTask,Utility};
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection,Str};
-    use Illuminate\Support\{Collection,Str};
-    $lang = Utility::fetchUserLang();
-    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
-    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -25,18 +17,18 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="project-index-link"
             href="{{ $projectIndexUrl }}"
             data-url="{{ $projectIndexUrl }}"
-            data-guard-msg="{{ $projectIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
         >
             {{ __('Project') }}
         </a>
@@ -44,7 +36,7 @@
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/projects/tasks/gridIndex.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{__('Task')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Task')}}</li>
 @endsection
 
 @php
@@ -56,22 +48,26 @@
     <div class="{{ VC::FEND }}">
         @if($viewSafe === 'grid')
             @php
-                $taskboardListBaseName     = ViewsConstants::TSKB.'.view';
-                $taskboardListKebabName    = Str::kebab($taskboardListBaseName);
-                $taskboardListResolvedName = Route::has($taskboardListBaseName)
-                    ? $taskboardListBaseName
-                    : (Route::has($taskboardListKebabName) ? $taskboardListKebabName : null);
-                $taskboardListParam        = 'list';
-                $taskboardListUrl          = $taskboardListResolvedName ? route($taskboardListResolvedName, $taskboardListParam) : '#';
-                $taskboardListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TSK, 'list_taskboard_route_unavailable') ?? 'List taskboard route is unavailable. Please contact technical support or your domain administrator.';
-                $taskboardListLinkId       = 'taskboard-list-view-link';
-                $taskboardListTitle        = __('List View');
-            @endphp
+                try {
+                    $taskboardListBaseName     = ViewsConstants::TSKB.'.view';
+                    $taskboardListKebabName    = Str::kebab($taskboardListBaseName);
+                    $taskboardListResolvedName = Route::has($taskboardListBaseName)
+                        ? $taskboardListBaseName
+                        : (Route::has($taskboardListKebabName) ? $taskboardListKebabName : null);
+                    $taskboardListParam        = 'list';
+                    $taskboardListUrl          = $taskboardListResolvedName ? route($taskboardListResolvedName, $taskboardListParam) : '#';
+                    $taskboardListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TSK, 'list_taskboard_route_unavailable') ?? 'List taskboard route is unavailable. Please contact technical support or your domain administrator.';
+                    $taskboardListLinkId       = 'taskboard-list-view-link';
+                    $taskboardListTitle        = __('List View');
+                } catch (\Throwable $e) {
+                    \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $taskboardListUrl }}"
             id="{{ $taskboardListLinkId }}"
             class="{{ VC::BT_SM_PM }}"
             data-url="{{ $taskboardListUrl }}"
-            data-guard-msg="{{ $taskboardListGuardMsg }}"
+            data-guard-msg="{{ base64_encode($taskboardListGuardMsg) }}"
             data-bs-toggle="tooltip"
             title="{{ $taskboardListTitle }}">
                 <span class="btn-inner--text"><i class="{{ VC::TI_LT }}"></i></span>
@@ -81,22 +77,26 @@
             @endpush
         @else
             @php
-                $taskboardViewBase = VW::TSKB.'.view';
-                $taskboardViewKebab = Str::kebab($taskboardViewBase);
-                $taskboardViewResolved = Route::has($taskboardViewBase) ? $taskboardViewBase : (Route::has($taskboardViewKebab) ? $taskboardViewKebab : null);
-                $viewMode = 'grid';
-                $taskboardViewUrl = $taskboardViewResolved ? route($taskboardViewResolved, $viewMode) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $taskboardViewGuardMsg = Utility::fetchLinkMessage($langValue, VW::TSK, 'view_taskboard_grid_route_unavailable') ?? 'View taskboard as grid route is unavailable. Please contact technical support or your domain administrator.';
-                $taskboardViewAnchorId = 'taskboard-view-'.$viewMode;
-            @endphp
+                try {
+                    $taskboardViewBase = VW::TSKB.'.view';
+                    $taskboardViewKebab = Str::kebab($taskboardViewBase);
+                    $taskboardViewResolved = Route::has($taskboardViewBase) ? $taskboardViewBase : (Route::has($taskboardViewKebab) ? $taskboardViewKebab : null);
+                    $viewMode = 'grid';
+                    $taskboardViewUrl = $taskboardViewResolved ? route($taskboardViewResolved, $viewMode) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $taskboardViewGuardMsg = Utility::fetchLinkMessage($langValue, VW::TSK, 'view_taskboard_grid_route_unavailable') ?? 'View taskboard as grid route is unavailable. Please contact technical support or your domain administrator.';
+                    $taskboardViewAnchorId = 'taskboard-view-'.$viewMode;
+                } catch (\Throwable $e) {
+                    \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="{{ $taskboardViewAnchorId }}"
             href="{{ $taskboardViewUrl }}"
             class="{{ VC::BT_SM_PM }}"
             data-bs-toggle="tooltip"
             title="{{ __('Card View') }}"
             data-url="{{ $taskboardViewUrl }}"
-            data-guard-msg="{{ $taskboardViewGuardMsg }}"
+            data-guard-msg="{{ base64_encode($taskboardViewGuardMsg) }}"
             data-sv-localized="true">
                 <span class="btn-inner--text"><i class="ti ti-table"></i></span>
             </a>
@@ -115,41 +115,45 @@
                     @if(count($tasksSafe) > 0)
                         @foreach($tasksSafe as $task)
                             @php
-                                $tid = data_get($task,'id');
-                                $priority = (int)(data_get($task,'priority') ?? -1);
-                                $priorityColors = is_array(ProjectTask::$priority_color ?? null) ? ProjectTask::$priority_color : [];
-                                $priorityLabels = is_array(ProjectTask::$priority ?? null) ? ProjectTask::$priority : [];
-                                $priorityColorKey = $priorityColors[$priority] ?? 'secondary';
-                                $priorityLabel = $priorityLabels[$priority] ?? __('Unknown');
-                                $borderColor = data_get($task,'priority_color');
-                                $progressArr = method_exists($task,'taskProgress') ? (array) $task->taskProgress($task) : [];
-                                $pctStr = (string)($progressArr['percentage'] ?? '0%');
-                                $pctNum = (float)str_replace('%','',$pctStr);
-                                $pctColor = (string)($progressArr['color'] ?? 'secondary');
-                                $taskName = data_get($task,'name') ?? __('No task name available');
-                                $projectId = data_get($task,'project.id') ?? '';
-                                $taskFilesRel = data_get($task,'taskFiles');
-                                $filesCount = is_countable($taskFilesRel) ? count($taskFilesRel) : ((is_object($taskFilesRel) && method_exists($taskFilesRel,'count')) ? $taskFilesRel->count() : 0);
-                                $commentsRel = data_get($task,'comments');
-                                $commentsCount = is_countable($commentsRel) ? count($commentsRel) : ((is_object($commentsRel) && method_exists($commentsRel,'count')) ? $commentsRel->count() : 0);
-                                $checklistRel = data_get($task,'checklist');
-                                $checklistCount = (is_object($checklistRel) && method_exists($checklistRel,'count')) ? $checklistRel->count() : (is_countable($checklistRel) ? count($checklistRel) : 0);
-                                $checklistTotal = method_exists($task,'countTaskChecklist') ? (int)$task->countTaskChecklist() : $checklistCount;
-                                $endDate = data_get($task,'end_date');
-                                $endDateText = (!empty($endDate) && $endDate !== '0000-00-00') ? (Utility::getDateFormated($endDate) ?? '') : '';
-                                $isOverdue = $endDateText && (strtotime((string)$endDate) < time());
-                                $usersRel = method_exists($task,'users') ? $task->users() : [];
-                                $usersArr = Utility::isFilled($usersRel ?? []) ? $usersRel : [];
-                                $usersCount = is_countable($usersArr) ? count($usersArr) : 0;
-                            @endphp
+                                try {
+                                    $tid = data_get($task,'id');
+                                    $priority = (int)(data_get($task,'priority') ?? -1);
+                                    $priorityColors = is_array(ProjectTask::$priority_color ?? null) ? ProjectTask::$priority_color : [];
+                                    $priorityLabels = is_array(ProjectTask::$priority ?? null) ? ProjectTask::$priority : [];
+                                    $priorityColorKey = $priorityColors[$priority] ?? 'secondary';
+                                    $priorityLabel = $priorityLabels[$priority] ?? __('Unknown');
+                                    $borderColor = data_get($task,'priority_color');
+                                    $progressArr = method_exists($task,'taskProgress') ? (array) $task->taskProgress($task) : [];
+                                    $pctStr = (string)($progressArr['percentage'] ?? '0%');
+                                    $pctNum = (float)str_replace('%','',$pctStr);
+                                    $pctColor = (string)($progressArr['color'] ?? 'secondary');
+                                    $taskName = data_get($task,'name') ?? __('No task name available');
+                                    $projectId = data_get($task,'project.id') ?? '';
+                                    $taskFilesRel = data_get($task,'taskFiles');
+                                    $filesCount = is_countable($taskFilesRel) ? count($taskFilesRel) : ((is_object($taskFilesRel) && method_exists($taskFilesRel,'count')) ? $taskFilesRel->count() : 0);
+                                    $commentsRel = data_get($task,'comments');
+                                    $commentsCount = is_countable($commentsRel) ? count($commentsRel) : ((is_object($commentsRel) && method_exists($commentsRel,'count')) ? $commentsRel->count() : 0);
+                                    $checklistRel = data_get($task,'checklist');
+                                    $checklistCount = (is_object($checklistRel) && method_exists($checklistRel,'count')) ? $checklistRel->count() : (is_countable($checklistRel) ? count($checklistRel) : 0);
+                                    $checklistTotal = method_exists($task,'countTaskChecklist') ? (int)$task->countTaskChecklist() : $checklistCount;
+                                    $endDate = data_get($task,'end_date');
+                                    $endDateText = (!empty($endDate) && $endDate !== '0000-00-00') ? (Utility::getDateFormated($endDate) ?? '') : '';
+                                    $isOverdue = $endDateText && (strtotime((string)$endDate) < time());
+                                    $usersRel = method_exists($task,'users') ? $task->users() : [];
+                                    $usersArr = Utility::isFilled($usersRel ?? []) ? $usersRel : [];
+                                    $usersCount = is_countable($usersArr) ? count($usersArr) : 0;
+                                } catch (\Throwable $e) {
+                                    \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <div class="{{ VC::CLMS3 }}">
                                 <div class="{{ VC::CD_NSD }} m-3 card-progress" id="{{ $tid ?? '' }}" style="{{ !empty($borderColor) ? 'border-left: 2px solid '.$borderColor.' !important' : '' }};">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <div class="{{ VC::R_ALC }} mb-2">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <span class="{{ VC::BDG }} p-2 {{ VC::PX3 }} rounded bg-{{ $priorityColorKey }}">{{ __($priorityLabel) }}</span>
                                             </div>
-                                            <div class="col-6 text-end">
+                                            <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                                 @if($pctNum > 0)
                                                     <span class="{{ VC::TXSM }}">{{ $pctStr }}</span>
                                                     <div class="{{ VC::PG }}" style="top:0px">
@@ -159,20 +163,24 @@
                                             </div>
                                         </div>
                                         @php
-                                            $taskIndexBase = VW::PRJ_TSK_C.'.index';
-                                            $taskIndexKebab = Str::kebab($taskIndexBase);
-                                            $taskIndexResolved = Route::has($taskIndexBase) ? $taskIndexBase : (Route::has($taskIndexKebab) ? $taskIndexKebab : null);
-                                            $projIdValue = isset($projectId) ? $projectId : null;
-                                            $taskIndexUrl = ($taskIndexResolved && $projIdValue) ? route($taskIndexResolved, $projIdValue) : '#';
-                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $taskIndexGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'index_project_task_route_unavailable') ?? 'Index project task route is unavailable. Please contact technical support or your domain administrator.';
-                                            $taskIndexAnchorId = 'project-task-index-'.($projIdValue ?? 'x').'-'.Str::slug($taskName ?? 'task','-');
-                                        @endphp
+                                            try {
+                                                $taskIndexBase = VW::PRJ_TSK_C.'.index';
+                                                $taskIndexKebab = Str::kebab($taskIndexBase);
+                                                $taskIndexResolved = Route::has($taskIndexBase) ? $taskIndexBase : (Route::has($taskIndexKebab) ? $taskIndexKebab : null);
+                                                $projIdValue = isset($projectId) ? $projectId : null;
+                                                $taskIndexUrl = ($taskIndexResolved && $projIdValue) ? route($taskIndexResolved, $projIdValue) : '#';
+                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $taskIndexGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'index_project_task_route_unavailable') ?? 'Index project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                $taskIndexAnchorId = 'project-task-index-'.($projIdValue ?? 'x').'-'.Str::slug($taskName ?? 'task','-');
+                                            } catch (\Throwable $e) {
+                                                \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <a id="{{ $taskIndexAnchorId }}"
                                         class="{{ VC::H6 }} task-name-break"
                                         href="{{ $taskIndexUrl }}"
                                         data-url="{{ $taskIndexUrl }}"
-                                        data-guard-msg="{{ $taskIndexGuardMsg }}"
+                                        data-guard-msg="{{ base64_encode($taskIndexGuardMsg) }}"
                                         data-sv-localized="true">
                                             {{ $taskName }}
                                         </a>
@@ -191,28 +199,7 @@
                                                                 if (url !== '#' && href !== '#') { return; }
                                                                 e.preventDefault();
                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Index project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (hasBootstrap) {
-                                                                    const toast = document.createElement('div');
-                                                                    toast.className = 'toast';
-                                                                    toast.setAttribute('role','alert');
-                                                                    toast.setAttribute('aria-live','assertive');
-                                                                    toast.setAttribute('aria-atomic','true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toast.appendChild(body);
-                                                                    container.appendChild(toast);
-                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
+                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                 el.setAttribute('data-failed-route','true');
                                                             } catch (err) {}
                                                         });
@@ -221,7 +208,7 @@
                                             </script>
                                         @endpush
                                         <div class="{{ VC::R_ALC }}">
-                                            <div class="col-12">
+                                            <div class="{{ VC::C12 }}">
                                                 <div class="actions {{ VC::DFL_JCB }} mt-2 mb-2">
                                                     @if($filesCount > 0)
                                                         <div class="action-item {{ VC::MR2 }}"><i class="ti ti-paperclip {{ VC::MR2 }}"></i>{{ $filesCount }}</div>
@@ -240,21 +227,25 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 @if($endDateText)
-                                                    <small @if($isOverdue) class="text-danger" @endif>{{ $endDateText }}</small>
+                                                    <small @if($isOverdue) class="{{ VC::TX_DNG }}" @endif>{{ $endDateText }}</small>
                                                 @endif
                                             </div>
-                                            <div class="col-6 text-end">
+                                            <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                                 @if($usersCount > 0)
                                                     <div class="avatar-group">
                                                         @foreach($usersArr as $key => $u)
                                                             @if($key < 3)
                                                                 @php
-                                                                    $uName = data_get($u,'name') ?? '';
-                                                                    $uAvatar = data_get($u,'avatar');
-                                                                    $uSrc = !empty($uAvatar) ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('/storage/uploads/avatar/avatar.png');
-                                                                @endphp
+                                                                    try {
+                                                                        $uName = data_get($u,'name') ?? '';
+                                                                        $uAvatar = data_get($u,'avatar');
+                                                                        $uSrc = !empty($uAvatar) ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('/storage/uploads/avatar/avatar.png');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('project_tasks/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a href="#" class="{{ VC::AV_CC_SM }}">
                                                                     <img class="hweb" data-original-title="{{ $uName }}" src="{{ $uSrc }}">
                                                                 </a>
@@ -275,7 +266,7 @@
                         @endforeach
                     @else
                         <div class="{{ VC::CM12 }}">
-                            <h6 class="text-center m-3">{{ __('No tasks found') }}</h6>
+                            <h6 class="{{ VC::TXCT }} m-3">{{ __('No tasks found') }}</h6>
                         </div>
                     @endif
                 </div>
@@ -331,7 +322,7 @@
                     t.setAttribute("aria-live", "assertive");
                     t.setAttribute("aria-atomic", "true");
                     t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                     container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -545,8 +536,8 @@
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 } catch (_) {}
                 scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
                 return;

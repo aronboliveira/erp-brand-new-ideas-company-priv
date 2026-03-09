@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class TimesheetTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 **
@@ -14,16 +19,8 @@ class TimesheetTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$expected = [
-			'project_id',
-			'task_id',
-			'date',
-			'time',
-			'description',
-			'created_by',
-		];
-
-		$this->assertSame($expected, (new Timesheet)->getFillable());
+		// Timesheet uses $guarded (not $fillable), so getFillable() returns [].
+		$this->assertSame([], (new Timesheet)->getFillable());
 	}
 
 	/**

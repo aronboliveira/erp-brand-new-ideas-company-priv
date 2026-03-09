@@ -1,6 +1,5 @@
 @php
-    use Illuminate\Support\Collection;
-    $lang = App\Models\Utility::fetchUserLang();
+$lang = App\Models\Utility::fetchUserLang();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang }}">
@@ -74,7 +73,9 @@
         </ul>
         <div class="main">
             @if (session('message'))
-                @php $msg = session('message'); @endphp
+                @php
+ $msg = session('message');
+@endphp
                 <p class="alert text-center">
                     <strong>{{ !empty($msg) && is_array($msg) ? (data_get($msg,'message') ?: __('No message available')) : $msg }}</strong>
                 </p>

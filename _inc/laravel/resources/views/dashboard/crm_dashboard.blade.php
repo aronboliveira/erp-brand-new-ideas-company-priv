@@ -1,18 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('dashboard/crm_dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -24,19 +16,19 @@
     </script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('CRM')}}</li>
+    <li class="{{ VC::BCI }}">{{__('CRM')}}</li>
 @endsection
 @section('content')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CL4 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -58,7 +50,7 @@
         </div>
         <div class="{{ VC::CL4 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -80,7 +72,7 @@
         </div>
         <div class="{{ VC::CL4 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -102,23 +94,25 @@
         </div>
         <div class="{{ VC::CL6 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <h5>{{ __('Lead Status') }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }}">
-                        @php $leadStatuses = $crm_data['lead_status'] ?? []; @endphp
+                        @php
+ $leadStatuses = $crm_data['lead_status'] ?? [];
+@endphp
                         @if(!empty($leadStatuses))
                             @foreach($leadStatuses as $status => $val)
                                 @php
                                     $stage = $val['lead_stage'] ?? __('Stage not available');
                                     $perc  = is_numeric($val['lead_percentage'] ?? null) ? $val['lead_percentage'] : 0;
-                                @endphp
+@endphp
                                 <div class="{{ VC::CM6 }} {{ VC::CS6 }} mb-5">
                                     <div class="align-items-start">
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ $stage }}</p>
-                                            <h3 class="mb-0 text-primary">{{ $perc }}%</h3>
+                                            <h3 class="{{ VC::MB0 }} {{ VC::TX_PM }}">{{ $perc }}%</h3>
                                             <div class="progress {{ VC::MB0 }}">
                                                 <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $perc }}%;"></div>
                                             </div>
@@ -127,7 +121,7 @@
                                 </div>
                             @endforeach
                         @else
-                            <div class="px-3 py-2">{{ __('No lead status data available') }}</div>
+                            <div class="{{ VC::PX3 }} {{ VC::PY2 }}">{{ __('No lead status data available') }}</div>
                         @endif
                     </div>
                 </div>
@@ -135,23 +129,25 @@
         </div>
         <div class="{{ VC::CL6 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <h5>{{ __('Deal Status') }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }}">
-                        @php $dealStatuses = $crm_data['deal_status'] ?? []; @endphp
+                        @php
+ $dealStatuses = $crm_data['deal_status'] ?? [];
+@endphp
                         @if(!empty($dealStatuses))
                             @foreach($dealStatuses as $status => $val)
                                 @php
                                     $stage = $val['deal_stage'] ?? __('Stage not available');
                                     $perc  = is_numeric($val['deal_percentage'] ?? null) ? $val['deal_percentage'] : 0;
-                                @endphp
+@endphp
                                 <div class="{{ VC::CM6 }} {{ VC::CS6 }} mb-5">
                                     <div class="align-items-start">
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ $stage }}</p>
-                                            <h3 class="mb-0 text-primary">{{ $perc }}%</h3>
+                                            <h3 class="{{ VC::MB0 }} {{ VC::TX_PM }}">{{ $perc }}%</h3>
                                             <div class="progress {{ VC::MB0 }}">
                                                 <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $perc }}%;"></div>
                                             </div>
@@ -160,7 +156,7 @@
                                 </div>
                             @endforeach
                         @else
-                            <div class="px-3 py-2">{{ __('No deal status data available') }}</div>
+                            <div class="{{ VC::PX3 }} {{ VC::PY2 }}">{{ __('No deal status data available') }}</div>
                         @endif
                     </div>
                 </div>
@@ -168,11 +164,11 @@
         </div>
         <div class="col-xxl-12">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Latest Contract') }}</h5>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }}">
                             <thead>
                                 <tr>
@@ -193,18 +189,22 @@
                                     <tr>
                                         <td>
                                             @php
-                                                $contractShowBase = 'contracts.show';
-                                                $contractShowKebab = Str::kebab($contractShowBase);
-                                                $contractShowResolved = Route::has($contractShowBase) ? $contractShowBase : (Route::has($contractShowKebab) ? $contractShowKebab : null);
-                                                $contractIdValue = isset($contract) && !empty($contract->id) ? $contract->id : null;
-                                                $contractShowUrl = ($contractShowResolved && $contractIdValue) ? route($contractShowResolved, $contractIdValue) : '#';
-                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                $contractShowGuardMsg = Utility::fetchLinkMessage($langValue, 'contracts', 'show_contract_route_unavailable') ?? 'Show contract route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
+                                                $contractShowBase ??= 'contracts.show';
+                                                try {
+                                                    $contractShowKebab = Str::kebab($contractShowBase);
+                                                    $contractShowResolved = Route::has($contractShowBase) ? $contractShowBase : (Route::has($contractShowKebab) ? $contractShowKebab : null);
+                                                    $contractIdValue = isset($contract) && !empty($contract->id) ? $contract->id : null;
+                                                    $contractShowUrl = ($contractShowResolved && $contractIdValue) ? route($contractShowResolved, $contractIdValue) : '#';
+                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                    $contractShowGuardMsg = Utility::fetchLinkMessage($langValue, 'contracts', 'show_contract_route_unavailable') ?? 'Show contract route is unavailable. Please contact technical support or your domain administrator.';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('dashboard/crm_dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <a href="{{ $contractShowUrl }}"
                                             class="{{ VC::BT_OUTPM }} contract-show-link"
                                             data-url="{{ $contractShowUrl }}"
-                                            data-guard-msg="{{ $contractShowGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($contractShowGuardMsg) }}"
                                             data-sv-localized="true">
                                                 {{ $users?->contractNumberFormat($contract->id) ?? __('Contract number not available') }}
                                             </a>
@@ -225,7 +225,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="8">
-                                            <div class="text-center">
+                                            <div class="{{ VC::TXCT }}">
                                                 <h6>{{ __('No latest contracts available') }}</h6>
                                             </div>
                                         </td>

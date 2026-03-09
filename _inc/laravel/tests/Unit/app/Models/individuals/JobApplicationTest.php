@@ -6,6 +6,11 @@ use App\Models\{Job, JobApplication};
 
 class JobApplicationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -16,10 +21,78 @@ class JobApplicationTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'job', 'name', 'email', 'phone', 'profile', 'resume',
-			'cover_letter', 'dob', 'gender', 'country', 'state',
-			'city', 'stage', 'order', 'skill', 'rating', 'is_archive',
-			'custom_question', 'created_by'
+			'job',
+			'applicant_id',
+			'name',
+			'email',
+			'phone',
+			'source',
+			'announcement',
+			'country',
+			'state',
+			'city',
+			'address',
+			'zip',
+			'ip',
+			'dei_category',
+			'applied_at',
+			'last_reviewed_at',
+			'referrer_id',
+			'referrer_name',
+			'referrer_email',
+			'expected_salary',
+			'expected_salary_currency',
+			'current_employer',
+			'current_position',
+			'current_salary',
+			'current_salary_currency',
+			'work_authorization',
+			'work_authorization_approved',
+			'notice_period',
+			'next_interview_at',
+			'interview_notes',
+			'interview_note_id',
+			'interview_scores',
+			'profile',
+			'profile_document',
+			'portfolio',
+			'website',
+			'resume',
+			'resume_document',
+			'cover_letter',
+			'cover_letter_document',
+			'dob',
+			'gender',
+			'experience',
+			'experience_document',
+			'education',
+			'education_document',
+			'stage',
+			'order',
+			'skill',
+			'skill_document',
+			'rating',
+			'rejection_reason',
+			'rejected_at',
+			'feedback',
+			'feedback_document',
+			'is_archive',
+			'custom_question',
+			'custom_question_id',
+			'terms_accepted',
+			'certifications',
+			'awards',
+			'publications',
+			'projects',
+			'languages',
+			'references',
+			'diversity',
+			'disabilities',
+			'social_media',
+			'questions',
+			'tests',
+			'notes',
+			'attachments',
 		];
 		$this->assertEquals($expected, (new JobApplication())->getFillable());
 	}

@@ -11,10 +11,8 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 
-const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const MOCKS_DIR = path.resolve(CURRENT_DIR, "..", "pages", "mocks");
+const MOCKS_DIR = path.resolve(__dirname, "..", "pages", "mocks");
 
 /** Get list of category HTML files */
 function getCategoryFiles(): string[] {

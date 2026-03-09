@@ -1,3 +1,4 @@
+/** @requires ERPGuard */
 (() => {
   const Q = s => document.querySelector(s),
     QA = s => Array.from(document.querySelectorAll(s)),

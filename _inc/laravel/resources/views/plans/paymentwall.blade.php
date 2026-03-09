@@ -1,8 +1,11 @@
 @php
-  use App\Config\Constants\ViewsConstants;
-  $plan = $data['plan_id'];
-  $plan_id = \Illuminate\Support\Facades\Crypt::decrypt($plan);
-  $plan  = App\Models\Plan::find($plan_id);
+  try {
+$plan = $data['plan_id'];
+      $plan_id = \Illuminate\Support\Facades\Crypt::decrypt($plan);
+      $plan  = App\Models\Plan::find($plan_id);
+  } catch (\Throwable $e) {
+      \Log::error('plans/paymentwall — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+  }
 @endphp
 <head>
   <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -50,7 +53,7 @@
           t.setAttribute("aria-live", "assertive");
           t.setAttribute("aria-atomic", "true");
           t.innerHTML =
-            '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+            '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
           container.appendChild(t);
         }
         const body = t.querySelector(".toast-body");

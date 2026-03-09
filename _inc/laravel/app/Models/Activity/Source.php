@@ -10,8 +10,8 @@ class Source extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
 
-    protected $fillable = ['name', DC::COL_TABLE_UPDATER];
-    protected $guarded  = ['id', DC::COL_TABLE_CREATOR];
+    protected $fillable = ['name', DC::COL_TABLE_UPDATER, DC::COL_TABLE_CREATOR];
+    protected $guarded  = ['id'];
 
     public function user(): BelongsTo
     {

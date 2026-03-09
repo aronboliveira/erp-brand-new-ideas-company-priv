@@ -7,8 +7,7 @@ use App\Config\Constants\ViewsConstants;
 use App\Services\Resolvers\{BrasilApiCepV2Resolver, ViaCepResolver};
 use App\Services\{ActivitysAndLogsRequestService, BugReportService, BusinessRequestService, ContractRequestService, DealRequestService, EmailRequestService, GeoLookupService, GoalRequestService, LeadRequestService, PipelineRequestService, PosRequestService, ProductOrServiceRequestService, ProjectRequestService, PurchaseRequestService, Providers\BrasilApiCepProvider, SupportHelperService, TaskRequestService, TemplateRequestService, WarehouseRequestService, ZipGeoService};
 use Doctrine\DBAL\DriverManager;
-use Illuminate\Routing\Events\RouteMatched;
-use Illuminate\Support\Facades\{DB, Event, Log, Schema};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
 
@@ -18,7 +17,10 @@ final class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' registering...');
+        // Prevent Fortify from loading its own vendor routes (routes/routes.php).
+        // All Fortify routes are re-defined in routes/fortify.php with /fortify-* prefixes,
+        // so the vendor routes just create duplicates (e.g. GET /login → Inertia blank page).
+        Fortify::ignoreRoutes();
         $this->app->singleton(BrasilApiCepProvider::class);
         $this->app->singleton(ZipGeoService::class, function () {
             return new ZipGeoService([
@@ -56,37 +58,19 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' booting...');
         try {
             Schema::defaultStringLength(self::DEFAULT_STRING_LENGTH);
-            Fortify::loginView(function () {
-                return view(ViewsConstants::AUT . '.login', [
-                    'lang'     => \App\Models\Utility::fetchUserLang(),
-                    'settings' => \App\Models\Utility::settings(),
-                ]);
-            });
             Fortify::requestPasswordResetLinkView(function () {
                 return view(ViewsConstants::AUT . '.forgot_password');
             });
         } catch (Throwable $e) {
-            Log::critical(__CLASS__ . '::' . __FUNCTION__ . ' failed', ['message' => $e->getMessage()]);
+            Log::critical(__CLASS__ . '::boot failed', ['message' => $e->getMessage()]);
         }
         try {
             self::ensureEnumMapsToString();
         } catch (Throwable $e) {
-            Log::critical(__CLASS__ . '::' . __FUNCTION__ . ' failed to set custom mapping to database column types', ['message' => $e->getMessage()]);
+            Log::critical(__CLASS__ . '::boot enum mapping failed', ['message' => $e->getMessage()]);
         }
-        Event::listen(RouteMatched::class, function (RouteMatched $event) {
-            Log::debug('Route Matched', [
-                'uri' => $event->request->getUri(),
-                'method' => $event->request->getMethod(),
-                'route_name' => $event->route->getName(),
-                'controller' => $event->route->getControllerClass(),
-                'action' => $event->route->getActionMethod(),
-                'middleware' => $event->route->gatherMiddleware(),
-                'parameters' => $event->route->parameters(),
-            ]);
-        });
     }
 
     public static function ensureEnumMapsToString(?string $connectionName = null): void

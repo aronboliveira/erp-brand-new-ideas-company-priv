@@ -8,7 +8,9 @@ enum PaymentPatternType: string
 {
 	case Fixed      = 'fixed';
 	case Percentage = 'percentage';
-	case Other      = 'other';
+	    case Weekend    = 'weekend';
+    case Holiday    = 'holiday';
+    case Other      = 'other';
 
 	public static function normalize(string|PaymentPatternType|null $v): ?self
 	{

@@ -1,21 +1,19 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, Storage};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId    = 'prd-sv-import-form';
+        $base      = VW::PRD_SV . '.import';
+        $baseKebab = Str::kebab($base);
+        $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
+        $actionUrl = $routeRes ? route($routeRes) : '#';
+        $guardMsg  = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'store_import_route_unavailable') ?? __('Product CSV import route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId    = 'prd-sv-import-form';
-    $base      = VW::PRD_SV . '.import';
-    $baseKebab = Str::kebab($base);
-    $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
-    $actionUrl = $routeRes ? route($routeRes) : '#';
-    $guardMsg  = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'store_import_route_unavailable') ?? __('Product CSV import route is unavailable. Please contact technical support or your domain administrator.');
-
-    $sampleDir = Storage::url('uploads/sample');
-    $sampleUrl = $sampleDir ? asset($sampleDir) . '/sample-product.csv' : '#';
+        $sampleDir = Storage::url('uploads/sample');
+        $sampleUrl = $sampleDir ? asset($sampleDir) . '/sample-product.csv' : '#';
+    } catch (\Throwable $e) {
+        \Log::error('product_services/import — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Collective\Html\FormFacade::open([

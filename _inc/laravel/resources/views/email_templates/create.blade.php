@@ -1,26 +1,29 @@
 @php
-    use App\Config\Constants\{ViewClassNamesConstants as VC, ViewsConstants as VW};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang                  = Utility::fetchUserLang();
-    $emailStoreBase        = VW::EML_TMP;
-    $emailStoreKebab       = Str::kebab($emailStoreBase);
-    $emailStoreResolved    = Route::has($emailStoreBase) ? $emailStoreBase : (Route::has($emailStoreKebab) ? $emailStoreKebab : null);
-    $emailStoreUrl         = $emailStoreResolved ? route($emailStoreResolved) : '#';
-    $emailStoreFormId      = 'email-template-store-form';
-    $emailStoreGuardMsg    = Utility::fetchLinkMessage($lang, VW::EML_TMP, 'store_email_template_route_unavailable') ?? 'Store email template route is unavailable. Please contact technical support or your domain administrator.';
-    $nameHasError          = $errors->has('name');
-    $nameAttrs             = [
-        'id'               => 'name',
-        'class'            => trim(VC::FM_CT.' font-style'.($nameHasError ? ' is-invalid' : '')),
-        'required'         => 'required',
-        'autocomplete'     => 'off',
-        'aria-invalid'     => $nameHasError ? 'true' : 'false',
-        'aria-describedby' => $nameHasError ? 'name-error' : null,
-    ];
+    try {
+$lang                  = Utility::fetchUserLang();
+        $emailStoreBase        = VW::EML_TMP;
+        $emailStoreKebab       = Str::kebab($emailStoreBase);
+        $emailStoreResolved    = Route::has($emailStoreBase) ? $emailStoreBase : (Route::has($emailStoreKebab) ? $emailStoreKebab : null);
+        $emailStoreUrl         = $emailStoreResolved ? route($emailStoreResolved) : '#';
+        $emailStoreFormId      = 'email-template-store-form';
+        $emailStoreGuardMsg    = Utility::fetchLinkMessage($lang, VW::EML_TMP, 'store_email_template_route_unavailable') ?? 'Store email template route is unavailable. Please contact technical support or your domain administrator.';
+        $nameHasError          = $errors->has('name');
+        $nameAttrs             = [
+            'id'               => 'name',
+            'class'            => trim(VC::FM_CT.' font-style'.($nameHasError ? ' is-invalid' : '')),
+            'required'         => 'required',
+            'autocomplete'     => 'off',
+            'aria-invalid'     => $nameHasError ? 'true' : 'false',
+            'aria-describedby' => $nameHasError ? 'name-error' : null,
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('email_templates/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
+    $emailStoreUrl ??= '#';
+    $emailStoreFormId ??= 'email-template-store-form';
+    $emailStoreGuardMsg ??= '';
+    $nameAttrs ??= ['class' => 'form-control font-style', 'required' => 'required'];
 @endphp
 
 {{ Form::open([
@@ -37,7 +40,7 @@
             {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
             {{ Form::text('name', null, $nameAttrs) }}
             @error('name')
-                <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
             @enderror
         </div>
         <div class="{{ VC::FM_GCB12 }} text-end">

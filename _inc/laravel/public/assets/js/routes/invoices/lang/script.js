@@ -1,3 +1,6 @@
+/**
+ * @requires ERPUtils (translations infrastructure)
+ */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -25,6 +28,6 @@
       (window.translations[k] = {
         ...(window.translations[k] || {}),
         ...t[k],
-      })
+      }),
   );
 })();

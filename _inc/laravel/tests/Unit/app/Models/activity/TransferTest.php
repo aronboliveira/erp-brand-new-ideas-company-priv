@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Database\Eloquent\Relations\HasOne,
 	Foundation\Testing\RefreshDatabase
@@ -11,6 +12,11 @@ use App\Models\{Branch, Department, Employee, Transfer};
 
 class TransferTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -35,9 +41,7 @@ class TransferTest extends TestCase
 
 		$transfer = Transfer::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $transfer->$field);
-		}
+		$this->assertFillableMatches($data, $transfer);
 	}
 
 	/**
@@ -69,10 +73,10 @@ class TransferTest extends TestCase
 	{
 		$relation = (new Transfer)->department();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Department::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                     $relation->getForeignKeyName());
-		$this->assertSame('department_id',          $relation->getLocalKeyName());
+		$this->assertSame('department_id',                     $relation->getForeignKeyName());
+		$this->assertSame('id',          $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -84,10 +88,10 @@ class TransferTest extends TestCase
 	{
 		$relation = (new Transfer)->branch();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Branch::class,           get_class($relation->getRelated()));
-		$this->assertSame('id',                    $relation->getForeignKeyName());
-		$this->assertSame('branch_id',             $relation->getLocalKeyName());
+		$this->assertSame('branch_id',                    $relation->getForeignKeyName());
+		$this->assertSame('id',             $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -99,9 +103,9 @@ class TransferTest extends TestCase
 	{
 		$relation = (new Transfer)->employee();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',                  $relation->getForeignKeyName());
-		$this->assertSame('employee_id',         $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                  $relation->getForeignKeyName());
+		$this->assertSame('id',         $relation->getOwnerKeyName());
 	}
 }

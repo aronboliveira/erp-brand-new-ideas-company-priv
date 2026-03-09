@@ -1,9 +1,4 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,SettingsConstants as SC,
-        StacksConstants,ViewClassNamesConstants,YieldingConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\Log;
-    Log::debug('Loading admin blade layout data...');
 	$data??=[];
 	$setting??=[];
 	$colorSettings??=[];
@@ -11,7 +6,7 @@
 	$company_favicon??='';
 	$color??='';
 	$siteRtl??=false;
-	$lang = Utility::fetchUserLang();
+	$lang = str_replace('_','-',app()->getLocale()) ?: Utility::fetchUserLang();
 	$meta_title??='';
 	$meta_desc??='';
 	$meta_image??='';
@@ -69,13 +64,12 @@
 		);
 	}
     $data = Utility::fallbackSettings($data);
-    Log::debug('Loading admin blade layout template...');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on' ? 'rtl' : '' }}">
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <head>
-        <title>{{($setting['title_text']) ? $setting['title_text'] : config('app.name', 'ERPNovaPrestech')}} 
+        <title>{{($setting['title_text']) ? $setting['title_text'] : config('app.name', 'ERPNovaPrestech')}}
             - @yield(YieldingConstants::ADM_PG_TTL)</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
@@ -84,14 +78,14 @@
             'meta_url' => url('').'/'.config('chatify.path'),
         ])
         @include('fragments.og', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.x', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
@@ -107,6 +101,15 @@
             <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
         @endif
         @stack(StacksConstants::ADM_CSS)
+        {{-- ERP Guard & Utils Initialization (Blocking) --}}
+        <script>
+            window.ERPGuard = window.ERPGuard || null;
+            window.ERPUtils = window.ERPUtils || null;
+        </script>
+        {{-- Transparent base64 decode for data-guard-msg attributes --}}
+        <script>
+            (function(){var o=Element.prototype.getAttribute;Element.prototype.getAttribute=function(n){var v=o.call(this,n);if(n==='data-guard-msg'&&v){try{return decodeURIComponent(atob(v))}catch(e){try{return atob(v)}catch(e2){return v}}}return v}})();
+        </script>
     </head>
     <body class="{{ $color }}">
         <div class="loader-bg">
@@ -122,74 +125,74 @@
             role="dialog"
             aria-hidden="true"
         >
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
+            <div class="{{ VC::MDL_DLG }}" role="document">
+                <div class="{{ VC::MDL_CTT }}">
                     <div class="modal-body">
                         <button
                             type="button"
-                            class="btn-close float-end"
+                            class="{{ VC::BT_CL }} {{ VC::FEND }}"
                             data-bs-dismiss="modal"
-                            aria-label="{{ __('Close') }}"
+                            aria-label="Close"
                         ></button>
-                        <h6 class="mt-2">
-                            <i data-feather="monitor" class="me-2"></i>Desktop settings
+                        <h6 class="{{ VC::MT2 }}">
+                            <i data-feather="monitor" class="me-2"></i>{{ __('Desktop settings') }}
                         </h6>
                         <hr/>
-                        <div class="form-check form-switch">
+                        <div class="{{ VC::FM_CHK }} form-switch">
                             <input
                                 type="checkbox"
                                 class="form-check-input"
                                 id="pcsetting1"
                                 checked
                             />
-                            <label class="form-check-label f-w-600 pl-1" for="pcsetting1"
-                            >Allow desktop notification</label
+                            <label class="form-check-label {{ VC::FW600 }} pl-1" for="pcsetting1"
+                            >{{ __('Allow desktop notification') }}</label
                             >
                         </div>
-                        <p class="text-muted ms-5">
-                            you get lettest content at a time when data will updated
+                        <p class="{{ VC::TXT_MT }} ms-5">
+                            {{ __('You get the latest content when data is updated') }}
                         </p>
-                        <div class="form-check form-switch">
+                        <div class="{{ VC::FM_CHK }} form-switch">
                             <input type="checkbox" class="form-check-input" id="pcsetting2"/>
-                            <label class="form-check-label f-w-600 pl-1" for="pcsetting2"
-                            >Store Cookie</label
+                            <label class="form-check-label {{ VC::FW600 }} pl-1" for="pcsetting2"
+                            >{{ __('Store Cookie') }}</label
                             >
                         </div>
-                        <h6 class="mb-0 mt-5">
-                            <i data-feather="save" class="me-2"></i>Application settings
+                        <h6 class="{{ VC::MB0 }} mt-5">
+                            <i data-feather="save" class="me-2"></i>{{ __('Application settings') }}
                         </h6>
                         <hr/>
-                        <div class="form-check form-switch">
+                        <div class="{{ VC::FM_CHK }} form-switch">
                             <input type="checkbox" class="form-check-input" id="pcsetting3"/>
-                            <label class="form-check-label f-w-600 pl-1" for="pcsetting3"
-                            >Backup Storage</label
+                            <label class="form-check-label {{ VC::FW600 }} pl-1" for="pcsetting3"
+                            >{{ __('Backup Storage') }}</label
                             >
                         </div>
-                        <p class="text-muted mb-4 ms-5">
-                            Automaticaly take backup as par schedule
+                        <p class="{{ VC::TXT_MT }} {{ VC::MB4 }} ms-5">
+                            {{ __('Automatically take backup as per schedule') }}
                         </p>
-                        <div class="form-check form-switch">
+                        <div class="{{ VC::FM_CHK }} form-switch">
                             <input type="checkbox" class="form-check-input" id="pcsetting4"/>
-                            <label class="form-check-label f-w-600 pl-1" for="pcsetting4"
-                            >Allow guest to print file</label
+                            <label class="form-check-label {{ VC::FW600 }} pl-1" for="pcsetting4"
+                            >{{ __('Allow guest to print file') }}</label
                             >
                         </div>
-                        <h6 class="mb-0 mt-5">
-                            <i data-feather="cpu" class="me-2"></i>System settings
+                        <h6 class="{{ VC::MB0 }} mt-5">
+                            <i data-feather="cpu" class="me-2"></i>{{ __('System settings') }}
                         </h6>
                         <hr/>
-                        <div class="form-check form-switch">
+                        <div class="{{ VC::FM_CHK }} form-switch">
                             <input
                                 type="checkbox"
                                 class="form-check-input"
                                 id="pcsetting5"
                                 checked
                             />
-                            <label class="form-check-label f-w-600 pl-1" for="pcsetting5"
-                            >View other user chat</label
+                            <label class="form-check-label {{ VC::FW600 }} pl-1" for="pcsetting5"
+                            >{{ __('View other user chat') }}</label
                             >
                         </div>
-                        <p class="text-muted ms-5">Allow to show public user message</p>
+                        <p class="{{ VC::TXT_MT }} ms-5">{{ __('Allow to show public user message') }}</p>
                     </div>
                     <div class="modal-footer">
                         <button
@@ -197,21 +200,21 @@
                             class="btn btn-light-danger btn-sm"
                             data-bs-dismiss="modal"
                         >
-                            Close
+                            {{ __('Close') }}
                         </button>
                         <button type="button" class="btn btn-light-primary btn-sm">
-                            Save changes
+                            {{ __('Save changes') }}
                         </button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="dash-container">
-            <div class="dash-content">
-                <div class="page-header">
-                    <div class="page-block">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
+            <div class="{{ VC::DSH_CTT }}">
+                <div class="{{ VC::PG_HDR }}">
+                    <div class="{{ VC::PG_BLK }}">
+                        <div class="{{ VC::R_ALC }}">
+                            <div class="{{ VC::C_AT }}">
                                 <div class="page-header-title">
                                     <h4 class="m-b-10">@yield(YieldingConstants::ADM_PG_TTL)</h4>
                                 </div>
@@ -231,11 +234,11 @@
         </div>
         <div class="{{ ViewClassNamesConstants::MD_FD }}" id="commonModal" tabindex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+            <div class="{{ VC::MDL_DLG }}" role="document">
+                <div class="{{ VC::MDL_CTT }}">
+                    <div class="{{ VC::MDL_HDR }}">
+                        <h5 class="{{ VC::MDL_TTL }}" id="exampleModalLabel"></h5>
+                        <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="body">
                     </div>
@@ -243,12 +246,12 @@
             </div>
         </div>
         <div class="{{ ViewClassNamesConstants::MD_FD }}" id="commonModalOver" tabindex="-1" role="dialog" aria-labelledby="commonModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="commonModalLabel"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="{{ __('Close') }}"></button>
+            <div class="{{ VC::MDL_DLG }}" role="document">
+                <div class="{{ VC::MDL_CTT }}">
+                    <div class="{{ VC::MDL_HDR }}">
+                        <h5 class="{{ VC::MDL_TTL }}" id="commonModalLabel"></h5>
+                        <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                     </div>
@@ -256,16 +259,21 @@
             </div>
         </div>
         <div class="position-fixed top-0 end-0 p-3" style="z-index: 99999">
-            <div id="liveToast" class="toast text-white fade" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
+            <div id="liveToast" class="toast {{ VC::TXT_WT }} fade" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="{{ VC::DFL }}">
                     <div class="toast-body"></div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="{{ __('Close') }}"></button>
+                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
                 </div>
             </div>
         </div>
         @include('partials.admin.footer')
         @include('Chatify::layouts.footer_links')
+        {{-- ERP Guard & Utils Core Classes (Deferred) --}}
+        <script src="{{ asset('assets/js/core/erp-guard.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/modal-autoopen.js') }}" defer></script>
         <script async src="{{ asset('assets/js/routes/generics/lang/utility.js') }}"></script>
         <script defer src="{{ asset('assets/js/routes/generics/utility.js') }}"></script>
         <script>
@@ -277,5 +285,6 @@
             window.sessionStorage.setItem('warnPusher', 'true');
             window.sessionStorage.setItem('errorPusher', 'true');
         </script>
+        @include('partials.global-error-handler')
     </body>
 </html>

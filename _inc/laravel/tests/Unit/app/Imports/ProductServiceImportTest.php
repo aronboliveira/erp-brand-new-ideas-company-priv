@@ -5,7 +5,7 @@ namespace Tests\Unit\Imports;
 use App\Imports\ProductServiceImport;
 use App\Models\ProductService;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use ReflectionMethod;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 class ProductServiceImportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -49,7 +49,7 @@ class ProductServiceImportTest extends TestCase
 		[$start, $headers] = $ref->invoke($importer, $row);
 
 		$this->assertSame(0, $start);
-		$this->assertSame(['id', 'serviceName', 'description'], $headers);
+		$this->assertSame(['id', 'ServiceName', 'description'], $headers);
 	}
 
 	/**
@@ -108,14 +108,16 @@ class ProductServiceImportTest extends TestCase
 		$user = User::factory()->create();
 		$this->actingAs($user);
 
-		Log::shouldReceive('error')
-			->once()
-			->withArgs(fn ($msg) => str_contains($msg, 'ProductServiceImport::model failed: Header row not detected'));
+		Log::spy();
 
 		$importer = new ProductServiceImport();
 		$result  = $importer->model(['', 'OnlyOne']);
 
 		$this->assertNull($result);
+
+		Log::shouldHaveReceived('error')
+			->withArgs(fn($msg) => str_contains($msg, 'ProductServiceImport::model failed'))
+			->once();
 
 		$startProp = new ReflectionProperty(ProductServiceImport::class, 'headerStartIndex');
 		$startProp->setAccessible(true);

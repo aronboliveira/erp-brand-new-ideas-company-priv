@@ -9,6 +9,11 @@ use App\Models\{Bug, User, BugStatus, BugComment, BugFile, Project};
 
 class BugTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -31,15 +36,12 @@ class BugTest extends TestCase
 			'description' => 'Bug description',
 			'status'      => 'open',
 			'assign_to'   => $user?->id,
-			'created_by'  => $user?->id,
 			'order'       => 5,
 		];
 
 		$bug = Bug::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $bug->$field);
-		}
+		$this->assertFillableMatches($data, $bug);
 	}
 
 	/**
@@ -62,10 +64,10 @@ class BugTest extends TestCase
 	{
 		$relation = (new Bug)->bugStatus();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(BugStatus::class,    get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('status',            $relation->getLocalKeyName());
+		$this->assertSame('status',                $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -77,10 +79,10 @@ class BugTest extends TestCase
 	{
 		$relation = (new Bug)->assignTo();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('assign_to',         $relation->getLocalKeyName());
+		$this->assertSame('assign_to',                $relation->getForeignKeyName());
+		$this->assertSame('id',         $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -92,10 +94,10 @@ class BugTest extends TestCase
 	{
 		$relation = (new Bug)->createdBy();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('created_by',        $relation->getLocalKeyName());
+		$this->assertSame('created_by',                $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -137,10 +139,10 @@ class BugTest extends TestCase
 	{
 		$relation = (new Bug)->project();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Project::class,      get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('project_id',        $relation->getLocalKeyName());
+		$this->assertSame('project_id',                $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 
 	/**

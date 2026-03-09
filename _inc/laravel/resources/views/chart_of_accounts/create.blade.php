@@ -1,31 +1,25 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $lang       = Utility::fetchUserLang();
-    $routeName  = ViewsConstants::COA . '.store';
-    $storeRoute = Route::has($routeName)
-        ? route($routeName)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName))
-            : '#');
-    $formId     = 'chart_of_accounts_store_form';
-    $guardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COA,
-        'chart_of_account_store_route_unavailable'
-    ) ?? 'Chart of Account store route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang       = Utility::fetchUserLang();
+        $routeName  = ViewsConstants::COA . '.store';
+        $storeRoute = Route::has($routeName)
+            ? route($routeName)
+            : (Route::has(Str::kebab($routeName))
+                ? route(Str::kebab($routeName))
+                : '#');
+        $formId     = 'chart_of_accounts_store_form';
+        $guardMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::COA,
+            'chart_of_account_store_route_unavailable'
+        ) ?? 'Chart of Account store route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('chart_of_accounts/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
-    'route'          => $storeRoute,
+    'url'            => $storeRoute,
     'method'         => 'POST',
     'id'             => $formId,
     'data-url'       => $storeRoute,
@@ -51,12 +45,12 @@
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
                 {{ Form::label('is_enabled', __('Is Enabled'), ['class' => VC::FM_LB]) }}
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" name="is_enabled" id="is_enabled" class="form-check-input" checked>
                     <label for="is_enabled" class="form-check-label"></label>
                 </div>
             </div>
-            <div class="form-group col-md-12">
+            <div class="{{ VC::FM_GCB12 }}">
                 {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
                 {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 2]) }}
             </div>

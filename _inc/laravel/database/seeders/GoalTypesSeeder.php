@@ -69,9 +69,14 @@ class GoalTypesSeeder extends Seeder
 
 		$faker   = fake();
 		$created = 0;
+		$HARD_CAP = 2; // was unbounded
+		$SECONDS_LIMIT = 32;
+		$clock = microtime(true);
 
 		for ($round = 0; $round < $rounds; $round++) {
+			if ($created >= $HARD_CAP || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 			foreach ($cases as $case) {
+				if ($created >= $HARD_CAP || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 				$categoryValue = $case->value;
 				$baseLabel     = $labelsEn[$categoryValue] ?? Str::title(str_replace('_', ' ', $categoryValue));
 
@@ -79,6 +84,7 @@ class GoalTypesSeeder extends Seeder
 				$perType = $faker->numberBetween(2, 16);
 
 				for ($i = 0; $i < $perType; $i++) {
+					if ($created >= $HARD_CAP || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 					// Garantir unicidade contextual de "name" por categoria com do/while + exists()
 					$attempt = 0;
 					$name    = null;
@@ -195,7 +201,7 @@ class GoalTypesSeeder extends Seeder
 					for ($t = 0; $t < $tagCount; $t++) {
 						$tags[] = Arr::random($tagsPool);
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating goal type {$name} in category {$categoryValue}, icon {$icon}, color {$color}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating goal type {$name} in category {$categoryValue}, icon {$icon}, color {$color}");
 					// Criação via Model (respeita booted + casts + ensureJsonAttributesAreEncoded)
 					GoalType::query()->create([
 						'category'    => $categoryValue,

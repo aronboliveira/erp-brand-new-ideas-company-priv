@@ -1,27 +1,26 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang                                          = isset($lang) && $lang ? $lang : Utility::fetchUserLang();
+    try {
+$lang                                          = isset($lang) && $lang ? $lang : Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('projects/milestone_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(!empty($milestone) && !empty($milestone->id))
     @php
-        $projectMilestoneUpdateBaseName                = ViewsConstants::ML.'.update';
-        $projectMilestoneUpdateKebabName               = Str::kebab($projectMilestoneUpdateBaseName);
-        $projectMilestoneUpdateResolvedName            = Route::has($projectMilestoneUpdateBaseName)
-            ? $projectMilestoneUpdateBaseName
-            : (Route::has($projectMilestoneUpdateKebabName) ? $projectMilestoneUpdateKebabName : null);
-        $projectMilestoneUpdateRouteArray              = $projectMilestoneUpdateResolvedName ? [$projectMilestoneUpdateResolvedName, $milestone->id] : ['#'];
-        $projectMilestoneUpdateUrl                     = $projectMilestoneUpdateResolvedName ? route($projectMilestoneUpdateResolvedName, $milestone->id) : '#';
-        $projectMilestoneUpdateGuardMsg                = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_update_route_unavailable') ?? 'Project milestone update route is unavailable. Please contact technical support or your domain administrator.';
-        $projectMilestoneUpdateFormId                  = 'project-milestone-update-form-' . $milestone->id;
-    @endphp
+        try {
+            $projectMilestoneUpdateBaseName                = ViewsConstants::ML.'.update';
+            $projectMilestoneUpdateKebabName               = Str::kebab($projectMilestoneUpdateBaseName);
+            $projectMilestoneUpdateResolvedName            = Route::has($projectMilestoneUpdateBaseName)
+                ? $projectMilestoneUpdateBaseName
+                : (Route::has($projectMilestoneUpdateKebabName) ? $projectMilestoneUpdateKebabName : null);
+            $projectMilestoneUpdateRouteArray              = $projectMilestoneUpdateResolvedName ? [$projectMilestoneUpdateResolvedName, $milestone->id] : ['#'];
+            $projectMilestoneUpdateUrl                     = $projectMilestoneUpdateResolvedName ? route($projectMilestoneUpdateResolvedName, $milestone->id) : '#';
+            $projectMilestoneUpdateGuardMsg                = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_update_route_unavailable') ?? 'Project milestone update route is unavailable. Please contact technical support or your domain administrator.';
+            $projectMilestoneUpdateFormId                  = 'project-milestone-update-form-' . $milestone->id;
+        } catch (\Throwable $e) {
+            \Log::error('projects/milestone_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     {!! Form::model($milestone, [
         'route'          => $projectMilestoneUpdateRouteArray,
         'method'         => 'POST',
@@ -33,19 +32,23 @@
             {{-- start for ai module --}}
             @php
                 $plan = Utility::getChatGPTSettings();
-            @endphp
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
-                <div class="text-end">
+                <div class="{{ VC::TX_END }}">
                     @php
-                        $genProjMilestoneBaseName                          = 'generate';
-                        $genProjMilestoneKebabName                         = Str::kebab($genProjMilestoneBaseName);
-                        $genProjMilestoneResolvedName                      = Route::has($genProjMilestoneBaseName)
-                            ? $genProjMilestoneBaseName
-                            : (Route::has($genProjMilestoneKebabName) ? $genProjMilestoneKebabName : null);
-                        $genProjMilestoneUrl                               = $genProjMilestoneResolvedName ? route($genProjMilestoneResolvedName, ['project milestone']) : '#';
-                        $genProjMilestoneGuardMsg                          = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'generate_project_milestone_route_unavailable') ?? 'Generate project milestone route is unavailable. Please contact technical support or your domain administrator.';
-                        $genProjMilestoneLinkId                            = 'generate-project-milestone-link';
-                    @endphp
+                        $genProjMilestoneBaseName                          ??= 'generate';
+                        try {
+                            $genProjMilestoneKebabName                         = Str::kebab($genProjMilestoneBaseName);
+                            $genProjMilestoneResolvedName                      = Route::has($genProjMilestoneBaseName)
+                                ? $genProjMilestoneBaseName
+                                : (Route::has($genProjMilestoneKebabName) ? $genProjMilestoneKebabName : null);
+                            $genProjMilestoneUrl                               = $genProjMilestoneResolvedName ? route($genProjMilestoneResolvedName, ['project milestone']) : '#';
+                            $genProjMilestoneGuardMsg                          = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'generate_project_milestone_route_unavailable') ?? 'Generate project milestone route is unavailable. Please contact technical support or your domain administrator.';
+                            $genProjMilestoneLinkId                            = 'generate-project-milestone-link';
+                        } catch (\Throwable $e) {
+                            \Log::error('projects/milestone_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <a
                         id="{{ $genProjMilestoneLinkId }}"
                         href="{{ $genProjMilestoneUrl }}"
@@ -53,7 +56,7 @@
                         class="{{ VC::BT_PRM }} btn-icon btn-sm"
                         data-ajax-popup-over="true"
                         data-url="{{ $genProjMilestoneUrl }}"
-                        data-guard-msg="{{ $genProjMilestoneGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($genProjMilestoneGuardMsg) }}"
                         data-bs-placement="top"
                         data-title="{{ __('Generate content with AI') }}"
                     >
@@ -71,28 +74,7 @@
                                         if (url !== '#') return;
                                         e.preventDefault();
                                         const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         link.setAttribute('data-failed-route', 'true');
                                     } catch (err) {}
                                 });
@@ -108,7 +90,7 @@
                     {{ Form::text('title', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                     @error('title')
                         <span class="invalid-title" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
@@ -118,7 +100,7 @@
                     {!! Form::select('status', \App\Models\Project::$project_status, null, ['class' => VC::FM_CT_SL . ' selectric', 'required' => 'required']) !!}
                     @error('client')
                         <span class="invalid-client" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
@@ -144,7 +126,7 @@
                     {!! Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => '2']) !!}
                 </div>
             </div>
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::FM_G }}">
                     <label for="task-summary" class="col-form-label">{{ __('Progress') }}</label>
                     <input type="range"
@@ -175,35 +157,14 @@
                     if (url !== '#' || action !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (err) {}
             });
         })();
     </script>
 @else
-    <div class="alert alert-danger">
+    <div class="{{ VC::ALT_DNG }}">
         {{ __('Milestone not found.') }}
     </div>
 @endif

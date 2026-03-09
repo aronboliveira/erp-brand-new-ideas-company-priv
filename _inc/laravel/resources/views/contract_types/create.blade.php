@@ -1,26 +1,42 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use Collective\Html\FormFacade as Form;
-
-    $lang           = Utility::fetchUserLang();
-    $storeRoute     = Route::has(ViewsConstants::CTC_TP)
-        ? route(ViewsConstants::CTC_TP)
-        : (Route::has(Str::kebab(ViewsConstants::CTC_TP))
-            ? route(Str::kebab(ViewsConstants::CTC_TP))
-            : '#');
-    $formId         = 'contract-type-store-form';
-    $storeMsg       = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CTC_TP,
-        'contract_type_store_route_unavailable'
-    ) ?? 'Contract Type store route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$storeRoute ??= '#';
+	$formId ??= 'contract-type-store-form';
+	$storeMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeRoute = Route::has(ViewsConstants::CTC_TP)
+			? (route(ViewsConstants::CTC_TP) ?? '#')
+			: (Route::has(Str::kebab(ViewsConstants::CTC_TP))
+				? (route(Str::kebab(ViewsConstants::CTC_TP)) ?? '#')
+				: '#');
+		$storeMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CTC_TP,
+			'contract_type_store_route_unavailable'
+		) ?? 'Contract Type store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in contract_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in contract_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in contract_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::open([

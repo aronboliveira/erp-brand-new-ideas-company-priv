@@ -1,18 +1,5 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants,
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Modules\LandingPage\Config\Constants\{
-        ExtendingLandingPageLayoutConstants as E, 
-        RoutesResourcesConstants as R
-    };
-    use Illuminate\Support\Facades\{Log, Route};
+
 	$data??=[];
 	$lang??='';
 	$logo??='';
@@ -153,4 +140,3 @@
         </div>
     </div>
 @endsection
-

@@ -51,8 +51,14 @@ trait ChecksPermissions
 			);
 		}
 		$denied = true;
-		if (!$user->can($perm) && !Gate::forUser($user)->allows($perm) && !(method_exists($user, 'hasPermissionTo')
-			&& $user->hasPermissionTo($perm))) {
+		try {
+			$hasPermission = $user->can($perm) || Gate::forUser($user)->allows($perm) || (method_exists($user, 'hasPermissionTo')
+				&& $user->hasPermissionTo($perm));
+		} catch (\Throwable $permErr) {
+			$hasPermission = false;
+			Log::warning(static::class . " permission check failed for '{$perm}'", ['error' => $permErr->getMessage()]);
+		}
+		if (!$hasPermission) {
 			if ($user[UsersConstants::COL_TP] === PermissionsConstants::SA) {
 				$denied = false;
 				Log::notice(static::class . " super-admin bypass without '{$perm}' permission", [
@@ -70,7 +76,7 @@ trait ChecksPermissions
 				'error',
 				$msgs['permission_denied'] ?? 'You do not have permission for that. Redirecting shortly...'
 			);
-			$redirectRoute ??= url() === '/' ? '/' : url()->previous();
+			$redirectRoute ??= request()->url() === url('/') ? '/' : url()->previous();
 			try {
 				if (!str_starts_with($redirectRoute, '/')) {
 					Route::has($redirectRoute)
@@ -102,7 +108,7 @@ trait ChecksPermissions
 					'line'      => $e->getLine(),
 					'path'      => $redirectRoute,
 				]);
-				return redirect()->back()->with('error', !empty($msgs['internal_error'] ? $msgs['internal_error'] : 'An internal error occurred. Redirecting shortly...'));
+				return redirect()->back()->with('error', !empty($msgs['internal_error']) ? $msgs['internal_error'] : 'An internal error occurred. Redirecting shortly...');
 			}
 			if (!$customAction)
 				return self::redirectUnauthorized(
@@ -155,7 +161,7 @@ trait ChecksPermissions
 	private static function redirectUnauthorized(string $redirectRoute = '/login', $errorType = 'Unauthorized', $msg = 'You do not have permition for that. Redirecting shortly...', $code = 401, $delay = 3): JsonResponse
 	{
 		$sessionId = session()->getId();
-		$currentRoute = request()->route()->getName() ?? request()->url();
+		$currentRoute = request()->route()?->getName() ?? request()->url();
 		do $watcherId = Str::uuid();
 		while (Cache::has("redirect_watcher_{$sessionId}_{$watcherId}"));
 		$watcherKey = "redirect_watcher_{$sessionId}_{$watcherId}";
@@ -170,11 +176,12 @@ trait ChecksPermissions
 			->delay(now()->addSeconds($phpDelay));
 		$uuid   = Str::uuid();
 		$jsDelay = $delay * 1000;
+		$safeRedirectRoute = htmlspecialchars($redirectRoute, ENT_QUOTES, 'UTF-8');
 		$script = <<<HTML
 			<script id="{$uuid}">
 				setTimeout(() => {
-					window.location.href = "{$redirectRoute}";
-				}, "{$jsDelay}");
+					window.location.href = "{$safeRedirectRoute}";
+				}, {$jsDelay});
 			</script>
 		HTML;
 		return response()->json([

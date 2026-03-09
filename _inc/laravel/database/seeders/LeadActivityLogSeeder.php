@@ -23,7 +23,7 @@ use Illuminate\Support\Str;
 
 class LeadActivityLogSeeder extends Seeder
 {
-	private const DEFAULT_COUNT = 128;
+	private const DEFAULT_COUNT = 2; // was 128
 
 	public function run(): void
 	{
@@ -219,7 +219,7 @@ class LeadActivityLogSeeder extends Seeder
 					if (rand(0, 100) < 60) {
 						$payload[DC::COL_TABLE_CREATOR] = $userId;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Log de Atividade {$label} de Lead {$leadId} para usuário {$userId} do módulo {$mod}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Log de Atividade {$label} de Lead {$leadId} para usuário {$userId} do módulo {$mod}");
 					LeadActivityLog::query()->create($payload);
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());

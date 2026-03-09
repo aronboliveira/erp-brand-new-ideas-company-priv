@@ -1,7 +1,5 @@
 @php
-	use App\Config\Constants\ViewClassNamesConstants;
-	use Illuminate\Support\Facades\{Log, Route};
-	use Modules\LandingPage\Config\Constants\RoutesResourcesConstants as R;
+
 	$landingItems??=[];
 	$landingArea??=[];
 	try {
@@ -67,7 +65,9 @@
     </a>
     <div class="dash-submenu">
         @foreach($landingItems as $prefix => $label)
-            @php $routeName = $prefix . '.index'; @endphp
+            @php
+ $routeName = $prefix . '.index';
+@endphp
             <a href="{{ Route::has($routeName) ? route($routeName) : '#' }}"
                class="dash-link{{ Route::has($routeName) && request()->routeIs($routeName) ? ' active' : '' }}"
                {{ Route::has($routeName) ? '' : 'aria-disabled="true"' }}>

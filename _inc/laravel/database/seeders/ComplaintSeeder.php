@@ -65,8 +65,8 @@ final class ComplaintSeeder extends Seeder
 					$reason     = $faker->boolean(85) ? $faker->randomElement($reasons) : null;
 					$desc       = $faker->boolean(75) ? $faker->sentences(random_int(1, 3), true) : null;
 					$notes      = $faker->boolean(35) ? $faker->sentence() : null;
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Queixa para funcionário {$againstId} de {$fromId} - Título: {$title}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Queixa para funcionário {$againstId} de {$fromId} - Título: {$title}");
 					// idempotência: evita duplicar “mesma” queixa no dia
 					$exists = Complaint::query()
 						->where(UC::COL_EMP_ID,  $againstId)     // foco do registro

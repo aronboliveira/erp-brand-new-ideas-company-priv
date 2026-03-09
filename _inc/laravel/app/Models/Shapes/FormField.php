@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, FormsConstants as FC};
-use App\Traits\{DescribesClientField, DescribesHtmlLinkedEntity, HasAuditFields, NormalizesAddresses, UsesUuids};
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\{
+	DescribesClientField,
+	DescribesHtmlLinkedEntity,
+	HasAuditFields,
+	NormalizesAddresses,
+	UsesUuids
+};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class FormField extends Model
@@ -15,7 +21,7 @@ class FormField extends Model
     protected $table = DC::TABLE_FM_FD;
 
     protected $with = [
-        'form',
+        // 'form' removed: circular eager-load with FormBuilder->formFields->form
         'createdBy',
         'customQuestion',
     ];
@@ -105,68 +111,81 @@ class FormField extends Model
         return $this->belongsTo(CustomQuestion::class, FC::COL_CT_QT_ID, 'id');
     }
 
-    /**
-     * Resolve: CustomField -> CustomQuestion -> FormField (highest precedence)
-     */
-    public function getResolvedClientPayloadAttribute(): array
+        public function getResolvedClientPayloadAttribute(): array
     {
-        $base = [];
-        $cq = $this->getCachedCustomQuestion();
+            try {
+            $base = [];
+            $cq = $this->getCachedCustomQuestion();
 
-        if ($cq) $base = $cq->getAttribute('resolved_client_payload') ?? [];
+            if ($cq) $base = $cq->getAttribute('resolved_client_payload') ?? [];
 
-        $local = array_merge($this->getClientFieldAttributes(), $this->getHtmlLinkedAttributes(true));
-        $merged = static::overlayIfMeaningful($base, $local);
+            $local = array_merge($this->getClientFieldAttributes(), $this->getHtmlLinkedAttributes(true));
+            $merged = static::overlayIfMeaningful($base, $local);
 
-        if (Schema::hasColumn($this->getTable(), 'email'))
-            $merged['email'] = $this->getAttribute('email');
+            if (Schema::hasColumn($this->getTable(), 'email'))
+                $merged['email'] = $this->getAttribute('email');
 
-        return static::normalizeClientFieldPayload($merged);
+            return static::normalizeClientFieldPayload($merged);
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getResolvedClientPayloadAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return [];
+            }
     }
 
     public function getResolvedConstraintsAttribute(): array
     {
-        $payload = $this->getResolvedClientPayloadAttribute();
+        try {
+            $payload = $this->getResolvedClientPayloadAttribute();
 
-        $constraints = [];
-        foreach (static::clientFieldConstraintColumns() as $k) {
-            if (!array_key_exists($k, $payload)) continue;
-            $constraints[$k] = $payload[$k];
+            $constraints = [];
+            foreach (static::clientFieldConstraintColumns() as $k) {
+                if (!array_key_exists($k, $payload)) continue;
+                $constraints[$k] = $payload[$k];
+            }
+
+                    foreach (['aria', 'dataset'] as $k) {
+                if (!array_key_exists($k, $payload)) continue;
+                $constraints[$k] = $payload[$k];
+            }
+
+            return $constraints;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getResolvedConstraintsAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        // Add html accessibility metadata if you want it in “constraints”
-        foreach (['aria', 'dataset'] as $k) {
-            if (!array_key_exists($k, $payload)) continue;
-            $constraints[$k] = $payload[$k];
-        }
-
-        return $constraints;
     }
 
     protected function getCachedCustomQuestion(): ?\App\Models\CustomQuestion
     {
-        if ($this->relationLoaded('customQuestion')) return $this->getRelation('customQuestion');
         try {
-            return $this->customQuestion()->first();
+            if ($this->relationLoaded('customQuestion')) return $this->getRelation('customQuestion');
+            try {
+                return $this->customQuestion()->first();
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to fetch linked customQuestion', [
+                    'id'   => $this->getAttribute('id'),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'err'  => $e->getMessage(),
+                ]);
+                return null;
+            }
         } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to fetch linked customQuestion', [
-                'id'   => $this->getAttribute('id'),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'err'  => $e->getMessage(),
-            ]);
+            Log::error(static::class . '::getCachedCustomQuestion — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return null;
         }
     }
 
-    /**
-     * Business helper: determine if field is effectively writable.
-     */
-    public function isEffectivelyWritable(): bool
+        public function isEffectivelyWritable(): bool
     {
-        $p = $this->getResolvedClientPayloadAttribute();
-        $disabled = (bool)($p['disabled'] ?? false);
-        $readonly = (bool)($p['readonly'] ?? false);
-        return !$disabled && !$readonly;
+            try {
+            $p = $this->getResolvedClientPayloadAttribute();
+            $disabled = (bool)($p['disabled'] ?? false);
+            $readonly = (bool)($p['readonly'] ?? false);
+            return !$disabled && !$readonly;
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::isEffectivelyWritable — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return false;
+            }
     }
 }

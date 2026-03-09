@@ -134,158 +134,189 @@ class ProjectInvoice extends Model
 
 	public function getIsOverdueAttribute(): bool
 	{
-		$due = $this->getAttribute(BC::COL_DUE_DT);
-		if (!$due) return false;
+	    try {
+    		$due = $this->getAttribute(BC::COL_DUE_DT);
+    		if (!$due) return false;
 
-		try {
-			$d = $due instanceof Carbon ? $due : Carbon::parse((string) $due);
-			return $d->isPast() && !$this->getIsCompletedAttribute();
-		} catch (\Throwable) {
-			return false;
-		}
+    		try {
+    			$d = $due instanceof Carbon ? $due : Carbon::parse((string) $due);
+    			return $d->isPast() && !$this->getIsCompletedAttribute();
+    		} catch (\Throwable) {
+    			return false;
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getIsOverdueAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return false;
+	    }
 	}
 
 	public function getDueInDaysAttribute(): ?int
 	{
-		$due = $this->getAttribute(BC::COL_DUE_DT);
-		if (!$due) return null;
+	    try {
+    		$due = $this->getAttribute(BC::COL_DUE_DT);
+    		if (!$due) return null;
 
-		try {
-			$d = $due instanceof Carbon ? $due : Carbon::parse((string) $due);
-			return Carbon::now()->startOfDay()->diffInDays($d->startOfDay(), false);
-		} catch (\Throwable) {
-			return null;
-		}
+    		try {
+    			$d = $due instanceof Carbon ? $due : Carbon::parse((string) $due);
+    			return Carbon::now()->startOfDay()->diffInDays($d->startOfDay(), false);
+    		} catch (\Throwable) {
+    			return null;
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getDueInDaysAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return 0;
+	    }
 	}
 
 	private function normalizeUuids(): void
 	{
-		foreach ([BC::COL_INV_ID, PJC::COL_PJ_ID, BC::COL_BL_ID, BC::COL_TAX_ID] as $k) {
-			$raw = $this->getAttribute($k);
-			if ($raw === null) continue;
+	    try {
+    		foreach ([BC::COL_INV_ID, PJC::COL_PJ_ID, BC::COL_BL_ID, BC::COL_TAX_ID] as $k) {
+    			$raw = $this->getAttribute($k);
+    			if ($raw === null) continue;
 
-			if (!is_string($raw)) {
-				Log::warning(self::class . " non-string {$k}", [
-					'id'    => (string) ($this->getAttribute('id') ?? ''),
-					'type'  => gettype($raw),
-				]);
-				$this->setAttribute($k, null);
-				continue;
-			}
+    			if (!is_string($raw)) {
+    				Log::warning(self::class . " non-string {$k}", [
+    					'id'    => (string) ($this->getAttribute('id') ?? ''),
+    					'type'  => gettype($raw),
+    				]);
+    				$this->setAttribute($k, null);
+    				continue;
+    			}
 
-			$v = trim($raw);
-			if ($v === '') $this->setAttribute($k, null);
-			elseif (method_exists(Utility::class, 'looksLikeUuid') && !Utility::looksLikeUuid($v))
-				$this->setAttribute($k, null);
-			else $this->setAttribute($k, $v);
-		}
+    			$v = trim($raw);
+    			if ($v === '') $this->setAttribute($k, null);
+    			elseif (method_exists(Utility::class, 'looksLikeUuid') && !Utility::looksLikeUuid($v))
+    				$this->setAttribute($k, null);
+    			else $this->setAttribute($k, $v);
+    		}
 
-		$inv = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
-		$prj = (string) ($this->getAttribute(PJC::COL_PJ_ID) ?? '');
+    		$inv = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
+    		$prj = (string) ($this->getAttribute(PJC::COL_PJ_ID) ?? '');
 
-		if ($inv === '') throw new \InvalidArgumentException('ProjectInvoice requires invoice_id.');
-		if ($prj === '') throw new \InvalidArgumentException('ProjectInvoice requires project_id.');
+    		if ($inv === '') throw new \InvalidArgumentException('ProjectInvoice requires invoice_id.');
+    		if ($prj === '') throw new \InvalidArgumentException('ProjectInvoice requires project_id.');
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeUuids — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function syncDueDateFromInvoiceOrFail(): void
 	{
-		$invId = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
-		if ($invId === '') throw new \InvalidArgumentException('ProjectInvoice requires invoice_id before syncing due_date.');
+	    try {
+    		$invId = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
+    		if ($invId === '') throw new \InvalidArgumentException('ProjectInvoice requires invoice_id before syncing due_date.');
 
-		$invoice = $this->getInvoiceRowCached($invId);
+    		$invoice = $this->getInvoiceRowCached($invId);
 
-		// “Invoice é a fonte de verdade” para due_date (se existir no invoice)
-		$invDueRaw = $invoice[BC::COL_DUE_DT] ?? ($invoice['due_date'] ?? null);
+    		// “Invoice é a fonte de verdade” para due_date (se existir no invoice)
+    		$invDueRaw = $invoice[BC::COL_DUE_DT] ?? ($invoice['due_date'] ?? null);
 
-		try {
-			if ($invDueRaw) {
-				$invDue = $invDueRaw instanceof Carbon ? $invDueRaw : Carbon::parse((string) $invDueRaw);
-				$this->setAttribute(BC::COL_DUE_DT, $invDue->toDateString());
-				return;
-			}
-		} catch (\Throwable $e) {
-			Log::debug(self::class . ' failed parsing invoice due_date', [
-				'invoice_id' => $invId,
-				'error'      => $e->getMessage(),
-			]);
-		}
+    		try {
+    			if ($invDueRaw) {
+    				$invDue = $invDueRaw instanceof Carbon ? $invDueRaw : Carbon::parse((string) $invDueRaw);
+    				$this->setAttribute(BC::COL_DUE_DT, $invDue->toDateString());
+    				return;
+    			}
+    		} catch (\Throwable $e) {
+    			Log::debug(self::class . ' failed parsing invoice due_date', [
+    				'invoice_id' => $invId,
+    				'error'      => $e->getMessage(),
+    			]);
+    		}
 
-		// Sem due_date no invoice => esta linha precisa ter due_date (coluna NOT NULL)
-		$cur = $this->getAttribute(BC::COL_DUE_DT);
-		if (!$cur) throw new \InvalidArgumentException('ProjectInvoice requires due_date (or invoice must have due_date).');
+    		// Sem due_date no invoice => esta linha precisa ter due_date (coluna NOT NULL)
+    		$cur = $this->getAttribute(BC::COL_DUE_DT);
+    		if (!$cur) throw new \InvalidArgumentException('ProjectInvoice requires due_date (or invoice must have due_date).');
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::syncDueDateFromInvoiceOrFail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function normalizeStatus(): void
 	{
-		$raw = $this->getAttribute('status');
+	    try {
+    		$raw = $this->getAttribute('status');
 
-		// aceita: int, string numérica, string PaymentStatus, enum PaymentStatus
-		try {
-			if ($raw instanceof PaymentStatus) {
-				$this->setAttribute('status', PaymentStatus::getIndex($raw->value));
-				return;
-			}
+    		// aceita: int, string numérica, string PaymentStatus, enum PaymentStatus
+    		try {
+    			if ($raw instanceof PaymentStatus) {
+    				$this->setAttribute('status', PaymentStatus::getIndex($raw->value));
+    				return;
+    			}
 
-			if (is_string($raw) && $raw !== '' && ctype_digit($raw)) {
-				$idx = (int) $raw;
-				$this->setAttribute('status', $this->statusIndexIsValid($idx) ? $idx : 1);
-				return;
-			}
+    			if (is_string($raw) && $raw !== '' && ctype_digit($raw)) {
+    				$idx = (int) $raw;
+    				$this->setAttribute('status', $this->statusIndexIsValid($idx) ? $idx : 1);
+    				return;
+    			}
 
-			if (is_int($raw)) {
-				$this->setAttribute('status', $this->statusIndexIsValid($raw) ? $raw : 1);
-				return;
-			}
+    			if (is_int($raw)) {
+    				$this->setAttribute('status', $this->statusIndexIsValid($raw) ? $raw : 1);
+    				return;
+    			}
 
-			if (is_string($raw) && trim($raw) !== '') {
-				$enum = PaymentStatus::normalize($raw);
-				$this->setAttribute('status', PaymentStatus::getIndex($enum->value));
-				return;
-			}
-		} catch (\Throwable $e) {
-			Log::debug(self::class . ' failed normalizing status', [
-				'error' => $e->getMessage(),
-			]);
-		}
+    			if (is_string($raw) && trim($raw) !== '') {
+    				$enum = PaymentStatus::normalize($raw);
+    				$this->setAttribute('status', PaymentStatus::getIndex($enum->value));
+    				return;
+    			}
+    		} catch (\Throwable $e) {
+    			Log::debug(self::class . ' failed normalizing status', [
+    				'error' => $e->getMessage(),
+    			]);
+    		}
 
-		$this->setAttribute('status', 1);
+    		$this->setAttribute('status', 1);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeStatus — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function enforceUniquePairOrFail(): void
 	{
-		$id  = (string) ($this->getAttribute('id') ?? '');
-		$inv = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
-		$prj = (string) ($this->getAttribute(PJC::COL_PJ_ID) ?? '');
+	    try {
+    		$id  = (string) ($this->getAttribute('id') ?? '');
+    		$inv = (string) ($this->getAttribute(BC::COL_INV_ID) ?? '');
+    		$prj = (string) ($this->getAttribute(PJC::COL_PJ_ID) ?? '');
 
-		if ($inv === '' || $prj === '') return;
+    		if ($inv === '' || $prj === '') return;
 
-		$q = self::query()
-			->where(BC::COL_INV_ID, $inv)
-			->where(PJC::COL_PJ_ID, $prj);
+    		$q = self::query()
+    			->where(BC::COL_INV_ID, $inv)
+    			->where(PJC::COL_PJ_ID, $prj);
 
-		if ($id !== '') $q->where('id', '!=', $id);
+    		if ($id !== '') $q->where('id', '!=', $id);
 
-		if ($q->exists())
-			throw new \InvalidArgumentException('ProjectInvoice already exists for (invoice_id, project_id).');
+    		if ($q->exists())
+    			throw new \InvalidArgumentException('ProjectInvoice already exists for (invoice_id, project_id).');
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::enforceUniquePairOrFail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function statusIndexToEnum(int $idx): PaymentStatus
 	{
-		return match ($idx) {
-			0  => PaymentStatus::Pending,
-			1  => PaymentStatus::Processing,
-			2  => PaymentStatus::Authorized,
-			3  => PaymentStatus::Completed,
-			4  => PaymentStatus::Failed,
-			5  => PaymentStatus::Cancelled,
-			6  => PaymentStatus::Refunded,
-			7  => PaymentStatus::PartiallyRefunded,
-			8  => PaymentStatus::Expired,
-			9  => PaymentStatus::Declined,
-			10 => PaymentStatus::Disputed,
-			11 => PaymentStatus::Undefined,
-			default => PaymentStatus::Processing,
-		};
+	    try {
+    		return match ($idx) {
+    			0  => PaymentStatus::Pending,
+    			1  => PaymentStatus::Processing,
+    			2  => PaymentStatus::Authorized,
+    			3  => PaymentStatus::Completed,
+    			4  => PaymentStatus::Failed,
+    			5  => PaymentStatus::Cancelled,
+    			6  => PaymentStatus::Refunded,
+    			7  => PaymentStatus::PartiallyRefunded,
+    			8  => PaymentStatus::Expired,
+    			9  => PaymentStatus::Declined,
+    			10 => PaymentStatus::Disputed,
+    			11 => PaymentStatus::Undefined,
+    			default => PaymentStatus::Processing,
+    		};
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::statusIndexToEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return null;
+	    }
 	}
 
 	private function statusIndexIsValid(int $idx): bool
@@ -295,23 +326,28 @@ class ProjectInvoice extends Model
 
 	private function getInvoiceRowCached(string $invoiceId): array
 	{
-		$key = trim($invoiceId);
-		if ($key === '') return [];
+	    try {
+    		$key = trim($invoiceId);
+    		if ($key === '') return [];
 
-		if (array_key_exists($key, self::$cache['invoice_row']))
-			return (array) (self::$cache['invoice_row'][$key] ?? []);
+    		if (array_key_exists($key, self::$cache['invoice_row']))
+    			return (array) (self::$cache['invoice_row'][$key] ?? []);
 
-		try {
-			$row = (array) (DB::table(DC::TABLE_INVS)->where('id', $key)->first() ?? []);
-			self::$cache['invoice_row'][$key] = $row;
-			return $row;
-		} catch (\Throwable $e) {
-			Log::debug(self::class . ' failed fetching invoice row', [
-				'invoice_id' => $key,
-				'error'      => $e->getMessage(),
-			]);
-			self::$cache['invoice_row'][$key] = [];
-			return [];
-		}
+    		try {
+    			$row = (array) (DB::table(DC::TABLE_INVS)->where('id', $key)->first() ?? []);
+    			self::$cache['invoice_row'][$key] = $row;
+    			return $row;
+    		} catch (\Throwable $e) {
+    			Log::debug(self::class . ' failed fetching invoice row', [
+    				'invoice_id' => $key,
+    				'error'      => $e->getMessage(),
+    			]);
+    			self::$cache['invoice_row'][$key] = [];
+    			return [];
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getInvoiceRowCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 }

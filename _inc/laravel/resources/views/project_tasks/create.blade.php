@@ -1,39 +1,43 @@
 @php
-    use App\Config\Constants\{ActivitiesConstants, PlansConstants, ProjectsConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\{Utility, ProjectTask};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $projectIdVal = isset($project_id) && !empty($project_id) ? $project_id : (isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null);
-    $stageIdVal   = isset($stage_id) && !empty($stage_id) ? $stage_id : null;
-    $storeBase    = VW::PRJ_TSK_C . '.store';
-    $storeKebab   = Str::kebab($storeBase);
-    $storeResolved= Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-    $storeParams  = ($projectIdVal !== null && $stageIdVal !== null) ? [$projectIdVal, $stageIdVal] : ['#'];
-    $storeUrl     = ($storeResolved && $projectIdVal !== null && $stageIdVal !== null) ? route($storeResolved, $storeParams) : '#';
-    $formId       = 'store_task';
-    $formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'store_project_task_unavailable') ?? 'Store project task route is unavailable. Please contact technical support or your domain administrator.';
-    $plan         = Utility::getChatGPTSettings();
+    try {
+$lang = Utility::fetchUserLang();
+        $projectIdVal = isset($project_id) && !empty($project_id) ? $project_id : (isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null);
+        $stageIdVal   = isset($stage_id) && !empty($stage_id) ? $stage_id : null;
+        $storeBase    = VW::PRJ_TSK_C . '.store';
+        $storeKebab   = Str::kebab($storeBase);
+        $storeResolved= Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+        $storeParams  = ($projectIdVal !== null && $stageIdVal !== null) ? [$projectIdVal, $stageIdVal] : ['#'];
+        $storeUrl     = ($storeResolved && $projectIdVal !== null && $stageIdVal !== null) ? route($storeResolved, $storeParams) : '#';
+        $formId       = 'store_task';
+        $formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'store_project_task_unavailable') ?? 'Store project task route is unavailable. Please contact technical support or your domain administrator.';
+        $plan         = Utility::getChatGPTSettings();
+    } catch (\Throwable $e) {
+        \Log::error('project_tasks/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open(['url' => $storeUrl, 'id' => $formId, 'data-guard-msg' => $formGuardMsg]) !!}
     <div class="modal-body">
         @php
             $planHasGpt = (int)(data_get($plan ?? null, PlansConstants::COL_GPT) ?? 0) === 1;
-        @endphp
+@endphp
         @if($planHasGpt)
             @php
-                $aiRouteName = VW::PRJ_TSK_C . '.generate';
-                $aiParams = ['project task'];
-                $aiUrl = $planHasGpt ? route($aiRouteName, $aiParams) : '#';
-                $aiLinkId = 'project-task-ai-generate-link';
-                $aiGuardMsg = __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), VW::PRJ_TSK_C, 'generate_project_task_unavailable') ?? 'Generate project task content route is unavailable. Please contact technical support or your domain administrator.');
-                $milestones = (is_object($project ?? null) && is_iterable(data_get($project, 'milestones'))) ? data_get($project, 'milestones') : [];
-                $priorityOptions = (isset(ProjectTask::$priority) && is_array(ProjectTask::$priority)) ? ProjectTask::$priority : [];
-                $allocatedHrs = (is_array($hrs ?? null) || $hrs instanceof \ArrayAccess) ? (data_get($hrs, 'allocated') ?? 0) : 0;
-                $projUsers = (is_object($project ?? null) && is_iterable(data_get($project, 'users'))) ? data_get($project, 'users') : [];
-            @endphp
-            <div class="text-end">
-                <a href="{{ $aiUrl }}" id="{{ $aiLinkId }}" class="{{ VC::BT_SM_PM }} btn-icon" data-ajax-popup-over="true" data-size="md" data-url="{{ $aiUrl }}" data-bs-placement="top" data-title="{{ __('Generate content with AI') }}" data-guard-msg="{{ $aiGuardMsg }}">
+                try {
+                    $aiRouteName = VW::PRJ_TSK_C . '.generate';
+                    $aiParams = ['project task'];
+                    $aiUrl = $planHasGpt ? route($aiRouteName, $aiParams) : '#';
+                    $aiLinkId = 'project-task-ai-generate-link';
+                    $aiGuardMsg = __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), VW::PRJ_TSK_C, 'generate_project_task_unavailable') ?? 'Generate project task content route is unavailable. Please contact technical support or your domain administrator.');
+                    $milestones = (is_object($project ?? null) && is_iterable(data_get($project, 'milestones'))) ? data_get($project, 'milestones') : [];
+                    $priorityOptions = (isset(ProjectTask::$priority) && is_array(ProjectTask::$priority)) ? ProjectTask::$priority : [];
+                    $allocatedHrs = (is_array($hrs ?? null) || $hrs instanceof \ArrayAccess) ? (data_get($hrs, 'allocated') ?? 0) : 0;
+                    $projUsers = (is_object($project ?? null) && is_iterable(data_get($project, 'users'))) ? data_get($project, 'users') : [];
+                } catch (\Throwable $e) {
+                    \Log::error('project_tasks/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <div class="{{ VC::TX_END }}">
+                <a href="{{ $aiUrl }}" id="{{ $aiLinkId }}" class="{{ VC::BT_SM_PM }} btn-icon" data-ajax-popup-over="true" data-size="md" data-url="{{ $aiUrl }}" data-bs-placement="top" data-title="{{ __('Generate content with AI') }}" data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
@@ -42,7 +46,7 @@
             <div class="{{ VC::CLMS6 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label(ProjectsConstants::COL_NM, __('Task name'), ['class' => VC::FM_LB]) }}
-                    <span class="text-danger">*</span>
+                    <span class="{{ VC::TX_DNG }}">*</span>
                     {{ Form::text(ProjectsConstants::COL_NM, null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                 </div>
             </div>
@@ -50,7 +54,7 @@
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label(ProjectsConstants::COL_ML_ID, __('Milestone'), ['class' => VC::FM_LB]) }}
                     <select class="{{ VC::FM_CT_SL }}" name="milestone_id" id="milestone_id">
-                        <option value="0" class="text-muted">{{ __('Select Milestone') }}</option>
+                        <option value="0" class="{{ VC::TXT_MT }}">{{ __('Select Milestone') }}</option>
                         @foreach($milestones as $m_val)
                             <option value="{{ data_get($m_val,'id') }}">{{ data_get($m_val,'title') ?? __('No milestone title available') }}</option>
                         @endforeach
@@ -60,22 +64,22 @@
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label(ActivitiesConstants::COL_DESC, __('Description'), ['class' => VC::FM_LB]) }}
-                    <small class="form-text text-muted mb-2 mt-0">{{ __('This textarea will autosize while you type') }}</small>
+                    <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('This textarea will autosize while you type') }}</small>
                     {{ Form::textarea(ActivitiesConstants::COL_DESC, null, ['class' => VC::FM_CT, 'rows' => '1', 'data-toggle' => 'autosize']) }}
                 </div>
             </div>
             <div class="{{ VC::CLMS6 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label(ProjectsConstants::COL_E_HRS, __('Estimated Hours'), ['class' => VC::FM_LB]) }}
-                    <span class="text-danger">*</span>
-                    <small class="form-text text-muted mb-2 mt-0">{{ __('allocated total ') . $allocatedHrs . __(' hrs in other tasks') }}</small>
+                    <span class="{{ VC::TX_DNG }}">*</span>
+                    <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('allocated total ') . $allocatedHrs . __(' hrs in other tasks') }}</small>
                     {{ Form::number(ProjectsConstants::COL_E_HRS, null, ['class' => VC::FM_CT, 'required' => 'required', 'min' => '0', 'maxlength' => '8']) }}
                 </div>
             </div>
             <div class="{{ VC::CLMS6 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label(ProjectsConstants::COL_PRT, __('Priority'), ['class' => VC::FM_LB]) }}
-                    <small class="form-text text-muted mb-2 mt-0">{{ __('Set Priority of your task') }}</small>
+                    <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('Set Priority of your task') }}</small>
                     <select class="{{ VC::FM_CT_SL }}" name="priority" id="priority" required>
                         @forelse($priorityOptions as $key => $val)
                             <option value="{{ $key }}">{{ __($val) }}</option>
@@ -100,7 +104,7 @@
         </div>
         <div class="{{ VC::FM_G }}">
             <label class="{{ VC::FM_LB }}">{{ __('Task members') }}</label>
-            <small class="form-text text-muted mb-2 mt-0">{{ __('Below users are assigned in your project.') }}</small>
+            <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('Below users are assigned in your project.') }}</small>
         </div>
         <div class="{{ VC::LG_FLSH }} mb-4">
             <div class="{{ VC::RW }}">
@@ -146,7 +150,7 @@
             <div class="{{ VC::FM_GCB6 }}">
                 {{ Form::label('synchronize_type', __('Synchronize in Google Calendar ?'), ['class' => VC::FM_LB]) }}
                 <div class="form-switch">
-                    <input type="checkbox" class="form-check-input mt-2" name="synchronize_type" id="switch-shadow" value="google_calendar">
+                    <input type="checkbox" class="form-check-input {{ VC::MT2 }}" name="synchronize_type" id="switch-shadow" value="google_calendar">
                     <label class="form-check-label" for="switch-shadow"></label>
                 </div>
             </div>

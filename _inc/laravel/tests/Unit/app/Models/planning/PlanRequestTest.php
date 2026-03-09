@@ -8,9 +8,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\PlanRequest;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlanRequestTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -22,11 +28,11 @@ class PlanRequestTest extends TestCase
 		$rel = (new PlanRequest)->plan();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',      $rel->getForeignKeyName());
-		$this->assertSame('plan_id', $rel->getLocalKeyName());
+		$this->assertSame('plan_id',      $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 
 	/**
@@ -40,11 +46,11 @@ class PlanRequestTest extends TestCase
 		$rel = (new PlanRequest)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',      $rel->getForeignKeyName());
-		$this->assertSame('user_id', $rel->getLocalKeyName());
+		$this->assertSame('user_id',      $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 
 	/**
@@ -55,7 +61,13 @@ class PlanRequestTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['user_id', 'plan_id', 'duration'];
+		$expected = [
+			'user_id',
+			'plan_id',
+			'duration',
+			'notes',
+			'attachments',
+		];
 
 		$this->assertSame($expected, (new PlanRequest)->getFillable());
 	}

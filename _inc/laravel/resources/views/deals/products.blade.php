@@ -1,29 +1,28 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
 
-    $routeKey          = ViewsConstants::DL . '.products.update';
-    $kebabRouteKey     = Str::kebab($routeKey);
-    $hasRoute          = Route::has($routeKey);
-    $hasKebab          = Route::has($kebabRouteKey);
-    $updateRouteName   = $hasRoute
-        ? $routeKey
-        : ($hasKebab ? $kebabRouteKey : null);
-    $updateRouteArr    = $updateRouteName
-        ? [$updateRouteName, $deal->id]
-        : ['#'];
-    $updateRouteUrl    = $updateRouteName
-        ? route($updateRouteName, $deal->id)
-        : '#';
-    $updateGuardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::DL,
-        'deal_products_update_route_unavailable'
-    ) ?? 'Deal products update route is unavailable. Please contact technical support or your domain administrator.';
+        $routeKey          = ViewsConstants::DL . '.products.update';
+        $kebabRouteKey     = Str::kebab($routeKey);
+        $hasRoute          = Route::has($routeKey);
+        $hasKebab          = Route::has($kebabRouteKey);
+        $updateRouteName   = $hasRoute
+            ? $routeKey
+            : ($hasKebab ? $kebabRouteKey : null);
+        $updateRouteArr    = $updateRouteName
+            ? [$updateRouteName, $deal->id]
+            : ['#'];
+        $updateRouteUrl    = $updateRouteName
+            ? route($updateRouteName, $deal->id)
+            : '#';
+        $updateGuardMsg    = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::DL,
+            'deal_products_update_route_unavailable'
+        ) ?? 'Deal products update route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deals/products — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(!empty($deal) && isset($deal->id))
     {!! Form::model($deal, [
@@ -66,28 +65,7 @@
                         if (url !== '#') return;
                         e.preventDefault();
                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bs) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                         form.setAttribute('data-failed-route', 'true');
                     } catch (error) {}
                 });
@@ -95,5 +73,5 @@
         </script>
     {!! Form::close() !!}
 @else
-    <div class="alert alert-warning">{{ __('No deal data available') }}</div>
+    <div class="{{ VC::ALT_WRN }}">{{ __('No deal data available') }}</div>
 @endif

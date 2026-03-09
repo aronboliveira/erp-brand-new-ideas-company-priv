@@ -21,9 +21,10 @@ final class PosSeeder extends Seeder
 	/**
 	 * Quantidade de POS a criar.
 	 */
-	private const TOTAL = 256;
+	private const TOTAL = 2; // was 256
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2; // 10 minutes
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{
@@ -176,8 +177,8 @@ final class PosSeeder extends Seeder
 						DC::COL_C_AT      => $createdAt,
 						DC::COL_U_AT      => $createdAt->copy()->addMinutes(random_int(5, 400)),
 					];
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Ponto de Venda {$posPublicId} do tipo {$type} para cliente {$customerId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Ponto de Venda {$posPublicId} do tipo {$type} para cliente {$customerId}");
 					try {
 						Pos::create($data);
 						$created++;

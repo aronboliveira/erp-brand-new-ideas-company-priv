@@ -1,7 +1,7 @@
 <div class="modal-body">
     <div class="card ">
-        <div class="card-body table-border-style full-card">
-            <div class="table-responsive">
+        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+            <div class="{{ VC::TB_RSP }}">
                 {{--                    @if(!$products->isEmpty())--}}
                 <table class="table">
                     <thead>
@@ -20,7 +20,7 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center">{{__(' Product not select in warehouse')}}</td>
+                            <td colspan="4" class="{{ VC::TXCT }}">{{__(' Product not select in warehouse')}}</td>
                         </tr>
                     @endforelse
                     </tbody>

@@ -1,13 +1,5 @@
 @php
-    # Template 2
-    use App\Config\Constants\{DatabaseConstants, ViewsConstants, SettingsConstants};
-    use App\Models\{Utility, ProductServiceUnit};
-    use Illuminate\Support\Facades\{Auth, Log};
-    use InvalidArgumentException;
-    use RuntimeException;
-    use TypeError;
-
-    $usr ??= null;
+$usr ??= null;
     $lang ??= (string)'';
     $siteRtl ??= (string)'';
     $color ??= (string)'#ffffff';
@@ -83,7 +75,7 @@
         $canQR = class_exists(\DNS2D::class) && method_exists(\DNS2D::class, 'getBarcodeHTML');
         $encId = class_exists(\Crypt::class) && method_exists(\Crypt::class, 'encrypt') && isset($invoice->invoice_id) ? \Crypt::encrypt($invoice->invoice_id) : null;
         $routeUrl = function_exists('route') && $encId ? route(ViewsConstants::INV.'.link.copy', $encId) : (isset($invoice->invoice_id) ? (string)$invoice->invoice_id : '');
-        $qrHtml = ($canQR && $routeUrl !== '') ? \(new \Milon\Barcode\DNS2D)->getBarcodeHTML($routeUrl, "QRCODE", 2, 2) : '';
+        $qrHtml = ($canQR && $routeUrl !== '') ? \DNS2D::getBarcodeHTML($routeUrl, "QRCODE", 2, 2) : '';
     } catch (\Throwable $e) {
         Log::error('qr_generate_failed', ['file'=>$e->getFile(),'line'=>$e->getLine(),'code'=>$e->getCode(),'error_class'=>get_class($e),'message'=>$e->getMessage()]);
         $qrHtml = '';
@@ -109,13 +101,13 @@
 <body>
     <div class="invoice-preview-main" id="boxes">
         <div class="invoice-header">
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
                             <img class="invoice-logo" src="{{ $imgSrc }}" alt="">
                         </td>
-                        <td class="text-right">
+                        <td class="{{ VC::TX_RT }}">
                             <p>
                                 {{ ($settings['company_name'] ?? '') !== '' ? $settings['company_name'] : __('No name available for company') }}<br>
                                 {{ ($settings['mail_from_address'] ?? '') !== '' ? $settings['mail_from_address'] : __('No email available for company') }}<br><br>
@@ -134,16 +126,16 @@
                     </tr>
                 </tbody>
             </table>
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
                             <h3 style="text-transform: uppercase; font-size: 25px; font-weight: bold; margin-bottom: 15px;">{{ __('INVOICE') }}</h3>
-                            <table class="no-space">
+                            <table class="{{ VC::NO_SPC }}">
                                 <tbody>
                                     <tr>
                                         <td>{{ __('Number') }}:</td>
-                                        <td class="text-right">
+                                        <td class="{{ VC::TX_RT }}">
                                             @if(isset($invoice->invoice_id))
                                                 {{ $hasUtilInvoiceNumberFormat ? (string)Utility::invoiceNumberFormat($settings, $invoice->invoice_id) : (string)$invoice->invoice_id }}
                                             @else
@@ -153,7 +145,7 @@
                                     </tr>
                                     <tr>
                                         <td>{{ __('Issue Date') }}:</td>
-                                        <td class="text-right">
+                                        <td class="{{ VC::TX_RT }}">
                                             @if(isset($invoice->issue_date) && $invoice->issue_date !== '')
                                                 {{ $hasUtilDateFormat ? (string)Utility::dateFormat($settings, $invoice->issue_date) : (string)$invoice->issue_date }}
                                             @else
@@ -163,7 +155,7 @@
                                     </tr>
                                     <tr>
                                         <td><b>{{ __('Due Date:') }}</b></td>
-                                        <td class="text-right">
+                                        <td class="{{ VC::TX_RT }}">
                                             @if(isset($invoice->due_date) && $invoice->due_date !== '')
                                                 {{ $hasUtilDateFormat ? (string)Utility::dateFormat($settings, $invoice->due_date) : (string)$invoice->due_date }}
                                             @else
@@ -183,7 +175,7 @@
                             </table>
                         </td>
                         <td>
-                            <div class="view-qrcode">
+                            <div class="{{ VC::VW_QR }}">
                                 {!! $qrHtml !== '' ? $qrHtml : '' !!}
                             </div>
                         </td>
@@ -212,7 +204,7 @@
                             @endif
                         </td>
                         @if(($settings['shipping_display'] ?? '') === 'on')
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <strong style="margin-bottom: 10px; display:block;">{{ __('Ship To') }}:</strong>
                                 @if(!empty($customer?->shipping_name))
                                     <p>
@@ -233,7 +225,7 @@
                 </tbody>
             </table>
 
-            <table class="add-border invoice-summary" style="margin-top: 30px;">
+            <table class="{{ VC::BDR_INV_SM }}" style="margin-top: 30px;">
                 <thead style="background: {{ $color }}; color: {{ $font_color }}">
                     <tr>
                         <th>{{ __('Item') }}</th>
@@ -248,19 +240,23 @@
                     @if(isset($invoice->itemData) && is_countable($invoice->itemData) && count($invoice->itemData) > 0)
                         @foreach($invoice->itemData as $key => $item)
                             @php
-                                $unitObj = (class_exists(ProductServiceUnit::class) && method_exists(ProductServiceUnit::class, 'find')) ? ProductServiceUnit::find($item->unit ?? null) : null;
-                                $unitName = isset($unitObj->name) ? $unitObj->name : '';
-                                $qtyText = (isset($item->quantity) ? $item->quantity : 0) . ($unitName !== '' ? ' ('.$unitName.')' : '');
-                                $rateVal = (float)($item->price ?? 0);
-                                $discVal = (float)($item->discount ?? 0);
-                                $itemtax = 0.0;
-                                if (!empty($item->itemTax) && is_iterable($item->itemTax)) {
-                                    foreach ($item->itemTax as $taxes) {
-                                        $itemtax += (float)($taxes['tax_price'] ?? 0);
+                                try {
+                                    $unitObj = (class_exists(ProductServiceUnit::class) && method_exists(ProductServiceUnit::class, 'find')) ? ProductServiceUnit::find($item->unit ?? null) : null;
+                                    $unitName = isset($unitObj->name) ? $unitObj->name : '';
+                                    $qtyText = (isset($item->quantity) ? $item->quantity : 0) . ($unitName !== '' ? ' ('.$unitName.')' : '');
+                                    $rateVal = (float)($item->price ?? 0);
+                                    $discVal = (float)($item->discount ?? 0);
+                                    $itemtax = 0.0;
+                                    if (!empty($item->itemTax) && is_iterable($item->itemTax)) {
+                                        foreach ($item->itemTax as $taxes) {
+                                            $itemtax += (float)($taxes['tax_price'] ?? 0);
+                                        }
                                     }
+                                    $lineTotal = ($rateVal * (float)($item->quantity ?? 0)) - $discVal + $itemtax;
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/templates/template2 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                 }
-                                $lineTotal = ($rateVal * (float)($item->quantity ?? 0)) - $discVal + $itemtax;
-                            @endphp
+@endphp
                             <tr>
                                 <td>{{ $item->name ?? '-' }}</td>
                                 <td>{{ $qtyText }}</td>
@@ -278,7 +274,7 @@
                                 <td>{{ $hasUtilPriceFormat ? (string)Utility::priceFormat($settings, $lineTotal) : number_format($lineTotal, 2) }}</td>
                             </tr>
                             @if(!empty($item->description))
-                                <tr class="border-0 itm-description">
+                                <tr class="{{ VC::BD0_ITM_DSC }}">
                                     <td colspan="6">{{ $item->description }}</td>
                                 </tr>
                             @endif
@@ -296,8 +292,8 @@
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
+                        <td colspan="2" class="{{ VC::SUB_TTL }}">
+                            <table class="{{ VC::TTL_TB }}">
                                 <tr>
                                     <td>{{ __('Subtotal') }}:</td>
                                     <td>{{ $hasUtilPriceFormat ? (string)Utility::priceFormat($settings, $subTotalVal) : number_format($subTotalVal, 2) }}</td>

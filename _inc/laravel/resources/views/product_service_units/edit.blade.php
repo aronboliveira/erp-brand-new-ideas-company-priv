@@ -1,22 +1,42 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang      = Utility::fetchUserLang();
-    $hasModel  = !empty($unit ?? null) && data_get($unit, 'id');
-
-    $updateBase     = VW::PRD_SV_UNT . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $unit->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PRD_SV_UNT, 'update_route_unavailable')
-                        ?? __('Update Product Service Unit route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasModel = !empty($unit ?? null) && data_get($unit, 'id');
+		$updateBase = VW::PRD_SV_UNT . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasModel) ? (route($updateResolved, $unit->id) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PRD_SV_UNT, 'update_route_unavailable')
+			?? __('Update Product Service Unit route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in product_service_units/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in product_service_units/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in product_service_units/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)
@@ -35,7 +55,7 @@
                     {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                     @error('name')
                         <small class="invalid-name" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </small>
                     @enderror
                 </div>

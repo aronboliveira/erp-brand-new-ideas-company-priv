@@ -1,17 +1,19 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
 
-    $lang                 = Utility::fetchUserLang();
-    $featureStoreBase     = VW::FT;
-    $featureStoreKebab    = Str::kebab($featureStoreBase);
-    $featureStoreResolved = Route::has($featureStoreBase) ? $featureStoreBase : (Route::has($featureStoreKebab) ? $featureStoreKebab : null);
-    $featureStoreUrl      = $featureStoreResolved ? route($featureStoreResolved) : '#';
-    $featureStoreFormId   = 'feature-store-form';
-    $featureGuardMsg      = Utility::fetchLinkMessage($lang, VW::FT, 'feature_store_route_unavailable') ?? 'Store feature route is unavailable. Please contact technical support or your domain administrator.';
+
+
+
+        $lang                 = Utility::fetchUserLang();
+        $featureStoreBase     = VW::FT;
+        $featureStoreKebab    = Str::kebab($featureStoreBase);
+        $featureStoreResolved = Route::has($featureStoreBase) ? $featureStoreBase : (Route::has($featureStoreKebab) ? $featureStoreKebab : null);
+        $featureStoreUrl      = $featureStoreResolved ? route($featureStoreResolved) : '#';
+        $featureStoreFormId   = 'feature-store-form';
+        $featureGuardMsg      = Utility::fetchLinkMessage($lang, VW::FT, 'feature_store_route_unavailable') ?? 'Store feature route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('Modules/LandingPage/Resources/views/landingpage/features/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -54,7 +56,6 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/features/store.js') }}"></script>
 {{ Form::close() }}
-
 
 {{--<script>--}}
 {{--    tinymce.init({--}}

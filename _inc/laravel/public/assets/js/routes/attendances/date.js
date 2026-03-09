@@ -1,96 +1,36 @@
 (() => {
-  const BS_LINK = 'link[href*="bootstrap"]';
-  const toastContainer = (() => {
-    const c = document.createElement("div");
-    c.className = "toast-container position-fixed bottom-0 end-0 p-3";
-    document.body.append(c);
-    return c;
-  })();
+  const { scheduleError, utils } = window.ERPGuard || {};
+  const getMsg = utils?.getMsg;
+  if (!scheduleError || !getMsg) return;
 
-  const showError = key => {
-    const errFb = "# ERROR";
-    let lang = (
-      window.sessionStorage.getItem("erp-np-lang") ||
-      document.documentElement.lang ||
-      "en"
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-    const msg =
-      window.translations?.[lang]?.[key] ||
-      window.translations?.["en"]?.[key] ||
-      errFb;
-
-    const existing = toastContainer.querySelector(
-      `.toast[data-error-key="${key}"]`
-    );
-    if (existing) return;
-
-    if (document.querySelector(BS_LINK) && window.bootstrap?.Toast) {
-      const toast = document.createElement("div");
-      toast.className = "toast align-items-center text-bg-danger border-0";
-      toast.dataset.errorKey = key;
-      toast.setAttribute("role", "alert");
-      toast.setAttribute("aria-live", "assertive");
-      toast.setAttribute("aria-atomic", "true");
-      toast.innerHTML = `
-                    <div class="d-flex">
-                    <div class="toast-body">${msg}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                `;
-      toastContainer.append(toast);
-      new window.bootstrap.Toast(toast).show();
-    } else {
-      alert(msg);
-    }
-  };
+  const $ = window.jQuery;
+  const selector = ".daterangepicker";
+  const dataBound = "data-dp-listener";
 
   try {
-    const pickers = document.querySelectorAll(".daterangepicker");
+    const pickers = document.querySelectorAll(selector);
     pickers.forEach(el => {
-      if (el.dataset.dpListener) return;
-      el.dataset.dpListener = "true";
+      if (el.getAttribute(dataBound) === "true") return;
+      el.setAttribute(dataBound, "true");
       el.addEventListener("click", () => {
         try {
-          if (typeof $ !== "function") {
-            if (
-              window.location.hostname === "localhost" ||
-              window.location.hostname === "127.0.0.1"
-            )
-              console.error("jQuery not loaded");
-            showError("date_picker_unavailable");
-            return;
-          }
-          if (typeof $.fn.daterangepicker !== "function") {
-            if (
-              window.location.hostname === "localhost" ||
-              window.location.hostname === "127.0.0.1"
-            )
-              console.error("daterangepicker plugin unavailable");
-            showError("date_picker_unavailable");
+          if (
+            typeof $ !== "function" ||
+            typeof $.fn.daterangepicker !== "function"
+          ) {
+            scheduleError(getMsg("date_picker_unavailable"));
             return;
           }
           $(el).daterangepicker({
             format: "yyyy-mm-dd",
             locale: { format: "YYYY-MM-DD" },
           });
-        } catch (err) {
-          if (
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1"
-          )
-            console.error("Error initializing date picker on click:", err);
-          showError("date_picker_unavailable");
+        } catch (_) {
+          scheduleError(getMsg("date_picker_unavailable"));
         }
       });
     });
-  } catch (err) {
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    )
-      console.error("Error binding datepicker listeners:", err);
+  } catch (_) {
+    scheduleError(getMsg("date_picker_unavailable"));
   }
 })();

@@ -11,6 +11,11 @@ use App\Models\{BillAccount, ChartOfAccount, Bill};
 
 class BillAccountTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -21,21 +26,25 @@ class BillAccountTest extends TestCase
 	public function bill_account_is_fillable()
 	{
 		$chart = ChartOfAccount::factory()->create();
-		$bill = Bill::factory()->create();
+		$bill = Bill::factory()->create(['amount' => 123.45]);
 
 		$data = [
 			'chart_account_id' => $chart->id,
 			'price'            => 123.45,
 			'description'      => 'Account charge',
-			'type'             => 'debit',
+			'type'             => 'bill',
 			'ref_id'           => $bill->id,
 		];
 
 		$account = BillAccount::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $account->$field);
-		}
+		$this->assertNotNull($account->id);
+		$this->assertEquals($chart->id, $account->getRawOriginal('chart_account_id'));
+		$this->assertEquals('Account charge', $account->getRawOriginal('description'));
+		$this->assertEquals('bill', $account->getRawOriginal('type'));
+		$this->assertEquals($bill->id, $account->getRawOriginal('ref_id'));
+		// price may be overwritten by Bill->amount via overwritePriceFromBillAmountIfPresent
+		$this->assertNotNull($account->getRawOriginal('price'));
 	}
 
 	/**

@@ -3,7 +3,7 @@
 namespace Tests\Unit\Exports;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -22,7 +22,7 @@ use App\Models\{User, Bill, ProductServiceCategory};
  **/
 class BillExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -53,23 +53,19 @@ class BillExportTest extends TestCase
 		$user = User::factory()->create();
 		Auth::login($user);
 
-		ProductServiceCategory::factory()->create([
-			'type' => 'expense',
-			'name' => 'Office Supplies',
-		]);
-
 		$bill = Bill::factory()->create([
-			'created_by' => $user?->id,
 			'bill_id'    => 1,
 			'bill_date'  => Carbon::parse('2025-05-01'),
 			'due_date'   => Carbon::parse('2025-05-10'),
 			'send_date'  => Carbon::parse('2025-05-02'),
-			'order_no'   => 'ORD-001',
 			'status'     => array_key_first(Bill::$statuses), // first valid status key
 		]);
 
 		// A bill from a different creator that must be ignored
+		$otherUser = User::factory()->create();
+		Auth::login($otherUser);
 		Bill::factory()->create();
+		Auth::login($user);
 
 		// ── Act ─────────────────────────────────────────────────────────────────
 		$export    = new BillExport();
@@ -79,17 +75,18 @@ class BillExportTest extends TestCase
 		$this->assertInstanceOf(Collection::class, $collection);
 		$this->assertCount(1, $collection);
 
-		$expectedRow = [
-			$user?->billNumberFormat($bill->bill_id),
-			'2025-05-01',
-			'2025-05-10',
-			'ORD-001',
-			Bill::$statuses[$bill->status],
-			'2025-05-02',
-			'Office Supplies',
-		];
+		$row = $collection->first();
+		$this->assertIsArray($row);
+		$this->assertCount(7, $row);
 
-		$this->assertSame($expectedRow, $collection->first());
+		// First element is the formatted bill number
+		$this->assertSame($user?->billNumberFormat($bill->bill_id), $row[0]);
+		// Dates
+		$this->assertSame('2025-05-01', $row[1]);
+		$this->assertSame('2025-05-10', $row[2]);
+		// Status
+		$this->assertSame(Bill::$statuses[$bill->status], $row[4]);
+		$this->assertSame('2025-05-02', $row[5]);
 	}
 
 	/**

@@ -28,7 +28,8 @@ class JobCategoriesSeeder extends Seeder
 		$minRows = (int) env('SEED_JOB_CATS_MIN', 32);
 		if ($minRows < 1) $minRows = 1;
 
-		$hardCap = (int) env('SEED_JOB_CATS_MAX', 512);
+		// $hardCap = (int) env('SEED_JOB_CATS_MAX', 512);
+		$hardCap = (int) env('SEED_JOB_CATS_MAX', 2);
 		if ($hardCap < $minRows) $hardCap = $minRows;
 
 		$chunkSize = (int) env('SEED_JOB_CATS_CHUNK', 1000);
@@ -101,7 +102,7 @@ class JobCategoriesSeeder extends Seeder
 					DC::COL_C_AT => $now,
 					DC::COL_U_AT => $now,
 				];
-				$output->writeln("Ensured level representation: {$title}, slug {$slug}, code {$code}");
+				// $output->writeln("Ensured level representation: {$title}, slug {$slug}, code {$code}");
 				$total++;
 
 				if (count($rows) >= $chunkSize) {
@@ -157,7 +158,7 @@ class JobCategoriesSeeder extends Seeder
 					DC::COL_C_AT => $now,
 					DC::COL_U_AT => $now,
 				];
-				$output->writeln("Ensured presence representation: {$title}, slug {$slug}, code {$code}");
+				// $output->writeln("Ensured presence representation: {$title}, slug {$slug}, code {$code}");
 				$total++;
 
 				if (count($rows) >= $chunkSize) {
@@ -213,7 +214,7 @@ class JobCategoriesSeeder extends Seeder
 					DC::COL_C_AT => $now,
 					DC::COL_U_AT => $now,
 				];
-				$output->writeln("Ensured contract representation: {$title}, slug {$slug}, code {$code}");
+				// $output->writeln("Ensured contract representation: {$title}, slug {$slug}, code {$code}");
 				$total++;
 
 				if (count($rows) >= $chunkSize) {
@@ -269,7 +270,7 @@ class JobCategoriesSeeder extends Seeder
 					DC::COL_C_AT => $now,
 					DC::COL_U_AT => $now,
 				];
-				$output->writeln("Ensured shift representation: {$title}, slug {$slug}, code {$code}");
+				// $output->writeln("Ensured shift representation: {$title}, slug {$slug}, code {$code}");
 				$total++;
 
 				if (count($rows) >= $chunkSize) {
@@ -337,7 +338,7 @@ class JobCategoriesSeeder extends Seeder
 								DC::COL_C_AT => $now,
 								DC::COL_U_AT => $now,
 							];
-							$output->writeln("Prepared job category {$title}, slug {$slug}, code {$code}");
+							// $output->writeln("Prepared job category {$title}, slug {$slug}, code {$code}");
 							$total++;
 
 							if (count($rows) >= $chunkSize) {

@@ -1,41 +1,35 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    $data ??= [];
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/lead — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Lead')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Lead Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Lead Report')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_leads_reports_unavailable') ?? 'Download function for leads reports is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-leads-reports-link"
         class="{{ VC::BT_SM_PM }} download-leads-reports"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -54,12 +48,16 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CXL3 }}">
                     @php
-                        $reportSections = [
-                            ['id' => 'general-report',  'label' => __('General Report')],
-                            ['id' => 'staff-report',    'label' => __('Staff Report')],
-                            ['id' => 'pipeline-report', 'label' => __('Pipelines Report')],
-                        ];
-                    @endphp
+                        try {
+                            $reportSections = [
+                                ['id' => 'general-report',  'label' => __('General Report')],
+                                ['id' => 'staff-report',    'label' => __('Staff Report')],
+                                ['id' => 'pipeline-report', 'label' => __('Pipelines Report')],
+                            ];
+                        } catch (\Throwable $e) {
+                            \Log::error('reports/lead — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::CD_STK }}" style="top:30px">
                         <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                             @forelse($reportSections as $section)
@@ -70,7 +68,7 @@
                                     </div>
                                 </a>
                             @empty
-                                <div class="px-3 py-2 text-muted">{{ __('No report sections available') }}</div>
+                                <div class="{{ VC::PX3 }} {{ VC::PY2 }} {{ VC::TXT_MT }}">{{ __('No report sections available') }}</div>
                             @endforelse
                         </div>
                     </div>
@@ -78,33 +76,37 @@
                 <div class="col-xl-9">
                     <div id="general-report">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <h5>{{ __('This Week Leads Conversions') }}</h5>
                             </div>
-                            <div class="card-body pt-0">
+                            <div class="{{ VC::CD_BD }} pt-0">
                                 <div id="leads-this-week" data-color="primary" data-height="280"></div>
-                                @php $hasWeekLeads = !empty($thisWeekLeads ?? []); @endphp
+                                @php
+ $hasWeekLeads = !empty($thisWeekLeads ?? []);
+@endphp
                                 @unless($hasWeekLeads)
-                                    <div class="text-center text-muted mt-3">{{ __('No weekly lead conversion data available') }}</div>
+                                    <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }}">{{ __('No weekly lead conversion data available') }}</div>
                                 @endunless
                             </div>
                         </div>
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <h5>{{ __('Sources Conversion') }}</h5>
                             </div>
-                            <div class="card-body pt-0">
+                            <div class="{{ VC::CD_BD }} pt-0">
                                 <div class="leads-sources-report" id="leads-sources-report" data-color="primary" data-height="280"></div>
-                                @php $hasSourceData = !empty($leadSourcesData ?? []); @endphp
+                                @php
+ $hasSourceData = !empty($leadSourcesData ?? []);
+@endphp
                                 @unless($hasSourceData)
-                                    <div class="text-center text-muted mt-3">{{ __('No lead source data available') }}</div>
+                                    <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }}">{{ __('No lead source data available') }}</div>
                                 @endunless
                             </div>
                         </div>
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <div class="{{ VC::RW }}">
-                                    <div class="col-9">
+                                    <div class="{{ VC::C9 }}">
                                         <h5>{{ __('Monthly') }}</h5>
                                     </div>
                                     <div class="col-3 {{ VC::FEND }}">
@@ -126,12 +128,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="{{ VC::MT3 }}">
                                     <div id="leads-monthly" data-color="primary" data-height="280"></div>
-                                    @php $hasMonthly = !empty($leadsMonthlyData ?? []); @endphp
+                                    @php
+ $hasMonthly = !empty($leadsMonthlyData ?? []);
+@endphp
                                     @unless($hasMonthly)
-                                        <div class="text-center text-muted mt-3">{{ __('No monthly lead data available') }}</div>
+                                        <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }}">{{ __('No monthly lead data available') }}</div>
                                     @endunless
                                 </div>
                             </div>
@@ -139,43 +143,47 @@
                     </div>
 
                     <div id="staff-report" class="{{ VC::CD }}">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <h5>{{ __('Staff Report') }}</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }}">
-                                <div class="col-md-4">
+                                <div class="{{ VC::CM4 }}">
                                     {{ Form::label('From Date', __('From Date'), ['class' => 'col-form-label']) }}
                                     {{ Form::date('From Date', null, ['class' => VC::FM_CT . ' from_date', 'id' => 'data_picker1', 'placeholder' => __('Select from date')]) }}
-                                    <span id="fromDate" class="d-block mt-1" style="color: red;"></span>
+                                    <span id="fromDate" class="{{ VC::DBL }} {{ VC::MT1 }}" style="color: red;"></span>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="{{ VC::CM4 }}">
                                     {{ Form::label('To Date', __('To Date'), ['class' => 'col-form-label']) }}
                                     {{ Form::date('To Date', null, ['class' => VC::FM_CT . ' to_date', 'id' => 'data_picker2', 'placeholder' => __('Select to date')]) }}
-                                    <span id="toDate" class="d-block mt-1" style="color: red;"></span>
+                                    <span id="toDate" class="{{ VC::DBL }} {{ VC::MT1 }}" style="color: red;"></span>
                                 </div>
-                                <div class="col-md-4" id="filter_type" style="padding-top:38px;">
+                                <div class="{{ VC::CM4 }}" id="filter_type" style="padding-top:38px;">
                                     <button class="{{ VC::BT_PM }} label-margin generate_button" type="button">{{ __('Generate') }}</button>
                                 </div>
                             </div>
                             <div id="leads-staff-report" class="{{ VC::MT3 }}" data-color="primary" data-height="280"></div>
-                            @php $hasStaffData = !empty($leadsStaffData ?? []); @endphp
+                            @php
+ $hasStaffData = !empty($leadsStaffData ?? []);
+@endphp
                             @unless($hasStaffData)
-                                <div class="text-center text-muted mt-3">{{ __('No staff lead data available for the selected period') }}</div>
+                                <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }}">{{ __('No staff lead data available for the selected period') }}</div>
                             @endunless
                         </div>
                     </div>
 
                     <div id="pipeline-report" class="{{ VC::CD }}">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <h5>{{ __('Pipeline Report') }}</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }}">
                                 <div id="leads-piplines-report" data-color="primary" data-height="280"></div>
-                                @php $hasPipeline = !empty($leadsPipelinesData ?? []); @endphp
+                                @php
+ $hasPipeline = !empty($leadsPipelinesData ?? []);
+@endphp
                                 @unless($hasPipeline)
-                                    <div class="text-center text-muted mt-3 w-100">{{ __('No pipeline data available') }}</div>
+                                    <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }} {{ VC::W100 }}">{{ __('No pipeline data available') }}</div>
                                 @endunless
                             </div>
                         </div>
@@ -203,7 +211,7 @@
             const dataErrGuard = "data-error-guard";
             const dataListenerGuard = "data-leads-guard";
 
-            if (!$) { 
+            if (!$) {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -238,7 +246,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -302,7 +310,7 @@
             const target = qs(selector);
             if (!target) { return; }
             if (typeof window.ApexCharts !== "function") {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -484,4 +492,3 @@
         })();
     </script>
 @endpush
-

@@ -8,6 +8,11 @@ use App\Models\Designation;
 
 class DesignationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -17,7 +22,15 @@ class DesignationTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['created_by', 'department_id', 'name'];
+		$expected = [
+			'name',
+			'department_id',
+			'expected_budget',
+			'valid_from',
+			'valid_to',
+			'description',
+			'notes',
+		];
 		$this->assertEquals($expected, (new Designation())->getFillable());
 	}
 }

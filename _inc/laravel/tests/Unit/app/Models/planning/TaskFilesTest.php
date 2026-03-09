@@ -1,12 +1,18 @@
 <?php
 
-namespace Tests\Unit\Models;
+namespace Tests\Unit\app\Models\planning;
 
 use App\Models\TaskFile;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TaskFileTest extends TestCase
+class TaskFilesTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -15,8 +21,23 @@ class TaskFileTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'file', 'name', 'extension', 'file_size',
-			'task_id', 'user_type', 'created_by'
+			'file_path',
+			'url',
+			'name',
+			'extension',
+			'mime_type',
+			'last_accessed',
+			'size',
+			'description',
+			'notes',
+			'download_count',
+			'file_size',
+			'permission_rules',
+			'viewers',
+			'editors',
+			'executors',
+			'expiration_date',
+			'type',
 		];
 
 		$this->assertSame($expected, (new TaskFile)->getFillable());
@@ -29,13 +50,13 @@ class TaskFileTest extends TestCase
 	 **/
 	public function user_relation_is_has_one(): void
 	{
-		$rel = (new TaskFile)->user();
+		$rel = (new TaskFile)->createdBy();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',        $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('created_by',        $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

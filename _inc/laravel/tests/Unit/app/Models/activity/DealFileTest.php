@@ -9,6 +9,11 @@ use App\Models\{Deal, DealFile};
 
 class DealFileTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -18,19 +23,17 @@ class DealFileTest extends TestCase
 	 **/
 	public function deal_file_is_fillable()
 	{
-		$deal = Deal::factory()->create();
-
 		$data = [
-			'deal_id'   => $deal->id,
-			'file_name' => 'document.pdf',
 			'file_path' => '/uploads/document.pdf',
+			'name'      => 'document.pdf',
+			'extension' => 'pdf',
 		];
 
 		$dealFile = DealFile::create($data);
 
-		$this->assertEquals($deal->id,             $dealFile->deal_id);
-		$this->assertEquals('document.pdf',        $dealFile->file_name);
-		$this->assertEquals('/uploads/document.pdf', $dealFile->file_path);
+		$this->assertEquals('/uploads/document.pdf', $dealFile->getAttributes()['file_path']);
+		$this->assertEquals('document.pdf',          $dealFile->getAttributes()['name']);
+		$this->assertEquals('pdf',                   $dealFile->getAttributes()['extension']);
 	}
 
 	/**

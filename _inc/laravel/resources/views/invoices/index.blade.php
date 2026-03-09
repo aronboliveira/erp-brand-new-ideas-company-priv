@@ -1,67 +1,64 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        LangsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Crypt, Gate, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $invAv = !mepty($invoice) && isset($invoice->id);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $invAv = !empty($invoices) && (is_countable($invoices) ? count($invoices) > 0 : false);
+    } catch (\Throwable $e) {
+        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Invoices')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Invoice')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Invoice')}}</li>
 @endsection
 @section(YieldingConstants::ADM_BDC)
     @php
         $dashUrl    = Route::has('dashboard') ? route('dashboard') : '#';
         $dashClass  = 'dashboard-link';
-    @endphp
-    <li class="breadcrumb-item">
+@endphp
+    <li class="{{ VC::BCI }}">
         <a
             href="{{ $dashUrl }}"
             id="{{ $dashClass }}"
             class="{{ $dashClass }}"
             data-url="{{ $dashUrl }}"
             data-sv-localized="true"
-            data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? '# ERROR' ) }}"
+            data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? '# ERROR' )) }}"
         >
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Invoice') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Invoice') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
-            $exportUrl    = Route::has(ViewsConstants::INV.'.export')
-                ? route(ViewsConstants::INV.'.export')
-                : '#';
-            $exportClass  = 'export-invoice-link';
-        @endphp
+            try {
+                $exportUrl    = Route::has(ViewsConstants::INV.'.export')
+                    ? route(ViewsConstants::INV.'.export')
+                    : '#';
+                $exportClass  = 'export-invoice-link';
+            } catch (\Throwable $e) {
+                \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a
             href="{{ $exportUrl }}"
             id="{{ $exportClass }}"
             class="{{ VC::BT_SM_PM }} {{ $exportClass }}"
             data-url="{{ $exportUrl }}"
             data-sv-localized="true"
-            data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_export_route_unavailable') ?? '# ERROR' ) }}"
+            data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_export_route_unavailable') ?? '# ERROR' )) }}"
             data-bs-toggle="tooltip"
             title="{{ __('Export') }}"
         >
@@ -69,18 +66,22 @@
         </a>
         @can('create invoice')
             @php
-                $createUrl   = Route::has(ViewsConstants::INV.'.create')
-                    ? route(ViewsConstants::INV.'.create', 0)
-                    : '#';
-                $createClass = 'create-invoice-link';
-            @endphp
+                try {
+                    $createUrl   = Route::has(ViewsConstants::INV.'.create')
+                        ? route(ViewsConstants::INV.'.create', 0)
+                        : '#';
+                    $createClass = 'create-invoice-link';
+                } catch (\Throwable $e) {
+                    \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 href="{{ $createUrl }}"
                 id="{{ $createClass }}"
                 class="{{ VC::BT_SM_PM }} {{ $createClass }}"
                 data-url="{{ $createUrl }}"
                 data-sv-localized="true"
-                data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_create_route_unavailable') ?? '# ERROR' ) }}"
+                data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_create_route_unavailable') ?? '# ERROR' )) }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
             >
@@ -91,25 +92,29 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-sm-12">
-            <div class="mt-2" id="multiCollapseExample1">
+        <div class="{{ VC::CS12 }}">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $submitRouteName            = ViewsConstants::INV . '.index';
-                            $submitUrl                  = Route::has($submitRouteName)
-                                ? route($submitRouteName)
-                                : '#';
-                            $formId                     = 'customer_submit';
-                            $submitGuardKey             = 'invoice_index_route_unavailable';
-                            $submitGuardMsg             = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::INV,
-                                $submitGuardKey
-                            ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $submitRouteName            = ViewsConstants::INV . '.index';
+                                $submitUrl                  = Route::has($submitRouteName)
+                                    ? route($submitRouteName)
+                                    : '#';
+                                $formId                     = 'customer_submit';
+                                $submitGuardKey             = 'invoice_index_route_unavailable';
+                                $submitGuardMsg             = Utility::fetchLinkMessage(
+                                    $lang,
+                                    ViewsConstants::INV,
+                                    $submitGuardKey
+                                ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
-                            'route'           => $submitUrl,
+                            'url'           => $submitUrl,
                             'method'        => 'GET',
                             'id'            => $formId,
                             'data-url'      => $submitUrl,
@@ -142,8 +147,8 @@
                                     </a>
                                     @if($invAv)
                                         @php
-                                            $resetLinkId = 'invoice-reset-link-'.$invoice->id;
-                                        @endphp
+                                            $resetLinkId = 'invoice-reset-link';
+@endphp
                                         <a
                                             id="{{ $resetLinkId }}"
                                             href="{{ $submitUrl }}"
@@ -151,7 +156,7 @@
                                             data-toggle="tooltip"
                                             title="{{ __('Reset') }}"
                                             data-url="{{ $submitUrl }}"
-                                            data-guard-msg="{{ $submitGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($submitGuardMsg) }}"
                                             {{ $submitUrl === '#' ? 'aria-disabled="true"' : '' }}
                                         >
                                             <span class="btn-inner--icon">
@@ -164,13 +169,13 @@
                                                     const link = document.getElementById('{{ $resetLinkId }}');
                                                     if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                     link.setAttribute('data-listener-active', 'true');
-                                        
+
                                                     link.addEventListener('click', event => {
                                                         try {
                                                             const url = link.getAttribute('data-url') ?? '#';
                                                             if (url !== '#') return;
                                                             event.preventDefault();
-                                        
+
                                                             const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                             const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
                                                             let container       = document.getElementById('toast-container');
@@ -179,25 +184,25 @@
                                                                 container.id    = 'toast-container';
                                                                 document.body.appendChild(container);
                                                             }
-                                        
+
                                                             if (bootstrapLink && window.bootstrap) {
                                                                 const toastEl      = document.createElement('div');
                                                                 toastEl.className  = 'toast';
                                                                 toastEl.setAttribute('role', 'alert');
                                                                 toastEl.setAttribute('aria-live', 'assertive');
                                                                 toastEl.setAttribute('aria-atomic', 'true');
-                                        
+
                                                                 const body         = document.createElement('div');
                                                                 body.className     = 'toast-body';
                                                                 body.textContent   = msg;
-                                        
+
                                                                 toastEl.appendChild(body);
                                                                 container.appendChild(toastEl);
                                                                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                             } else {
                                                                 alert(msg);
                                                             }
-                                        
+
                                                             link.setAttribute('data-failed-route', 'true');
                                                         } catch {}
                                                     });
@@ -223,11 +228,11 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
+                <div class="{{ VC::CD_BD_TB_BD }}">
                     <h5></h5>
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                                 <tr>
@@ -252,32 +257,42 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $canDateFormat = is_callable([$user, 'dateFormat']);
-                                    $canPriceFormat = is_callable([$user, 'priceFormat']);
-                                    $due = is_callable([$invoice, 'getDue']) ? $invoice->getDue() : null;
-                                @endphp
+                                    try {
+                                        $canDateFormat = is_callable([$user, 'dateFormat']);
+                                        $canPriceFormat = is_callable([$user, 'priceFormat']);
+                                    } catch (\Throwable $e) {
+                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 @if(Utility::isFilled($invoices) ?? [])
                                     @foreach ($invoices as $invoice)
+                                        @php
+                                            $due = is_callable([$invoice, 'getDue']) ? $invoice->getDue() : null;
+                                        @endphp
                                         <tr>
                                             <td class="Id">
                                                 @php
-                                                    $showRouteName              = ViewsConstants::INV . '.show';
-                                                    $showInvoiceUrl             = Route::has($showRouteName)
-                                                        ? route($showRouteName, Crypt::encrypt($invoice->id))
-                                                        : '#';
-                                                    $showInvoiceGuardMsg        = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'invoice_show_route_unavailable'
-                                                    ) ?? 'Invoice show route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $showInvoiceLinkId          = 'show-invoice-link-' . $invoice->id;
-                                                @endphp
+                                                    try {
+                                                        $showRouteName              = ViewsConstants::INV . '.show';
+                                                        $showInvoiceUrl             = Route::has($showRouteName)
+                                                            ? route($showRouteName, Crypt::encrypt($invoice->id))
+                                                            : '#';
+                                                        $showInvoiceGuardMsg        = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'invoice_show_route_unavailable'
+                                                        ) ?? 'Invoice show route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $showInvoiceLinkId          = 'show-invoice-link-' . $invoice->id;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a
                                                     id="{{ $showInvoiceLinkId }}"
                                                     href="{{ $showInvoiceUrl }}"
                                                     class="{{ VC::BT_OUTPM }}"
                                                     data-url="{{ $showInvoiceUrl }}"
-                                                    data-guard-msg="{{ $showInvoiceGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($showInvoiceGuardMsg) }}"
                                                     {{ $showInvoiceUrl === '#' ? 'aria-disabled="true"' : '' }}
                                                 >
                                                     {{ is_callable([$user, 'invoiceNumberFormat']) ? $user->invoiceNumberFormat($invoice->invoice_id) : __('Failed to format invoice number') }}
@@ -292,7 +307,7 @@
                                                             try {
                                                             const url = linkEl.getAttribute('data-url') ?? '#';
                                                             if (url !== '#') return;
-                                                    
+
                                                             event.preventDefault();
                                                             const msg           = linkEl.getAttribute('data-guard-msg') ?? '# ERROR';
                                                             const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
@@ -302,25 +317,25 @@
                                                                 container.id    = 'toast-container';
                                                                 document.body.appendChild(container);
                                                             }
-                                                    
+
                                                             if (bootstrapLink && window.bootstrap) {
                                                                 const toastEl      = document.createElement('div');
                                                                 toastEl.className  = 'toast';
                                                                 toastEl.setAttribute('role', 'alert');
                                                                 toastEl.setAttribute('aria-live', 'assertive');
                                                                 toastEl.setAttribute('aria-atomic', 'true');
-                                                    
+
                                                                 const body         = document.createElement('div');
                                                                 body.className     = 'toast-body';
                                                                 body.textContent   = msg;
-                                                    
+
                                                                 toastEl.appendChild(body);
                                                                 container.appendChild(toastEl);
                                                                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                             } else {
                                                                 alert(msg);
                                                             }
-                                                    
+
                                                             linkEl.setAttribute('data-failed-route', 'true');
                                                             } catch (e) {}
                                                         });
@@ -331,7 +346,7 @@
                                             <td>{{ $canDateFormat ? (!empty($issue_date) ? $user->dateFormat($invoice->issue_date) : __('No issue date available')) : __('Failed to format issue date') }}</td>
                                             <td>
                                                 @if (!empty($invoice->due_date) && $invoice->due_date < date('Y-m-d'))
-                                                    <p class="text-danger mt-3">
+                                                    <p class="{{ VC::TX_DNG }} {{ VC::MT3 }}">
                                                         {{ $canDateFormat ? $user->dateFormat($invoice->due_date) : __('Failed to format due date') }}</p>
                                                 @else
                                                     {{ $canDateFormat ? (!empty($invoice->due_date) ? $user->dateFormat($invoice->due_date) : __('No due date available')) : __('Failed to format due date') }}
@@ -340,30 +355,41 @@
                                             <td>{{ $due && $canPriceFormat ? $user->priceFormat($invoice->getDue()) : __('Failed to get due value')  }}</td>
                                             <td>
                                                 @php
-                                                    $statusClasses = [
-                                                        0 => 'bg-secondary',
-                                                        1 => 'bg-warning', 
-                                                        2 => 'bg-danger',
-                                                        3 => 'bg-info',
-                                                        4 => 'bg-primary'
-                                                    ];
-                                                @endphp
-                                                <span class="status_badge badge {{ $statusClasses[$invoice->status] ?? 'bg-secondary' }} p-2 px-3 rounded">
-                                                    {{ __(!empty(Invoice::$statuses) ? Invoice::$statuses[$invoice->status] : __('Failed to retrieve statuses')) }}
+                                                    try {
+                                                        $statusClasses = [
+                                                            0 => 'bg-secondary',
+                                                            1 => 'bg-warning',
+                                                            2 => 'bg-danger',
+                                                            3 => 'bg-info',
+                                                            4 => 'bg-primary'
+                                                        ];
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
+                                                @php $rawStatus = $invoice->getRawOriginal('status') ?? 0; @endphp
+                                                <span class="status_badge badge {{ $statusClasses[$rawStatus] ?? 'bg-secondary' }} p-2 {{ VC::PX3 }} rounded">
+                                                    {{ __($invoice->status ?? 'Unknown') }}
                                                 </span>
                                             </td>
                                             @if (Gate::check('edit invoice') || Gate::check('delete invoice') || Gate::check('show invoice'))
                                                 <td class="Action">
                                                         <span>
-                                                            @php $invoiceID= Crypt::encrypt($invoice->id); @endphp
+                                                            @php
+ $invoiceID= Crypt::encrypt($invoice->id);
+@endphp
                                                             @can('copy invoice')
                                                                 @php
-                                                                    $copyUrl     = Route::has(ViewsConstants::INV.'.link.copy')
-                                                                        ? route(ViewsConstants::INV.'.link.copy', [$invoiceID])
-                                                                        : '#';
-                                                                    $copyClass   = 'copy-invoice-link';
-                                                                    $copyId      = 'copy-invoice-link-'.$invoiceID;
-                                                                @endphp
+                                                                    try {
+                                                                        $copyUrl     = Route::has(ViewsConstants::INV.'.link.copy')
+                                                                            ? route(ViewsConstants::INV.'.link.copy', [$invoiceID])
+                                                                            : '#';
+                                                                        $copyClass   = 'copy-invoice-link';
+                                                                        $copyId      = 'copy-invoice-link-'.$invoiceID;
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         href="{{ $copyUrl }}"
@@ -371,25 +397,29 @@
                                                                         class="{{ VC::BT_SM_CT }} {{ $copyClass }}"
                                                                         data-url="{{ $copyUrl }}"
                                                                         data-sv-localized="true"
-                                                                        data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_copy_route_unavailable') ?? '# ERROR' ) }}"
+                                                                        data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_copy_route_unavailable') ?? '# ERROR' )) }}"
                                                                         onclick="copyToClipboard(this)"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Copy Invoice') }}"
                                                                         data-original-title="{{ __('Copy Invoice') }}"
                                                                     >
-                                                                        <i class="ti ti-link text-white"></i>
+                                                                        <i class="ti ti-link {{ VC::TXT_WT }}"></i>
                                                                     </a>
                                                                 </div>
                                                             @endcan
                                                             @can('duplicate invoice')
                                                                 @php
-                                                                    $dupUrl       = Route::has(ViewsConstants::INV.'.duplicate')
-                                                                        ? route(ViewsConstants::INV.'.duplicate', $invoice->id)
-                                                                        : '#';
-                                                                    $dupClass     = 'duplicate-invoice-link';
-                                                                    $dupId        = 'duplicate-invoice-link-'.$invoice->id;
-                                                                    $dupFormId    = 'duplicate-form-'.$invoice->id;
-                                                                @endphp
+                                                                    try {
+                                                                        $dupUrl       = Route::has(ViewsConstants::INV.'.duplicate')
+                                                                            ? route(ViewsConstants::INV.'.duplicate', $invoice->id)
+                                                                            : '#';
+                                                                        $dupClass     = 'duplicate-invoice-link';
+                                                                        $dupId        = 'duplicate-invoice-link-'.$invoice->id;
+                                                                        $dupFormId    = 'duplicate-form-'.$invoice->id;
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     {!! Form::open([
                                                                         'method' => 'get',
@@ -402,35 +432,39 @@
                                                                             class="{{ VC::BT_SM_CT_PR }} {{ $dupClass }}"
                                                                             data-url="{{ $dupUrl }}"
                                                                             data-sv-localized="true"
-                                                                            data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_duplicate_route_unavailable') ?? '# ERROR' ) }}"
+                                                                            data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_duplicate_route_unavailable') ?? '# ERROR' )) }}"
                                                                             data-bs-toggle="tooltip"
                                                                             title="{{ __('Duplicate') }}"
                                                                             data-original-title="{{ __('Duplicate') }}"
                                                                             data-confirm="{{ __( Utility::fetchLinkMessage($lang, 'generics', 'confirm_action_prompt' ) ) }}"
                                                                             data-confirm-yes="document.getElementById('{{ $dupFormId }}').submit();"
                                                                         >
-                                                                            <i class="ti ti-copy text-white"></i>
+                                                                            <i class="{{ VC::TI_COPY_WT }}"></i>
                                                                         </a>
                                                                     {!! Form::close() !!}
                                                                 </div>
                                                             @endcan
                                                             @can('show invoice')
                                                                     {{--                                                        @if (\Auth::guard('customer')->check())--}}
-                                                                    {{--                                                            <div class="action-btn bg-info ms-2">--}}
+                                                                    {{--                                                            <div class="{{ VC::ACT_BTN_INF }}">--}}
                                                                     {{--                                                                    <a href="{{ route('customer.invoice.show', Crypt::encrypt($invoice->id)) }}"--}}
-                                                                    {{--                                                                       class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{ __('Show') }}"--}}
+                                                                    {{--                                                                       class="{{ VC::BT_SM_CT }}" data-bs-toggle="tooltip" title="Show "--}}
                                                                     {{--                                                                       data-original-title="{{ __('Detail') }}">--}}
                                                                     {{--                                                                        <i class="{{ VC::TI_EYE_WT }}"></i>--}}
                                                                     {{--                                                                    </a>--}}
                                                                     {{--                                                                </div>--}}
                                                                     {{--                                                        @else--}}
                                                                     @php
-                                                                        $showUrl   = Route::has(ViewsConstants::INV.'.show')
-                                                                            ? route(ViewsConstants::INV.'.show', Crypt::encrypt($invoice->id))
-                                                                            : '#';
-                                                                        $showClass = 'show-invoice-link';
-                                                                        $showId    = 'show-invoice-link-'.$invoice->id;
-                                                                    @endphp
+                                                                        try {
+                                                                            $showUrl   = Route::has(ViewsConstants::INV.'.show')
+                                                                                ? route(ViewsConstants::INV.'.show', Crypt::encrypt($invoice->id))
+                                                                                : '#';
+                                                                            $showClass = 'show-invoice-link';
+                                                                            $showId    = 'show-invoice-link-'.$invoice->id;
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     <div class="{{ VC::ACT_BTN_INF }}">
                                                                         <a
                                                                             href="{{ $showUrl }}"
@@ -438,7 +472,7 @@
                                                                             class="{{ VC::BT_SM_CT }} {{ $showClass }}"
                                                                             data-url="{{ $showUrl }}"
                                                                             data-sv-localized="true"
-                                                                            data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_show_route_unavailable') ?? '# ERROR' ) }}"
+                                                                            data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_show_route_unavailable') ?? '# ERROR' )) }}"
                                                                             data-bs-toggle="tooltip"
                                                                             title="{{ __('Detail') }}"
                                                                             data-original-title="{{ __('Detail') }}"
@@ -450,11 +484,15 @@
                                                             @endcan
                                                             @can('edit invoice')
                                                                 @php
-                                                                    $editUrl   = Route::has(ViewsConstants::INV.'.edit')
-                                                                        ? route(ViewsConstants::INV.'.edit', Crypt::encrypt($invoice->id))
-                                                                        : '#';
-                                                                    $editClass = 'edit-invoice-link';
-                                                                @endphp
+                                                                    try {
+                                                                        $editUrl   = Route::has(ViewsConstants::INV.'.edit')
+                                                                            ? route(ViewsConstants::INV.'.edit', Crypt::encrypt($invoice->id))
+                                                                            : '#';
+                                                                        $editClass = 'edit-invoice-link';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         href="{{ $editUrl }}"
@@ -462,7 +500,7 @@
                                                                         class="{{ VC::BT_SM_CT }} {{ $editClass }}"
                                                                         data-url="{{ $editUrl }}"
                                                                         data-sv-localized="true"
-                                                                        data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_edit_route_unavailable') ?? '# ERROR' ) }}"
+                                                                        data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_edit_route_unavailable') ?? '# ERROR' )) }}"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Edit') }}"
                                                                         data-original-title="{{ __('Edit') }}"
@@ -473,12 +511,16 @@
                                                             @endcan
                                                             @can('delete invoice')
                                                                 @php
-                                                                    $deleteUrl    = Route::has(ViewsConstants::INV.'.destroy')
-                                                                        ? route(ViewsConstants::INV.'.destroy', $invoice->id)
-                                                                        : '#';
-                                                                    $deleteClass  = 'delete-invoice-link';
-                                                                    $deleteFormId = 'delete-form-'.$invoice->id;
-                                                                @endphp
+                                                                    try {
+                                                                        $deleteUrl    = Route::has(ViewsConstants::INV.'.destroy')
+                                                                            ? route(ViewsConstants::INV.'.destroy', $invoice->id)
+                                                                            : '#';
+                                                                        $deleteClass  = 'delete-invoice-link';
+                                                                        $deleteFormId = 'delete-form-'.$invoice->id;
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Form::open([
                                                                         'method' => 'DELETE',
@@ -491,7 +533,7 @@
                                                                             class="{{ VC::BT_SM_CT_PR }} {{ $deleteClass }}"
                                                                             data-url="{{ $deleteUrl }}"
                                                                             data-sv-localized="true"
-                                                                            data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_delete_route_unavailablee') ?? '# ERROR' ) }}"
+                                                                            data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_delete_route_unavailablee') ?? '# ERROR' )) }}"
                                                                             data-bs-toggle="tooltip"
                                                                             title="{{ __('Delete') }}"
                                                                             data-original-title="{{ __('Delete') }}"
@@ -510,7 +552,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ (Gate::check('edit invoice') || Gate::check('delete invoice') || Gate::check('show invoice')) ? 6 : 5 }}" class="text-center">
+                                        <td colspan="{{ (Gate::check('edit invoice') || Gate::check('delete invoice') || Gate::check('show invoice')) ? 6 : 5 }}" class="{{ VC::TXCT }}">
                                             {{ __('No records found') }}
                                         </td>
                                     </tr>

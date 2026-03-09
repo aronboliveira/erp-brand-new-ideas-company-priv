@@ -31,7 +31,8 @@ class LogActivitySeeder extends Seeder
 			$moduleLoopMax = (int) floor(count($moduleCases) * 0.5);
 			if ($moduleLoopMax < 1) $moduleLoopMax = 1;
 
-			$hardCap = (int) env('SEED_LOG_ACTIVITIES_MAX', 160000);
+			// $hardCap = (int) env('SEED_LOG_ACTIVITIES_MAX', 160000);
+			$hardCap = (int) env('SEED_LOG_ACTIVITIES_MAX', 2);
 			if ($hardCap < 1) $hardCap = 1;
 
 			$chunkSize = (int) env('SEED_LOG_ACTIVITIES_CHUNK', 1000);
@@ -97,7 +98,7 @@ class LogActivitySeeder extends Seeder
 								DC::COL_U_AT => $now,
 							];
 
-							$output->writeln("Prepared log activity entry for module {$moduleCase->value}, type {$typeCase->value}, date {$startDate}, time {$time}");
+							// $output->writeln("Prepared log activity entry for module {$moduleCase->value}, type {$typeCase->value}, date {$startDate}, time {$time}");
 
 							$total++;
 

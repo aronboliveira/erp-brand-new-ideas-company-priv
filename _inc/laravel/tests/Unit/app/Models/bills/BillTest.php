@@ -20,6 +20,11 @@ use App\Models\{
 
 class BillTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -54,9 +59,7 @@ class BillTest extends TestCase
 
 		$bill = Bill::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $bill->$field);
-		}
+		$this->assertFillableMatches($data, $bill);
 	}
 
 	/**
@@ -79,7 +82,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->customer();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Customer::class,        get_class($relation->getRelated()));
 		$this->assertSame('vendor_id',            $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getOwnerKeyName());
@@ -94,7 +97,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->vendor();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Vendor::class,          get_class($relation->getRelated()));
 		$this->assertSame('vendor_id',            $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getOwnerKeyName());
@@ -109,7 +112,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->employee();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class,        get_class($relation->getRelated()));
 		$this->assertSame('vendor_id',            $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getOwnerKeyName());
@@ -124,7 +127,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->tax();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Tax::class,             get_class($relation->getRelated()));
 		$this->assertSame('tax_id',               $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getOwnerKeyName());
@@ -139,7 +142,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->accounts();
 
-		$this->assertInstanceOf(HasMany::class,   get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(BillAccount::class,     get_class($relation->getRelated()));
 		$this->assertSame('ref_id',               $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getLocalKeyName());
@@ -154,7 +157,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->items();
 
-		$this->assertInstanceOf(HasMany::class,   get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(BillProduct::class,     get_class($relation->getRelated()));
 		$this->assertSame('bill_id',              $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getLocalKeyName());
@@ -169,7 +172,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->payments();
 
-		$this->assertInstanceOf(HasMany::class,   get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(BillPayment::class,     get_class($relation->getRelated()));
 		$this->assertSame('bill_id',              $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getLocalKeyName());
@@ -184,7 +187,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->category();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(
 			ProductServiceCategory::class,
 			get_class($relation->getRelated())
@@ -202,7 +205,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->debitNote();
 
-		$this->assertInstanceOf(HasMany::class,   get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(DebitNote::class,       get_class($relation->getRelated()));
 		$this->assertSame('bill',                 $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getLocalKeyName());
@@ -217,7 +220,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->lastPayments();
 
-		$this->assertInstanceOf(HasMany::class,   get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(BillPayment::class,     get_class($relation->getRelated()));
 		$this->assertSame('id',                   $relation->getForeignKeyName());
 		$this->assertSame('bill_id',              $relation->getLocalKeyName());
@@ -230,13 +233,10 @@ class BillTest extends TestCase
 	 **/
 	public function get_subtotal_calculation_is_correct()
 	{
-		$bill = Bill::factory()->create();
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 10.00,
-			'quantity' => 2,
-			'discount' => 0,
-			'tax'      => 0,
+		$bill = Bill::factory()->create([
+			'items' => [
+				['price' => 10.00, 'quantity' => 2, 'discount' => 0, 'tax' => 0],
+			],
 		]);
 		BillAccount::factory()->create([
 			'ref_id' => $bill->id,
@@ -254,20 +254,11 @@ class BillTest extends TestCase
 	 **/
 	public function get_total_discount_calculation_is_correct()
 	{
-		$bill = Bill::factory()->create();
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 0,
-			'quantity' => 1,
-			'discount' => 3.00,
-			'tax'      => 0,
-		]);
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 0,
-			'quantity' => 1,
-			'discount' => 2.00,
-			'tax'      => 0,
+		$bill = Bill::factory()->create([
+			'items' => [
+				['price' => 0, 'quantity' => 1, 'discount' => 3.00, 'tax' => 0],
+				['price' => 0, 'quantity' => 1, 'discount' => 2.00, 'tax' => 0],
+			],
 		]);
 
 		$this->assertEquals(5.00, $bill->getTotalDiscount());
@@ -280,14 +271,10 @@ class BillTest extends TestCase
 	 **/
 	public function get_total_tax_calculation_is_correct()
 	{
-		$bill = Bill::factory()->create();
-		// assume Utility::totalTaxRate(10) returns 10
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 20.00,
-			'quantity' => 1,
-			'discount' => 2.00,
-			'tax'      => 10,
+		$bill = Bill::factory()->create([
+			'items' => [
+				['price' => 20.00, 'quantity' => 1, 'discount' => 2.00, 'tax' => 10],
+			],
 		]);
 
 		$expectedTax = (10 / 100) * (20 * 1 - 2);
@@ -301,13 +288,10 @@ class BillTest extends TestCase
 	 **/
 	public function get_total_calculation_is_correct()
 	{
-		$bill = Bill::factory()->create();
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 15.00,
-			'quantity' => 2,
-			'discount' => 5.00,
-			'tax'      => 0,
+		$bill = Bill::factory()->create([
+			'items' => [
+				['price' => 15.00, 'quantity' => 2, 'discount' => 5.00, 'tax' => 0],
+			],
 		]);
 
 		$subtotal = 15 * 2;
@@ -323,13 +307,10 @@ class BillTest extends TestCase
 	 **/
 	public function get_due_calculation_is_correct()
 	{
-		$bill = Bill::factory()->create();
-		BillProduct::factory()->create([
-			'bill_id'  => $bill->id,
-			'price'    => 30.00,
-			'quantity' => 1,
-			'discount' => 0,
-			'tax'      => 0,
+		$bill = Bill::factory()->create([
+			'items' => [
+				['price' => 30.00, 'quantity' => 1, 'discount' => 0, 'tax' => 0],
+			],
 		]);
 		BillPayment::factory()->create([
 			'bill_id' => $bill->id,
@@ -392,7 +373,7 @@ class BillTest extends TestCase
 	{
 		$relation = (new Bill)->taxes();
 
-		$this->assertInstanceOf(BelongsTo::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Tax::class,             get_class($relation->getRelated()));
 		$this->assertSame('tax',                  $relation->getForeignKeyName());
 		$this->assertSame('id',                   $relation->getOwnerKeyName());

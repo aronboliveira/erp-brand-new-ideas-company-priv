@@ -9,6 +9,11 @@ use App\Models\{Source, User};
 
 class SourceTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -18,17 +23,13 @@ class SourceTest extends TestCase
 	 **/
 	public function source_is_fillable()
 	{
-		$user = User::factory()->create();
-
 		$data = [
-			'name'       => 'Referral',
-			'created_by' => $user?->id,
+			'name' => 'Referral',
 		];
 
 		$source = Source::create($data);
 
-		$this->assertEquals('Referral',       $source->name);
-		$this->assertEquals($user?->id,        $source->created_by);
+		$this->assertEquals('Referral', $source->getAttributes()['name']);
 	}
 
 	/**

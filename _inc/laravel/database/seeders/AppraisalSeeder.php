@@ -107,12 +107,14 @@ class AppraisalSeeder extends Seeder
 			$baseN       = max(count($statuses) * $appraisers->count(), 1);
 			$targetTotal = $this->resolveTargetTotal($baseN);
 
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
 			$created = 0;
 			$buffer  = [];
 
 			foreach ($statuses as $statusEnum) {
 				foreach ($appraisers as $appraiser) {
-					if ($created >= $targetTotal) break 2;
+					if ($created >= $HARD_CAP) break 2; // Hard cap guard
+					// if ($created >= $targetTotal) break 2;
 
 					$appraiserId = (string) $appraiser->id;
 					$type        = (string) ($appraiser->{UC::COL_TP} ?? '');
@@ -137,7 +139,8 @@ class AppraisalSeeder extends Seeder
 					}
 
 					foreach ($indexes as $idx) {
-						if ($created >= $targetTotal) break 3;
+						if ($created >= $HARD_CAP) break 3; // Hard cap guard
+						// if ($created >= $targetTotal) break 3;
 
 						/** @var object $emp */
 						$emp = $pool[$idx];
@@ -197,7 +200,7 @@ class AppraisalSeeder extends Seeder
 							DC::COL_U_AT          => now(),
 						];
 
-						$output->writeln('Prepared appraisal for employee ' . ($emp->name ?? $emp->id ?? 'unknown') . ' by appraiser ' . ($appraiser->{UC::COL_NM} ?? $appraiserId) . ' with status ' . $statusEnum->value);
+						// $output->writeln('Prepared appraisal for employee ' . ($emp->name ?? $emp->id ?? 'unknown') . ' by appraiser ' . ($appraiser->{UC::COL_NM} ?? $appraiserId) . ' with status ' . $statusEnum->value);
 
 						$created++;
 

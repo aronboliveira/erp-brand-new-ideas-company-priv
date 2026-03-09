@@ -1,12 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC, ViewsConstants as VW,YieldingConstants};
-	use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log,Route};
-    use Illuminate\Support\Str;
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LPC};
-    use Nwidart\Modules\Facades\Module;
-    
+
+
     $lang = Utility::fetchUserLang();
 	$lpSettings ??= [];
 	$logo ??= '';
@@ -110,7 +104,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Title', __('Title'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPC::FT_TTL_K,!empty($lpSettings[LPC::FT_TTL_K]) ? $lpSettings[LPC::FT_TTL_K] : null, ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
+                                                {{ Form::text(LPSC::FT_TTL_K,!empty($lpSettings[LPSC::FT_TTL_K]) ? $lpSettings[LPSC::FT_TTL_K] : null, ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
                                                 @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -162,7 +156,7 @@
                         </div>
                         <div class="card">
                             <div class="card-header">
-                                <div class="row align-items-center">
+                                <div class="{{ VC::R_ALC }}">
                                     <div class="{{ VC::CLMS9 }}">
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
@@ -170,7 +164,7 @@
                                         @php
                                             $createFeatureRoute = VW::FT.'.create';
                                             $canCreateFeature   = Route::has($createFeatureRoute);
-                                        @endphp
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ $canCreateFeature ? route($createFeatureRoute) : '#' }}"
@@ -199,8 +193,7 @@
                                            @if (Utility::isFilled($feature_of_features ?? []))
                                                 @php
                                                     $ff_no = 1;
-                                                    Log::info($feature_of_features);
-                                                @endphp
+@endphp
                                                 @foreach ($feature_of_features as $key => $value)
                                                     <tr>
                                                         <td>{{ $ff_no++ }}</td>
@@ -288,22 +281,26 @@
                                 </div>
                             </div>
                             @php
-                                $lang = Utility::fetchUserLang();
+                                try {
+                                    $lang = Utility::fetchUserLang();
 
-                                $logo = Utility::getFile('uploads/logo');
-                                $lp = is_array($lpSettings ?? null) ? $lpSettings : [];
+                                    $logo = Utility::getFile('uploads/logo');
+                                    $lp = is_array($lpSettings ?? null) ? $lpSettings : [];
 
-                                $heading = $lp['highlight_feature_heading'] ?? __('No heading available for feature highlight');
-                                $desc    = $lp['highlight_feature_description'] ?? __('No description available for feature highlight');
-                                $img     = $lp['highlight_feature_image'] ?? null;
+                                    $heading = $lp['highlight_feature_heading'] ?? __('No heading available for feature highlight');
+                                    $desc    = $lp['highlight_feature_description'] ?? __('No description available for feature highlight');
+                                    $img     = $lp['highlight_feature_image'] ?? null;
 
-                                $storeBase     = R::FT . '.highlight.store';
-                                $storeKebab    = Str::kebab($storeBase);
-                                $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-                                $storeUrl      = $storeResolved ? route($storeResolved) : '#';
-                                $storeGuard    = Utility::fetchLinkMessage($lang, R::FT, 'highlight_store_route_unavailable')
-                                                ?? __('Store Highlight Feature route is unavailable. Please contact technical support or your domain administrator.');
-                            @endphp
+                                    $storeBase     = R::FT . '.highlight.store';
+                                    $storeKebab    = Str::kebab($storeBase);
+                                    $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+                                    $storeUrl      = $storeResolved ? route($storeResolved) : '#';
+                                    $storeGuard    = Utility::fetchLinkMessage($lang, R::FT, 'highlight_store_route_unavailable')
+                                                    ?? __('Store Highlight Feature route is unavailable. Please contact technical support or your domain administrator.');
+                                } catch (\Throwable $e) {
+                                    \Log::error('Modules/LandingPage/Resources/views/landingpage/features/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             {{ Form::open([
                                 'url'               => $storeUrl,
                                 'method'            => 'post',
@@ -342,7 +339,7 @@
                                             <div class="form-group">
                                                 {{ Form::label('Logo', __('Logo'), ['class' => 'form-label']) }}
                                                 <div class="logo-content mt-2">
-                                                    <img id="image1" src="{{ $img ? asset($logo . '/' . $img) : asset("assets/images/logo-light.webp") }}" class="big-logo img_setting" alt="{{__('Feature Highlight Image')}}" 
+                                                    <img id="image1" src="{{ $img ? asset($logo . '/' . $img) : asset("assets/images/logo-light.webp") }}" class="big-logo img_setting" alt="{{__('Feature Highlight Image')}}"
                                                     onerror='this.src="{{ asset("assets/images/logo-light.webp") }}"'/>
                                                 </div>
                                                 <div class="choose-files mt-4">
@@ -377,13 +374,18 @@
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
                                     <div class="{{ VC::CLMS_JCE3 }}">
-                                        @php 
-                                            $createFeatureRoute = VW::FT.'.create';
-                                            $canCreateFeature   = Route::has($createFeatureRoute);
-                                            $createFeatureUrl   = $canCreateFeature 
-                                                ? route($createFeatureRoute) 
-                                                : '#';
-                                        @endphp
+                                        @php
+
+                                            try {
+                                                $createFeatureRoute = VW::FT.'.create';
+                                                $canCreateFeature   = Route::has($createFeatureRoute);
+                                                $createFeatureUrl   = $canCreateFeature
+                                                    ? route($createFeatureRoute)
+                                                    : '#';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('Modules/LandingPage/Resources/views/landingpage/features/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ $createFeatureUrl }}"
@@ -416,21 +418,28 @@
                                         <tbody>
                                             @if (Utility::isFilled($other_features ?? []))
                                                 @php
-                                                    $of_no = 1;
-                                                    Log::info('Other Features data:');
-                                                    Log::info($other_features);
-                                                @endphp
+                                                    try {
+                                                        $of_no = 1;
+                                                        Log::info('Other Features data:');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('Modules/LandingPage/Resources/views/landingpage/features/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 @foreach ($other_features as $key => $value)
                                                     <tr>
                                                         <td>{{ $of_no++ }}</td>
                                                         <td>{{ !empty($value['other_features_heading']) ? $value['other_features_heading'] : __('No heading available') }}</td>
                                                         @php
-                                                            $editRoute    = VW::FT.'.edit';
-                                                            $deleteRoute  = VW::FT.'.delete';
-                                                            $canEdit      = Route::has($editRoute);
-                                                            $canDelete    = Route::has($deleteRoute);
-                                                            $editUrl      = $canEdit   ? route($editRoute,   $key) : '#';
-                                                        @endphp
+                                                            try {
+                                                                $editRoute    = VW::FT.'.edit';
+                                                                $deleteRoute  = VW::FT.'.delete';
+                                                                $canEdit      = Route::has($editRoute);
+                                                                $canDelete    = Route::has($deleteRoute);
+                                                                $editUrl      = $canEdit   ? route($editRoute,   $key) : '#';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('Modules/LandingPage/Resources/views/landingpage/features/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <td>
                                                             <span>
                                                                 <div class="action-btn {{ VC::BG_P }} ms-2">
@@ -503,4 +512,3 @@
         </div>
     </div>
 @endsection
-

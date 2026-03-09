@@ -5,13 +5,22 @@ namespace Tests\Unit\Models;
 use App\Models\ProjectReport;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class ProjectReportTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -25,7 +34,7 @@ class ProjectReportTest extends TestCase
 		$user1 = (object)['name' => 'Alice'];
 		$user2 = (object)['name' => 'Bob'];
 
-		Mockery::mock('alias:App\Models\User')
+		$this->aliasMock('App\Models\User')
 			->shouldReceive('find')
 			->with('u1')
 			->andReturn($user1)
@@ -50,7 +59,7 @@ class ProjectReportTest extends TestCase
 	public function milestone_returns_title_or_empty(): void
 	{
 		$m = (object)['title' => 'Phase 1'];
-		Mockery::mock('alias:App\Models\Milestone')
+		$this->aliasMock('App\Models\Milestone')
 			->shouldReceive('find')
 			->with(10)
 			->andReturn($m)
@@ -71,7 +80,7 @@ class ProjectReportTest extends TestCase
 	public function status_returns_name_or_empty(): void
 	{
 		$s = (object)['name' => 'Done'];
-		Mockery::mock('alias:App\Models\TaskStage')
+		$this->aliasMock('App\Models\TaskStage')
 			->shouldReceive('find')
 			->with(5)
 			->andReturn($s)

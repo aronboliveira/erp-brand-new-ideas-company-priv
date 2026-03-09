@@ -25,6 +25,7 @@ enum AttendanceStatus: string
 			// Present
 			'present'       => self::Present,
 			'presente'      => self::Present,
+			'presente'      => self::Present,
 			'attended'      => self::Present,
 			'participated'  => self::Present,
 			'yes'           => self::Present,
@@ -43,6 +44,7 @@ enum AttendanceStatus: string
 			'missing'       => self::Absent,
 			'no'            => self::Absent,
 			'não'           => self::Absent,
+			'no'            => self::Absent,
 			'0'             => self::Absent,
 			'false'         => self::Absent,
 			'not attended'  => self::Absent,

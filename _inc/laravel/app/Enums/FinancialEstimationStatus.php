@@ -6,6 +6,7 @@ use App\Config\Constants\DatabaseConstants;
 
 enum FinancialEstimationStatus: string
 {
+	case Draft           = 'draft';
 	case Open            = 'open';
 	case NotPaid         = 'not_paid';
 	case PartiallyPaid   = 'partially_paid';
@@ -32,6 +33,10 @@ enum FinancialEstimationStatus: string
 			'in_progress'               => self::Open,
 			'in progress'               => self::Open,
 			'in-progress'               => self::Open,
+			'unpaid'                    => self::Open,
+			'outstanding'               => self::Open,
+			'due'                       => self::Open,
+			'overdue'                   => self::Open,
 			'aberto'                    => self::Open,
 			'pendente'                  => self::Open,
 			'em_aberto'                 => self::Open,
@@ -48,7 +53,9 @@ enum FinancialEstimationStatus: string
 			'overdue'                   => self::NotPaid,
 			'não_pago'                  => self::NotPaid,
 			'não pago'                  => self::NotPaid,
+			'não_pago'                  => self::NotPaid,
 			'no pagado'                 => self::NotPaid,
+			'não_pago'                  => self::NotPaid,
 			'impayé'                    => self::NotPaid,
 			'nicht bezahlt'             => self::NotPaid,
 			'non pagato'                => self::NotPaid,
@@ -97,6 +104,7 @@ enum FinancialEstimationStatus: string
 			'declined'                  => self::Cancelled,
 			'refused'                   => self::Cancelled,
 			'cancelado'                 => self::Cancelled,
+			'cancelado'                 => self::Cancelled,
 			'annulé'                    => self::Cancelled,
 			'annullato'                 => self::Cancelled,
 			'storniert'                 => self::Cancelled,
@@ -125,6 +133,7 @@ enum FinancialEstimationStatus: string
 	public function label(): string
 	{
 		return match ($this) {
+			self::Draft         => 'Draft',
 			self::Open          => 'Open',
 			self::NotPaid       => 'Not Paid',
 			self::PartiallyPaid => 'Partially Paid',
@@ -368,6 +377,7 @@ enum FinancialEstimationStatus: string
 	public function getIcon(): string
 	{
 		return match ($this) {
+			self::Draft         => 'file-text',
 			self::Open          => 'clock',
 			self::NotPaid       => 'alert-circle',
 			self::PartiallyPaid => 'pie-chart',
@@ -379,6 +389,7 @@ enum FinancialEstimationStatus: string
 	public function getColor(): string
 	{
 		return match ($this) {
+			self::Draft         => 'blue',
 			self::Open          => 'yellow',
 			self::NotPaid       => 'red',
 			self::PartiallyPaid => 'orange',
@@ -390,6 +401,7 @@ enum FinancialEstimationStatus: string
 	public function getWeight(): int
 	{
 		return match ($this) {
+			self::Draft         => -1,
 			self::Open          => 1,
 			self::NotPaid       => 2,
 			self::PartiallyPaid => 3,
@@ -401,6 +413,7 @@ enum FinancialEstimationStatus: string
 	public static function fromWeight(int $weight): self
 	{
 		return match ($weight) {
+			-1 => self::Draft,
 			0 => self::Cancelled,
 			1 => self::Open,
 			2 => self::NotPaid,
@@ -429,6 +442,7 @@ enum FinancialEstimationStatus: string
 	public function nextStatus(): ?self
 	{
 		return match ($this) {
+			self::Draft         => self::Open,
 			self::Open          => self::NotPaid,
 			self::NotPaid       => self::PartiallyPaid,
 			self::PartiallyPaid => self::Paid,
@@ -440,6 +454,7 @@ enum FinancialEstimationStatus: string
 	public function previousStatus(): ?self
 	{
 		return match ($this) {
+			self::Draft         => null,
 			self::Open          => null,
 			self::NotPaid       => self::Open,
 			self::PartiallyPaid => self::NotPaid,

@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\ContractComment;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContractCommentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -19,11 +25,11 @@ class ContractCommentTest extends TestCase
 		$rel = (new ContractComment)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('user_id',         $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 
 	/**
@@ -34,7 +40,32 @@ class ContractCommentTest extends TestCase
 	 **/
 	public function fillable_array_is_as_expected(): void
 	{
-		$expected = ['contract_id', 'user_id', 'comment', 'created_by'];
+		$expected = [
+			'time',
+			'comment',
+			'reference',
+			'user_id',
+			'user_type',
+			'is_edited',
+			'is_deleted',
+			'deleter',
+			'deleted_at',
+			'edit_count',
+			'flagged',
+			'thread',
+			'is_reply',
+			'reply_count',
+			'order',
+			'depth',
+			'parent',
+			'attachments',
+			'tags',
+			'reactions',
+			'replies',
+			'edits',
+			'metadata',
+			'contract_id',
+		];
 		$this->assertSame($expected, (new ContractComment)->getFillable());
 	}
 }

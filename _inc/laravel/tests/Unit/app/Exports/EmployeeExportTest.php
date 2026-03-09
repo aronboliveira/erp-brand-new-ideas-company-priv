@@ -4,7 +4,7 @@ namespace Tests\Unit\Exports;
 
 use App\Exports\EmployeeExport;
 use App\Models\{Branch, Department, Designation, Employee, User};
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class EmployeeExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -31,20 +31,22 @@ class EmployeeExportTest extends TestCase
 		$user  = User::factory()->create();
 		$other = User::factory()->create();
 
+		Auth::login($user);
+
 		$branch     = Branch::factory()->create();
 		$department = Department::factory()->create();
 		$designation = Designation::factory()->create();
 
-		// Two employees owned by $user, one by $other
+		// Two employees owned by $user
 		Employee::factory()->count(2)->create([
-			'created_by'     => $user?->creatorId(),
 			'branch_id'      => $branch->id,
 			'department_id'  => $department->id,
 			'designation_id' => $designation->id,
 		]);
 
+		// One employee owned by $other
+		Auth::login($other);
 		Employee::factory()->create([
-			'created_by'     => $other->creatorId(),
 			'branch_id'      => $branch->id,
 			'department_id'  => $department->id,
 			'designation_id' => $designation->id,
@@ -59,13 +61,24 @@ class EmployeeExportTest extends TestCase
 		$this->assertCount(2, $collection); // belongs only to $user
 
 		$collection->each(function ($emp) {
-			// Removed attributes should be absent
-			foreach ([
-				'id', 'password', 'userId', 'employeeId', 'documents',
-				'salary_type', 'taxPayerId', 'isActive', 'createdBy',
-				'createdAt', 'updatedAt'
-			] as $attr) {
-				$this->assertFalse(isset($emp->{$attr}), "Attribute {$attr} still present.");
+			// Removed attributes should be absent from the raw attributes array
+			$attrs = $emp->getAttributes();
+			foreach (
+				[
+					'id',
+					'password',
+					'user_id',
+					'employee_id',
+					'documents',
+					'salary_type',
+					'tax_payer_id',
+					'is_active',
+					'created_by',
+					'created_at',
+					'updated_at'
+				] as $attr
+			) {
+				$this->assertArrayNotHasKey($attr, $attrs, "Attribute {$attr} still present.");
 			}
 
 			// Enriched keys **must** exist
@@ -85,10 +98,22 @@ class EmployeeExportTest extends TestCase
 	{
 		$export  = new EmployeeExport();
 		$expected = [
-			'Name', 'Date of Birth', 'Gender', 'Phone Number', 'Address',
-			'Email ID', 'Branch', 'Department', 'Designation', 'Date of Join',
-			'Account Holder Name', 'Account Number', 'Bank Name',
-			'Bank Identifier Code', 'Branch Location', 'Salary'
+			'Name',
+			'Date of Birth',
+			'Gender',
+			'Phone Number',
+			'Address',
+			'Email ID',
+			'Branch',
+			'Department',
+			'Designation',
+			'Date of Join',
+			'Account Holder Name',
+			'Account Number',
+			'Bank Name',
+			'Bank Identifier Code',
+			'Branch Location',
+			'Salary'
 		];
 
 		$this->assertSame($expected, $export->headings());

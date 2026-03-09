@@ -1,26 +1,47 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-    $lang         = Utility::fetchUserLang();
-    $routeName    = ViewsConstants::COA . '.update';
-    $updateRoute  = Route::has($routeName)
-        ? route($routeName, $chartOfAccount->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $chartOfAccount->id)
-            : '#');
-    $formId       = 'chart_of_accounts_update_form_' . $chartOfAccount->id;
-    $guardMsg     = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COA,
-        'chart_of_account_update_route_unavailable'
-    ) ?? 'Chart of Account update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'chart_of_accounts_update_form_unknown';
+	$guardMsg ??= '';
+	$chartOfAccountId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$chartOfAccountId = data_get($chartOfAccount ?? null, 'id');
+		$routeName = ViewsConstants::COA . '.update';
+		$updateRoute = ($chartOfAccountId && Route::has($routeName))
+			? (route($routeName, $chartOfAccountId) ?? '#')
+			: (($chartOfAccountId && Route::has(Str::kebab($routeName)))
+				? (route(Str::kebab($routeName), $chartOfAccountId) ?? '#')
+				: '#');
+		$formId = 'chart_of_accounts_update_form_' . ($chartOfAccountId ?? 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::COA,
+			'chart_of_account_update_route_unavailable'
+		) ?? 'Chart of Account update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in chart_of_accounts/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in chart_of_accounts/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in chart_of_accounts/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::model($chartOfAccount, [
@@ -29,9 +50,12 @@
     'id'             => $formId,
     'data-url'       => $updateRoute,
     'data-guard-msg' => $guardMsg,
+    'data-sv-localized' => 'true',
 ]) }}
     <div class="modal-body">
-        @php $plan = Utility::getChatGPTSettings(); @endphp
+        @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="{{ VC::FEND }}">
                 <a
@@ -62,7 +86,7 @@
 
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
                 {{ Form::label('is_enabled', __('Is Enabled'), ['class' => VC::FM_LB]) }}
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input
                         type="checkbox"
                         name="is_enabled"
@@ -94,43 +118,4 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const action = form.getAttribute('action');
-                    const url    = form.getAttribute('data-url');
-                    if ((action && action !== '#') || (url && url !== '#')) return;
-                    event.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (e) {}
-            });
-        })();
-    </script>
 {{ Form::close() }}

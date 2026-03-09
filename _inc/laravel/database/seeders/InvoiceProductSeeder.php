@@ -19,7 +19,10 @@ class InvoiceProductSeeder extends Seeder
 	private const PER_INV_MIN   = 1;    // antes: INV_PRD_PER_INV_MIN
 	private const PER_INV_MAX   = 5;    // antes: INV_PRD_PER_INV_MAX
 	private const MAX_QTY       = 6;    // antes: INV_PRD_MAX_QTY
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
+
+	private const HARD_CAP = 2;
 
 	/**
 	 * Opções CLI:
@@ -38,6 +41,7 @@ class InvoiceProductSeeder extends Seeder
 		$perMax   = self::PER_INV_MAX;
 		$maxQty   = self::MAX_QTY;
 		$target   = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
+		$target   = min(self::HARD_CAP, $target); /* original default: 64 */
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
 		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

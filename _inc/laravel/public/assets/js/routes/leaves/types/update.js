@@ -1,11 +1,20 @@
 (() => {
   "use strict";
 
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
   const form = document.getElementById("leaveType-edit-form");
   if (!form) return;
 
   const guardMsg =
-    form.getAttribute("data-guard-msg") || "Update route is unavailable.";
+    form.getAttribute("data-guard-msg") ||
+    getMsg("update_leavetype_unavailable");
   const submitBtn = form.querySelector('input[type="submit"]');
   const titleEl = form.querySelector("#title");
   const daysEl = form.querySelector("#days");
@@ -13,14 +22,6 @@
   const actionIsBlocked = () => {
     const act = form.getAttribute("action") || "#";
     return !act || act === "#";
-  };
-
-  const showErr = msg => {
-    try {
-      alert(msg);
-    } catch {
-      /* no-op */
-    }
   };
 
   const validate = () => {
@@ -41,14 +42,14 @@
   if (actionIsBlocked() && submitBtn) {
     submitBtn.addEventListener("click", e => {
       e.preventDefault();
-      showErr(guardMsg);
+      scheduleError(guardMsg, "click");
     });
   }
 
   form.addEventListener("submit", e => {
     if (actionIsBlocked()) {
       e.preventDefault();
-      showErr(guardMsg);
+      scheduleError(guardMsg, "submit");
       return;
     }
     if (!validate()) {

@@ -25,10 +25,13 @@ final class MessageSeeder extends Seeder
 				return;
 			}
 
-			$quantity = 128;
+			$quantity = 128; // original
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
+			$msgCreated = 0;
 			$types = ['text', 'file', 'system'];
 
 			for ($i = 0; $i < $quantity; $i++) {
+				if ($msgCreated >= $HARD_CAP) break; // Hard cap guard
 				try {
 					do $messageId = Str::uuid()->toString();
 					while (DB::table('messages')->where('id', $messageId)->exists());
@@ -64,6 +67,7 @@ final class MessageSeeder extends Seeder
 						DC::COL_TABLE_CREATOR => $systemUserId,
 						DC::COL_TABLE_UPDATER => null,
 					]);
+					$msgCreated++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;

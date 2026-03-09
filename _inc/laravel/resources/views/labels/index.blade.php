@@ -1,20 +1,14 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
+    try {
+$user = Auth::user();
 
-    $user = Auth::user();
+        $hasFetchUserLang    = is_callable([Utility::class, 'fetchUserLang']);
+        $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
 
-    $hasFetchUserLang    = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-
-    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
+        $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
+    } catch (\Throwable $e) {
+        \Log::error('labels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 
@@ -23,22 +17,26 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Labels') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Labels') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     @can('create label')
         @php
-            $createBase = VW::LBL.'.create';
-            $createUrl  = Route::has($createBase) ? route($createBase) : '#';
-            $createMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'create_label_route_unavailable') : null)
-                          ?? __('Create label route is unavailable. Please contact technical support or your domain administrator.');
-        @endphp
+            try {
+                $createBase = VW::LBL.'.create';
+                $createUrl  = Route::has($createBase) ? route($createBase) : '#';
+                $createMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'create_label_route_unavailable') : null)
+                              ?? __('Create label route is unavailable. Please contact technical support or your domain administrator.');
+            } catch (\Throwable $e) {
+                \Log::error('labels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::FEND }}">
             <a href="#"
                class="{{ VC::BT_SM_PM }}"
@@ -47,7 +45,7 @@
                data-ajax-popup="true"
                data-bs-toggle="tooltip"
                title="{{ __('Create Labels') }}"
-               data-guard-msg="{{ $createMsg }}"
+               data-guard-msg="{{ base64_encode($createMsg) }}"
                data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -58,26 +56,31 @@
 @section(YW::ADM_CTT)
     @if(!$user)
         <div class="{{ VC::CD }}">
-            <div class="card-body">
-                <div class="alert alert-warning mb-0" role="alert">
+            <div class="{{ VC::CD_BD }}">
+                <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">
                     {{ __('The current user context was not available; data could not be displayed.') }}
                 </div>
             </div>
         </div>
     @else
         <div class="row">
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 @include('layouts.crm_setup')
             </div>
-            <div class="col-9">
-                <div class="row justify-content-center">
+            <div class="{{ VC::C9 }}">
+                <div class="row {{ VC::JCC }}">
                     <div class="p-3 {{ VC::CD }}">
                         <ul class="{{ VC::NAV_PL }} {{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
-                            @php($i = 0)
-                            @forelse(($pipelines ?? []) as $key => $pipeline)
-                                @php
-                                    $pName = isset($pipeline['name']) && $pipeline['name'] !== '' ? $pipeline['name'] : __('Unnamed pipeline');
-                                @endphp
+                            @php
+	try {
+		($i = 0)
+		                            @forelse(($pipelines ?? []) as $key => $pipeline)
+		                                @php
+		                                    $pName = isset($pipeline['name']) && $pipeline['name'] !== '' ? $pipeline['name'] : __('Unnamed pipeline');
+	} catch (\Throwable $e) {
+		\Log::error('labels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
                                 <li class="{{ VC::NV_IT }}" role="presentation">
                                     <button class="{{ VC::NV_LK }} @if($i===0) active @endif"
                                             id="pills-pipeline-tab-{{ $key }}"
@@ -90,43 +93,52 @@
                                         {{ $pName }}
                                     </button>
                                 </li>
-                                @php($i++)
-                            @empty
-                                <li class="{{ VC::NV_IT }}">
-                                    <span class="{{ VC::NV_LK }}">{{ __('No pipelines available.') }}</span>
-                                </li>
-                            @endforelse
-                        </ul>
-                    </div>
+                                @php
+	try {
+		($i++)
+		                            @empty
+		                                <li class="{{ VC::NV_IT }}">
+		                                    <span class="{{ VC::NV_LK }}">{{ __('No pipelines available.') }}</span>
+		                                </li>
+		                            @endforelse
+		                        </ul>
+		                    </div>
 
-                    <div class="{{ VC::CD }}">
-                        <div class="card-body">
-                            <div class="tab-content" id="pills-tabContent">
-                                @php($i = 0)
-                                @forelse(($pipelines ?? []) as $key => $pipeline)
-                                    @php
-                                        $labels = isset($pipeline['labels']) && is_iterable($pipeline['labels']) ? $pipeline['labels'] : [];
-                                    @endphp
-                                    <div class="tab-pane fade show @if($i===0) active @endif"
+		                    <div class="{{ VC::CD }}">
+		                        <div class="{{ VC::CD_BD }}">
+		                            <div class="tab-content" id="pills-tabContent">
+		                                @php($i = 0)
+		                                @forelse(($pipelines ?? []) as $key => $pipeline)
+		                                    @php
+		                                        $labels = isset($pipeline['labels']) && is_iterable($pipeline['labels']) ? $pipeline['labels'] : [];
+	} catch (\Throwable $e) {
+		\Log::error('labels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
+                                    <div class="{{ VC::TAB_FD_SH }} @if($i===0) active @endif"
                                          id="tab{{ $key }}"
                                          role="tabpanel"
                                          aria-labelledby="pills-pipeline-tab-{{ $key }}">
-                                        <ul class="list-group sortable">
+                                        <ul class="{{ VC::LGRP }} sortable">
                                             @forelse($labels as $label)
                                                 @php
-                                                    $lid      = isset($label->id) ? (string)$label->id : '';
-                                                    $lname    = isset($label->name) && $label->name !== '' ? $label->name : __('Unnamed label');
+                                                    try {
+                                                        $lid      = isset($label->id) ? (string)$label->id : '';
+                                                        $lname    = isset($label->name) && $label->name !== '' ? $label->name : __('Unnamed label');
 
-                                                    $editBase = VW::LBL.'.edit';
-                                                    $editUrl  = (Route::has($editBase) && $lid !== '') ? route($editBase, $lid) : '#';
-                                                    $editMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'edit_label_route_unavailable') : null)
-                                                                ?? __('Edit label route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $editBase = VW::LBL.'.edit';
+                                                        $editUrl  = (Route::has($editBase) && $lid !== '') ? route($editBase, $lid) : '#';
+                                                        $editMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'edit_label_route_unavailable') : null)
+                                                                    ?? __('Edit label route is unavailable. Please contact technical support or your domain administrator.');
 
-                                                    $destroyBase = VW::LBL.'.destroy';
-                                                    $destroyUrl  = (Route::has($destroyBase) && $lid !== '') ? route($destroyBase, $lid) : '#';
-                                                    $destroyMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'destroy_label_route_unavailable') : null)
-                                                                   ?? __('Delete label route is unavailable. Please contact technical support or your domain administrator.');
-                                                @endphp
+                                                        $destroyBase = VW::LBL.'.destroy';
+                                                        $destroyUrl  = (Route::has($destroyBase) && $lid !== '') ? route($destroyBase, $lid) : '#';
+                                                        $destroyMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LBL, 'destroy_label_route_unavailable') : null)
+                                                                       ?? __('Delete label route is unavailable. Please contact technical support or your domain administrator.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('labels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <li class="{{ VC::LGI }}" data-id="{{ $lid }}">
                                                     <span class="{{ VC::TXSM }} text-dark">{{ $lname }}</span>
                                                     <span class="{{ VC::FEND }}">
@@ -140,7 +152,7 @@
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Edit') }}"
                                                                    data-title="{{ __('Edit Labels') }}"
-                                                                   data-guard-msg="{{ $editMsg }}"
+                                                                   data-guard-msg="{{ base64_encode($editMsg) }}"
                                                                    data-sv-localized="true">
                                                                     <i class="{{ VC::TI_PC_WT }}"></i>
                                                                 </a>
@@ -178,8 +190,8 @@
                                     </div>
                                     @php($i++)
                                 @empty
-                                    <div class="tab-pane fade show active">
-                                        <div class="alert alert-info mb-0" role="alert">{{ __('There are no pipelines to display.') }}</div>
+                                    <div class="{{ VC::TAB_FD_SH }} active">
+                                        <div class="{{ VC::ALT_INF_MB0 }}" role="alert">{{ __('There are no pipelines to display.') }}</div>
                                     </div>
                                 @endforelse
                             </div>

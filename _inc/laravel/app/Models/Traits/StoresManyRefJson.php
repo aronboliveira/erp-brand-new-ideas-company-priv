@@ -2,111 +2,34 @@
 
 namespace App\Traits;
 
-use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, FormsConstants as FC};
-use App\Enums\UserType;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\{DB, Log, Schema};
 use Throwable;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, FormsConstants as FC};
+use App\Enums\{UserType};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 trait StoresManyRefJson
 {
 	protected static function bootStoresManyRefJson(): void
 	{
-		// todo this should be activated in production, but it's too heavy for mocks
-		// static::saving(function (Model $model) {
-		// 	$tableName = $model->getTable();
-		// 	$modelKey = $model->getKeyName();
-		// 	$modelKeyValue = $model->getKey();
 
-		// 	Log::notice("Starting many-ref JSON validation for model", [
-		// 		'table' => $tableName,
-		// 		'key' => $modelKey,
-		// 		'key_value' => $modelKeyValue
-		// 	]);
 
-		// 	if (!$modelKeyValue) {
-		// 		Log::notice("No key value present - skipping many-ref JSON validation for new record", [
-		// 			'table' => $tableName
-		// 		]);
-		// 		return;
-		// 	}
 
-		// 	try {
-		// 		$existingRecord = DB::table($tableName)
-		// 			->where($modelKey, $modelKeyValue)
-		// 			->first();
 
-		// 		if (!$existingRecord) {
-		// 			Log::notice("No existing record found - skipping many-ref JSON validation", [
-		// 				'table' => $tableName,
-		// 				'key_value' => $modelKeyValue
-		// 			]);
-		// 			return;
-		// 		}
-		// 	} catch (Throwable $e) {
-		// 		Log::error("Failed to retrieve existing record for many-ref JSON validation", [
-		// 			'table' => $tableName,
-		// 			'key_value' => $modelKeyValue,
-		// 			'error' => $e->getMessage()
-		// 		]);
-		// 		return;
-		// 	}
 
-		// 	// Define attribute-to-table mappings
-		// 	$attributeMappings = [
-		// 		'notifications' => DC::TABLE_NTF,
-		// 		'fields' => DC::TABLE_FM_FD,
-		// 		'payments' => DC::TABLE_PAY,
-		// 		'employees' => DC::TABLE_EMPLOYEES,
-		// 		'sources' => 'sources',
-		// 		'questions' => DC::TABLE_CUSTOM_QUESTIONS,
-		// 		'branches' => DC::TABLE_BRANCHES,
-		// 		'departments' => DC::TABLE_DEPARTMENTS,
-		// 		'designations' => DC::TABLE_DESIGNS,
-		// 		'taxes' => DC::TABLE_TAXES,
-		//    BC::COL_TXS_LST => DC::TABLE_TAXES,
-		// 		'jobs' => DC::TABLE_JOBS,
-		// 		'projects' => DC::TABLE_PROJECTS,
-		// 		'transactions' => DC::TABLE_TRS,
-		// 		'vendors' => DC::TABLE_VENDORS,
-		// 		'customers' => DC::TABLE_CUSTOMERS,
-		// 		'clients' => DC::TABLE_CLIENTS,
-		// 		BC::COL_BNK_TRFS => DC::TABLE_BNK_TRF,
-		// 		'budgets' => DC::TABLE_BDG,
-		// 		BC::COL_CARD_NTS => DC::TABLE_DB_NOTES,
-		// 	];
 
-		// 	foreach ($attributeMappings as $attribute => $referenceTable) {
-		// 		self::processJsonReferenceAttribute(
-		// 			$model,
-		// 			$attribute,
-		// 			$referenceTable,
-		// 			$tableName,
-		// 			$modelKeyValue
-		// 		);
-		// 	}
 
-		// 	self::adjustBudget($model, $tableName);
 
-		// 	Log::notice("Completed many-ref JSON validation for model", [
-		// 		'table' => $tableName,
-		// 		'key_value' => $modelKeyValue
-		// 	]);
-		// });
-	}
+											}
 
-	/**
-	 * Process a single JSON reference attribute
-	 */
-	protected static function processJsonReferenceAttribute(
+		protected static function processJsonReferenceAttribute(
 		Model $model,
 		string $attribute,
 		string $referenceTable,
 		string $tableName,
 		mixed $modelKeyValue
 	): void {
-		// Verify schema requirements
-		try {
+				try {
 			if (!Schema::hasTable($referenceTable)) {
 				Log::debug("Reference table does not exist - skipping attribute", [
 					'attribute' => $attribute,
@@ -147,18 +70,14 @@ trait StoresManyRefJson
 			'reference_table' => $referenceTable
 		]);
 
-		// Handle special bidirectional relationships
-		if (in_array($attribute, ['fields'], true)) {
+				if (in_array($attribute, ['fields'], true)) {
 			self::handleBidirectionalReference($model, $attribute, $referenceTable, $modelKeyValue);
 		} else {
 			self::handleUnidirectionalReference($model, $attribute, $referenceTable);
 		}
 	}
 
-	/**
-	 * Handle bidirectional references (where both sides know about each other)
-	 */
-	protected static function handleBidirectionalReference(
+		protected static function handleBidirectionalReference(
 		Model $model,
 		string $attribute,
 		string $referenceTable,
@@ -200,17 +119,13 @@ trait StoresManyRefJson
 		}
 	}
 
-	/**
-	 * Handle unidirectional references (standard FK validation)
-	 */
-	protected static function handleUnidirectionalReference(
+		protected static function handleUnidirectionalReference(
 		Model $model,
 		string $attribute,
 		string $referenceTable
 	): void {
 		try {
-			// Decode existing IDs
-			$rawValue = $model->getAttribute($attribute);
+						$rawValue = $model->getAttribute($attribute);
 			$existingIds = $rawValue ? json_decode($rawValue, true) : [];
 
 			if (!is_array($existingIds)) {
@@ -250,57 +165,59 @@ trait StoresManyRefJson
 		}
 	}
 
-	/**
-	 * Merge user-type specific references for polymorphic relationships
-	 */
-	protected static function mergeUserTypeReferences(
+		protected static function mergeUserTypeReferences(
 		string $attribute,
 		array $existingIds,
 		array $validIds
 	): array {
-		if (empty($existingIds)) {
-			return $validIds;
-		}
+		    try {
+    		if (empty($existingIds)) {
+    			return $validIds;
+    		}
 
-		try {
-			switch ($attribute) {
-				case 'vendors':
-					Log::notice("Merging vendor user references");
-					$userIds = DB::table(DC::TABLE_USERS)
-						->where('type', UserType::Vendor->value)
-						->whereIn('id', $existingIds)
-						->pluck('id')
-						->toArray();
-					return array_values(array_merge($validIds, $userIds));
+    		try {
+    			switch ($attribute) {
+    				case 'vendors':
+    					Log::notice("Merging vendor user references");
+    					$userIds = DB::table(DC::TABLE_USERS)
+    						->where('type', UserType::Vendor->value)
+    						->whereIn('id', $existingIds)
+    						->pluck('id')
+    						->toArray();
+    					return array_values(array_merge($validIds, $userIds));
 
-				case 'customers':
-					Log::notice("Merging customer user references");
-					$userIds = DB::table(DC::TABLE_USERS)
-						->where('type', UserType::Customer->value)
-						->whereIn('id', $existingIds)
-						->pluck('id')
-						->toArray();
-					return array_values(array_merge($validIds, $userIds));
+    				case 'customers':
+    					Log::notice("Merging customer user references");
+    					$userIds = DB::table(DC::TABLE_USERS)
+    						->where('type', UserType::Customer->value)
+    						->whereIn('id', $existingIds)
+    						->pluck('id')
+    						->toArray();
+    					return array_values(array_merge($validIds, $userIds));
 
-				case 'clients':
-					Log::notice("Merging client user references");
-					$userIds = DB::table(DC::TABLE_USERS)
-						->where('type', UserType::Client->value)
-						->whereIn('id', $existingIds)
-						->pluck('id')
-						->toArray();
-					return array_values(array_merge($validIds, $userIds));
+    				case 'clients':
+    					Log::notice("Merging client user references");
+    					$userIds = DB::table(DC::TABLE_USERS)
+    						->where('type', UserType::Client->value)
+    						->whereIn('id', $existingIds)
+    						->pluck('id')
+    						->toArray();
+    					return array_values(array_merge($validIds, $userIds));
 
-				default:
-					return $validIds;
-			}
-		} catch (Throwable $e) {
-			Log::error("Failed to merge user-type references", [
-				'attribute' => $attribute,
-				'error' => $e->getMessage()
-			]);
-			return $validIds;
-		}
+    				default:
+    					return $validIds;
+    			}
+    		} catch (Throwable $e) {
+    			Log::error("Failed to merge user-type references", [
+    				'attribute' => $attribute,
+    				'error' => $e->getMessage()
+    			]);
+    			return $validIds;
+    		}
+		    } catch (\Throwable $e) {
+		        Log::error(static::class . '::mergeUserTypeReferences — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		        return [];
+		    }
 	}
 
 	protected static function adjustBudget(Model $model, string $tableName): void

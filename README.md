@@ -1,212 +1,535 @@
-# 🗂 Principais Diretórios
+# ERP Prestech — Monorepo
 
 <details>
-  <summary><strong>📁 Estrutura dos Diretórios</strong></summary>
+<summary>🇺🇸 English</summary>
 
-- **\_inc/**  
-   Versão para testar módulos de desenvolvimento:
-  - `django/` – [Arquivado] Em sua maior parte desatualizado, mas módulos para exportar/manipular planilhas (ou ML) serão usados como microsserviços
-  - `erp-prestech-frontend/` – [Arquivado] Mantido somente para consulta. Movido para laravel/frontend/
-  - `laravel/` – [CORE] Será usado tanto para backend quanto para frontend
-  - `utils/` – [Adicional] Scripts auxiliares para gerenciamento do ambiente de trabalho e produtividade no terminal + Prompts para LLMs
+Enterprise Resource Planning system for **Nova Prestech**. This repository is the team-wide monorepo that holds the production Laravel application, original reference code, working notes, utility scripts and LLM prompts used during development.
 
-- **\_old/**  
-  Versão "fork" da original com ajustes que podem causar incompatibilidades (para testes)
+---
 
-- **origin/**  
-  Fork original (sem alterações)
+## Repository layout
 
-</details>
+```
+.
+├── _inc/                          # Active development
+│   ├── laravel/                   # ⭐ Main application (Laravel 10 + PHP 8.3)
+│   │   ├── app/                   #    Backend: Controllers, Models, Traits, Providers
+│   │   ├── Modules/LandingPage/   #    nWidart module (landing, terms, privacy, about)
+│   │   ├── resources/views/       #    Blade templates
+│   │   ├── public/assets/         #    JS (ERPGuard, ERPUtils, dash) + CSS
+│   │   ├── routes/                #    web.php, api.php, auth.php
+│   │   ├── database/migrations/   #    Schema migrations
+│   │   ├── database/seeders/      #    Mock + production seeders
+│   │   ├── tests/                 #    PHPUnit (Unit+Feature) + Jest/TS frontend
+│   │   ├── Dockerfile             #    Multi-stage build (Node + PHP-FPM)
+│   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
+│   │   └── README.md              #    Project-specific setup & run guide
+│   └── utils/                     # Developer tooling
+│       ├── regexes.md             #    Regex patterns for codebase searches
+│       ├── greps.md               #    Recommended grep commands
+│       ├── finds.md               #    Recommended find commands
+│       ├── prompts/               #    LLM prompt templates (migration, seeding, etc.)
+│       └── py/                    #    Python helper scripts (compare funcs, rearrange)
+│
+├── _old/                          # Fork with experimental modifications (reference only)
+│   ├── app/                       #    Controllers, Models with manual edits
+│   ├── routes/                    #    Route files with inline changes
+│   └── ...                        #    Mirrors original structure
+│
+├── origin/                        # Unmodified upstream fork (ERPGo)
+│   └── erp/erpgo/                 #    Original source tree — read-only reference
+│
+├── notes/                         # Team documentation
+│   ├── CURRENT_WORKING_ISSUES.md  #    Route health report & active bugs
+│   ├── KNOWN_ISSUES.md            #    Migration naming, known constraints
+│   ├── CONSTANTS_AUDIT_REPORT.md  #    Constants refactoring audit
+│   ├── CONSTANTS_AUDIT_FIX_LOG.md #    Constants fix changelog
+│   └── modules_v2.html            #    Module dependency graph (visual)
+│
+├── obf.js                         # Route-map obfuscation layer (DO NOT deploy)
+├── LICENSE                        # Project licence
+├── .gitignore                     # Ignores: ._DEPRECATED_*, .vscode, vendor, node_modules, logs
+└── README.md                      # ← You are here
+```
 
-# ⚙️ Instruções de Setup
+> **`._DEPRECATED_*` folders** (django, flutter, frontend, erp-prestech-frontend) are **git-ignored** and purged from history. They remain on disk for local reference only.
 
-<details>
-  <summary><strong>1. 🔧 Instalação de Dependências</strong></summary>
+---
 
-## Backend
+## Tech stack
+
+| Layer | Technology | Version |
+|---|---|---|
+| Language | PHP | 8.3 |
+| Framework | Laravel | 10.x |
+| Module system | nWidart/laravel-modules | 10.x |
+| Database | MySQL / MariaDB | 8.0+ |
+| Cache / Queue | Redis (optional, file driver default) | 7.x |
+| Frontend bundler | Laravel Mix (Webpack) | 6.x |
+| CSS framework | Tailwind CSS + Bootstrap 5 | — |
+| JS architecture | Vanilla ES2022 (IIFE singletons) | — |
+| Testing (backend) | PHPUnit | 10.x |
+| Testing (frontend) | Jest + ts-jest (jsdom) | 29.x |
+| Static analysis | PHPStan (level 5) | 2.x |
+| Containerisation | Docker + Docker Compose | — |
+| Auth | Laravel Fortify (custom `/fortify-*` prefix) | — |
+| IDs | UUID (not auto-increment) | — |
+
+---
+
+## Key conventions
+
+- **Controllers** are organised by domain under `app/Http/Controllers/{Activity,Bills,Bugs,Charts,Companies,Configs,Contact,Individuals,Info,Planning,Products,Shapes,Ssr}/`.
+- **Models** mirror the same domain structure under `app/Models/`.
+- **Constants** live in dedicated `*Constants.php` classes (ViewsConstants, MiddlewareConstants, DataConstants, etc.) — raw strings are avoided in routes and controllers.
+- **Traits** (`ChecksLogin`, `ChecksPermissions`, `HasCurrency`, `MeasuresPerformance`, …) are mixed into controllers and models.
+- **Middleware** constants: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
+- **Translations** use JSON files at `resources/lang/{en,pt-br,ru,…}.json` (16 languages, ~3,000 keys each).
+
+---
+
+## Quick start (development)
 
 ```bash
-composer update --with-all-dependencies
+# 1. Clone
+git clone <repo-url> && cd erp_prestech
+
+# 2. Enter the project
+cd _inc/laravel
+
+# 3. Install dependencies
 composer install
+npm ci
+
+# 4. Environment
+cp .env.example .env          # then edit DB_*, APP_KEY, etc.
+php artisan key:generate
+
+# 5. Database
+php artisan migrate --seed
+
+# 6. Serve
+php artisan serve              # http://localhost:8000
 ```
 
-## Frontend
+Or with Docker:
 
 ```bash
-npm update
-npm i
-npx tailwind init
+cd _inc/laravel
+docker compose up -d --build
+docker compose exec app php artisan migrate --seed
+# → http://localhost:8080
 ```
+
+See [\_inc/laravel/README.md](_inc/laravel/README.md) for the full project-specific guide.
+
+---
+
+## Testing
+
+### Backend (PHPUnit)
+
+```bash
+cd _inc/laravel
+php artisan test                          # all suites
+php artisan test --filter=UserTest        # specific test
+```
+
+### Frontend (Jest)
+
+```bash
+cd _inc/laravel
+npm test                                  # 510+ tests
+npm test -- --testPathPattern="erp-guard" # specific suite
+```
+
+### Static analysis (PHPStan)
+
+```bash
+cd _inc/laravel
+vendor/bin/phpstan analyse
+```
+
+---
+
+## Utility scripts
+
+| File | Purpose |
+|---|---|
+| `_inc/utils/regexes.md` | Regex patterns for codebase audits |
+| `_inc/utils/greps.md` | `grep` one-liners for debugging |
+| `_inc/utils/finds.md` | `find` one-liners for file discovery |
+| `_inc/utils/py/compare_funcs_models.py` | Compare method signatures between old/new models |
+| `_inc/utils/py/compare_funcs_names.py` | Diff function names across directories |
+| `_inc/utils/py/rearrange.py` | Rearrange import statements |
+| `_inc/utils/py/read_deps.py` | Parse composer/package dependency trees |
+| `_inc/utils/prompts/` | XML/Markdown prompt templates for LLM-assisted migration |
+
+---
+
+## Notes for the team
+
+- **`_old/`** contains a manually-edited fork kept for diffing against the new codebase. Do not develop here.
+- **`origin/erp/erpgo/`** is the untouched upstream source. Do not modify — use it for `diff` comparisons.
+- **`notes/`** holds living documents about known issues, constants audits, and module graphs. Update them as you work.
+- **`obf.js`** is a route-map obfuscation file. **Must be git-ignored in production deployments** (see the security alert inside the file).
+- **`_test.*` files** at root are scratch pads for quick experiments. They are git-ignored.
+
+---
+
+## Licence
+
+See [LICENSE](LICENSE).
 
 </details>
 
 <details>
-<summary><strong>2. 📅 Instalação do Banco de Dados </strong></summary>
-    
-## Criar banco de dados e usuário
+<summary>🇪🇸 Español</summary>
+
+Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este repositorio es el monorepo del equipo que contiene la aplicación Laravel de producción, el código de referencia original, notas de trabajo, scripts utilitarios y prompts de LLM utilizados durante el desarrollo.
+
+---
+
+## Estructura del repositorio
+
+```
+.
+├── _inc/                          # Desarrollo activo
+│   ├── laravel/                   # ⭐ Aplicación principal (Laravel 10 + PHP 8.3)
+│   │   ├── app/                   #    Backend: Controllers, Models, Traits, Providers
+│   │   ├── Modules/LandingPage/   #    Módulo nWidart (landing, términos, privacidad, sobre)
+│   │   ├── resources/views/       #    Templates Blade
+│   │   ├── public/assets/         #    JS (ERPGuard, ERPUtils, dash) + CSS
+│   │   ├── routes/                #    web.php, api.php, auth.php
+│   │   ├── database/migrations/   #    Migraciones de esquema
+│   │   ├── database/seeders/      #    Seeders de prueba + producción
+│   │   ├── tests/                 #    PHPUnit (Unit+Feature) + Jest/TS frontend
+│   │   ├── Dockerfile             #    Build multi-etapa (Node + PHP-FPM)
+│   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
+│   │   └── README.md              #    Guía de configuración y ejecución del proyecto
+│   └── utils/                     # Herramientas para desarrolladores
+│       ├── regexes.md             #    Patrones regex para auditorías del código
+│       ├── greps.md               #    Comandos grep recomendados
+│       ├── finds.md               #    Comandos find recomendados
+│       ├── prompts/               #    Templates de prompts LLM (migración, seeding, etc.)
+│       └── py/                    #    Scripts auxiliares en Python
+│
+├── _old/                          # Fork con modificaciones experimentales (solo referencia)
+├── origin/                        # Fork upstream sin modificar (ERPGo)
+├── notes/                         # Documentación del equipo
+├── obf.js                         # Capa de ofuscación del mapa de rutas (NO desplegar)
+├── LICENSE                        # Licencia del proyecto
+├── .gitignore                     # Ignora: ._DEPRECATED_*, .vscode, vendor, node_modules, logs
+└── README.md                      # ← Estás aquí
+```
+
+> **Las carpetas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) están **git-ignored** y purgadas del historial. Permanecen en disco solo como referencia local.
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología | Versión |
+|---|---|---|
+| Lenguaje | PHP | 8.3 |
+| Framework | Laravel | 10.x |
+| Sistema de módulos | nWidart/laravel-modules | 10.x |
+| Base de datos | MySQL / MariaDB | 8.0+ |
+| Cache / Cola | Redis (opcional, driver file por defecto) | 7.x |
+| Bundler frontend | Laravel Mix (Webpack) | 6.x |
+| Framework CSS | Tailwind CSS + Bootstrap 5 | — |
+| Arquitectura JS | Vanilla ES2022 (IIFE singletons) | — |
+| Testing (backend) | PHPUnit | 10.x |
+| Testing (frontend) | Jest + ts-jest (jsdom) | 29.x |
+| Análisis estático | PHPStan (level 5) | 2.x |
+| Contenedorización | Docker + Docker Compose | — |
+| Auth | Laravel Fortify (prefijo personalizado `/fortify-*`) | — |
+| IDs | UUID (no auto-increment) | — |
+
+---
+
+## Convenciones clave
+
+- Los **Controllers** están organizados por dominio en `app/Http/Controllers/{Activity,Bills,Bugs,...}/`.
+- Los **Models** siguen la misma estructura de dominio en `app/Models/`.
+- Las **Constants** están en clases dedicadas `*Constants.php` — se evitan strings literales en rutas y controllers.
+- Los **Traits** (`ChecksLogin`, `ChecksPermissions`, `HasCurrency`, …) se mezclan en controllers y models.
+- Constantes de **Middleware**: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
+- Las **Traducciones** usan archivos JSON en `resources/lang/{en,pt-br,ru,…}.json` (16 idiomas, ~3.000 claves cada uno).
+
+---
+
+## Inicio rápido (desarrollo)
 
 ```bash
-CREATE DATABASE IF NOT EXISTS erp_prestech_db;
-CREATE USER 'test'@'localhost' IDENTIFIED BY 'test';
-GRANT ALL PRIVILEGES ON test.* TO 'test'@'localhost';
-FLUSH PRIVILEGES;
+# 1. Clonar
+git clone <repo-url> && cd erp_prestech
+
+# 2. Entrar al proyecto
+cd _inc/laravel
+
+# 3. Instalar dependencias
+composer install
+npm ci
+
+# 4. Entorno
+cp .env.example .env          # luego editar DB_*, APP_KEY, etc.
+php artisan key:generate
+
+# 5. Base de datos
+php artisan migrate --seed
+
+# 6. Servir
+php artisan serve              # http://localhost:8000
 ```
 
-## Limpar logs (opcional)
+O con Docker:
 
 ```bash
-composer clear-logs
+cd _inc/laravel
+docker compose up -d --build
+docker compose exec app php artisan migrate --seed
+# → http://localhost:8080
 ```
 
-## Limpar caches e otimizar
+Consulte [\_inc/laravel/README.md](_inc/laravel/README.md) para la guía completa del proyecto.
+
+---
+
+## Testing
+
+### Backend (PHPUnit)
 
 ```bash
-php artisan clear-compiled
-php artisan permission:clear-cache
-php artisan config:clear
-php artisan cache:clear
-php artisan optimize:clear
-php artisan view:clear
-php artisan route:clear
-### Experimental: POWERSHELL -> composer artclrs-ps / UNIX -> composer artclrs-sh
-### Experimental: artclrs inclui comandos até route:list e aciona php artisan serve
+cd _inc/laravel
+php artisan test                          # todas las suites
+php artisan test --filter=UserTest        # test específico
 ```
 
-## Remover arquivos em cache
+### Frontend (Jest)
 
 ```bash
-rm -f bootstrap/cache/{compiled,services,packages,routes}.php
-rm -rf storage/framework/cache/data/\*
+cd _inc/laravel
+npm test                                  # 510+ tests
+npm test -- --testPathPattern="erp-guard" # suite específica
 ```
 
-## Reconstruir autoloader e banco de dados
+### Análisis estático (PHPStan)
 
 ```bash
-composer dump-autoload -o
-php artisan migrate:reset || php artisan db:wipe
-php artisan migrate:fresh --seed
+cd _inc/laravel
+vendor/bin/phpstan analyse
 ```
 
-# Checar saúde de controladores e rotas disponíveis
+---
 
-```bash
-php artisan route:list --sort=uri
-```
+## Scripts utilitarios
 
-</details>
-<details>
-<summary><strong>3. 🔛 Execução </strong></summary>
+| Archivo | Propósito |
+|---|---|
+| `_inc/utils/regexes.md` | Patrones regex para auditorías del código |
+| `_inc/utils/greps.md` | Comandos `grep` para depuración |
+| `_inc/utils/finds.md` | Comandos `find` para descubrimiento de archivos |
+| `_inc/utils/py/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new |
+| `_inc/utils/py/compare_funcs_names.py` | Diff de nombres de funciones entre directorios |
+| `_inc/utils/py/rearrange.py` | Reorganizar sentencias de import |
+| `_inc/utils/py/read_deps.py` | Parsear árboles de dependencias composer/package |
+| `_inc/utils/prompts/` | Templates de prompts para migración asistida por LLM |
 
-## Backend
+---
 
-```bash
-php artisan serve
-#  public/index.php >
-#  bootstrap/app.php >
-#  register app/Providers/AppServiceProvider.php >
-#  register app/Providers/BroadcastServieProvider.php >
-#  register LandingPageServiceProvider >
-#  register AddMenuProvider >
-#  boot app/Providers/RouteServiceProvider.php >
-#  map routes/* >
-#  hit HttpKernel >
-#  map routes/* >
-#  register Modules/LandingPage/Providers/RouteServiceProvider >
-#  map routes/* >
-#  hit HttpKernel >
-#  map routes/* >
-#  boot AppServiceProvider >
-#  boot AuthServiceProvider >
-#  boot app/Providers/BroadcastServiceProvider >
-#  boot app/Providers/EventServiceProvider >
-#  boot app/Providers/RouteServiceProvider.php >
-#  configure app/Providers/RouteServiceProvider.php >
-#  boot Modules/LandingPage/Providers/RouteServiceProvider >
-#  configure Modules/LandingPage/Providers/RouteServiceProvider >
-#  boot Modules/LandingPage/LandingPageServiceProvider
-```
+## Notas para el equipo
 
-## Frontend
+- **`_old/`** contiene un fork editado manualmente para hacer diff contra el nuevo código. No desarrollar aquí.
+- **`origin/erp/erpgo/`** es la fuente upstream sin tocar. No modificar — usar para comparaciones con `diff`.
+- **`notes/`** contiene documentos activos sobre problemas conocidos, auditorías de constantes y grafos de módulos.
+- **`obf.js`** es un archivo de ofuscación del mapa de rutas. **Debe estar git-ignored en despliegues de producción**.
+- Los archivos **`_test.*`** en la raíz son para experimentos rápidos. Están git-ignored.
 
-```bash
-npm run dev
-```
+---
 
-</details>
+## Licencia
 
-<details>
-
-# 💹 Fluxos
-
-<details>
-<summary><strong>1. 🔐 Login</strong></summary>
-- Calls the ApiController::login method
-</details>
-
-</details>
-
-# 📘 TypeScript Migration
-
-The frontend JavaScript has been migrated to TypeScript in an isolated `_inc/laravel/ts/` module.
-
-<details>
-<summary><strong>Structure & Commands</strong></summary>
-
-## Directory Structure
-```
-_inc/laravel/ts/
-├── src/           # TypeScript sources (mirrored from public/, resources/, tests/)
-├── dist/          # Compiled output
-├── package.json   # TS-specific dependencies
-├── tsconfig.json  # Strict TS config with path aliases
-└── jest.config.cjs / playwright.config.ts  # Test configs
-```
-
-## Development Commands
-```bash
-cd _inc/laravel/ts
-npm install
-npm run typecheck    # Type-check without emit
-npm run build        # Compile to dist/
-npm run lint         # ESLint
-npm run test         # Jest tests
-```
-
-## Key Features
-- **Strict Mode**: All TypeScript strict checks enabled
-- **Path Aliases**: `@/`, `@public/`, `@resources/`, `@tests/`
-- **Global Types**: Bootstrap 5, jQuery, DataTables, Select2, Summernote, ApexCharts, etc.
-
-## Documentation
-See `.notes/.llms/typescript-migration.md` for full LLM guidelines.
+Ver [LICENSE](LICENSE).
 
 </details>
 
 ---
 
-# NOTAS
-
--> Setting do not have a model
--> PersonalAcessToken do not have a model
--> GeneratePayslipOptions do not have a model
--> FailedJobs do not have a model
+Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este repositório é o monorepo da equipe que contém a aplicação Laravel de produção, código de referência original, notas de trabalho, scripts utilitários e prompts de LLM utilizados durante o desenvolvimento.
 
 ---
 
-# 🧪 Test Status (2026-03-07)
+## Estrutura do repositório
 
-| Suite                         | Result                          | Notes                                                               |
-| ----------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| **PHP lint**                  | ✅ 0 errors / 1,417 files       |                                                                     |
-| **ESLint** (frontend)         | ✅ 0 errors · 0 warnings        | Down from 758 warnings (2026-03-05)                                 |
-| **Jest** (core + frontend)    | ✅ 10 / 10                      | 3 suites                                                            |
-| **Pytest**                    | ✅ 53 / 53                      | Run with `bash` — see D-6 in KNOWN_ISSUES                           |
-| **Playwright RBAC hardening** | ✅ 5 previously-failing → fixed |                                                                     |
-| **HTTP batch** (20 routes)    | ✅ 0 × 500                      | All previously-500 routes fixed                                     |
-| **PHPStan L3**                | ⏳ fresh run in progress        | ~150 real errors in BillController+DashboardController (prior data) |
-| **MySQL** (prod)              | ✅ healthy                      | 8.4.7 · 21 tables                                                   |
-| **MySQL** (test DB)           | ✅ healthy                      | `erp_prestech_test` · 210 tables · 215 migrations                   |
+```
+.
+├── _inc/                          # Desenvolvimento ativo
+│   ├── laravel/                   # ⭐ Aplicação principal (Laravel 10 + PHP 8.3)
+│   │   ├── app/                   #    Backend: Controllers, Models, Traits, Providers
+│   │   ├── Modules/LandingPage/   #    Módulo nWidart (landing, termos, privacidade, sobre)
+│   │   ├── resources/views/       #    Templates Blade
+│   │   ├── public/assets/         #    JS (ERPGuard, ERPUtils, dash) + CSS
+│   │   ├── routes/                #    web.php, api.php, auth.php
+│   │   ├── database/migrations/   #    Migrações de esquema
+│   │   ├── database/seeders/      #    Seeders de teste + produção
+│   │   ├── tests/                 #    PHPUnit (Unit+Feature) + Jest/TS frontend
+│   │   ├── Dockerfile             #    Build multi-estágio (Node + PHP-FPM)
+│   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
+│   │   └── README.md              #    Guia de configuração e execução do projeto
+│   └── utils/                     # Ferramentas para desenvolvedores
+│       ├── regexes.md             #    Padrões regex para auditorias do código
+│       ├── greps.md               #    Comandos grep recomendados
+│       ├── finds.md               #    Comandos find recomendados
+│       ├── prompts/               #    Templates de prompts LLM (migração, seeding, etc.)
+│       └── py/                    #    Scripts auxiliares em Python (comparar funções, reorganizar)
+│
+├── _old/                          # Fork com modificações experimentais (apenas referência)
+│   ├── app/                       #    Controllers, Models com edições manuais
+│   ├── routes/                    #    Arquivos de rotas com alterações inline
+│   └── ...                        #    Espelha a estrutura original
+│
+├── origin/                        # Fork upstream não modificado (ERPGo)
+│   └── erp/erpgo/                 #    Árvore fonte original — somente leitura
+│
+├── notes/                         # Documentação da equipe
+│   ├── CURRENT_WORKING_ISSUES.md  #    Relatório de saúde das rotas e bugs ativos
+│   ├── KNOWN_ISSUES.md            #    Nomes de migração, restrições conhecidas
+│   ├── CONSTANTS_AUDIT_REPORT.md  #    Auditoria de refatoração de constantes
+│   ├── CONSTANTS_AUDIT_FIX_LOG.md #    Changelog de correções de constantes
+│   └── modules_v2.html            #    Grafo de dependências de módulos (visual)
+│
+├── obf.js                         # Camada de ofuscação do mapa de rotas (NÃO fazer deploy)
+├── LICENSE                        # Licença do projeto
+├── .gitignore                     # Ignora: ._DEPRECATED_*, .vscode, vendor, node_modules, logs
+└── README.md                      # ← Você está aqui
+```
 
-> Security: 14 Composer advisories · 20 npm vulns — deferred; see `.tmp/copilot/report-20260305-2/security.md`
+> **As pastas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) estão **git-ignored** e purgadas do histórico. Permanecem em disco apenas como referência local.
 
-See `.notes/CURRENT_WORKING_ISSUES.md` for change history.
+---
+
+## Stack tecnológico
+
+| Camada | Tecnologia | Versão |
+|---|---|---|
+| Linguagem | PHP | 8.3 |
+| Framework | Laravel | 10.x |
+| Sistema de módulos | nWidart/laravel-modules | 10.x |
+| Banco de dados | MySQL / MariaDB | 8.0+ |
+| Cache / Fila | Redis (opcional, driver file por padrão) | 7.x |
+| Bundler frontend | Laravel Mix (Webpack) | 6.x |
+| Framework CSS | Tailwind CSS + Bootstrap 5 | — |
+| Arquitetura JS | Vanilla ES2022 (IIFE singletons) | — |
+| Testes (backend) | PHPUnit | 10.x |
+| Testes (frontend) | Jest + ts-jest (jsdom) | 29.x |
+| Análise estática | PHPStan (level 5) | 2.x |
+| Conteinerização | Docker + Docker Compose | — |
+| Auth | Laravel Fortify (prefixo personalizado `/fortify-*`) | — |
+| IDs | UUID (não auto-increment) | — |
+
+---
+
+## Convenções principais
+
+- Os **Controllers** são organizados por domínio em `app/Http/Controllers/{Activity,Bills,Bugs,Charts,Companies,Configs,Contact,Individuals,Info,Planning,Products,Shapes,Ssr}/`.
+- Os **Models** espelham a mesma estrutura de domínio em `app/Models/`.
+- As **Constants** ficam em classes dedicadas `*Constants.php` (ViewsConstants, MiddlewareConstants, DataConstants, etc.) — strings literais são evitadas em rotas e controllers.
+- Os **Traits** (`ChecksLogin`, `ChecksPermissions`, `HasCurrency`, `MeasuresPerformance`, …) são mixados em controllers e models.
+- Constantes de **Middleware**: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
+- As **Traduções** usam arquivos JSON em `resources/lang/{en,pt-br,ru,…}.json` (16 idiomas, ~3.000 chaves cada).
+
+---
+
+## Início rápido (desenvolvimento)
+
+```bash
+# 1. Clonar
+git clone <repo-url> && cd erp_prestech
+
+# 2. Entrar no projeto
+cd _inc/laravel
+
+# 3. Instalar dependências
+composer install
+npm ci
+
+# 4. Ambiente
+cp .env.example .env          # depois editar DB_*, APP_KEY, etc.
+php artisan key:generate
+
+# 5. Banco de dados
+php artisan migrate --seed
+
+# 6. Servir
+php artisan serve              # http://localhost:8000
+```
+
+Ou com Docker:
+
+```bash
+cd _inc/laravel
+docker compose up -d --build
+docker compose exec app php artisan migrate --seed
+# → http://localhost:8080
+```
+
+Veja [\_inc/laravel/README.md](_inc/laravel/README.md) para o guia completo do projeto.
+
+---
+
+## Testes
+
+### Backend (PHPUnit)
+
+```bash
+cd _inc/laravel
+php artisan test                          # todas as suites
+php artisan test --filter=UserTest        # teste específico
+```
+
+### Frontend (Jest)
+
+```bash
+cd _inc/laravel
+npm test                                  # 510+ testes
+npm test -- --testPathPattern="erp-guard" # suite específica
+```
+
+### Análise estática (PHPStan)
+
+```bash
+cd _inc/laravel
+vendor/bin/phpstan analyse
+```
+
+---
+
+## Scripts utilitários
+
+| Arquivo | Finalidade |
+|---|---|
+| `_inc/utils/regexes.md` | Padrões regex para auditorias do código |
+| `_inc/utils/greps.md` | Comandos `grep` para depuração |
+| `_inc/utils/finds.md` | Comandos `find` para descoberta de arquivos |
+| `_inc/utils/py/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new |
+| `_inc/utils/py/compare_funcs_names.py` | Diff de nomes de funções entre diretórios |
+| `_inc/utils/py/rearrange.py` | Reorganizar sentenças de import |
+| `_inc/utils/py/read_deps.py` | Parsear árvores de dependências composer/package |
+| `_inc/utils/prompts/` | Templates de prompts XML/Markdown para migração assistida por LLM |
+
+---
+
+## Notas para a equipe
+
+- **`_old/`** contém um fork editado manualmente mantido para fazer diff contra o código novo. Não desenvolver aqui.
+- **`origin/erp/erpgo/`** é a fonte upstream intocada. Não modificar — usar para comparações com `diff`.
+- **`notes/`** contém documentos vivos sobre problemas conhecidos, auditorias de constantes e grafos de módulos. Atualizar conforme o trabalho avança.
+- **`obf.js`** é um arquivo de ofuscação do mapa de rotas. **Deve estar git-ignored em deploys de produção** (veja o alerta de segurança dentro do arquivo).
+- Os arquivos **`_test.*`** na raiz são rascunhos para experimentos rápidos. Estão git-ignored.
+
+---
+
+## Licença
+
+Veja [LICENSE](LICENSE).

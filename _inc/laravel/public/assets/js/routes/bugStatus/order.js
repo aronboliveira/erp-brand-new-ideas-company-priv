@@ -1,66 +1,16 @@
 (() => {
-  const errFb = "# ERROR";
-  const guardMsgKey = "data-guard-msg";
-  const clientFlag = "data-client-localized";
-  const langKey = "erp-np-lang";
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  if (!guard || !utils) return;
+
   let errorMessage = "";
 
   function getLocalizedMessage(key, el) {
-    let msg = errFb;
-    if (el.getAttribute(clientFlag) === "true") {
-      msg = el.getAttribute(guardMsgKey) ?? msg;
-    } else {
-      let lang = (
-        sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        translations?.[lang]?.[key] ??
-        el.getAttribute(guardMsgKey) ??
-        translations?.["en"]?.[key] ??
-        msg;
-      if (msg !== errFb) {
-        el.setAttribute(guardMsgKey, msg);
-        el.setAttribute(clientFlag, "true");
-      }
-    }
-    return msg;
+    return utils.getTranslation(key) || "# ERROR";
   }
 
   function showError(message) {
-    try {
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      const bs =
-        document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-      if (bs) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = message;
-        toast.appendChild(body);
-        container.appendChild(toast);
-        bootstrap.Toast.getOrCreateInstance(toast).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
+    guard.showToast(message);
   }
 
   const onErrorPointerUp = () => {
@@ -77,7 +27,7 @@
           document.removeEventListener("pointerup", onErrorPointerUp);
           obs.disconnect();
         }
-      })
+      }),
     );
   }).observe(document.body, { childList: true, subtree: true });
 
@@ -121,7 +71,7 @@
               $(el).sortable("destroy");
               obsEl.disconnect();
             }
-          })
+          }),
         );
       });
       obsEl.observe(document.body, { childList: true, subtree: true });

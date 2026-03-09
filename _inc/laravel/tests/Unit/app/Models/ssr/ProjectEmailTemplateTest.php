@@ -8,6 +8,11 @@ use Tests\TestCase;
 
 class ProjectEmailTemplateTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 **
@@ -15,7 +20,16 @@ class ProjectEmailTemplateTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['template_id', 'project_id', 'is_active'];
+		$expected = [
+			'code',
+			'name',
+			'template_id',
+			'project_id',
+			'is_active',
+			'fonts',
+			'colors',
+			'tags',
+		];
 		$this->assertSame($expected, (new ProjectEmailTemplate)->getFillable());
 	}
 
@@ -43,10 +57,9 @@ class ProjectEmailTemplateTest extends TestCase
 		$this->assertTrue(is_bool($model->is_active));
 		$this->assertTrue($model->is_active);
 
-		// Assign null (should be false)
+		// Assign null (nullable boolean stays null)
 		$model->is_active = null;
-		$this->assertTrue(is_bool($model->is_active));
-		$this->assertFalse($model->is_active);
+		$this->assertNull($model->is_active);
 	}
 
 	/**

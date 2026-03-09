@@ -1,23 +1,21 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId    = 'job-app-store-form';
+        $base      = VW::JB_APP;
+        $baseKebab = Str::kebab($base);
+        $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
+        $actionUrl = $routeRes ? route($routeRes) : '#';
+        $guardMsg  = Utility::fetchLinkMessage($lang, VW::JB_APL, 'store_route_unavailable') ?? __('Job application store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId    = 'job-app-store-form';
-    $base      = VW::JB_APP;
-    $baseKebab = Str::kebab($base);
-    $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
-    $actionUrl = $routeRes ? route($routeRes) : '#';
-    $guardMsg  = Utility::fetchLinkMessage($lang, VW::JB_APL, 'store_route_unavailable') ?? __('Job application store route is unavailable. Please contact technical support or your domain administrator.');
+        $jobsIsList  = (is_array($jobs ?? null) && count($jobs ?? []) > 0) || (($jobs ?? null) instanceof Collection && $jobs->isNotEmpty());
+        $jobsOptions = $jobsIsList ? (is_array($jobs) ? $jobs : $jobs->toArray()) : ['' => __('No job options available')];
 
-    $jobsIsList  = (is_array($jobs ?? null) && count($jobs ?? []) > 0) || (($jobs ?? null) instanceof Collection && $jobs->isNotEmpty());
-    $jobsOptions = $jobsIsList ? (is_array($jobs) ? $jobs : $jobs->toArray()) : ['' => __('No job options available')];
-
-    $questionsIsList = (is_iterable($questions ?? null)) && (collect($questions)->count() > 0);
+        $questionsIsList = (is_iterable($questions ?? null)) && (collect($questions)->count() > 0);
+    } catch (\Throwable $e) {
+        \Log::error('job_applications/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -56,7 +54,7 @@
             </div>
             <div class="{{ VC::FM_GCB6 }} gender d-none">
                 {{ Form::label('gender', __('Gender'), ['class' => VC::FM_LB]) }}
-                <div class="d-flex radio-check">
+                <div class="{{ VC::DFL }} radio-check">
                     <div class="{{ VC::FM_CHK_IL_GP }}">
                         <input type="radio" id="g_male" value="Male" name="gender" class="form-check-input">
                         <label class="form-check-label" for="g_male">{{ __('Male') }}</label>
@@ -101,12 +99,16 @@
             @if($questionsIsList)
                 @foreach($questions as $idx => $q)
                     @php
-                        $qid   = (string) data_get($q, 'id', '');
-                        $qtext = (string) data_get($q, 'question', __('Question text unavailable'));
-                        $req   = (string) data_get($q, 'is_required', 'no');
-                        $forId = $qid !== '' ? 'question-'.$qid : 'question-x-'.$idx;
-                        $name  = $qid !== '' ? 'question['.$qid.']' : 'question[x_'.$idx.']';
-                    @endphp
+                        try {
+                            $qid   = (string) data_get($q, 'id', '');
+                            $qtext = (string) data_get($q, 'question', __('Question text unavailable'));
+                            $req   = (string) data_get($q, 'is_required', 'no');
+                            $forId = $qid !== '' ? 'question-'.$qid : 'question-x-'.$idx;
+                            $name  = $qid !== '' ? 'question['.$qid.']' : 'question[x_'.$idx.']';
+                        } catch (\Throwable $e) {
+                            \Log::error('job_applications/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::FM_GCB12 }} question question_{{ $qid !== '' ? $qid : 'x-'.$idx }} d-none">
                         {{ Form::label($forId, $qtext, ['class' => VC::FM_LB]) }}
                         <input type="text" class="{{ VC::FM_CT }}" id="{{ $forId }}" name="{{ $name }}" {{ ($req === 'yes') ? 'required' : '' }}>

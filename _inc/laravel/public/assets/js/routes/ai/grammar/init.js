@@ -1,112 +1,12 @@
+/** @requires ERPGuard */
 (function () {
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
+
   const dataBoundInit = "data-bound-grammar-init";
   const dataBoundRegen = "data-bound-grammar-regen";
   const qs = (s, r = document) => r.querySelector(s);
-  const ensureToastContainer = () => {
-    let c = qs("#np-toast-container");
-    if (c) {
-      return c;
-    }
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
-  };
-  const showErrorNow = message => {
-    const hasBootstrap =
-      (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')) &&
-      window.bootstrap &&
-      window.bootstrap.Toast;
-    if (hasBootstrap) {
-      const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
-      if (!t) {
-        t = document.createElement("div");
-        t.id = "np-toast";
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        t.innerHTML =
-          '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
-        container.appendChild(t);
-      }
-      const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
-      try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-      } catch (_) {
-        alert(message ?? errFb);
-      }
-    } else {
-      alert(message ?? errFb);
-    }
-  };
-  const scheduleInteractiveError = message => {
-    const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
-    host.setAttribute(dataErrGuard, "true");
-    const once = () => {
-      try {
-        showErrorNow(message);
-      } finally {
-        host.removeAttribute(dataErrGuard);
-      }
-    };
-    document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
-      if (!document.body.contains(host)) {
-        document.removeEventListener("pointerup", once);
-        o.disconnect();
-      }
-    });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
-  };
-  const getMsg = (el, key) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
-      if (el && msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
   const resolveRoute = (el, explicit) => {
     const url = el?.getAttribute?.("data-url") || "";
     const href = el
@@ -146,7 +46,7 @@
             )
               console.error("jQuery unavailable");
           } catch (_) {}
-          scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("plugin_unavailable"));
           return;
         }
         if ($.fn.summernote && $(".summernote-simple").length > 0) {
@@ -157,7 +57,7 @@
             summernoteValue = $(".summernote-simple").val() ?? "";
           }
         } else {
-          scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("plugin_unavailable"));
         }
       }
       summernoteValue = String(summernoteValue).replace(/<(.|\n)*?>/g, "");
@@ -165,11 +65,11 @@
       if (desc && desc.length) {
         desc.text(summernoteValue ?? "");
       } else {
-        scheduleInteractiveError(getMsg(host, "grammar_init_unavailable"));
+        guard.scheduleInteractiveError(guard.getMsg("grammar_init_unavailable"));
       }
     } catch (_) {
-      scheduleInteractiveError(
-        getMsg(document.body, "grammar_init_unavailable")
+      guard.scheduleInteractiveError(
+        guard.getMsg("grammar_init_unavailable")
       );
     }
     const mo = new MutationObserver((m, o) => {
@@ -195,8 +95,8 @@
         const explicit = "{{ route('grammar.response') }}";
         const endpoint = resolveRoute(formEl, explicit);
         if (!endpoint) {
-          scheduleInteractiveError(
-            getMsg(formEl || document.body, "generate_unavailable")
+          guard.scheduleInteractiveError(
+            guard.getMsg("generate_unavailable")
           );
           return;
         }
@@ -227,17 +127,17 @@
                 $("#ai-description").val(data ?? "");
               }
             } catch (_) {
-              scheduleInteractiveError(
-                getMsg(document.body, "generate_unavailable")
+              guard.scheduleInteractiveError(
+                guard.getMsg("generate_unavailable")
               );
             }
           },
           error: function () {
-            scheduleInteractiveError(getMsg(document.body, "ajax_unavailable"));
+            guard.scheduleInteractiveError(guard.getMsg("ajax_unavailable"));
           },
         });
       } catch (_) {
-        scheduleInteractiveError(getMsg(document.body, "generate_unavailable"));
+        guard.scheduleInteractiveError(guard.getMsg("generate_unavailable"));
       }
     });
     const mo = new MutationObserver((m, o) => {
@@ -268,8 +168,8 @@
                 $(".summernote-simple").val(copied ?? "");
               }
             } else {
-              scheduleInteractiveError(
-                getMsg(document.body, "plugin_unavailable")
+              guard.scheduleInteractiveError(
+                guard.getMsg("plugin_unavailable")
               );
             }
           }
@@ -282,8 +182,8 @@
           }
           $("#commonModalOver").modal("hide");
         } catch (_) {
-          scheduleInteractiveError(
-            getMsg(document.body, "grammar_init_unavailable")
+          guard.scheduleInteractiveError(
+            guard.getMsg("grammar_init_unavailable")
           );
         }
       };
@@ -298,7 +198,7 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {}
-      scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
+      guard.scheduleInteractiveError(guard.getMsg("plugin_unavailable"));
       return;
     }
     initGrammarSeed();

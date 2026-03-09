@@ -1,16 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use Illuminate\Support\Facades\{Auth, Route, Storage};
-    use Illuminate\Support\{Collection,Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -83,7 +77,7 @@
               alert(message);
             }
           };
-        
+
           // Dragula init
           const dragEls = document.querySelectorAll('[data-plugin="dragula"]');
           dragEls.forEach(el => {
@@ -115,7 +109,7 @@
                   source.parentElement.querySelector('.count')?.textContent = source.children.length;
                   target.parentElement.querySelector('.count')?.textContent = target.children.length;
                   $.ajax({
-                    url: '{{ route("bug.kanban.order") }}',
+                    url: '{{ route("projects.bugs.kanban.order") }}',
                     type: 'POST',
                     data: { bug_id: bugId, status_id: stageId, order, _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
                   })
@@ -128,7 +122,7 @@
               showError(getLocalizedMessage('dragula_init_failed', el));
             }
           });
-        
+
           // comment add
           const commentBtn = document.querySelector('#form-comment button');
           if (commentBtn && commentBtn.dataset.listenerAttached !== 'true') {
@@ -164,9 +158,9 @@
                 li.className = 'media mb-20';
                 li.innerHTML = `
                   <div class="media-body">
-                    <div class="d-flex justify-content-between align-items-end">
-                      <div><h5 class="mt-0">${name}</h5><p class="mb-0 text-xs">${data.comment}</p></div>
-                      <div class="comment-trash"><a href="#" class="btn btn-outline btn-sm text-danger delete-comment" data-url="${data.deleteUrl}"><i class="fa fa-trash"></i></a></div>
+                    <div class="{{ VC::DFL_JCB }} align-items-end">
+                      <div><h5 class="mt-0">${name}</h5><p class="{{ VC::MB0 }} {{ VC::TXS }}">${data.comment}</p></div>
+                      <div class="comment-trash"><a href="#" class="btn btn-outline btn-sm {{ VC::TX_DNG }} delete-comment" data-url="${data.deleteUrl}"><i class="fa fa-trash"></i></a></div>
                     </div>
                   </div>`;
                 document.getElementById('comments').prepend(li);
@@ -178,7 +172,7 @@
               showError(getLocalizedMessage('comment_add_failed', el));
             }
           }
-        
+
           // delete comment
           document.body.querySelectorAll('.delete-comment').forEach(btn => {
             if (btn.dataset.listenerAttached === 'true') return;
@@ -206,7 +200,7 @@
               }
             });
           });
-        
+
           // file upload
           const fileForm = document.getElementById('form-file');
           if (fileForm && fileForm.dataset.listenerAttached !== 'true') {
@@ -228,14 +222,14 @@
                   document.querySelectorAll('.file_update').forEach(n => n.innerHTML = '');
                   document.getElementById('file-error').textContent = '';
                   const html = `
-                    <div class="col-8 mb-2 file-${data.id}">
-                      <h5 class="mt-0 mb-1 font-weight-bold text-sm">${data.name}</h5>
-                      <p class="m-0 text-xs">${data.file_size}</p>
+                    <div class="col-8 {{ VC::MB2 }} file-${data.id}">
+                      <h5 class="mt-0 {{ VC::MB1 }} font-weight-bold {{ VC::TXSM }}">${data.name}</h5>
+                      <p class="m-0 {{ VC::TXS }}">${data.file_size}</p>
                     </div>
-                    <div class="col-4 mb-2 file-${data.id}">
+                    <div class="col-4 {{ VC::MB2 }} file-${data.id}">
                       <div class="comment-trash">
-                        <a download href="{{ asset(Storage::url('bugs')) }}/${data.file}" class="btn btn-outline btn-sm text-primary"><i class="fa fa-download"></i></a>
-                        <a href="#" class="btn btn-outline btn-sm red text-danger delete-comment-file" data-id="${data.id}" data-url="${data.deleteUrl}"><i class="ti ti-trash"></i></a>
+                        <a download href="{{ asset(Storage::url('bugs')) }}/${data.file}" class="btn btn-outline btn-sm {{ VC::TX_PM }}"><i class="fa fa-download"></i></a>
+                        <a href="#" class="btn btn-outline btn-sm red {{ VC::TX_DNG }} delete-comment-file" data-id="${data.id}" data-url="${data.deleteUrl}"><i class="{{ VC::TI_TRS }}"></i></a>
                       </div>
                     </div>`;
                   document.getElementById('comments-file').insertAdjacentHTML('afterbegin', html);
@@ -283,35 +277,39 @@
     </script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Project')}}</li>
-    <li class="breadcrumb-item">{{__('Bug Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Project')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Bug Report')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @if(!empty($view) && $view === 'grid')
           @php
-              $projectBugListViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
-              $projectBugListViewKebabName    = Str::kebab($projectBugListViewBaseName);
-              $projectBugListViewResolvedName = Route::has($projectBugListViewBaseName)
-                  ? $projectBugListViewBaseName
-                  : (Route::has($projectBugListViewKebabName) ? $projectBugListViewKebabName : null);
-              $projectBugListViewParam        = 'list';
-              $projectBugListViewUrl          = $projectBugListViewResolvedName ? route($projectBugListViewResolvedName, $projectBugListViewParam) : '#';
-              $projectBugListViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_list_view_route_unavailable') ?? 'Bug list view route is unavailable. Please contact technical support or your domain administrator.';
-              $projectBugListViewLinkId       = 'project-bug-view-list-link';
-              $projectBugListViewTitle        = __('List View');
-          @endphp
+              try {
+                  $projectBugListViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
+                  $projectBugListViewKebabName    = Str::kebab($projectBugListViewBaseName);
+                  $projectBugListViewResolvedName = Route::has($projectBugListViewBaseName)
+                      ? $projectBugListViewBaseName
+                      : (Route::has($projectBugListViewKebabName) ? $projectBugListViewKebabName : null);
+                  $projectBugListViewParam        = 'list';
+                  $projectBugListViewUrl          = $projectBugListViewResolvedName ? route($projectBugListViewResolvedName, $projectBugListViewParam) : '#';
+                  $projectBugListViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_list_view_route_unavailable') ?? 'Bug list view route is unavailable. Please contact technical support or your domain administrator.';
+                  $projectBugListViewLinkId       = 'project-bug-view-list-link';
+                  $projectBugListViewTitle        = __('List View');
+              } catch (\Throwable $e) {
+                  \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+              }
+@endphp
           <a href="{{ $projectBugListViewUrl }}"
             id="{{ $projectBugListViewLinkId }}"
             class="{{ VC::BT_SM_PM }}"
             data-url="{{ $projectBugListViewUrl }}"
-            data-guard-msg="{{ $projectBugListViewGuardMsg }}"
+            data-guard-msg="{{ base64_encode($projectBugListViewGuardMsg) }}"
             data-bs-toggle="tooltip"
             title="{{ $projectBugListViewTitle }}">
               <span class="btn-inner--text">
@@ -332,28 +330,7 @@
                                   if (href !== '#' || url !== '#') return;
                                   e.preventDefault();
                                   const msg = l.getAttribute('data-guard-msg') || 'Open bug list view route is unavailable. Please contact technical support or your domain administrator.';
-                                  const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                  let container = document.getElementById('toast-container');
-                                  if (!container) {
-                                      container = document.createElement('div');
-                                      container.id = 'toast-container';
-                                      document.body.appendChild(container);
-                                  }
-                                  if (hasBootstrap) {
-                                      const toast = document.createElement('div');
-                                      toast.className = 'toast';
-                                      toast.setAttribute('role', 'alert');
-                                      toast.setAttribute('aria-live', 'assertive');
-                                      toast.setAttribute('aria-atomic', 'true');
-                                      const body = document.createElement('div');
-                                      body.className = 'toast-body';
-                                      body.textContent = msg;
-                                      toast.appendChild(body);
-                                      container.appendChild(toast);
-                                      bootstrap.Toast.getOrCreateInstance(toast).show();
-                                  } else {
-                                      alert(msg);
-                                  }
+                                  (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                   l.setAttribute('data-failed-route', 'true');
                               } catch (err) {}
                           });
@@ -363,21 +340,25 @@
           @endpush
         @else
           @php
-              $projectBugCardViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
-              $projectBugCardViewKebabName    = Str::kebab($projectBugCardViewBaseName);
-              $projectBugCardViewResolvedName = Route::has($projectBugCardViewBaseName)
-                  ? $projectBugCardViewBaseName
-                  : (Route::has($projectBugCardViewKebabName) ? $projectBugCardViewKebabName : null);
-              $projectBugCardViewParam        = 'grid';
-              $projectBugCardViewUrl          = $projectBugCardViewResolvedName ? route($projectBugCardViewResolvedName, $projectBugCardViewParam) : '#';
-              $projectBugCardViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_card_view_route_unavailable') ?? 'Bug card view route is unavailable. Please contact technical support or your domain administrator.';
-              $projectBugCardViewLinkId       = 'project-bug-view-card-link';
-          @endphp
+              try {
+                  $projectBugCardViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
+                  $projectBugCardViewKebabName    = Str::kebab($projectBugCardViewBaseName);
+                  $projectBugCardViewResolvedName = Route::has($projectBugCardViewBaseName)
+                      ? $projectBugCardViewBaseName
+                      : (Route::has($projectBugCardViewKebabName) ? $projectBugCardViewKebabName : null);
+                  $projectBugCardViewParam        = 'grid';
+                  $projectBugCardViewUrl          = $projectBugCardViewResolvedName ? route($projectBugCardViewResolvedName, $projectBugCardViewParam) : '#';
+                  $projectBugCardViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_card_view_route_unavailable') ?? 'Bug card view route is unavailable. Please contact technical support or your domain administrator.';
+                  $projectBugCardViewLinkId       = 'project-bug-view-card-link';
+              } catch (\Throwable $e) {
+                  \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+              }
+@endphp
           <a href="{{ $projectBugCardViewUrl }}"
             id="{{ $projectBugCardViewLinkId }}"
             class="{{ VC::BT_SM_PM }}"
             data-url="{{ $projectBugCardViewUrl }}"
-            data-guard-msg="{{ $projectBugCardViewGuardMsg }}">
+            data-guard-msg="{{ base64_encode($projectBugCardViewGuardMsg) }}">
               <span class="btn-inner--text">
                   <i class="{{ VC::TI }} ti-table"></i>
                   {{ __('Card View') }}
@@ -397,28 +378,7 @@
                                   if (href !== '#' || url !== '#') return;
                                   e.preventDefault();
                                   const msg = l.getAttribute('data-guard-msg') || 'Open bug card view route is unavailable. Please contact technical support or your domain administrator.';
-                                  const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                  let container = document.getElementById('toast-container');
-                                  if (!container) {
-                                      container = document.createElement('div');
-                                      container.id = 'toast-container';
-                                      document.body.appendChild(container);
-                                  }
-                                  if (hasBootstrap) {
-                                      const toast = document.createElement('div');
-                                      toast.className = 'toast';
-                                      toast.setAttribute('role', 'alert');
-                                      toast.setAttribute('aria-live', 'assertive');
-                                      toast.setAttribute('aria-atomic', 'true');
-                                      const body = document.createElement('div');
-                                      body.className = 'toast-body';
-                                      body.textContent = msg;
-                                      toast.appendChild(body);
-                                      container.appendChild(toast);
-                                      bootstrap.Toast.getOrCreateInstance(toast).show();
-                                  } else {
-                                      alert(msg);
-                                  }
+                                  (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                   l.setAttribute('data-failed-route', 'true');
                               } catch (err) {}
                           });
@@ -429,21 +389,25 @@
         @endif
         @can(PermissionsConstants::MNG_PRJ)
           @php
-              $projectIndexBaseName     = ViewsConstants::PRJ.'.index';
-              $projectIndexKebabName    = Str::kebab($projectIndexBaseName);
-              $projectIndexResolvedName = Route::has($projectIndexBaseName)
-                  ? $projectIndexBaseName
-                  : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-              $projectIndexUrl          = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-              $projectIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-              $projectIndexLinkId       = 'project-index-back-link';
-              $projectIndexTitle        = __('Back');
-          @endphp
+              try {
+                  $projectIndexBaseName     = ViewsConstants::PRJ.'.index';
+                  $projectIndexKebabName    = Str::kebab($projectIndexBaseName);
+                  $projectIndexResolvedName = Route::has($projectIndexBaseName)
+                      ? $projectIndexBaseName
+                      : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+                  $projectIndexUrl          = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+                  $projectIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+                  $projectIndexLinkId       = 'project-index-back-link';
+                  $projectIndexTitle        = __('Back');
+              } catch (\Throwable $e) {
+                  \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+              }
+@endphp
           <a href="{{ $projectIndexUrl }}"
             id="{{ $projectIndexLinkId }}"
             class="{{ VC::BT_SM_PM }}"
             data-url="{{ $projectIndexUrl }}"
-            data-guard-msg="{{ $projectIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
             data-bs-toggle="tooltip"
             title="{{ $projectIndexTitle }}">
               <span class="btn-inner--icon">
@@ -464,28 +428,7 @@
                                   if (href !== '#' || url !== '#') return;
                                   e.preventDefault();
                                   const msg = l.getAttribute('data-guard-msg') || 'Open project index route is unavailable. Please contact technical support or your domain administrator.';
-                                  const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                  let container = document.getElementById('toast-container');
-                                  if (!container) {
-                                      container = document.createElement('div');
-                                      container.id = 'toast-container';
-                                      document.body.appendChild(container);
-                                  }
-                                  if (hasBootstrap) {
-                                      const toast = document.createElement('div');
-                                      toast.className = 'toast';
-                                      toast.setAttribute('role', 'alert');
-                                      toast.setAttribute('aria-live', 'assertive');
-                                      toast.setAttribute('aria-atomic', 'true');
-                                      const body = document.createElement('div');
-                                      body.className = 'toast-body';
-                                      body.textContent = msg;
-                                      toast.appendChild(body);
-                                      container.appendChild(toast);
-                                      bootstrap.Toast.getOrCreateInstance(toast).show();
-                                  } else {
-                                      alert(msg);
-                                  }
+                                  (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                   l.setAttribute('data-failed-route', 'true');
                               } catch (err) {}
                           });
@@ -498,43 +441,47 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-12">
+        <div class="{{ VC::C12 }}">
             <div class="card">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="row">
                         @if(isset($bugs) && (is_countable($bugs) && count($bugs) > 0 || $bugs instanceof Collection && $bugs->count() > 0))
                             @foreach($bugs as $bug)
                                 @if(isset($bug) && is_object($bug))
-                                    <div class="col-md-4 col-lg-3">
+                                    <div class="{{ VC::CM4 }} {{ VC::CL3 }}">
                                         <div
                                             id="{{ data_get($bug, 'id', 'bug-' . uniqid()) }}"
                                             class="{{ VC::CD }} {{ VC::BD }} {{ VC::SNN }} card-progress"
-                                            style="{{ !empty(data_get($bug, 'priority_color')) 
+                                            style="{{ !empty(data_get($bug, 'priority_color'))
                                                 ? 'border-left: 2px solid ' . e(data_get($bug, 'priority_color')) . ' !important'
                                                 : '' }}"
                                         >
-                                            <div class="card-body">
+                                            <div class="{{ VC::CD_BD }}">
                                                 <div>
                                                     <div class="mb-2 {{ VC::DFL_AIC_JCB }}">
                                                         <span>
                                                             @if(isset($bug->project_id) && !empty($bug->project_id))
                                                               @php
-                                                                  $bugKanbanBaseName     = ViewsConstants::PRJ_TSK_BUG.'.kanban';
-                                                                  $bugKanbanKebabName    = Str::kebab($bugKanbanBaseName);
-                                                                  $bugKanbanResolvedName = Route::has($bugKanbanBaseName)
-                                                                      ? $bugKanbanBaseName
-                                                                      : (Route::has($bugKanbanKebabName) ? $bugKanbanKebabName : null);
-                                                                  $projectId             = isset($bug) && !empty($bug->project_id) ? $bug->project_id : null;
-                                                                  $bugKanbanUrl          = ($bugKanbanResolvedName && $projectId) ? route($bugKanbanResolvedName, $projectId) : '#';
-                                                                  $bugKanbanGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'access_bug_kanban_route_unavailable') ?? 'Access bug kanban route is unavailable. Please contact technical support or your domain administrator.';
-                                                                  $bugKanbanLinkId       = 'project-bug-kanban-link-'.($projectId ?? 'x');
-                                                                  $bugTitle              = e(data_get($bug, 'title', __('Untitled Bug')));
-                                                              @endphp
+                                                                  try {
+                                                                      $bugKanbanBaseName     = ViewsConstants::PRJ_TSK_BUG.'.kanban';
+                                                                      $bugKanbanKebabName    = Str::kebab($bugKanbanBaseName);
+                                                                      $bugKanbanResolvedName = Route::has($bugKanbanBaseName)
+                                                                          ? $bugKanbanBaseName
+                                                                          : (Route::has($bugKanbanKebabName) ? $bugKanbanKebabName : null);
+                                                                      $projectId             = isset($bug) && !empty($bug->project_id) ? $bug->project_id : null;
+                                                                      $bugKanbanUrl          = ($bugKanbanResolvedName && $projectId) ? route($bugKanbanResolvedName, $projectId) : '#';
+                                                                      $bugKanbanGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'access_bug_kanban_route_unavailable') ?? 'Access bug kanban route is unavailable. Please contact technical support or your domain administrator.';
+                                                                      $bugKanbanLinkId       = 'project-bug-kanban-link-'.($projectId ?? 'x');
+                                                                      $bugTitle              = e(data_get($bug, 'title', __('Untitled Bug')));
+                                                                  } catch (\Throwable $e) {
+                                                                      \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                  }
+@endphp
                                                               <a href="{{ $bugKanbanUrl }}"
                                                                 id="{{ $bugKanbanLinkId }}"
                                                                 class="text-body {{ VC::H6 }}"
                                                                 data-url="{{ $bugKanbanUrl }}"
-                                                                data-guard-msg="{{ $bugKanbanGuardMsg }}">
+                                                                data-guard-msg="{{ base64_encode($bugKanbanGuardMsg) }}">
                                                                   {{ $bugTitle }}
                                                               </a>
                                                               @push(StacksConstants::ADM_SCR_PG)
@@ -551,28 +498,7 @@
                                                                                       if (href !== '#' || url !== '#') return;
                                                                                       e.preventDefault();
                                                                                       const msg = l.getAttribute('data-guard-msg') || 'Access bug kanban route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                      const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                      let container = document.getElementById('toast-container');
-                                                                                      if (!container) {
-                                                                                          container = document.createElement('div');
-                                                                                          container.id = 'toast-container';
-                                                                                          document.body.appendChild(container);
-                                                                                      }
-                                                                                      if (hasBootstrap) {
-                                                                                          const toast = document.createElement('div');
-                                                                                          toast.className = 'toast';
-                                                                                          toast.setAttribute('role', 'alert');
-                                                                                          toast.setAttribute('aria-live', 'assertive');
-                                                                                          toast.setAttribute('aria-atomic', 'true');
-                                                                                          const body = document.createElement('div');
-                                                                                          body.className = 'toast-body';
-                                                                                          body.textContent = msg;
-                                                                                          toast.appendChild(body);
-                                                                                          container.appendChild(toast);
-                                                                                          bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                      } else {
-                                                                                          alert(msg);
-                                                                                      }
+                                                                                      (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                       l.setAttribute('data-failed-route', 'true');
                                                                                   } catch (err) {}
                                                                               });
@@ -587,14 +513,18 @@
                                                             @endif
                                                         </span>
                                                         @php
-                                                            $priority = data_get($bug, 'priority');
-                                                            $priorityClasses = [
-                                                                'low' => 'bg-success',
-                                                                'medium' => 'bg-warning', 
-                                                                'high' => 'bg-danger'
-                                                            ];
-                                                            $priorityClass = data_get($priorityClasses, $priority, 'bg-secondary');
-                                                        @endphp
+                                                            try {
+                                                                $priority = data_get($bug, 'priority');
+                                                                $priorityClasses = [
+                                                                    'low' => 'bg-success',
+                                                                    'medium' => 'bg-warning',
+                                                                    'high' => 'bg-danger'
+                                                                ];
+                                                                $priorityClass = data_get($priorityClasses, $priority, 'bg-secondary');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         @if(!empty($priority) && in_array($priority, ['low', 'medium', 'high']))
                                                             <span class="{{ VC::BDG }} {{ $priorityClass }} p-2 px-3 rounded">
                                                                 {{ e(ucfirst($priority)) }}
@@ -609,28 +539,33 @@
                                                         </p>
                                                         <p class="{{ VC::MB0 }}">
                                                             @if(method_exists($bug, 'users'))
-                                                                @php 
+                                                                @php
+
                                                                     try {
                                                                         $users = $bug->users();
                                                                         $users = Utility::isFilled($users ?? []) ? $users : [];
                                                                     } catch (\Exception $e) {
                                                                         $users = [];
                                                                     }
-                                                                @endphp
+@endphp
                                                                 @if(!empty($users) && (is_array($users) || (is_object($users) && method_exists($users, 'count') && $users->count() > 0)))
                                                                     <a href="#" class="btn {{ VC::MS2 }} p-0 {{ VC::AV_CC_SM }}">
                                                                         @foreach($users as $user)
                                                                             @if(isset($user) && is_object($user))
                                                                                 @php
-                                                                                    $avatar = data_get($user, 'avatar');
-                                                                                    $avatarPath = !empty($avatar) && Storage::exists("uploads/avatar/{$avatar}")
-                                                                                        ? asset(Storage::url("uploads/avatar/{$avatar}"))
-                                                                                        : asset(Storage::url("uploads/avatar/avatar.png"));
-                                                                                @endphp
+                                                                                    try {
+                                                                                        $avatar = data_get($user, 'avatar');
+                                                                                        $avatarPath = !empty($avatar) && Storage::exists("uploads/avatar/{$avatar}")
+                                                                                            ? asset(Storage::url("uploads/avatar/{$avatar}"))
+                                                                                            : asset(Storage::url("uploads/avatar/avatar.png"));
+                                                                                    } catch (\Throwable $e) {
+                                                                                        \Log::error('projects/all_bug_grid_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                    }
+@endphp
                                                                                 <img
                                                                                     src="{{ $avatarPath }}"
                                                                                     class="{{ VC::AV_CC_SM }}"
-                                                                                    width="25" 
+                                                                                    width="25"
                                                                                     height="25"
                                                                                     alt="{{ e(data_get($user, 'name', __('Anonymous User'))) }}"
                                                                                     onerror='this.src="{{ asset(Storage::url("uploads/avatar/avatar.png")) }}"'
@@ -654,7 +589,7 @@
                                                                         } catch (Exception $e) {
                                                                             $formattedStartDate = !empty($startDate) ? e($startDate) : '-';
                                                                         }
-                                                                    @endphp
+@endphp
                                                                     {{ $formattedStartDate }}
                                                                 @else
                                                                     {{ e(data_get($bug, 'start_date', __('No start date could be found.'))) }}
@@ -672,7 +607,7 @@
                                                                         } catch (Exception $e) {
                                                                             $formattedDueDate = !empty($dueDate) ? e($dueDate) : '-';
                                                                         }
-                                                                    @endphp
+@endphp
                                                                     {{ $formattedDueDate }}
                                                                 @else
                                                                     {{ e(data_get($bug, 'due_date', __('No due date could be found.'))) }}
@@ -687,8 +622,8 @@
                                 @endif
                             @endforeach
                         @else
-                            <div class="col-md-12">
-                                <h6 class="text-center m-3">{{ __('No tasks found') }}</h6>
+                            <div class="{{ VC::CM12 }}">
+                                <h6 class="{{ VC::TXCT }} m-3">{{ __('No tasks found') }}</h6>
                             </div>
                         @endif
                     </div>

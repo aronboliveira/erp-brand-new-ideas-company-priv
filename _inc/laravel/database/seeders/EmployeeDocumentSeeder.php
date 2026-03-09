@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 
 final class EmployeeDocumentSeeder extends Seeder
 {
-	private const SECONDS_LIMIT = 2 * 10 ** 2;
+	// private const SECONDS_LIMIT = 2 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$faker = fake('pt_BR');
@@ -98,7 +99,10 @@ final class EmployeeDocumentSeeder extends Seeder
 				if ($n === 0) return null;
 				return collect($pool)->shuffle()->take($n)->implode(',');
 			};
+			$HARD_CAP = 2;
+			$created = 0;
 			foreach ($employeeIds as $empId) {
+				if ($created >= $HARD_CAP) break;
 				$take = 1;
 				$pickedDocs = collect($documentIds)->shuffle()->take($take)->all();
 				foreach ($pickedDocs as $docId) {
@@ -130,8 +134,8 @@ final class EmployeeDocumentSeeder extends Seeder
 						$editors   = $makeCsvFromPool($userIds, 0, 2);
 						$executors = $makeCsvFromPool($userIds, 0, 1);
 
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
+						// 						(new \Symfony\Component\Console\Output\ConsoleOutput
+						// 						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
 						$m = new EDoc();
 						$m->id                       = $id;
 						$m->{UC::COL_EMP_ID}         = $empId;
@@ -155,18 +159,20 @@ final class EmployeeDocumentSeeder extends Seeder
 						$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 						$m->save();
+						$created++;
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;
 					}
 				}
 			}
-			$cap = 1600;
+			$cap = 2; /* original: 1600 */
 			foreach ($employeeIds as $empId) {
+				if ($created >= $HARD_CAP) break;
 				if (!$cap || $cap <= 0)
 					break;
 				$cap--;
-				$take = random_int(1, 3);
+				$take = 1; /* original: random_int(1, 3) */
 				$pickedDocs = collect($documentIds)->shuffle()->take($take)->all();
 
 				foreach ($pickedDocs as $docId) {
@@ -198,8 +204,8 @@ final class EmployeeDocumentSeeder extends Seeder
 						$editors   = $makeCsvFromPool($userIds, 0, 2);
 						$executors = $makeCsvFromPool($userIds, 0, 1);
 
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
+						// 						(new \Symfony\Component\Console\Output\ConsoleOutput
+						// 						)->writeln("Criando Documento {$kind} [{$mime}] para Funcionário: {$empId} - {$docId}");
 						$m = new EDoc();
 						$m->id                       = $id;
 						$m->{UC::COL_EMP_ID}         = $empId;
@@ -223,6 +229,7 @@ final class EmployeeDocumentSeeder extends Seeder
 						$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 						$m->save();
+						$created++;
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;

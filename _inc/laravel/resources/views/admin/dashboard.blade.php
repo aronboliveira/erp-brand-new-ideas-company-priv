@@ -1,18 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        ProjectsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\{Project, ProjectTask, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -20,21 +12,21 @@
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM || 
+    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM ||
         $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
         <div class="bg-neutral rounded-pill d-inline-block">
             <div class="input-group input-group-sm input-group-merge input-group-flush">
                 <div class="input-group-prepend">
                     <span class="{{ ViewClassNamesConstants::TXTS_TRP }}"><i class="{{ ViewClassNamesConstants::TI_SRC }}"></i></span>
                 </div>
-                <input type="text" id="keyword" class="form-control form-control-flush" placeholder="{{__('Search by Name or skill')}}">
+                <input type="text" id="keyword" class="{{ VC::FM_CT }} form-control-flush" placeholder="{{__('Search by Name or skill')}}">
             </div>
         </div>
     @endif
 @endsection
 
 @push('theme-script')
-    @if($user[UsersConstants::COL_TP] != PermissionsConstants::ADM || 
+    @if($user[UsersConstants::COL_TP] != PermissionsConstants::ADM ||
         $user[UsersConstants::COL_TP] != PermissionsConstants::SA)
         <script src="{{ asset('assets/libs/dragula/dist/dragula.min.js') }}"></script>
         <script src="{{ asset('assets/libs/apexcharts/dist/apexcharts.min.js') }}"></script>
@@ -42,50 +34,54 @@
 @endpush
 
 @section(YieldingConstants::ADM_CTT)
-    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM || 
+    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM ||
         $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
         <div class="row" id="dashboard_view"></div>
     @else
         <div class="row">
             @php
-                $stats = [
-                    [
-                        'label'      => __('Total Projects'),
-                        'total'      => $home_data['total_project']['total'],
-                        'percentage' => $home_data['total_project']['percentage'],
-                        'color'      => 'primary',
-                    ],
-                    [
-                        'label'      => __('Total Tasks'),
-                        'total'      => $home_data['total_task']['total'],
-                        'percentage' => $home_data['total_task']['percentage'],
-                        'color'      => 'info',
-                    ],
-                    [
-                        'label'      => __('Total Expense'),
-                        'total'      => $home_data['total_expense']['total'],
-                        'percentage' => $home_data['total_expense']['percentage'],
-                        'color'      => 'warning',
-                    ],
-                    [
-                        'label'      => __('Total Users'),
-                        'total'      => $home_data['total_user'],
-                        'percentage' => null,  {{-- no circle --}}
-                        'color'      => null,
-                    ],
-                ];
-            @endphp
+                try {
+                    $stats = [
+                        [
+                            'label'      => __('Total Projects'),
+                            'total'      => $home_data['total_project']['total'],
+                            'percentage' => $home_data['total_project']['percentage'],
+                            'color'      => 'primary',
+                        ],
+                        [
+                            'label'      => __('Total Tasks'),
+                            'total'      => $home_data['total_task']['total'],
+                            'percentage' => $home_data['total_task']['percentage'],
+                            'color'      => 'info',
+                        ],
+                        [
+                            'label'      => __('Total Expense'),
+                            'total'      => $home_data['total_expense']['total'],
+                            'percentage' => $home_data['total_expense']['percentage'],
+                            'color'      => 'warning',
+                        ],
+                        [
+                            'label'      => __('Total Users'),
+                            'total'      => $home_data['total_user'],
+                            'percentage' => null,  /* no circle */
+                            'color'      => null,
+                        ],
+                    ];
+                } catch (\Throwable $e) {
+                    \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             @foreach($stats as $stat)
-                <div class="col-xl-3 col-md-6">
+                <div class="{{ VC::CXL3 }} {{ VC::CM6 }}">
                     <div class="card card-stats">
-                        <div class="card-body">
-                            <div class="row align-items-center">
+                        <div class="{{ VC::CD_BD }}">
+                            <div class="{{ VC::R_ALC }}">
                                 <div class="col">
-                                    <h6 class="text-muted mb-1">{{ $stat['label'] }}</h6>
-                                    <span class="h3 font-weight-bold mb-0">{{ $stat['total'] }}</span>
+                                    <h6 class="{{ VC::TXT_MT }} {{ VC::MB1 }}">{{ $stat['label'] }}</h6>
+                                    <span class="h3 font-weight-bold {{ VC::MB0 }}">{{ $stat['total'] }}</span>
                                 </div>
                                 @if($stat['percentage'] !== null)
-                                    <div class="col-auto">
+                                    <div class="{{ VC::C_AT }}">
                                         <div
                                             class="progress-circle progress-sm"
                                             data-progress="{{ $stat['percentage'] }}"
@@ -101,36 +97,36 @@
             @endforeach
         </div>
         <div class="row">
-            <div class="col-xl-12 col-md-12">
+            <div class="{{ VC::CXL12 }} {{ VC::CM12 }}">
                 <div class="{{ ViewClassNamesConstants::CD_FL }}">
-                    <div class="card-header">
-                        <h6 class="mb-0">{{__('Tasks Overview')}}</h6>
-                        <small class="text-muted">{{__('Total Completed task in last 7 days')}}</small>
+                    <div class="{{ VC::CD_HD }}">
+                        <h6 class="{{ VC::MB0 }}">{{__('Tasks Overview')}}</h6>
+                        <small class="{{ VC::TXT_MT }}">{{__('Total Completed task in last 7 days')}}</small>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div id="task_overview" data-color="primary" data-height="280"></div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+            <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM4 }} {{ VC::CL4 }}">
                 <div class="{{ ViewClassNamesConstants::CD_FL }}">
-                    <div class="card-header">
-                        <h6 class="mb-0">{{__('Project Status')}}</h6>
+                    <div class="{{ VC::CD_HD }}">
+                        <h6 class="{{ VC::MB0 }}">{{__('Project Status')}}</h6>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @foreach($home_data['project_status'] as $status => $val)
                             <div class="{{ ViewClassNamesConstants::R_ALC_M4 }}">
-                                <div class="col-auto">
+                                <div class="{{ VC::C_AT }}">
                                     <div class="progress-circle progress-sm" data-progress="{{$val['percentage']}}" data-color="{{ Project::$status_color[$status] }}"></div>
                                 </div>
                                 <div class="col">
-                                    <span class="d-block h6 mb-0">{{__(Project::$project_status[$status])}}</span>
+                                    <span class="{{ VC::DBL }} h6 {{ VC::MB0 }}">{{__(Project::$project_status[$status])}}</span>
                                 </div>
                             </div>
                         @endforeach
-                        <div class="d-flex my-1 text-center">
+                        <div class="{{ VC::DFL }} my-1 {{ VC::TXCT }}">
                             @foreach($home_data['project_status'] as $status => $val)
                                 <div class="col">
                             <span class="badge badge-dot badge-lg h6">
@@ -142,12 +138,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-8">
+            <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL8 }}">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ ViewClassNamesConstants::DFL_AIC_JCB }}">
                             <div>
-                                <h6 class="mb-0">{{__('Top Due Projects')}}</h6>
+                                <h6 class="{{ VC::MB0 }}">{{__('Top Due Projects')}}</h6>
                             </div>
                         </div>
                     </div>
@@ -157,16 +153,20 @@
                                 @if($home_data['due_project']->count() > 0)
                                 @foreach($home_data['due_project'] as $due_project)
                                     @php
-                                        $showRoute = Route::has(ViewsConstants::PRJ.'.show')
-                                            ? route(ViewsConstants::PRJ.'.show', $due_project)
-                                            : '#';
-                                        $linkId = 'due-project-link-'.$due_project->id;
-                                        $message = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::PRJ,
-                                            'show_project_route_unavailable'
-                                        ) ?? 'Project view route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $showRoute = Route::has(ViewsConstants::PRJ.'.show')
+                                                ? route(ViewsConstants::PRJ.'.show', $due_project)
+                                                : '#';
+                                            $linkId = 'due-project-link-'.$due_project->id;
+                                            $message = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::PRJ,
+                                                'show_project_route_unavailable'
+                                            ) ?? 'Project view route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <a
                                         id="{{ $linkId }}"
                                         href="#"
@@ -178,14 +178,14 @@
                                             <div>
                                                 <img {{ $due_project->img_image }} class="{{ ViewClassNamesConstants::AV_CC }}" />
                                             </div>
-                                            <div class="flex-fill pl-3 text-limit">
+                                            <div class="flex-fill pl-3 {{ VC::TX_LM }}">
                                                 <div class="row">
-                                                    <div class="col-9">
+                                                    <div class="{{ VC::C9 }}">
                                                         <h6 class="{{ ViewClassNamesConstants::PG_SM_BL }}">
                                                             {{ $due_project->name }}
                                                         </h6>
                                                     </div>
-                                                    <div class="col-3 text-end">
+                                                    <div class="{{ VC::C3 }} {{ VC::TX_END }}">
                                                         <span class="{{ ViewClassNamesConstants::BDG_XS }} {{ ViewClassNamesConstants::BDG }}-{{ ($user->checkProject($due_project->id) === 'Owner') ? ProjectsConstants::STT_SCS : ProjectsConstants::STT_WRN }}">
                                                             {{ $user?->checkProject($due_project->id) }}
                                                         </span>
@@ -237,7 +237,7 @@
                                                                     .replace(/_/g, '-');
                                                                 langCode = langCode === 'pt-br' ? langCode : langCode.slice(0, 2);
                                                                 msg = window.translations?.[langCode]?.['show_project_unavailable'] || msg;
-                                                                if (msg !== '# ERROR') {
+                                                                if (msg !== '') {
                                                                     el.setAttribute(dataGuardMsg, msg);
                                                                     el.setAttribute(dataClientLocalized, 'true');
                                                                 }
@@ -263,7 +263,7 @@
                                                                 container.appendChild(toastEl);
                                                                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                             } else {
-                                                                alert(msg);
+                                                                if (msg) console.warn("[Dashboard]", msg);
                                                             }
                                                             el.setAttribute('data-failed-route', 'true');
                                                         }
@@ -282,7 +282,7 @@
                                 @endforeach
                                 @else
                                     <div class="py-5">
-                                        <h6 class="text-center mb-0">{{__('No Due Projects Found.')}}</h6>
+                                        <h6 class="{{ VC::TXCT }} {{ VC::MB0 }}">{{__('No Due Projects Found.')}}</h6>
                                     </div>
                                 @endif
                             </div>
@@ -292,36 +292,40 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="{{ VC::C12 }}">
                 <div class="{{ ViewClassNamesConstants::CD_FL }}">
-                    <div class="card-header">
-                        <h6 class="mb-0">{{__('Timesheet Logged Hours')}}</h6>
-                        <small class="text-muted">{{__('Last 7 days')}}</small>
+                    <div class="{{ VC::CD_HD }}">
+                        <h6 class="{{ VC::MB0 }}">{{__('Timesheet Logged Hours')}}</h6>
+                        <small class="{{ VC::TXT_MT }}">{{__('Last 7 days')}}</small>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div id="timesheet_logged" data-color="primary" data-height="410"></div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-xl-8 col-md-8">
+            <div class="col-xl-8 {{ VC::CM8 }}">
                 <div class="{{ ViewClassNamesConstants::CD_FL }}">
-                    <div class="card-header border-0">
-                        <h6 class="mb-0">{{__('Top Due Tasks')}}</h6>
+                    <div class="{{ VC::CD_HD }} border-0">
+                        <h6 class="{{ VC::MB0 }}">{{__('Top Due Tasks')}}</h6>
                     </div>
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ ViewClassNamesConstants::TB_AL }}">
                             <thead>
                             <tr>
                                 @php
-                                    $columns = [
-                                        ['key' => 'name',       'label' => __('Tasks')],
-                                        ['key' => 'budget',     'label' => __('Project')],
-                                        ['key' => 'status',     'label' => __('Stage')],
-                                        ['key' => 'completion', 'label' => __('Completion')],
-                                    ];
-                                @endphp
+                                    try {
+                                        $columns = [
+                                            ['key' => 'name',       'label' => __('Tasks')],
+                                            ['key' => 'budget',     'label' => __('Project')],
+                                            ['key' => 'status',     'label' => __('Stage')],
+                                            ['key' => 'completion', 'label' => __('Completion')],
+                                        ];
+                                    } catch (\Throwable $e) {
+                                        \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 @foreach($columns as $col)
                                     <th scope="col" class="sort" data-sort="{{ $col['key'] }}">
                                         {{ $col['label'] }}
@@ -332,16 +336,20 @@
                             <tbody class="list">
                                 @foreach($home_data['due_tasks'] as $due_task)
                                     @php
-                                        $chainRoute = Route::has(ViewsConstants::PRJ_TSK_C.'.index')
-                                            ? route(ViewsConstants::PRJ_TSK_C.'.index', $due_task->project->id)
-                                            : '#';
-                                        $linkId = 'due-task-link-'.$due_task->id;
-                                        $message = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::PRJ,
-                                            'project_task_route_unavailable'
-                                        ) ?? 'Project task route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $chainRoute = Route::has(ViewsConstants::PRJ_TSK_C.'.index')
+                                                ? route(ViewsConstants::PRJ_TSK_C.'.index', $due_task->project->id)
+                                                : '#';
+                                            $linkId = 'due-task-link-'.$due_task->id;
+                                            $message = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::PRJ,
+                                                'project_task_route_unavailable'
+                                            ) ?? 'Project task route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <th scope="row">
                                             <div class="{{ ViewClassNamesConstants::MD_AIC }}">
@@ -367,7 +375,7 @@
                                         </td>
                                         <td>
                                             <div class="{{ ViewClassNamesConstants::DFL_AIC }}">
-                                                <span class="completion mr-2">{{ $due_task->taskProgress($due_task)['percentage'] }}</span>
+                                                <span class="completion {{ VC::MR2 }}">{{ $due_task->taskProgress($due_task)['percentage'] }}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -404,8 +412,8 @@
                                                                     window.translations?.[langCode]?.['index_project_task_chain_unavailable'] ||
                                                                     el.getAttribute(dataGuardMsg) ||
                                                                     window.translations?.['en']?.['index_project_task_chain_unavailable'] ||
-                                                                    '# ERROR';
-                                                                if (msg !== '# ERROR') {
+                                                                    '';
+                                                                if (msg !== '') {
                                                                     el.setAttribute(dataGuardMsg, msg);
                                                                     el.setAttribute(dataClientLocalized, 'true');
                                                                 }
@@ -431,7 +439,7 @@
                                                                 container.appendChild(toastEl);
                                                                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                             } else {
-                                                                alert(msg);
+                                                                if (msg) console.warn("[Dashboard]", msg);
                                                             }
                                                             el.setAttribute('data-failed-route', 'true');
                                                         }
@@ -453,14 +461,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-4 col-md-4">
+            <div class="{{ VC::CXL4 }} {{ VC::CM4 }}">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ ViewClassNamesConstants::DFL_AIC_JCB }}">
                             <div>
-                                <h6 class="mb-0">{{__('To do list')}}</h6>
+                                <h6 class="{{ VC::MB0 }}">{{__('To do list')}}</h6>
                             </div>
-                            <div class="text-end">
+                            <div class="{{ VC::TX_END }}">
                                 <div class="actions">
                                     <div data-toggle="collapse" data-target="#form-todo">
                                         <a class="action-item">
@@ -476,15 +484,19 @@
                         <div class="mh-350 min-h-350">
                             <div class="card-wrapper p-3">
                                 @php
-                                    $storeRoute = Route::has(ViewsConstants::TD.'.store')
-                                        ? route(ViewsConstants::TD.'.store')
-                                        : '#';
-                                    $message = Utility::fetchLinkMessage(
-                                        $lang,
-                                        ViewsConstants::PRJ,
-                                        'store_todo_route_unavailable'
-                                    ) ?? 'Todo creation route is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
+                                    try {
+                                        $storeRoute = Route::has(ViewsConstants::TD.'.store')
+                                            ? route(ViewsConstants::TD.'.store')
+                                            : '#';
+                                        $message = Utility::fetchLinkMessage(
+                                            $lang,
+                                            ViewsConstants::PRJ,
+                                            'store_todo_route_unavailable'
+                                        ) ?? 'Todo creation route is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <form
                                     method="post"
                                     id="form-todo"
@@ -493,16 +505,16 @@
                                     data-url="{{ $storeRoute }}"
                                     action="{{ $storeRoute }}"
                                     data-sv-localized="true"
-                                    data-guard-msg="{{ $message }}"
+                                    data-guard-msg="{{ base64_encode($message) }}"
                                 >
                                     <div class="{{ ViewClassNamesConstants::CD_NSD }}">
                                         <div class="{{ ViewClassNamesConstants::R_ALC_SMPD }}">
-                                            <div class="col-9">
+                                            <div class="{{ VC::C9 }}">
                                                 <input
                                                     type="text"
                                                     name="title"
                                                     required
-                                                    class="form-control"
+                                                    class="{{ VC::FM_CT }}"
                                                     placeholder="{{ __('Todo Title') }}"
                                                 />
                                             </div>
@@ -521,7 +533,7 @@
                                 @push(StacksConstants::ADM_SCR_PG)
                                     <script defer>
                                         (() => {
-                                            const errFb = "# ERROR";
+                                            const errFb = "";
                                             const dataSVLocalized = "data-sv-localized";
                                             const dataClientLocalized = "data-client-localized";
                                             const dataGuardMsg = "data-guard-msg";
@@ -586,7 +598,7 @@
                                                             container.appendChild(toastEl);
                                                             bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                         } else {
-                                                            alert(message);
+                                                            if (message) console.warn("[Dashboard]", message);
                                                         }
                                                     }
                                                 } catch (error) {}
@@ -606,25 +618,29 @@
                                     @if($user?->todo->count() > 0)
                                         @foreach($user?->todo as $todo)
                                             @php
-                                                $updateRoute = Route::has(ViewsConstants::TD.'.update')
-                                                    ? route(ViewsConstants::TD.'.update', $todo->id)
-                                                    : '#';
-                                                $destroyRoute = Route::has(ViewsConstants::TD.'.destroy')
-                                                    ? route(ViewsConstants::TD.'.destroy', $todo->id)
-                                                    : '#';
-                                                $updateMessage = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::PRJ,
-                                                    'update_todo_route_unavailable'
-                                                ) ?? 'Todo update route is unavailable. Please contact technical support or your domain administrator.';
-                                                $destroyMessage = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::PRJ,
-                                                    'destroy_todo_route_unavailable'
-                                                ) ?? 'Todo delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                $inputId = 'todo-item-' . $todo->id;
-                                                $btnId = 'destroy-todo-' . $todo->id;
-                                            @endphp
+                                                try {
+                                                    $updateRoute = Route::has(ViewsConstants::TD.'.update')
+                                                        ? route(ViewsConstants::TD.'.update', $todo->id)
+                                                        : '#';
+                                                    $destroyRoute = Route::has(ViewsConstants::TD.'.destroy')
+                                                        ? route(ViewsConstants::TD.'.destroy', $todo->id)
+                                                        : '#';
+                                                    $updateMessage = Utility::fetchLinkMessage(
+                                                        $lang,
+                                                        ViewsConstants::PRJ,
+                                                        'update_todo_route_unavailable'
+                                                    ) ?? 'Todo update route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $destroyMessage = Utility::fetchLinkMessage(
+                                                        $lang,
+                                                        ViewsConstants::PRJ,
+                                                        'destroy_todo_route_unavailable'
+                                                    ) ?? 'Todo delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $inputId = 'todo-item-' . $todo->id;
+                                                    $btnId = 'destroy-todo-' . $todo->id;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('admin/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <div class="{{ ViewClassNamesConstants::CD_NSD }} todo-member mb-2">
                                                 <div class="{{ ViewClassNamesConstants::R_ALC_SMPD }}">
                                                     <div class="col-10">
@@ -635,7 +651,7 @@
                                                                 id="{{ $inputId }}"
                                                                 data-url="{{ $updateRoute }}"
                                                                 data-sv-localized="true"
-                                                                data-guard-msg="{{ $updateMessage }}"
+                                                                data-guard-msg="{{ base64_encode($updateMessage) }}"
                                                                 {{ ($todo[ProjectsConstants::COL_IS_CP] == 1) ? 'checked' : '' }}
                                                             />
                                                             <label
@@ -653,7 +669,7 @@
                                                             role="button"
                                                             data-url="{{ $destroyRoute }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $destroyMessage }}"
+                                                            data-guard-msg="{{ base64_encode($destroyMessage) }}"
                                                         >
                                                             <i class="{{ ViewClassNamesConstants::TI_TRS_ALT }}"></i>
                                                         </a>
@@ -663,7 +679,7 @@
                                             @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
-                                                        const errFb = "# ERROR";
+                                                        const errFb = "";
                                                         const dataSVLocalized = "data-sv-localized";
                                                         const dataClientLocalized = "data-client-localized";
                                                         const dataGuardMsg = "data-guard-msg";
@@ -730,7 +746,7 @@
                                                                             container.appendChild(toastEl);
                                                                             bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                                         } else {
-                                                                            alert(message);
+                                                                            if (message) console.warn("[Dashboard]", message);
                                                                         }
                                                                     }
                                                                 } catch (error) {}
@@ -767,7 +783,7 @@
                                                                             container.appendChild(toastEl);
                                                                             bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                                         } else {
-                                                                            alert(message);
+                                                                            if (message) console.warn("[Dashboard]", message);
                                                                         }
                                                                     } else {
                                                                         const form = document.createElement("form");
@@ -804,7 +820,7 @@
                                             @endpush
                                         @endforeach
                                     @else
-                                        <p class="h6 text-center">{{__('No Todo List Found !')}}</p>
+                                        <p class="h6 {{ VC::TXCT }}">{{__('No Todo List Found !')}}</p>
                                     @endif
                                 </div>
                             </div>
@@ -817,14 +833,14 @@
 @endsection
 
 @push('script')
-    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM || 
+    @if($user[UsersConstants::COL_TP] == PermissionsConstants::ADM ||
         $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
         <script defer>
             (() => {
-            const errFb = "# ERROR";
+            const errFb = "";
             const dataClientLocalized = "data-client-localized";
             const dataGuardMsg = "data-guard-msg";
-            
+
             const getLocalizedMessage = (el, msgKey) => {
                 let msg = errFb;
                 if (
@@ -853,7 +869,7 @@
                 }
                 return msg;
             };
-            
+
             const showErrorUI = (msg) => {
                 const bsLink = document.querySelector('link[href*="bootstrap"]');
                 if (bsLink && window.bootstrap?.Toast) {
@@ -866,24 +882,24 @@
                     toast.setAttribute("aria-live", "assertive");
                     toast.setAttribute("aria-atomic", "true");
                     toast.innerHTML = `
-                    <div class="d-flex">
+                    <div class="{{ VC::DFL }}">
                         <div class="toast-body">${msg}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>`;
                     document.body.appendChild(toast);
                     new bootstrap.Toast(toast).show();
                 }
                 } else {
-                alert(msg);
+                if (msg) console.warn("[Dashboard]", msg);
                 }
             };
-            
+
             document.addEventListener("DOMContentLoaded", () => {
                 const mainEle = document.querySelector("#dashboard_view");
                 if (!mainEle) return;
                 const url = "{{ route('dashboard.view') }}";
-            
+
                 const filterView = (keyword = "") => {
                 try {
                     if (!$?.ajax) throw new Error("jQuery AJAX unavailable");
@@ -907,17 +923,17 @@
                     ) console.error("jQuery or AJAX unavailable", e);
                 }
                 };
-            
+
                 filterView();
-            
+
                 const bindInput = (input) => {
                 if (input.dataset.filterBound) return;
                 input.addEventListener("keyup", () => filterView(input.value));
                 input.dataset.filterBound = "true";
                 };
-            
+
                 document.querySelectorAll("#keyword").forEach(bindInput);
-            
+
                 new MutationObserver((muts) => {
                 muts.forEach((m) =>
                     m.addedNodes.forEach(
@@ -931,10 +947,10 @@
     @else
         <script defer>
             (() => {
-            const errFb = "# ERROR";
+            const errFb = "";
             const dataClientLocalized = "data-client-localized";
             const dataGuardMsg = "data-guard-msg";
-            
+
             const getLocalizedMessage = (el, msgKey) => {
                 let msg = errFb;
                 if (
@@ -963,7 +979,7 @@
                 }
                 return msg;
             };
-            
+
             const showErrorUI = (msg) => {
                 const bsLink = document.querySelector('link[href*="bootstrap"]');
                 if (bsLink && window.bootstrap?.Toast) {
@@ -976,19 +992,19 @@
                     toast.setAttribute("aria-live", "assertive");
                     toast.setAttribute("aria-atomic", "true");
                     toast.innerHTML = `
-                    <div class="d-flex">
+                    <div class="{{ VC::DFL }}">
                         <div class="toast-body">${msg}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>`;
                     document.body.appendChild(toast);
                     new bootstrap.Toast(toast).show();
                 }
                 } else {
-                alert(msg);
+                if (msg) console.warn("[Dashboard]", msg);
                 }
             };
-            
+
             const handleAdd = (e) => {
                 e.preventDefault();
                 const form = document.querySelector("#form-todo");
@@ -1020,7 +1036,7 @@
                         "success"
                     );
                     const html = `
-                        <div class="card border shadow-none todo-member mb-2">
+                        <div class="{{ VC::CD_NSD }} todo-member {{ VC::MB2 }}">
                         <div class="{{ ViewClassNamesConstants::R_ALC_SMPD }}">
                             <div class="col-10">
                             <div class="{{ ViewClassNamesConstants::CST_CT_CB }}">
@@ -1041,7 +1057,7 @@
                                 class="action-item d-todo"
                                 role="button"
                                 data-url="${data.deleteUrl}">
-                                <i class="ti ti-trash-alt text-danger"></i>
+                                <i class="{{ VC::TI_TRS_ALT }}"></i>
                             </a>
                             </div>
                         </div>
@@ -1061,7 +1077,7 @@
                 showErrorUI(getLocalizedMessage(form, "todo_add_unavailable"));
                 }
             };
-            
+
             const handleToggle = (e) => {
                 const cb = e.target;
                 if (!(cb instanceof HTMLInputElement)) return;
@@ -1085,7 +1101,7 @@
                     showErrorUI(server ? `${base}: ${server}` : base);
                 });
             };
-            
+
             const handleDelete = (e) => {
                 e.preventDefault();
                 const btn = (e.target.closest(".d-todo") as HTMLElement) || e.target;
@@ -1111,7 +1127,7 @@
                     showErrorUI(server ? `${base}: ${server}` : base);
                 });
             };
-            
+
             const initCharts = () => {
                 if (!window.ApexCharts) throw new Error("ApexCharts missing");
                 const setup = (selector, series, categories, key) => {
@@ -1168,7 +1184,7 @@
                     );
                 }
                 };
-            
+
                 setup(
                 "#task_overview",
                 {!! json_encode(array_values($home_data['task_overview'])) !!},
@@ -1182,7 +1198,7 @@
                 "timesheet"
                 );
             };
-            
+
             document.addEventListener("DOMContentLoaded", () => {
                 if (!document.body.dataset.todoBound) {
                 document.addEventListener("click", (e) => {

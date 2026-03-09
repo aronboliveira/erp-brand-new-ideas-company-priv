@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Config\Constants\{
 	MessagesConstants as MC,
-	SupportsConstants as SC,
+	SupportsConstants as SPC,
 };
 use App\Enums\CaseStatus;
 use App\Models\{Support, SupportReply, User, Utility};
@@ -25,7 +25,7 @@ class SupportHelperService
 		if (!$user)
 			return 0;
 		$isEmployee = Utility::isEmployee($user);
-		$query = SupportReply::where(SC::COL_SPT_ID, $supportId)
+		$query = SupportReply::where(SPC::COL_SPT_ID, $supportId)
 			->where(MC::COL_IS_RD, 0);
 		return $isEmployee
 			? $query->where('user', '!=', $user->id)->count('id')
@@ -44,12 +44,12 @@ class SupportHelperService
 			$table = $support->getTable();
 
 			if (
-				!Schema::hasColumn($table, SC::COL_CLSD_BY) ||
-				!Schema::hasColumn($table, SC::COL_CLSD_AT)
+				!Schema::hasColumn($table, SPC::COL_CLSD_BY) ||
+				!Schema::hasColumn($table, SPC::COL_CLSD_AT)
 			)
 				return false;
 
-			$status = $support->getAttribute(SC::COL_STT_LB);
+			$status = $support->getAttribute(SPC::COL_STT_LB);
 
 			if (!($status instanceof CaseStatus) || !$status->isTerminal())
 				return false;
@@ -59,10 +59,10 @@ class SupportHelperService
 			if ($uid === '')
 				return false;
 
-			$support->setAttribute(SC::COL_CLSD_BY, $uid);
+			$support->setAttribute(SPC::COL_CLSD_BY, $uid);
 
-			if (empty($support->getAttribute(SC::COL_CLSD_AT)))
-				$support->setAttribute(SC::COL_CLSD_AT, now());
+			if (empty($support->getAttribute(SPC::COL_CLSD_AT)))
+				$support->setAttribute(SPC::COL_CLSD_AT, now());
 
 			return true;
 		} catch (\Throwable $e) {
@@ -93,7 +93,7 @@ class SupportHelperService
 			)
 		);
 
-		return $query->whereIn(SC::COL_STT_LB, array_values($activeCaseValues));
+		return $query->whereIn(SPC::COL_STT_LB, array_values($activeCaseValues));
 	}
 
 	/**
@@ -114,9 +114,9 @@ class SupportHelperService
 
 		if (!$isEmployee) {
 			$query->where(function ($q) use ($user) {
-				$q->where(SC::COL_USR, $user->id)
-					->orWhere(SC::COL_TKT_CR, $user->id)
-					->orWhere(SC::COL_ASG_TO, $user->id);
+				$q->where(SPC::COL_USR, $user->id)
+					->orWhere(SPC::COL_TKT_CR, $user->id)
+					->orWhere(SPC::COL_ASG_TO, $user->id);
 			});
 		}
 
@@ -133,7 +133,7 @@ class SupportHelperService
 		if (!$user)
 			return new Collection();
 
-		return Support::where(SC::COL_ASG_TO, $user->id)
+		return Support::where(SPC::COL_ASG_TO, $user->id)
 			->orderBy('created_at', 'desc')
 			->get();
 	}
@@ -148,7 +148,7 @@ class SupportHelperService
 		if (!$user)
 			return new Collection();
 
-		return Support::where(SC::COL_TKT_CR, $user->id)
+		return Support::where(SPC::COL_TKT_CR, $user->id)
 			->orderBy('created_at', 'desc')
 			->get();
 	}
@@ -168,9 +168,9 @@ class SupportHelperService
 		if ($isEmployee)
 			return true;
 
-		return $support->getAttribute(SC::COL_TKT_CR) === $user->id
-			|| $support->getAttribute(SC::COL_USR) === $user->id
-			|| $support->getAttribute(SC::COL_ASG_TO) === $user->id;
+		return $support->getAttribute(SPC::COL_TKT_CR) === $user->id
+			|| $support->getAttribute(SPC::COL_USR) === $user->id
+			|| $support->getAttribute(SPC::COL_ASG_TO) === $user->id;
 	}
 
 	/**
@@ -188,11 +188,11 @@ class SupportHelperService
 		if ($isEmployee)
 			return true;
 
-		$status = $support->getAttribute(SC::COL_STT_LB);
+		$status = $support->getAttribute(SPC::COL_STT_LB);
 		$isTerminal = $status instanceof CaseStatus && $status->isTerminal();
 
 		return !$isTerminal &&
-			$support->getAttribute(SC::COL_TKT_CR) === $user->id;
+			$support->getAttribute(SPC::COL_TKT_CR) === $user->id;
 	}
 
 	/**
@@ -208,6 +208,6 @@ class SupportHelperService
 		$isEmployee = Utility::isEmployee($user);
 
 		return $isEmployee ||
-			$support->getAttribute(SC::COL_TKT_CR) === $user->id;
+			$support->getAttribute(SPC::COL_TKT_CR) === $user->id;
 	}
 }

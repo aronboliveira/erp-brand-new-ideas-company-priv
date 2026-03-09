@@ -30,15 +30,18 @@ final class ClientDealSeeder extends Seeder
 				return;
 			}
 
+			$HARD_CAP = 24;
+			$created = 0;
 			foreach ($dealIds as $dealId) {
+				if ($created >= $HARD_CAP) break;
 				$count = random_int(2, 32);
 				if ($count === 0) continue;
 
 				$picked = collect($clientIds)->shuffle()->take($count)->all();
 
 				foreach ($picked as $clientId) {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Associação de Cliente para Acordo de Negócios: {$dealId} - Cliente: {$clientId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Associação de Cliente para Acordo de Negócios: {$dealId} - Cliente: {$clientId}");
 					try {
 						if (Cld::where('deal_id', $dealId)->where('client_id', $clientId)->exists()) {
 							continue; // * evita violar UNIQUE(deal_id, client_id)
@@ -54,6 +57,7 @@ final class ClientDealSeeder extends Seeder
 						$cd->{DC::COL_TABLE_CREATOR} = $systemUserId;
 						$cd->setAttribute(DC::COL_TABLE_UPDATER, null);
 						$cd->save();
+						$created++;
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;

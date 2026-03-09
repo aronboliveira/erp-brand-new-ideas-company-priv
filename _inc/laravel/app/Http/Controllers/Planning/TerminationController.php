@@ -1,14 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants
-};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, SettingsConstants as SC, UsersConstants as UC, ViewsConstants as VW};
 use App\Models\{
     Employee,
     Termination,
@@ -19,36 +15,45 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class TerminationController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = ViewsConstants::TMN . '.index';
+    private const REDIRECT_INDEX = VW::TMN . '.index';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): View|RedirectResponse|null
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::TMN . '.index';
+        $view   = VW::TMN . '.index';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_TRM, self::REDIRECT_INDEX)) !== true) {
+            if (($redirect = self::guard($request, PMC::MNG_TRM, self::REDIRECT_INDEX)) !== true) {
                 return $redirect;
             }
 
-            Log::info("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$action called", [UC::COL_USER_ID => $user?->id]);
 
             try {
                 $creatorId = $user?->creatorId();
                 $query = Termination::with(['termination_type', 'employee'])
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
+                    ->where(DC::COL_TABLE_CREATOR, $creatorId);
 
-                if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
-                    $emp = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->first();
-                    $query->where(UsersConstants::COL_EMP_ID, $emp->id);
+                if (strtolower($user[UC::COL_TP]) === 'employee') {
+                    $emp = Employee::where(UC::COL_USER_ID, $user?->id)->first();
+                    $query->where(UC::COL_EMP_ID, $emp->id);
                 }
 
                 $terminations = $query->get();
@@ -61,7 +66,7 @@ class TerminationController extends Controller
                 return view($view, compact('terminations'));
             } catch (\Throwable $e) {
                 Log::error("$action failed", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
+                Log::channel(SC::ERR_TRACE)->debug("$action failed", [
                     'error' => $e->getMessage(),
                     'stack' => $e->getTraceAsString()
                 ]);
@@ -73,7 +78,7 @@ class TerminationController extends Controller
     public function create(Request $request): View|RedirectResponse|null
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::TMN . '.create';
+        $view   = VW::TMN . '.create';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -83,24 +88,24 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            Log::info("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$action called", [UC::COL_USER_ID => $user?->id]);
 
             $creatorId = $user?->creatorId();
-            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $employees = Employee::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $terminationtypes = TerminationType::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             }
 
-            return view($view, compact('employees', 'terminationTypes'));
+            return view($view, compact('employees', 'terminationtypes'));
         });
     }
 
     public function show(Request $request, Termination $termination): View|RedirectResponse|null
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::TMN . '.show';
+        $view   = VW::TMN . '.show';
 
         return $this->measureProfile($action, function () use ($request, $termination, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -110,11 +115,11 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
-            Log::info($action, ['terminationId' => $termination->id, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info($action, ['terminationId' => $termination->id, UC::COL_USER_ID => $user?->id]);
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
@@ -139,7 +144,7 @@ class TerminationController extends Controller
             Log::info("$action called", ['input' => $request->all()]);
 
             $validator = Validator::make($request->all(), [
-                UsersConstants::COL_EMP_ID => 'required',
+                UC::COL_EMP_ID => 'required',
                 'termination_type'         => 'required',
                 'notice_date'              => 'required|date',
                 'termination_date'         => 'required|date'
@@ -154,12 +159,12 @@ class TerminationController extends Controller
             try {
                 DB::transaction(function () use ($request, $user) {
                     Termination::create([
-                        UsersConstants::COL_EMP_ID => $request->employee_id,
+                        UC::COL_EMP_ID => $request->employee_id,
                         'termination_type'         => $request->termination_type,
                         'notice_date'              => $request->notice_date,
                         'termination_date'         => $request->termination_date,
                         'description'              => $request->description,
-                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                        DC::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                 });
 
@@ -168,7 +173,7 @@ class TerminationController extends Controller
                 $settings = Utility::settings();
                 if (!empty($settings['termination_sent'])) {
                     $termination = Termination::latest()
-                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                        ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                         ->first();
 
                     $emp = Employee::find($termination->employee_id);
@@ -205,7 +210,7 @@ class TerminationController extends Controller
                     ->with('success', __('Termination successfully created.'));
             } catch (\Throwable $e) {
                 Log::error("$action failed", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
+                Log::channel(SC::ERR_TRACE)->debug("$action failed", [
                     'error' => $e->getMessage(),
                     'stack' => $e->getTraceAsString()
                 ]);
@@ -217,7 +222,7 @@ class TerminationController extends Controller
     public function edit(Request $request, Termination $termination): View|RedirectResponse|null
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::TMN . '.edit';
+        $view   = VW::TMN . '.edit';
 
         return $this->measureProfile($action, function () use ($request, $termination, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -227,21 +232,21 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
             Log::info("$action called", ['terminationId' => $termination->id]);
 
             $creatorId = $user?->creatorId();
-            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $employees = Employee::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $terminationtypes = TerminationType::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             }
 
-            return view($view, compact('termination', 'employees', 'terminationTypes'));
+            return view($view, compact('termination', 'employees', 'terminationtypes'));
         });
     }
 
@@ -257,14 +262,14 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
             Log::info("$action called", ['terminationId' => $termination->id, 'input' => $request->all()]);
 
             $validator = Validator::make($request->all(), [
-                UsersConstants::COL_EMP_ID => 'required',
+                UC::COL_EMP_ID => 'required',
                 'termination_type'         => 'required',
                 'notice_date'              => 'required|date',
                 'termination_date'         => 'required|date',
@@ -279,7 +284,7 @@ class TerminationController extends Controller
             try {
                 DB::transaction(function () use ($request, $termination) {
                     $termination->update([
-                        UsersConstants::COL_EMP_ID => $request->employee_id,
+                        UC::COL_EMP_ID => $request->employee_id,
                         'termination_type'         => $request->termination_type,
                         'notice_date'              => $request->notice_date,
                         'termination_date'         => $request->termination_date,
@@ -293,7 +298,7 @@ class TerminationController extends Controller
                     ->route(self::REDIRECT_INDEX)
                     ->with('success', __('Termination successfully updated.'));
             } catch (\Throwable $e) {
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", ['error' => $e->getMessage()]);
+                Log::channel(SC::ERR_TRACE)->debug("$action failed", ['error' => $e->getMessage()]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
@@ -312,7 +317,7 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
@@ -326,22 +331,22 @@ class TerminationController extends Controller
                     ->route(self::REDIRECT_INDEX)
                     ->with('success', __('Termination successfully deleted.'));
             } catch (\Throwable $e) {
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", ['error' => $e->getMessage()]);
+                Log::channel(SC::ERR_TRACE)->debug("$action failed", ['error' => $e->getMessage()]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
     }
 
-    public function description(Request $request, int $id): View|RedirectResponse|null
+    public function description(Request $request, string|int $id): View|RedirectResponse|null
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::TMN . '.description';
+        $view   = VW::TMN . '.description';
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_TRM, self::REDIRECT_INDEX)) !== true) {
+            if (($redirect = self::guard($request, PMC::MNG_TRM, self::REDIRECT_INDEX)) !== true) {
                 return $redirect;
             }
 

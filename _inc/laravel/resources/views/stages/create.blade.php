@@ -1,18 +1,17 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-
-    $lang = Utility::fetchUserLang();
-    $formId = 'store-stage-form';
-    $stageCreateBaseName  = ViewsConstants::STG;
-    $stageCreateKebabName = Str::kebab($stageCreateBaseName);
-    $stageCreateResolved  = Route::has($stageCreateBaseName)
-        ? $stageCreateBaseName
-        : (Route::has($stageCreateKebabName) ? $stageCreateKebabName : null);
-    $stageCreateActionUrl = $stageCreateResolved ? route($stageCreateResolved) : '#';
-    $stageCreateGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::STG, 'store_stage_route_unavailable') ?? 'Store stage route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $formId = 'store-stage-form';
+        $stageCreateBaseName  = ViewsConstants::STG;
+        $stageCreateKebabName = Str::kebab($stageCreateBaseName);
+        $stageCreateResolved  = Route::has($stageCreateBaseName)
+            ? $stageCreateBaseName
+            : (Route::has($stageCreateKebabName) ? $stageCreateKebabName : null);
+        $stageCreateActionUrl = $stageCreateResolved ? route($stageCreateResolved) : '#';
+        $stageCreateGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::STG, 'store_stage_route_unavailable') ?? 'Store stage route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('stages/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

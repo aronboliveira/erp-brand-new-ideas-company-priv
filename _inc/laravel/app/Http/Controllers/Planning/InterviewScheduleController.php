@@ -1,266 +1,679 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    UsersConstants,
-    ViewsConstants as VW
-};
-use App\Models\{
-    Employee,
-    InterviewSchedule,
-    JobApplication,
-    JobStage,
-    User,
-    Utility
-};
-use App\Traits\{ChecksLogin, ChecksPermissions};
-use Illuminate\Http\{Request, RedirectResponse};
-use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, UsersConstants as UC, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
+use App\Models\{Employee, InterviewSchedule, JobApplication, JobStage, User, Utility};
+use App\Traits\{ChecksLogin, ChecksPermissions, ConsoleOutputs};
+use Illuminate\Database\QueryException;
+use Illuminate\Http\{RedirectResponse, Request};
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 class InterviewScheduleController extends Controller
 {
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, ConsoleOutputs;
+
     private const ENTITY = VW::ITV_SCD;
 
     public function index(Request $request): View|RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::ITV_SCD . '.' . $fn;
-        $routeShow = $cls . '::show';
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::ITV_SCD . '.' . $action;
+        $routeShow ??= __CLASS__ . '::show';
 
-        return $this->measureProfile($action, function () use ($request, $view, $action, $routeShow) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $viewPath, $routeShow) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $arrSchedule ??= '[]';
+            $transDate ??= now()->format('Y-m-d');
             try {
-                $transDate = now()->format('Y-m-d');
-                $schedules = InterviewSchedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $t = microtime(true);
+                $schedules = InterviewSchedule::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $arrSchedule = $schedules->map(fn($schedule) => [
-                    'id'        => $schedule->id,
-                    'title'     => $schedule->applications->jobs->title ?? '',
-                    'start'     => $schedule->date,
+                    'id' => $schedule->id,
+                    'title' => $schedule->applications->jobs->title ?? '',
+                    'start' => $schedule->date,
                     'className' => 'event-primary',
-                    'url'       => route($routeShow, $schedule->id),
+                    'url' => route($routeShow, $schedule->id),
                 ])->toJson();
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                return view($view, compact('arrSchedule', DatabaseConstants::TABLE_SCHEDULES, 'transDate'));
+                $this->logExecutionTime($t, $action . '::fetchSchedules', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('arrSchedule', DC::TABLE_SCHEDULES, 'transDate'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to list interview schedules: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function create(Request $request, string|int $candidate = ''): View|RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::ITV_SCD . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::ITV_SCD . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $candidate, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $candidate, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, PermissionsConstants::CR_ITV_SCHD, self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $employees ??= collect();
+            $candidates ??= collect();
+            $settings ??= [];
             try {
-                $user = $userOrRedirect;
-                $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-                    ->where(UsersConstants::COL_TP, class_basename(strtolower(Employee::class)))
+                if (($redirect = self::guard($request, PMC::CR_ITV_SCHD, self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                $t = microtime(true);
+                $employees = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->where(UC::COL_TP, class_basename(strtolower(Employee::class)))
                     ->orWhere('id', $user?->creatorId())
-                    ->pluck(UsersConstants::COL_NM, 'id')
-                    ->prepend('--', '');
-                $candidates = JobApplication::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->pluck(UC::COL_NM, 'id')
+                    ->prepend('--', '') ?? $employees;
+                $candidates = JobApplication::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id')
-                    ->prepend('--', '');
-                $settings = Utility::settings();
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                return view($view, compact(DatabaseConstants::TABLE_EMPLOYEES, 'candidates', 'candidate', DatabaseConstants::TABLE_SETTINGS));
+                    ->prepend('--', '') ?? $candidates;
+                $settings = Utility::settings() ?? $settings;
+                $this->logExecutionTime($t, $action . '::fetchFormData', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact(DC::TABLE_EMPLOYEES, 'candidates', 'candidate', DC::TABLE_SETTINGS));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to prepare create form: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function store(Request $request): RedirectResponse|null
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $action) {
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, PermissionsConstants::CR_ITV_SCHD, self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                $validator = Validator::make($request->all(), [
+                if (($redirect = self::guard($request, PMC::CR_ITV_SCHD, self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
                     'candidate' => 'required',
                     class_basename(strtolower(Employee::class)) => 'required',
-                    'date'      => 'required',
-                    'time'      => 'required',
-                ]);
-                if ($validator->fails()) {
-                    return defaultUndefinedException($request, new \Exception($validator->errors()->first()), $action, route(self::ENTITY . '.create'));
-                }
-                $user = $userOrRedirect;
-                $data = $validator->validated();
+                    'date' => 'required',
+                    'time' => 'required',
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
                 $createData = [];
-                foreach (['candidate', class_basename(strtolower(Employee::class)), 'date', 'time'] as $field) {
-                    $createData[$field] = $data[$field];
-                }
+                foreach (['candidate', class_basename(strtolower(Employee::class)), 'date', 'time'] as $field)
+                    $createData[$field] = $data[$field] ?? null;
                 $createData['comment'] = $request->comment ?? '';
-                $createData[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
+                $createData[DC::COL_TABLE_CREATOR] = $user?->creatorId();
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $schedule = InterviewSchedule::create($createData);
-                $request->input('synchronizeType') === 'googleCalendar' ? Utility::addCalendarData($schedule, 'interview_schedule') : null;
-                return redirect()->back()->with('success', __('Interview schedule successfully created.'));
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                return defaultPermissionDenial($request, $e, $action);
+                DB::commit();
+                $inTransaction = false;
+
+                if ($request->input('synchronizeType') === 'googleCalendar')
+                    Utility::addCalendarData($schedule, 'interview_schedule');
+
+                return Redirect::back()->with('success', __('Interview schedule successfully created.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return defaultUndefinedException($request, $e, $method, route(self::ENTITY . '.create'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to store interview schedule: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function show(Request $request, InterviewSchedule $interviewSchedule): View|RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::ITV_SCD . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::ITV_SCD . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'view interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $stages ??= collect();
             try {
-                $user = $userOrRedirect;
-                $stages = JobStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                return view($view, compact('interviewSchedule', 'stages'));
+                if (($redirect = self::guard($request, 'view interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                $t = microtime(true);
+                $stages = JobStage::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get() ?? $stages;
+                $this->logExecutionTime($t, $action . '::fetchStages', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'interview_schedule_id' => $interviewSchedule?->id,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('interviewSchedule', 'stages'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to show interview schedule: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function edit(Request $request, InterviewSchedule $interviewSchedule): View|RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::ITV_SCD . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::ITV_SCD . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'edit interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $employees ??= collect();
+            $candidates ??= collect();
             try {
-                $user = $userOrRedirect;
-                $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-                    ->where(UsersConstants::COL_TP, class_basename(strtolower(Employee::class)))
+                if (($redirect = self::guard($request, 'edit interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                $t = microtime(true);
+                $employees = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->where(UC::COL_TP, class_basename(strtolower(Employee::class)))
                     ->orWhere('id', $user?->creatorId())
-                    ->pluck(UsersConstants::COL_NM, 'id')
-                    ->prepend('--', '');
-                $candidates = JobApplication::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->pluck(UC::COL_NM, 'id')
+                    ->prepend('--', '') ?? $employees;
+                $candidates = JobApplication::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id')
-                    ->prepend('--', '');
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                return view($view, compact(DatabaseConstants::TABLE_EMPLOYEES, 'candidates', 'interviewSchedule'));
+                    ->prepend('--', '') ?? $candidates;
+                $this->logExecutionTime($t, $action . '::fetchFormData', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'interview_schedule_id' => $interviewSchedule?->id,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact(DC::TABLE_EMPLOYEES, 'candidates', 'interviewSchedule'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to prepare edit form: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function update(Request $request, InterviewSchedule $interviewSchedule): RedirectResponse|null
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action) {
+        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'edit interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                $validator = Validator::make($request->all(), [
+                if (($redirect = self::guard($request, 'edit interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
                     'candidate' => 'required',
                     class_basename(strtolower(Employee::class)) => 'required',
-                    'date'      => 'required',
-                    'time'      => 'required',
-                ]);
-                if ($validator->fails()) {
-                    return defaultUndefinedException($request, new \Exception($validator->errors()->first()), $action, route(self::ENTITY . '.edit', $interviewSchedule->id));
-                }
-                $data = $validator->validated();
+                    'date' => 'required',
+                    'time' => 'required',
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
                 $updateData = [];
-                foreach (['candidate', class_basename(strtolower(Employee::class)), 'date', 'time'] as $field) {
-                    $updateData[$field] = $data[$field];
-                }
+                foreach (['candidate', class_basename(strtolower(Employee::class)), 'date', 'time'] as $field)
+                    $updateData[$field] = $data[$field] ?? null;
                 $updateData['comment'] = $request->comment ?? '';
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $interviewSchedule->update($updateData);
-                return redirect()->back()->with('success', __('Interview schedule successfully updated.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::back()->with('success', __('Interview schedule successfully updated.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return defaultUndefinedException($request, $e, $method, route(self::ENTITY . '.edit', $interviewSchedule->id));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to update interview schedule: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function destroy(Request $request, InterviewSchedule $interviewSchedule): RedirectResponse|null
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action) {
+        return $this->measureProfile($action, function () use ($request, $interviewSchedule, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'delete interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $inTransaction ??= false;
             try {
+                if (($redirect = self::guard($request, 'delete interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $interviewSchedule->delete();
-                return redirect()->back()->with('success', __('Interview schedule successfully deleted.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::back()->with('success', __('Interview schedule successfully deleted.'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to delete interview schedule: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'interview_schedule_id' => $interviewSchedule?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public const GET_ITV_D = 'getInterviewData';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function getInterviewData(Request $request): array|RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $routeShow = $cls . '::show';
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $routeShow ??= __CLASS__ . '::show';
 
-        return $this->measureProfile($action, function () use ($request, $action, $routeShow) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $routeShow) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'view interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
             try {
-                $user = $userOrRedirect;
+                if (($redirect = self::guard($request, 'view interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
+
                 return $request->input('calendarType') === 'googleCalendar'
                     ? Utility::getCalendarData('interview_schedule')
-                    : InterviewSchedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                    : InterviewSchedule::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                     ->get()
                     ->map(fn($val) => [
-                        'id'        => $val->id,
-                        'title'     => $val->comment,
-                        'start'     => $val->date . ' ' . $val->time,
+                        'id' => $val->id,
+                        'title' => $val->comment,
+                        'start' => $val->date . ' ' . $val->time,
                         'className' => 'event-primary',
                         'textColor' => '#51459d',
-                        'url'       => route($routeShow, $val->id),
-                        'allDay'    => false,
+                        'url' => route($routeShow, $val->id),
+                        'allDay' => false,
                     ])
                     ->toArray();
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($action . ' failed to fetch interview data: ' . $e->getMessage());
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }

@@ -42,8 +42,9 @@ final class OrderSeeder extends Seeder
 
 			$created = 0;
 			$failed  = 0;
+			$HARD_CAP = 2; // original: self::TOTAL (256)
 
-			for ($i = 0; $i < self::TOTAL; $i++) {
+			for ($i = 0; $i < $HARD_CAP; $i++) {
 				try {
 					// Método de pagamento preferencial (60% Pix, 25% Crédito, 15% Débito)
 					$method = $this->pickWeighted([
@@ -82,8 +83,8 @@ final class OrderSeeder extends Seeder
 					$userId = $userIds[$i] ?? null;
 					$orderId = 'ORD-' . Str::upper(Str::random(12)); // UNIQUE externo
 					$name = $faker->boolean(75) ? $faker->company() . ' Service' : ($faker->boolean(50) ? $faker->company() . ' Product' : $faker->sentence(3));
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Pedido {$orderId} de {$name} via {$method} para {$userId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Pedido {$orderId} de {$name} via {$method} para {$userId}");
 					$payload = [
 						UC::COL_USER_ID       => $userId,                    // UNIQUE e nullable
 						BC::COL_OD_ID         => $orderId, // UNIQUE externo

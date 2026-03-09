@@ -1,80 +1,11 @@
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langSessionKey = "erp-np-lang";
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
 
-  const getLocalizedMessage = (msgKey, el) => {
-    let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) ?? errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem(langSessionKey) ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[msgKey] ??
-        el.getAttribute(dataGuardMsg) ??
-        window.translations?.["en"]?.[msgKey] ??
-        errFb;
-      if (msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
-
-  const showError = message => {
-    try {
-      let container = document.querySelector("#bootstrap-toast-container");
-      if (!container) {
-        const hasBs =
-          Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-            l => /bootstrap/i.test(l.href)
-          ) && window.bootstrap?.Toast;
-        if (hasBs) {
-          container = document.createElement("div");
-          container.id = "bootstrap-toast-container";
-          container.setAttribute("aria-live", "polite");
-          container.setAttribute("aria-atomic", "true");
-          document.body.appendChild(container);
-        }
-      }
-      if (container && window.bootstrap.Toast) {
-        let toast = container.querySelector(".toast");
-        if (!toast) {
-          toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          toast.appendChild(body);
-          container.appendChild(toast);
-          if (toast.getAttribute("data-click-listener") !== "true") {
-            toast.addEventListener("click", () => (body.textContent = message));
-            toast.setAttribute("data-click-listener", "true");
-          }
-        }
-        toast.querySelector(".toast-body").textContent = message;
-        new bootstrap.Toast(toast).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
-  };
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
 
   const removeClassByPrefix = (node, prefix) => {
     node?.classList?.forEach(cls => {
@@ -86,7 +17,7 @@
   try {
     window.feather?.replace?.();
   } catch {
-    showError(getLocalizedMessage("feather_replace_failed", document.body));
+    scheduleError(getMsg("feather_replace_failed"), "click");
   }
 
   // pctoggler
@@ -100,7 +31,7 @@
             pctoggle.removeEventListener("click", onPctoggle);
             o.disconnect();
           }
-        })
+        }),
       );
     });
     obs1.observe(document.body, { childList: true, subtree: true });
@@ -112,7 +43,7 @@
       if (!customizer) throw new Error();
       customizer.classList.toggle("active");
     } catch {
-      showError(getLocalizedMessage("pctoggle_failed", pctoggle));
+      scheduleError(getMsg("pctoggle_failed"), "click");
     }
   }
 
@@ -127,7 +58,7 @@
             el.removeEventListener("click", onThemeColor);
             o.disconnect();
           }
-        })
+        }),
       );
     });
     obs2.observe(document.body, { childList: true, subtree: true });
@@ -141,7 +72,7 @@
       removeClassByPrefix(document.body, "theme-");
       document.body.classList.add(val);
     } catch {
-      showError(getLocalizedMessage("themecolor_failed", e.currentTarget));
+      scheduleError(getMsg("themecolor_failed"), "click");
     }
   }
 
@@ -156,7 +87,7 @@
             custthemebg.removeEventListener("click", onCustThemeBg);
             o.disconnect();
           }
-        })
+        }),
       );
     });
     obs3.observe(document.body, { childList: true, subtree: true });
@@ -166,7 +97,7 @@
     try {
       const sidebar = document.querySelector(".dash-sidebar");
       const header = document.querySelector(
-        ".dash-header:not(.dash-mob-header)"
+        ".dash-header:not(.dash-mob-header)",
       );
       if (!sidebar || !header) throw new Error();
       if (custthemebg.checked) {
@@ -177,7 +108,7 @@
         header.classList.remove("transprent-bg");
       }
     } catch {
-      showError(getLocalizedMessage("custthemebg_failed", custthemebg));
+      scheduleError(getMsg("custthemebg_failed"), "click");
     }
   }
 
@@ -192,7 +123,7 @@
             custdarklayout.removeEventListener("click", onCustDark);
             o.disconnect();
           }
-        })
+        }),
       );
     });
     obs4.observe(document.body, { childList: true, subtree: true });
@@ -210,11 +141,11 @@
         linkEl.setAttribute("href", '{{ asset("assets/css/style.css") }}');
         logoEl.setAttribute(
           "src",
-          '{{ asset("/uploads/logo/2-logo-dark.png") }}'
+          '{{ asset("/uploads/logo/2-logo-dark.png") }}',
         );
       }
     } catch {
-      showError(getLocalizedMessage("custdarklayout_failed", custdarklayout));
+      scheduleError(getMsg("custdarklayout_failed"), "click");
     }
   }
 })();

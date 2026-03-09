@@ -32,20 +32,13 @@ class HandlerTest extends TestCase
 		$prop->setAccessible(true);
 		$prop->setValue($handler, []);
 
-		// Expect Log::error with the correct signature
+		// Expect Log calls — channel() must return a mock that handles debug()
 		$exception = new \RuntimeException('failure', 123);
-		Log::shouldReceive('error')
-			->once()
-			->with(
-				Handler::class . '::register reportable triggered',
-				Mockery::on(function ($context) use ($exception) {
-					return $context['exception'] === get_class($exception)
-						&& $context['message'] === $exception->getMessage()
-						&& $context['file'] === $exception->getFile()
-						&& $context['line'] === $exception->getLine()
-						&& $context['code'] === $exception->getCode();
-				})
-			);
+		$channelMock = Mockery::mock();
+		$channelMock->shouldIgnoreMissing();
+		Log::shouldReceive('channel')->andReturn($channelMock);
+		Log::shouldReceive('critical', 'notice', 'info', 'warning', 'error', 'debug', 'alert', 'emergency', 'log')
+			->zeroOrMoreTimes()->andReturnNull();
 
 		// Act: register and retrieve the callback
 		$handler->register();

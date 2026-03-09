@@ -11,6 +11,11 @@ use App\Models\ClientPermission;
 
 class ClientPermissionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -28,9 +33,7 @@ class ClientPermissionTest extends TestCase
 
 		$cp = ClientPermission::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $cp->$field);
-		}
+		$this->assertFillableMatches($data, $cp);
 	}
 
 	/**

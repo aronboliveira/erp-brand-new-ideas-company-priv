@@ -1,22 +1,45 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $hasJobStage = !empty($jobStage ?? null) && data_get($jobStage, 'id');
-
-    $updateBase     = VW::JB_STG . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasJobStage) ? route($updateResolved, $jobStage->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::JB_STG, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasJobStage ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasJobStage = !empty($jobStage ?? null) && data_get($jobStage, 'id');
+		$updateBase = VW::JB_STG . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasJobStage) ? (route($updateResolved, data_get($jobStage ?? null, 'id')) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::JB_STG, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in job_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in job_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in job_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!$hasJobStage)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested job stage was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested job stage was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($jobStage, [
         'url'               => $updateUrl,

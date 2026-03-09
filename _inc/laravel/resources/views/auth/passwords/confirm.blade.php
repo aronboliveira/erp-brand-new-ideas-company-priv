@@ -1,17 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-
-	$filePath ??= '';
+$filePath ??= '';
 	$settings ??= [];
 	$logo ??= '';
 	$languages ??= [DatabaseConstants::DEFAULT_LANG];
@@ -24,13 +12,6 @@
 		$company_logo = Utility::getValByName(SettingsConstants::CPN_LG) ?: '';
 		$filePath = collect(array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 'file'))
 			->first(fn ($p) => str_ends_with($p, '.blade.php')) ?? '';
-
-		Log::debug('Rendering Confirm Password Blade (' . $filePath . ')', [
-			'route' => request()?->getRequestUri() ?? 'Undefined URI',
-			'user'  => optional(auth()->user())->id ?? 'Unidentified User',
-		]);
-
-		(new ConsoleOutput)->writeln('Rendering Confirm Password Blade (' . $filePath . ') for ' . (request()?->getRequestUri() ?? 'Undefined URI'));
 	} catch (\Error $e) {
 		Log::error('Error fetching data for Confirm Password Blade', [
 			'exception_class' => get_class($e),
@@ -106,7 +87,7 @@
 @endsection
 
 @section(YieldingConstants::AUTH_CTT)
-	<div class="card-body">
+	<div class="{{ VC::CD_BD }}">
 		<div>
 			<h2 class="{{ VC::MB3_FW600 }}">{{ __('Confirm Password') }}</h2>
 			<p class="{{ VC::MB4_TXMT }}">{{ __(' Please confirm your password before continuing.') }}</p>
@@ -126,32 +107,32 @@
 					<label for="password" class="{{ VC::FM_LB }}">{{ __('Password') }}</label>
 					<input id="password" type="password" class="{{ VC::FM_CT }} @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
 					@error('password')
-						<span class="invalid-feedback" role="alert">
+						<span class="{{ VC::INV_FB }}" role="alert">
 							<strong>{{ $message }}</strong>
 						</span>
 					@enderror
 				</div>
 
-				<div class="d-grid">
+				<div class="{{ VC::D_GR }}">
 					<button type="submit" class="btn-login {{ VC::BT_PRM }} btn-block mt-2">{{ __('Confirm Password') }}</button>
 				</div>
 
 				@if ($forgotResolved)
-					<p class="my-4 text-center">
+					<p class="{{ VC::MY4_TXCT }}">
 						{{ __('OR') }}
 						<a href="{{ $forgotUrl }}"
-						   class="text-primary auth-forgot-link"
+						   class="{{ VC::TX_PM }} auth-forgot-link"
 						   data-url="{{ $forgotUrl }}"
-						   data-guard-msg="{{ $forgotGuardMsg }}"
+						   data-guard-msg="{{ base64_encode($forgotGuardMsg) }}"
 						   data-sv-localized="true">{{ __('Forgot Your Password?') }}</a>
 					</p>
 				@else
-					<p class="my-4 text-center">
+					<p class="{{ VC::MY4_TXCT }}">
 						{{ __('OR') }}
 						<a href="#"
-						   class="text-primary auth-forgot-link"
+						   class="{{ VC::TX_PM }} auth-forgot-link"
 						   data-url="#"
-						   data-guard-msg="{{ $forgotGuardMsg }}"
+						   data-guard-msg="{{ base64_encode($forgotGuardMsg) }}"
 						   data-sv-localized="true">{{ __('Forgot Your Password?') }}</a>
 					</p>
 				@endif

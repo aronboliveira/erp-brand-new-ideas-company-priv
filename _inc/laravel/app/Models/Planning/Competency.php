@@ -4,10 +4,19 @@ namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Enums\{AppModuleType, Visibility};
-use App\Traits\{DefinesDates, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
-use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
+use App\Traits\{
+	DefinesDates,
+	HasAuditFields,
+	NormalizesArrays,
+	PlansByHierarchy,
+	StoresManyRefJson,
+	UsesUuids
+};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{DB, Log};
-use Illuminate\Support\Str;
 
 class Competency extends Model
 {
@@ -140,19 +149,24 @@ class Competency extends Model
 
 	public static function jsonColumns(): array
 	{
-		return [
-			'jobs',
-			'projects',
-			'companies',
-			'branches',
-			'departments',
-			'levels',
-			'skills',
-			'certifications',
-			'requirements',
-			'behaviors',
-			'tags',
-		];
+	    try {
+    		return [
+    			'jobs',
+    			'projects',
+    			'companies',
+    			'branches',
+    			'departments',
+    			'levels',
+    			'skills',
+    			'certifications',
+    			'requirements',
+    			'behaviors',
+    			'tags',
+    		];
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::jsonColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	public function submitter(): BelongsTo
@@ -235,10 +249,15 @@ class Competency extends Model
 
 	public function levelsList(): ?array
 	{
-		return $this->memoize('levels_list', function () {
-			$list = $this->normalizeStringList($this->getAttribute('levels'));
-			return $list ?: null; // null = "all acceptable" per migration note
-		});
+	    try {
+    		return $this->memoize('levels_list', function () {
+    			$list = $this->normalizeStringList($this->getAttribute('levels'));
+    			return $list ?: null;
+    		});
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::levelsList — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	public function tagsList(): ?array
@@ -248,15 +267,20 @@ class Competency extends Model
 
 	protected function normalizeIdList(mixed $value): array
 	{
-		$arr = self::normalizeArrayField($value);
-		$out = [];
-		foreach ($arr as $v) {
-			if (!is_scalar($v)) continue;
-			$s = trim((string) $v);
-			if ($s === '') continue;
-			$out[] = $s;
-		}
-		return array_values(array_unique($out));
+	    try {
+    		$arr = self::normalizeArrayField($value);
+    		$out = [];
+    		foreach ($arr as $v) {
+    			if (!is_scalar($v)) continue;
+    			$s = trim((string) $v);
+    			if ($s === '') continue;
+    			$out[] = $s;
+    		}
+    		return array_values(array_unique($out));
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeIdList — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected function memoize(string $key, \Closure $fn): mixed
@@ -264,9 +288,6 @@ class Competency extends Model
 		return array_key_exists($key, $this->memo) ? $this->memo[$key] : ($this->memo[$key] = $fn());
 	}
 
-	/* ==============================
-	 | Appended attributes
-	 ============================== */
 
 	public function getModuleLabelAttribute(): string
 	{
@@ -315,9 +336,6 @@ class Competency extends Model
 		return is_array($list) ? count($list) : 0;
 	}
 
-	/* ==============================
-	 | Business logic helpers
-	 ============================== */
 
 	public function isApproved(): bool
 	{
@@ -336,35 +354,47 @@ class Competency extends Model
 
 	public function markSubmittedBy(string $userId): void
 	{
-		if (trim($userId) === '') return;
-		$this->setAttribute(PJC::COL_SBM_BY, $userId);
-		if (empty($this->getAttribute(PJC::COL_SBM_AT)))
-			$this->setAttribute(PJC::COL_SBM_AT, now());
+	    try {
+    		if (trim($userId) === '') return;
+    		$this->setAttribute(PJC::COL_SBM_BY, $userId);
+    		if (empty($this->getAttribute(PJC::COL_SBM_AT)))
+    			$this->setAttribute(PJC::COL_SBM_AT, now());
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::markSubmittedBy — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	public function addTag(string $tag): void
 	{
-		$t = trim($tag);
-		if ($t === '') return;
+	    try {
+    		$t = trim($tag);
+    		if ($t === '') return;
 
-		$cur = $this->tagsList() ?? [];
-		$cur[] = $t;
-		$this->setAttribute('tags', array_values(array_unique($cur)));
-		unset($this->memo['tags_list']);
+    		$cur = $this->tagsList() ?? [];
+    		$cur[] = $t;
+    		$this->setAttribute('tags', array_values(array_unique($cur)));
+    		unset($this->memo['tags_list']);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::addTag — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	public function removeTag(string $tag): void
 	{
-		$t = trim($tag);
-		if ($t === '') return;
+	    try {
+    		$t = trim($tag);
+    		if ($t === '') return;
 
-		$cur = $this->tagsList() ?? [];
-		$out = [];
-		foreach ($cur as $v)
-			if (is_string($v) && $v !== $t)
-				$out[] = $v;
+    		$cur = $this->tagsList() ?? [];
+    		$out = [];
+    		foreach ($cur as $v)
+    			if (is_string($v) && $v !== $t)
+    				$out[] = $v;
 
-		$this->setAttribute('tags', $out ?: null);
-		unset($this->memo['tags_list']);
+    		$this->setAttribute('tags', $out ?: null);
+    		unset($this->memo['tags_list']);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::removeTag — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 }

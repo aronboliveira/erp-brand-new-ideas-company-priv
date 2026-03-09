@@ -215,7 +215,8 @@ class DocumentUploadsSeeder extends Seeder
 		}
 
 		// Regra: total de entidades sempre = 64 x N
-		$perModuleTarget = 4 * $multiplier;
+		// $perModuleTarget = 4 * $multiplier; // ORIGINAL — unbounded
+		$perModuleTarget = min(2, 4 * $multiplier); // HARD CAP
 		$targetTotal = $perModuleTarget * $modulesCount;
 
 		$statuses = EvaluationStatus::cases();
@@ -307,14 +308,14 @@ class DocumentUploadsSeeder extends Seeder
 						$createdForModule++;
 						$totalCreated++;
 
-						$output->writeln(sprintf(
-							'DOC_UP: module=%s, type=%s, status=%s, name="%s", doc="%s"',
-							$moduleValue,
-							$mimeEnum->value,
-							$statusEnum->value,
-							Str::limit($attributes['name'], 30, '…'),
-							Str::limit($attributes['document'], 40, '…')
-						));
+						// $output->writeln(sprintf(
+						// 	'DOC_UP: module=%s, type=%s, status=%s, name="%s", doc="%s"',
+						// 	$moduleValue,
+						// 	$mimeEnum->value,
+						// 	$statusEnum->value,
+						// 	Str::limit($attributes['name'], 30, '…'),
+						// 	Str::limit($attributes['document'], 40, '…')
+						// ));
 					}
 				}
 			}

@@ -1,16 +1,16 @@
 @php
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
-
-    $sendBase  = 'send.message';
-    $sendKebab = Str::kebab($sendBase);
-    $sendName  = Route::has($sendBase) ? $sendBase : (Route::has($sendKebab) ? $sendKebab : null);
-    $sendUrl   = $sendName ? route($sendName) : '#';
-    $sendGuard = Utility::fetchLinkMessage($lang, 'messenger', 'send_message_route_unavailable') ?? 'Send message route is unavailable. Please contact technical support or your domain administrator.';
-    $formId    = 'message-form';
+        $sendBase  = 'send.message';
+        $sendKebab = Str::kebab($sendBase);
+        $sendName  = Route::has($sendBase) ? $sendBase : (Route::has($sendKebab) ? $sendKebab : null);
+        $sendUrl   = $sendName ? route($sendName) : '#';
+        $sendGuard = Utility::fetchLinkMessage($lang, 'messenger', 'send_message_route_unavailable') ?? 'Send message route is unavailable. Please contact technical support or your domain administrator.';
+        $formId    = 'message-form';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/send_form — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::open([

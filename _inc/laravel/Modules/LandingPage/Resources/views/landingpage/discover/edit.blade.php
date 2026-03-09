@@ -1,5 +1,5 @@
 @php
-    use Modules\LandingPage\Constants\RoutesResourcesConstants;
+use Modules\LandingPage\Config\Constants\RoutesResourcesConstants;
 @endphp
 {{Collective\Html\FormFacade::model(null, array('route' => array(RoutesResourcesConstants::DV.'.update', $key), 'method' => 'POST','enctype' => "multipart/form-data")) }}
 <div class="modal-body">

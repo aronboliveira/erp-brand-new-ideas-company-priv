@@ -1,5 +1,9 @@
+/** @requires ERPGuard */
 (() => {
   try {
+    const { scheduleError } = window.ERPGuard ?? {};
+    if (typeof scheduleError !== "function") return;
+
     const f = document.getElementById("vendor-transaction-filter-form");
     if (f && f.getAttribute("data-listener-active") !== "true") {
       f.setAttribute("data-listener-active", "true");
@@ -17,35 +21,7 @@
         const msg =
           f.getAttribute("data-guard-msg") ||
           "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
-        let c = document.getElementById("toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const ok =
-          document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap &&
-          window.bootstrap.Toast;
-        if (ok) {
-          const t = document.createElement("div");
-          t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
-          const b = document.createElement("div");
-          b.className = "toast-body";
-          b.textContent = msg;
-          t.appendChild(b);
-          c.appendChild(t);
-          try {
-            window.bootstrap.Toast.getOrCreateInstance(t).show();
-          } catch {
-            alert(msg);
-          }
-        } else {
-          alert(msg);
-        }
+        scheduleError(msg, "submit");
         f.setAttribute("data-failed-route", "true");
       });
     }
@@ -67,35 +43,7 @@
         const msg =
           reset.getAttribute("data-guard-msg") ||
           "Vendor transaction route is unavailable. Please contact technical support or your domain administrator.";
-        let c = document.getElementById("toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const ok =
-          document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap &&
-          window.bootstrap.Toast;
-        if (ok) {
-          const t = document.createElement("div");
-          t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
-          const b = document.createElement("div");
-          b.className = "toast-body";
-          b.textContent = msg;
-          t.appendChild(b);
-          c.appendChild(t);
-          try {
-            window.bootstrap.Toast.getOrCreateInstance(t).show();
-          } catch {
-            alert(msg);
-          }
-        } else {
-          alert(msg);
-        }
+        scheduleError(msg, "click");
         reset.setAttribute("data-failed-route", "true");
       });
     }

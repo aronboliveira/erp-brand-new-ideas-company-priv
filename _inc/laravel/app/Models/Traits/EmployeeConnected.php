@@ -3,23 +3,27 @@
 namespace App\Traits;
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\{Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 trait EmployeeConnected
 {
   protected function addEmployeeColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
-    $col = $table->uuid(UC::COL_EMP_ID);
-    if ($nullable) $col->nullable();
+      try {
+        $col = $table->uuid(UC::COL_EMP_ID);
+        if ($nullable) $col->nullable();
 
-    $unique ? $col->unique() : $col->index();
+        $unique ? $col->unique() : $col->index();
 
-    $nullable
-      ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->nullOnDelete()
-      : ($cascade
-        ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->cascadeOnDelete()
-        : $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->restrictOnDelete());
+        $nullable
+          ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->nullOnDelete()
+          : ($cascade
+            ? $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->cascadeOnDelete()
+            : $table->foreign(UC::COL_EMP_ID)->references('id')->on(DC::TABLE_EMPLOYEES)->restrictOnDelete());
+      } catch (\Throwable $e) {
+          Log::error(static::class . '::addEmployeeColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+      }
   }
 
   protected function dropEmployeeColumnForeign(Blueprint $table, string $tableName): void

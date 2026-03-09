@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\app\Http\Controllers\contact;
 
 use Tests\TestCase;
 use App\Models\{ChMessage as Message, ChFavorite as Favorite, User};
 use Chatify\Facades\ChatifyMessenger as Chatify;
 use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Facades\File};
 
-class MessagesControllerTest extends TestCase
+class MessageControllerTest extends TestCase
 {
 	use RefreshDatabase;
 

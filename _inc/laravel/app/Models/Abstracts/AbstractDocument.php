@@ -42,26 +42,35 @@ abstract class AbstractDocument extends AbstractFile
 
 	protected function ensureDocumentKind(): void
 	{
-		if (!$this->getIsDocumentAttribute()) {
-			$this->setAttribute('type', null);
-			return;
-		}
-		$type = $this->getAttribute('type');
-		if (is_string($type) && DocumentKind::normalize($type))
-			return;
-		$ext = (string) ($this->getAttribute('extension') ?? '');
-		$kind = $ext !== '' ? DocumentKind::fromExtension($ext) : null;
-		$this->setAttribute('type', ($kind ?? DocumentKind::OTHER)->value);
+	    try {
+    		if (!$this->getIsDocumentAttribute()) {
+    			$this->setAttribute('type', null);
+    			return;
+    		}
+    		$type = $this->getAttribute('type');
+    		if (is_string($type) && DocumentKind::normalize($type))
+    			return;
+    		$ext = (string) ($this->getAttribute('extension') ?? '');
+    		$kind = $ext !== '' ? DocumentKind::fromExtension($ext) : null;
+    		$this->setAttribute('type', ($kind ?? DocumentKind::OTHER)->value);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::ensureDocumentKind — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	public function getDocumentKindAttribute(): ?DocumentKind
 	{
-		if (!$this->getIsDocumentAttribute()) return null;
+	    try {
+    		if (!$this->getIsDocumentAttribute()) return null;
 
-		$type = $this->getAttribute('type');
-		if (!is_string($type)) return null;
+    		$type = $this->getAttribute('type');
+    		if (!is_string($type)) return null;
 
-		return DocumentKind::normalize($type);
+    		return DocumentKind::normalize($type);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getDocumentKindAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return null;
+	    }
 	}
 
 	public function getDocumentKindLabelAttribute(): ?string

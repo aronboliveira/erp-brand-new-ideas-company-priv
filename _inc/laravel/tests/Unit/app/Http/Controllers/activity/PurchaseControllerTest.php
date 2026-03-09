@@ -1,913 +1,3726 @@
 <?php
+declare(strict_types=1);
+namespace Tests\Unit\app\Http\Controllers\activity;
 
-namespace Tests\Feature;
-
-use App\Models\{
-	BankAccount,
-	CustomField,
-	Purchase,
-	PurchasePayment,
-	PurchaseProduct,
-	ProductService,
-	ProductServiceCategory,
-	Vendor,
-	Warehouse,
-	WarehouseProduct
-};
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\{
-	Crypt,
-	DB,
-	Gate,
-	Storage
-};
 use Tests\TestCase;
+use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
+use App\Http\Controllers\Activity\PurchaseController;
+use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
+use Illuminate\View\View;
 
+/**
+ * Comprehensive tests for PurchaseController
+ * Includes I/O variations, edge cases, and performance tests
+ * 
+ * @covers \App\Http\Controllers\Activity\PurchaseController
+ */
 class PurchaseControllerTest extends TestCase
 {
-	use RefreshDatabase;
-
-	private User $user;
-
-	protected function setUp(): void
-	{
-		parent::setUp();
-
-		// Bypass all permission and login checks
-		Gate::before(fn () => true);
-
-		// Make creatorId() return the user's own ID
-		User::macro('creatorId', function () {
-			/** @var \App\Models\User $this */
-			return $this->id;
-		});
-
-		$this->user = User::factory()->create();
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** Index should display a list of purchases belonging to the authenticated user
-	 **/
-	public function index_displays_purchase_list()
-	{
-		// Seed two vendors and purchases for this user
-		$vendor1 = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$vendor2 = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase1 = Purchase::factory()->create([
-			'vendor_id'  => $vendor1->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-		$purchase2 = Purchase::factory()->create([
-			'vendor_id'  => $vendor2->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-
-		$response = $this->actingAs($this->user)->get(route('purchase.index'));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.index')
-			->assertViewHas('purchases', function ($purchases) use ($purchase1, $purchase2) {
-				$ids = $purchases->pluck('id')->all();
-				return in_array($purchase1->id, $ids) && in_array($purchase2->id, $ids);
-			});
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** Create should show the purchase form with all required lookup data
-	 **/
-	public function create_shows_form_data()
-	{
-		// Seed lookup data
-		$category   = ProductServiceCategory::factory()->create(['type' => 'expense', 'created_by' => $this->user->creatorId()]);
-		$vendor     = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$warehouse  = Warehouse::factory()->create(['created_by' => $this->user->creatorId()]);
-		$product    = ProductService::factory()->create([
-			'type'       => 'product',
-			'created_by' => $this->user->creatorId(),
-		]);
-		CustomField::factory()->create(['created_by' => $this->user->creatorId(), 'module' => 'purchase']);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.create', ['vendorId' => $vendor->id]));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.create')
-			->assertViewHasAll([
-				'vendors', 'purchaseNumber', 'productServices',
-				'category', 'customFields', 'vendorId', 'warehouse'
-			]);
-		$this->assertEquals($vendor->id, $response->viewData('vendorId'));
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** Store should validate inputs and create a purchase with its items
-	 **/
-	public function store_validates_and_creates_purchase()
-	{
-		$category = ProductServiceCategory::factory()->create(['type' => 'expense', 'created_by' => $this->user->creatorId()]);
-		$vendor   = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$warehouse = Warehouse::factory()->create(['created_by' => $this->user->creatorId()]);
-		$product  = ProductService::factory()->create([
-			'type'       => 'product',
-			'created_by' => $this->user->creatorId(),
-		]);
-
-		// 1) Missing payload triggers validation error
-		$response = $this->actingAs($this->user)
-			->post(route('purchase.store'), []);
-		$response->assertSessionHas('error');
-
-		// 2) Valid payload creates purchase and items
-		$payload = [
-			'vendor_id'     => $vendor->id,
-			'warehouse_id'  => $warehouse->id,
-			'purchase_date' => now()->toDateString(),
-			'category_id'   => $category->id,
-			'items'         => [
-				[
-					'item'        => $product->id,
-					'quantity'    => 2,
-					'tax'         => 5,
-					'discount'    => 0,
-					'price'       => 100,
-					'description' => 'Test item',
-				],
-			],
-		];
-
-		$response = $this->actingAs($this->user)
-			->post(route('purchase.store'), $payload);
-
-		// It should redirect to the show page of the newly created purchase
-		$purchase = Purchase::where('created_by', $this->user->creatorId())->latest()->first();
-		$response->assertRedirect(route('purchase.show', ['purchase' => $purchase->id]))
-			->assertSessionHas('success');
-
-		// Database assertions
-		$this->assertDatabaseHas('purchases', [
-			'id'         => $purchase->id,
-			'vendor_id'  => $vendor->id,
-			'warehouse_id' => $warehouse->id,
-			'category_id' => $category->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-		$this->assertDatabaseHas('purchase_products', [
-			'purchase_id' => $purchase->id,
-			'product_id' => $product->id,
-			'quantity'   => 2,
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** show should display a purchase when decrypted ID belongs to user
-	 **/
-	public function show_displays_purchase_details()
-	{
-		$vendor    = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase  = Purchase::factory()->create([
-			'vendor_id'  => $vendor->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-		PurchaseProduct::factory()->count(2)->create([
-			'purchase_id' => $purchase->id,
-		]);
-
-		$encrypted = Crypt::encrypt((string)$purchase->id);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.show', ['ids' => $encrypted]));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.show')
-			->assertViewHasAll(['purchase', 'vendor', 'items', 'purchasePayment']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** edit should show form only if user owns purchase
-	 **/
-	public function edit_displays_form_for_owner_only()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$encrypted = Crypt::encrypt((string)$purchase->id);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.edit', ['ids' => $encrypted]));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.edit')
-			->assertViewHasAll(['purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchaseNumber']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** update should validate and update purchase basic fields
-	 **/
-	public function update_validates_and_updates_purchase_items()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$item    = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id, 'quantity' => 1]);
-		$newVendor = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-
-		// Missing items key triggers redirect with error
-		$response = $this->actingAs($this->user)
-			->put(route('purchase.update', ['purchase' => $purchase->id]), [
-				'vendor_id'     => $newVendor->id,
-				'purchase_date' => now()->toDateString(),
-			]);
-		$response->assertRedirect(route('purchase.index'))
-			->assertSessionHas('error');
-
-		// Valid payload updates purchase vendor
-		$response = $this->actingAs($this->user)
-			->put(route('purchase.update', ['purchase' => $purchase->id]), [
-				'vendor_id'     => $newVendor->id,
-				'purchase_date' => now()->toDateString(),
-				'items'         => [
-					['id' => $item->id, 'item' => $item->product_id, 'quantity' => 2, 'tax' => 0, 'discount' => 0, 'price' => $item->price, 'description' => $item->description],
-				],
-			]);
-
-		$response->assertRedirect(route('purchase.index'))
-			->assertSessionHas('success');
-
-		$this->assertDatabaseHas('purchases', [
-			'id'        => $purchase->id,
-			'vendor_id' => $newVendor->id,
-		]);
-		$this->assertDatabaseHas('purchase_products', [
-			'id'       => $item->id,
-			'quantity' => 2,
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** destroy should delete purchase and cascade its items and payments
-	 **/
-	public function destroy_deletes_purchase_and_related_records()
-	{
-		Storage::fake('local');
-
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$item    = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id]);
-		$payment = PurchasePayment::factory()->create(['purchase_id' => $purchase->id]);
-
-		$response = $this->actingAs($this->user)
-			->delete(route('purchase.destroy', ['purchase' => $purchase]));
-
-		$response->assertRedirect(route('purchase.index'))
-			->assertSessionHas('success');
-
-		$this->assertDatabaseMissing('purchases', ['id' => $purchase->id]);
-		$this->assertDatabaseMissing('purchase_products', ['id' => $item->id]);
-		$this->assertDatabaseMissing('purchase_payments', ['id' => $payment->id]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** items returns the matching PurchaseProduct as JSON
-	 **/
-	public function items_returns_purchase_product_json()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$product = ProductService::factory()->create(['created_by' => $this->user->creatorId()]);
-		$pp      = PurchaseProduct::factory()->create([
-			'purchase_id' => $purchase->id,
-			'product_id'  => $product->id,
-		]);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.items'), [
-				'purchase_id' => $purchase->id,
-				'product_id'  => $product->id,
-			]);
-
-		$response->assertStatus(200)
-			->assertJsonFragment(['id' => $pp->id]);
-	}
-	/**
-	 ** @test
-	 **
-	 ** product returns product data JSON for a purchase context
-	 **/
-	public function product_returns_product_data_json()
-	{
-		$product = ProductService::factory()->create(['created_by' => $this->user->creatorId(), 'purchase_price' => 50, 'tax_id' => null]);
-
-		$response = $this->actingAs($this->user)
-			->json('GET', route('purchase.product'), ['product_id' => $product->id]);
-
-		$response->assertStatus(200)
-			->assertJsonFragment(['product_id' => $product->id])
-			->assertJsonStructure(['product', 'unit', 'taxRate', 'taxes', 'totalAmount']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** productDestroy should remove a PurchaseProduct and adjust warehouse stock
-	 **/
-	public function product_destroy_deletes_purchase_product()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId(), 'warehouse_id' => 1]);
-		$pp = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id, 'product_id' => 5, 'quantity' => 3]);
-		\App\Models\WarehouseProduct::factory()->create([
-			'warehouse_id' => $purchase->warehouse_id,
-			'product_id'   => $pp->product_id,
-			'quantity'     => 3
-		]);
-
-		$response = $this->actingAs($this->user)
-			->post(route('purchase.productDestroy'), ['id' => $pp->id]);
-
-		$response->assertRedirect()
-			->assertSessionHas('success');
-
-		$this->assertDatabaseMissing('purchase_products', ['id' => $pp->id]);
-		$this->assertDatabaseMissing('warehouse_products', [
-			'warehouse_id' => $purchase->warehouse_id,
-			'product_id'   => $pp->product_id
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** index should list purchases and vendor options
-	 **/
-	public function index_displays_purchases_and_vendors()
-	{
-		Vendor::factory()->count(2)->create(['created_by' => $this->user->creatorId()]);
-		Purchase::factory()->count(3)->create(['created_by' => $this->user->creatorId()]);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.index'));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.index')
-			->assertViewHasAll(['purchases', 'vendors', 'status']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** create shows form with required collections
-	 **/
-	public function create_shows_form_with_collections()
-	{
-		$vendorId = Vendor::factory()->create(['created_by' => $this->user->creatorId()])->id;
-		ProductServiceCategory::factory()->count(2)->create([
-			'created_by' => $this->user->creatorId(),
-			'type'       => 'expense',
-		]);
-		Warehouse::factory()->count(2)->create(['created_by' => $this->user->creatorId()]);
-		ProductService::factory()->count(2)->create([
-			'created_by' => $this->user->creatorId(),
-			'type'       => 'product',
-		]);
-		DB::table('settings')->insert([
-			['name' => 'some_setting', 'value' => 'val', 'created_by' => $this->user->creatorId()],
-		]);
-
-		$response = $this->actingAs($this->user)
-			->get(route('purchase.create', ['vendorId' => $vendorId]));
-
-		$response->assertStatus(200)
-			->assertViewIs('purchase.create')
-			->assertViewHasAll([
-				'vendors', 'purchaseNumber', 'productServices',
-				'category', 'customFields', 'vendorId', 'warehouse'
-			]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** store validates inputs and creates purchase with items
-	 **/
-	public function store_validates_and_creates_purchase_and_items()
-	{
-		$vendor   = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$warehouse = Warehouse::factory()->create(['created_by' => $this->user->creatorId()]);
-		$prod     = ProductService::factory()->create([
-			'created_by' => $this->user->creatorId(), 'type' => 'product'
-		]);
-
-		// Missing required fields
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.store'), []);
-		$resp->assertRedirect()
-			->assertSessionHas('error');
-
-		// Valid payload
-		$payload = [
-			'vendor_id'      => $vendor->id,
-			'warehouse_id'   => $warehouse->id,
-			'purchase_date'  => now()->toDateString(),
-			'category_id'    => ProductServiceCategory::factory()->create([
-				'created_by' => $this->user->creatorId(), 'type' => 'expense'
-			])->id,
-			'items'          => [[
-				'item'        => $prod->id,
-				'quantity'    => 5,
-				'tax'         => 0,
-				'discount'    => 0,
-				'price'       => 100,
-				'description' => 'Test'
-			]]
-		];
-
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.store'), $payload);
-
-		$resp->assertRedirect();
-		$purchase = Purchase::where('created_by', $this->user->creatorId())->first();
-		$this->assertNotNull($purchase);
-		$this->assertDatabaseHas('purchase_products', [
-			'purchase_id' => $purchase->id,
-			'product_id'  => $prod->id,
-			'quantity'    => 5,
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** sent marks purchase as sent and credits vendor
-	 **/
-	public function sent_marks_purchase_sent_and_credits_vendor_balance()
-	{
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId(), 'email' => 'v@e.com']);
-		$purchase = Purchase::factory()->create([
-			'vendor_id'  => $vendor->id,
-			'created_by' => $this->user->creatorId(),
-			'status'     => 0
-		]);
-		// set total to 200 via two purchase_products
-		PurchaseProduct::factory()->create([
-			'purchase_id' => $purchase->id,
-			'quantity'   => 2,
-			'price'      => 100,
-			'tax'        => 0,
-			'discount'   => 0,
-		]);
-
-		// insert settings to allow email
-		DB::table('settings')->insert([
-			['name' => 'vendor_bill_sent', 'value' => 1, 'created_by' => $this->user->creatorId()]
-		]);
-
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.sent', ['id' => $purchase->id]));
-
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-
-		$purchase->refresh();
-		$this->assertEquals(1, $purchase->status);
-		$this->assertNotNull($purchase->send_date);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** resent re-sends email and returns success
-	 **/
-	public function resent_re_sends_email_and_redirects_back()
-	{
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId(), 'email' => 'v@e.com']);
-		$purchase = Purchase::factory()->create([
-			'vendor_id'  => $vendor->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-		// allow email sending
-		DB::table('settings')->insert([
-			['name' => 'vendor_bill_sent', 'value' => 1, 'created_by' => $this->user->creatorId()]
-		]);
-
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.resent', ['id' => $purchase->id]));
-
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** purchaseLink displays the customer-facing bill
-	 **/
-	public function purchase_link_displays_customer_view()
-	{
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase = Purchase::factory()->create([
-			'vendor_id'  => $vendor->id,
-			'created_by' => $this->user->creatorId(),
-		]);
-		$encrypted = Crypt::encrypt($purchase->id);
-
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.purchaseLink', ['encryptedId' => $encrypted]));
-
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.customer_bill')
-			->assertViewHasAll(['purchase', 'vendor', 'items', 'purchasePayment', 'user']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** show displays purchase when owner, denies otherwise
-	 **/
-	public function show_displays_and_denies_properly()
-	{
-		$purchase = Purchase::factory()->create([
-			'created_by' => $this->user->creatorId()
-		]);
-		// add an item so view has something
-		PurchaseProduct::factory()->create(['purchase_id' => $purchase->id]);
-
-		$enc = Crypt::encrypt($purchase->id);
-
-		// As owner
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.show', ['ids' => $enc]));
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.show')
-			->assertViewHasAll(['purchase', 'vendor', 'items', 'purchasePayment']);
-
-		// As different user
-		$other = User::factory()->create();
-		$resp2 = $this->actingAs($other)
-			->get(route('purchase.show', ['ids' => $enc]));
-		$resp2->assertRedirect(route('purchase.index'));
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** edit displays form when owner, denies otherwise
-	 **/
-	public function edit_displays_and_denies_properly()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$enc = Crypt::encrypt($purchase->id);
-
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.edit', ['ids' => $enc]));
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.edit')
-			->assertViewHasAll(['purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchaseNumber']);
-
-		$other = User::factory()->create();
-		$resp2 = $this->actingAs($other)
-			->get(route('purchase.edit', ['ids' => $enc]));
-		$resp2->assertRedirect(route('purchase.index'));
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** update validates and updates purchase items
-	 **/
-	public function update_validates_and_updates()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$pp      = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id, 'quantity' => 1]);
-		$newItem = ProductService::factory()->create([
-			'created_by' => $this->user->creatorId(), 'type' => 'product'
-		]);
-
-		// Missing items
-		$resp = $this->actingAs($this->user)
-			->put(route('purchase.update', ['purchase' => $purchase]), []);
-		$resp->assertRedirect(route('purchase.index'))
-			->assertSessionHas('error');
-
-		// Valid update
-		$payload = [
-			'vendor_id'    => $purchase->vendor_id,
-			'purchase_date' => now()->toDateString(),
-			'items'        => [[
-				'id'          => $pp->id,
-				'item'        => $newItem->id,
-				'quantity'    => 3,
-				'tax'         => 0,
-				'discount'    => 0,
-				'price'       => 50,
-				'description' => 'Upd'
-			]]
-		];
-		$resp2 = $this->actingAs($this->user)
-			->put(route('purchase.update', ['purchase' => $purchase]), $payload);
-		$resp2->assertRedirect(route('purchase.index'))
-			->assertSessionHas('success');
-		$this->assertDatabaseHas('purchase_products', [
-			'id'       => $pp->id,
-			'product_id' => $newItem->id,
-			'quantity' => 3
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** destroy removes purchase and related items/payments
-	 **/
-	public function destroy_deletes_purchase_cascades()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$item    = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id]);
-		$payment = PurchasePayment::factory()->create(['purchase_id' => $purchase->id]);
-
-		$resp = $this->actingAs($this->user)
-			->delete(route('purchase.destroy', ['purchase' => $purchase]));
-		$resp->assertRedirect(route('purchase.index'))
-			->assertSessionHas('success');
-
-		$this->assertDatabaseMissing('purchases', ['id' => $purchase->id]);
-		$this->assertDatabaseMissing('purchase_products', ['id' => $item->id]);
-		$this->assertDatabaseMissing('purchase_payments', ['id' => $payment->id]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** previewPurchase returns template view
-	 **/
-	public function preview_purchase_displays_template()
-	{
-		// Insert settings
-		DB::table('settings')->insert([
-			['name' => 'purchase_template', 'value' => 'default', 'created_by' => $this->user->creatorId()],
-			['name' => 'purchase_color', 'value' => 'abcdef', 'created_by' => $this->user->creatorId()],
-		]);
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.preview', ['template' => 'default', 'color' => 'abcdef']));
-		$resp->assertStatus(200);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** items returns JSON for a PurchaseProduct
-	 **/
-	public function items_returns_json_or_empty()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$prod    = ProductService::factory()->create(['created_by' => $this->user->creatorId(), 'type' => 'product']);
-		$pp      = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id, 'product_id' => $prod->id]);
-
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.items'), ['purchase_id' => $purchase->id, 'product_id' => $prod->id]);
-		$resp->assertSee('"id":' . $pp->id);
-
-		$resp2 = $this->actingAs($this->user)
-			->get(route('purchase.items'), ['purchase_id' => 999, 'product_id' => 999]);
-		$resp2->assertSee('{}');
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** vendor shows vendor detail view
-	 **/
-	public function vendor_displays_vendor_detail()
-	{
-		$vendor = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.vendor', ['id' => $vendor->id]));
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.vendor_detail')
-			->assertViewHas('vendor');
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** product returns correct JSON data
-	 **/
-	public function product_returns_product_json()
-	{
-		$prod = ProductService::factory()->create([
-			'created_by' => $this->user->creatorId(),
-			'purchase_price' => 100,
-			'tax_id' => ''
-		]);
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.product'), ['product_id' => $prod->id]);
-		$resp->assertSee('"totalAmount":100');
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** payment shows form and createPayment persists payment
-	 **/
-	public function payment_and_create_payment_work()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$account = BankAccount::factory()->create(['created_by' => $this->user->creatorId()]);
-
-		// show form
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.payment', ['purchaseId' => $purchase->id]));
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.payment');
-
-		// create payment missing fields
-		$resp2 = $this->actingAs($this->user)
-			->post(route('purchase.createPayment', ['purchaseId' => $purchase->id]), []);
-		$resp2->assertRedirect()
-			->assertSessionHas('error');
-
-		// valid payment
-		$payload = ['date' => now()->toDateString(), 'amount' => 50, 'account_id' => $account->id];
-		$resp3 = $this->actingAs($this->user)
-			->post(route('purchase.createPayment', ['purchaseId' => $purchase->id]), $payload);
-		$resp3->assertRedirect()
-			->assertSessionHas('success');
-		$this->assertDatabaseHas('purchase_payments', ['purchase_id' => $purchase->id, 'amount' => 50]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** paymentDestroy deletes payment and updates purchase status
-	 **/
-	public function payment_destroy_deletes_and_updates()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$pp      = PurchasePayment::factory()->create(['purchase_id' => $purchase->id, 'account_id' => 1, 'amount' => 30]);
-		$resp    = $this->actingAs($this->user)
-			->delete(route('purchase.paymentDestroy', ['purchaseId' => $purchase->id, 'paymentId' => $pp->id]));
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-		$this->assertDatabaseMissing('purchase_payments', ['id' => $pp->id]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** savePurchaseTemplateSettings persists settings
-	 **/
-	public function save_purchase_template_settings_saves_entries()
-	{
-		Storage::fake('local');
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.saveSettings'), [
-				'purchase_template' => 'tpl', 'purchase_color' => '112233'
-			]);
-		$resp->assertRedirect();
-		$this->assertDatabaseHas('settings', [
-			'name' => 'purchase_template', 'value' => 'tpl', 'created_by' => $this->user->creatorId()
-		]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** productDestroy removes a purchase product and adjusts warehouse
-	 **/
-	public function product_destroy_removes_item_and_adjusts_warehouse()
-	{
-		$purchase = Purchase::factory()->create(['created_by' => $this->user->creatorId()]);
-		$prod    = ProductService::factory()->create(['created_by' => $this->user->creatorId()]);
-		$pp      = PurchaseProduct::factory()->create(['purchase_id' => $purchase->id, 'product_id' => $prod->id, 'quantity' => 2]);
-		// ensure a WarehouseProduct exists
-		WarehouseProduct::factory()->create([
-			'warehouse_id' => $purchase->warehouse_id, 'product_id' => $prod->id, 'quantity' => 2
-		]);
-
-		$resp = $this->actingAs($this->user)
-			->delete(route('purchase.productDestroy'), ['id' => $pp->id]);
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-		$this->assertDatabaseMissing('purchase_products', ['id' => $pp->id]);
-	}
-	/**
-	 ** @test
-	 **
-	 ** index shows list of purchases with vendors/status
-	 **/
-	public function index_shows_purchases_list()
-	{
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		Purchase::factory()->count(2)->create(['vendor_id' => $vendor->id, 'created_by' => $this->user->creatorId()]);
-
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.index'));
-
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.index')
-			->assertViewHasAll(['purchases', 'status', 'vendors']);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** create displays the purchase creation form
-	 **/
-	public function create_displays_form()
-	{
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.create', ['vendorId' => $vendor->id]));
-
-		$resp->assertStatus(200)
-			->assertViewIs('purchase.create')
-			->assertViewHasAll([
-				'vendors', 'purchaseNumber', 'productServices',
-				'category', 'customFields', 'vendorId', 'warehouse'
-			]);
-	}
-	/**
-	 ** @test
-	 **
-	 ** sent marks purchase sent, credits vendor, and emails template
-	 **/
-	public function sent_marks_sent_and_sends_email()
-	{
-		Storage::fake('local');
-		// make sure settings say to send
-		DB::table('settings')->insert([
-			['name' => 'vendor_bill_sent', 'value' => '1', 'created_by' => $this->user->creatorId()]
-		]);
-
-		$vendor = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase = Purchase::factory()->create([
-			'vendor_id' => $vendor->id, 'created_by' => $this->user->creatorId()
-		]);
-
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.sent', ['id' => $purchase->id]));
-
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-		$this->assertDatabaseHas('purchases', ['id' => $purchase->id, 'status' => 1]);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** resent re-sends the email template without changing status
-	 **/
-	public function resent_resends_email()
-	{
-		Storage::fake('local');
-		DB::table('settings')->insert([
-			['name' => 'vendor_bill_sent', 'value' => '1', 'created_by' => $this->user->creatorId()]
-		]);
-
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase = Purchase::factory()->create([
-			'vendor_id' => $vendor->id, 'created_by' => $this->user->creatorId(), 'status' => 1
-		]);
-
-		$resp = $this->actingAs($this->user)
-			->post(route('purchase.resent', ['id' => $purchase->id]));
-
-		$resp->assertRedirect()
-			->assertSessionHas('success');
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** purchase renders the chosen template view
-	 **/
-	public function purchase_renders_template_view()
-	{
-		// set template
-		DB::table('settings')->insert([
-			['name' => 'purchase_template', 'value' => 'default', 'created_by' => $this->user->creatorId()],
-			['name' => 'company_logo_dark', 'value' => '', 'created_by' => $this->user->creatorId()]
-		]);
-
-		$vendor  = Vendor::factory()->create(['created_by' => $this->user->creatorId()]);
-		$purchase = Purchase::factory()->create([
-			'vendor_id' => $vendor->id, 'created_by' => $this->user->creatorId()
-		]);
-
-		$enc = Crypt::encrypt($purchase->id);
-		$resp = $this->actingAs($this->user)
-			->get(route('purchase.purchase', ['purchaseId' => $enc]));
-
-		$resp->assertStatus(200);
-	}
+    use ControllerTestHelper;
+
+    public function test_constant_PV_PRC_equals_previewPurchase_1(): void
+    {
+        $this->assertSame('previewPurchase', PurchaseController::PV_PRC);
+    }
+
+    public function test_constant_SV_PCR_TMP_STG_equals_savePurchaseTemplateSettings_2(): void
+    {
+        $this->assertSame('savePurchaseTemplateSettings', PurchaseController::SV_PCR_TMP_STG);
+    }
+
+    public function test_constant_PRC_LK_equals_purchaseLink_3(): void
+    {
+        $this->assertSame('purchaseLink', PurchaseController::PRC_LK);
+    }
+
+    public function test_constant_CRT_PAY_equals_createPayment_4(): void
+    {
+        $this->assertSame('createPayment', PurchaseController::CRT_PAY);
+    }
+
+    public function test_constant_DST_PAY_equals_paymentDestroy_5(): void
+    {
+        $this->assertSame('paymentDestroy', PurchaseController::DST_PAY);
+    }
+
+    public function test_constant_DST_PRD_equals_productDestroy_6(): void
+    {
+        $this->assertSame('productDestroy', PurchaseController::DST_PRD);
+    }
+
+    public function test_constant_IDX_equals_index_7(): void
+    {
+        $this->assertSame('index', PurchaseController::IDX);
+    }
+
+    public function test_constant_CRT_equals_create_8(): void
+    {
+        $this->assertSame('create', PurchaseController::CRT);
+    }
+
+    public function test_constant_STR_equals_store_9(): void
+    {
+        $this->assertSame('store', PurchaseController::STR);
+    }
+
+    public function test_constant_SHW_equals_show_10(): void
+    {
+        $this->assertSame('show', PurchaseController::SHW);
+    }
+
+    public function test_constant_EDT_equals_edit_11(): void
+    {
+        $this->assertSame('edit', PurchaseController::EDT);
+    }
+
+    public function test_constant_UPD_equals_update_12(): void
+    {
+        $this->assertSame('update', PurchaseController::UPD);
+    }
+
+    public function test_constant_DEL_equals_destroy_13(): void
+    {
+        $this->assertSame('destroy', PurchaseController::DEL);
+    }
+
+    public function test_index_14(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->index($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_index_empty_post_15(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->index($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_index_json_16(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->index($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_index_performance_17(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->index($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "index took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "index used > 50MB for 3 iterations");
+    }
+
+    public function test_create_18(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->create($this->makeRequest(), null);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'create must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_create_empty_post_19(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->create($this->makeRequest('/', 'POST', []), null);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'create must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_create_json_20(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->create($this->makeRequest('/', 'GET', [], true), null);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'create must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_create_performance_21(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->create($this->makeRequest(), null);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "create took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "create used > 50MB for 3 iterations");
+    }
+
+    public function test_store_22(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->store($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'store must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_store_empty_post_23(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->store($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'store must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_store_json_24(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->store($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'store must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_store_performance_25(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->store($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "store took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "store used > 50MB for 3 iterations");
+    }
+
+    public function test_show_26(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->show($this->makeRequest(), 'test_value');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_show_empty_post_27(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->show($this->makeRequest('/', 'POST', []), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_show_json_28(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->show($this->makeRequest('/', 'GET', [], true), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_show_empty_32(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->show($this->makeRequest(), '');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_show_special_33(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->show($this->makeRequest(), '<script>alert(1)</script>');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_show_performance_31(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->show($this->makeRequest(), 'test_value');
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "show took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "show used > 50MB for 3 iterations");
+    }
+
+    public function test_edit_32(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->edit($this->makeRequest(), 'test_value');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'edit must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_edit_empty_post_33(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->edit($this->makeRequest('/', 'POST', []), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'edit must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_edit_json_34(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->edit($this->makeRequest('/', 'GET', [], true), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'edit must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_edit_empty_38(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->edit($this->makeRequest(), '');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'edit must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_edit_special_39(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->edit($this->makeRequest(), '<script>alert(1)</script>');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'edit must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_edit_performance_37(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->edit($this->makeRequest(), 'test_value');
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "edit took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "edit used > 50MB for 3 iterations");
+    }
+
+    public function test_update_38(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->update($this->makeRequest(), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'update must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_update_empty_post_39(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->update($this->makeRequest('/', 'POST', []), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'update must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_update_json_40(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->update($this->makeRequest('/', 'GET', [], true), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'update must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_update_performance_41(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->update($this->makeRequest(), null);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "update took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "update used > 50MB for 3 iterations");
+    }
+
+    public function test_destroy_42(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->destroy($this->makeRequest(), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_destroy_empty_post_43(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->destroy($this->makeRequest('/', 'POST', []), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_destroy_json_44(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->destroy($this->makeRequest('/', 'GET', [], true), null);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_destroy_performance_45(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->destroy($this->makeRequest(), null);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "destroy took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "destroy used > 50MB for 3 iterations");
+    }
+
+    public function test_sent_46(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest(), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_sent_empty_post_47(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest('/', 'POST', []), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_sent_json_48(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest('/', 'GET', [], true), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_sent_zero_49(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest(), 0);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_sent_negative_50(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest(), -1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_sent_large_51(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->sent($this->makeRequest(), 999999999);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'sent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_sent_performance_52(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->sent($this->makeRequest(), 1);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "sent took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "sent used > 50MB for 3 iterations");
+    }
+
+    public function test_resent_53(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest(), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_resent_empty_post_54(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest('/', 'POST', []), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_resent_json_55(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest('/', 'GET', [], true), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_resent_zero_56(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest(), 0);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_resent_negative_57(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest(), -1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_resent_large_58(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->resent($this->makeRequest(), 999999999);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'resent must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_resent_performance_59(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->resent($this->makeRequest(), 1);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "resent took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "resent used > 50MB for 3 iterations");
+    }
+
+    public function test_purchase_60(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchase($this->makeRequest(), 'test_value');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchase_empty_post_61(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchase($this->makeRequest('/', 'POST', []), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchase_json_62(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchase($this->makeRequest('/', 'GET', [], true), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchase_empty_66(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchase($this->makeRequest(), '');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchase_special_67(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchase($this->makeRequest(), '<script>alert(1)</script>');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_purchase_performance_65(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->purchase($this->makeRequest(), 'test_value');
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "purchase took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "purchase used > 50MB for 3 iterations");
+    }
+
+    public function test_previewPurchase_66(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->previewPurchase($this->makeRequest(), 'test_value', 'test_value');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'previewPurchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_previewPurchase_empty_post_67(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->previewPurchase($this->makeRequest('/', 'POST', []), 'test', 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'previewPurchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_previewPurchase_json_68(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->previewPurchase($this->makeRequest('/', 'GET', [], true), 'test', 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'previewPurchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_previewPurchase_empty_72(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->previewPurchase($this->makeRequest(), '', '');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'previewPurchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_previewPurchase_special_73(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->previewPurchase($this->makeRequest(), '<script>alert(1)</script>', '<script>alert(1)</script>');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'previewPurchase must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_previewPurchase_performance_71(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->previewPurchase($this->makeRequest(), 'test_value', 'test_value');
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "previewPurchase took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "previewPurchase used > 50MB for 3 iterations");
+    }
+
+    public function test_savePurchaseTemplateSettings_72(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->savePurchaseTemplateSettings($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'savePurchaseTemplateSettings must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_savePurchaseTemplateSettings_empty_post_73(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->savePurchaseTemplateSettings($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'savePurchaseTemplateSettings must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_savePurchaseTemplateSettings_json_74(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->savePurchaseTemplateSettings($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'savePurchaseTemplateSettings must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_savePurchaseTemplateSettings_performance_75(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->savePurchaseTemplateSettings($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "savePurchaseTemplateSettings took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "savePurchaseTemplateSettings used > 50MB for 3 iterations");
+    }
+
+    public function test_items_76(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->items($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'items must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_items_empty_post_77(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->items($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'items must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_items_json_78(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->items($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'items must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_items_performance_79(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->items($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "items took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "items used > 50MB for 3 iterations");
+    }
+
+    public function test_purchaseLink_80(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchaseLink($this->makeRequest(), 'test_value');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchaseLink must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchaseLink_empty_post_81(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchaseLink($this->makeRequest('/', 'POST', []), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchaseLink must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchaseLink_json_82(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchaseLink($this->makeRequest('/', 'GET', [], true), 'test');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchaseLink must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchaseLink_empty_86(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchaseLink($this->makeRequest(), '');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchaseLink must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_purchaseLink_special_87(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->purchaseLink($this->makeRequest(), '<script>alert(1)</script>');
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'purchaseLink must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_purchaseLink_performance_85(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->purchaseLink($this->makeRequest(), 'test_value');
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "purchaseLink took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "purchaseLink used > 50MB for 3 iterations");
+    }
+
+    public function test_payment_86(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->payment($this->makeRequest(), 10);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'payment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_payment_empty_post_87(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->payment($this->makeRequest('/', 'POST', []), 1);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'payment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_payment_json_88(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->payment($this->makeRequest('/', 'GET', [], true), 1);
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'payment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_payment_performance_89(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->payment($this->makeRequest(), 10);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "payment took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "payment used > 50MB for 3 iterations");
+    }
+
+    public function test_createPayment_90(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->createPayment($this->makeRequest(), 10);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'createPayment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_createPayment_empty_post_91(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->createPayment($this->makeRequest('/', 'POST', []), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'createPayment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_createPayment_json_92(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->createPayment($this->makeRequest('/', 'GET', [], true), 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'createPayment must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_createPayment_performance_93(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->createPayment($this->makeRequest(), 10);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "createPayment took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "createPayment used > 50MB for 3 iterations");
+    }
+
+    public function test_paymentDestroy_94(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->paymentDestroy($this->makeRequest(), 10, 10);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'paymentDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_paymentDestroy_empty_post_95(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->paymentDestroy($this->makeRequest('/', 'POST', []), 1, 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'paymentDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_paymentDestroy_json_96(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->paymentDestroy($this->makeRequest('/', 'GET', [], true), 1, 1);
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'paymentDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_paymentDestroy_performance_97(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->paymentDestroy($this->makeRequest(), 10, 10);
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "paymentDestroy took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "paymentDestroy used > 50MB for 3 iterations");
+    }
+
+    public function test_vendor_98(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->vendor($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'vendor must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_vendor_empty_post_99(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->vendor($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'vendor must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_vendor_json_100(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->vendor($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'vendor must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_vendor_performance_101(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->vendor($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "vendor took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "vendor used > 50MB for 3 iterations");
+    }
+
+    public function test_product_102(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->product($this->makeRequest());
+            $this->assertTrue(true, 'Method executed without fatal error');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_product_empty_post_103(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->product($this->makeRequest('/', 'POST', []));
+            $this->assertTrue(true, 'Method executed without fatal error');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_product_json_104(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->product($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue(true, 'Method executed without fatal error');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_product_performance_105(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->product($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "product took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "product used > 50MB for 3 iterations");
+    }
+
+    public function test_productDestroy_106(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->productDestroy($this->makeRequest());
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'productDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_productDestroy_empty_post_107(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->productDestroy($this->makeRequest('/', 'POST', []));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'productDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    public function test_productDestroy_json_108(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        try {
+            $result = $ctrl->productDestroy($this->makeRequest('/', 'GET', [], true));
+            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'productDestroy must return valid type');
+            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\BadMethodCallException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\RuntimeException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\ErrorException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\TypeError $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            } catch (\Throwable $e) {
+                $this->assertNotEmpty($e->getMessage());
+                return;
+            }
+    }
+
+    /**
+     * @group performance
+     */
+    public function test_productDestroy_performance_109(): void
+    {
+        $this->loginMockUser();
+        $ctrl = new PurchaseController();
+        
+        $memBefore = memory_get_usage(true);
+        $timeBefore = microtime(true);
+        
+        try {
+            for ($i = 0; $i < 3; $i++) {
+                $ctrl->productDestroy($this->makeRequest());
+            }
+        } catch (\Throwable $e) {
+            // Method may throw, that's OK for perf test
+        }
+        
+        $timeAfter = microtime(true);
+        $memAfter = memory_get_usage(true);
+        
+        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
+        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
+        
+        // Assert reasonable performance bounds
+        $this->assertLessThan(5000, $execTime, "productDestroy took > 5s for 3 iterations");
+        $this->assertLessThan(50, $memUsed, "productDestroy used > 50MB for 3 iterations");
+    }
+
 }

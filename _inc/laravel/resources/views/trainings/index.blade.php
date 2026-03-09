@@ -1,11 +1,31 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants, PermissionsConstants, StacksConstants, ViewClassNamesConstants, ViewsConstants as VW, YieldingConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Auth, Crypt, Gate, Route};
-	use Illuminate\Support\Str;
-
-	$user = Auth::user();
-	$lang = Utility::fetchUserLang(user: $user);
+$user ??= null;
+	$lang ??= 'en';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in trainings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in trainings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in trainings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -14,23 +34,27 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-	<li class="breadcrumb-item">
+	<li class="{{ VC::BCI }}">
 		<a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
 			{{ __('Dashboard') }}
 		</a>
 	</li>
-	<li class="breadcrumb-item">{{ __('Training') }}</li>
+	<li class="{{ VC::BCI }}">{{ __('Training') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
 	@php
-		$createBase = VW::TNG . '.create';
-		$createKebab = Str::kebab($createBase);
-		$createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-		$createUrl = $createResolved ? route($createResolved) : '#';
-		$createGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'create_training_route_unavailable') ?? 'Create training route is unavailable. Please contact technical support or your domain administrator.';
-	@endphp
-	<div class="float-end">
+		try {
+		    $createBase = VW::TNG . '.create';
+		    $createKebab = Str::kebab($createBase);
+		    $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+		    $createUrl = $createResolved ? route($createResolved) : '#';
+		    $createGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'create_training_route_unavailable') ?? 'Create training route is unavailable. Please contact technical support or your domain administrator.';
+		} catch (\Throwable $e) {
+		    \Log::error('trainings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		}
+@endphp
+	<div class="{{ VC::FEND }}">
 		@can('create training')
 			<a href="#"
 			   id="training-create-link"
@@ -40,10 +64,10 @@
 			   data-bs-toggle="tooltip"
 			   title="{{ __('Create') }}"
 			   data-title="{{ __('Create New Training') }}"
-			   data-guard-msg="{{ $createGuard }}"
+			   data-guard-msg="{{ base64_encode($createGuard) }}"
 			   data-sv-localized="true"
-			   class="btn btn-sm btn-primary">
-				<i class="ti ti-plus"></i>
+			   class="{{ ViewClassNamesConstants::BT_SM_PM }}">
+				<i class="{{ ViewClassNamesConstants::TI_PLS }}"></i>
 			</a>
 		@endcan
 	</div>
@@ -51,10 +75,10 @@
 
 @section(YieldingConstants::ADM_CTT)
 	<div class="row">
-		<div class="col-md-12">
+		<div class="{{ VC::CM12 }}">
 			<div class="card">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="table datatable">
 							<thead>
 								<tr>
@@ -71,25 +95,29 @@
 							<tbody class="font-style">
 								@foreach ($trainings as $training)
 									@php
-										$showBase = VW::TNG . '.show';
-										$showKebab = Str::kebab($showBase);
-										$showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-										$showUrl = $showResolved ? route($showResolved, [Crypt::encrypt($training->id)]) : '#';
-										$showGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'show_training_route_unavailable') ?? 'Show training route is unavailable. Please contact technical support or your domain administrator.';
-										$showId = 'training-show-link-' . $training->id;
-									@endphp
+										try {
+										    $showBase = VW::TNG . '.show';
+										    $showKebab = Str::kebab($showBase);
+										    $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
+										    $showUrl = $showResolved ? route($showResolved, [Crypt::encrypt($training->id)]) : '#';
+										    $showGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'show_training_route_unavailable') ?? 'Show training route is unavailable. Please contact technical support or your domain administrator.';
+										    $showId = 'training-show-link-' . $training->id;
+										} catch (\Throwable $e) {
+										    \Log::error('trainings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+										}
+@endphp
 									<tr>
 										<td>{{ !empty($training->branches) ? $training->branches->name : '' }}</td>
 										<td>{{ !empty($training->types) ? $training->types->name : '' }}</td>
 										<td>
 											@if($training->status == 0)
-												<span class="status_badge badge bg-warning p-2 px-3 rounded">{{ __($status[$training->status]) }}</span>
+												<span class="status_badge badge bg-warning p-2 {{ VC::PX3 }} rounded">{{ __($status[$training->status]) }}</span>
 											@elseif($training->status == 1)
-												<span class="status_badge badge bg-primary p-2 px-3 rounded">{{ __($status[$training->status]) }}</span>
+												<span class="status_badge badge {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded">{{ __($status[$training->status]) }}</span>
 											@elseif($training->status == 2)
-												<span class="status_badge badge bg-success p-2 px-3 rounded">{{ __($status[$training->status]) }}</span>
+												<span class="status_badge badge bg-success p-2 {{ VC::PX3 }} rounded">{{ __($status[$training->status]) }}</span>
 											@elseif($training->status == 3)
-												<span class="status_badge badge bg-info p-2 px-3 rounded">{{ __($status[$training->status]) }}</span>
+												<span class="status_badge badge bg-info p-2 {{ VC::PX3 }} rounded">{{ __($status[$training->status]) }}</span>
 											@endif
 										</td>
 										<td>{{ !empty($training->employees) ? $training->employees->name : '' }}</td>
@@ -97,40 +125,44 @@
 										<td>{{ $user?->dateFormat($training->start_date) . ' to ' . $user?->dateFormat($training->end_date) }}</td>
 										<td>{{ $user?->priceFormat($training->training_cost) }}</td>
 										<td>
-											<div class="action-btn bg-info ms-2">
-												<a href="{{ $showUrl }}"
-												   id="{{ $showId }}"
-												   class="mx-3 btn btn-sm align-items-center"
-												   data-bs-toggle="tooltip"
-												   title="{{ __('View') }}"
-												   data-original-title="{{ __('View Detail') }}"
-												   data-guard-msg="{{ $showGuard }}"
-												   data-sv-localized="true">
-													<i class="ti ti-eye text-white"></i>
+<div class="{{ ViewClassNamesConstants::ACT_BTN_INF }}">
+										<a href="{{ $showUrl }}"
+										   id="{{ $showId }}"
+										   class="{{ ViewClassNamesConstants::BT_SM_CT }}"
+										   data-bs-toggle="tooltip"
+										   title="{{ __('View') }}"
+										   data-original-title="{{ __('View Detail') }}"
+										   data-guard-msg="{{ base64_encode($showGuard) }}"
+										   data-sv-localized="true">
+											<i class="{{ ViewClassNamesConstants::TI_EYE_WT }}"></i>
 												</a>
 											</div>
 
 											@can('edit training')
 												@php
-													$editBase = VW::TNG . '.edit';
-													$editKebab = Str::kebab($editBase);
-													$editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-													$editUrl = $editResolved ? route($editResolved, [$training->id]) : '#';
-													$editGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'edit_training_route_unavailable') ?? 'Edit training route is unavailable. Please contact technical support or your domain administrator.';
-													$editId = 'training-edit-link-' . $training->id;
-												@endphp
-												<div class="action-btn bg-primary ms-2">
+													try {
+													    $editBase = VW::TNG . '.edit';
+													    $editKebab = Str::kebab($editBase);
+													    $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+													    $editUrl = $editResolved ? route($editResolved, [$training->id]) : '#';
+													    $editGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'edit_training_route_unavailable') ?? 'Edit training route is unavailable. Please contact technical support or your domain administrator.';
+													    $editId = 'training-edit-link-' . $training->id;
+													} catch (\Throwable $e) {
+													    \Log::error('trainings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+													}
+@endphp
+												<div class="{{ VC::ACT_BTN_PRIM }}">
 													<a href="#"
 													   id="{{ $editId }}"
 													   data-url="{{ $editUrl }}"
 													   data-size="lg"
 													   data-ajax-popup="true"
 													   data-title="{{ __('Edit Training') }}"
-													   class="mx-3 btn btn-sm align-items-center"
+													   class="{{ VC::BT_SM_CT }}"
 													   data-bs-toggle="tooltip"
 													   title="{{ __('Edit') }}"
 													   data-original-title="{{ __('Edit') }}"
-													   data-guard-msg="{{ $editGuard }}"
+													   data-guard-msg="{{ base64_encode($editGuard) }}"
 													   data-sv-localized="true">
 														<i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
 													</a>
@@ -169,27 +201,31 @@
 
 											@can('delete training')
 												@php
-													$delBase = VW::TNG . '.destroy';
-													$delKebab = Str::kebab($delBase);
-													$delResolved = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
-													$delUrl = $delResolved ? route($delResolved, [$training->id]) : '#';
-													$delGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'delete_training_route_unavailable') ?? 'Delete training route is unavailable. Please contact technical support or your domain administrator.';
-													$delFormId = 'delete-form-' . $training->id;
-													$delLinkId = 'training-delete-link-' . $training->id;
-												@endphp
-												<div class="action-btn bg-danger ms-2">
+													try {
+													    $delBase = VW::TNG . '.destroy';
+													    $delKebab = Str::kebab($delBase);
+													    $delResolved = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
+													    $delUrl = $delResolved ? route($delResolved, [$training->id]) : '#';
+													    $delGuard = Utility::fetchLinkMessage($lang, VW::TNG, 'delete_training_route_unavailable') ?? 'Delete training route is unavailable. Please contact technical support or your domain administrator.';
+													    $delFormId = 'delete-form-' . $training->id;
+													    $delLinkId = 'training-delete-link-' . $training->id;
+													} catch (\Throwable $e) {
+													    \Log::error('trainings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+													}
+@endphp
+												<div class="{{ VC::ACT_BTN_DNG_2 }}">
 													{!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'url' => $delUrl, 'id' => $delFormId]) !!}
 														<a href="#"
 														   id="{{ $delLinkId }}"
-														   class="mx-3 btn btn-sm align-items-center bs-pass-para"
+														   class="{{ VC::BT_SM_CT_PR }}"
 																data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
 														   data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();"
 														   data-bs-toggle="tooltip"
 														   title="{{ __('Delete') }}"
 														   data-original-title="{{ __('Delete') }}"
-														   data-guard-msg="{{ $delGuard }}"
+														   data-guard-msg="{{ base64_encode($delGuard) }}"
 														   data-sv-localized="true">
-															<i class="ti ti-trash text-white"></i>
+															<i class="{{ VC::TI_TRS_WT }}"></i>
 														</a>
 													{!! Collective\Html\FormFacade::close() !!}
 												</div>

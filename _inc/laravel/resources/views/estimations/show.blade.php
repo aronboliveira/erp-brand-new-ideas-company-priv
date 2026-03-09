@@ -1,19 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\{Estimation, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $settings = (is_array($settings ?? null)) ? $settings : [];
+        $settings = (is_array($settings ?? null)) ? $settings : [];
+    } catch (\Throwable $e) {
+        \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 
@@ -22,33 +15,41 @@
 @endsection
 @if(!empty($estimation) && isset($estimation->id))
     @php
-        $cli      = $client ?? data_get($estimation ?? null, 'client');
-        $hasPrice = method_exists($user, 'priceFormat');
-        $hasDate  = method_exists($user, 'dateFormat');
-        $hasNum   = method_exists($user, 'estimateNumberFormat');
+        try {
+            $cli      = $client ?? data_get($estimation ?? null, 'client');
+            $hasPrice = method_exists($user, 'priceFormat');
+            $hasDate  = method_exists($user, 'dateFormat');
+            $hasNum   = method_exists($user, 'estimateNumberFormat');
 
-        $estId    = data_get($estimation ?? null, 'id');
+            $estId    = data_get($estimation ?? null, 'id');
 
-        $statusIdx = (int) data_get($estimation ?? null, 'status', -1);
-        $statusLbl = data_get(Estimation::$statuses ?? [], $statusIdx, __('No status available'));
-    @endphp
+            $statusIdx = (int) data_get($estimation ?? null, 'status', -1);
+            $statusLbl = data_get(Estimation::$statuses ?? [], $statusIdx, __('No status available'));
+        } catch (\Throwable $e) {
+            \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     @section(YW::ADM_ACT_BTN)
         <div class="all-button-box {{ VC::R_FLX_ALC_JCE }}">
             @can('Edit Estimation')
                 @php
-                    $editBase     = VW::EST . '.edit';
-                    $editKebab    = Str::kebab($editBase);
-                    $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                    $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
-                    $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
-                <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
+                    try {
+                        $editBase     = VW::EST . '.edit';
+                        $editKebab    = Str::kebab($editBase);
+                        $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                        $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
+                        $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Throwable $e) {
+                        \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <div class="{{ VC::CXL2 }} {{ VC::CL2 }} {{ VC::CM4 }} {{ VC::CS6 }} {{ VC::C6 }}">
                     <a
                         href="#"
                         data-url="{{ $editUrl }}"
                         data-ajax-popup="true"
                         data-title="{{ __('Edit Estimation') }}"
-                        data-guard-msg="{{ $editGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                         class="{{ VC::BT_XS }} btn-white btn-icon-only width-auto"
                     >
                         <i class="{{ VC::TI_PC_WT }}"></i> {{ __('Edit') }}
@@ -57,20 +58,24 @@
             @endcan
             @can('View Estimation')
                 @php
-                    $printBase     = VW::EST . '.get';
-                    $printKebab    = Str::kebab($printBase);
-                    $printResolved = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
-                    $printUrl      = ($printResolved && $estId) ? route($printResolved, $estId) : '#';
-                    $printGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'print_estimate_route_unavailable') ?? 'Print estimate route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
-                <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
+                    try {
+                        $printBase     = VW::EST . '.get';
+                        $printKebab    = Str::kebab($printBase);
+                        $printResolved = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
+                        $printUrl      = ($printResolved && $estId) ? route($printResolved, $estId) : '#';
+                        $printGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'print_estimate_route_unavailable') ?? 'Print estimate route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Throwable $e) {
+                        \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <div class="{{ VC::CXL2 }} {{ VC::CL2 }} {{ VC::CM4 }} {{ VC::CS6 }} {{ VC::C6 }}">
                     <a
                         href="{{ $printUrl }}"
                         data-url="{{ $printUrl }}"
                         class="{{ VC::BT_XS }} btn-white btn-icon-only bg-warning width-auto"
                         title="{{ __('Print Estimation') }}"
                         target="_blank"
-                        data-guard-msg="{{ $printGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($printGuardMsg) }}"
                     >
                         <span><i class="fa fa-print"></i> {{ __('Print') }}</span>
                     </a>
@@ -91,20 +96,24 @@
                             {{ data_get($settings, 'company_name', __('No company name available')) }}<br>
                             {{ data_get($settings, 'company_address', __('No address available')) }}<br>
                             @php
-                                $city    = data_get($settings, 'company_city', '');
-                                $state   = data_get($settings, 'company_state', '');
-                                $zipcode = data_get($settings, 'company_zipcode', '');
-                                $country = data_get($settings, 'company_country', '');
-                                $line2   = trim(implode(' ', array_filter([$city, $state])));
-                                $zip     = $zipcode ? "-{$zipcode}" : '';
-                            @endphp
+                                try {
+                                    $city    = data_get($settings, 'company_city', '');
+                                    $state   = data_get($settings, 'company_state', '');
+                                    $zipcode = data_get($settings, 'company_zipcode', '');
+                                    $country = data_get($settings, 'company_country', '');
+                                    $line2   = trim(implode(' ', array_filter([$city, $state])));
+                                    $zip     = $zipcode ? "-{$zipcode}" : '';
+                                } catch (\Throwable $e) {
+                                    \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             {{ $line2 !== '' ? $line2 : __('No city/state available') }}{{ $zip }}<br>
                             {{ $country !== '' ? $country : __('No country available') }}
                         </div>
                     </div>
                     <div class="{{ VC::CM6 }} {{ VC::CS6 }}">
                         @if($cli)
-                            <div class="address-detail text-end float-right">
+                            <div class="address-detail {{ VC::TX_END }} float-right">
                                 <strong>{{ __('To') }} :</strong>
                                 {{ data_get($cli, 'name', __('No client name available')) }} <br>
                                 {{ data_get($cli, 'email', __('No client email available')) }}
@@ -133,7 +142,7 @@
                             </div>
                         </div>
                         <div class="{{ VC::CM9 }} {{ VC::CS9 }} {{ VC::C9 }}">
-                            <div class="text-status text-end">
+                            <div class="text-status {{ VC::TX_END }}">
                                 {{ __('Issue Date') }}:
                                 <strong>{{ $hasDate ? ($user?->dateFormat(data_get($estimation, 'issue_date')) ?? __('Failed to get issue date')) : __('Failed to format date') }}</strong>
                             </div>
@@ -142,31 +151,35 @@
                 </div>
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::CM12 }}">
-                        <div class="justify-content-between align-items-center d-flex">
+                        <div class="{{ VC::JCB }} {{ VC::ALC }} {{ VC::DFL }}">
                             <h4 class="h4 font-weight-400 float-left">{{ __('Order Summary') }}</h4>
                             @can('Estimation Add Product')
                                 @php
-                                    $addBase     = VW::EST . '.products.add';
-                                    $addKebab    = Str::kebab($addBase);
-                                    $addResolved = Route::has($addBase) ? $addBase : (Route::has($addKebab) ? $addKebab : null);
-                                    $addUrl      = ($addResolved && $estId) ? route($addResolved, $estId) : '#';
-                                    $addGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'add_product_route_unavailable') ?? 'Add product route is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
+                                    try {
+                                        $addBase     = VW::EST . '.products.add';
+                                        $addKebab    = Str::kebab($addBase);
+                                        $addResolved = Route::has($addBase) ? $addBase : (Route::has($addKebab) ? $addKebab : null);
+                                        $addUrl      = ($addResolved && $estId) ? route($addResolved, $estId) : '#';
+                                        $addGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'add_product_route_unavailable') ?? 'Add product route is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <a
                                     href="#"
                                     class="{{ VC::BT_SM }} btn-white float-right add-small"
                                     data-url="{{ $addUrl }}"
                                     data-ajax-popup="true"
                                     data-title="{{ __('Add Product') }}"
-                                    data-guard-msg="{{ $addGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($addGuardMsg) }}"
                                 >
-                                    <i class="ti ti-plus"></i> {{ __('Add Product') }}
+                                    <i class="{{ VC::TI_PLS }}"></i> {{ __('Add Product') }}
                                 </a>
                             @endcan
                         </div>
                         <div class="{{ VC::CD }}">
-                            <div class="table-responsive order-table">
-                                <table class="table align-items-center mb-0">
+                            <div class="{{ VC::TB_RSP }} order-table">
+                                <table class="{{ VC::TB_AL }} {{ VC::MB0 }}">
                                     <thead>
                                     <tr>
                                         <th>{{ __('Action') }}</th>
@@ -174,35 +187,47 @@
                                         <th>{{ __('Item') }}</th>
                                         <th>{{ __('Price') }}</th>
                                         <th>{{ __('Quantity') }}</th>
-                                        <th class="text-end">{{ __('Totals') }}</th>
+                                        <th class="{{ VC::TX_END }}">{{ __('Totals') }}</th>
                                     </tr>
                                     </thead>
                                     <tbody class="list">
                                     @php
-                                        $products = data_get($estimation ?? null, 'getProducts');
-                                        $hasList  = (is_array($products) && count($products)) || ($products instanceof Collection && $products->isNotEmpty());
-                                        $i = 0;
-                                    @endphp
+                                        try {
+                                            $products = data_get($estimation ?? null, 'getProducts');
+                                            $hasList  = (is_array($products) && count($products)) || ($products instanceof Collection && $products->isNotEmpty());
+                                            $i = 0;
+                                        } catch (\Throwable $e) {
+                                            \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     @if($hasList)
                                         @foreach(($products instanceof Collection ? $products : collect($products)) as $product)
                                             @php
-                                                $pvtId    = data_get($product, 'pivot.id');
-                                                $pName    = data_get($product, 'name', __('No product name'));
-                                                $pPrice   = (float) data_get($product, 'pivot.price', 0);
-                                                $pQty     = (float) data_get($product, 'pivot.quantity', 0);
-                                                $rowTotal = $pPrice * $pQty;
-                                            @endphp
+                                                try {
+                                                    $pvtId    = data_get($product, 'pivot.id');
+                                                    $pName    = data_get($product, 'name', __('No product name'));
+                                                    $pPrice   = (float) data_get($product, 'pivot.price', 0);
+                                                    $pQty     = (float) data_get($product, 'pivot.quantity', 0);
+                                                    $rowTotal = $pPrice * $pQty;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td class="Action">
                                                     <span>
                                                         @can('Estimation Edit Product')
                                                             @php
-                                                                $editPBase     = VW::EST . '.products.edit';
-                                                                $editPKebab    = Str::kebab($editPBase);
-                                                                $editPResolved = Route::has($editPBase) ? $editPBase : (Route::has($editPKebab) ? $editPKebab : null);
-                                                                $editPUrl      = ($editPResolved && $estId && $pvtId) ? route($editPResolved, [$estId, $pvtId]) : '#';
-                                                                $editPGuard    = Utility::fetchLinkMessage($lang, VW::EST, 'edit_product_route_unavailable') ?? 'Edit product route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $editPBase     = VW::EST . '.products.edit';
+                                                                    $editPKebab    = Str::kebab($editPBase);
+                                                                    $editPResolved = Route::has($editPBase) ? $editPBase : (Route::has($editPKebab) ? $editPKebab : null);
+                                                                    $editPUrl      = ($editPResolved && $estId && $pvtId) ? route($editPResolved, [$estId, $pvtId]) : '#';
+                                                                    $editPGuard    = Utility::fetchLinkMessage($lang, VW::EST, 'edit_product_route_unavailable') ?? 'Edit product route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 href="#"
                                                                 class="edit-icon"
@@ -211,36 +236,41 @@
                                                                 data-title="{{ __('Edit Estimation Product') }}"
                                                                 data-toggle="tooltip"
                                                                 data-original-title="{{ __('Edit') }}"
-                                                                data-guard-msg="{{ $editPGuard }}"
+                                                                data-guard-msg="{{ base64_encode($editPGuard) }}"
                                                             >
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
                                                             </a>
                                                         @endcan
                                                         @can('Estimation Delete Product')
                                                             @php
-                                                                $delPBase     = VW::EST . '.products.delete';
-                                                                $delPKebab    = Str::kebab($delPBase);
-                                                                $delPResolved = Route::has($delPBase) ? $delPBase : (Route::has($delPKebab) ? $delPKebab : null);
-                                                                $delPUrl      = ($delPResolved && $estId && $pvtId) ? route($delPResolved, [$estId, $pvtId]) : '#';
-                                                                $delPGuard    = Utility::fetchLinkMessage($lang, VW::EST, 'delete_product_route_unavailable') ?? 'Delete product route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $delPBase     = VW::EST . '.products.delete';
+                                                                    $delPKebab    = Str::kebab($delPBase);
+                                                                    $delPResolved = Route::has($delPBase) ? $delPBase : (Route::has($delPKebab) ? $delPKebab : null);
+                                                                    $delPUrl      = ($delPResolved && $estId && $pvtId) ? route($delPResolved, [$estId, $pvtId]) : '#';
+                                                                    $delPGuard    = Utility::fetchLinkMessage($lang, VW::EST, 'delete_product_route_unavailable') ?? 'Delete product route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 href="#"
                                                                 class="delete-icon"
                                                                 data-toggle="tooltip"
                                                                 data-original-title="{{ __('Delete') }}"
-                                                                data-guard-msg="{{ $delPGuard }}"
+                                                                data-guard-msg="{{ base64_encode($delPGuard) }}"
                                                                 data-url="{{ $delPUrl }}"
                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                 data-confirm-yes="document.getElementById('delete-form-{{$pvtId}}').submit();"
                                                             >
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Collective\Html\FormFacade::open([
                                                                 'method' => 'DELETE',
                                                                 'url'    => $delPUrl,
                                                                 'id'     => 'delete-form-'.$pvtId
                                                             ]) !!}
+                                                            @csrf
                                                             {!! Collective\Html\FormFacade::close() !!}
                                                         @endcan
                                                     </span>
@@ -249,12 +279,12 @@
                                                 <td class="small-order">{{ $pName }}</td>
                                                 <td class="small-order">{{ $hasPrice ? ($user?->priceFormat($pPrice) ?? __('Failed to get value')) : __('Failed to format price') }}</td>
                                                 <td class="small-order">{{ $pQty }}</td>
-                                                <td class="invoice-order text-end">{{ $hasPrice ? ($user?->priceFormat($rowTotal) ?? __('Failed to get value')) : __('Failed to format price') }}</td>
+                                                <td class="invoice-order {{ VC::TX_END }}">{{ $hasPrice ? ($user?->priceFormat($rowTotal) ?? __('Failed to get value')) : __('Failed to format price') }}</td>
                                             </tr>
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="6" class="text-center">{{ __('No products found.') }}</td>
+                                            <td colspan="6" class="{{ VC::TXCT }}">{{ __('No products found.') }}</td>
                                         </tr>
                                     @endif
                                     </tbody>
@@ -265,13 +295,17 @@
                     </div>
                 </div>
                 @php
-                    $subTotal = method_exists($estimation ?? null, 'getSubTotal') ? ($estimation->getSubTotal() ?? 0) : 0;
-                    $taxVal   = method_exists($estimation ?? null, 'getTax') ? ($estimation->getTax() ?? 0) : 0;
-                    $disc     = (float) data_get($estimation ?? null, 'discount', 0);
-                    $taxName  = data_get($estimation ?? null, 'tax.name', __('No tax name'));
-                    $taxRate  = data_get($estimation ?? null, 'tax.rate', __('N/A'));
-                    $total    = $subTotal - $disc + $taxVal;
-                @endphp
+                    try {
+                        $subTotal = method_exists($estimation ?? null, 'getSubTotal') ? ($estimation->getSubTotal() ?? 0) : 0;
+                        $taxVal   = method_exists($estimation ?? null, 'getTax') ? ($estimation->getTax() ?? 0) : 0;
+                        $disc     = (float) data_get($estimation ?? null, 'discount', 0);
+                        $taxName  = data_get($estimation ?? null, 'tax.name', __('No tax name'));
+                        $taxRate  = data_get($estimation ?? null, 'tax.rate', __('N/A'));
+                        $total    = $subTotal - $disc + $taxVal;
+                    } catch (\Throwable $e) {
+                        \Log::error('estimations/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <div class="{{ VC::RW }} text-end">
                     <div class="{{ VC::CM3 }}">
                         <div class="text-status"><strong>{{ __('Subtotal') }} :</strong> {{ $hasPrice ? ($user?->priceFormat($subTotal) ?? __('Failed to get value')) : __('Failed to format price') }}</div>
@@ -293,5 +327,5 @@
         @endpush
     @endsection
 @else
-    <div class="alert alert-warning">{{ __('No data available for estimation') }}</div>
+    <div class="{{ VC::ALT_WRN }}">{{ __('No data available for estimation') }}</div>
 @endif

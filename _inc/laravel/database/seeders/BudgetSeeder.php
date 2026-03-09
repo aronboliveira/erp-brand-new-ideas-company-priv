@@ -13,7 +13,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class BudgetSeeder extends Seeder
 {
 	private ConsoleOutput $out;
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$clock = microtime(true);
@@ -22,7 +23,9 @@ class BudgetSeeder extends Seeder
 		if (!Schema::hasTable(DC::TABLE_BDG))
 			return;
 
-		$cap = 3200;
+		// $cap = 3200;
+		$cap = 2;
+		$HARD_CAP = 2;
 
 		$projectIds    = $this->fetchIds(DC::TABLE_PROJECTS);
 		$contractIds   = $this->fetchIds(DC::TABLE_CONTRACTS);
@@ -56,6 +59,7 @@ class BudgetSeeder extends Seeder
 			$rawTotal += (int) ($p['count'] ?? 0);
 
 		$target = $this->adjustToMultiple(min($rawTotal, $cap), 64, $cap);
+		if ($target <= 0 || $target > $HARD_CAP) $target = $HARD_CAP;
 		if ($target <= 0)
 			return;
 
@@ -88,11 +92,9 @@ class BudgetSeeder extends Seeder
 
 				$m = new Budget();
 
-				$creatorId = $this->pickOne($auditUserIds);
-				if ($creatorId !== null) {
-					$m->setAttribute(DC::COL_TABLE_CREATOR, $creatorId);
-					$m->setAttribute(DC::COL_TABLE_UPDATER, $creatorId);
-				}
+				$creatorId = DC::DEFAULT_UUID;
+				$m->setAttribute(DC::COL_TABLE_CREATOR, $creatorId);
+				$m->setAttribute(DC::COL_TABLE_UPDATER, $creatorId);
 
 				$assocKind = (string) ($plan['kind'] ?? '');
 				$assocId   = (string) ($plan['id'] ?? '');
@@ -174,17 +176,17 @@ class BudgetSeeder extends Seeder
 					'hints'  => ['json_columns' => true, 'receipts_merge' => true],
 				]);
 
-				$this->out->writeln(sprintf(
-					'[BudgetSeeder] creating #%d kind=%s type=%s freq=%s status=%s amount=%s receipts=%d attachments=%d',
-					$created + 1,
-					$assocKind,
-					(string) $m->getAttribute('type'),
-					(string) ($m->getAttribute('frequency') instanceof Frequency ? $m->getAttribute('frequency')->value : ($m->getAttribute('frequency') ?? 'null')),
-					(string) ($m->getAttribute('status') instanceof EvaluationStatus ? $m->getAttribute('status')->value : ($m->getAttribute('status') ?? 'null')),
-					(string) ($m->getAttribute('amount') ?? 'null'),
-					is_array($m->getAttribute('receipts')) ? count($m->getAttribute('receipts')) : 0,
-					is_array($m->getAttribute('attachments')) ? count($m->getAttribute('attachments')) : 0
-				));
+				// $this->out->writeln(sprintf(
+				// 	'[BudgetSeeder] creating #%d kind=%s type=%s freq=%s status=%s amount=%s receipts=%d attachments=%d',
+				// 	$created + 1,
+				// 	$assocKind,
+				// 	(string) $m->getAttribute('type'),
+				// 	(string) ($m->getAttribute('frequency') instanceof Frequency ? $m->getAttribute('frequency')->value : ($m->getAttribute('frequency') ?? 'null')),
+				// 	(string) ($m->getAttribute('status') instanceof EvaluationStatus ? $m->getAttribute('status')->value : ($m->getAttribute('status') ?? 'null')),
+				// 	(string) ($m->getAttribute('amount') ?? 'null'),
+				// 	is_array($m->getAttribute('receipts')) ? count($m->getAttribute('receipts')) : 0,
+				// 	is_array($m->getAttribute('attachments')) ? count($m->getAttribute('attachments')) : 0
+				// ));
 
 				try {
 					$m->save();

@@ -86,7 +86,7 @@ enum GoalType: string
 		if ($value === null)
 			return self::Revenue; // Default to a common business goal
 
-		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Original & Core Financial
 			'invoice' => self::Invoice,

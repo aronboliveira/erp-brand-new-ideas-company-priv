@@ -1,63 +1,78 @@
-'use strict';
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("#btn-default").addEventListener('click', function () {
-        notifier.show('Hello!', 'I am a default notification.', '', '', 0);
-    });
-    document.querySelector("#btn-info").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '', 0);
-    });
-    document.querySelector("#btn-success").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '', 0);
-    });
-    document.querySelector("#btn-warning").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '', 0);
-    });
-    document.querySelector("#btn-danger").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '', 0);
-    });
+/**
+ * @file ac-notification.js
+ * @description Notifier demonstration page controller
+ * @version 2.0.0
+ */
 
-    document.querySelector("#btn-default-i").addEventListener('click', function () {
-        notifier.show('Default!', 'I am a default notification.', '', '../assets/images/notification/clock-48.png', 0);
-    });
-    document.querySelector("#btn-info-i").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 0);
-    });
-    document.querySelector("#btn-success-i").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '../assets/images/notification/ok-48.png', 0);
-    });
-    document.querySelector("#btn-warning-i").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '../assets/images/notification/medium_priority-48.png', 0);
-    });
-    document.querySelector("#btn-danger-i").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '../assets/images/notification/high_priority-48.png', 0);
-    });
+(() => {
+  "use strict";
 
-    document.querySelector("#btn-default-ac").addEventListener('click', function () {
-        notifier.show('Default!', 'I am a default notification.', '', '../assets/images/notification/clock-48.png', 4000);
-    });
-    document.querySelector("#btn-info-ac").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 4000);
-    });
-    document.querySelector("#btn-success-ac").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '../assets/images/notification/ok-48.png', 4000);
-    });
-    document.querySelector("#btn-warning-ac").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '../assets/images/notification/medium_priority-48.png', 4000);
-    });
-    document.querySelector("#btn-danger-ac").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '../assets/images/notification/high_priority-48.png', 4000);
-    });
+  /**
+   * Notifier demo page manager
+   * @class NotifierDemoController
+   */
+  class NotifierDemoController {
+    /** @type {string} */
+    static #DATA_INIT = "data-notifier-init";
+    /** @type {string} */
+    static #DATA_LISTENER = "data-notifier-listener";
 
-    var notificationId;
+    /**
+     * Initialize notifier demos
+     */
+    init() {
+      if (document.body?.hasAttribute(NotifierDemoController.#DATA_INIT)) return;
+      if (typeof notifier === "undefined") return console.warn("[NotifierDemoController] notifier not loaded");
 
-    var showNotification = function () {
-        notificationId = notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 4000);
-    };
+      document.body?.setAttribute(NotifierDemoController.#DATA_INIT, "true");
+      this.#setupDemos();
+    }
 
-    var hideNotification = function () {
-        notifier.hide(notificationId);
-    };
+    /**
+     * Bind click handler to element with guard
+     * @param {string} selector
+     * @param {Function} handler
+     * @private
+     */
+    #bind(selector, handler) {
+      const el = document.querySelector(selector);
+      if (!el || el.hasAttribute(NotifierDemoController.#DATA_LISTENER)) return;
+      el.setAttribute(NotifierDemoController.#DATA_LISTENER, "true");
+      el.addEventListener("click", handler);
+    }
 
-    document.querySelector('#btn-nt-show').addEventListener('click', showNotification);
-    document.querySelector('#btn-nt-hide').addEventListener('click', hideNotification);
-});
+    /**
+     * Setup notification demos
+     * @private
+     */
+    #setupDemos() {
+      this.#bind(".ntf-dflt", () => notifier.show("Default", "This is a default message", "default", "", 4000));
+      this.#bind(".ntf-inf", () => notifier.show("Info", "This is an info message", "info", "", 4000));
+      this.#bind(".ntf-wrng", () => notifier.show("Warning", "This is a warning message", "warning", "", 4000));
+      this.#bind(".ntf-err", () => notifier.show("Error", "This is an error message", "error", "", 4000));
+      this.#bind(".ntf-scs", () => notifier.show("Success", "This is a success message", "success", "", 4000));
+
+      this.#bind(".ntf-tl", () => notifier.show("Top Left", "This is a message in top left", "success", "top-left", 4000));
+      this.#bind(".ntf-tc", () => notifier.show("Top Center", "This is a message in top center", "success", "top-center", 4000));
+      this.#bind(".ntf-tr", () => notifier.show("Top Right", "This is a message in top right", "success", "top-right", 4000));
+      this.#bind(".ntf-bl", () => notifier.show("Bottom Left", "This is a message in bottom left", "success", "bottom-left", 4000));
+      this.#bind(".ntf-bc", () => notifier.show("Bottom Center", "This is a message in bottom center", "success", "bottom-center", 4000));
+      this.#bind(".ntf-br", () => notifier.show("Bottom Right", "This is a message in bottom right", "success", "bottom-right", 4000));
+    }
+  }
+
+  /**
+   * Initialize notifier demos when DOM ready
+   */
+  const initNotifierDemos = () => {
+    try {
+      new NotifierDemoController().init();
+    } catch (err) {
+      console.error("[NotifierDemoController] Initialization error:", err);
+    }
+  };
+
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initNotifierDemos)
+    : initNotifierDemos();
+})();

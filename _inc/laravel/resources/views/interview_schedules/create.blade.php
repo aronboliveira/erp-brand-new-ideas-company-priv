@@ -1,50 +1,47 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $viewKey    = VW::ITV_SCD;
+        $formId     = 'iv-sch-store-form';
+        $storeBase  = $viewKey;
+        $storeKebab = Str::kebab($storeBase);
+        $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+        $storeUrl   = $storeRes ? route($storeRes) : '#';
+        $storeGuard = Utility::fetchLinkMessage($lang, $viewKey, 'store_route_unavailable') ?? __('Interview schedule store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $viewKey    = VW::ITV_SCD;
-    $formId     = 'iv-sch-store-form';
-    $storeBase  = $viewKey;
-    $storeKebab = Str::kebab($storeBase);
-    $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-    $storeUrl   = $storeRes ? route($storeRes) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, $viewKey, 'store_route_unavailable') ?? __('Interview schedule store route is unavailable. Please contact technical support or your domain administrator.');
+        $candidatesIsList = (is_array($candidates ?? null) && count($candidates ?? []) > 0) || (($candidates ?? null) instanceof Collection && $candidates->isNotEmpty());
+        $candidateOptions = $candidatesIsList ? (is_array($candidates) ? $candidates : $candidates->toArray()) : ['' => __('No candidates available')];
+        $candidateErr     = $errors->has('candidate');
+        $candidateAttrs   = [
+            'id'               => 'candidate',
+            'class'            => trim(VC::FM_CT_SL . ' ' . ($candidateErr ? 'is-invalid' : '')),
+            'required'         => 'required',
+            'aria-invalid'     => $candidateErr ? 'true' : 'false',
+            'aria-describedby' => $candidateErr ? 'candidate-error' : null,
+        ];
+        if (!$candidatesIsList) { $candidateAttrs['disabled'] = 'disabled'; }
 
-    $candidatesIsList = (is_array($candidates ?? null) && count($candidates ?? []) > 0) || (($candidates ?? null) instanceof Collection && $candidates->isNotEmpty());
-    $candidateOptions = $candidatesIsList ? (is_array($candidates) ? $candidates : $candidates->toArray()) : ['' => __('No candidates available')];
-    $candidateErr     = $errors->has('candidate');
-    $candidateAttrs   = [
-        'id'               => 'candidate',
-        'class'            => trim(VC::FM_CT_SL . ' ' . ($candidateErr ? 'is-invalid' : '')),
-        'required'         => 'required',
-        'aria-invalid'     => $candidateErr ? 'true' : 'false',
-        'aria-describedby' => $candidateErr ? 'candidate-error' : null,
-    ];
-    if (!$candidatesIsList) { $candidateAttrs['disabled'] = 'disabled'; }
+        $employeesIsList = (is_array($employees ?? null) && count($employees ?? []) > 0) || (($employees ?? null) instanceof Collection && $employees->isNotEmpty());
+        $employeeOptions = $employeesIsList ? (is_array($employees) ? $employees : $employees->toArray()) : ['' => __('No interviewers available')];
+        $employeeErr     = $errors->has('employee');
+        $employeeAttrs   = [
+            'id'               => 'employee',
+            'class'            => trim(VC::FM_CT_SL . ' ' . ($employeeErr ? 'is-invalid' : '')),
+            'required'         => 'required',
+            'aria-invalid'     => $employeeErr ? 'true' : 'false',
+            'aria-describedby' => $employeeErr ? 'employee-error' : null,
+        ];
+        if (!$employeesIsList) { $employeeAttrs['disabled'] = 'disabled'; }
 
-    $employeesIsList = (is_array($employees ?? null) && count($employees ?? []) > 0) || (($employees ?? null) instanceof Collection && $employees->isNotEmpty());
-    $employeeOptions = $employeesIsList ? (is_array($employees) ? $employees : $employees->toArray()) : ['' => __('No interviewers available')];
-    $employeeErr     = $errors->has('employee');
-    $employeeAttrs   = [
-        'id'               => 'employee',
-        'class'            => trim(VC::FM_CT_SL . ' ' . ($employeeErr ? 'is-invalid' : '')),
-        'required'         => 'required',
-        'aria-invalid'     => $employeeErr ? 'true' : 'false',
-        'aria-describedby' => $employeeErr ? 'employee-error' : null,
-    ];
-    if (!$employeesIsList) { $employeeAttrs['disabled'] = 'disabled'; }
+        $dateErr = $errors->has('date');
+        $timeErr = $errors->has('time');
+        $cmtErr  = $errors->has('comment');
 
-    $dateErr = $errors->has('date');
-    $timeErr = $errors->has('time');
-    $cmtErr  = $errors->has('comment');
-
-    $gcalEnabled = (bool) (is_array($settings ?? null) && data_get($settings, 'google_calendar_enable') === 'on');
+        $gcalEnabled = (bool) (is_array($settings ?? null) && data_get($settings, 'google_calendar_enable') === 'on');
+    } catch (\Throwable $e) {
+        \Log::error('interview_schedules/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -61,7 +58,7 @@
                 {{ Form::label('candidate', __('Interview To'), ['class' => VC::FM_LB]) }}
                 {{ Form::select('candidate', $candidateOptions, null, $candidateAttrs) }}
                 @error('candidate')
-                    <span id="candidate-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="candidate-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -69,7 +66,7 @@
                 {{ Form::label('employee', __('Interviewer'), ['class' => VC::FM_LB]) }}
                 {{ Form::select('employee', $employeeOptions, null, $employeeAttrs) }}
                 @error('employee')
-                    <span id="employee-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="employee-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -82,7 +79,7 @@
                     'aria-describedby' => $dateErr ? 'date-error' : null,
                 ]) }}
                 @error('date')
-                    <span id="date-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="date-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -95,7 +92,7 @@
                     'aria-describedby' => $timeErr ? 'time-error' : null,
                 ]) }}
                 @error('time')
-                    <span id="time-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="time-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -108,7 +105,7 @@
                     'aria-describedby' => $cmtErr ? 'comment-error' : null,
                 ]) }}
                 @error('comment')
-                    <span id="comment-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="comment-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -116,7 +113,7 @@
                 <div class="{{ VC::FM_GCB12 }}">
                     {{ Form::label('synchronize_type', __('Synchronize in Google Calendar ?'), ['class' => VC::FM_LB]) }}
                     <div class="form-switch">
-                        <input type="checkbox" class="form-check-input mt-2" name="synchronize_type" id="switch-shadow" value="google_calendar">
+                        <input type="checkbox" class="form-check-input {{ VC::MT2 }}" name="synchronize_type" id="switch-shadow" value="google_calendar">
                         <label class="form-check-label" for="switch-shadow"></label>
                     </div>
                 </div>

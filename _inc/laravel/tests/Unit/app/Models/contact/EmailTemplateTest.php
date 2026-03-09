@@ -19,11 +19,11 @@ class EmailTemplateTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// authenticate a user for the template() relation
 		$this->user = User::factory()->create();
 		Auth::login($this->user);
 	}
-
 	/**
 	 ** @test
 	 **
@@ -31,7 +31,26 @@ class EmailTemplateTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['name', 'from', 'created_by', 'slug'];
+		$expected = [
+			'title',
+			'from',
+			'slug',
+			'description',
+			'notification',
+			'type',
+			'available_from',
+			'is_disabled',
+			'categories',
+			'excluded_plans',
+			'rules',
+			'available_languages',
+			'variables',
+			'settings',
+			'tags',
+			'platforms_available',
+			'created_by',
+			'updated_by',
+		];
 		$this->assertEquals($expected, (new EmailTemplate())->getFillable());
 	}
 
@@ -55,8 +74,8 @@ class EmailTemplateTest extends TestCase
 	 **/
 	public function email_template_data_returns_and_caches_first()
 	{
-		$first = EmailTemplate::factory()->create(['name' => 'One']);
-		$second = EmailTemplate::factory()->create(['name' => 'Two']);
+		$first = EmailTemplate::factory()->create(['title' => 'One']);
+		$second = EmailTemplate::factory()->create(['title' => 'Two']);
 
 		$data1 = EmailTemplate::emailTemplateData();
 		$data2 = EmailTemplate::emailTemplateData();

@@ -1,16 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\{Auth, Route, URL};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('announcements/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -18,31 +12,38 @@
     {{__('Manage Announcement')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Announcement')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Announcement')}}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ ViewClassNamesConstants::FEND }}">
         @can('create announcement')
             @php
-                $createAnnouncementRoute = Route::has(ViewsConstants::ANC.'.create')
-                    ? route(ViewsConstants::ANC.'.create')
-                    : '#';
-                $createAnnouncementId = 'announcement-create-link';
-                $createAnnouncementMsg = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::ANC,
-                    'announcement_create_route_unavailable'
-                ) ?? 'Create Announcement route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $createAnnouncementRoute = Route::has(ViewsConstants::ANC.'.create')
+                        ? route(ViewsConstants::ANC.'.create')
+                        : '#';
+                    $createAnnouncementId = 'announcement-create-link';
+                    $createAnnouncementMsg = Utility::fetchLinkMessage(
+                        $lang,
+                        ViewsConstants::ANC,
+                        'announcement_create_route_unavailable'
+                    ) ?? 'Create Announcement route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('announcements/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="#"
-               data-url="{{ route(ViewsConstants::ANC.'.create') }}"
+               id="{{ $createAnnouncementId }}"
+               data-url="{{ $createAnnouncementRoute }}"
+               data-sv-localized="true"
+               data-guard-msg="{{ base64_encode($createAnnouncementMsg) }}"
                data-size="lg"
                data-ajax-popup="true"
                data-title="{{ __('Create New Announcement') }}"
@@ -59,8 +60,8 @@
     <div class="{{ ViewClassNamesConstants::RW }}">
         <div class="{{ ViewClassNamesConstants::C12 }}">
             <div class="{{ ViewClassNamesConstants::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ ViewClassNamesConstants::TB }} datatable">
                             <thead>
                                 <tr>
@@ -76,31 +77,35 @@
                             <tbody class="font-style">
                                 @foreach($announcements as $announcement)
                                     <tr>
-                                        <td>{{ $announcement->title }}</td>
-                                        <td>{{ $user?->dateFormat($announcement->start_date) }}</td>
-                                        <td>{{ $user?->dateFormat($announcement->end_date) }}</td>
-                                        <td>{{ $announcement->description }}</td>
+                                        <td>{{ $announcement->title ?? __('No title') }}</td>
+                                        <td>{{ $user?->dateFormat($announcement->start_date ?? null) ?? '-' }}</td>
+                                        <td>{{ $user?->dateFormat($announcement->end_date ?? null) ?? '-' }}</td>
+                                        <td>{{ $announcement->description ?? __('No description') }}</td>
                                         @if(Gate::check('edit announcement') || Gate::check('delete announcement'))
                                             <td>
                                                 @can('edit announcement')
                                                     @php
-                                                        $editRoute = Route::has(ViewsConstants::ANC.'.edit')
-                                                            ? route(ViewsConstants::ANC.'.edit', $announcement->id)
-                                                            : '#';
-                                                        $editId = 'announcement-edit-' . $announcement->id . '-link';
-                                                        $editMsg = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::ANC,
-                                                            'announcement_edit_route_unavailable'
-                                                        ) ?? 'Edit Announcement route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $editRoute = Route::has(ViewsConstants::ANC.'.edit')
+                                                                ? route(ViewsConstants::ANC.'.edit', $announcement->id)
+                                                                : '#';
+                                                            $editId = 'announcement-edit-' . $announcement->id . '-link';
+                                                            $editMsg = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::ANC,
+                                                                'announcement_edit_route_unavailable'
+                                                            ) ?? 'Edit Announcement route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('announcements/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
                                                         <a
                                                             id="{{ $editId }}"
                                                             href="#"
                                                             data-url="{{ $editRoute }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $editMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editMsg) }}"
                                                             data-size="lg"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Announcement') }}"
@@ -114,21 +119,25 @@
                                                 @endcan
                                                 @can('delete announcement')
                                                     @php
-                                                        $deleteRoute = Route::has(ViewsConstants::ANC.'.destroy')
-                                                            ? route(ViewsConstants::ANC.'.destroy', $announcement->id)
-                                                            : '#';
-                                                        $deleteId = 'announcement-delete-' . $announcement->id . '-link';
-                                                        $deleteMsg = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::ANC,
-                                                            'announcement_destroy_route_unavailable'
-                                                        ) ?? 'Delete Announcement route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $deleteRoute = Route::has(ViewsConstants::ANC.'.destroy')
+                                                                ? route(ViewsConstants::ANC.'.destroy', $announcement->id)
+                                                                : '#';
+                                                            $deleteId = 'announcement-delete-' . $announcement->id . '-link';
+                                                            $deleteMsg = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::ANC,
+                                                                'announcement_destroy_route_unavailable'
+                                                            ) ?? 'Delete Announcement route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('announcements/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method' => 'DELETE',
-                                                            'route'  => [$deleteRoute],
-                                                            'id'     => 'delete-form-'.$announcement->id
+                                                            'url'    => $deleteRoute,
+                                                            'id'     => 'delete-form-'.($announcement->id ?? 0)
                                                         ]) !!}
                                                             <a
                                                                 id="{{ $deleteId }}"
@@ -136,7 +145,7 @@
                                                                 class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
                                                                 data-url="{{ $deleteRoute }}"
                                                                 data-sv-localized="true"
-                                                                data-guard-msg="{{ $deleteMsg }}"
+                                                                data-guard-msg="{{ base64_encode($deleteMsg) }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone.') }}"
@@ -163,28 +172,7 @@
                                                                         if ((!url || url === '#') && (!href || href === '#')) {
                                                                             event.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route', 'true');
                                                                         }
                                                                     } catch {}
@@ -211,6 +199,7 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/announcements/lang/index.js') }}"></script>
     <script defer>
         (() => {
@@ -218,7 +207,7 @@
             const dataClientLocalized = 'data-client-localized';
             const dataGuardMsg = 'data-guard-msg';
             const langSessionKey = 'erp-np-lang';
-            
+
             const getLocalizedMessage = (msgKey, el) => {
                 let msg = errFb;
                 if (
@@ -247,7 +236,7 @@
                 }
                 return msg;
             };
-            
+
             const showError = message => {
                 try {
                 let container = document.querySelector('#bootstrap-toast-container');
@@ -290,7 +279,7 @@
                 alert(message);
                 }
             };
-            
+
             let errorMessage = '';
             const onErrorPointerUp = () => {
                 if (errorMessage) {
@@ -307,7 +296,7 @@
                 }
                 }));
             }).observe(document.body, { childList: true, subtree: true });
-            
+
             document.addEventListener('DOMContentLoaded', () => {
                 const branchEl = document.getElementById('branch_id');
                 if (branchEl) {
@@ -325,7 +314,7 @@
                 }
                 loadDepartments(branchEl.value ?? '');
                 }
-            
+
                 const deptEl = document.getElementById('department_id');
                 if (deptEl) {
                 if (deptEl.dataset.listenerAttached !== 'true') {
@@ -342,7 +331,7 @@
                 }
                 }
             });
-            
+
             function loadDepartments(branchId) {
                 try {
                 $.ajax({
@@ -380,7 +369,7 @@
                 errorMessage = getLocalizedMessage('announcement_department_unavailable', document.getElementById('branch_id') || document.body);
                 }
             }
-            
+
             function loadEmployees(deptId) {
                 try {
                 $.ajax({

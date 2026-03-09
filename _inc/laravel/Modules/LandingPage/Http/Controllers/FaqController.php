@@ -3,11 +3,11 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    UsersConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    UsersConstants as UC
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Collection;
 use Modules\LandingPage\Config\Constants\{
     RoutesResourcesConstants as RRC,
-    SettingsConstants as LandingPageSettingsConstants
+    SettingsConstants as LPSC
 };
 use Modules\LandingPage\Entities\LandingPageSetting;
-use function App\Http\Controllers\{
+use function App\Http\Controllers\Helpers\{
     defaultPermissionDenial,
     defaultUndefinedException
 };
@@ -42,6 +42,9 @@ class FaqController extends AppController
             $ur = self::_checkLogin(haltRedirect: true);
             if ($ur instanceof User) $user = $ur;
             if (isset($user)) $userId = $user->id;
+            if (!isset($user) || $user->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             Log::debug("[$action] start", ['user_id' => $userId]);
             try {
                 $settingsStart = microtime(true);
@@ -58,7 +61,7 @@ class FaqController extends AppController
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
                 }
                 Log::debug("[$action] rendering view", ['user_id' => $userId]);
-                return view($view, compact(DatabaseConstants::TABLE_SETTINGS, self::ENTITY));
+                return view($view, compact(DC::TABLE_SETTINGS, self::ENTITY));
             } catch (\Throwable $e) {
                 $this->logExecutionTime(isset($settingsStart) ? $settingsStart : microtime(true), $action . '::exception', 'error');
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
@@ -68,7 +71,7 @@ class FaqController extends AppController
         }, []);
     }
 
-    public function show(Request $request, int $key): Renderable|RedirectResponse|null
+    public function show(Request $request, int|string $key): Renderable|RedirectResponse|null
     {
         $method = __METHOD__;
         $function = __FUNCTION__;
@@ -124,6 +127,7 @@ class FaqController extends AppController
                 Log::debug($method . ' debug guard', ['redirect' => $redirect]);
                 return $redirect;
             }
+            $settings = LandingPageSetting::landingPageSetting();
             $view = self::getFirstExistingView(static::ENTITY . '.' . $function);
             if (!$view) {
                 Log::warning($method . ' - view not found', ['attempted' => static::ENTITY . '.' . $function]);
@@ -131,7 +135,7 @@ class FaqController extends AppController
             }
             $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
             Log::debug($method . ' - rendering create view', ['user_id' => $user?->id]);
-            return view($view, compact(DatabaseConstants::TABLE_SETTINGS));
+            return view($view, compact(DC::TABLE_SETTINGS));
         }, func_get_args());
     }
 
@@ -153,10 +157,10 @@ class FaqController extends AppController
             $stepStart = microtime(true);
             try {
                 $payload = [
-                    LandingPageSettingsConstants::FAQ_STT_K => $data[self::SINGULAR . '_status'] ?? 'off',
-                    LandingPageSettingsConstants::FAQ_TTL_K => $data[self::SINGULAR . '_title'],
-                    LandingPageSettingsConstants::FAQ_HDG_K => $data[self::SINGULAR . '_heading'],
-                    LandingPageSettingsConstants::FAQ_DESC_K => $data[self::SINGULAR . '_description'] ?? ''
+                    LPSC::FAQ_STT_K => $data[self::SINGULAR . '_status'] ?? 'off',
+                    LPSC::FAQ_TTL_K => $data[self::SINGULAR . '_title'],
+                    LPSC::FAQ_HDG_K => $data[self::SINGULAR . '_heading'],
+                    LPSC::FAQ_DESC_K => $data[self::SINGULAR . '_description'] ?? ''
                 ];
                 foreach ($payload as $name => $value) LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value]);
                 DB::commit();
@@ -172,7 +176,7 @@ class FaqController extends AppController
         });
     }
 
-    public function edit(Request $request, int $key): Renderable|RedirectResponse|null
+    public function edit(Request $request, int|string $key): Renderable|RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
@@ -217,7 +221,7 @@ class FaqController extends AppController
         }, ['key' => $key]);
     }
 
-    public function update(Request $request, int $key): RedirectResponse|null
+    public function update(Request $request, int|string $key): RedirectResponse|null
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'ip' => $request->ip(), 'key' => $key]);
@@ -268,7 +272,7 @@ class FaqController extends AppController
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip(), 'key' => $key]);
     }
 
-    public function destroy(Request $request, int $key): RedirectResponse|null
+    public function destroy(Request $request, int|string $key): RedirectResponse|null
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {
@@ -284,7 +288,7 @@ class FaqController extends AppController
             try {
                 $startSettings = microtime(true);
                 $settings = LandingPageSetting::settings();
-                $faqs = json_decode($settings[static::ENTITY . 's'] ?? '[]', true);
+                $faqs = json_decode($settings[static::ENTITY] ?? '[]', true);
                 $this->logExecutionTime($startSettings, $function . '::settingsFetch', 'completed');
                 if (!isset($faqs[$key])) {
                     $timeNotFound = microtime(true);
@@ -296,7 +300,7 @@ class FaqController extends AppController
                 unset($faqs[$key]);
                 $startUpdate = microtime(true);
                 LandingPageSetting::updateOrCreate(
-                    ['name' => static::ENTITY . 's'],
+                    ['name' => static::ENTITY],
                     ['value' => json_encode(array_values($faqs))]
                 );
                 $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
@@ -393,7 +397,15 @@ class FaqController extends AppController
     }
 
     public const FQ_DEL = 'faqDelete';
-    public function faqDelete(Request $request, int $key): RedirectResponse|null
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
+    public function faqDelete(Request $request, string|int $key): RedirectResponse|null
     {
         $class = static::class;
         $method = __FUNCTION__;

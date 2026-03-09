@@ -11,6 +11,7 @@ class LandingPageSettingFactory extends Factory
 	public function definition(): array
 	{
 		return [
+			'query_key' => $this->faker->uuid(),
 			'name'  => $this->faker->unique()->word,
 			'value' => $this->faker->sentence,
 		];

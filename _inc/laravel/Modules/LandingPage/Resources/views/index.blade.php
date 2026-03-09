@@ -1,6 +1,6 @@
 @php
-	use App\Config\Constants\ViewClassNamesConstants;
-	use Illuminate\Support\Facades\Log;
+
+
 	$currentFragment??='';
 	try {
 		$currentFragment=parse_url(request()->getRequestUri()?:'',PHP_URL_FRAGMENT)??'';

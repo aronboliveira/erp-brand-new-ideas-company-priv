@@ -1,12 +1,18 @@
 <?php
 
-namespace Tests\Unit\Models;
+namespace Tests\Unit\app\Models\planning;
 
 use App\Models\TaskComment;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TaskCommentTest extends TestCase
+class TaskCommentsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -15,7 +21,30 @@ class TaskCommentTest extends TestCase
 	public function fillable_array_matches_definition(): void
 	{
 		$expected = [
-			'comment', 'task_id', 'user_id', 'user_type', 'created_by'
+			'time',
+			'comment',
+			'reference',
+			'user_id',
+			'user_type',
+			'is_edited',
+			'is_deleted',
+			'deleter',
+			'deleted_at',
+			'edit_count',
+			'flagged',
+			'thread',
+			'is_reply',
+			'reply_count',
+			'order',
+			'depth',
+			'parent',
+			'attachments',
+			'tags',
+			'reactions',
+			'replies',
+			'edits',
+			'metadata',
+			'task_id',
 		];
 
 		$this->assertSame($expected, (new TaskComment)->getFillable());
@@ -31,10 +60,10 @@ class TaskCommentTest extends TestCase
 		$rel = (new TaskComment)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('user_id',         $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

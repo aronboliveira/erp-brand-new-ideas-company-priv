@@ -3,10 +3,16 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Task;
+use Mockery;
 use Tests\TestCase;
 
 class TaskTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,25 @@ class TaskTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Task::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'title',
+			'agent_or_manager',
+			'agent_or_manager_id',
+			'date',
+			'time',
+			'description',
+			'module_type',
+			'module_id',
+			'assign_to',
+			'project_id',
+			'milestone_id',
+			'stages',
+			'attachments',
+			'involved',
+			'tags',
+			'metadata',
+			'updated_by',
+		];
 
 		$this->assertSame($expected, (new Task)->getFillable());
 	}
@@ -28,11 +51,12 @@ class TaskTest extends TestCase
 	 **/
 	public function complete_checklist_counter_works(): void
 	{
-		$task = new Task;
+		$mockRelation = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+		$mockRelation->shouldReceive('where')->with('status', '1')->andReturnSelf();
+		$mockRelation->shouldReceive('count')->andReturn(2);
 
-		$task->setRelation('taskCheckList', collect([
-			(object)['status' => 1], (object)['status' => 0], (object)['status' => 1],
-		]));
+		$task = Mockery::mock(Task::class)->makePartial();
+		$task->shouldReceive('taskCheckList')->andReturn($mockRelation);
 
 		$this->assertSame(2, $task->taskCompleteCheckListCount());
 	}
@@ -44,12 +68,18 @@ class TaskTest extends TestCase
 	 **/
 	public function total_checklist_counter_works(): void
 	{
-		$task = new Task;
+		$mockRelation = Mockery::mock(\Illuminate\Database\Eloquent\Relations\HasMany::class);
+		$mockRelation->shouldReceive('count')->andReturn(2);
 
-		$task->setRelation('taskCheckList', collect([
-			(object)['status' => 1], (object)['status' => 0],
-		]));
+		$task = Mockery::mock(Task::class)->makePartial();
+		$task->shouldReceive('taskCheckList')->andReturn($mockRelation);
 
 		$this->assertSame(2, $task->taskTotalCheckListCount());
+	}
+
+	protected function tearDown(): void
+	{
+		Mockery::close();
+		parent::tearDown();
 	}
 }

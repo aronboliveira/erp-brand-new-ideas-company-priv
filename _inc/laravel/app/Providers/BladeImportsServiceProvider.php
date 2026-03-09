@@ -107,7 +107,7 @@ class BladeImportsServiceProvider extends ServiceProvider
 		'LandingPageSetting'        => \Modules\LandingPage\Entities\LandingPageSetting::class,
 
 		// ── App\Http\Controllers (constants used in views) ───────
-		'EAC'                       => \App\Http\Controllers\EmployeeAttendanceController::class,
+		'EAC'                       => \App\Http\Controllers\Individuals\EmployeeAttendanceController::class,
 
 		// ── Illuminate non-facade helpers ───────────────────────────
 		'Arr'                       => \Illuminate\Support\Arr::class,
@@ -118,7 +118,7 @@ class BladeImportsServiceProvider extends ServiceProvider
 		'UrlGenerationException'    => \Illuminate\Routing\Exceptions\UrlGenerationException::class,
 
 		// ── Symfony / third-party ───────────────────────────────────
-		'ConsoleOutput'             => \App\Helpers\SafeConsoleOutput::class,
+		'ConsoleOutput'             => \Symfony\Component\Console\Output\ConsoleOutput::class,
 		'RouteNotFoundException'    => \Symfony\Component\Routing\Exception\RouteNotFoundException::class,
 		'Form'                      => \Collective\Html\FormFacade::class,
 		'FormFacade'                => \Collective\Html\FormFacade::class,

@@ -1,20 +1,5 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        LangsConstants,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD,
-        PermissionsConstants as PERM,
-        UsersConstants as UC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Collection;
-
-    $user = Auth::user();
+$user = Auth::user();
     $hasFetchMsg = is_callable([Utility::class, 'fetchLinkMessage']);
     $hasGetFile = is_callable([Utility::class, 'getFile']);
     $hasGetAdminPay = is_callable([Utility::class, 'getAdminPaymentSetting']);
@@ -64,24 +49,24 @@
 @endsection
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Order') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Order') }}</li>
 @endsection
 
 @section(YD::ADM_CTT)
     <div class="row">
-        <div class="col-12">
+        <div class="{{ VC::C12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -102,37 +87,52 @@
                             <tbody>
                             @forelse($ordersList as $order)
                                 @php
-                                    $oid = $order->order_id ?? __('Order ID not available.');
-                                    $uname = $order->user_name ?? __('Customer name not available.');
-                                    $pname = $order->plan_name ?? __('Plan name not available.');
-                                    $price = $fmtPrice($order->price ?? null);
-                                    $pstatus = (string)($order->payment_status ?? '');
-                                    $pstatusLower = strtolower($pstatus);
-                                    $ptype = (string)($order->payment_type ?? '');
-                                    $ptypeLower = strtolower($ptype);
-                                    $created = $fmtDate($order->created_at ?? null, __('Failed to format date.'));
-                                    $couponCode = data_get($order, 'totalCouponUsed.couponDetail.code') ?? '-';
+                                    $oid = __('Order ID not available.');
+                                    $uname = __('Customer name not available.');
+                                    $pname = __('Plan name not available.');
+                                    $price = '-';
+                                    $pstatus = '';
+                                    $pstatusLower = '';
+                                    $ptype = '';
+                                    $ptypeLower = '';
+                                    $created = '-';
+                                    $couponCode = '-';
+                                    $statusBadge = ['class' => 'bg-secondary', 'text' => __('unknown')];
+                                    try {
+                                        $oid = $order->order_id ?? __('Order ID not available.');
+                                        $uname = $order->user_name ?? __('Customer name not available.');
+                                        $pname = $order->plan_name ?? __('Plan name not available.');
+                                        $price = $fmtPrice($order->price ?? null);
+                                        $pstatus = (string)($order->payment_status ?? '');
+                                        $pstatusLower = strtolower($pstatus);
+                                        $ptype = (string)($order->payment_type ?? '');
+                                        $ptypeLower = strtolower($ptype);
+                                        $created = $fmtDate($order->created_at ?? null, __('Failed to format date.'));
+                                        $couponCode = data_get($order, 'totalCouponUsed.couponDetail.code') ?? '-';
 
-                                    $statusBadge = ['class' => 'bg-danger', 'text' => ucfirst($pstatusLower ?: __('unknown'))];
-                                    if (in_array($pstatusLower, ['success', 'approved'])) $statusBadge = ['class' => 'bg-primary', 'text' => ucfirst($pstatusLower)];
-                                    elseif ($pstatusLower === 'succeeded') $statusBadge = ['class' => 'bg-primary', 'text' => __('Success')];
-                                    elseif ($pstatusLower === 'pending') $statusBadge = ['class' => 'bg-warning', 'text' => __('Pending')];
-                                @endphp
+                                        $statusBadge = ['class' => 'bg-danger', 'text' => ucfirst($pstatusLower ?: __('unknown'))];
+                                        if (in_array($pstatusLower, ['success', 'approved'])) $statusBadge = ['class' => 'bg-primary', 'text' => ucfirst($pstatusLower)];
+                                        elseif ($pstatusLower === 'succeeded') $statusBadge = ['class' => 'bg-primary', 'text' => __('Success')];
+                                        elseif ($pstatusLower === 'pending') $statusBadge = ['class' => 'bg-warning', 'text' => __('Pending')];
+                                    } catch (\Throwable $e) {
+                                        \Log::error('orders/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <tr>
                                     <td>{{ $oid }}</td>
                                     <td>{{ $uname }}</td>
                                     <td>{{ $pname }}</td>
                                     <td>{{ $price }}</td>
                                     <td>
-                                        <span class="status_badge badge {{ $statusBadge['class'] }} p-2 px-3 rounded">{{ $statusBadge['text'] }}</span>
+                                        <span class="status_badge badge {{ $statusBadge['class'] }} p-2 {{ VC::PX3 }} rounded">{{ $statusBadge['text'] }}</span>
                                     </td>
                                     <td>{{ $ptype !== '' ? $ptype : __('Payment type not available.') }}</td>
                                     <td>{{ $created }}</td>
-                                    <td class="text-center">{{ $couponCode }}</td>
+                                    <td class="{{ VC::TXCT }}">{{ $couponCode }}</td>
                                     <td class="Id">
                                         @php
                                             $receipt = (string)($order->receipt ?? '');
-                                        @endphp
+@endphp
                                         @if($ptypeLower === 'manually')
                                             <p>{{ __('Manually plan upgraded by Super Admin') }}</p>
                                         @elseif($receipt !== '' && strtolower($receipt) === 'free coupon')
@@ -153,20 +153,20 @@
                                         <td class="Action">
                                             @php
                                                 $showAction = ($ptypeLower === 'bank transfer' && $pstatusLower === 'pending');
-                                            @endphp
+@endphp
                                             @if($showAction)
                                                 @php
                                                     $actionUrl = Route::has(VW::OD.'.action') ? route(VW::OD.'.action', $order->id) : '#';
                                                     $actionGuard = ($hasFetchMsg ? Utility::fetchLinkMessage($lang, VW::OD, 'payment_status_unavailable') : null) ?? __('Ordering of payment status route is unavailable. Please contact technical support or your domain administrator.');
-                                                @endphp
+@endphp
                                                 <span>
-                                                    <div class="action-btn bg-warning">
+                                                    <div class="{{ VC::ACT_BTN }} bg-warning">
                                                         <a
                                                             href="{{ $actionUrl }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-url="{{ $actionUrl }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $actionGuard }}"
+                                                            data-guard-msg="{{ base64_encode($actionGuard) }}"
                                                             data-size="lg"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Payment Status') }}"
@@ -178,10 +178,14 @@
                                                 </span>
                                             @endif
                                             @php
-                                                $deleteUrl = Route::has(VW::OD.'.destroy') ? route(VW::OD.'.destroy', $order->id) : '#';
-                                                $deleteGuard = ($hasFetchMsg ? Utility::fetchLinkMessage($lang, VW::OD, 'delete_order_unavailable') : 'Delete order route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete order route is unavailable. Please contact technical support or your domain administrator.');
-                                                $formId = 'delete-order-form-'.$order->id;
-                                            @endphp
+                                                try {
+                                                    $deleteUrl = Route::has(VW::OD.'.destroy') ? route(VW::OD.'.destroy', $order->id) : '#';
+                                                    $deleteGuard = ($hasFetchMsg ? Utility::fetchLinkMessage($lang, VW::OD, 'delete_order_unavailable') : 'Delete order route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete order route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $formId = 'delete-order-form-'.$order->id;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('orders/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <span>
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open([
@@ -197,7 +201,7 @@
                                                             class="{{ VC::TRS_PARA }}"
                                                             data-url="{{ $deleteUrl }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $deleteGuard }}"
+                                                            data-guard-msg="{{ base64_encode($deleteGuard) }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
@@ -208,15 +212,11 @@
                                                 </div>
                                             </span>
                                         </td>
-                                        @push(ST::ADM_SCR_PG)
-                                            <script defer src="{{ asset('assets/js/routes/orders/action.js') }}"></script>
-                                            <script defer src="{{ asset('assets/js/routes/orders/delete.js') }}"></script>
-                                        @endpush
                                     @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $isSuperAdmin ? 10 : 9 }}" class="text-center text-muted">{{ __('No orders found.') }}</td>
+                                    <td colspan="{{ $isSuperAdmin ? 10 : 9 }}" class="{{ VC::TXCT_MT }}">{{ __('No orders found.') }}</td>
                                 </tr>
                             @endforelse
                             </tbody>
@@ -226,4 +226,12 @@
             </div>
         </div>
     </div>
+    @if($isSuperAdmin)
+        @push(ST::ADM_SCR_PG)
+            @once
+                <script defer src="{{ asset('assets/js/routes/orders/action.js') }}"></script>
+                <script defer src="{{ asset('assets/js/routes/orders/delete.js') }}"></script>
+            @endonce
+        @endpush
+    @endif
 @endsection

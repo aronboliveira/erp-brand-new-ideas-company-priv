@@ -14,7 +14,8 @@ class PurchasePaymentSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const CAP = 2048;
+	// private const CAP = 2048;
+	private const CAP = 2; /* original: 2048 */
 	private const MAX_PER_PURCHASE = 8;
 
 	private const CHUNK = 400;
@@ -28,7 +29,8 @@ class PurchasePaymentSeeder extends Seeder
 	private const KEEP_PCT_LOW  = 75;
 	private const KEEP_PCT_NFE  = 6;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{

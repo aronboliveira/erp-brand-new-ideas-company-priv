@@ -1,30 +1,24 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Bill, BillPayment, ChartOfAccount, Invoice, Utility, Vendor};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/leave — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Leave Report')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Leave Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Leave Report')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/jszip.js') }}"></script>
@@ -37,19 +31,19 @@
     <script defer src="{{ asset('assets/js/routes/reports/leaves/pdf.js') }}"></script>
 @endpush
 {{--        <a href="{{ route('leave.export') }}" data-bs-toggle="tooltip" title="{{ __('Export') }}"--}}
-{{--           class="btn btn-sm btn-primary">--}}
-{{--            <i class="ti ti-file-export"></i>--}}
+{{--           class="{{ VC::BT_SM_PM }}">--}}
+{{--            <i class="{{ VC::TI_EXP }}"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_leave_reports_unavailable') ?? 'Download function for leave reports is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-leave-reports-link"
         class="{{ VC::BT_SM_PM }} download-leave-reports"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -64,16 +58,20 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $leaveReportBase    = VW::RPT.'.leave';
-                            $leaveReportKebab   = Str::kebab($leaveReportBase);
-                            $leaveReportResolved= Route::has($leaveReportBase) ? $leaveReportBase : (Route::has($leaveReportKebab) ? $leaveReportKebab : null);
-                            $leaveReportUrl     = $leaveReportResolved ? route($leaveReportResolved) : '#';
-                            $leaveReportGuardMsg= Utility::fetchLinkMessage($lang, VW::RPT, 'leave_report_route_unavailable') ?? 'Leave report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $leaveReportBase    = VW::RPT.'.leave';
+                                $leaveReportKebab   = Str::kebab($leaveReportBase);
+                                $leaveReportResolved= Route::has($leaveReportBase) ? $leaveReportBase : (Route::has($leaveReportKebab) ? $leaveReportKebab : null);
+                                $leaveReportUrl     = $leaveReportResolved ? route($leaveReportResolved) : '#';
+                                $leaveReportGuardMsg= Utility::fetchLinkMessage($lang, VW::RPT, 'leave_report_route_unavailable') ?? 'Leave report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/leave — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $leaveReportUrl,
@@ -83,7 +81,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="col-3 {{ VC::MT2 }}">
                                             <label class="{{ VC::FM_LB }}">{{ __('Type') }}</label><br>
@@ -96,13 +94,13 @@
                                                 <label class="form-check-label" for="daily">{{ __('Daily') }}</label>
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 month">
+                                        <div class="{{ VC::CL_XL3 }} month">
                                             <div class="btn-box">
                                                 {{ Form::label('month', __('Month'), ['class'=> VC::FM_LB]) }}
                                                 {{ Form::month('month', isset($_GET['month']) ? $_GET['month'] : date('Y-m'), ['class'=>'month-btn ' . VC::FM_CT]) }}
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 year d-none">
+                                        <div class="{{ VC::CL_XL3 }} year d-none">
                                             <div class="btn-box">
                                                 {{ Form::label('year', __('Year'), ['class'=> VC::FM_LB]) }}
                                                 <select class="{{ VC::FM_CT_SL }}" id="year" name="year" tabindex="-1" aria-hidden="true">
@@ -117,13 +115,13 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="{{ VC::CL_XL3 }}">
                                             <div class="btn-box">
                                                 {{ Form::label('branch', __('Branch'), ['class'=> VC::FM_LB]) }}
                                                 {{ Form::select('branch', $branch, isset($_GET['branch']) ? $_GET['branch'] : '', ['class' => VC::FM_CT_SL]) }}
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="{{ VC::CL_XL3 }}">
                                             <div class="btn-box">
                                                 {{ Form::label('department', __('Department'), ['class'=> VC::FM_LB]) }}
                                                 {{ Form::select('department', $department, isset($_GET['department']) ? $_GET['department'] : '', ['class' => VC::FM_CT_SL]) }}
@@ -137,7 +135,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-leave-report"
                                             data-form-id="report_leave"
-                                            data-guard-msg="{{ $leaveReportGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($leaveReportGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -147,7 +145,7 @@
                                             <a href="{{ $leaveReportUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-leave-report"
                                             data-url="{{ $leaveReportUrl }}"
-                                            data-guard-msg="{{ $leaveReportGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($leaveReportGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -172,10 +170,10 @@
         <div class="{{ VC::RW }}">
             <div class="col">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <div class="{{ VC::DFL_AIC }}">
-                                <div class="theme-avatar bg-primary">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-report"></i>
                                 </div>
                                 <div class="{{ VC::MS2 }}">
@@ -198,10 +196,10 @@
             @if (data_get($filterYear,'branch','All') != 'All')
                 <div class="col">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body p-3">
+                        <div class="{{ VC::CD_BD }} p-3">
                             <div class="{{ VC::DFL_AIC_JCB }}">
                                 <div class="{{ VC::DFL_AIC }}">
-                                    <div class="theme-avatar bg-primary">
+                                    <div class="theme-avatar {{ VC::BG_P }}">
                                         <i class="ti ti-sitemap"></i>
                                     </div>
                                     <div class="{{ VC::MS2 }}">
@@ -218,10 +216,10 @@
             @if (data_get($filterYear,'department','All') != 'All')
                 <div class="col">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body p-3">
+                        <div class="{{ VC::CD_BD }} p-3">
                             <div class="{{ VC::DFL_AIC_JCB }}">
                                 <div class="{{ VC::DFL_AIC }}">
-                                    <div class="theme-avatar bg-primary">
+                                    <div class="theme-avatar {{ VC::BG_P }}">
                                         <i class="ti ti-template"></i>
                                     </div>
                                     <div class="{{ VC::MS2 }}">
@@ -237,11 +235,11 @@
 
             <div class="col">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <div class="{{ VC::DFL_AIC }}">
-                                <div class="theme-avatar bg-primary">
-                                    <i class="ti ti-calendar"></i>
+                                <div class="theme-avatar {{ VC::BG_P }}">
+                                    <i class="{{ VC::TI_CLD }}"></i>
                                 </div>
                                 <div class="{{ VC::MS2 }}">
                                     <h5 class="{{ VC::MB0 }}">{{ __('Duration') }}</h5>
@@ -257,10 +255,10 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::CLMS4_12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <div class="{{ VC::DFL_AIC }}">
-                                <div class="theme-avatar bg-primary">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-circle-check"></i>
                                 </div>
                                 <div class="{{ VC::MS2 }}">
@@ -275,10 +273,10 @@
 
             <div class="{{ VC::CLMS4_12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <div class="{{ VC::DFL_AIC }}">
-                                <div class="theme-avatar bg-primary">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-circle-x"></i>
                                 </div>
                                 <div class="{{ VC::MS2 }}">
@@ -293,10 +291,10 @@
 
             <div class="{{ VC::CLMS4_12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <div class="{{ VC::DFL_AIC }}">
-                                <div class="theme-avatar bg-primary">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-circle-minus"></i>
                                 </div>
                                 <div class="{{ VC::MS2 }}">
@@ -310,15 +308,19 @@
             </div>
         </div>
         @php
-            $typeParam  = isset($_GET['type'])  ? $_GET['type']  : 'no';
-            $monthParam = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
-            $yearParam  = isset($_GET['year'])  ? $_GET['year']  : date('Y');
-        @endphp
+            try {
+                $typeParam  = isset($_GET['type'])  ? $_GET['type']  : 'no';
+                $monthParam = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
+                $yearParam  = isset($_GET['year'])  ? $_GET['year']  : date('Y');
+            } catch (\Throwable $e) {
+                \Log::error('reports/leave — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::RW }}">
             <div class="col">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive py-4">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }} {{ VC::PY4 }}">
                             <table class="{{ VC::TB }} {{ VC::MB0 }}" id="report-dataTable">
                                 <thead>
                                     <tr>
@@ -332,25 +334,29 @@
                                 <tbody>
                                     @forelse($leaves as $leave)
                                         @php
-                                            $empId       = data_get($leave,'employee_id');
-                                            $empName     = data_get($leave,'employee',__('No employee name available'));
-                                            $leaveId     = data_get($leave,'id');
-                                            $approved    = data_get($leave,'approved',__('No approved leaves available'));
-                                            $rejected    = data_get($leave,'reject',__('No rejected leaves available'));
-                                            $pending     = data_get($leave,'pending',__('No pending leaves available'));
-                                            $empLeaveBase     = VW::RPT.'.employee.leave';
-                                            $empLeaveKebab    = Str::kebab($empLeaveBase);
-                                            $empLeaveResolved = Route::has($empLeaveBase) ? $empLeaveBase : (Route::has($empLeaveKebab) ? $empLeaveKebab : null);
-                                            $approvedParams   = ($leaveId ?? false) ? [$leaveId, 'Approved', $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
-                                            $rejectedParams   = ($leaveId ?? false) ? [$leaveId, 'Reject',   $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
-                                            $pendingParams    = ($leaveId ?? false) ? [$leaveId, 'Pending',  $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
-                                            $approvedUrl      = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $approvedParams) : '#';
-                                            $rejectedUrl      = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $rejectedParams) : '#';
-                                            $pendingUrl       = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $pendingParams)  : '#';
-                                            $approvedGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'view_approved_leave_detail_unavailable') ?? 'Approved leave detail route is unavailable. Please contact technical support or your domain administrator.';
-                                            $rejectedGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'view_rejected_leave_detail_unavailable') ?? 'Rejected leave detail route is unavailable. Please contact technical support or your domain administrator.';
-                                            $pendingGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'view_pending_leave_detail_unavailable')  ?? 'Pending leave detail route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $empId       = data_get($leave,'employee_id');
+                                                $empName     = data_get($leave,'employee',__('No employee name available'));
+                                                $leaveId     = data_get($leave,'id');
+                                                $approved    = data_get($leave,'approved',__('No approved leaves available'));
+                                                $rejected    = data_get($leave,'reject',__('No rejected leaves available'));
+                                                $pending     = data_get($leave,'pending',__('No pending leaves available'));
+                                                $empLeaveBase     = VW::RPT.'.employee.leave';
+                                                $empLeaveKebab    = Str::kebab($empLeaveBase);
+                                                $empLeaveResolved = Route::has($empLeaveBase) ? $empLeaveBase : (Route::has($empLeaveKebab) ? $empLeaveKebab : null);
+                                                $approvedParams   = ($leaveId ?? false) ? [$leaveId, 'Approved', $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
+                                                $rejectedParams   = ($leaveId ?? false) ? [$leaveId, 'Reject',   $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
+                                                $pendingParams    = ($leaveId ?? false) ? [$leaveId, 'Pending',  $typeParam ?? null, $monthParam ?? null, $yearParam ?? null] : ['#'];
+                                                $approvedUrl      = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $approvedParams) : '#';
+                                                $rejectedUrl      = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $rejectedParams) : '#';
+                                                $pendingUrl       = ($empLeaveResolved && ($leaveId ?? false)) ? route($empLeaveResolved, $pendingParams)  : '#';
+                                                $approvedGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'view_approved_leave_detail_unavailable') ?? 'Approved leave detail route is unavailable. Please contact technical support or your domain administrator.';
+                                                $rejectedGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'view_rejected_leave_detail_unavailable') ?? 'Rejected leave detail route is unavailable. Please contact technical support or your domain administrator.';
+                                                $pendingGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'view_pending_leave_detail_unavailable')  ?? 'Pending leave detail route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('reports/leave — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>
                                                 <a href="#" class="{{ VC::BT_SM_PM }}">
@@ -359,15 +365,15 @@
                                             </td>
                                             <td>{{ $empName }}</td>
                                             <td>
-                                                <div class="m-view-btn badge bg-info p-2 px-3 rounded">
+                                                <div class="m-view-btn badge bg-info p-2 {{ VC::PX3 }} rounded">
                                                     {{ $approved }}
                                                     <a href="{{ $approvedUrl }}"
-                                                    class="text-white view-employee-leave"
+                                                    class="{{ VC::TXT_WT }} view-employee-leave"
                                                     data-status="approved"
                                                     data-url="{{ $approvedUrl }}"
                                                     data-ajax-popup="{{ $leaveId ? 'true' : 'false' }}"
                                                     data-title="{{ __('Approved Leave Detail') }}"
-                                                    data-guard-msg="{{ $approvedGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($approvedGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ $leaveId ? __('View') : __('Could not open approved leave details') }}"
@@ -377,15 +383,15 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="m-view-btn badge bg-danger p-2 px-3 rounded">
+                                                <div class="m-view-btn badge bg-danger p-2 {{ VC::PX3 }} rounded">
                                                     {{ $rejected }}
                                                     <a href="{{ $rejectedUrl }}"
-                                                    class="text-white view-employee-leave"
+                                                    class="{{ VC::TXT_WT }} view-employee-leave"
                                                     data-status="rejected"
                                                     data-url="{{ $rejectedUrl }}"
                                                     data-ajax-popup="{{ $leaveId ? 'true' : 'false' }}"
                                                     data-title="{{ __('Rejected Leave Detail') }}"
-                                                    data-guard-msg="{{ $rejectedGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($rejectedGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ $leaveId ? __('View') : __('Could not open rejected leave details') }}"
@@ -395,15 +401,15 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="m-view-btn badge bg-warning p-2 px-3 rounded">
+                                                <div class="m-view-btn badge bg-warning p-2 {{ VC::PX3 }} rounded">
                                                     {{ $pending }}
                                                     <a href="{{ $pendingUrl }}"
-                                                    class="text-white view-employee-leave"
+                                                    class="{{ VC::TXT_WT }} view-employee-leave"
                                                     data-status="pending"
                                                     data-url="{{ $pendingUrl }}"
                                                     data-ajax-popup="{{ $leaveId ? 'true' : 'false' }}"
                                                     data-title="{{ __('Pending Leave Detail') }}"
-                                                    data-guard-msg="{{ $pendingGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($pendingGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ $leaveId ? __('View') : __('Could not open pending leave details') }}"
@@ -415,7 +421,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted">{{ __('No leave records available for the selected filters') }}</td>
+                                            <td colspan="5" class="{{ VC::TXCT_MT }}">{{ __('No leave records available for the selected filters') }}</td>
                                         </tr>
                                     @endforelse
                                     @push(StacksConstants::ADM_SCR_PG)
@@ -430,4 +436,3 @@
         </div>
     </div>
 @endsection
-

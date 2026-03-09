@@ -5,15 +5,20 @@ namespace Tests\Unit\Models;
 use App\Models\Asset;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class AssetTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
-		// Reset private static cache
-		$prop = (new \ReflectionClass(Asset::class))->getProperty('usersData');
-		$prop->setAccessible(true);
-		$prop->setValue(null);
 		Mockery::close();
 		parent::tearDown();
 	}
@@ -26,8 +31,25 @@ class AssetTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Asset::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'serial',
+			'category',
+			'type',
+			'name',
+			'employee_id',
+			'purchase_date',
+			'supported_date',
+			'amount',
+			'description',
+			'purpose',
+			'order',
+			'transaction',
+			'signed_by',
+			'signed_by_name',
+			'attachments',
+			'metadata',
+			'tags',
+		];
 
 		$this->assertSame($expected, (new Asset)->getFillable());
 	}
@@ -66,7 +88,7 @@ class AssetTest extends TestCase
 		};
 		$employee2->user = (object)['id' => 2];
 
-		Mockery::mock('alias:App\Models\Employee')
+		$this->aliasMock('App\Models\Employee')
 			->shouldReceive('where')
 			->once()
 			->with('user_id', '1')
@@ -76,7 +98,7 @@ class AssetTest extends TestCase
 			->once()
 			->andReturn($employee1);
 
-		Mockery::mock('alias:App\Models\Employee')
+		$this->aliasMock('App\Models\Employee')
 			->shouldReceive('where')
 			->once()
 			->with('user_id', '2')

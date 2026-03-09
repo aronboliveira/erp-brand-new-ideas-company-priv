@@ -14,9 +14,12 @@ use App\Models\Project;
 use Illuminate\Support\{Collection, Facades\Storage};
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class ProjectTest extends TestCase
 {
+	use SafeAliasMock;
+
 
 	/** @var \ReflectionProperty */
 	private $cacheProp;
@@ -26,6 +29,7 @@ class ProjectTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		$this->cacheProp = (new \ReflectionClass(Project::class))
 			->getProperty('projectTask');
@@ -47,8 +51,20 @@ class ProjectTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Project::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'name',
+			'start_date',
+			'end_date',
+			'project_image',
+			'budget',
+			'client_id',
+			'project_stage_id',
+			'description',
+			'status',
+			'estimated_hrs',
+			'copylinksetting',
+			'tags',
+		];
 
 		$this->assertSame($expected, (new Project)->getFillable());
 	}
@@ -102,7 +118,7 @@ class ProjectTest extends TestCase
 	public function project_task_hits_db_once_and_then_uses_cache(): void
 	{
 		// Intercept the static call chain.
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('where')
 			->once()->with('project_id', 42)->andReturnSelf()
 			->getMock()
@@ -144,7 +160,7 @@ class ProjectTest extends TestCase
 	public function project_progress_calculates_percentage(): void
 	{
 		// Fake Utility::getProgressColor().
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('getProgressColor')
 			->once()
 			->with(50)
@@ -171,7 +187,7 @@ class ProjectTest extends TestCase
 
 	public function project_total_task_calls_count(): void
 	{
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('where')
 			->once()
 			->with('project_id', 77)
@@ -194,7 +210,7 @@ class ProjectTest extends TestCase
 	 **/
 	public function project_complete_task_calls_count(): void
 	{
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('where')
 			->once()
 			->with('project_id', 77)
@@ -222,6 +238,6 @@ class ProjectTest extends TestCase
 	{
 		$this->cacheProp->setValue(null); // prevent leakage to other tests
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

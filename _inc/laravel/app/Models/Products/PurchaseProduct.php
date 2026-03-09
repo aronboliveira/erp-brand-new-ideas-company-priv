@@ -1,15 +1,16 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 use App\Traits\{ExtendsProductServiceTable, HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 
 final class PurchaseProduct extends Model
 {
-    use UsesUuids, HasAuditFields, ExtendsProductServiceTable;
+    use HasFactory, UsesUuids, HasAuditFields, ExtendsProductServiceTable;
 
     protected $fillable = [
         BC::COL_PRD_ID,

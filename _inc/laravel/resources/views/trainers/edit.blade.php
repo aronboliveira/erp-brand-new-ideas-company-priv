@@ -1,20 +1,45 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-
-	$formId = 'update_trainer_form';
-	$branches = $branches ?? [];
-	$trainerId = data_get($trainer ?? null, 'id', '');
-
-	$updateBase   = VW::TNR . '.update';
-	$updateKebab  = Str::kebab($updateBase);
-	$updateName   = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-	$updateAction = ($updateName && $trainerId) ? route($updateName, [$trainerId]) : '#';
-	$updateGuard  = Utility::fetchLinkMessage($lang, VW::TNR, 'update_trainer_route_unavailable') ?? 'Update trainer route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$formId ??= 'update_trainer_form';
+	$branches ??= [];
+	$trainerId ??= '';
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateName ??= null;
+	$updateAction ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$branches = $branches ?? [];
+		$trainerId = data_get($trainer ?? null, 'id', '');
+		$updateBase = VW::TNR . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateName = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateAction = ($updateName && $trainerId) ? (route($updateName, [$trainerId]) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::TNR, 'update_trainer_route_unavailable')
+			?? 'Update trainer route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in trainers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in trainers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in trainers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($trainer, [
@@ -70,4 +95,3 @@
 	</div>
     <script defer src="{{ asset('assets/js/routes/trainers/update.js') }}"></script>
 {!! Form::close() !!}
-

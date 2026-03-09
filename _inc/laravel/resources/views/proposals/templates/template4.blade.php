@@ -1,7 +1,6 @@
 <?php
 # Template 4
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
-use App\Helpers\TemplateHelper;
 use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
@@ -303,7 +302,7 @@ if (isset($proposal) && !empty($proposal)) {
     <body>
         <div class="proposal-preview-main" id="boxes">
             <div class="proposal-header">
-                <table class="vertical-align-top">
+                <table class="{{ VC::VA_TOP }}">
                     <tbody>
                         <tr>
                             <td>
@@ -332,15 +331,15 @@ if (isset($proposal) && !empty($proposal)) {
                             </td>
                             <td>
                                 <img class="proposal-logo" src="<?= e($img) ?>" alt="" style="margin-bottom:15px;">
-                                <table class="no-space">
+                                <table class="{{ VC::NO_SPC }}">
                                     <tbody>
                                         <tr>
                                             <td><?= e(__('Number')) ?>:</td>
-                                            <td class="text-right"><?= e($proposalNumber) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($proposalNumber) ?></td>
                                         </tr>
                                         <tr>
                                             <td><?= e(__('Issue Date')) ?>:</td>
-                                            <td class="text-right"><?= e($issueDate) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($issueDate) ?></td>
                                         </tr>
                                         <?php if (!empty($customFields) && count(data_get($proposal, 'customField', [])) > 0): ?>
                                             <?php foreach ($customFields as $field): ?>
@@ -352,10 +351,10 @@ if (isset($proposal) && !empty($proposal)) {
                                         <?php endif; ?>
                                         <tr>
                                             <td colspan="2">
-                                                <div class="view-qrcode">
+                                                <div class="{{ VC::VW_QR }}">
                                                     <?php
                                                     try {
-                                                        $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                                         echo $qrHtml;
                                                     } catch (\Throwable $e) {
                                                         Log::error('QR HTML Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);
@@ -391,7 +390,7 @@ if (isset($proposal) && !empty($proposal)) {
                                 </p>
                             </td>
                             <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                                <td class="text-right">
+                                <td class="{{ VC::TX_RT }}">
                                     <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                     <p>
                                         <?= e(data_get($customer, 'shipping_name', __('No name for shipping available.'))) ?><br>
@@ -491,8 +490,8 @@ if (isset($proposal) && !empty($proposal)) {
                         </tr>
                         <tr style="border-bottom:1px solid <?= e($color) ?>">
                             <td colspan="4"></td>
-                            <td colspan="2" class="sub-total">
-                                <table class="total-table">
+                            <td colspan="2" class="{{ VC::SUB_TTL }}">
+                                <table class="{{ VC::TTL_TB }}">
                                     <tr style="border-bottom:1px solid <?= e($color) ?>">
                                         <td><?= e(__('Subtotal')) ?>:</td>
                                         <td><?= e($proposalSubTotal) ?></td>
@@ -554,5 +553,14 @@ if (isset($proposal) && !empty($proposal)) {
     </html>
 <?php
 } else {
-    echo TemplateHelper::getNoDataHtml('proposal');
+    echo '<!DOCTYPE html>
+<html lang="' . htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8') . '">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+	<div class="{{ VC::ALT_WRN }}">No proposal data available.</div>
+</body>
+</html>';
 }

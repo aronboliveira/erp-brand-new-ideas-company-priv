@@ -1,45 +1,48 @@
 @php
-    use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewsConstants,ViewClassNamesConstants as VC,YieldingConstants};
-    use App\Models\{Bill,BillPayment,Invoice,Utility,Vendor,ChartOfAccount};
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang();
-    $accountId = data_get($account ?? null,'id');
-    $showName = ViewsConstants::COA . '.show';
-    $showRoute = ($accountId && Route::has($showName)) ? route($showName,$accountId) : (Route::has(Str::kebab($showName)) ? route(Str::kebab($showName),$accountId) : '#');
-    $formId = 'report_drilldown';
-    $guardMsg = Utility::fetchLinkMessage($lang,ViewsConstants::COA,'chart_of_account_show_route_unavailable') ?? __('Failed to open account drilldown');
-    $startRange = data_get($filter ?? [],'startDateRange');
-    $endRange = data_get($filter ?? [],'endDateRange');
-    $accountsOptions = ((is_array($accounts ?? null) && count($accounts ?? [])) || (($accounts ?? null) instanceof Collection && ($accounts)->isNotEmpty())) ? $accounts : [];
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang();
+        $accountId = data_get($account ?? null,'id');
+        $showName = ViewsConstants::COA . '.show';
+        $showRoute = ($accountId && Route::has($showName)) ? route($showName,$accountId) : (Route::has(Str::kebab($showName)) ? route(Str::kebab($showName),$accountId) : '#');
+        $formId = 'report_drilldown';
+        $guardMsg = Utility::fetchLinkMessage($lang,ViewsConstants::COA,'chart_of_account_show_route_unavailable') ?? __('Failed to open account drilldown');
+        $startRange = data_get($filter ?? [],'startDateRange');
+        $endRange = data_get($filter ?? [],'endDateRange');
+        $accountsOptions = ((is_array($accounts ?? null) && count($accounts ?? [])) || (($accounts ?? null) instanceof Collection && ($accounts)->isNotEmpty())) ? $accounts : [];
+    } catch (\Throwable $e) {
+        \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Account Drilldown Report') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        $coaIndexBase = ViewsConstants::COA.'.index';
-        $coaIndexKebab = Str::kebab($coaIndexBase);
-        $coaIndexResolved = Route::has($coaIndexBase) ? $coaIndexBase : (Route::has($coaIndexKebab) ? $coaIndexKebab : null);
-        $coaIndexUrl = $coaIndexResolved ? route($coaIndexResolved) : '#';
-        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-        $coaIndexGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'coa_index_route_unavailable') ?? 'Chart of account index route is unavailable. Please contact technical support or your domain administrator.';
-        $breadcrumbCoaIndexLinkId = 'breadcrumb-coa-index-link';
-    @endphp
+        try {
+            $coaIndexBase = ViewsConstants::COA.'.index';
+            $coaIndexKebab = Str::kebab($coaIndexBase);
+            $coaIndexResolved = Route::has($coaIndexBase) ? $coaIndexBase : (Route::has($coaIndexKebab) ? $coaIndexKebab : null);
+            $coaIndexUrl = $coaIndexResolved ? route($coaIndexResolved) : '#';
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $coaIndexGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'coa_index_route_unavailable') ?? 'Chart of account index route is unavailable. Please contact technical support or your domain administrator.';
+            $breadcrumbCoaIndexLinkId = 'breadcrumb-coa-index-link';
+        } catch (\Throwable $e) {
+            \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a id="{{ $breadcrumbCoaIndexLinkId }}"
         href="{{ $coaIndexUrl }}"
         data-url="{{ $coaIndexUrl }}"
-        data-guard-msg="{{ $coaIndexGuardMsg }}"
+        data-guard-msg="{{ base64_encode($coaIndexGuardMsg) }}"
         data-sv-localized="true">
             {{ __('Chart of Account') }}
         </a>
@@ -47,36 +50,36 @@
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/chartOfAccounts/index.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{ __('Account Drilldown Report') }}</li>
-    <li class="breadcrumb-item">{{ (data_get($account,'code') || data_get($account,'name')) ? ucwords((string) data_get($account,'code','') . ' - ' . (string) data_get($account,'name','')) : __('No account code/name available') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Account Drilldown Report') }}</li>
+    <li class="{{ VC::BCI }}">{{ (data_get($account,'code') || data_get($account,'name')) ? ucwords((string) data_get($account,'code','') . ' - ' . (string) data_get($account,'name','')) : __('No account code/name available') }}</li>
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         {{ Form::open(['url'=>$showRoute,'method'=>'GET','id'=>$formId,'data-url'=>$showRoute,'data-guard-msg'=>$guardMsg]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12"><div class="btn-box"></div></div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
+                                        <div class="{{ VC::CL_XL3 }}">
                                             <div class="btn-box">
                                                 {{ Form::label('start_date', __('Start Date'), ['class'=>VC::FM_LB]) }}
                                                 {{ Form::date('start_date', $startRange ?? null, ['class'=>VC::FM_CT.' month-btn']) }}
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="{{ VC::CL_XL3 }}">
                                             <div class="btn-box">
                                                 {{ Form::label('end_date', __('End Date'), ['class'=>VC::FM_LB]) }}
                                                 {{ Form::date('end_date', $endRange ?? null, ['class'=>VC::FM_CT.' month-btn']) }}
                                             </div>
                                         </div>
-                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="{{ VC::CL_XL3 }}">
                                             <div class="btn-box">
                                                 {{ Form::label('account', __('Account'), ['class'=>VC::FM_LB]) }}
-                                                {{ Form::select('account', $accountsOptions, $_GET['account'] ?? '', ['class'=>VC::FM_CT_SL]) }}
+                                                {{ Form::select('account', $accountsOptions, request()->input('account', ''), ['class'=>VC::FM_CT_SL]) }}
                                             </div>
                                         </div>
                                     </div>
@@ -98,25 +101,25 @@
     </div>
     <div id="printableArea">
         <div class="{{ VC::RW }} mt-2">
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 <div class="{{ VC::CD_POS }}">
                     <h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
                     <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Account Drilldown') }}</h7>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 <div class="{{ VC::CD_POS }}">
                     <h6 class="{{ VC::MB0 }}">{{ __('Account Name') }} :</h6>
                     <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($account,'name') ?: __('No account name available') }}</h7>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 <div class="{{ VC::CD_POS }}">
                     <h6 class="{{ VC::MB0 }}">{{ __('Account Code') }} :</h6>
                     <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($account,'code') ?: __('No account code available') }}</h7>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="{{ VC::C3 }}">
                 <div class="{{ VC::CD_POS }}">
                     <h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
                     <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ ($startRange && $endRange) ? ($startRange.' '.__('to').' '.$endRange) : __('No date range available') }}</h7>
@@ -124,16 +127,20 @@
             </div>
         </div>
         @php
-            $isPriceFormatAvailable = ($user ?? null) && method_exists($user,'priceFormat');
-            $isInvoiceNumberFormatAvailable = ($user ?? null) && method_exists($user,'invoiceNumberFormat');
-            $isBillNumberFormatAvailable = ($user ?? null) && method_exists($user,'billNumberFormat');
-            $isJournalNumberFormatAvailable = ($user ?? null) && method_exists($user,'journalNumberFormat');
-        @endphp
+            try {
+                $isPriceFormatAvailable = ($user ?? null) && method_exists($user,'priceFormat');
+                $isInvoiceNumberFormatAvailable = ($user ?? null) && method_exists($user,'invoiceNumberFormat');
+                $isBillNumberFormatAvailable = ($user ?? null) && method_exists($user,'billNumberFormat');
+                $isJournalNumberFormatAvailable = ($user ?? null) && method_exists($user,'journalNumberFormat');
+            } catch (\Throwable $e) {
+                \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::RW }} {{ VC::MB4 }}">
             <div class="{{ VC::C12 }} {{ VC::MB4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
@@ -148,33 +155,41 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $balance = 0.0;
-                                        $totalDebit = 0.0;
-                                        $totalCredit = 0.0;
-                                        $chartDatasRaw = ($accountId && $startRange && $endRange) ? Utility::getAccountData($accountId,$startRange,$endRange) : [];
-                                        $chartDatas = is_array($chartDatasRaw) ? $chartDatasRaw : [];
-                                        $accountModel = $accountId ? ChartOfAccount::find($accountId) : null;
-                                        $accountLabel = data_get($accountModel,'name') ?: __('No account name available');
-                                        $invRows = ((is_array(data_get($chartDatas,'invoice')) && count(data_get($chartDatas,'invoice'))) || (data_get($chartDatas,'invoice') instanceof Collection && data_get($chartDatas,'invoice')->isNotEmpty())) ? data_get($chartDatas,'invoice') : [];
-                                        $invPayRows = ((is_array(data_get($chartDatas,'invoicepayment')) && count(data_get($chartDatas,'invoicepayment'))) || (data_get($chartDatas,'invoicepayment') instanceof Collection && data_get($chartDatas,'invoicepayment')->isNotEmpty())) ? data_get($chartDatas,'invoicepayment') : [];
-                                        $revRows = ((is_array(data_get($chartDatas,'revenue')) && count(data_get($chartDatas,'revenue'))) || (data_get($chartDatas,'revenue') instanceof Collection && data_get($chartDatas,'revenue')->isNotEmpty())) ? data_get($chartDatas,'revenue') : [];
-                                        $billRows = ((is_array(data_get($chartDatas,'bill')) && count(data_get($chartDatas,'bill'))) || (data_get($chartDatas,'bill') instanceof Collection && data_get($chartDatas,'bill')->isNotEmpty())) ? data_get($chartDatas,'bill') : [];
-                                        $billDataRows = ((is_array(data_get($chartDatas,'billdata')) && count(data_get($chartDatas,'billdata'))) || (data_get($chartDatas,'billdata') instanceof Collection && data_get($chartDatas,'billdata')->isNotEmpty())) ? data_get($chartDatas,'billdata') : [];
-                                        $billPayRows = ((is_array(data_get($chartDatas,'billpayment')) && count(data_get($chartDatas,'billpayment'))) || (data_get($chartDatas,'billpayment') instanceof Collection && data_get($chartDatas,'billpayment')->isNotEmpty())) ? data_get($chartDatas,'billpayment') : [];
-                                        $payRows = ((is_array(data_get($chartDatas,'payment')) && count(data_get($chartDatas,'payment'))) || (data_get($chartDatas,'payment') instanceof Collection && data_get($chartDatas,'payment')->isNotEmpty())) ? data_get($chartDatas,'payment') : [];
-                                        $jrRows = ((is_array(data_get($chartDatas,'journalItem')) && count(data_get($chartDatas,'journalItem'))) || (data_get($chartDatas,'journalItem') instanceof Collection && data_get($chartDatas,'journalItem')->isNotEmpty())) ? data_get($chartDatas,'journalItem') : [];
-                                    @endphp
+                                        $balance ??= 0.0;
+                                        $totalDebit ??= 0.0;
+                                        $totalCredit ??= 0.0;
+                                        try {
+                                            $chartDatasRaw = ($accountId && $startRange && $endRange) ? Utility::getAccountData($accountId,$startRange,$endRange) : [];
+                                            $chartDatas = is_array($chartDatasRaw) ? $chartDatasRaw : [];
+                                            $accountModel = $accountId ? ChartOfAccount::find($accountId) : null;
+                                            $accountLabel = data_get($accountModel,'name') ?: __('No account name available');
+                                            $invRows = ((is_array(data_get($chartDatas,'invoice')) && count(data_get($chartDatas,'invoice'))) || (data_get($chartDatas,'invoice') instanceof Collection && data_get($chartDatas,'invoice')->isNotEmpty())) ? data_get($chartDatas,'invoice') : [];
+                                            $invPayRows = ((is_array(data_get($chartDatas,'invoicepayment')) && count(data_get($chartDatas,'invoicepayment'))) || (data_get($chartDatas,'invoicepayment') instanceof Collection && data_get($chartDatas,'invoicepayment')->isNotEmpty())) ? data_get($chartDatas,'invoicepayment') : [];
+                                            $revRows = ((is_array(data_get($chartDatas,'revenue')) && count(data_get($chartDatas,'revenue'))) || (data_get($chartDatas,'revenue') instanceof Collection && data_get($chartDatas,'revenue')->isNotEmpty())) ? data_get($chartDatas,'revenue') : [];
+                                            $billRows = ((is_array(data_get($chartDatas,'bill')) && count(data_get($chartDatas,'bill'))) || (data_get($chartDatas,'bill') instanceof Collection && data_get($chartDatas,'bill')->isNotEmpty())) ? data_get($chartDatas,'bill') : [];
+                                            $billDataRows = ((is_array(data_get($chartDatas,'billdata')) && count(data_get($chartDatas,'billdata'))) || (data_get($chartDatas,'billdata') instanceof Collection && data_get($chartDatas,'billdata')->isNotEmpty())) ? data_get($chartDatas,'billdata') : [];
+                                            $billPayRows = ((is_array(data_get($chartDatas,'billpayment')) && count(data_get($chartDatas,'billpayment'))) || (data_get($chartDatas,'billpayment') instanceof Collection && data_get($chartDatas,'billpayment')->isNotEmpty())) ? data_get($chartDatas,'billpayment') : [];
+                                            $payRows = ((is_array(data_get($chartDatas,'payment')) && count(data_get($chartDatas,'payment'))) || (data_get($chartDatas,'payment') instanceof Collection && data_get($chartDatas,'payment')->isNotEmpty())) ? data_get($chartDatas,'payment') : [];
+                                            $jrRows = ((is_array(data_get($chartDatas,'journalItem')) && count(data_get($chartDatas,'journalItem'))) || (data_get($chartDatas,'journalItem') instanceof Collection && data_get($chartDatas,'journalItem')->isNotEmpty())) ? data_get($chartDatas,'journalItem') : [];
+                                        } catch (\Throwable $e) {
+                                            \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     @if(!empty($invRows))
                                         @foreach($invRows as $invoiceData)
                                             @php
-                                                $invId = data_get($invoiceData,'invoice_id');
-                                                $invoice = $invId ? Invoice::find($invId) : null;
-                                                $price = (float) (data_get($invoiceData,'price',0) ?? 0);
-                                                $qty = (float) (data_get($invoiceData,'quantity',0) ?? 0);
-                                                $total = $price * $qty;
-                                                $balance += $total;
-                                                $totalCredit += $total;
-                                            @endphp
+                                                try {
+                                                    $invId = data_get($invoiceData,'invoice_id');
+                                                    $invoice = $invId ? Invoice::find($invId) : null;
+                                                    $price = (float) (data_get($invoiceData,'price',0) ?? 0);
+                                                    $qty = (float) (data_get($invoiceData,'quantity',0) ?? 0);
+                                                    $total = $price * $qty;
+                                                    $balance += $total;
+                                                    $totalCredit += $total;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($invoice,'customer.name') ?: __('No customer name available') }}</td>
@@ -191,12 +206,16 @@
                                     @if(!empty($invPayRows))
                                         @foreach($invPayRows as $invoicePaymentData)
                                             @php
-                                                $invId = data_get($invoicePaymentData,'invoice_id');
-                                                $invoice = $invId ? Invoice::find($invId) : null;
-                                                $amt = (float) (data_get($invoicePaymentData,'amount',0) ?? 0);
-                                                $balance += $amt;
-                                                $totalCredit += $amt;
-                                            @endphp
+                                                try {
+                                                    $invId = data_get($invoicePaymentData,'invoice_id');
+                                                    $invoice = $invId ? Invoice::find($invId) : null;
+                                                    $amt = (float) (data_get($invoicePaymentData,'amount',0) ?? 0);
+                                                    $balance += $amt;
+                                                    $totalCredit += $amt;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($invoice,'customer.name') ?: __('No customer name available') }}</td>
@@ -213,10 +232,14 @@
                                     @if(!empty($revRows))
                                         @foreach($revRows as $revenueData)
                                             @php
-                                                $amt = (float) (data_get($revenueData,'amount',0) ?? 0);
-                                                $balance += $amt;
-                                                $totalCredit += $amt;
-                                            @endphp
+                                                try {
+                                                    $amt = (float) (data_get($revenueData,'amount',0) ?? 0);
+                                                    $balance += $amt;
+                                                    $totalCredit += $amt;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($revenueData,'customer.name') ?: __('No customer name available') }}</td>
@@ -233,14 +256,18 @@
                                     @if(!empty($billRows))
                                         @foreach($billRows as $billProduct)
                                             @php
-                                                $bill = ($bid = data_get($billProduct,'bill_id')) ? Bill::find($bid) : null;
-                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
-                                                $price = (float) (data_get($billProduct,'price',0) ?? 0);
-                                                $qty = (float) (data_get($billProduct,'quantity',0) ?? 0);
-                                                $total = $price * $qty;
-                                                $balance -= $total;
-                                                $totalCredit -= $total;
-                                            @endphp
+                                                try {
+                                                    $bill = ($bid = data_get($billProduct,'bill_id')) ? Bill::find($bid) : null;
+                                                    $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                    $price = (float) (data_get($billProduct,'price',0) ?? 0);
+                                                    $qty = (float) (data_get($billProduct,'quantity',0) ?? 0);
+                                                    $total = $price * $qty;
+                                                    $balance -= $total;
+                                                    $totalCredit -= $total;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
@@ -257,12 +284,16 @@
                                     @if(!empty($billDataRows))
                                         @foreach($billDataRows as $billData)
                                             @php
-                                                $bill = ($ref = data_get($billData,'ref_id')) ? Bill::find($ref) : null;
-                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
-                                                $price = (float) (data_get($billData,'price',0) ?? 0);
-                                                $balance -= $price;
-                                                $totalDebit -= $price;
-                                            @endphp
+                                                try {
+                                                    $bill = ($ref = data_get($billData,'ref_id')) ? Bill::find($ref) : null;
+                                                    $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                    $price = (float) (data_get($billData,'price',0) ?? 0);
+                                                    $balance -= $price;
+                                                    $totalDebit -= $price;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
@@ -279,13 +310,17 @@
                                     @if(!empty($billPayRows))
                                         @foreach($billPayRows as $billPaymentData)
                                             @php
-                                                $bid = data_get($billPaymentData,'bill_id');
-                                                $bill = $bid ? Bill::find($bid) : null;
-                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
-                                                $amt = (float) (data_get($billPaymentData,'amount',0) ?? 0);
-                                                $balance += $amt;
-                                                $totalDebit += $amt;
-                                            @endphp
+                                                try {
+                                                    $bid = data_get($billPaymentData,'bill_id');
+                                                    $bill = $bid ? Bill::find($bid) : null;
+                                                    $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                    $amt = (float) (data_get($billPaymentData,'amount',0) ?? 0);
+                                                    $balance += $amt;
+                                                    $totalDebit += $amt;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
@@ -302,11 +337,15 @@
                                     @if(!empty($payRows))
                                         @foreach($payRows as $paymentData)
                                             @php
-                                                $vendor = ($vid = data_get($paymentData,'vendor_id')) ? Vendor::find($vid) : null;
-                                                $amt = (float) (data_get($paymentData,'amount',0) ?? 0);
-                                                $balance += $amt;
-                                                $totalDebit += $amt;
-                                            @endphp
+                                                try {
+                                                    $vendor = ($vid = data_get($paymentData,'vendor_id')) ? Vendor::find($vid) : null;
+                                                    $amt = (float) (data_get($paymentData,'amount',0) ?? 0);
+                                                    $balance += $amt;
+                                                    $totalDebit += $amt;
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
@@ -323,10 +362,14 @@
                                     @if(!empty($jrRows))
                                         @foreach($jrRows as $journalItemData)
                                             @php
-                                                $debit = (float) (data_get($journalItemData,'debit',0) ?? 0);
-                                                $credit = (float) (data_get($journalItemData,'credit',0) ?? 0);
-                                                $balance = $debit ? ($balance - $debit) : ($balance + $credit);
-                                            @endphp
+                                                try {
+                                                    $debit = (float) (data_get($journalItemData,'debit',0) ?? 0);
+                                                    $credit = (float) (data_get($journalItemData,'credit',0) ?? 0);
+                                                    $balance = $debit ? ($balance - $debit) : ($balance + $credit);
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('chart_of_accounts/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ __('No name available') }}</td>

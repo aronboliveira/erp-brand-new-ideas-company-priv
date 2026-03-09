@@ -9,6 +9,11 @@ use App\Models\Employee;
 
 class EmployeeAttendanceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -19,8 +24,22 @@ class EmployeeAttendanceTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'employee_id', 'date', 'status', 'clock_in', 'clock_out',
-			'late', 'early_leaving', 'overtime', 'total_rest', 'created_by'
+			'employee_id',
+			'date',
+			'status',
+			'clock_in',
+			'clock_out',
+			'early_arrival',
+			'early_arrival_count',
+			'late',
+			'late_count',
+			'early_leaving',
+			'early_leaving_count',
+			'overtime',
+			'overtime_count',
+			'overtime_id',
+			'total_rest',
+			'total_work',
 		];
 		$this->assertEquals($expected, (new EmployeeAttendance())->getFillable());
 	}

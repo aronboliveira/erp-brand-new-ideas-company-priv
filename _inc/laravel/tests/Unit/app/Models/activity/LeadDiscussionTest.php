@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{LeadDiscussion, User};
 
 class LeadDiscussionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -68,9 +73,9 @@ class LeadDiscussionTest extends TestCase
 	{
 		$relation = (new LeadDiscussion)->user();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('created_by',        $relation->getLocalKeyName());
+		$this->assertSame('user_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 }

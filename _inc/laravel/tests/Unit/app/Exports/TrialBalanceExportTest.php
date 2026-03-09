@@ -4,16 +4,17 @@ namespace Tests\Unit\Exports;
 
 use App\Exports\TrialBalanceExport;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use ReflectionMethod;
 use Tests\TestCase;
 
 class TrialBalanceExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/** Local copy of the headings so we do not reach into internals */
 	private const EXPECTED_HEADINGS = ['Account Name', 'Account No', 'Debit', 'Credit'];
@@ -143,8 +144,9 @@ class TrialBalanceExportTest extends TestCase
 	 **/
 	public function styles_bold_first_data_row(): void
 	{
-		$export = new TrialBalanceExport([], '2025-01-01', '2025-01-31', 'ACME Inc.');
-		$sheet  = new Worksheet();
+		$export      = new TrialBalanceExport([], '2025-01-01', '2025-01-31', 'ACME Inc.');
+		$spreadsheet = new Spreadsheet();
+		$sheet       = $spreadsheet->getActiveSheet();
 
 		// Precondition – font is not bold
 		$this->assertFalse($sheet->getStyle('A6')->getFont()->getBold());

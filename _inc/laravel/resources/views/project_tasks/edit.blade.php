@@ -1,40 +1,104 @@
 @php
-    use App\Config\Constants\{ActivitiesConstants, PlansConstants, ProjectsConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\{Utility, ProjectTask};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
-    $taskIdVal    = isset($task) && !empty(data_get($task, 'id')) ? data_get($task, 'id') : null;
-    $updateBase     = VW::PRJ_TSK_C . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateParams   = ($projectIdVal !== null && $taskIdVal !== null) ? [$projectIdVal, $taskIdVal] : ['#'];
-    $updateUrl      = ($updateResolved && $projectIdVal !== null && $taskIdVal !== null) ? route($updateResolved, $updateParams) : '#';
-    $formId         = 'edit_task';
-    $formGuardMsg   = Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'update_project_task_unavailable') ?? 'Update project task route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$projectIdVal ??= null;
+	$taskIdVal ??= null;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateParams ??= ['#'];
+	$updateUrl ??= '#';
+	$formId ??= 'edit_task';
+	$formGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
+		$taskIdVal = isset($task) && !empty(data_get($task, 'id')) ? data_get($task, 'id') : null;
+		$updateBase = VW::PRJ_TSK_C . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateParams = ($projectIdVal !== null && $taskIdVal !== null) ? [$projectIdVal, $taskIdVal] : ['#'];
+		$updateUrl = ($updateResolved && $projectIdVal !== null && $taskIdVal !== null) ? (route($updateResolved, $updateParams) ?? '#') : '#';
+		$formId = 'edit_task';
+		$formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'update_project_task_unavailable') ?? 'Update project task route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in project_tasks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in project_tasks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in project_tasks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($task) && isset($task->id))
     {!! Form::model($task, ['url' => $updateUrl, 'id' => $formId, 'method' => 'PUT', 'data-guard-msg' => $formGuardMsg]) !!}
         <div class="modal-body">
             @php
-                $plan = Utility::getChatGPTSettings();
-                $planHasGpt = (int)(data_get($plan ?? null, PlansConstants::COL_GPT) ?? 0) === 1;
-                $aiUrl = $planHasGpt ? route(VW::PRJ_TSK_C . '.generate', ['project task']) : '#';
-                $aiLinkId = 'project-task-ai-generate-link';
-                $aiGuardMsg = __(Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'generate_project_task_unavailable') ?? 'Generate project task content route is unavailable. Please contact technical support or your domain administrator.');
-                $milestones = is_iterable(data_get($project ?? null, 'milestones')) ? data_get($project, 'milestones') : [];
-                $priorityOptions = (isset(ProjectTask::$priority) && is_array(ProjectTask::$priority)) ? ProjectTask::$priority : [];
-                $allocatedHrs = (is_array($hrs ?? null) || $hrs instanceof \ArrayAccess) ? (data_get($hrs, 'allocated') ?? 0) : 0;
-                $projUsers = is_iterable(data_get($project ?? null, 'users')) ? data_get($project, 'users') : [];
-                $selectedMilestoneId = data_get($task ?? null, 'milestone_id');
-                $selectedPriority = data_get($task ?? null, 'priority');
-                $assignedCsv = (string) data_get($task ?? null, 'assign_to', '');
-                $assignedIds = array_filter(array_map('trim', explode(',', $assignedCsv)), fn($v) => $v !== '');
-            @endphp
+$plan ??= null;
+				$planHasGpt ??= false;
+				$aiUrl ??= '#';
+				$aiLinkId ??= 'project-task-ai-generate-link';
+				$aiGuardMsg ??= '';
+				$milestones ??= [];
+				$priorityOptions ??= [];
+				$allocatedHrs ??= 0;
+				$projUsers ??= [];
+				$selectedMilestoneId ??= null;
+				$selectedPriority ??= null;
+				$assignedCsv ??= '';
+				$assignedIds ??= [];
+				try {
+					$plan = Utility::getChatGPTSettings();
+					$planHasGpt = (int)(data_get($plan ?? null, PlansConstants::COL_GPT) ?? 0) === 1;
+					$aiUrl = $planHasGpt ? (route(VW::PRJ_TSK_C . '.generate', ['project task']) ?? '#') : '#';
+					$aiGuardMsg = __(Utility::fetchLinkMessage($lang, VW::PRJ_TSK_C, 'generate_project_task_unavailable') ?? 'Generate project task content route is unavailable. Please contact technical support or your domain administrator.');
+					$milestones = is_iterable(data_get($project ?? null, 'milestones')) ? data_get($project, 'milestones') : [];
+					$priorityOptions = (isset(ProjectTask::$priority) && is_array(ProjectTask::$priority)) ? ProjectTask::$priority : [];
+					$allocatedHrs = (is_array($hrs ?? null) || $hrs instanceof \ArrayAccess) ? (data_get($hrs, 'allocated') ?? 0) : 0;
+					$projUsers = is_iterable(data_get($project ?? null, 'users')) ? data_get($project, 'users') : [];
+					$selectedMilestoneId = data_get($task ?? null, 'milestone_id');
+					$selectedPriority = data_get($task ?? null, 'priority');
+					$assignedCsv = (string) data_get($task ?? null, 'assign_to', '');
+					$assignedIds = array_filter(array_map('trim', explode(',', $assignedCsv)), fn($v) => $v !== '');
+				} catch (\Error $e) {
+					AiLog::error('Error in project_tasks/edit.blade.php AI @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Exception $e) {
+					AiLog::error('Exception in project_tasks/edit.blade.php AI @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Throwable $e) {
+					AiLog::error('Throwable in project_tasks/edit.blade.php AI @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				}
+@endphp
             @if($planHasGpt)
-                <div class="text-end">
-                    <a href="{{ $aiUrl }}" id="{{ $aiLinkId }}" class="{{ VC::BT_SM_PM }} btn-icon" data-ajax-popup-over="true" data-size="md" data-url="{{ $aiUrl }}" data-bs-placement="top" data-title="{{ __('Generate content with AI') }}" data-guard-msg="{{ $aiGuardMsg }}">
+                <div class="{{ VC::TX_END }}">
+                    <a href="{{ $aiUrl }}" id="{{ $aiLinkId }}" class="{{ VC::BT_SM_PM }} btn-icon" data-ajax-popup-over="true" data-size="md" data-url="{{ $aiUrl }}" data-bs-placement="top" data-title="{{ __('Generate content with AI') }}" data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                     </a>
                 </div>
@@ -42,7 +106,7 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CLMS6 }}">
                     <div class="{{ VC::FM_G }}">
-                        {{ Form::label(ProjectsConstants::COL_NM, __('Task name'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                        {{ Form::label(ProjectsConstants::COL_NM, __('Task name'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                         {{ Form::text(ProjectsConstants::COL_NM, null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                     </div>
                 </div>
@@ -50,9 +114,11 @@
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label(ProjectsConstants::COL_ML_ID, __('Milestone'), ['class' => VC::FM_LB]) }}
                         <select class="{{ VC::FM_CT_SL }}" name="milestone_id" id="milestone_id">
-                            <option value="0" class="text-muted">{{ __('Select Milestone') }}</option>
+                            <option value="0" class="{{ VC::TXT_MT }}">{{ __('Select Milestone') }}</option>
                             @foreach($milestones as $m_val)
-                                @php $mid = data_get($m_val,'id'); @endphp
+                                @php
+ $mid = data_get($m_val,'id');
+@endphp
                                 <option value="{{ $mid }}" {{ ($mid !== null && (string)$selectedMilestoneId === (string)$mid) ? 'selected' : '' }}>{{ data_get($m_val,'title') ?? __('No milestone title available') }}</option>
                             @endforeach
                         </select>
@@ -61,21 +127,21 @@
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label(ActivitiesConstants::COL_DESC, __('Description'), ['class' => VC::FM_LB]) }}
-                        <small class="form-text text-muted mb-2 mt-0">{{ __('This textarea will autosize while you type') }}</small>
+                        <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('This textarea will autosize while you type') }}</small>
                         {{ Form::textarea(ActivitiesConstants::COL_DESC, null, ['class' => VC::FM_CT, 'rows' => '1', 'data-toggle' => 'autosize']) }}
                     </div>
                 </div>
                 <div class="{{ VC::CLMS6 }}">
                     <div class="{{ VC::FM_G }}">
-                        {{ Form::label(ProjectsConstants::COL_E_HRS, __('Estimated Hours'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
-                        <small class="form-text text-muted mb-2 mt-0">{{ __('allocated total ') . $allocatedHrs . __(' hrs in other tasks') }}</small>
+                        {{ Form::label(ProjectsConstants::COL_E_HRS, __('Estimated Hours'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
+                        <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('allocated total ') . $allocatedHrs . __(' hrs in other tasks') }}</small>
                         {{ Form::number(ProjectsConstants::COL_E_HRS, null, ['class' => VC::FM_CT, 'required' => 'required', 'min' => '0', 'maxlength' => '8']) }}
                     </div>
                 </div>
                 <div class="{{ VC::CLMS6 }}">
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label(ProjectsConstants::COL_PRT, __('Priority'), ['class' => VC::FM_LB]) }}
-                        <small class="form-text text-muted mb-2 mt-0">{{ __('Set Priority of your task') }}</small>
+                        <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('Set Priority of your task') }}</small>
                         <select class="{{ VC::FM_CT_SL }}" name="priority" id="priority" required>
                             @forelse($priorityOptions as $key => $val)
                                 <option value="{{ $key }}" {{ ((string)$key === (string)$selectedPriority) ? 'selected' : '' }}>{{ __($val) }}</option>
@@ -100,18 +166,22 @@
             </div>
             <div class="{{ VC::FM_G }}">
                 <label class="{{ VC::FM_LB }}">{{ __('Task members') }}</label>
-                <small class="form-text text-muted mb-2 mt-0">{{ __('The users found below are assigned to your project.') }}</small>
+                <small class="form-text {{ VC::TXT_MT }} {{ VC::MB2 }} mt-0">{{ __('The users found below are assigned to your project.') }}</small>
             </div>
             <div class="{{ VC::LG_FLSH_MB4 }}">
                 <div class="{{ VC::RW }}">
                     @forelse($projUsers as $projUser)
                         @php
-                            $uid = data_get($projUser,'id');
-                            $isSelected = $uid !== null && in_array((string)$uid, array_map('strval', $assignedIds), true);
-                            $uName = data_get($projUser,'name') ?? __('No user name available');
-                            $uEmail = data_get($projUser,'email') ?? __('No email available');
-                            $uAvatar = data_get($projUser,'avatar');
-                        @endphp
+                            try {
+                                $uid = data_get($projUser,'id');
+                                $isSelected = $uid !== null && in_array((string)$uid, array_map('strval', $assignedIds), true);
+                                $uName = data_get($projUser,'name') ?? __('No user name available');
+                                $uEmail = data_get($projUser,'email') ?? __('No email available');
+                                $uAvatar = data_get($projUser,'avatar');
+                            } catch (\Throwable $e) {
+                                \Log::error('project_tasks/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         <div class="{{ VC::CS6 }}">
                             <div class="{{ VC::LGI }} px-0">
                                 <div class="{{ VC::R_ALC }}">
@@ -147,7 +217,7 @@
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('synchronize_type', __('Synchronize in Google Calendar ?'), ['class' => VC::FM_LB]) }}
                     <div class="form-switch">
-                        <input type="checkbox" class="form-check-input mt-2" name="synchronize_type" id="switch-shadow" value="google_calendar">
+                        <input type="checkbox" class="form-check-input {{ VC::MT2 }}" name="synchronize_type" id="switch-shadow" value="google_calendar">
                         <label class="form-check-label" for="switch-shadow"></label>
                     </div>
                 </div>
@@ -160,7 +230,7 @@
         <script defer src="{{ asset('assets/js/routes/projects/tasks/update.js') }}"></script>
     {!! Form::close() !!}
 @else
-    <div class="alert alert-warning">
+    <div class="{{ VC::ALT_WRN }}">
         <p>{{ __('The task information was not found or is unavailable. Please try again later.') }}</p>
     </div>
 @endif

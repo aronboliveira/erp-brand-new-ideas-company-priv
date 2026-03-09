@@ -1,30 +1,48 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        PlansConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $user = Auth::user();
-    $lang         = Utility::fetchUserLang(user: $user);
-    $routeName    = ViewsConstants::CPL . '.update';
-    $updateRoute  = Route::has($routeName)
-        ? route($routeName, $complaint->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $complaint->id)
-            : '#');
-    $formId       = 'complaintUpdateForm_' . $complaint->id;
-    $guardMsg     = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPL,
-        'complaint_update_route_unavailable'
-    ) ?? 'Complaint update route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'complaintUpdateForm';
+	$guardMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$routeName = ViewsConstants::CPL . '.update';
+		$complaintId = data_get($complaint ?? null, 'id');
+		$updateRoute = $complaintId && Route::has($routeName)
+			? (route($routeName, $complaintId) ?? '#')
+			: ($complaintId && Route::has(Str::kebab($routeName))
+				? (route(Str::kebab($routeName), $complaintId) ?? '#')
+				: '#');
+		$formId = 'complaintUpdateForm_' . ($complaintId ?: 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CPL,
+			'complaint_update_route_unavailable'
+		) ?? 'Complaint update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in complaints/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in complaints/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in complaints/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::model($complaint, [
@@ -35,18 +53,51 @@
     'data-guard-msg' => $guardMsg,
 ]) }}
     <div class="{{ VC::RW }} modal-body">
-        @php $plan = Utility::getChatGPTSettings(); @endphp
+        @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             @php
-                $aiGenerateRouteBase             = 'generate';
-                $aiGenerateRouteKebab            = Str::kebab($aiGenerateRouteBase);
-                $aiGenerateResolvedName          = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
-                $aiGenerateTopic                 = 'complaint';
-                $aiGenerateComplaintUrl          = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
-                $aiGenerateLang                  = isset($lang) ? $lang : Utility::fetchUserLang();
-                $aiGenerateComplaintGuardMsg     = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPL, 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
-                $aiGenerateComplaintLinkId       = 'ai-generate-complaint-link';
-            @endphp
+                $aiGenerateRouteBase ??= 'generate';
+                $aiGenerateRouteKebab ??= '';
+                $aiGenerateResolvedName ??= null;
+                $aiGenerateTopic ??= 'complaint';
+                $aiGenerateComplaintUrl ??= '#';
+                $aiGenerateLang ??= 'en';
+                $aiGenerateComplaintGuardMsg ??= '';
+                $aiGenerateComplaintLinkId ??= 'ai-generate-complaint-link';
+                try {
+                    $aiGenerateRouteBase = 'generate';
+                    $aiGenerateRouteKebab = Str::kebab($aiGenerateRouteBase);
+                    $aiGenerateResolvedName = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
+                    $aiGenerateTopic = 'complaint';
+                    $aiGenerateComplaintUrl = $aiGenerateResolvedName ? (route($aiGenerateResolvedName, [$aiGenerateTopic]) ?? '#') : '#';
+                    $aiGenerateLang = isset($lang) ? $lang : (Utility::fetchUserLang() ?? 'en');
+                    $aiGenerateComplaintGuardMsg = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPL, 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
+                    $aiGenerateComplaintLinkId = 'ai-generate-complaint-link';
+                } catch (\Error $e) {
+                    Log::error('Error in complaints/edit.blade.php AI generate @php block', [
+                        'exception_class' => get_class($e),
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Exception in complaints/edit.blade.php AI generate @php block', [
+                        'exception_class' => get_class($e),
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Throwable in complaints/edit.blade.php AI generate @php block', [
+                        'exception_class' => get_class($e),
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+                }
+@endphp
             <div class="{{ VC::FEND }}">
                 <a href="{{ $aiGenerateComplaintUrl }}"
                 id="{{ $aiGenerateComplaintLinkId }}"
@@ -56,7 +107,7 @@
                 data-url="{{ $aiGenerateComplaintUrl }}"
                 data-bs-placement="top"
                 data-title="{{ __('Generate content with AI') }}"
-                data-guard-msg="{{ $aiGenerateComplaintGuardMsg }}"
+                data-guard-msg="{{ base64_encode($aiGenerateComplaintGuardMsg) }}"
                 data-sv-localized="true">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
@@ -66,7 +117,7 @@
         @endif
         @php
             $isEmployeesEmpty = empty($employees) || (is_array($employees) && count($employees) === 0) || ($employees instanceof Collection && $employees->isEmpty());
-        @endphp
+@endphp
         <div class="{{ VC::RW }}">
             @if($user?->{UsersConstants::COL_TP} !== 'employee')
                 <div class="{{ VC::FM_G }} col-md-6 col-lg-6">
@@ -112,42 +163,5 @@
             {{ __('Update') }}
         </button>
     </div>
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const url = form.getAttribute('data-url') ?? '#';
-                    if (url !== '#') return;
-                    event.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (e) {}
-            });
-        })();
-    </script>
+    <script defer>window.RouteGuard?.guardFormSubmit?.('{{ $formId }}');</script>
 {{ Form::close() }}

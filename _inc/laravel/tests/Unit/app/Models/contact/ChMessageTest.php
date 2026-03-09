@@ -8,6 +8,11 @@ use App\Models\{ChMessage, User};
 
 class ChMessageTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -17,7 +22,7 @@ class ChMessageTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['from_id', 'to_id', 'message', 'seen'];
+		$expected = ['from_id', 'to_id', 'body', 'seen'];
 		$this->assertEquals($expected, (new ChMessage())->getFillable());
 	}
 
@@ -34,7 +39,7 @@ class ChMessageTest extends TestCase
 		$msg = ChMessage::create([
 			'from_id' => $sender->id,
 			'to_id'   => $receiver->id,
-			'message' => 'Hello',
+			'body' => 'Hello',
 			'seen'    => false,
 		]);
 
@@ -55,7 +60,7 @@ class ChMessageTest extends TestCase
 		$msg = ChMessage::create([
 			'from_id' => $sender->id,
 			'to_id'   => $receiver->id,
-			'message' => 'Hello again',
+			'body' => 'Hello again',
 			'seen'    => true,
 		]);
 

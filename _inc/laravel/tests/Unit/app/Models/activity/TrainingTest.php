@@ -4,7 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\Training;
 use App\Models\Branch;
 use App\Models\TrainingType;
@@ -13,6 +13,11 @@ use App\Models\Trainer;
 
 class TrainingTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -24,25 +29,22 @@ class TrainingTest extends TestCase
 	{
 		$data = [
 			'branch'          => 'branch-123',
-			'trainer_option'  => 'Internal',
+			'trainer_option'  => 1,
 			'training_type'   => 'type-456',
 			'trainer'         => 'trainer-789',
 			'training_cost'   => 1500.50,
-			'employee'        => 'emp-321',
+			'employee_id'     => 'emp-321',
 			'start_date'      => '2025-06-01',
 			'end_date'        => '2025-06-05',
 			'description'     => 'Safety training',
 			'remarks'         => 'Bring ID badge',
-			'performance'     => 'Satisfactory',
-			'status'          => 'Pending',
-			'created_by'      => 'user-999',
+			'performance'     => 3,
+			'status'          => 1,
 		];
 
 		$training = Training::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $training->$field);
-		}
+		$this->assertFillableMatches($data, $training);
 	}
 
 	/**
@@ -73,7 +75,7 @@ class TrainingTest extends TestCase
 	public function options_static_property_is_correct()
 	{
 		$this->assertSame(
-			['Internal', 'External'],
+			['Internal', 'External', 'Hybrid'],
 			Training::$options
 		);
 	}
@@ -113,10 +115,10 @@ class TrainingTest extends TestCase
 	{
 		$relation = (new Training)->branches();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Branch::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                 $relation->getForeignKeyName());
-		$this->assertSame('branch',             $relation->getLocalKeyName());
+		$this->assertSame('branch',                 $relation->getForeignKeyName());
+		$this->assertSame('id',             $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -128,10 +130,10 @@ class TrainingTest extends TestCase
 	{
 		$relation = (new Training)->types();
 
-		$this->assertInstanceOf(HasOne::class,        get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(TrainingType::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                       $relation->getForeignKeyName());
-		$this->assertSame('training_type',            $relation->getLocalKeyName());
+		$this->assertSame('training_type',                       $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -143,10 +145,10 @@ class TrainingTest extends TestCase
 	{
 		$relation = (new Training)->employees();
 
-		$this->assertInstanceOf(HasOne::class,        get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class,            get_class($relation->getRelated()));
-		$this->assertSame('id',                       $relation->getForeignKeyName());
-		$this->assertSame('employee',                 $relation->getLocalKeyName());
+		$this->assertSame('employee',                       $relation->getForeignKeyName());
+		$this->assertSame('id',                 $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -158,9 +160,9 @@ class TrainingTest extends TestCase
 	{
 		$relation = (new Training)->trainers();
 
-		$this->assertInstanceOf(HasOne::class,        get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Trainer::class,             get_class($relation->getRelated()));
-		$this->assertSame('id',                       $relation->getForeignKeyName());
-		$this->assertSame('trainer',                  $relation->getLocalKeyName());
+		$this->assertSame('trainer',                       $relation->getForeignKeyName());
+		$this->assertSame('id',                  $relation->getOwnerKeyName());
 	}
 }

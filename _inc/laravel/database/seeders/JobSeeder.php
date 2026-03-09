@@ -14,7 +14,8 @@ class JobSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2; // 10 minutes
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$this->out = new ConsoleOutput();
@@ -55,7 +56,8 @@ class JobSeeder extends Seeder
 		$rawTotal = 0;
 		foreach ($jobCats as $cat)
 			$rawTotal += random_int(1, 16);
-		$hardCap = 256;
+		// $hardCap = 256;
+		$hardCap = 2; /* original: 256 */
 		$targetTotal = min($countJobCats * 4, $this->toNextMultipleOf64($rawTotal));
 		$targetTotalFirst = max($countJobCats * 2, (int) floor($targetTotal * 0.1));
 		$targetTotalSecond = $targetTotal - $targetTotalFirst;
@@ -243,12 +245,12 @@ class JobSeeder extends Seeder
 					if ($payload['announcement'] !== null) $withAnn++;
 				}
 
-				$this->out->writeln(
-					'[JobSeeder] (' . $createdFirst . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
-						. ' branch=' . ($payload['branch'] ?? 'null')
-						. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
-						. ' title="' . ($payload['title'] ?? '') . '"'
-				);
+				// $this->out->writeln(
+				// 	'[JobSeeder] (' . $createdFirst . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
+				// 		. ' branch=' . ($payload['branch'] ?? 'null')
+				// 		. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
+				// 		. ' title="' . ($payload['title'] ?? '') . '"'
+				// );
 
 				$job = new Job();
 				foreach ($payload as $k => $v) {
@@ -420,12 +422,12 @@ class JobSeeder extends Seeder
 					if ($payload['announcement'] !== null) $withAnn++;
 				}
 
-				$this->out->writeln(
-					'[JobSeeder] (' . ($createdFirst + $createdSecond) . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
-						. ' branch=' . ($payload['branch'] ?? 'null')
-						. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
-						. ' title="' . ($payload['title'] ?? '') . '"'
-				);
+				// $this->out->writeln(
+				// 	'[JobSeeder] (' . ($createdFirst + $createdSecond) . '/' . $targetResult . ') Creating job: cat=' . ($payload['category'] ?? 'null')
+				// 		. ' branch=' . ($payload['branch'] ?? 'null')
+				// 		. ' country=' . (is_scalar($payload['country'] ?? null) ? (string) $payload['country'] : 'null')
+				// 		. ' title="' . ($payload['title'] ?? '') . '"'
+				// );
 
 				$job = new Job();
 				foreach ($payload as $k => $v) {

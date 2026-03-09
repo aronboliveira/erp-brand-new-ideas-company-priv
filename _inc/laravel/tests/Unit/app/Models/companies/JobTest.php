@@ -13,6 +13,11 @@ use App\Models\{Job, Branch, JobCategory, User};
 
 class JobTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -36,7 +41,7 @@ class JobTest extends TestCase
 			'position'        => 2,
 			'start_date'      => '2025-06-01',
 			'end_date'        => '2025-06-30',
-			'status'          => 'Open',
+			'status'          => 'active',
 			'applicant'       => 'John Doe',
 			'visibility'      => 'public',
 			'code'            => 'JOB123',
@@ -46,9 +51,7 @@ class JobTest extends TestCase
 
 		$job = Job::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $job->$field);
-		}
+		$this->assertFillableMatches($data, $job);
 	}
 
 	/**

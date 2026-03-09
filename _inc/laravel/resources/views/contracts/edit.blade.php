@@ -1,31 +1,91 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang = Utility::fetchUserLang();
+	try {
+		\tuse App\\Config\\Constants\\{PlansConstants, ViewClassNamesConstants as VC, ViewsConstants};
+		\tuse App\\Models\\Utility;
+		\tuse Collective\\Html\\FormFacade as Form;
+		\tuse Illuminate\\Support\\Facades\\{Log, Route};
+		\tuse Illuminate\\Support\\{Collection, Str};
+		\t$lang ??= 'en';
+		\ttry {
+		\t\t$lang = Utility::fetchUserLang() ?? 'en';
+		\t} catch (\\Error $e) {
+		\t\tLog::error('Error in contracts/edit.blade.php main @php block', [
+		\t\t\t'exception_class' => get_class($e),
+		\t\t\t'message' => $e->getMessage(),
+		\t\t\t'file' => $e->getFile(),
+		\t\t\t'line' => $e->getLine(),
+		\t\t]);
+		\t} catch (\\Exception $e) {
+		\t\tLog::error('Exception in contracts/edit.blade.php main @php block', [
+		\t\t\t'exception_class' => get_class($e),
+		\t\t\t'message' => $e->getMessage(),
+		\t\t\t'file' => $e->getFile(),
+		\t\t\t'line' => $e->getLine(),
+		\t\t]);
+		\t} catch (\\Throwable $e) {
+		\t\tLog::error('Throwable in contracts/edit.blade.php main @php block', [
+		\t\t\t'exception_class' => get_class($e),
+		\t\t\t'message' => $e->getMessage(),
+		\t\t\t'file' => $e->getFile(),
+		\t\t\t'line' => $e->getLine(),
+		\t\t]);
+		\t}
+	} catch (\Throwable $e) {
+		\Log::error('contracts/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 @if(!empty($contract) && isset($contract->id))
   @php
-      $contractUpdateRouteBase        = ViewsConstants::CTC.'.update';
-      $contractUpdateRouteKebab       = Str::kebab($contractUpdateRouteBase);
-      $contractIdValue                = (string) data_get($contract,'id','');
-      $contractUpdateResolvedName     = Route::has($contractUpdateRouteBase)
-          ? $contractUpdateRouteBase
-          : (Route::has($contractUpdateRouteKebab) ? $contractUpdateRouteKebab : null);
-      $contractUpdateUrl              = ($contractUpdateResolvedName && $contractIdValue !== '')
-          ? route($contractUpdateResolvedName, $contractIdValue)
-          : '#';
-      $contractUpdateLang             = isset($lang) ? $lang : Utility::fetchUserLang();
-      $contractUpdateGuardMsg         = Utility::fetchLinkMessage($contractUpdateLang, ViewsConstants::CTC, 'update_contract_route_unavailable')
-          ?? 'Update contract route is unavailable. Please contact technical support or your domain administrator.';
-      $contractUpdateFormId           = 'contract-update-form-'.($contractIdValue === '' ? 'x' : $contractIdValue);
-  @endphp
+	try {
+		\t\tuse Illuminate\\Support\\Facades\\Log as UpdateLog;
+		\t\t$contractUpdateRouteBase ??= '';
+		\t\t$contractUpdateRouteKebab ??= '';
+		\t\t$contractIdValue ??= '';
+		\t\t$contractUpdateResolvedName ??= null;
+		\t\t$contractUpdateUrl ??= '#';
+		\t\t$contractUpdateLang ??= 'en';
+		\t\t$contractUpdateGuardMsg ??= '';
+		\t\t$contractUpdateFormId ??= 'contract-update-form-x';
+		\t\ttry {
+		\t\t\t$contractUpdateRouteBase = ViewsConstants::CTC . '.update';
+		\t\t\t$contractUpdateRouteKebab = Str::kebab($contractUpdateRouteBase);
+		\t\t\t$contractIdValue = (string) data_get($contract ?? null, 'id', '');
+		\t\t\t$contractUpdateResolvedName = Route::has($contractUpdateRouteBase)
+		\t\t\t\t? $contractUpdateRouteBase
+		\t\t\t\t: (Route::has($contractUpdateRouteKebab) ? $contractUpdateRouteKebab : null);
+		\t\t\t$contractUpdateUrl = ($contractUpdateResolvedName && $contractIdValue !== '')
+		\t\t\t\t? (route($contractUpdateResolvedName, $contractIdValue) ?? '#')
+		\t\t\t\t: '#';
+		\t\t\t$contractUpdateLang = isset($lang) ? $lang : (Utility::fetchUserLang() ?? 'en');
+		\t\t\t$contractUpdateGuardMsg = Utility::fetchLinkMessage($contractUpdateLang, ViewsConstants::CTC, 'update_contract_route_unavailable')
+		\t\t\t\t?? 'Update contract route is unavailable. Please contact technical support or your domain administrator.';
+		\t\t\t$contractUpdateFormId = 'contract-update-form-' . ($contractIdValue === '' ? 'x' : $contractIdValue);
+		\t\t} catch (\\Error $e) {
+		\t\t\tUpdateLog::error('Error in contracts/edit.blade.php update @php block', [
+		\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t'line' => $e->getLine(),
+		\t\t\t]);
+		\t\t} catch (\\Exception $e) {
+		\t\t\tUpdateLog::error('Exception in contracts/edit.blade.php update @php block', [
+		\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t'line' => $e->getLine(),
+		\t\t\t]);
+		\t\t} catch (\\Throwable $e) {
+		\t\t\tUpdateLog::error('Throwable in contracts/edit.blade.php update @php block', [
+		\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t'line' => $e->getLine(),
+		\t\t\t]);
+		\t\t}
+	} catch (\Throwable $e) {
+		\Log::error('contracts/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
   {!! Form::model($contract, [
       'method'          => 'PUT',
       'url'             => $contractUpdateUrl,
@@ -35,21 +95,55 @@
       'data-sv-localized' => 'true',
   ]) !!}
     <div class="modal-body">
-        @php($plan = Utility::getChatGPTSettings())
-        @if ($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
-              @php
-                  $aiGenerateContractRouteBase    = 'generate';
-                  $aiGenerateContractRouteKebab   = Str::kebab($aiGenerateContractRouteBase);
-                  $aiGenerateContractResolvedName = Route::has($aiGenerateContractRouteBase)
-                      ? $aiGenerateContractRouteBase
-                      : (Route::has($aiGenerateContractRouteKebab) ? $aiGenerateContractRouteKebab : null);
-                  $aiGenerateContractTopic        = 'contract';
-                  $aiGenerateContractUrl          = $aiGenerateContractResolvedName ? route($aiGenerateContractResolvedName, [$aiGenerateContractTopic]) : '#';
-                  $aiGenerateContractLang         = $lang ?? Utility::fetchUserLang();
-                  $aiGenerateContractGuardMsg     = Utility::fetchLinkMessage($aiGenerateContractLang, ViewsConstants::CTC, 'generate_ai_contract_route_unavailable') ?? 'Generate AI contract route is unavailable. Please contact technical support or your domain administrator.';
-                  $aiGenerateContractLinkId       = 'ai-generate-contract-link';
-              @endphp
+        @php
+	try {
+		($plan = Utility::getChatGPTSettings())
+		        @if ($plan?->{PlansConstants::COL_GPT} == 1)
+		            <div class="{{ VC::TX_END }}">
+		              @php
+		\t\t\t\t\tuse Illuminate\\Support\\Facades\\Log as AiLog;
+		\t\t\t\t\t$aiGenerateContractRouteBase ??= 'generate';
+		\t\t\t\t\t$aiGenerateContractRouteKebab ??= '';
+		\t\t\t\t\t$aiGenerateContractResolvedName ??= null;
+		\t\t\t\t\t$aiGenerateContractTopic ??= 'contract';
+		\t\t\t\t\t$aiGenerateContractUrl ??= '#';
+		\t\t\t\t\t$aiGenerateContractLang ??= 'en';
+		\t\t\t\t\t$aiGenerateContractGuardMsg ??= '';
+		\t\t\t\t\t$aiGenerateContractLinkId ??= 'ai-generate-contract-link';
+		\t\t\t\t\ttry {
+		\t\t\t\t\t\t$aiGenerateContractRouteKebab = Str::kebab($aiGenerateContractRouteBase);
+		\t\t\t\t\t\t$aiGenerateContractResolvedName = Route::has($aiGenerateContractRouteBase)
+		\t\t\t\t\t\t\t? $aiGenerateContractRouteBase
+		\t\t\t\t\t\t\t: (Route::has($aiGenerateContractRouteKebab) ? $aiGenerateContractRouteKebab : null);
+		\t\t\t\t\t\t$aiGenerateContractUrl = $aiGenerateContractResolvedName ? (route($aiGenerateContractResolvedName, [$aiGenerateContractTopic]) ?? '#') : '#';
+		\t\t\t\t\t\t$aiGenerateContractLang = $lang ?? (Utility::fetchUserLang() ?? 'en');
+		\t\t\t\t\t\t$aiGenerateContractGuardMsg = Utility::fetchLinkMessage($aiGenerateContractLang, ViewsConstants::CTC, 'generate_ai_contract_route_unavailable') ?? 'Generate AI contract route is unavailable. Please contact technical support or your domain administrator.';
+		\t\t\t\t\t} catch (\\Error $e) {
+		\t\t\t\t\t\tAiLog::error('Error in contracts/edit.blade.php AI generate @php block', [
+		\t\t\t\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t\t\t\t'line' => $e->getLine(),
+		\t\t\t\t\t\t]);
+		\t\t\t\t\t} catch (\\Exception $e) {
+		\t\t\t\t\t\tAiLog::error('Exception in contracts/edit.blade.php AI generate @php block', [
+		\t\t\t\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t\t\t\t'line' => $e->getLine(),
+		\t\t\t\t\t\t]);
+		\t\t\t\t\t} catch (\\Throwable $e) {
+		\t\t\t\t\t\tAiLog::error('Throwable in contracts/edit.blade.php AI generate @php block', [
+		\t\t\t\t\t\t\t'exception_class' => get_class($e),
+		\t\t\t\t\t\t\t'message' => $e->getMessage(),
+		\t\t\t\t\t\t\t'file' => $e->getFile(),
+		\t\t\t\t\t\t\t'line' => $e->getLine(),
+		\t\t\t\t\t\t]);
+		\t\t\t\t\t}
+	} catch (\Throwable $e) {
+		\Log::error('contracts/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
               <a href="{{ $aiGenerateContractUrl }}"
                 id="{{ $aiGenerateContractLinkId }}"
                 data-size="md"
@@ -58,7 +152,7 @@
                 data-url="{{ $aiGenerateContractUrl }}"
                 data-bs-placement="top"
                 data-title="{{ __('Generate content with AI') }}"
-                data-guard-msg="{{ $aiGenerateContractGuardMsg }}"
+                data-guard-msg="{{ base64_encode($aiGenerateContractGuardMsg) }}"
                 data-sv-localized="true">
                   <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
               </a>
@@ -171,43 +265,14 @@
                 if (!form) { return; }
                 if (form.getAttribute('data-listener-active') === 'true') { return; }
                 form.setAttribute('data-listener-active','true');
-
                 form.addEventListener('submit', (e) => {
                     try {
                         const action = form.getAttribute('action') ?? '#';
                         const url    = form.getAttribute('data-url') ?? action ?? '#';
                         if (url !== '#' && action !== '#') { return; }
-
                         e.preventDefault();
-
                         const msg = form.getAttribute('data-guard-msg') ?? 'Update contract route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                         form.setAttribute('data-failed-route','true');
                     } catch (err) {}
                 });
@@ -216,8 +281,7 @@
     </script>
   {!! Form::close() !!}
 @else
-    <div class="text-center">
-        <h5 class="text-danger">{{ __('Contract data is not available.') }}</h5>
+    <div class="{{ VC::TXCT }}">
+        <h5 class="{{ VC::TX_DNG }}">{{ __('Contract data is not available.') }}</h5>
     </div>
 @endif
-

@@ -3,8 +3,9 @@
 namespace Tests\Unit\Imports;
 
 use App\Imports\VendorImport;
+use App\Models\User;
 use App\Models\Vendor;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use ReflectionProperty;
@@ -12,7 +13,7 @@ use Tests\TestCase;
 
 class VendorImportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -22,15 +23,17 @@ class VendorImportTest extends TestCase
 	 **/
 	public function model_logs_error_and_returns_null_if_header_not_found(): void
 	{
-		Log::shouldReceive('error')
-			->once()
-			->withArgs(fn ($msg) => str_contains($msg, 'VendorImport::model header row not found'));
+		Log::spy();
 
 		$importer = new VendorImport();
 		$row     = [null, '', 'foo', 'bar'];
 
 		$result = $importer->model($row);
 		$this->assertNull($result, 'Should return null when header not found.');
+
+		Log::shouldHaveReceived('error')
+			->withArgs(fn($msg) => str_contains($msg, 'VendorImport::model header row not found'))
+			->once();
 
 		$refFound = new ReflectionProperty(VendorImport::class, 'headerFound');
 		$refFound->setAccessible(true);
@@ -68,19 +71,72 @@ class VendorImportTest extends TestCase
 	 **/
 	public function model_creates_vendor_after_header_detection(): void
 	{
+		$user = User::factory()->create();
+		$this->actingAs($user);
+
 		$importer = new VendorImport();
 
-		// 1) Header detection
-		$importer->model(['vendor_id', 'name', 'email', 'password']);
+		// 1) Header detection — provide all 23 FIELDS as header row
+		$headerRow = [
+			'vendor_id',
+			'name',
+			'email',
+			'password',
+			'contact',
+			'avatar',
+			'is_active',
+			'created_by',
+			'email_verified_at',
+			'billing_name',
+			'billing_country',
+			'billing_state',
+			'billing_city',
+			'billing_phone',
+			'billing_zip',
+			'billing_address',
+			'shipping_name',
+			'shipping_country',
+			'shipping_state',
+			'shipping_city',
+			'shipping_phone',
+			'shipping_zip',
+			'shipping_address',
+		];
+		$importer->model($headerRow);
 
-		// 2) Data row: supply at least first four columns
-		$dataRow = ['V123', 'Acme Co', 'acme@example.com', 's3cret'];
+		// 2) Data row: provide values for all 23 FIELDS positional mapping
+		// vendor_id has FK to users.id, so use the authenticated user's ID
+		$dataRow = [
+			$user->id,           // vendor_id (FK to users.id)
+			'Acme Co',           // name
+			'acme@example.com',  // email
+			's3cret',            // password (will be hashed)
+			'1234567890',        // contact
+			null,                // avatar
+			1,                   // is_active
+			null,                // created_by (guarded, filled by HasAuditFields)
+			null,                // email_verified_at
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null, // billing fields
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null, // shipping fields
+		];
 		$vendor = $importer->model($dataRow);
 
 		$this->assertInstanceOf(Vendor::class, $vendor, 'Should return a Vendor instance.');
 
 		$this->assertDatabaseHas('vendors', [
-			'vendor_id' => 'V123',
+			'vendor_id' => $user->id,
 			'name'      => 'Acme Co',
 			'email'     => 'acme@example.com',
 		]);

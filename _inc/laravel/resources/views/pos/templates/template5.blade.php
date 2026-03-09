@@ -5,7 +5,6 @@ use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Crypt, Log, Route};
 use Milon\Barcode\DNS2D;
-use App\Helpers\TemplateHelper;
 
 $lang = Utility::fetchUserLang();
 if (isset($pos) && !empty($pos)) {
@@ -281,13 +280,13 @@ if (isset($pos) && !empty($pos)) {
                     <tbody>
                         <tr>
                             <td><img class="pos-logo" src="<?= e($img) ?>" alt=""></td>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;"><?= e(__('POS')) ?></h3>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <table class="vertical-align-top">
+                <table class="{{ VC::VA_TOP }}">
                     <tbody>
                         <tr>
                             <td>
@@ -309,15 +308,15 @@ if (isset($pos) && !empty($pos)) {
                                 </p>
                             </td>
                             <td>
-                                <table class="no-space" style="width:45%;margin-left:auto;">
+                                <table class="{{ VC::NO_SPC }}" style="width:45%;margin-left:auto;">
                                     <tbody>
                                         <tr>
                                             <td><?= e(__('Number')) ?>:</td>
-                                            <td class="text-right"><?= e($posNumber) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($posNumber) ?></td>
                                         </tr>
                                         <tr>
                                             <td><?= e(__('Issue Date')) ?>:</td>
-                                            <td class="text-right"><?= e($issueDate) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($issueDate) ?></td>
                                         </tr>
                                         <?php if (!empty($customFields) && count(data_get($pos, 'customField', [])) > 0): ?>
                                             <?php foreach ($customFields as $field): ?>
@@ -329,9 +328,9 @@ if (isset($pos) && !empty($pos)) {
                                         <?php endif; ?>
                                         <tr>
                                             <td colspan="2">
-                                                <div class="view-qrcode">
+                                                <div class="{{ VC::VW_QR }}">
                                                     <?php try {
-                                                        $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                                         echo $qrHtml;
                                                     } catch (\Throwable $e) {
                                                         Log::error('QR HTML: ' . get_class($e) . ' "' . $e->getMessage() . '" file=' . __FILE__ . ' line=' . __LINE__);
@@ -366,7 +365,7 @@ if (isset($pos) && !empty($pos)) {
                                     <?php else: ?>-<?php endif; ?>
                             </td>
                             <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                                <td class="text-right">
+                                <td class="{{ VC::TX_RT }}">
                                     <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                     <?php if (!empty(data_get($customer, 'shipping_name'))): ?>
                                         <p>
@@ -384,7 +383,7 @@ if (isset($pos) && !empty($pos)) {
                         </tr>
                     </tbody>
                 </table>
-                <table class="add-border pos-summary" style="margin-top:30px;">
+                <table class="{{ VC::BDR_POS_SM }}" style="margin-top:30px;">
                     <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                         <tr>
                             <th><?= e(__('Item')) ?></th>
@@ -441,7 +440,7 @@ if (isset($pos) && !empty($pos)) {
                                     <td><?= Utility::priceFormat($settings, ($price * $qty) + $totalTaxPrice) ?></td>
                                 </tr>
                                 <?php if (!empty(data_get($item, 'description'))): ?>
-                                    <tr class="border-0 itm-description">
+                                    <tr class="{{ VC::BD0_ITM_DSC }}">
                                         <td colspan="6"><?= e(data_get($item, 'description')) ?></td>
                                     </tr>
                                 <?php endif; ?>
@@ -451,8 +450,8 @@ if (isset($pos) && !empty($pos)) {
                     <tfoot>
                         <tr>
                             <td colspan="4"></td>
-                            <td colspan="2" class="sub-total">
-                                <table class="total-table">
+                            <td colspan="2" class="{{ VC::SUB_TTL }}">
+                                <table class="{{ VC::TTL_TB }}">
                                     <tr>
                                         <td><?= e(__('Subtotal')) ?>:</td>
                                         <td><?= e($subtotalFmt) ?></td>
@@ -501,5 +500,5 @@ if (isset($pos) && !empty($pos)) {
     </html>
 <?php
 } else {
-    echo TemplateHelper::getNoDataHtml('pos', $docLang ?? 'en');
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><div class="{{ VC::ALT_WRN }}">No POS data available.</div></body></html>';
 }

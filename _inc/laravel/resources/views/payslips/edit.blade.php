@@ -1,55 +1,79 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, URL};
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
-
-    $lang = Utility::fetchUserLang();
-
-    $isList = fn($v) => (is_array($v ?? null) && count($v ?? [])) || (($v ?? null) instanceof Collection && $v->isNotEmpty());
-
-    $psTypeIsList   = $isList($payslip_type);
-    $psTypeOptions  = $psTypeIsList ? (is_array($payslip_type) ? $payslip_type : $payslip_type->toArray()) : ['' => __('No payslip types available')];
-    $psTypeAttrs    = ['class' => VC::FM_CT, 'required' => 'required'] + ($psTypeIsList ? [] : ['disabled'=>'disabled']);
-
-    $alwOptIsList   = $isList($allowance_options);
-    $alwOptOptions  = $alwOptIsList ? (is_array($allowance_options) ? $allowance_options : $allowance_options->toArray()) : ['' => __('No allowance options available')];
-    $alwOptAttrs    = ['class' => VC::FM_CT, 'required' => 'required'] + ($alwOptIsList ? [] : ['disabled'=>'disabled']);
-
-    $loanOptIsList  = $isList($loan_options);
-    $loanOptOptions = $loanOptIsList ? (is_array($loan_options) ? $loan_options : $loan_options->toArray()) : ['' => __('No loan options available')];
-    $loanOptAttrs   = ['class' => VC::FM_CT, 'required' => 'required'] + ($loanOptIsList ? [] : ['disabled'=>'disabled']);
-
-    $dedOptIsList   = $isList($deduction_options);
-    $dedOptOptions  = $dedOptIsList ? (is_array($deduction_options) ? $deduction_options : $deduction_options->toArray()) : ['' => __('No deduction options available')];
-    $dedOptAttrs    = ['class' => VC::FM_CT, 'required' => 'required'] + ($dedOptIsList ? [] : ['disabled'=>'disabled']);
-
-    $allowancesIsList         = $isList($allowances);
-    $commissionsIsList        = $isList($commissions);
-    $loansIsList              = $isList($loans);
-    $saturationdeductionsList = $isList($saturationdeductions);
-    $otherpaymentsIsList      = $isList($otherpayments);
-    $overtimesIsList          = $isList($overtimes);
+$lang ??= 'en';
+	$isList ??= null;
+	$psTypeIsList ??= false;
+	$psTypeOptions ??= [];
+	$psTypeAttrs ??= [];
+	$alwOptIsList ??= false;
+	$alwOptOptions ??= [];
+	$alwOptAttrs ??= [];
+	$loanOptIsList ??= false;
+	$loanOptOptions ??= [];
+	$loanOptAttrs ??= [];
+	$dedOptIsList ??= false;
+	$dedOptOptions ??= [];
+	$dedOptAttrs ??= [];
+	$allowancesIsList ??= false;
+	$commissionsIsList ??= false;
+	$loansIsList ??= false;
+	$saturationdeductionsList ??= false;
+	$otherpaymentsIsList ??= false;
+	$overtimesIsList ??= false;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$isList = fn($v) => (is_array($v ?? null) && count($v ?? [])) || (($v ?? null) instanceof Collection && $v->isNotEmpty());
+		$psTypeIsList = $isList($payslip_type ?? null);
+		$psTypeOptions = $psTypeIsList ? (is_array($payslip_type) ? $payslip_type : $payslip_type->toArray()) : ['' => __('No payslip types available')];
+		$psTypeAttrs = ['class' => VC::FM_CT, 'required' => 'required'] + ($psTypeIsList ? [] : ['disabled' => 'disabled']);
+		$alwOptIsList = $isList($allowance_options ?? null);
+		$alwOptOptions = $alwOptIsList ? (is_array($allowance_options) ? $allowance_options : $allowance_options->toArray()) : ['' => __('No allowance options available')];
+		$alwOptAttrs = ['class' => VC::FM_CT, 'required' => 'required'] + ($alwOptIsList ? [] : ['disabled' => 'disabled']);
+		$loanOptIsList = $isList($loan_options ?? null);
+		$loanOptOptions = $loanOptIsList ? (is_array($loan_options) ? $loan_options : $loan_options->toArray()) : ['' => __('No loan options available')];
+		$loanOptAttrs = ['class' => VC::FM_CT, 'required' => 'required'] + ($loanOptIsList ? [] : ['disabled' => 'disabled']);
+		$dedOptIsList = $isList($deduction_options ?? null);
+		$dedOptOptions = $dedOptIsList ? (is_array($deduction_options) ? $deduction_options : $deduction_options->toArray()) : ['' => __('No deduction options available')];
+		$dedOptAttrs = ['class' => VC::FM_CT, 'required' => 'required'] + ($dedOptIsList ? [] : ['disabled' => 'disabled']);
+		$allowancesIsList = $isList($allowances ?? null);
+		$commissionsIsList = $isList($commissions ?? null);
+		$loansIsList = $isList($loans ?? null);
+		$saturationdeductionsList = $isList($saturationdeductions ?? null);
+		$otherpaymentsIsList = $isList($otherpayments ?? null);
+		$overtimesIsList = $isList($overtimes ?? null);
+	} catch (\Error $e) {
+		Log::error('Error in payslips/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in payslips/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in payslips/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(EL::ADM)
 
 @section(YW::ADM_CTT)
-    <div class="main-content">
+    <div class="{{ VC::MCTT }}">
         <section class="section">
             <div class="section-header">
                 <h1>{{ __('Employee Salary Pay Slip') }}</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">{{ __('Home') }}</a></div>
-                    <div class="breadcrumb-item">{{ __('Employee Salary Pay Slip') }}</div>
+                    <div class="{{ VC::BCI_ACT }}"><a href="#">{{ __('Home') }}</a></div>
+                    <div class="{{ VC::BCI }}">{{ __('Employee Salary Pay Slip') }}</div>
                 </div>
             </div>
 
@@ -57,28 +81,34 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::DFL_JCB }} w-100">
                                 <h4>{{ __('Employee Salary Pay Slip') }}</h4>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="setting-tab">
                                 @php
-                                    $tabs = [
-                                        ['id' => 'home-tab3', 'href' => '#salary', 'text' => 'Salary'],
-                                        ['id' => 'profile-tab3', 'href' => '#allowance', 'text' => 'Allowance'],
-                                        ['href' => '#commission', 'text' => 'Commission'],
-                                        ['href' => '#loan', 'text' => 'Loan'],
-                                        ['href' => '#saturation-deduction', 'text' => 'Saturation Deduction'],
-                                        ['href' => '#other-payment', 'text' => 'Other Payment'],
-                                        ['href' => '#overtime', 'text' => 'Overtime'],
-                                    ];
-                                @endphp
+                                    try {
+                                        $tabs = [
+                                            ['id' => 'home-tab3', 'href' => '#salary', 'text' => 'Salary'],
+                                            ['id' => 'profile-tab3', 'href' => '#allowance', 'text' => 'Allowance'],
+                                            ['href' => '#commission', 'text' => 'Commission'],
+                                            ['href' => '#loan', 'text' => 'Loan'],
+                                            ['href' => '#saturation-deduction', 'text' => 'Saturation Deduction'],
+                                            ['href' => '#other-payment', 'text' => 'Other Payment'],
+                                            ['href' => '#overtime', 'text' => 'Overtime'],
+                                        ];
+                                    } catch (\Throwable $e) {
+                                        \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
 
                                 <ul class="{{ VC::NAV_PL_Y3 }}" id="myTab3" role="tablist">
                                     @foreach ($tabs as $index => $tab)
-                                        @php $id = $index < 2 ? $tab['id'] : 'contact-tab' . ($index + 1); @endphp
+                                        @php
+ $id = $index < 2 ? $tab['id'] : 'contact-tab' . ($index + 1);
+@endphp
                                         <li class="{{ VC::NV_IT }}">
                                             <a class="{{ VC::NV_LK }} {{ $index === 0 ? 'active' : '' }}"
                                                id="{{ $id }}"
@@ -93,21 +123,25 @@
                                 </ul>
 
                                 <div class="tab-content" id="myTabContent2">
-                                    <div class="tab-pane fade show active" id="salary" role="tabpanel" aria-labelledby="salary-tab3">
+                                    <div class="{{ VC::TAB_FD_SH }} active" id="salary" role="tabpanel" aria-labelledby="salary-tab3">
                                         <div class="company-setting-wrap">
                                             @if(!empty($employee) && isset($employee->id))
                                                 @php
-                                                    $empIdStr             = (string) data_get($employee ?? null, 'id', '');
+                                                    try {
+                                                        $empIdStr             = (string) data_get($employee ?? null, 'id', '');
 
-                                                    $empUpdateBase        = VW::EMP.'.update';
-                                                    $empUpdateKebab       = Str::kebab($empUpdateBase);
-                                                    $empUpdateResolved    = Route::has($empUpdateBase) ? $empUpdateBase : (Route::has($empUpdateKebab) ? $empUpdateKebab : null);
-                                                    $empUpdateUrl         = ($empUpdateResolved && $empIdStr !== '') ? route($empUpdateResolved, $empIdStr) : '#';
+                                                        $empUpdateBase        = VW::EMP.'.update';
+                                                        $empUpdateKebab       = Str::kebab($empUpdateBase);
+                                                        $empUpdateResolved    = Route::has($empUpdateBase) ? $empUpdateBase : (Route::has($empUpdateKebab) ? $empUpdateKebab : null);
+                                                        $empUpdateUrl         = ($empUpdateResolved && $empIdStr !== '') ? route($empUpdateResolved, $empIdStr) : '#';
 
-                                                    $empUpdateFormId      = 'employee-update-form-'.($empIdStr !== '' ? $empIdStr : 'x');
-                                                    $empUpdateGuardMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'update_employee_route_unavailable')
-                                                                            ?? 'Update employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                        $empUpdateFormId      = 'employee-update-form-'.($empIdStr !== '' ? $empIdStr : 'x');
+                                                        $empUpdateGuardMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'update_employee_route_unavailable')
+                                                                                ?? 'Update employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 {{ Form::model($employee, [
                                                     'url'               => $empUpdateUrl,
                                                     'method'            => 'PUT',
@@ -133,7 +167,7 @@
                                                     </div>
                                                     <div class="{{ VC::RW }}">
                                                         <div class="{{ VC::C12 }} text-end mt-1">
-                                                            {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                            {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                         </div>
                                                     </div>
                                                     <script defer src="{{ asset('assets/js/routes/employees/update.js') }}"></script>
@@ -141,14 +175,18 @@
                                                 <div class="tab-pane fade" id="allowance" role="tabpanel" aria-labelledby="allowance-tab3">
                                                     <div class="company-setting-wrap">
                                                         @php
-                                                            $alwStoreBase         = VW::ALW;
-                                                            $alwStoreKebab        = Str::kebab($alwStoreBase);
-                                                            $alwStoreResolved     = Route::has($alwStoreBase) ? $alwStoreBase : (Route::has($alwStoreKebab) ? $alwStoreKebab : null);
-                                                            $alwStoreUrl          = $alwStoreResolved ? route($alwStoreResolved) : '#';
+                                                            try {
+                                                                $alwStoreBase         = VW::ALW;
+                                                                $alwStoreKebab        = Str::kebab($alwStoreBase);
+                                                                $alwStoreResolved     = Route::has($alwStoreBase) ? $alwStoreBase : (Route::has($alwStoreKebab) ? $alwStoreKebab : null);
+                                                                $alwStoreUrl          = $alwStoreResolved ? route($alwStoreResolved) : '#';
 
-                                                            $alwFormId            = 'allowance-store-form-'.((string)($employee->id ?? 'x'));
-                                                            $alwGuardMsg          = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_store_route_unavailable') ?? 'Store allowance route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                                $alwFormId            = 'allowance-store-form-'.((string)($employee->id ?? 'x'));
+                                                                $alwGuardMsg          = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_store_route_unavailable') ?? 'Store allowance route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {{ Form::open([
                                                             'url'               => $alwStoreUrl,
                                                             'method'            => 'POST',
@@ -186,14 +224,14 @@
 
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
 
                                                             <script defer src="{{ asset('assets/js/routes/payslips/allowanceStore.js') }}"></script>
                                                         {{ Form::close() }}
                                                         <hr>
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="allowance-dataTable">
                                                                 <thead>
                                                                 <tr>
@@ -201,7 +239,7 @@
                                                                     <th>{{ __('Allowance Option') }}</th>
                                                                     <th>{{ __('Title') }}</th>
                                                                     <th>{{ __('Amount') }}</th>
-                                                                    <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                    <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                 </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -214,18 +252,22 @@
                                                                             <td>{{ data_get($allowance, 'amount', __('Amount unavailable')) }}</td>
                                                                             @php
                                                                                 $alwIdStr          = (string) data_get($allowance ?? null, 'id', '');
-                                                                            @endphp
+@endphp
 
-                                                                            <td class="text-end">
+                                                                            <td class="{{ VC::TX_END }}">
                                                                                 @can('edit allowance')
                                                                                     @php
-                                                                                        $editBase          = VW::ALW.'.edit';
-                                                                                        $editKebab         = Str::kebab($editBase);
-                                                                                        $editResolved      = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                                                                                        $editUrl           = ($editResolved && $alwIdStr !== '') ? route($editResolved, $alwIdStr) : '#';
-                                                                                        $editGuardMsg      = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_edit_route_unavailable') ?? 'Edit allowance route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        $editLinkId        = 'allowance-edit-btn-'.($alwIdStr !== '' ? $alwIdStr : 'x');
-                                                                                    @endphp
+                                                                                        try {
+                                                                                            $editBase          = VW::ALW.'.edit';
+                                                                                            $editKebab         = Str::kebab($editBase);
+                                                                                            $editResolved      = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                                                                                            $editUrl           = ($editResolved && $alwIdStr !== '') ? route($editResolved, $alwIdStr) : '#';
+                                                                                            $editGuardMsg      = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_edit_route_unavailable') ?? 'Edit allowance route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            $editLinkId        = 'allowance-edit-btn-'.($alwIdStr !== '' ? $alwIdStr : 'x');
+                                                                                        } catch (\Throwable $e) {
+                                                                                            \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                        }
+@endphp
                                                                                     <a
                                                                                         id="{{ $editLinkId }}"
                                                                                         href="{{ $editUrl }}"
@@ -233,9 +275,9 @@
                                                                                         data-size="lg"
                                                                                         data-ajax-popup="true"
                                                                                         data-title="{{ __('Edit Allowance') }}"
-                                                                                        data-guard-msg="{{ $editGuardMsg }}"
+                                                                                        data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                                         data-sv-localized="true"
-                                                                                        class="btn btn-outline-primary btn-sm mr-1"
+                                                                                        class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                         data-bs-toggle="tooltip"
                                                                                         title="{{ __('Edit') }}"
                                                                                         {{ $editUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -246,16 +288,20 @@
 
                                                                                 @can('delete allowance')
                                                                                     @php
-                                                                                        $destroyBase       = VW::ALW.'.destroy';
-                                                                                        $destroyKebab      = Str::kebab($destroyBase);
-                                                                                        $destroyResolved   = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                                                                                        $destroyUrl        = ($destroyResolved && $alwIdStr !== '') ? route($destroyResolved, $alwIdStr) : '#';
-                                                                                        $formId            = 'allowance-delete-form-'.($alwIdStr !== '' ? $alwIdStr : 'x');
-                                                                                        $deleteLinkId      = 'allowance-delete-link-'.($alwIdStr !== '' ? $alwIdStr : 'x');
-                                                                                        $areYouSure        = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                                                        $irreversible      = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                        $destroyGuardMsg   = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_destroy_route_unavailable') ?? 'Delete allowance route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    @endphp
+                                                                                        try {
+                                                                                            $destroyBase       = VW::ALW.'.destroy';
+                                                                                            $destroyKebab      = Str::kebab($destroyBase);
+                                                                                            $destroyResolved   = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                                                            $destroyUrl        = ($destroyResolved && $alwIdStr !== '') ? route($destroyResolved, $alwIdStr) : '#';
+                                                                                            $formId            = 'allowance-delete-form-'.($alwIdStr !== '' ? $alwIdStr : 'x');
+                                                                                            $deleteLinkId      = 'allowance-delete-link-'.($alwIdStr !== '' ? $alwIdStr : 'x');
+                                                                                            $areYouSure        = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                                            $irreversible      = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                            $destroyGuardMsg   = Utility::fetchLinkMessage($lang, VW::ALW, 'allowance_destroy_route_unavailable') ?? 'Delete allowance route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                        } catch (\Throwable $e) {
+                                                                                            \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                        }
+@endphp
                                                                                     <a
                                                                                         id="{{ $deleteLinkId }}"
                                                                                         href="#"
@@ -265,10 +311,10 @@
                                                                                         data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                         data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                                                         data-url="{{ $destroyUrl }}"
-                                                                                        data-guard-msg="{{ $destroyGuardMsg }}"
+                                                                                        data-guard-msg="{{ base64_encode($destroyGuardMsg) }}"
                                                                                         data-sv-localized="true"
                                                                                     >
-                                                                                        <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                        <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                     </a>
 
                                                                                     {{ Form::open([
@@ -292,7 +338,7 @@
                                                                     @endforeach
                                                                 @else
                                                                     <tr>
-                                                                        <td colspan="5" class="text-center text-muted">{{ __('No allowances found') }}</td>
+                                                                        <td colspan="5" class="{{ VC::TXCT_MT }}">{{ __('No allowances found') }}</td>
                                                                     </tr>
                                                                 @endif
                                                                 </tbody>
@@ -301,13 +347,17 @@
                                                     </div>
                                                 </div>
                                                 @php
-                                                    $comStoreBase    = VW::COM;
-                                                    $comStoreKebab   = Str::kebab($comStoreBase);
-                                                    $comStoreName    = Route::has($comStoreBase) ? $comStoreBase : (Route::has($comStoreKebab) ? $comStoreKebab : null);
-                                                    $comStoreUrl     = $comStoreName ? route($comStoreName) : '#';
-                                                    $comStoreFormId  = 'commission-store-form-'.(string)($employee->id ?? 'x');
-                                                    $comStoreGuard   = Utility::fetchLinkMessage($lang, VW::COM, 'commission_store_route_unavailable') ?? 'Store commission route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $comStoreBase    = VW::COM;
+                                                        $comStoreKebab   = Str::kebab($comStoreBase);
+                                                        $comStoreName    = Route::has($comStoreBase) ? $comStoreBase : (Route::has($comStoreKebab) ? $comStoreKebab : null);
+                                                        $comStoreUrl     = $comStoreName ? route($comStoreName) : '#';
+                                                        $comStoreFormId  = 'commission-store-form-'.(string)($employee->id ?? 'x');
+                                                        $comStoreGuard   = Utility::fetchLinkMessage($lang, VW::COM, 'commission_store_route_unavailable') ?? 'Store commission route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="tab-pane fade" id="commission" role="tabpanel" aria-labelledby="commission-tab3">
                                                     <div class="email-setting-wrap">
                                                         {{ Form::open([
@@ -336,21 +386,21 @@
                                                             </div>
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
                                                         {{ Form::close() }}
 
                                                         <hr>
 
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="commission-dataTable">
                                                                 <thead>
                                                                     <tr>
                                                                         <th>{{ __('Employee Name') }}</th>
                                                                         <th>{{ __('Title') }}</th>
                                                                         <th>{{ __('Amount') }}</th>
-                                                                        <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                        <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -360,17 +410,21 @@
                                                                                 <td>{{ data_get($commission, 'employee.name', __('Employee Name unavailable')) }}</td>
                                                                                 <td>{{ data_get($commission, 'title', __('Title unavailable')) }}</td>
                                                                                 <td>{{ data_get($commission, 'amount', __('Amount unavailable')) }}</td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @can('edit commission')
                                                                                         @php
-                                                                                            $comEditBase   = VW::COM.'.edit';
-                                                                                            $comEditKebab  = Str::kebab($comEditBase);
-                                                                                            $comEditName   = Route::has($comEditBase) ? $comEditBase : (Route::has($comEditKebab) ? $comEditKebab : null);
-                                                                                            $comIdStr      = (string) data_get($commission,'id','');
-                                                                                            $comEditUrl    = ($comEditName && $comIdStr !== '') ? route($comEditName, $comIdStr) : '#';
-                                                                                            $comEditGuard  = Utility::fetchLinkMessage($lang, VW::COM, 'commission_edit_route_unavailable') ?? 'Edit commission route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $editLinkId    = 'commission-edit-link-'.$comIdStr;
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $comEditBase   = VW::COM.'.edit';
+                                                                                                $comEditKebab  = Str::kebab($comEditBase);
+                                                                                                $comEditName   = Route::has($comEditBase) ? $comEditBase : (Route::has($comEditKebab) ? $comEditKebab : null);
+                                                                                                $comIdStr      = (string) data_get($commission,'id','');
+                                                                                                $comEditUrl    = ($comEditName && $comIdStr !== '') ? route($comEditName, $comIdStr) : '#';
+                                                                                                $comEditGuard  = Utility::fetchLinkMessage($lang, VW::COM, 'commission_edit_route_unavailable') ?? 'Edit commission route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $editLinkId    = 'commission-edit-link-'.$comIdStr;
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $editLinkId }}"
                                                                                             href="{{ $comEditUrl }}"
@@ -378,9 +432,9 @@
                                                                                             data-size="lg"
                                                                                             data-ajax-popup="true"
                                                                                             data-title="{{ __('Edit Allowance') }}"
-                                                                                            data-guard-msg="{{ $comEditGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($comEditGuard) }}"
                                                                                             data-sv-localized="true"
-                                                                                            class="btn btn-outline-primary btn-sm mr-1"
+                                                                                            class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                             data-bs-toggle="tooltip"
                                                                                             title="{{ __('Edit') }}"
                                                                                             {{ $comEditUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -391,17 +445,21 @@
 
                                                                                     @can('delete comission')
                                                                                         @php
-                                                                                            $comDestroyBase   = VW::COM.'.destroy';
-                                                                                            $comDestroyKebab  = Str::kebab($comDestroyBase);
-                                                                                            $comDestroyName   = Route::has($comDestroyBase) ? $comDestroyBase : (Route::has($comDestroyKebab) ? $comDestroyKebab : null);
-                                                                                            $comIdStr         = (string) data_get($commission,'id','');
-                                                                                            $comDestroyUrl    = ($comDestroyName && $comIdStr !== '') ? route($comDestroyName, $comIdStr) : '#';
-                                                                                            $formId           = 'commission-delete-form-'.$comIdStr;
-                                                                                            $deleteLinkId     = 'commission-delete-link-'.$comIdStr;
-                                                                                            $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                                                            $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                            $comDestroyGuard  = Utility::fetchLinkMessage($lang, VW::COM, 'commission_destroy_route_unavailable') ?? 'Delete commission route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $comDestroyBase   = VW::COM.'.destroy';
+                                                                                                $comDestroyKebab  = Str::kebab($comDestroyBase);
+                                                                                                $comDestroyName   = Route::has($comDestroyBase) ? $comDestroyBase : (Route::has($comDestroyKebab) ? $comDestroyKebab : null);
+                                                                                                $comIdStr         = (string) data_get($commission,'id','');
+                                                                                                $comDestroyUrl    = ($comDestroyName && $comIdStr !== '') ? route($comDestroyName, $comIdStr) : '#';
+                                                                                                $formId           = 'commission-delete-form-'.$comIdStr;
+                                                                                                $deleteLinkId     = 'commission-delete-link-'.$comIdStr;
+                                                                                                $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                                                $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                                $comDestroyGuard  = Utility::fetchLinkMessage($lang, VW::COM, 'commission_destroy_route_unavailable') ?? 'Delete commission route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $deleteLinkId }}"
                                                                                             href="#"
@@ -411,10 +469,10 @@
                                                                                             data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                             data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                                                             data-url="{{ $comDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $comDestroyGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($comDestroyGuard) }}"
                                                                                             data-sv-localized="true"
                                                                                         >
-                                                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                            <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                         </a>
                                                                                         {{ Form::open([
                                                                                             'method'            => 'DELETE',
@@ -431,7 +489,7 @@
                                                                         @endforeach
                                                                     @else
                                                                         <tr>
-                                                                            <td colspan="4" class="text-center text-muted">{{ __('No commissions found') }}</td>
+                                                                            <td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No commissions found') }}</td>
                                                                         </tr>
                                                                     @endif
                                                                 </tbody>
@@ -449,13 +507,17 @@
                                                     @endcan
                                                 @endpush
                                                 @php
-                                                    $loanStoreBase     = VW::LN;
-                                                    $loanStoreKebab    = Str::kebab($loanStoreBase);
-                                                    $loanStoreName     = Route::has($loanStoreBase) ? $loanStoreBase : (Route::has($loanStoreKebab) ? $loanStoreKebab : null);
-                                                    $loanStoreUrl      = $loanStoreName ? route($loanStoreName) : '#';
-                                                    $loanStoreFormId   = 'loan-store-form-'.(string)($employee->id ?? 'x');
-                                                    $loanStoreGuard    = Utility::fetchLinkMessage($lang, VW::LN, 'loan_store_route_unavailable') ?? 'Store loan route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $loanStoreBase     = VW::LN;
+                                                        $loanStoreKebab    = Str::kebab($loanStoreBase);
+                                                        $loanStoreName     = Route::has($loanStoreBase) ? $loanStoreBase : (Route::has($loanStoreKebab) ? $loanStoreKebab : null);
+                                                        $loanStoreUrl      = $loanStoreName ? route($loanStoreName) : '#';
+                                                        $loanStoreFormId   = 'loan-store-form-'.(string)($employee->id ?? 'x');
+                                                        $loanStoreGuard    = Utility::fetchLinkMessage($lang, VW::LN, 'loan_store_route_unavailable') ?? 'Store loan route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="tab-pane fade" id="loan" role="tabpanel" aria-labelledby="loan-tab4">
                                                     <div class="email-setting-wrap">
                                                         {{ Form::open([
@@ -516,7 +578,7 @@
 
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
 
@@ -525,7 +587,7 @@
 
                                                         <hr>
 
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="loan-dataTable">
                                                                 <thead>
                                                                     <tr>
@@ -535,7 +597,7 @@
                                                                         <th>{{ __('Loan Amount') }}</th>
                                                                         <th>{{ __('Start Date') }}</th>
                                                                         <th>{{ __('End Date') }}</th>
-                                                                        <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                        <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -548,17 +610,21 @@
                                                                                 <td>{{ data_get($loan, 'amount', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($loan, 'start_date', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($loan, 'end_date', __('Data unavailable')) }}</td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @can('edit loan')
                                                                                         @php
-                                                                                            $loanEditBase   = VW::LN.'.edit';
-                                                                                            $loanEditKebab  = Str::kebab($loanEditBase);
-                                                                                            $loanEditName   = Route::has($loanEditBase) ? $loanEditBase : (Route::has($loanEditKebab) ? $loanEditKebab : null);
-                                                                                            $loanIdStr      = (string) data_get($loan,'id','');
-                                                                                            $loanEditUrl    = ($loanEditName && $loanIdStr !== '') ? route($loanEditName, $loanIdStr) : '#';
-                                                                                            $loanEditGuard  = Utility::fetchLinkMessage($lang, VW::LN, 'loan_edit_route_unavailable') ?? 'Edit loan route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $loanEditLinkId = 'loan-edit-link-'.$loanIdStr;
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $loanEditBase   = VW::LN.'.edit';
+                                                                                                $loanEditKebab  = Str::kebab($loanEditBase);
+                                                                                                $loanEditName   = Route::has($loanEditBase) ? $loanEditBase : (Route::has($loanEditKebab) ? $loanEditKebab : null);
+                                                                                                $loanIdStr      = (string) data_get($loan,'id','');
+                                                                                                $loanEditUrl    = ($loanEditName && $loanIdStr !== '') ? route($loanEditName, $loanIdStr) : '#';
+                                                                                                $loanEditGuard  = Utility::fetchLinkMessage($lang, VW::LN, 'loan_edit_route_unavailable') ?? 'Edit loan route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $loanEditLinkId = 'loan-edit-link-'.$loanIdStr;
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $loanEditLinkId }}"
                                                                                             href="{{ $loanEditUrl }}"
@@ -566,9 +632,9 @@
                                                                                             data-size="lg"
                                                                                             data-ajax-popup="true"
                                                                                             data-title="{{ __('Edit Allowance') }}"
-                                                                                            data-guard-msg="{{ $loanEditGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($loanEditGuard) }}"
                                                                                             data-sv-localized="true"
-                                                                                            class="btn btn-outline-primary btn-sm mr-1"
+                                                                                            class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                             data-bs-toggle="tooltip"
                                                                                             title="{{ __('Edit') }}"
                                                                                             {{ $loanEditUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -579,16 +645,20 @@
 
                                                                                     @can('delete loan')
                                                                                         @php
-                                                                                            $loanDestroyBase   = VW::LN.'.destroy';
-                                                                                            $loanDestroyKebab  = Str::kebab($loanDestroyBase);
-                                                                                            $loanDestroyName   = Route::has($loanDestroyBase) ? $loanDestroyBase : (Route::has($loanDestroyKebab) ? $loanDestroyKebab : null);
-                                                                                            $loanIdStr         = (string) data_get($loan,'id','');
-                                                                                            $loanDestroyUrl    = ($loanDestroyName && $loanIdStr !== '') ? route($loanDestroyName, $loanIdStr) : '#';
-                                                                                            $loanFormId        = 'loan-delete-form-'.$loanIdStr;
-                                                                        $areYouSure = Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?';
-                                                                        $irreversible = Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                            $loanDestroyGuard  = Utility::fetchLinkMessage($lang, VW::LN, 'loan_destroy_route_unavailable') ?? 'Delete loan route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $loanDestroyBase   = VW::LN.'.destroy';
+                                                                                                $loanDestroyKebab  = Str::kebab($loanDestroyBase);
+                                                                                                $loanDestroyName   = Route::has($loanDestroyBase) ? $loanDestroyBase : (Route::has($loanDestroyKebab) ? $loanDestroyKebab : null);
+                                                                                                $loanIdStr         = (string) data_get($loan,'id','');
+                                                                                                $loanDestroyUrl    = ($loanDestroyName && $loanIdStr !== '') ? route($loanDestroyName, $loanIdStr) : '#';
+                                                                                                $loanFormId        = 'loan-delete-form-'.$loanIdStr;
+                                                                                                                                                                        $areYouSure = Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?';
+                                                                                                                                                                        $irreversible = Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                                $loanDestroyGuard  = Utility::fetchLinkMessage($lang, VW::LN, 'loan_destroy_route_unavailable') ?? 'Delete loan route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="loan-delete-link-{{ $loanIdStr }}"
                                                                                             href="#"
@@ -598,10 +668,10 @@
                                                                                             data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                             data-confirm-yes="document.getElementById('{{ $loanFormId }}').submit();"
                                                                                             data-url="{{ $loanDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $loanDestroyGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($loanDestroyGuard) }}"
                                                                                             data-sv-localized="true"
                                                                                         >
-                                                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                            <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                         </a>
                                                                                         {{ Form::open([
                                                                                             'method'            => 'DELETE',
@@ -618,7 +688,7 @@
                                                                         @endforeach
                                                                     @else
                                                                         <tr>
-                                                                            <td colspan="7" class="text-center text-muted">{{ __('No loans found') }}</td>
+                                                                            <td colspan="7" class="{{ VC::TXCT_MT }}">{{ __('No loans found') }}</td>
                                                                         </tr>
                                                                     @endif
                                                                 </tbody>
@@ -636,27 +706,31 @@
                                                     @endcan
                                                 @endpush
                                                 @php
-                                                    $satStoreBase      = VW::STR_DD;
-                                                    $satStoreKebab     = Str::kebab($satStoreBase);
-                                                    $satStoreResolved  = Route::has($satStoreBase) ? $satStoreBase : (Route::has($satStoreKebab) ? $satStoreKebab : null);
-                                                    $satStoreUrl       = $satStoreResolved ? route($satStoreResolved) : '#';
-                                                    $satFormId         = 'saturation-deduction-store-form-'.((string)($employee->id ?? 'x'));
-                                                    $satGuardStore     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_store_route_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+                                                    try {
+                                                        $satStoreBase      = VW::STR_DD;
+                                                        $satStoreKebab     = Str::kebab($satStoreBase);
+                                                        $satStoreResolved  = Route::has($satStoreBase) ? $satStoreBase : (Route::has($satStoreKebab) ? $satStoreKebab : null);
+                                                        $satStoreUrl       = $satStoreResolved ? route($satStoreResolved) : '#';
+                                                        $satFormId         = 'saturation-deduction-store-form-'.((string)($employee->id ?? 'x'));
+                                                        $satGuardStore     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_store_route_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $othStoreBase      = VW::OT_PAY;
-                                                    $othStoreKebab     = Str::kebab($othStoreBase);
-                                                    $othStoreResolved  = Route::has($othStoreBase) ? $othStoreBase : (Route::has($othStoreKebab) ? $othStoreKebab : null);
-                                                    $othStoreUrl       = $othStoreResolved ? route($othStoreResolved) : '#';
-                                                    $othFormId         = 'other-payment-store-form-'.((string)($employee->id ?? 'x'));
-                                                    $othGuardStore     = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_store_route_unavailable') ?? 'Store other payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $othStoreBase      = VW::OT_PAY;
+                                                        $othStoreKebab     = Str::kebab($othStoreBase);
+                                                        $othStoreResolved  = Route::has($othStoreBase) ? $othStoreBase : (Route::has($othStoreKebab) ? $othStoreKebab : null);
+                                                        $othStoreUrl       = $othStoreResolved ? route($othStoreResolved) : '#';
+                                                        $othFormId         = 'other-payment-store-form-'.((string)($employee->id ?? 'x'));
+                                                        $othGuardStore     = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_store_route_unavailable') ?? 'Store other payment route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $ovtStoreBase      = VW::OVT;
-                                                    $ovtStoreKebab     = Str::kebab($ovtStoreBase);
-                                                    $ovtStoreResolved  = Route::has($ovtStoreBase) ? $ovtStoreBase : (Route::has($ovtStoreKebab) ? $ovtStoreKebab : null);
-                                                    $ovtStoreUrl       = $ovtStoreResolved ? route($ovtStoreResolved) : '#';
-                                                    $ovtFormId         = 'overtime-store-form-'.((string)($employee->id ?? 'x'));
-                                                    $ovtGuardStore     = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_store_route_unavailable') ?? 'Store overtime route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                        $ovtStoreBase      = VW::OVT;
+                                                        $ovtStoreKebab     = Str::kebab($ovtStoreBase);
+                                                        $ovtStoreResolved  = Route::has($ovtStoreBase) ? $ovtStoreBase : (Route::has($ovtStoreKebab) ? $ovtStoreKebab : null);
+                                                        $ovtStoreUrl       = $ovtStoreResolved ? route($ovtStoreResolved) : '#';
+                                                        $ovtFormId         = 'overtime-store-form-'.((string)($employee->id ?? 'x'));
+                                                        $ovtGuardStore     = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_store_route_unavailable') ?? 'Store overtime route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="tab-pane fade" id="saturation-deduction" role="tabpanel" aria-labelledby="saturation-deduction-tab3">
                                                     <div class="email-setting-wrap">
                                                         {{ Form::open([
@@ -696,12 +770,12 @@
 
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
                                                         {{ Form::close() }}
                                                         <hr>
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="saturation-deduction-dataTable">
                                                                 <thead>
                                                                     <tr>
@@ -709,7 +783,7 @@
                                                                         <th>{{ __('Deduction Option') }}</th>
                                                                         <th>{{ __('Title') }}</th>
                                                                         <th>{{ __('Amount') }}</th>
-                                                                        <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                        <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -717,22 +791,26 @@
                                                                         @foreach ($saturationdeductions as $saturationdeduction)
                                                                             @php
                                                                                 $satIdStr = (string) data_get($saturationdeduction, 'id', '');
-                                                                            @endphp
+@endphp
                                                                             <tr>
                                                                                 <td>{{ data_get($saturationdeduction, 'employee.name', __('Employee Name unavailable')) }}</td>
                                                                                 <td>{{ data_get($saturationdeduction, 'deduction_option.name', __('Deduction Option unavailable')) }}</td>
                                                                                 <td>{{ data_get($saturationdeduction, 'title', __('Title unavailable')) }}</td>
                                                                                 <td>{{ data_get($saturationdeduction, 'amount', __('Amount unavailable')) }}</td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @can('edit saturation deduction')
                                                                                         @php
-                                                                                            $satEditBase   = VW::STR_DD.'.edit';
-                                                                                            $satEditKebab  = Str::kebab($satEditBase);
-                                                                                            $satEditName   = Route::has($satEditBase) ? $satEditBase : (Route::has($satEditKebab) ? $satEditKebab : null);
-                                                                                            $satEditUrl    = ($satEditName && $satIdStr !== '') ? route($satEditName, $satIdStr) : '#';
-                                                                                            $satEditGuard  = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_edit_route_unavailable') ?? 'Edit saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $satEditLinkId = 'saturation-deduction-edit-link-'.$satIdStr;
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $satEditBase   = VW::STR_DD.'.edit';
+                                                                                                $satEditKebab  = Str::kebab($satEditBase);
+                                                                                                $satEditName   = Route::has($satEditBase) ? $satEditBase : (Route::has($satEditKebab) ? $satEditKebab : null);
+                                                                                                $satEditUrl    = ($satEditName && $satIdStr !== '') ? route($satEditName, $satIdStr) : '#';
+                                                                                                $satEditGuard  = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_edit_route_unavailable') ?? 'Edit saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $satEditLinkId = 'saturation-deduction-edit-link-'.$satIdStr;
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $satEditLinkId }}"
                                                                                             href="{{ $satEditUrl }}"
@@ -740,9 +818,9 @@
                                                                                             data-size="lg"
                                                                                             data-ajax-popup="true"
                                                                                             data-title="{{ __('Edit Allowance') }}"
-                                                                                            data-guard-msg="{{ $satEditGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($satEditGuard) }}"
                                                                                             data-sv-localized="true"
-                                                                                            class="btn btn-outline-primary btn-sm mr-1"
+                                                                                            class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                             data-bs-toggle="tooltip"
                                                                                             title="{{ __('Edit') }}"
                                                                                             {{ $satEditUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -753,16 +831,20 @@
 
                                                                                     @can('delete saturation deduction')
                                                                                         @php
-                                                                                            $satDestroyBase   = VW::STR_DD.'.destroy';
-                                                                                            $satDestroyKebab  = Str::kebab($satDestroyBase);
-                                                                                            $satDestroyName   = Route::has($satDestroyBase) ? $satDestroyBase : (Route::has($satDestroyKebab) ? $satDestroyKebab : null);
-                                                                                            $satDestroyUrl    = ($satDestroyName && $satIdStr !== '') ? route($satDestroyName, $satIdStr) : '#';
-                                                                                            $satFormDelId     = 'saturation-deduction-delete-form-'.$satIdStr;
-                                                                                            $satDelLinkId     = 'saturation-deduction-delete-link-'.$satIdStr;
-                                                                                            $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                                                            $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                            $satDestroyGuard  = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_destroy_route_unavailable') ?? 'Delete saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $satDestroyBase   = VW::STR_DD.'.destroy';
+                                                                                                $satDestroyKebab  = Str::kebab($satDestroyBase);
+                                                                                                $satDestroyName   = Route::has($satDestroyBase) ? $satDestroyBase : (Route::has($satDestroyKebab) ? $satDestroyKebab : null);
+                                                                                                $satDestroyUrl    = ($satDestroyName && $satIdStr !== '') ? route($satDestroyName, $satIdStr) : '#';
+                                                                                                $satFormDelId     = 'saturation-deduction-delete-form-'.$satIdStr;
+                                                                                                $satDelLinkId     = 'saturation-deduction-delete-link-'.$satIdStr;
+                                                                                                $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                                                $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                                $satDestroyGuard  = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_destroy_route_unavailable') ?? 'Delete saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $satDelLinkId }}"
                                                                                             href="#"
@@ -772,10 +854,10 @@
                                                                                             data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                             data-confirm-yes="document.getElementById('{{ $satFormDelId }}').submit();"
                                                                                             data-url="{{ $satDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $satDestroyGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($satDestroyGuard) }}"
                                                                                             data-sv-localized="true"
                                                                                         >
-                                                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                            <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                         </a>
                                                                                         {{ Form::open([
                                                                                             'method'            => 'DELETE',
@@ -792,7 +874,7 @@
                                                                         @endforeach
                                                                     @else
                                                                         <tr>
-                                                                            <td colspan="5" class="text-center text-muted">{{ __('No saturation deductions found') }}</td>
+                                                                            <td colspan="5" class="{{ VC::TXCT_MT }}">{{ __('No saturation deductions found') }}</td>
                                                                         </tr>
                                                                     @endif
                                                                 </tbody>
@@ -830,7 +912,7 @@
 
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
 
@@ -839,34 +921,40 @@
 
                                                         <hr>
 
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="other-payment-dataTable">
                                                                 <thead>
                                                                     <tr>
                                                                         <th>{{ __('Employee') }}</th>
                                                                         <th>{{ __('Title') }}</th>
                                                                         <th>{{ __('Amount') }}</th>
-                                                                        <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                        <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
                                                                     @if($otherpaymentsIsList)
                                                                         @foreach ($otherpayments as $otherpayment)
-                                                                            @php $othIdStr = (string) data_get($otherpayment, 'id', ''); @endphp
+                                                                            @php
+ $othIdStr = (string) data_get($otherpayment, 'id', '');
+@endphp
                                                                             <tr>
                                                                                 <td>{{ data_get($otherpayment, 'employee.name', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($otherpayment, 'title', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($otherpayment, 'amount', __('Data unavailable')) }}</td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @can('edit other payment')
                                                                                         @php
-                                                                                            $othEditBase   = VW::OT_PAY.'.edit';
-                                                                                            $othEditKebab  = Str::kebab($othEditBase);
-                                                                                            $othEditName   = Route::has($othEditBase) ? $othEditBase : (Route::has($othEditKebab) ? $othEditKebab : null);
-                                                                                            $othEditUrl    = ($othEditName && $othIdStr !== '') ? route($othEditName, $othIdStr) : '#';
-                                                                                            $othEditGuard  = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_edit_route_unavailable') ?? 'Edit other payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $othEditLinkId = 'other-payment-edit-link-'.$othIdStr;
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $othEditBase   = VW::OT_PAY.'.edit';
+                                                                                                $othEditKebab  = Str::kebab($othEditBase);
+                                                                                                $othEditName   = Route::has($othEditBase) ? $othEditBase : (Route::has($othEditKebab) ? $othEditKebab : null);
+                                                                                                $othEditUrl    = ($othEditName && $othIdStr !== '') ? route($othEditName, $othIdStr) : '#';
+                                                                                                $othEditGuard  = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_edit_route_unavailable') ?? 'Edit other payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $othEditLinkId = 'other-payment-edit-link-'.$othIdStr;
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $othEditLinkId }}"
                                                                                             href="{{ $othEditUrl }}"
@@ -874,9 +962,9 @@
                                                                                             data-size="lg"
                                                                                             data-ajax-popup="true"
                                                                                             data-title="{{ __('Edit Allowance') }}"
-                                                                                            data-guard-msg="{{ $othEditGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($othEditGuard) }}"
                                                                                             data-sv-localized="true"
-                                                                                            class="btn btn-outline-primary btn-sm mr-1"
+                                                                                            class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                             data-bs-toggle="tooltip"
                                                                                             title="{{ __('Edit') }}"
                                                                                             {{ $othEditUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -887,16 +975,20 @@
 
                                                                                     @can('delete other payment')
                                                                                         @php
-                                                                                            $othDestroyBase   = VW::OT_PAY.'.destroy';
-                                                                                            $othDestroyKebab  = Str::kebab($othDestroyBase);
-                                                                                            $othDestroyName   = Route::has($othDestroyBase) ? $othDestroyBase : (Route::has($othDestroyKebab) ? $othDestroyKebab : null);
-                                                                                            $othDestroyUrl    = ($othDestroyName && $othIdStr !== '') ? route($othDestroyName, $othIdStr) : '#';
-                                                                                            $othFormDelId     = 'other-payment-delete-form-'.$othIdStr;
-                                                                                            $othDelLinkId     = 'other-payment-delete-link-'.$othIdStr;
-                                                                                            $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                                                            $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                            $othDestroyGuard  = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_destroy_route_unavailable') ?? 'Delete other payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $othDestroyBase   = VW::OT_PAY.'.destroy';
+                                                                                                $othDestroyKebab  = Str::kebab($othDestroyBase);
+                                                                                                $othDestroyName   = Route::has($othDestroyBase) ? $othDestroyBase : (Route::has($othDestroyKebab) ? $othDestroyKebab : null);
+                                                                                                $othDestroyUrl    = ($othDestroyName && $othIdStr !== '') ? route($othDestroyName, $othIdStr) : '#';
+                                                                                                $othFormDelId     = 'other-payment-delete-form-'.$othIdStr;
+                                                                                                $othDelLinkId     = 'other-payment-delete-link-'.$othIdStr;
+                                                                                                $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                                                $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                                $othDestroyGuard  = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_destroy_route_unavailable') ?? 'Delete other payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $othDelLinkId }}"
                                                                                             href="#"
@@ -906,10 +998,10 @@
                                                                                             data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                             data-confirm-yes="document.getElementById('{{ $othFormDelId }}').submit();"
                                                                                             data-url="{{ $othDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $othDestroyGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($othDestroyGuard) }}"
                                                                                             data-sv-localized="true"
                                                                                         >
-                                                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                            <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                         </a>
                                                                                         {{ Form::open([
                                                                                             'method'            => 'DELETE',
@@ -926,7 +1018,7 @@
                                                                         @endforeach
                                                                     @else
                                                                         <tr>
-                                                                            <td colspan="4" class="text-center text-muted">{{ __('No other payments found') }}</td>
+                                                                            <td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No other payments found') }}</td>
                                                                         </tr>
                                                                     @endif
                                                                 </tbody>
@@ -979,7 +1071,7 @@
 
                                                             <div class="{{ VC::RW }}">
                                                                 <div class="{{ VC::C12 }} text-end mt-1">
-                                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
+                                                                    {{ Form::button('<i class="{{ VC::TI_PLS }}"></i> '.__('Save Change'), ['type' => 'submit','class' => VC::BT_PRM]) }}
                                                                 </div>
                                                             </div>
 
@@ -988,7 +1080,7 @@
 
                                                         <hr>
 
-                                                        <div class="table-responsive">
+                                                        <div class="{{ VC::TB_RSP }}">
                                                             <table class="{{ VC::TB }} table-striped mb-0" id="overtime-dataTable">
                                                                 <thead>
                                                                     <tr>
@@ -997,29 +1089,35 @@
                                                                         <th>{{ __('Number of days') }}</th>
                                                                         <th>{{ __('Hours') }}</th>
                                                                         <th>{{ __('Rate') }}</th>
-                                                                        <th class="text-end" width="200px">{{ __('Action') }}</th>
+                                                                        <th class="{{ VC::TX_END }}" width="200px">{{ __('Action') }}</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
                                                                     @if($overtimesIsList)
                                                                         @foreach ($overtimes as $overtime)
-                                                                            @php $ovtIdStr = (string) data_get($overtime, 'id', ''); @endphp
+                                                                            @php
+ $ovtIdStr = (string) data_get($overtime, 'id', '');
+@endphp
                                                                             <tr>
                                                                                 <td>{{ data_get($overtime, 'employee.name', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($overtime, 'title', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($overtime, 'number_of_days', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($overtime, 'hours', __('Data unavailable')) }}</td>
                                                                                 <td>{{ data_get($overtime, 'rate', __('Data unavailable')) }}</td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @can('edit allowance')
                                                                                         @php
-                                                                                            $ovtEditBase   = VW::OVT.'.edit';
-                                                                                            $ovtEditKebab  = Str::kebab($ovtEditBase);
-                                                                                            $ovtEditName   = Route::has($ovtEditBase) ? $ovtEditBase : (Route::has($ovtEditKebab) ? $ovtEditKebab : null);
-                                                                                            $ovtEditUrl    = ($ovtEditName && $ovtIdStr !== '') ? route($ovtEditName, $ovtIdStr) : '#';
-                                                                                            $ovtEditGuard  = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_edit_route_unavailable') ?? 'Edit overtime route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $ovtEditLinkId = 'overtime-edit-link-'.$ovtIdStr;
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $ovtEditBase   = VW::OVT.'.edit';
+                                                                                                $ovtEditKebab  = Str::kebab($ovtEditBase);
+                                                                                                $ovtEditName   = Route::has($ovtEditBase) ? $ovtEditBase : (Route::has($ovtEditKebab) ? $ovtEditKebab : null);
+                                                                                                $ovtEditUrl    = ($ovtEditName && $ovtIdStr !== '') ? route($ovtEditName, $ovtIdStr) : '#';
+                                                                                                $ovtEditGuard  = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_edit_route_unavailable') ?? 'Edit overtime route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $ovtEditLinkId = 'overtime-edit-link-'.$ovtIdStr;
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $ovtEditLinkId }}"
                                                                                             href="{{ $ovtEditUrl }}"
@@ -1027,9 +1125,9 @@
                                                                                             data-size="lg"
                                                                                             data-ajax-popup="true"
                                                                                             data-title="{{ __('Edit Allowance') }}"
-                                                                                            data-guard-msg="{{ $ovtEditGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($ovtEditGuard) }}"
                                                                                             data-sv-localized="true"
-                                                                                            class="btn btn-outline-primary btn-sm mr-1"
+                                                                                            class="{{ VC::BT_OUTPM_SM }} mr-1"
                                                                                             data-bs-toggle="tooltip"
                                                                                             title="{{ __('Edit') }}"
                                                                                             {{ $ovtEditUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -1040,16 +1138,20 @@
 
                                                                                     @can('delete allowance')
                                                                                         @php
-                                                                                            $ovtDestroyBase   = VW::OVT.'.destroy';
-                                                                                            $ovtDestroyKebab  = Str::kebab($ovtDestroyBase);
-                                                                                            $ovtDestroyName   = Route::has($ovtDestroyBase) ? $ovtDestroyBase : (Route::has($ovtDestroyKebab) ? $ovtDestroyKebab : null);
-                                                                                            $ovtDestroyUrl    = ($ovtDestroyName && $ovtIdStr !== '') ? route($ovtDestroyName, $ovtIdStr) : '#';
-                                                                                            $ovtFormDelId     = 'overtime-delete-form-'.$ovtIdStr;
-                                                                                            $ovtDelLinkId     = 'overtime-delete-link-'.$ovtIdStr;
-                                                                                            $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                                                            $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                                                            $ovtDestroyGuard  = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_destroy_route_unavailable') ?? 'Delete overtime route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $ovtDestroyBase   = VW::OVT.'.destroy';
+                                                                                                $ovtDestroyKebab  = Str::kebab($ovtDestroyBase);
+                                                                                                $ovtDestroyName   = Route::has($ovtDestroyBase) ? $ovtDestroyBase : (Route::has($ovtDestroyKebab) ? $ovtDestroyKebab : null);
+                                                                                                $ovtDestroyUrl    = ($ovtDestroyName && $ovtIdStr !== '') ? route($ovtDestroyName, $ovtIdStr) : '#';
+                                                                                                $ovtFormDelId     = 'overtime-delete-form-'.$ovtIdStr;
+                                                                                                $ovtDelLinkId     = 'overtime-delete-link-'.$ovtIdStr;
+                                                                                                $areYouSure       = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                                                $irreversible     = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                                                                $ovtDestroyGuard  = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_destroy_route_unavailable') ?? 'Delete overtime route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('payslips/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         <a
                                                                                             id="{{ $ovtDelLinkId }}"
                                                                                             href="#"
@@ -1059,10 +1161,10 @@
                                                                                             data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                                                             data-confirm-yes="document.getElementById('{{ $ovtFormDelId }}').submit();"
                                                                                             data-url="{{ $ovtDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $ovtDestroyGuard }}"
+                                                                                            data-guard-msg="{{ base64_encode($ovtDestroyGuard) }}"
                                                                                             data-sv-localized="true"
                                                                                         >
-                                                                                            <i class="ti ti-trash"></i> <span>{{ __('Delete') }}</span>
+                                                                                            <i class="{{ VC::TI_TRS }}"></i> <span>{{ __('Delete') }}</span>
                                                                                         </a>
                                                                                         {{ Form::open([
                                                                                             'method'            => 'DELETE',
@@ -1079,7 +1181,7 @@
                                                                         @endforeach
                                                                     @else
                                                                         <tr>
-                                                                            <td colspan="6" class="text-center text-muted">{{ __('No overtimes found') }}</td>
+                                                                            <td colspan="6" class="{{ VC::TXCT_MT }}">{{ __('No overtimes found') }}</td>
                                                                         </tr>
                                                                     @endif
                                                                 </tbody>
@@ -1123,7 +1225,6 @@
         </section>
     </div>
 @endsection
-
 
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('assets/js/routes/payslips/lang/edit.js') }}"></script>
@@ -1192,7 +1293,7 @@
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
                 t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = t.querySelector(".toast-body");

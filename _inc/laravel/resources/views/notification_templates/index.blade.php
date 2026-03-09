@@ -1,33 +1,23 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PlansConstants,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD,
-        DatabaseConstants
-    };
-    use App\Models\{Plan, User, Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route, Request};
-    use Illuminate\Support\Collection;
+    try {
+$user = Auth::user();
+        $hasFetch = is_callable([Utility::class, 'fetchLinkMessage']);
+        $lang = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
 
-    $user = Auth::user();
-    $hasFetch = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $dashUrl = Route::has('dashboard') ? route('dashboard') : '#';
+        $dashGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
+            ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-    $dashUrl = Route::has('dashboard') ? route('dashboard') : '#';
-    $dashGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
-        ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+        $indexHas = Route::has(VW::NTF_TMP.'.index');
+        $indexGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'index_route_unavailable') : null)
+            ?? __('Template index route is unavailable. Please contact technical support or your domain administrator.');
 
-    $indexHas = Route::has(VW::NTF_TMP.'.index');
-    $indexGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'index_route_unavailable') : null)
-        ?? __('Template index route is unavailable. Please contact technical support or your domain administrator.');
-
-    $updateHas = Route::has(VW::NTF_TMP.'.update');
-    $updateGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'update_route_unavailable') : null)
-        ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+        $updateHas = Route::has(VW::NTF_TMP.'.update');
+        $updateGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'update_route_unavailable') : null)
+            ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+    } catch (\Throwable $e) {
+        \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -35,23 +25,23 @@
 @if(isset($notification_template) && !empty($notification_template))
     @php
         $tempName = $notification_template->name ?? '';
-    @endphp
+@endphp
 
     @section(YD::ADM_PG_TTL)
         {{ $tempName !== '' ? $tempName : __('Notification Template') }}
     @endsection
 
     @section(YD::ADM_BDC)
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a href="{{ $dashUrl }}"
                data-url="{{ $dashUrl }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $dashGuard }}"
+               data-guard-msg="{{ base64_encode($dashGuard) }}"
                {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
                 {{ __('Dashboard') }}
             </a>
         </li>
-        <li class="breadcrumb-item active" aria-current="page">{{ __('Notification Template') }}</li>
+        <li class="{{ VC::BCI_ACT }}" aria-current="page">{{ __('Notification Template') }}</li>
     @endsection
 
     @push('pre-purpose-css-page')
@@ -60,34 +50,42 @@
 
     @section(YD::ADM_ACT_BTN)
         <div class="row">
-            <div class="text-end mb-3">
-                <div class="text-end">
-                    <div class="d-flex justify-content-end drp-languages">
+            <div class="{{ VC::TX_END }} {{ VC::MB3 }}">
+                <div class="{{ VC::TX_END }}">
+                    <div class="{{ VC::DFL_JCE }} drp-languages">
                         @php
-                            $hasLanguages = (is_array($languages ?? null) && count($languages ?? []) > 0) || (($languages ?? null) instanceof Collection && $languages->isNotEmpty());
-                            $currLangCode = isset($curr_noti_tempLang) && is_object($curr_noti_tempLang) && isset($curr_noti_tempLang->lang) ? $curr_noti_tempLang->lang : '';
-                            $displayLangName = $currLangCode !== '' && isset($languages[$currLangCode]) ? ucfirst($languages[$currLangCode]) : __('Select Language');
-                        @endphp
+                            try {
+                                $hasLanguages = (is_array($languages ?? null) && count($languages ?? []) > 0) || (($languages ?? null) instanceof Collection && $languages->isNotEmpty());
+                                $currLangCode = isset($curr_noti_tempLang) && is_object($curr_noti_tempLang) && isset($curr_noti_tempLang->lang) ? $curr_noti_tempLang->lang : '';
+                                $displayLangName = $currLangCode !== '' && isset($languages[$currLangCode]) ? ucfirst($languages[$currLangCode]) : __('Select Language');
+                            } catch (\Throwable $e) {
+                                \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         @if($hasLanguages)
-                            <ul class="list-unstyled mb-0 m-2 me-0">
+                            <ul class="{{ VC::LST_UNSTL }} {{ VC::MB0 }} m-2 {{ VC::ME0 }}">
                                 <li class="{{ VC::LNG_DD_IT }}">
                                     <a class="{{ VC::EM_DRP_NO_ARROW }}" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false" id="dropdownLanguage">
-                                        <span class="drp-text hide-mob text-primary me-2">{{ $displayLangName }}</span>
+                                        <span class="drp-text hide-mob {{ VC::TX_PM }} me-2">{{ $displayLangName }}</span>
                                         <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                     </a>
                                     <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage">
                                         @foreach ($languages as $code => $language)
                                             @php
-                                                $nid = $notification_template->id ?? null;
-                                                $isActive = ($currLangCode === $code);
-                                                $langUrl = ($nid && $indexHas) ? route(VW::NTF_TMP.'.index', [$nid, $code]) : '#';
-                                            @endphp
+                                                try {
+                                                    $nid = $notification_template->id ?? null;
+                                                    $isActive = ($currLangCode === $code);
+                                                    $langUrl = ($nid && $indexHas) ? route(VW::NTF_TMP.'.index', [$nid, $code]) : '#';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             @if(!empty($code) && !empty($language) && !empty($nid))
                                                 <a href="{{ $langUrl }}"
-                                                   class="dropdown-item {{ $isActive ? 'text-primary' : '' }}"
+                                                   class="{{ VC::DRP_IT }} {{ $isActive ? 'text-primary' : '' }}"
                                                    data-url="{{ $langUrl }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ $indexGuard }}">
+                                                   data-guard-msg="{{ base64_encode($indexGuard) }}">
                                                     {{ ucfirst($language) }}
                                                 </a>
                                             @endif
@@ -98,34 +96,42 @@
                         @endif
 
                         @php
-                            $hasTemplates = (is_array($notification_templates ?? null) && count($notification_templates ?? []) > 0) || (($notification_templates ?? null) instanceof Collection && $notification_templates->isNotEmpty());
-                            $displayTempName = $tempName !== '' ? $tempName : __('No Template');
-                            $reqSeg = method_exists(Request::class, 'segment') ? (Request::segment(3) ?? '') : '';
-                            $userLang = isset($user) && is_object($user) && isset($user->lang) ? $user->lang : '';
-                            $defaultLang = defined(DatabaseConstants::class.'::DEFAULT_LANG') ? constant(DatabaseConstants::class.'::DEFAULT_LANG') : 'en';
-                            $languageParam = $reqSeg !== '' ? $reqSeg : ($userLang !== '' ? $userLang : $defaultLang);
-                        @endphp
+                            try {
+                                $hasTemplates = (is_array($notification_templates ?? null) && count($notification_templates ?? []) > 0) || (($notification_templates ?? null) instanceof Collection && $notification_templates->isNotEmpty());
+                                $displayTempName = $tempName !== '' ? $tempName : __('No Template');
+                                $reqSeg = method_exists(Request::class, 'segment') ? (Request::segment(3) ?? '') : '';
+                                $userLang = isset($user) && is_object($user) && isset($user->lang) ? $user->lang : '';
+                                $defaultLang = defined(DatabaseConstants::class.'::DEFAULT_LANG') ? constant(DatabaseConstants::class.'::DEFAULT_LANG') : 'en';
+                                $languageParam = $reqSeg !== '' ? $reqSeg : ($userLang !== '' ? $userLang : $defaultLang);
+                            } catch (\Throwable $e) {
+                                \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         @if($hasTemplates)
-                            <ul class="list-unstyled mb-0 m-2 me-2">
+                            <ul class="{{ VC::LST_UNSTL }} {{ VC::MB0 }} m-2 me-2">
                                 <li class="{{ VC::LNG_DD_IT }}">
                                     <a class="{{ VC::EM_DRP_NO_ARROW }}" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false" id="dropdownTemplate">
-                                        <span class="drp-text hide-mob text-primary">{{ __('Template: ') }}{{ $displayTempName }}</span>
+                                        <span class="drp-text hide-mob {{ VC::TX_PM }}">{{ __('Template: ') }}{{ $displayTempName }}</span>
                                         <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                     </a>
                                     <div class="{{ VC::DRP_MN_EM }}" aria-labelledby="dropdownTemplate">
                                         @foreach ($notification_templates as $notification)
                                             @php
-                                                $nid = isset($notification) && is_object($notification) ? ($notification->id ?? null) : null;
-                                                $nname = isset($notification) && is_object($notification) && isset($notification->name) ? $notification->name : __('Unnamed Template');
-                                                $isActiveTemplate = ($tempName !== '' && $nname === $tempName);
-                                                $tplUrl = ($nid && $indexHas) ? route(VW::NTF_TMP.'.index', [$nid, $languageParam]) : '#';
-                                            @endphp
+                                                try {
+                                                    $nid = isset($notification) && is_object($notification) ? ($notification->id ?? null) : null;
+                                                    $nname = isset($notification) && is_object($notification) && isset($notification->name) ? $notification->name : __('Unnamed Template');
+                                                    $isActiveTemplate = ($tempName !== '' && $nname === $tempName);
+                                                    $tplUrl = ($nid && $indexHas) ? route(VW::NTF_TMP.'.index', [$nid, $languageParam]) : '#';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             @if(!empty($nid))
                                                 <a href="{{ $tplUrl }}"
-                                                   class="dropdown-item {{ $isActiveTemplate ? 'text-primary' : '' }}"
+                                                   class="{{ VC::DRP_IT }} {{ $isActiveTemplate ? 'text-primary' : '' }}"
                                                    data-url="{{ $tplUrl }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ $indexGuard }}">
+                                                   data-guard-msg="{{ base64_encode($indexGuard) }}">
                                                     {{ $nname }}
                                                 </a>
                                             @endif
@@ -137,7 +143,7 @@
 
                         @if(isset($user) && is_object($user) && method_exists($user, 'creatorId'))
                             @php
-                                $showAiButton = false;
+                                $showAiButton ??= false;
                                 try {
                                     $creatorId = $user->creatorId();
                                     $planUser = $creatorId ? User::find($creatorId) : null;
@@ -149,21 +155,25 @@
                                 } catch (\Exception $e) {
                                     $showAiButton = false;
                                 }
-                            @endphp
+@endphp
                             @if($showAiButton)
                                 @php
-                                    $generateHas = Route::has('generate');
-                                    $generateGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'generate_route_unavailable') : null) ?? __('Generate route is unavailable. Please contact technical support or your domain administrator.');
-                                    $generateUrl = Route::has('generate') ? route('generate', ['notification template']) : '#';
-                                @endphp
-                                <div class="float-end">
+                                    try {
+                                        $generateHas = Route::has('generate');
+                                        $generateGuard = ($hasFetch ? Utility::fetchLinkMessage($lang, VW::NTF_TMP, 'generate_route_unavailable') : null) ?? __('Generate route is unavailable. Please contact technical support or your domain administrator.');
+                                        $generateUrl = Route::has('generate') ? route('generate', ['notification template']) : '#';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
+                                <div class="{{ VC::FEND }}">
                                     <a href="#"
                                        data-size="md"
-                                       class="btn btn-primary btn-icon btn-sm"
+                                       class="{{ VC::BT_PRM }} btn-icon btn-sm"
                                        data-ajax-popup-over="true"
                                        data-url="{{ $generateUrl }}"
                                        data-sv-localized="true"
-                                       data-guard-msg="{{ $generateGuard }}"
+                                       data-guard-msg="{{ base64_encode($generateGuard) }}"
                                        data-bs-placement="top"
                                        data-title="{{ __('Generate content with AI') }}">
                                         <i class="{{ VC::FAS_RB }}"></i>
@@ -180,17 +190,17 @@
 
     @section(YD::ADM_CTT)
         <div class="row">
-            <div class="col-xl-12">
+            <div class="{{ VC::CXL12 }}">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <h5 class="font-weight-bold pb-3">{{ __('Placeholders') }}</h5>
-                        <div class="col-lg-12 col-md-12 col-sm-12">
+                        <div class="{{ VC::CL12 }} {{ VC::CM12 }} {{ VC::CS12 }}">
                             <div class="card">
-                                <div class="card-header card-body">
-                                    <div class="row text-xs">
-                                        <h6 class="font-weight-bold mb-4">{{ __('Variables') }}</h6>
+                                <div class="{{ VC::CD_HD }} {{ VC::CD_BD }}">
+                                    <div class="row {{ VC::TXS }}">
+                                        <h6 class="font-weight-bold {{ VC::MB4 }}">{{ __('Variables') }}</h6>
                                         @php
-                                            $variables = [];
+                                            $variables ??= [];
                                             $variablesRaw = isset($curr_noti_tempLang) && is_object($curr_noti_tempLang) && isset($curr_noti_tempLang->variables) ? $curr_noti_tempLang->variables : '';
                                             if ($variablesRaw !== '') {
                                                 try {
@@ -200,21 +210,21 @@
                                                     $variables = [];
                                                 }
                                             }
-                                        @endphp
+@endphp
                                         @if(is_array($variables) && count($variables) > 0)
                                             @foreach($variables as $key => $var)
                                                 @if(!empty($key) && !empty($var))
-                                                    <div class="col-6 pb-1">
-                                                        <p class="mb-1">
+                                                    <div class="{{ VC::C6 }} pb-1">
+                                                        <p class="{{ VC::MB1 }}">
                                                             {{ __($key) }} :
-                                                            <span class="pull-right text-primary">{{ '{'.$var.'}' }}</span>
+                                                            <span class="pull-right {{ VC::TX_PM }}">{{ '{'.$var.'}' }}</span>
                                                         </p>
                                                     </div>
                                                 @endif
                                             @endforeach
                                         @else
-                                            <div class="col-12">
-                                                <p class="mb-1 text-muted">{{ __('No variables available') }}</p>
+                                            <div class="{{ VC::C12 }}">
+                                                <p class="{{ VC::MB1 }} {{ VC::TXT_MT }}">{{ __('No variables available') }}</p>
                                             </div>
                                         @endif
                                     </div>
@@ -224,11 +234,15 @@
 
                         @if(isset($curr_noti_tempLang) && is_object($curr_noti_tempLang))
                             @php
-                                $parentId = $curr_noti_tempLang->parent_id ?? null;
-                                $formContent = $curr_noti_tempLang->content ?? '';
-                                $formLang = $curr_noti_tempLang->lang ?? '';
-                                $updateUrl = $updateHas && !empty($parentId) ? route(VW::NTF_TMP.'.update', $parentId) : '#';
-                            @endphp
+                                try {
+                                    $parentId = $curr_noti_tempLang->parent_id ?? null;
+                                    $formContent = $curr_noti_tempLang->content ?? '';
+                                    $formLang = $curr_noti_tempLang->lang ?? '';
+                                    $updateUrl = $updateHas && !empty($parentId) ? route(VW::NTF_TMP.'.update', $parentId) : '#';
+                                } catch (\Throwable $e) {
+                                    \Log::error('notification_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
 
                             @if(!empty($parentId))
                                 {!! Form::model($curr_noti_tempLang, [
@@ -239,7 +253,7 @@
                                     'data-guard-msg' => $updateGuard
                                 ]) !!}
                                 <div class="row">
-                                    <div class="form-group col-12">
+                                    <div class="{{ VC::FM_G }} {{ VC::C12 }}">
                                         {!! Form::label('content', __('Notification Message'), ['class' => 'form-label text-dark']) !!}
                                         {!! Form::textarea('content', e($formContent), [
                                             'class' => 'form-control',
@@ -249,23 +263,23 @@
                                         ]) !!}
                                         <small>
                                             {{ __('A variable is to be used in such a way.') }}
-                                            <span class="text-primary">{{ __('Ex. Hello, {user_name}') }}</span>
+                                            <span class="{{ VC::TX_PM }}">{{ __('Ex. Hello, {user_name}') }}</span>
                                         </small>
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="col-md-12 text-end">
+                                <div class="{{ VC::CM12 }} {{ VC::TX_END }}">
                                     {!! Form::hidden('lang', e($formLang)) !!}
                                     <input type="submit" value="{{ __('Save Changes') }}" class="{{ VC::BT_PR_PRM10 }}">
                                 </div>
                                 {!! Form::close() !!}
                             @else
-                                <div class="alert alert-warning">
+                                <div class="{{ VC::ALT_WRN }}">
                                     {{ __('Unable to load notification template form. Missing template ID.') }}
                                 </div>
                             @endif
                         @else
-                            <div class="alert alert-danger">
+                            <div class="{{ VC::ALT_DNG }}">
                                 {{ __('Notification template data is not available.') }}
                             </div>
                         @endif

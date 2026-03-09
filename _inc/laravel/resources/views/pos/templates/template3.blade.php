@@ -3,7 +3,6 @@
 use App\Config\Constants\{DatabaseConstants, SettingsConstants};
 use App\Models\{Utility, ProductServiceUnit};
 use Illuminate\Support\Facades\Log;
-use App\Helpers\TemplateHelper;
 
 $lang = Utility::fetchUserLang(user: $user);
 if (!function_exists('e')) {
@@ -39,7 +38,7 @@ try {
 }
 
 if (empty($pos)) {
-    echo TemplateHelper::getNoDataHtml('pos', $docLang);
+    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>POS</title></head><body><div class="{{ VC::ALT_WRN }}">No POS data available.</div></body></html>';
     return;
 }
 
@@ -245,17 +244,17 @@ try {
 <body>
     <div class="pos-preview-main" id="boxes">
         <div class="pos-header">
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
                             <h3 style="text-transform:uppercase;font-size:20px;font-weight:bold;color:<?= e($color) ?>"><?= e(__('POS')) ?></h3>
                         </td>
-                        <td class="text-right"><img class="pos-logo" src="<?= e($img) ?>" alt=""></td>
+                        <td class="{{ VC::TX_RT }}"><img class="pos-logo" src="<?= e($img) ?>" alt=""></td>
                     </tr>
                 </tbody>
             </table>
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <?php if (!empty($settings['company_name']) && !empty($settings['mail_from_address']) && !empty($settings['company_address'])): ?>
@@ -282,15 +281,15 @@ try {
                             </td>
                         <?php endif; ?>
                         <td>
-                            <table class="no-space">
+                            <table class="{{ VC::NO_SPC }}">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="text-right"><?= e($posNumber) ?></td>
+                                        <td class="{{ VC::TX_RT }}"><?= e($posNumber) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Issue Date')) ?>:</td>
-                                        <td class="text-right"><?= e($issueDate) ?></td>
+                                        <td class="{{ VC::TX_RT }}"><?= e($issueDate) ?></td>
                                     </tr>
                                     <?php if (!empty($customFields) && count(data_get($pos, 'customField', [])) > 0): ?>
                                         <?php foreach ($customFields as $field): ?>
@@ -327,7 +326,7 @@ try {
                                 <?php else: ?>-<?php endif; ?>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <?php if (!empty(data_get($customer, 'shipping_name'))): ?>
                                     <p>
@@ -414,7 +413,7 @@ try {
                                     } ?></td>
                             </tr>
                             <?php if (!empty(data_get($item, 'description'))): ?>
-                                <tr class="border-0 itm-description">
+                                <tr class="{{ VC::BD0_ITM_DSC }}">
                                     <td colspan="6"><?= e(data_get($item, 'description')) ?></td>
                                 </tr>
                             <?php endif; ?>
@@ -424,8 +423,8 @@ try {
                 <tfoot>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
+                        <td colspan="2" class="{{ VC::SUB_TTL }}">
+                            <table class="{{ VC::TTL_TB }}">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
                                     <td><?php try {

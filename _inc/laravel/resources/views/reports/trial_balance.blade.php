@@ -1,31 +1,25 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $authUser = $user?->creatorId() ?? null;
-    $creatorUser = User::find($authUser);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $authUser = $user?->creatorId() ?? null;
+        $creatorUser = User::find($authUser);
+    } catch (\Throwable $e) {
+        \Log::error('reports/trial_balance — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Trial Balance') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Trial Balance') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Trial Balance') }}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
@@ -42,13 +36,17 @@
     </div>
     <div class="{{ VC::FEND }} me-2">
         @php
-            $trialExportBase               = VW::RPT.'.trial.balance.export';
-            $trialExportKebab              = Str::kebab($trialExportBase);
-            $trialExportResolved           = Route::has($trialExportBase) ? $trialExportBase : (Route::has($trialExportKebab) ? $trialExportKebab : null);
-            $trialExportUrl                = $trialExportResolved ? route($trialExportResolved) : '#';
-            $trialExportGuardMsg           = Utility::fetchLinkMessage($lang, VW::RPT, 'trial_balance_export_report_unavailable') ?? 'Trial balance export route is unavailable. Please contact technical support or your domain administrator.';
-            $trialExportFormId             = 'report-trial-balance-export-form';
-        @endphp
+            try {
+                $trialExportBase               = VW::RPT.'.trial.balance.export';
+                $trialExportKebab              = Str::kebab($trialExportBase);
+                $trialExportResolved           = Route::has($trialExportBase) ? $trialExportBase : (Route::has($trialExportKebab) ? $trialExportKebab : null);
+                $trialExportUrl                = $trialExportResolved ? route($trialExportResolved) : '#';
+                $trialExportGuardMsg           = Utility::fetchLinkMessage($lang, VW::RPT, 'trial_balance_export_report_unavailable') ?? 'Trial balance export route is unavailable. Please contact technical support or your domain administrator.';
+                $trialExportFormId             = 'report-trial-balance-export-form';
+            } catch (\Throwable $e) {
+                \Log::error('reports/trial_balance — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         {{ Form::open([
             'method'            => 'POST',
             'url'               => $trialExportUrl,
@@ -72,19 +70,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-@section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }} justify-content-center">
         <div class="col-sm-8">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}" id="show_filter" style="display:none;">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $trialBase                    = VW::RPT.'.trial.balance';
-                            $trialKebab                   = Str::kebab($trialBase);
-                            $trialResolved                = Route::has($trialBase) ? $trialBase : (Route::has($trialKebab) ? $trialKebab : null);
-                            $trialUrl                     = $trialResolved ? route($trialResolved) : '#';
-                            $trialGuardMsg                = Utility::fetchLinkMessage($lang, VW::RPT, 'trial_balance_report_unavailable') ?? 'Trial balance report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $trialBase                    = VW::RPT.'.trial.balance';
+                                $trialKebab                   = Str::kebab($trialBase);
+                                $trialResolved                = Route::has($trialBase) ? $trialBase : (Route::has($trialKebab) ? $trialKebab : null);
+                                $trialUrl                     = $trialResolved ? route($trialResolved) : '#';
+                                $trialGuardMsg                = Utility::fetchLinkMessage($lang, VW::RPT, 'trial_balance_report_unavailable') ?? 'Trial balance report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/trial_balance — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $trialUrl,
@@ -94,7 +96,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -114,12 +116,12 @@
                                 </div>
                                 <div class="col-auto {{ VC::MT4 }}">
                                     <div class="{{ VC::RW }}">
-                                        <div class="col-auto">
+                                        <div class="{{ VC::C_AT }}">
                                             <a href="#"
                                             id="trial-balance-apply"
                                             class="{{ VC::BT_SM_PM }}"
                                             data-target-form="report_trial_balance"
-                                            data-guard-msg="{{ $trialGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($trialGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}">
@@ -128,7 +130,7 @@
                                             <a href="{{ $trialUrl }}"
                                             class="{{ VC::BT_SM_DG }} trial-balance-reset"
                                             data-url="{{ $trialUrl }}"
-                                            data-guard-msg="{{ $trialGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($trialGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}">
@@ -148,53 +150,73 @@
         </div>
     </div>
     <div class="{{ VC::RW }} justify-content-center" id="printableArea">
-        <div class="col-md-8">
+        <div class="{{ VC::CM8 }}">
+            {{-- ── KPI Aggregation Cards ── --}}
+            @php
+                $kpiDebit  = (float)($totalDebit ?? 0);
+                $kpiCredit = (float)($totalCredit ?? 0);
+                $fmtKpiDebit  = ($user?->priceFormat($kpiDebit))  ?? number_format($kpiDebit, 2);
+                $fmtKpiCredit = ($user?->priceFormat($kpiCredit)) ?? number_format($kpiCredit, 2);
+            @endphp
+            @include('reports.partials._kpi_cards', ['kpiHeading' => __('Trial Balance Overview'), 'kpis' => [
+                ['label' => __('Total Debit'),  'value' => $fmtKpiDebit,  'tone' => 'neutral'],
+                ['label' => __('Total Credit'), 'value' => $fmtKpiCredit, 'tone' => 'neutral'],
+            ]])
+
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="account-main-title {{ VC::MB5 }}">
                         <h5>{{ __('Trial Balance of') . ' ' . ($creatorUser?->name ?? __('Anonymous')) . ' ' . __('as of') . ' ' . ($filter['startDateRange'] ?? __('Undefined date')) . ' ' . __('to') . ' ' . ($filter['endDateRange'] ?? __('Undefined date')) }}</h5>
                     </div>
-                    <div class="aacount-title {{ VC::DFL_AIC_JCB }} border-top border-bottom {{ VC::PY2 }}">
-                        <h6 class="{{ VC::MB0 }}">{{ __('Account') }}</h6>
-                        <h6 class="{{ VC::MB0 }} text-center">{{ __('Account Code') }}</h6>
-                        <h6 class="{{ VC::MB0 }} text-end me-5">{{ __('Debit') }}</h6>
-                        <h6 class="{{ VC::MB0 }} text-end">{{ __('Credit') }}</h6>
+                    <div class="aacount-title {{ VC::DFL_AIC_JCB }} border-top border-bottom {{ VC::PY2 }}" role="row" aria-label="{{ __('Trial Balance Column Headers') }}">
+                        <h6 class="{{ VC::MB0 }}" role="columnheader">{{ __('Account') }}</h6>
+                        <h6 class="{{ VC::MB0 }} text-center" role="columnheader">{{ __('Account Code') }}</h6>
+                        <h6 class="{{ VC::MB0 }} text-end me-5" role="columnheader">{{ __('Debit') }}</h6>
+                        <h6 class="{{ VC::MB0 }} text-end" role="columnheader">{{ __('Credit') }}</h6>
                     </div>
                     @php
-                        $totalDebit  = 0.0;
-                        $totalCredit = 0.0;
-                    @endphp
+                        $totalDebit  ??= 0.0;
+                        $totalCredit ??= 0.0;
+@endphp
                     @foreach ((is_iterable($totalAccounts ?? null) ? $totalAccounts : []) as $type => $accounts)
                         <div class="account-main-inner border-bottom {{ VC::PY2 }}">
                             <p class="fw-bold ps-2 {{ VC::MB2 }}">{{ $type }}</p>
                             @foreach ($accounts as $record)
                                 @php
-                                    $accId    = data_get($record, 'id');
-                                    $accName  = (string) data_get($record, 'name', __('Anonymous'));
-                                    $accCode  = (string) data_get($record, 'code', __('Failed to get Code'));
-                                    $debit    = (float) data_get($record, 'totalDebit', 0);
-                                    $credit   = (float) data_get($record, 'totalCredit', 0);
-                                    $totalDebit  += $debit;
-                                    $totalCredit += $credit;
-                                @endphp
+                                    try {
+                                        $accId    = data_get($record, 'id');
+                                        $accName  = (string) data_get($record, 'name', __('Anonymous'));
+                                        $accCode  = (string) data_get($record, 'code', __('Failed to get Code'));
+                                        $debit    = (float) data_get($record, 'totalDebit', 0);
+                                        $credit   = (float) data_get($record, 'totalCredit', 0);
+                                        $totalDebit  += $debit;
+                                        $totalCredit += $credit;
+                                    } catch (\Throwable $e) {
+                                        \Log::error('reports/trial_balance — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="account-inner {{ VC::DFL_AIC_JCB }}">
                                     @php
-                                        $accIdVal           = isset($accId) ? $accId : null;
-                                        $ledgerBase         = VW::RPT.'.ledger';
-                                        $ledgerKebab        = Str::kebab($ledgerBase);
-                                        $ledgerResolved     = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                        $ledgerParams       = $accIdVal ? [$accIdVal] : ['#'];
-                                        $ledgerRouteUrl     = ($ledgerResolved && $accIdVal) ? route($ledgerResolved, $ledgerParams) : '#';
-                                        $ledgerUrl          = ($ledgerRouteUrl !== '#') ? ($ledgerRouteUrl.'?account='.urlencode($accIdVal)) : '#';
-                                        $ledgerGuardMsg     = Utility::fetchLinkMessage($lang, VW::RPT, 'ledger_report_unavailable') ?? 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
-                                        $ledgerLinkId       = 'ledger-link-'.($accIdVal ?? 'x');
-                                    @endphp
+                                        try {
+                                            $accIdVal           = isset($accId) ? $accId : null;
+                                            $ledgerBase         = VW::RPT.'.ledger';
+                                            $ledgerKebab        = Str::kebab($ledgerBase);
+                                            $ledgerResolved     = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                            $ledgerParams       = $accIdVal ? [$accIdVal] : ['#'];
+                                            $ledgerRouteUrl     = ($ledgerResolved && $accIdVal) ? route($ledgerResolved, $ledgerParams) : '#';
+                                            $ledgerUrl          = ($ledgerRouteUrl !== '#') ? ($ledgerRouteUrl.'?account='.urlencode($accIdVal)) : '#';
+                                            $ledgerGuardMsg     = Utility::fetchLinkMessage($lang, VW::RPT, 'ledger_report_unavailable') ?? 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
+                                            $ledgerLinkId       = 'ledger-link-'.($accIdVal ?? 'x');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('reports/trial_balance — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <p class="{{ VC::MB2 }}">
                                         <a href="{{ $ledgerUrl }}"
                                         id="{{ $ledgerLinkId }}"
-                                        class="text-primary report-ledger"
+                                        class="{{ VC::TX_PM }} report-ledger"
                                         data-url="{{ $ledgerUrl }}"
-                                        data-guard-msg="{{ $ledgerGuardMsg }}"
+                                        data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                         data-sv-localized="true">{{ $accName }}</a>
                                     </p>
                                     @push(StacksConstants::ADM_SCR_PG)
@@ -213,32 +235,7 @@
                                                             if (href !== '#' || url !== '#') return;
                                                             e.preventDefault();
                                                             const msg = a.getAttribute('data-guard-msg') || 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
-                                                            const linkEl = document.querySelector('link[href*="bootstrap"]');
-                                                            const hasBootstrapToast = (typeof window !== 'undefined' && window.bootstrap && typeof window.bootstrap.Toast === 'function');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                container.className = 'position-fixed top-0 end-0 p-3';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (linkEl && hasBootstrapToast) {
-                                                                const toast = document.createElement('div');
-                                                                toast.className = 'toast';
-                                                                toast.setAttribute('role', 'alert');
-                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toast.appendChild(body);
-                                                                container.appendChild(toast);
-                                                                const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                                                                toast.addEventListener('hidden.bs.toast', function() { try { toast.remove(); } catch (_) {} });
-                                                                inst.show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
+                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                             a.setAttribute('data-failed-route', 'true');
                                                         } catch (_) {}
                                                     }, { passive: false });
@@ -266,8 +263,6 @@
             </div>
         </div>
     </div>
-@endsection
-
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)

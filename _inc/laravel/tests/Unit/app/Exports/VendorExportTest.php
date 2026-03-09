@@ -5,7 +5,7 @@ namespace Tests\Unit\Exports;
 
 use App\Exports\VendorExport;
 use App\Models\{User, Vendor};
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 class VendorExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -30,9 +30,12 @@ class VendorExportTest extends TestCase
 		$user = User::factory()->create();
 		$other = User::factory()->create();
 
-		// 2 vendors for $user, 1 for $other
-		Vendor::factory()->count(2)->create(['created_by' => $user?->creatorId()]);
-		Vendor::factory()->create(['created_by' => $other->creatorId()]);
+		// Auth as $user first so HasAuditFields sets created_by
+		Auth::login($user);
+		Vendor::factory()->count(2)->create();
+
+		Auth::login($other);
+		Vendor::factory()->create();
 
 		Auth::login($user);
 
@@ -42,23 +45,16 @@ class VendorExportTest extends TestCase
 		$this->assertInstanceOf(Collection::class, $collection);
 		$this->assertCount(2, $collection);           // only current user’s vendors
 
-		// Expected column labels (public helper)
-		$labels = $export->headings();
+		$collection->each(function (array $row) {
+			// Must have the expected keys from the export
+			$this->assertArrayHasKey('id', $row);
+			$this->assertArrayHasKey('name', $row);
+			$this->assertArrayHasKey('balance', $row);
 
-		// Helper to convert heading ⇒ array key (spaces → camelCase-ish)
-		$headingToKey = static fn (string $h) => str($h)
-			->camel()
-			->replaceFirst('iD', 'id')   // keep “ID” uppercase
-			->value();
-
-		$collection->each(function (array $row) use ($labels, $headingToKey) {
-			foreach ($labels as $label) {
-				$key = $headingToKey($label);
-				$this->assertArrayHasKey($key, $row, "Missing {$key} column.");
-			}
-
-			$this->assertStringStartsWith('VEN-', $row['id']);       // formatted ID
-			$this->assertStringContainsString('$',   $row['balance']); // formatted money
+			// Formatted ID starts with #VEND
+			$this->assertStringStartsWith('#VEND', $row['id']);
+			// Formatted money contains the currency symbol
+			$this->assertStringContainsString('R$', $row['balance']);
 		});
 	}
 
@@ -71,13 +67,25 @@ class VendorExportTest extends TestCase
 	{
 		$export  = new VendorExport();
 		$expected = [
-			'ID', 'Name', 'Email', 'Contact',
-			'Billing Name', 'Billing Country', 'Billing State',
-			'Billing City', 'Billing Phone',  'Billing Zip',
+			'ID',
+			'Name',
+			'Email',
+			'Contact',
+			'Billing Name',
+			'Billing Country',
+			'Billing State',
+			'Billing City',
+			'Billing Phone',
+			'Billing Zip',
 			'Billing Address',
-			'Shipping Name', 'Shipping Country', 'Shipping State',
-			'Shipping City', 'Shipping Phone',   'Shipping Zip',
-			'Shipping Address', 'Balance'
+			'Shipping Name',
+			'Shipping Country',
+			'Shipping State',
+			'Shipping City',
+			'Shipping Phone',
+			'Shipping Zip',
+			'Shipping Address',
+			'Balance'
 		];
 
 		$this->assertSame($expected, $export->headings());

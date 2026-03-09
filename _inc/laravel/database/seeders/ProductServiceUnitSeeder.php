@@ -21,7 +21,7 @@ class ProductServiceUnitSeeder extends Seeder
 	use EnsuresSystemUser;
 
 	// Parâmetro fixo (sem env)
-	private const ORPHANS = 32; // units without product linkage
+	private const ORPHANS = 2; // original: 32; units without product linkage
 
 	public function run(): void
 	{
@@ -75,8 +75,8 @@ class ProductServiceUnitSeeder extends Seeder
 
 			foreach ($fixtures as $fx) {
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Fixture de Unidade de Produto/Serviço: {$fx['name']}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Fixture de Unidade de Produto/Serviço: {$fx['name']}");
 					ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
 					$usedCode[$fx['code']] = true;
 					$usedName[$fx['name']] = true;
@@ -138,10 +138,13 @@ class ProductServiceUnitSeeder extends Seeder
 
 			// ---- Per-product units -------------------------------------------
 			$products = ProductService::query()->select(['id', 'name'])->get();
+			$_prodCount = 0;
 			foreach ($products as $product) {
+				if ($_prodCount >= 2) break; // HARD_CAP
+				$_prodCount++;
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Unidades de Produto/Serviço para: {$product->name}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Unidades de Produto/Serviço para: {$product->name}");
 					$n = fake()->numberBetween($perProductMin, $perProductMax);
 					for ($i = 1; $i <= $n; $i++) {
 						$unitLabel  = fake()->randomElement($unitsList);
@@ -152,8 +155,8 @@ class ProductServiceUnitSeeder extends Seeder
 
 						$price      = fake()->randomFloat(4, 10, 2500);
 						$discount   = fake()->boolean(35) ? min($price, fake()->randomFloat(4, 1, $price * 0.3)) : 0.0;
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Unidade de Produto/Serviço: {$name} ({$code})");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Unidade de Produto/Serviço: {$name} ({$code})");
 						ProductServiceUnit::query()->create([
 							'product_service_id'      => $product->id,
 							'name'                    => $name,

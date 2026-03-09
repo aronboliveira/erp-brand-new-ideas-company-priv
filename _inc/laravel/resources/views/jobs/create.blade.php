@@ -1,34 +1,57 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Collection;
-
-    $lang = Utility::fetchUserLang();
-    $plan = Utility::getChatGPTSettings();
-
-    $aiGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'generate_route_unavailable') ?? __('Generate with AI route is unavailable. Please contact technical support or your domain administrator.');
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::JB, 'store_route_unavailable') ?? __('Create Job route is unavailable. Please contact technical support or your domain administrator.');
-
-    $branchesIsList   = (is_array($branches ?? null) && count($branches ?? []) > 0) || (($branches ?? null) instanceof Collection && $branches->isNotEmpty());
-    $categoriesIsList = (is_array($categories ?? null) && count($categories ?? []) > 0) || (($categories ?? null) instanceof Collection && $categories->isNotEmpty());
-    $statusIsList     = (is_array($status ?? null) && count($status ?? []) > 0) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
-    $customQIsList    = (is_array($customQuestion ?? null) && count($customQuestion ?? []) > 0) || (($customQuestion ?? null) instanceof Collection && $customQuestion->isNotEmpty());
-
-    $branchOptions    = $branchesIsList   ? $branches   : ['' => __('— No branches found —')];
-    $categoryOptions  = $categoriesIsList ? $categories : ['' => __('— No categories found —')];
-    $statusOptions    = $statusIsList     ? $status     : ['' => __('— No statuses found —')];
-
-    $branchAttrs   = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($branchesIsList ? [] : ['disabled' => 'disabled']);
-    $categoryAttrs = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($categoriesIsList ? [] : ['disabled' => 'disabled']);
-    $statusAttrs   = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($statusIsList ? [] : ['disabled' => 'disabled']);
+$lang ??= 'en';
+	$plan ??= null;
+	$aiGuard ??= '';
+	$storeGuard ??= '';
+	$branchesIsList ??= false;
+	$categoriesIsList ??= false;
+	$statusIsList ??= false;
+	$customQIsList ??= false;
+	$branchOptions ??= [];
+	$categoryOptions ??= [];
+	$statusOptions ??= [];
+	$branchAttrs ??= [];
+	$categoryAttrs ??= [];
+	$statusAttrs ??= [];
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$plan = Utility::getChatGPTSettings();
+		$aiGuard = Utility::fetchLinkMessage($lang, VW::JB, 'generate_route_unavailable')
+			?? __('Generate with AI route is unavailable. Please contact technical support or your domain administrator.');
+		$storeGuard = Utility::fetchLinkMessage($lang, VW::JB, 'store_route_unavailable')
+			?? __('Create Job route is unavailable. Please contact technical support or your domain administrator.');
+		$branchesIsList = (is_array($branches ?? null) && count($branches ?? []) > 0) || (($branches ?? null) instanceof Collection && $branches->isNotEmpty());
+		$categoriesIsList = (is_array($categories ?? null) && count($categories ?? []) > 0) || (($categories ?? null) instanceof Collection && $categories->isNotEmpty());
+		$statusIsList = (is_array($status ?? null) && count($status ?? []) > 0) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
+		$customQIsList = (is_array($customQuestion ?? null) && count($customQuestion ?? []) > 0) || (($customQuestion ?? null) instanceof Collection && $customQuestion->isNotEmpty());
+		$branchOptions = $branchesIsList ? $branches : ['' => __('— No branches found —')];
+		$categoryOptions = $categoriesIsList ? $categories : ['' => __('— No categories found —')];
+		$statusOptions = $statusIsList ? $status : ['' => __('— No statuses found —')];
+		$branchAttrs = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($branchesIsList ? [] : ['disabled' => 'disabled']);
+		$categoryAttrs = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($categoriesIsList ? [] : ['disabled' => 'disabled']);
+		$statusAttrs = ['class' => VC::FM_CT_SL, 'required' => 'required'] + ($statusIsList ? [] : ['disabled' => 'disabled']);
+	} catch (\Error $e) {
+		Log::error('Error in jobs/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in jobs/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in jobs/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(EL::ADM)
@@ -38,24 +61,28 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        $jobIndexBase    = VW::JB.'.index';
-        $jobIndexKebab   = Str::kebab($jobIndexBase);
-        $jobIndexName    = Route::has($jobIndexBase) ? $jobIndexBase : (Route::has($jobIndexKebab) ? $jobIndexKebab : null);
-        $jobIndexUrl     = $jobIndexName ? route($jobIndexName) : '#';
-        $jobIndexGuard   = Utility::fetchLinkMessage($lang, VW::JB, 'job_index_route_unavailable') ?? 'Job index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
+        try {
+            $jobIndexBase    = VW::JB.'.index';
+            $jobIndexKebab   = Str::kebab($jobIndexBase);
+            $jobIndexName    = Route::has($jobIndexBase) ? $jobIndexBase : (Route::has($jobIndexKebab) ? $jobIndexKebab : null);
+            $jobIndexUrl     = $jobIndexName ? route($jobIndexName) : '#';
+            $jobIndexGuard   = Utility::fetchLinkMessage($lang, VW::JB, 'job_index_route_unavailable') ?? 'Job index route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('jobs/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
         <a
             id="bc-job-index-link"
             href="{{ $jobIndexUrl }}"
             data-url="{{ $jobIndexUrl }}"
-            data-guard-msg="{{ $jobIndexGuard }}"
+            data-guard-msg="{{ base64_encode($jobIndexGuard) }}"
             data-sv-localized="true"
         >
             {{ __('Job') }}
@@ -64,7 +91,7 @@
     @push(ST::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/jobs/indexBc.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{ __('Job Create') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Job Create') }}</li>
 @endsection
 
 @push(ST::ADM_CSS)
@@ -89,7 +116,7 @@
                data-url="{{ route('generate',['job']) }}"
                data-bs-placement="top"
                data-title="{{ __('Generate content with AI') }}"
-               data-guard-msg="{{ $aiGuard }}">
+               data-guard-msg="{{ base64_encode($aiGuard) }}">
                 <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
         @endif
@@ -107,7 +134,7 @@
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::CD_FL }}">
-                    <div class="card-body job-create">
+                    <div class="{{ VC::CD_BD }} job-create">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::FM_GCB12 }}">
                                 {!! Form::label('title', __('Job Title'), ['class'=>VC::FM_LB]) !!}
@@ -138,7 +165,7 @@
                                 {!! Form::date('end_date', old('end_date'), ['class'=>VC::FM_CT]) !!}
                             </div>
                             <div class="{{ VC::FM_GCB12 }}">
-                                <input type="text" class="{{ VC::FM_CT }}" value="" data-toggle="tags" name="skill" placeholder="{{ __('Skill') }}"/>
+                                <input type="text" class="{{ VC::FM_CT }}" value="" data-toggle="tags" name="skill" placeholder="Skill"/>
                             </div>
                         </div>
                     </div>
@@ -146,21 +173,21 @@
             </div>
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::CD_FL }}">
-                    <div class="card-body job-create">
+                    <div class="{{ VC::CD_BD }} job-create">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CM6 }}">
                                 <div class="{{ VC::FM_G }}">
                                     <h6 class="{{ VC::H6 }}">{{ __('Need to ask ?') }}</h6>
                                     <div class="{{ VC::MY3 }}">
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="applicant[]" value="gender" id="check-gender">
                                             <label class="{{ VC::CST_LB }}" for="check-gender">{{ __('Gender') }}</label>
                                         </div>
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="applicant[]" value="dob" id="check-dob">
                                             <label class="{{ VC::CST_LB }}" for="check-dob">{{ __('Date Of Birth') }}</label>
                                         </div>
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="applicant[]" value="country" id="check-country">
                                             <label class="{{ VC::CST_LB }}" for="check-country">{{ __('Country') }}</label>
                                         </div>
@@ -171,19 +198,19 @@
                                 <div class="{{ VC::FM_G }}">
                                     <h6 class="{{ VC::H6 }}">{{ __('Need to show option ?') }}</h6>
                                     <div class="{{ VC::MY3 }}">
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="visibility[]" value="profile" id="check-profile">
                                             <label class="{{ VC::CST_LB }}" for="check-profile">{{ __('Profile Image') }}</label>
                                         </div>
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="visibility[]" value="resume" id="check-resume">
                                             <label class="{{ VC::CST_LB }}" for="check-resume">{{ __('Resume') }}</label>
                                         </div>
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="visibility[]" value="letter" id="check-letter">
                                             <label class="{{ VC::CST_LB }}" for="check-letter">{{ __('Cover Letter') }}</label>
                                         </div>
-                                        <div class="form-check custom-checkbox">
+                                        <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                             <input type="checkbox" class="form-check-input" name="visibility[]" value="terms" id="check-terms">
                                             <label class="{{ VC::CST_LB }}" for="check-terms">{{ __('Terms And Conditions') }}</label>
                                         </div>
@@ -195,7 +222,7 @@
                                 <div class="{{ VC::MY3 }}">
                                     @if($customQIsList)
                                         @foreach($customQuestion as $question)
-                                            <div class="form-check custom-checkbox">
+                                            <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }}">
                                                 <input type="checkbox" class="form-check-input" name="custom_question[]" value="{{ $question->id }}" id="custom_question_{{ $question->id }}">
                                                 <label class="{{ VC::CST_LB }}" for="custom_question_{{ $question->id }}">{{ $question->question }}</label>
                                             </div>
@@ -211,7 +238,7 @@
             </div>
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::CD_FL }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::FM_GCB12 }}">
                                 {!! Form::label('description', __('Job Description'), ['class'=>VC::FM_LB]) !!}
@@ -223,7 +250,7 @@
             </div>
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::CD_FL }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CLMS4_12 }}">
                                 {!! Form::label('requirement', __('Job Requirement'), ['class'=>VC::FM_LB]) !!}
@@ -231,17 +258,21 @@
                             <div class="{{ VC::CLMS4_12 }} text-end">
                                 @if($plan?->{PlansConstants::COL_GPT} == 1)
                                     @php
-                                        $gramGuard            = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable')
-                                                                ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
+                                        try {
+                                            $gramGuard            = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable')
+                                                                    ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
 
-                                        $grammarBase          = 'grammar';
-                                        $grammarKebab         = Str::kebab($grammarBase);
-                                        $grammarResolved      = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
-                                        $grammarParam         = 'grammar';
-                                        $grammarUrl           = $grammarResolved ? route($grammarResolved, $grammarParam) : '#';
+                                            $grammarBase          = 'grammar';
+                                            $grammarKebab         = Str::kebab($grammarBase);
+                                            $grammarResolved      = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
+                                            $grammarParam         = 'grammar';
+                                            $grammarUrl           = $grammarResolved ? route($grammarResolved, $grammarParam) : '#';
 
-                                        $grammarLinkId        = 'grammar-check-link';
-                                    @endphp
+                                            $grammarLinkId        = 'grammar-check-link';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('jobs/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
 
                                     <a
                                         href="{{ $grammarUrl }}"
@@ -252,7 +283,7 @@
                                         data-url="{{ $grammarUrl }}"
                                         data-bs-placement="top"
                                         data-title="{{ __('Grammar check with AI') }}"
-                                        data-guard-msg="{{ $gramGuard }}"
+                                        data-guard-msg="{{ base64_encode($gramGuard) }}"
                                         data-sv-localized="true"
                                         {{ $grammarUrl === '#' ? 'aria-disabled=true' : '' }}
                                     >

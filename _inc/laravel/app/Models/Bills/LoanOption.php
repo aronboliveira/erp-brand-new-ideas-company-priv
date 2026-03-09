@@ -6,8 +6,11 @@ use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{IsNumericBenefit, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class LoanOption extends Model
 {
+    use HasFactory;
+
     use IsNumericBenefit, UsesUuids;
 
     protected const TABLE = DC::TABLE_LOAN_OPTS;

@@ -11,6 +11,11 @@ use Tests\TestCase;
 
 class JournalItemTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -22,7 +27,46 @@ class JournalItemTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'journal', 'account', 'description', 'debit', 'credit',
+			'code',
+			'journal',
+			'account',
+			'line',
+			'posting_type',
+			'debit',
+			'credit',
+			'currency',
+			'exchange_rate',
+			'bank_account',
+			'bank_extract_date',
+			'transaction',
+			'transaction_type',
+			'transfer',
+			'payment',
+			'transfer_type',
+			'pix_key',
+			'check_number',
+			'ted_doc_number',
+			'company',
+			'branch',
+			'department',
+			'project',
+			'entity',
+			'description',
+			'memo',
+			'notes',
+			'is_reconciled',
+			'reconciled_date',
+			'reconciliation_document',
+			'nfe_key',
+			'nfe_number',
+			'nfe_series',
+			'nfe_xml_path',
+			'nfe_protocol',
+			'nfe_authorized_at',
+			'attachments',
+			'taxes',
+			'categories',
+			'metadata',
 		];
 
 		$this->assertSame($expected, (new JournalItem)->getFillable());

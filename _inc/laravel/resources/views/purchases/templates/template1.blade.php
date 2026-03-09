@@ -3,7 +3,6 @@
 // Template 1
 
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewClassNamesConstants};
-use App\Helpers\TemplateHelper;
 use App\Models\{Utility};
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
 use Illuminate\Support\Str;
@@ -309,13 +308,13 @@ if (isset($purchase) && !empty($purchase)) {
                     <tbody>
                         <tr>
                             <td><img class="purchase-logo" src="<?= e($img) ?>" alt=""></td>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;"><?= e(__('PURCHASE')) ?></h3>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <table class="vertical-align-top">
+                <table class="{{ VC::VA_TOP }}">
                     <tbody>
                         <tr>
                             <td>
@@ -337,15 +336,15 @@ if (isset($purchase) && !empty($purchase)) {
                                 </p>
                             </td>
                             <td>
-                                <table class="no-space" style="width:45%;margin-left:auto;">
+                                <table class="{{ VC::NO_SPC }}" style="width:45%;margin-left:auto;">
                                     <tbody>
                                         <tr>
                                             <td><?= e(__('Number')) ?>:</td>
-                                            <td class="text-right"><?= e($purchaseNumber) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($purchaseNumber) ?></td>
                                         </tr>
                                         <tr>
                                             <td><?= e(__('Purchase Date')) ?>:</td>
-                                            <td class="text-right"><?= e($purchaseDate) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($purchaseDate) ?></td>
                                         </tr>
                                         <?php if (!empty($customFields) && count(data_get($purchase,'customField',[]))>0): ?>
                                             <?php foreach ($customFields as $field): ?>
@@ -357,10 +356,10 @@ if (isset($purchase) && !empty($purchase)) {
                                         <?php endif; ?>
                                         <tr>
                                             <td colspan="2">
-                                                <div class="view-qrcode">
+                                                <div class="{{ VC::VW_QR }}">
                                                     <?php
                                     try {
-                                        $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                         echo $qrHtml;
                                     } catch (\Throwable $e) {
                                         Log::error('QR HTML Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
@@ -399,7 +398,7 @@ if (isset($purchase) && !empty($purchase)) {
                                 <?php endif; ?>
                             </td>
                             <?php if (data_get($settings,'shipping_display')==='on'): ?>
-                                <td class="text-right">
+                                <td class="{{ VC::TX_RT }}">
                                     <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                     <?php if (!empty(data_get($vendor,'shipping_name'))): ?>
                                         <p>
@@ -420,7 +419,7 @@ if (isset($purchase) && !empty($purchase)) {
                     </tbody>
                 </table>
 
-                <table class="add-border purchase-summary" style="margin-top:30px;">
+                <table class="{{ VC::BDR_PRC_SM }}" style="margin-top:30px;">
                     <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>;">
                         <tr>
                             <th><?= e(__('Item')) ?></th>
@@ -463,7 +462,7 @@ if (isset($purchase) && !empty($purchase)) {
                                     </td>
                                 </tr>
                                 <?php if (!empty(data_get($item,'description'))): ?>
-                                    <tr class="border-0 itm-description">
+                                    <tr class="{{ VC::BD0_ITM_DSC }}">
                                         <td colspan="6"><?= e((string)$item->description) ?></td>
                                     </tr>
                                 <?php endif; ?>
@@ -481,8 +480,8 @@ if (isset($purchase) && !empty($purchase)) {
                         </tr>
                         <tr>
                             <td colspan="4"></td>
-                            <td colspan="2" class="sub-total">
-                                <table class="total-table">
+                            <td colspan="2" class="{{ VC::SUB_TTL }}">
+                                <table class="{{ VC::TTL_TB }}">
                                     <tr>
                                         <td><?= e(__('Subtotal')) ?>:</td>
                                         <td><?= e($purchaseSubTotal) ?></td>
@@ -540,5 +539,14 @@ if (isset($purchase) && !empty($purchase)) {
     </html>
 <?php
 } else {
-    echo TemplateHelper::getNoDataHtml('purchase');
+    echo '<!DOCTYPE html>
+<html lang="'.htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8').'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="{{ VC::ALT_WRN }}">No purchase data available.</div>
+</body>
+</html>';
 }

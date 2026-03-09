@@ -1,18 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Bills;
 
-use App\Config\Constants\{MiddlewaresConstants, PermissionsConstants, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{MiddlewaresConstants as MWC, PermissionsConstants as PMC, ViewsConstants as VW};
 use App\Models\{Coupon, Plan, UserCoupon, Utility};
 use Illuminate\Http\{Request, JsonResponse, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, Validator, View as ViewFacade};
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 final class CouponController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH]);
+        $this->middleware([MWC::AUTH]);
     }
 
     public function index(Request $r): mixed
@@ -25,7 +28,7 @@ final class CouponController extends Controller
         $viewPath = VW::CPN . '.index';
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             Log::info("[{$base}::{$action}] start", ['user' => Auth::id(), 'method' => $method]);
-            if (($auth = self::auth($req, PermissionsConstants::MNG_CPN)) !== true) return $auth;
+            if (($auth = self::auth($req, PMC::MNG_CPN)) !== true) return $auth;
             try {
                 $fetchStart = microtime(true);
                 $coupons = Coupon::all();
@@ -224,7 +227,7 @@ final class CouponController extends Controller
     }
 
     public const AP_CPN = 'applyCoupon';
-    public function applyCoupon(Request $r): JsonResponse
+    public function applyCoupon(Request $r): JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -287,6 +290,14 @@ final class CouponController extends Controller
     }
 
     public const FMT_PRC = 'formatPrice';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function formatPrice(float|int $price): string
     {
         $action = __FUNCTION__;

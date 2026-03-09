@@ -71,8 +71,8 @@ final class WarningSeeder extends Seeder
 					$date = now('America/Sao_Paulo')->subDays(random_int(0, 540))->format('Y-m-d');
 					$subject = $faker->boolean(80) ? $faker->randomElement($subjects) : null;
 					$description = $faker->boolean(70) ? $faker->sentences(random_int(1, 3), true) : null;
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Aviso para funcionário {$toId} de {$byId} - Assunto: {$subject}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Aviso para funcionário {$toId} de {$byId} - Assunto: {$subject}");
 					// idempotência: evita duplicar o mesmo aviso "lógico"
 					$exists = Warning::query()
 						->where(UC::COL_EMP_ID, $toId)

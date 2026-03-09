@@ -86,6 +86,7 @@ class TrainingTypeSeeder extends Seeder
 							Str::slug($topic, '_'),
 							'training_type',
 						]),
+						DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
 					];
 				}
 			}
@@ -226,10 +227,10 @@ class TrainingTypeSeeder extends Seeder
 		$rules = [];
 
 		if (is_string($min) && trim($min) !== '') {
-			$rules[PJC::COL_MIN_DR] = $min;
+			$rules['duration_min'] = $min;
 		}
 		if (is_string($max) && trim($max) !== '') {
-			$rules[PJC::COL_MAX_DR] = $max;
+			$rules['duration_max'] = $max;
 		}
 
 		return $rules;

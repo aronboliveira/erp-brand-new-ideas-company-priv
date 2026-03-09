@@ -51,9 +51,11 @@ class WarehouseTransferSeeder extends Seeder
             $products->count()
         ));
 
+        $HARD_CAP = 2;
         $created = 0;
 
         foreach ($sources as $fromId) {
+            if ($created >= $HARD_CAP) break;
             $iterations = random_int(1, 16);
 
             for ($i = 0; $i < $iterations; $i++) {
@@ -128,15 +130,15 @@ class WarehouseTransferSeeder extends Seeder
                     BC::COL_EXT_SEC_CST => $hasExt ? (string) number_format(random_int(0, 20000) / 100, 2, '.', '') : null,
                 ];
 
-                $this->out->writeln(sprintf(
-                    'WarehouseTransferSeeder: creating %s from=%s to=%s prd=%s qty=%d status=%s',
-                    $code,
-                    $fromId,
-                    $toId,
-                    $productId,
-                    $qty,
-                    $status
-                ));
+                // $this->out->writeln(sprintf(
+                //     'WarehouseTransferSeeder: creating %s from=%s to=%s prd=%s qty=%d status=%s',
+                //     $code,
+                //     $fromId,
+                //     $toId,
+                //     $productId,
+                //     $qty,
+                //     $status
+                // ));
 
                 try {
                     WarehouseTransfer::query()->create($data);

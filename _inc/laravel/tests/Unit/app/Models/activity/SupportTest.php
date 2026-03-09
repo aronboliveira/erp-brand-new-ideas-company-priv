@@ -6,12 +6,18 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Support;
 use App\Models\User;
 use App\Models\SupportReply;
 
 class SupportTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -25,7 +31,7 @@ class SupportTest extends TestCase
 		$data = [
 			'subject'        => 'Help needed',
 			'user'           => $user?->id,
-			'priority'       => 'High',
+			'priority'       => 'high',
 			'end_date'       => '2025-05-31',
 			'ticket_code'    => 'TCK-001',
 			'ticket_created' => $user?->id,
@@ -37,9 +43,11 @@ class SupportTest extends TestCase
 
 		$support = Support::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $support->$field);
-		}
+		$this->assertNotNull($support->id);
+		$this->assertEquals('Help needed', $support->getRawOriginal('subject'));
+		$this->assertEquals('high', $support->getRawOriginal('priority'));
+		$this->assertEquals('TCK-001', $support->getRawOriginal('ticket_code'));
+		$this->assertStringStartsWith('2025-05-31', $support->getRawOriginal('end_date'));
 	}
 
 	/**
@@ -69,7 +77,7 @@ class SupportTest extends TestCase
 	 **/
 	public function priority_static_property_contains_expected_levels()
 	{
-		$expected = ['Low', 'Medium', 'High', 'Critical'];
+		$expected = ['Low', 'Medium', 'High', 'Critical', 'Urgent', 'Blocker', 'Immediate'];
 		$this->assertSame($expected, Support::$priority);
 	}
 
@@ -82,11 +90,11 @@ class SupportTest extends TestCase
 	{
 		$arr = Support::status();
 		$this->assertArrayHasKey('Open', $arr);
-		$this->assertArrayHasKey('Close', $arr);
+		$this->assertArrayHasKey('Closed', $arr);
 		$this->assertArrayHasKey('On Hold', $arr);
 		// Assuming default locale returns same strings
 		$this->assertSame('Open',    $arr['Open']);
-		$this->assertSame('Close',   $arr['Close']);
+		$this->assertSame('Closed',  $arr['Closed']);
 		$this->assertSame('On Hold', $arr['On Hold']);
 	}
 
@@ -99,10 +107,10 @@ class SupportTest extends TestCase
 	{
 		$relation = (new Support)->createdBy();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('ticket_created',    $relation->getForeignKeyName());
-		$this->assertSame('id',                $relation->getLocalKeyName());
+		$this->assertSame('created_by',    $relation->getForeignKeyName());
+		$this->assertSame('id',                $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -112,12 +120,12 @@ class SupportTest extends TestCase
 	 **/
 	public function assign_user_relation_resolves_to_user_model()
 	{
-		$relation = (new Support)->assignUser();
+		$relation = (new Support)->requester();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
 		$this->assertSame('user',              $relation->getForeignKeyName());
-		$this->assertSame('id',                $relation->getLocalKeyName());
+		$this->assertSame('id',                $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -128,6 +136,8 @@ class SupportTest extends TestCase
 	public function reply_unread_counts_only_other_users_for_employee()
 	{
 		$employee = User::factory()->create(['type' => 'Employee']);
+		$otherUser1 = User::factory()->create();
+		$otherUser2 = User::factory()->create();
 		Auth::login($employee);
 
 		$support = Support::factory()->create([
@@ -138,7 +148,7 @@ class SupportTest extends TestCase
 		// One unread from another user
 		SupportReply::factory()->create([
 			'support_id' => $support->id,
-			'user'       => $employee->id + 1,
+			'user'       => $otherUser1->id,
 			'is_read'    => 0,
 		]);
 		// One unread from self (should be excluded)
@@ -150,7 +160,7 @@ class SupportTest extends TestCase
 		// One already read
 		SupportReply::factory()->create([
 			'support_id' => $support->id,
-			'user'       => $employee->id + 2,
+			'user'       => $otherUser2->id,
 			'is_read'    => 1,
 		]);
 

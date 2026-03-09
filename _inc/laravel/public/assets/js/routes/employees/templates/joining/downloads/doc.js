@@ -1,9 +1,17 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const links = Array.from(
       document.querySelectorAll(
-        'a[id^="joining-letter-download-doc-btn-"][data-url][data-guard-msg]'
-      )
+        'a[id^="joining-letter-download-doc-btn-"][data-url][data-guard-msg]',
+      ),
     );
     if (!links || !links.length) {
       return;
@@ -22,39 +30,12 @@
           }
           e.preventDefault();
           const msg =
-            l.getAttribute("data-guard-msg") ??
-            "Download joining letter (DOC) route is unavailable. Please contact technical support or your domain administrator.";
-          const hasBootstrap = !!(
-            document.querySelector('link[href*="bootstrap"]') &&
-            window.bootstrap
-          );
-          let container = document.getElementById("toast-container");
-          if (!container) {
-            container = document.createElement("div");
-            container.id = "toast-container";
-            container.className =
-              "toast-container position-fixed top-0 end-0 p-3";
-            container.style.zIndex = "1080";
-            document.body.appendChild(container);
-          }
-          if (hasBootstrap) {
-            const t = document.createElement("div");
-            t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
-            const b = document.createElement("div");
-            b.className = "toast-body";
-            b.textContent = msg;
-            t.appendChild(b);
-            container.appendChild(t);
-            bootstrap.Toast.getOrCreateInstance(t).show();
-          } else {
-            alert(msg);
-          }
+            l.getAttribute("data-guard-msg") ||
+            getMsg("download_doc_unavailable");
+          scheduleError(msg, "click");
           l.setAttribute("data-failed-route", "true");
-        } catch (err) {}
+        } catch (_) {}
       });
     });
-  } catch (err) {}
+  } catch (_) {}
 })();

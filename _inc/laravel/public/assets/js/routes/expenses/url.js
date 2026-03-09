@@ -1,45 +1,16 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   const SUCCESS_KEY = "url_copy_success";
   const ERROR_KEY = "url_copy_failed";
   const ATTR_ACTIVE = "data-listener-active";
   const SELECTOR = ".copy_link";
-
-  const showError = msg => {
-    const hasBs = window.bootstrap?.Toast;
-    if (hasBs) {
-      const toast = document.createElement("div");
-      toast.className =
-        "toast align-items-center text-white bg-danger border-0";
-      toast.setAttribute("role", "alert");
-      toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${msg}</div>
-                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast"></button>
-                </div>`;
-      document.body.append(toast);
-      new bootstrap.Toast(toast).show();
-    } else {
-      alert(msg);
-    }
-  };
-
-  const showSuccess = msg => show_toastr("success", msg, "success");
-
-  const getMsg = key => {
-    let lang = (
-      sessionStorage.getItem("erp-np-lang") ||
-      document.documentElement.lang ||
-      "en"
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-    return (
-      window.translations?.[lang]?.[key] ||
-      window.translations?.["en"]?.[key] ||
-      "# ERROR"
-    );
-  };
 
   const els = document.querySelectorAll(SELECTOR);
   if (!els.length) return;
@@ -54,9 +25,11 @@
         const href = el.getAttribute("href");
         if (!href) throw new Error();
         await navigator.clipboard.writeText(href);
-        showSuccess(getMsg(SUCCESS_KEY));
+        const successMsg = getMsg(SUCCESS_KEY);
+        show_toastr("success", successMsg, "success");
       } catch {
-        showError(getMsg(ERROR_KEY));
+        const errorMsg = getMsg(ERROR_KEY);
+        scheduleError(errorMsg, "click");
       }
     });
   });

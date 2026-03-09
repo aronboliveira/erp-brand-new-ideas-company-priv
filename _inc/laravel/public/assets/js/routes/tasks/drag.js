@@ -1,111 +1,11 @@
+/** @requires ERPGuard */
 (function () {
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
-  const dataErrGuard = "data-error-guard";
+
   const dataBound = "data-bound-";
   const now = "{{__('Now')}}";
-  const ensureToastContainer = () => {
-    let c = document.getElementById("np-toast-container");
-    if (c) {
-      return c;
-    }
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
-  };
-  const showErrorNow = message => {
-    const hasBootstrap =
-      (document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') ||
-        document.querySelector('link[href*="bootstrap"]')) &&
-      window.bootstrap &&
-      window.bootstrap.Toast;
-    if (hasBootstrap) {
-      const container = ensureToastContainer();
-      let t = document.getElementById("np-toast");
-      if (!t) {
-        t = document.createElement("div");
-        t.id = "np-toast";
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        t.innerHTML =
-          '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
-        container.appendChild(t);
-      }
-      const body = t.querySelector(".toast-body");
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
-      try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-      } catch (_) {
-        alert(message ?? errFb);
-      }
-    } else {
-      alert(message ?? errFb);
-    }
-  };
-  const scheduleInteractiveError = message => {
-    const host = document.body;
-    if (!host || host.getAttribute(dataErrGuard) === "true") {
-      return;
-    }
-    host.setAttribute(dataErrGuard, "true");
-    const once = () => {
-      try {
-        showErrorNow(message);
-      } finally {
-        host.removeAttribute(dataErrGuard);
-      }
-    };
-    document.addEventListener("pointerup", once, { once: true });
-    const mo = new MutationObserver((m, o) => {
-      if (!document.body.contains(host)) {
-        document.removeEventListener("pointerup", once);
-        o.disconnect();
-      }
-    });
-    mo.observe(document.documentElement, { childList: true, subtree: true });
-  };
-  const getMsg = (el, key) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute(dataSvLocalized) === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
-      if (el && msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
   const resolveUrl = (el, explicit) => {
     const url = el?.getAttribute?.("data-url") || "";
     const href = el
@@ -118,7 +18,7 @@
       (!url || url === "#") &&
       (!href || href === "#")
     ) {
-      scheduleInteractiveError(getMsg(el || document.body, "ajax_unavailable"));
+      guard.scheduleInteractiveError(guard.getMsg("ajax_unavailable"));
       return null;
     }
     return explicit && explicit !== "#"
@@ -130,8 +30,8 @@
   const ajaxPost = (endpoint, data, onSuccess, elForMsg, msgKey) => {
     const url = endpoint || "";
     if (!url) {
-      scheduleInteractiveError(
-        getMsg(elForMsg || document.body, msgKey || "ajax_unavailable")
+      guard.scheduleInteractiveError(
+        guard.getMsg(msgKey || "ajax_unavailable")
       );
       return;
     }
@@ -146,8 +46,8 @@
         }
       },
       error: function () {
-        scheduleInteractiveError(
-          getMsg(elForMsg || document.body, msgKey || "ajax_unavailable")
+        guard.scheduleInteractiveError(
+          guard.getMsg(msgKey || "ajax_unavailable")
         );
       },
     });
@@ -155,8 +55,8 @@
   const ajaxDelete = (endpoint, onSuccess, elForMsg, msgKey) => {
     const url = endpoint || "";
     if (!url) {
-      scheduleInteractiveError(
-        getMsg(elForMsg || document.body, msgKey || "ajax_unavailable")
+      guard.scheduleInteractiveError(
+        guard.getMsg(msgKey || "ajax_unavailable")
       );
       return;
     }
@@ -171,8 +71,8 @@
         }
       },
       error: function () {
-        scheduleInteractiveError(
-          getMsg(elForMsg || document.body, msgKey || "ajax_unavailable")
+        guard.scheduleInteractiveError(
+          guard.getMsg(msgKey || "ajax_unavailable")
         );
       },
     });
@@ -186,7 +86,7 @@
         )
           console.error("dragula unavailable");
       } catch (_) {}
-      scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
+      guard.scheduleInteractiveError(guard.getMsg("plugin_unavailable"));
       return;
     }
     $('[data-plugin="dragula"]').each(function () {
@@ -218,7 +118,7 @@
       drake.on("drop", function (el, target, source) {
         try {
           if (!target || !source || !el) {
-            scheduleInteractiveError(getMsg(document.body, "drag_unavailable"));
+            guard.scheduleInteractiveError(guard.getMsg("drag_unavailable"));
             return;
           }
           const sort = [];
@@ -241,8 +141,8 @@
             "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}";
           const endpoint = resolveUrl(target, explicit);
           if (!endpoint) {
-            scheduleInteractiveError(
-              getMsg(target, "update_order_unavailable")
+            guard.scheduleInteractiveError(
+              guard.getMsg("update_order_unavailable")
             );
             return;
           }
@@ -259,14 +159,14 @@
             cache: false,
             success: function () {},
             error: function () {
-              scheduleInteractiveError(
-                getMsg(target, "update_order_unavailable")
+              guard.scheduleInteractiveError(
+                guard.getMsg("update_order_unavailable")
               );
             },
           });
         } catch (_) {
-          scheduleInteractiveError(
-            getMsg(document.body, "update_order_unavailable")
+          guard.scheduleInteractiveError(
+            guard.getMsg("update_order_unavailable")
           );
         }
       });
@@ -326,7 +226,7 @@
         const $btn = $(this);
         const url = resolveUrl(this, $btn.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "delete_task_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("delete_task_unavailable"));
           return;
         }
         ajaxDelete(
@@ -369,7 +269,7 @@
         const form = document.getElementById("form-comment");
         const url = resolveUrl(form, $("#form-comment").data("action"));
         if (!url) {
-          scheduleInteractiveError(getMsg(form, "comment_add_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("comment_add_unavailable"));
           return;
         }
         ajaxPost(
@@ -406,7 +306,7 @@
                 );
               }
             } catch (_) {
-              scheduleInteractiveError(getMsg(form, "comment_add_unavailable"));
+              guard.scheduleInteractiveError(guard.getMsg("comment_add_unavailable"));
             }
           },
           form,
@@ -421,7 +321,7 @@
         const btn = $(this);
         const url = resolveUrl(this, btn.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "comment_delete_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("comment_delete_unavailable"));
           return;
         }
         ajaxDelete(
@@ -463,7 +363,7 @@
         const form = document.getElementById("form-checklist");
         const url = resolveUrl(form, $("#form-checklist").data("action"));
         if (!url) {
-          scheduleInteractiveError(getMsg(form, "checklist_add_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("checklist_add_unavailable"));
           return;
         }
         ajaxPost(
@@ -501,8 +401,8 @@
                 );
               }
             } catch (_) {
-              scheduleInteractiveError(
-                getMsg(form, "checklist_add_unavailable")
+              guard.scheduleInteractiveError(
+                guard.getMsg("checklist_add_unavailable")
               );
             }
           },
@@ -520,8 +420,8 @@
         function () {
           const url = resolveUrl(this, $(this).attr("data-url"));
           if (!url) {
-            scheduleInteractiveError(
-              getMsg(this, "checklist_update_unavailable")
+            guard.scheduleInteractiveError(
+              guard.getMsg("checklist_update_unavailable")
             );
             return;
           }
@@ -554,8 +454,8 @@
         const btn = $(this);
         const url = resolveUrl(this, btn.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(
-            getMsg(this, "checklist_delete_unavailable")
+          guard.scheduleInteractiveError(
+            guard.getMsg("checklist_delete_unavailable")
           );
           return;
         }
@@ -587,7 +487,7 @@
         const btn = $(this);
         const url = resolveUrl(this, btn.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "favorite_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("favorite_unavailable"));
           return;
         }
         ajaxPost(
@@ -612,7 +512,7 @@
         const cb = $(this);
         const url = resolveUrl(this, cb.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "complete_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("complete_unavailable"));
           return;
         }
         ajaxPost(
@@ -641,7 +541,7 @@
         const sel = $(this);
         const url = resolveUrl(this, sel.attr("data-url"));
         if (!url) {
-          scheduleInteractiveError(getMsg(this, "progress_unavailable"));
+          guard.scheduleInteractiveError(guard.getMsg("progress_unavailable"));
           return;
         }
         const progress = sel.val();
@@ -677,7 +577,7 @@
     );
     const url = resolveUrl(null, base);
     if (!url) {
-      scheduleInteractiveError(getMsg(document.body, "load_task_unavailable"));
+      guard.scheduleInteractiveError(guard.getMsg("load_task_unavailable"));
       return;
     }
     $.ajax({
@@ -694,8 +594,8 @@
         }
       },
       error: function () {
-        scheduleInteractiveError(
-          getMsg(document.body, "load_task_unavailable")
+        guard.scheduleInteractiveError(
+          guard.getMsg("load_task_unavailable")
         );
       },
     });
@@ -709,7 +609,7 @@
         )
           console.error("jQuery unavailable");
       } catch (_) {}
-      scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
+      guard.scheduleInteractiveError(guard.getMsg("plugin_unavailable"));
       return;
     }
     ajaxCsrfHeader();

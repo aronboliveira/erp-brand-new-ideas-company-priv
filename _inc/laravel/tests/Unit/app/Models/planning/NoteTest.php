@@ -8,9 +8,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Note;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NoteTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 *
@@ -34,11 +40,11 @@ class NoteTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'id',
+			'title',
 			'note',
-			'module_id',
 			'module_type',
-			'note_created_by',
+			'module_id',
+			'document',
 		];
 
 		$this->assertSame($expected, (new Note)->getFillable());
@@ -58,7 +64,7 @@ class NoteTest extends TestCase
 			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('note_created_by', $rel->getForeignKeyName());
+		$this->assertSame('created_by', $rel->getForeignKeyName());
 	}
 
 	/**
@@ -69,7 +75,7 @@ class NoteTest extends TestCase
 	 **/
 	public function global_scope_orders_by_id_desc(): void
 	{
-		$query    = Note::query()->getQuery();
+		$query    = Note::query()->recent()->getQuery();
 		$orderings = $query->orders ?? [];
 
 		$this->assertNotEmpty($orderings);

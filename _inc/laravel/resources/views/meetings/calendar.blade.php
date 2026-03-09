@@ -1,36 +1,28 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Collection;
+    try {
+$user = Auth::user();
 
-    $user = Auth::user();
+        $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+        $hasSettingsFn       = is_callable([Utility::class, 'settings']);
+        $lang                = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
 
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $hasSettingsFn       = is_callable([Utility::class, 'settings']);
-    $lang                = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $settings = $hasSettingsFn ? Utility::settings() : [];
 
-    $settings = $hasSettingsFn ? Utility::settings() : [];
+        $dashRoute   = Route::has('dashboard') ? route('dashboard') : '#';
+        $dashGuard   = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
+                       ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-    $dashRoute   = Route::has('dashboard') ? route('dashboard') : '#';
-    $dashGuard   = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
-                   ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+        $calendarRoute = Route::has(VW::MT.'.calendar') ? route(VW::MT.'.calendar') : '#';
+        $calGuard      = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'calendar_route_unavailable') : null)
+                         ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
 
-    $calendarRoute = Route::has(VW::MT.'.calendar') ? route(VW::MT.'.calendar') : '#';
-    $calGuard      = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'calendar_route_unavailable') : null)
-                     ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
+        $eventsRoute = Route::has(VW::MT.'.get_event_data') ? route(VW::MT.'.get_event_data') : '#';
+        $eventsGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'calendar_data_unavailable') : null)
+                       ?? __('Meeting calendar data was not available.');
 
-    $eventsRoute = Route::has(VW::MT.'.get_event_data') ? route(VW::MT.'.get_event_data') : '#';
-    $eventsGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'calendar_data_unavailable') : null)
-                   ?? __('Meeting calendar data was not available.');
-
+    } catch (\Throwable $e) {
+        \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -44,35 +36,39 @@
 @endpush
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashRoute }}"
            data-url="{{ $dashRoute }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            {{ $dashRoute !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Meeting') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Meeting') }}</li>
 @endsection
 
 @section(YD::ADM_ACT_BTN)
     @can('create meeting')
         @php
-            $listUrl   = Route::has(VW::MT.'.index') ? route(VW::MT.'.index') : '#';
-            $listGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'list_route_unavailable') : null)
-                         ?? __('List view route is unavailable. Please contact technical support or your domain administrator.');
+            try {
+                $listUrl   = Route::has(VW::MT.'.index') ? route(VW::MT.'.index') : '#';
+                $listGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'list_route_unavailable') : null)
+                             ?? __('List view route is unavailable. Please contact technical support or your domain administrator.');
 
-            $createUrl   = Route::has(VW::MT.'.create') ? route(VW::MT.'.create') : '#';
-            $createGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'create_meeting_unavailable') : null)
-                           ?? __('Create meeting route is unavailable. Please contact technical support or your domain administrator.');
-        @endphp
+                $createUrl   = Route::has(VW::MT.'.create') ? route(VW::MT.'.create') : '#';
+                $createGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'create_meeting_unavailable') : null)
+                               ?? __('Create meeting route is unavailable. Please contact technical support or your domain administrator.');
+            } catch (\Throwable $e) {
+                \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::FEND }}">
             <a href="{{ $listUrl }}"
                class="{{ VC::BT_SM_PM }}"
                data-url="{{ $listUrl }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $listGuard }}"
+               data-guard-msg="{{ base64_encode($listGuard) }}"
                data-bs-toggle="tooltip"
                title="{{ __('List View') }}">
                 <i class="{{ VC::TI_LT }}"></i>
@@ -84,7 +80,7 @@
                data-size="lg"
                data-title="{{ __('Create New Meeting') }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="{{ base64_encode($createGuard) }}"
                data-bs-toggle="tooltip"
                title="{{ __('Create') }}">
                 <i class="{{ VC::TI_PLS }}"></i>
@@ -98,7 +94,7 @@
         <div class="{{ VC::CS12 }}">
             <div class="{{ VC::MT1 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         {!! Form::open([
                             'route'              => $calendarRoute !== '#' ? [VW::MT.'.calendar'] : ['#'],
                             'method'             => 'get',
@@ -134,7 +130,7 @@
                                     @php
                                         $applyTitle = __('Apply');
                                         $resetTitle = __('Reset');
-                                    @endphp
+@endphp
                                     <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                         <a href="#"
                                            class="{{ VC::BT_SM_PM }}"
@@ -147,7 +143,7 @@
                                            class="{{ VC::BT_SM_DG }}"
                                            data-url="{{ $calendarRoute }}"
                                            data-sv-localized="true"
-                                           data-guard-msg="{{ $calGuard }}"
+                                           data-guard-msg="{{ base64_encode($calGuard) }}"
                                            data-bs-toggle="tooltip"
                                            title="{{ $resetTitle }}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
@@ -166,7 +162,7 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CLMS6 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::CLMS6 }}"><h5>{{ __('Calendar') }}</h5></div>
                         <div class="{{ VC::CLMS6 }}">
@@ -181,13 +177,13 @@
                                 id="meeting_calendar"
                                 value="{{ url('/') }}"
                                 data-events-url="{{ $eventsRoute }}"
-                                data-guard-msg="{{ $eventsGuard }}"
+                                data-guard-msg="{{ base64_encode($eventsGuard) }}"
                                 data-sv-localized="true"
                             >
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div id="calendar" class="calendar"></div>
                 </div>
             </div>
@@ -195,49 +191,61 @@
 
         <div class="{{ VC::CLMS6 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <h4 class="{{ VC::MB4 }}">{{ __('Meeting List') }}</h4>
                     <ul class="{{ VC::LG_FLSH_W }}">
                         <li class="{{ VC::LGI }} {{ VC::CD }} {{ VC::MB3 }}">
                             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                                 <div class="{{ VC::AL_IT_CT }}">
                                     @php
-                                        $items = [];
-                                        if (is_array($meetings ?? null) && count($meetings ?? []) > 0) {
-                                            $items = $meetings;
-                                        } elseif (($meetings ?? null) instanceof Collection && $meetings->isNotEmpty()) {
-                                            $items = $meetings;
+                                        $items ??= [];
+                                        try {
+                                            if (is_array($meetings ?? null) && count($meetings ?? []) > 0) {
+                                                $items = $meetings;
+                                            } elseif (($meetings ?? null) instanceof Collection && $meetings->isNotEmpty()) {
+                                                $items = $meetings;
+                                            }
+                                            $hasUserDate = $user && method_exists($user, 'dateFormat');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                         }
-                                        $hasUserDate = $user && method_exists($user, 'dateFormat');
-                                    @endphp
+@endphp
 
                                     @forelse($items as $meeting)
                                         @php
-                                            $title = isset($meeting->title) && $meeting->title !== ''
-                                                ? $meeting->title
-                                                : __('Meeting title was not available.');
-                                            $dateRaw = $meeting->date ?? null;
-                                            $dateTxt = $dateRaw
-                                                ? ($hasUserDate ? ($user->dateFormat($dateRaw) ?? __('Failed to format meeting date.')) : __('Failed to format meeting date.'))
-                                                : __('Meeting date was not available.');
-                                            $mid = $meeting->id ?? null;
-                                        @endphp
+                                            try {
+                                                $title = isset($meeting->title) && $meeting->title !== ''
+                                                    ? $meeting->title
+                                                    : __('Meeting title was not available.');
+                                                $dateRaw = $meeting->date ?? null;
+                                                $dateTxt = $dateRaw
+                                                    ? ($hasUserDate ? ($user->dateFormat($dateRaw) ?? __('Failed to format meeting date.')) : __('Failed to format meeting date.'))
+                                                    : __('Meeting date was not available.');
+                                                $mid = $meeting->id ?? null;
+                                            } catch (\Throwable $e) {
+                                                \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="{{ VC::CD }} {{ VC::MB3 }} {{ VC::CD_NSD }}">
                                             <div class="{{ VC::PX3 ?? 'px-3' }}">
                                                 <div class="{{ VC::RW }} {{ VC::ALC }}">
                                                     <div class="col ml-n2">
-                                                        <p class="card-text small text-primary mb-0">{{ $title }}</p>
-                                                        <p class="card-text small text-dark mb-0">
+                                                        <p class="card-text small {{ VC::TX_PM }} {{ VC::MB0 }}">{{ $title }}</p>
+                                                        <p class="card-text small {{ VC::TX_DK }} {{ VC::MB0 }}">
                                                             {{ __('Meeting Date :') }} {{ $dateTxt }}
                                                         </p>
                                                     </div>
-                                                    <div class="col-auto text-right">
+                                                    <div class="{{ VC::C_AT }} {{ VC::TX_RT }}">
                                                         @can('edit meeting')
                                                             @php
-                                                                $editUrl   = ($mid !== null && Route::has(VW::MT.'.edit')) ? route(VW::MT.'.edit', $mid) : '#';
-                                                                $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'edit_meeting_unavailable') : null)
-                                                                            ?? __('Edit meeting route is unavailable. Please contact technical support or your domain administrator.');
-                                                            @endphp
+                                                                try {
+                                                                    $editUrl   = ($mid !== null && Route::has(VW::MT.'.edit')) ? route(VW::MT.'.edit', $mid) : '#';
+                                                                    $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'edit_meeting_unavailable') : null)
+                                                                                ?? __('Edit meeting route is unavailable. Please contact technical support or your domain administrator.');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                 <a href="#"
                                                                    class="{{ VC::BT_SM_CT }}"
@@ -245,7 +253,7 @@
                                                                    data-ajax-popup="true"
                                                                    data-title="{{ __('Edit Meeting') }}"
                                                                    data-sv-localized="true"
-                                                                   data-guard-msg="{{ $editGuard }}"
+                                                                   data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Edit') }}">
                                                                     <i class="{{ VC::TI_PC_WT }}"></i>
@@ -255,13 +263,17 @@
 
                                                         @can('delete meeting')
                                                             @php
-                                                                $delUrl   = ($mid !== null && Route::has(VW::MT.'.destroy')) ? route(VW::MT.'.destroy', $mid) : '#';
-                                                                $delGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'delete_meeting_unavailable') : null)
-                                                                            ?? __('Delete meeting route is unavailable. Please contact technical support or your domain administrator.');
-                                                                $formId   = 'delete-form-'.$mid;
-                                                                $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? __('Are You Sure?');
-                                                                $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? __('This action can not be undone. Do you want to continue?');
-                                                            @endphp
+                                                                try {
+                                                                    $delUrl   = ($mid !== null && Route::has(VW::MT.'.destroy')) ? route(VW::MT.'.destroy', $mid) : '#';
+                                                                    $delGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::MT, 'delete_meeting_unavailable') : null)
+                                                                                ?? __('Delete meeting route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    $formId   = 'delete-form-'.$mid;
+                                                                    $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? __('Are You Sure?');
+                                                                    $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? __('This action can not be undone. Do you want to continue?');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('meetings/calendar — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Form::open([
                                                                     'method'            => 'DELETE',
@@ -287,7 +299,7 @@
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="text-center">
+                                        <div class="{{ VC::TXCT }}">
                                             {{ __('No meetings found.') }}
                                         </div>
                                     @endforelse
@@ -307,105 +319,26 @@
     <script async src="{{ asset('assets/js/routes/meetings/lang/calendar.js') }}"></script>
     <script async>
         (function () {
-        const errFb = "# ERROR";
-        const dataClientLocalized = "data-client-localized";
-        const dataGuardMsg = "data-guard-msg";
-        const dataSvLocalized = "data-sv-localized";
+        const RG = window.RouteGuard || {};
+        const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '# ERROR');
+        const showToast = RG.showToast || (m => alert(m));
         const dataErrArmed = "data-err-armed";
         const dataChoicesBound = "data-choices-bound";
         const qs = (s, r = document) => r.querySelector(s);
         const $ = window.jQuery;
-        const getMsg = function (el, key) {
-            let msg = errFb;
-            const dataClientLocalizedAttr = "data-client-localized";
-            const dataGuardMsgAttr = "data-guard-msg";
-            if (
-            el.getAttribute("data-sv-localized") === "true" ||
-            el.getAttribute(dataClientLocalizedAttr) === "true"
-            ) {
-            msg = el.getAttribute(dataGuardMsgAttr) || errFb;
-            } else {
-            let lang = (
-                window.sessionStorage.getItem("erp-np-lang") ||
-                document.documentElement.lang ||
-                "en"
-            )
-                .toLowerCase()
-                .replace(/_/g, "-");
-            lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            const msgKey = key;
-            msg =
-                window.translations?.[lang]?.[msgKey] ||
-                el.getAttribute(dataGuardMsgAttr) ||
-                window.translations?.["en"]?.[msgKey] ||
-                errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsgAttr, msg);
-                el.setAttribute(dataClientLocalizedAttr, "true");
-            }
-            }
-            return msg;
-        };
-        const hasBS = () =>
-            !!(
-            qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-            qs('link[href*="bootstrap"]')
-            ) && !!(window.bootstrap && window.bootstrap.Toast);
-        const ensureToastContainer = () => {
-            let c = qs("#np-toast-container");
-            if (c) return c;
-            c = document.createElement("div");
-            c.id = "np-toast-container";
-            c.setAttribute("aria-live", "polite");
-            c.setAttribute("aria-atomic", "true");
-            c.style.position = "fixed";
-            c.style.top = "1rem";
-            c.style.right = "1rem";
-            document.body.appendChild(c);
-            return c;
-        };
-        const showToast = message => {
-            const container = ensureToastContainer();
-            let t = qs("#np-toast", container);
-            if (!t) {
-            t = document.createElement("div");
-            t.id = "np-toast";
-            t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
-            t.innerHTML =
-                '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
-            container.appendChild(t);
-            }
-            const body = t.querySelector(".toast-body");
-            if (body) body.textContent = message ?? errFb;
-            try {
-            new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-            } catch (_) {
-            alert(message ?? errFb);
-            }
-        };
         const schedulePointerupError = (key, host) => {
             const el = host || document.body;
             if (!el || el.getAttribute(dataErrArmed) === "true") return;
             el.setAttribute(dataErrArmed, "true");
             const once = () => {
             try {
-                const m = getMsg(el, key);
-                hasBS() ? showToast(m) : alert(m);
+                const m = getMsg(key, el);
+                showToast(m);
             } finally {
                 el.removeAttribute(dataErrArmed);
             }
             };
             document.addEventListener("pointerup", once, { once: true });
-            const mo = new MutationObserver((m, o) => {
-            if (!document.body.contains(el)) {
-                document.removeEventListener("pointerup", once);
-                o.disconnect();
-            }
-            });
-            mo.observe(document.documentElement, { childList: true, subtree: true });
         };
         const safeAjax = (opts, failKey) => {
             try {
@@ -530,7 +463,7 @@
                     const sel = fillSelect(
                     "#department_div",
                     "department_id",
-                    '<select class="form-control" id="department_id" name="department_id[]" multiple></select>'
+                    '<select class="{{ VC::FM_CT }}" id="department_id" name="department_id[]" multiple></select>'
                     );
                     if (!sel || !sel.length) return;
                     sel.append('<option value="">{{__("Select Department")}}</option>');
@@ -574,7 +507,7 @@
                     const sel = fillSelect(
                     "#employee_div",
                     "employee_id",
-                    '<select class="form-control" id="employee_id" name="employee_id[]" multiple></select>'
+                    '<select class="{{ VC::FM_CT }}" id="employee_id" name="employee_id[]" multiple></select>'
                     );
                     if (!sel || !sel.length) return;
                     sel.append('<option value="">{{__("Select Employee")}}</option>');

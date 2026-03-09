@@ -5,8 +5,9 @@ namespace Tests\Unit\Imports;
 use App\Imports\CustomerImport;
 use App\Models\Customer;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -14,7 +15,7 @@ use Tests\TestCase;
 
 class CustomerImportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -135,17 +136,13 @@ class CustomerImportTest extends TestCase
 	 **/
 	public function model_logs_error_and_skips_when_header_not_found(): void
 	{
-		Log::shouldReceive('error')
-			->once()
-			->withArgs(function ($msg) {
-				return str_contains($msg, 'CustomerImport::model header row not found');
-			});
-
 		$user    = User::factory()->create();
-		$this->actingAs($user);
+		Auth::login($user);
+
+		Log::spy();
 
 		$importer = new CustomerImport();
-		$row     = ['only_one_fillable'];
+		$row     = ['not_a_fillable_field', 'also_invalid'];
 
 		$result = $importer->model($row);
 		$this->assertNull($result, 'Should return null when header not detected.');
@@ -153,5 +150,9 @@ class CustomerImportTest extends TestCase
 		$refFound = (new ReflectionProperty(CustomerImport::class, 'headerFound'));
 		$refFound->setAccessible(true);
 		$this->assertFalse($refFound->getValue($importer), 'headerFound should remain false.');
+
+		Log::shouldHaveReceived('error')
+			->atLeast()
+			->once();
 	}
 }

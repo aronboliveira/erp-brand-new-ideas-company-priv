@@ -44,7 +44,9 @@ class LeadSeeder extends Seeder
 		$sourceIds       = Schema::hasTable('sources')             ? DB::table('sources')->pluck('id')->all()             : [];
 
 		$target = (int) ($this->command instanceof \Illuminate\Console\Command && $this->command?->hasOption('count') ? $this->command?->option('count') : self::DEFAULT_COUNT);
-		$target = max(1, $target);
+		// original: $target = max(1, $target);
+		$HARD_CAP = 12;
+		$target = min($HARD_CAP, max(1, $target));
 
 		$inserted = 0;
 		DB::beginTransaction();
@@ -123,14 +125,14 @@ class LeadSeeder extends Seeder
 								'caller'            => $callerId,
 								'involved'          => $involved,     // cast → array(json)
 							];
-							(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Lead {$name} sobre {$subject} endereçado para {$email} / {$phone} no pipeline {$pplId}");
+							// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Lead {$name} sobre {$subject} endereçado para {$email} / {$phone} no pipeline {$pplId}");
 						// Cria via Model (aciona booted::saving para normalizações)
 							/** @var Lead $lead */
 							$lead = Lead::query()->create($payload);
 
-							// Auditoria (guarded): atribuir depois e salvar
-							if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_CREATOR) && $this->maybe(0.35)) {
-								$lead->{DC::COL_TABLE_CREATOR} = $userIds ? Arr::random($userIds) : null;
+							// Auditoria (guarded): always assign to system user for dashboard visibility
+							if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_CREATOR)) {
+								$lead->{DC::COL_TABLE_CREATOR} = DC::DEFAULT_UUID;
 							}
 							if (Schema::hasColumn(DC::TABLE_LEADS, DC::COL_TABLE_UPDATER) && $this->maybe(0.25)) {
 								$lead->{DC::COL_TABLE_UPDATER} = $userIds ? Arr::random($userIds) : null;

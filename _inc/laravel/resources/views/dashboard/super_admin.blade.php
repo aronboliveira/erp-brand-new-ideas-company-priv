@@ -1,10 +1,8 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants
-    };
+    try {
+} catch (\Throwable $e) {
+        \Log::error('dashboard/super_admin — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -16,150 +14,69 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script async>
         (() => {
-            const errFb = '# ERROR';
-            const dataClientLocalized = 'data-client-localized';
-            const dataGuardMsg = 'data-guard-msg';
-            const langSessionKey = 'erp-np-lang';
-            const getLocalizedMessage = (msgKey, el) => {
-                let msg = errFb;
-                if (
-                el.getAttribute('data-sv-localized') === 'true' ||
-                el.getAttribute(dataClientLocalized) === 'true'
-                ) {
-                msg = el.getAttribute(dataGuardMsg) ?? errFb;
-                } else {
-                let lang = (
-                    window.sessionStorage.getItem(langSessionKey) ??
-                    document.documentElement.lang ??
-                    'en'
-                )
-                    .toLowerCase()
-                    .replace(/_/g, '-');
-                lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-                msg =
-                    window.translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    window.translations?.['en']?.[msgKey] ??
-                    errFb;
-                if (msg !== errFb) {
-                    el.setAttribute(dataGuardMsg, msg);
-                    el.setAttribute(dataClientLocalized, 'true');
-                }
-                }
-                return msg;
-            };
-            const showError = message => {
-                try {
-                let container = document.querySelector('#bootstrap-toast-container');
-                if (!container) {
-                    const hasBs =
-                    Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                        .some(l => /bootstrap/i.test(l.href)) &&
-                    window.bootstrap?.Toast;
-                    if (hasBs) {
-                    container = document.createElement('div');
-                    container.id = 'bootstrap-toast-container';
-                    container.setAttribute('aria-live', 'polite');
-                    container.setAttribute('aria-atomic', 'true');
-                    document.body.appendChild(container);
-                    }
-                }
-                if (container && window.bootstrap.Toast) {
-                    let toast = container.querySelector('.toast');
-                    if (!toast) {
-                    toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    toast.appendChild(body);
-                    container.appendChild(toast);
-                    if (toast.getAttribute('data-click-listener') !== 'true') {
-                        toast.addEventListener('click', () => body.textContent = message);
-                        toast.setAttribute('data-click-listener', 'true');
-                    }
-                    }
-                    toast.querySelector('.toast-body').textContent = message;
-                    new bootstrap.Toast(toast).show();
-                } else {
-                    alert(message);
-                }
-                } catch {
-                alert(message);
-                }
-            };
+            const RG = window.RouteGuard || {};
+            const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '');
+            const showError = RG.showToast || (m => { if (m) console.warn('[Dashboard]', m); });
             let errorMessage = '';
             const onErrorPointerUp = () => {
-                if (errorMessage) {
-                showError(errorMessage);
-                errorMessage = '';
-                }
+                if (errorMessage) { showError(errorMessage); errorMessage = ''; }
             };
             document.addEventListener('pointerup', onErrorPointerUp);
-            new MutationObserver((mutations, obs) => {
-                for (const m of mutations) {
-                for (const n of m.removedNodes) {
-                    if (n === document.documentElement) {
-                    document.removeEventListener('pointerup', onErrorPointerUp);
-                    obs.disconnect();
-                    }
-                }
-                }
-            }).observe(document.body, { childList: true, subtree: true });
-            
             try {
                 const mountEl = document.querySelector('#chart-sales');
                 if (!mountEl) throw new Error();
-                if (!window.ApexCharts) {
-                console.log('ApexCharts library missing');
-                return;
-                }
+                if (!window.ApexCharts) { console.log('ApexCharts library missing'); return; }
                 const dataSeries = {!! json_encode($chartData['data']) !!} ?? [];
                 const dataLabels = {!! json_encode($chartData['label']) !!} ?? [];
                 const chartOptions = {
-                series: [{ name: '{{ __("Income") }}', data: dataSeries }],
-                chart: { height: 300, type: 'area', dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
-                dataLabels: { enabled: false },
-                stroke: { width: 2, curve: 'smooth' },
-                title: { text: '', align: 'left' },
-                xaxis: { categories: dataLabels, title: { text: '{{ __("Months") }}' } },
-                grid: { strokeDashArray: 4 },
-                legend: { show: false },
-                yaxis: { title: { text: '{{ __("Income") }}' } }
+                    series: [{ name: '{{ __("Income") }}', data: dataSeries }],
+                    chart: { height: 300, type: 'area', dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
+                    dataLabels: { enabled: false },
+                    stroke: { width: 2, curve: 'smooth' },
+                    title: { text: '', align: 'left' },
+                    xaxis: { categories: dataLabels, title: { text: '{{ __("Months") }}' } },
+                    grid: { strokeDashArray: 4 },
+                    legend: { show: false },
+                    yaxis: { title: { text: '{{ __("Income") }}' } }
                 };
-                const chart = new ApexCharts(mountEl, chartOptions);
-                chart.render().catch(() => {
-                errorMessage = getLocalizedMessage('chart_render_failed', mountEl);
+                new ApexCharts(mountEl, chartOptions).render().catch(() => {
+                    errorMessage = getMsg('chart_render_failed', mountEl);
                 });
             } catch {
-                errorMessage = getLocalizedMessage('chart_render_failed', document.body);
+                errorMessage = getMsg('chart_render_failed', document.body);
             }
         })();
     </script>
 @endpush
 @php
-    $admin_payment_setting = Utility::getAdminPaymentSetting();
-    $cards=[
-        ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user['total_user'] ?? 0,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user'] ?? 0],
-        ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user['totalOrders'] ?? 0,'sub'=>__('Total Order Amount'),'subValue'=>(isset($admin_payment_setting['currency_symbol'])?$admin_payment_setting['currency_symbol']:'$').($user['totalOrders_price'] ?? 0)],
-        ['bg'=>'bg-info','icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user['total_plan'] ?? 0,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan'] ?? '']
-    ];
+    try {
+        $admin_payment_setting = Utility::getAdminPaymentSetting();
+        $cards=[
+            ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user?->total_user,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user']],
+            ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user?->totalOrders,'sub'=>__('Total Order Amount'),'subValue'=>(isset($admin_payment_setting['currency_symbol'])?$admin_payment_setting['currency_symbol']:'$').$user['totalOrders_price']],
+            ['bg'=>'bg-info','icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user?->total_plan,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan']]
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('dashboard/super_admin — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @section('content')
     <div class="row">
         @php
-            $cards=[
-                ['bg'=>ViewClassNamesConstants::BG_P,'icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user['total_user'] ?? 0,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user'] ?? 0],
-                ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user['totalOrders'] ?? 0,'sub'=>__('Total Order Amount'),'subValue'=>($admin_payment_setting['currency_symbol'] ?? '$').($user['totalOrders_price'] ?? 0)],
-                ['bg'=>ViewClassNamesConstants::BG_TPR,'icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user['total_plan'] ?? 0,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan'] ?? '']
-            ];
-        @endphp
-        @foreach($cards as $c)
-            <div class="col-lg-4 col-md-6">
+            try {
+                $cards=[
+                    ['bg'=>ViewClassNamesConstants::BG_P,'icon'=>ViewClassNamesConstants::TI_USRS,'header'=>__('Total Users'),'value'=>$user?->total_user,'sub'=>__('Paid Users'),'subValue'=>$user['total_paid_user']],
+                    ['bg'=>'bg-warning','icon'=>'ti ti-shopping-cart','header'=>__('Total Orders'),'value'=>$user?->totalOrders,'sub'=>__('Total Order Amount'),'subValue'=>($admin_payment_setting['currency_symbol'] ?? '$').$user['totalOrders_price']],
+                    ['bg'=>ViewClassNamesConstants::BG_TPR,'icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user?->total_plan,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan']]
+                ];
+            } catch (\Throwable $e) {
+                \Log::error('dashboard/super_admin — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
+        @foreach($cards ?? [] as $c)
+            <div class="{{ VC::CL4 }} {{ VC::CM6 }}">
                 <div class="{{ ViewClassNamesConstants::CD }}">
-                    <div class="card-body p-3">
+                    <div class="{{ VC::CD_BD }} p-3">
                         <div class="{{ ViewClassNamesConstants::DFL_AIC_JCB }}">
                             <div class="{{ ViewClassNamesConstants::DFL_AIC }}">
                                 <div class="theme-avatar {{ $c['bg'] }}">

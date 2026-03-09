@@ -11,6 +11,8 @@ class BillsConstants
 	public const COL_PPS_TMP = 'proposal_template';
 	public const COL_BIL_TMP = 'bill_template';
 	public const COL_POS_TMP = 'pos_template';
+	public const COL_BL_ = self::COL_POS_TMP;
+	// Alias used in POS settings views
 	public const COL_PAY_SLP_NM = 'name';
 	public const COL_TAX_NM = 'name';
 	public const COL_TAX_RT = 'rate';
@@ -239,12 +241,10 @@ class BillsConstants
 	public const COL_WRN_TRSH = 'warn_threshold';
 	public const COL_CRT_WRN_TH = 'critical_warning_threshold';
 	public const COL_CARD_NTS = 'card_notes';
-	public const COL_BIL_ID = 'bill_id';
 	public const COL_REF_ID = 'ref_id';
 	public const COL_PRC_ID = 'purchase_id';
 	public const COL_PRC_DT = 'purchase_date';
 	public const COL_PRC_NB = 'purchase_number';
-	public const COL_OTHER_TX = 'other_taxes';
 	public const COL_FROM_WRH = 'from_warehouse';
 	public const COL_TO_WRH = 'to_warehouse';
 	public const COL_QTY_RCV = 'quantity_received';

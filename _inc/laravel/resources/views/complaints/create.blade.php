@@ -1,30 +1,43 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        PlansConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $user = Auth::user();
-    $lang       = Utility::fetchUserLang(user: $user);
-    $routeName  = ViewsConstants::CPL;
-    $storeRoute = Route::has($routeName)
-        ? route($routeName)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName))
-            : '#');
-    $formId     = 'complaintStoreForm';
-    $guardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPL,
-        'complaint_store_route_unavailable'
-    ) ?? 'Complaint store route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$routeName ??= '';
+	$storeRoute ??= '#';
+	$formId ??= 'complaintStoreForm';
+	$guardMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$routeName = ViewsConstants::CPL;
+		$storeRoute = Route::has($routeName)
+			? (route($routeName) ?? '#')
+			: (Route::has(Str::kebab($routeName))
+				? (route(Str::kebab($routeName)) ?? '#')
+				: '#');
+		$guardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CPL, 'complaint_store_route_unavailable')
+			?? 'Complaint store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in complaints/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in complaints/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in complaints/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {{ Form::open([
     'route'          => [$storeRoute],
@@ -34,18 +47,24 @@
     'data-guard-msg' => $guardMsg,
 ]) }}
     <div class="{{ VC::RW }} modal-body">
-        @php $plan = Utility::getChatGPTSettings(); @endphp
+        @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             @php
-                $aiGenerateRouteBase             = 'generate';
-                $aiGenerateRouteKebab            = Str::kebab($aiGenerateRouteBase);
-                $aiGenerateResolvedName          = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
-                $aiGenerateTopic                 = 'complaint';
-                $aiGenerateComplaintUrl          = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
-                $aiGenerateLang                  = isset($lang) ? $lang : Utility::fetchUserLang();
-                $aiGenerateComplaintGuardMsg     = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPL, 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
-                $aiGenerateComplaintLinkId       = 'ai-generate-complaint-link';
-            @endphp
+                $aiGenerateRouteBase             ??= 'generate';
+                try {
+                    $aiGenerateRouteKebab            = Str::kebab($aiGenerateRouteBase);
+                    $aiGenerateResolvedName          = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
+                    $aiGenerateTopic                 = 'complaint';
+                    $aiGenerateComplaintUrl          = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
+                    $aiGenerateLang                  = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $aiGenerateComplaintGuardMsg     = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPL, 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
+                    $aiGenerateComplaintLinkId       = 'ai-generate-complaint-link';
+                } catch (\Throwable $e) {
+                    \Log::error('complaints/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <div class="{{ VC::FEND }}">
                 <a href="{{ $aiGenerateComplaintUrl }}"
                 id="{{ $aiGenerateComplaintLinkId }}"
@@ -55,7 +74,7 @@
                 data-url="{{ $aiGenerateComplaintUrl }}"
                 data-bs-placement="top"
                 data-title="{{ __('Generate content with AI') }}"
-                data-guard-msg="{{ $aiGenerateComplaintGuardMsg }}"
+                data-guard-msg="{{ base64_encode($aiGenerateComplaintGuardMsg) }}"
                 data-sv-localized="true">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
@@ -65,7 +84,7 @@
         @endif
         @php
             $isEmployeesEmpty = empty($employees) || (is_array($employees) && count($employees) === 0) || ($employees instanceof Collection && $employees->isEmpty());
-        @endphp
+@endphp
         <div class="{{ VC::RW }}">
             @if($user?->{UsersConstants::COL_TP} !== 'employee')
                 <div class="{{ VC::FM_G }} col-md-6 col-lg-6">

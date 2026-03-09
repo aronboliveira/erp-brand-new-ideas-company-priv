@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{PurchasePayment, BankAccount};
 
 class PurchasePaymentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -36,9 +42,7 @@ class PurchasePaymentTest extends TestCase
 
 		$pp = PurchasePayment::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $pp->$field);
-		}
+		$this->assertFillableMatches($data, $pp);
 	}
 
 	/**
@@ -70,9 +74,9 @@ class PurchasePaymentTest extends TestCase
 	{
 		$relation = (new PurchasePayment)->bankAccount();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(BankAccount::class,     get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('account_id',           $relation->getLocalKeyName());
+		$this->assertSame('account_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',           $relation->getOwnerKeyName());
 	}
 }

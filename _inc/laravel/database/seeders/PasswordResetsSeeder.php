@@ -46,9 +46,12 @@ final class PasswordResetsSeeder extends Seeder
 			// Per-email second offsets to avoid same-second collisions on unique composites.
 			$secOffsetByEmail = [];
 
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
+			$resetCreated = 0;
 			$rows = [];
 
 			foreach ($emails as $email) {
+				if ($resetCreated >= $HARD_CAP) break;
 				$tries = random_int(1, 3);
 
 				// Base time: random in the last 60 days, aligned to seconds.
@@ -61,6 +64,7 @@ final class PasswordResetsSeeder extends Seeder
 				$secOffsetByEmail[$email] = $secOffsetByEmail[$email] ?? random_int(0, 20);
 
 				foreach (range(1, $tries) as $i) {
+					if ($resetCreated >= $HARD_CAP) break 2; // Hard cap guard
 					$plain = Str::random(64);
 					$token = Hash::make($plain);
 
@@ -84,6 +88,7 @@ final class PasswordResetsSeeder extends Seeder
 						DC::COL_TABLE_CREATOR => $systemUserId,
 						DC::COL_TABLE_UPDATER => $systemUserId,
 					];
+					$resetCreated++;
 				}
 			}
 

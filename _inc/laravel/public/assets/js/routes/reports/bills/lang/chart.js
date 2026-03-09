@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (function () {
   if (!window.translations) {
     window.translations = {};

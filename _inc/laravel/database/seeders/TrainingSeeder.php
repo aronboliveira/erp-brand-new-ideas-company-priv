@@ -61,14 +61,17 @@ class TrainingSeeder extends Seeder
 			return;
 		}
 		$this->output ??= new \Symfony\Component\Console\Output\ConsoleOutput();
-		$cap = 1024;
+		$cap = 2; // was 1024
+		$HARD_CAP = 2;
+		$SECONDS_LIMIT = 32;
+		$clock = microtime(true);
 		foreach ($employees as $empId) {
-			if ($cap <= 0 || !$cap) break;
+			if ($cap <= 0 || !$cap || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 			$perEmployee = random_int(1, 8);
 			for ($i = 0; $i < $perEmployee; $i++) {
-				if ($cap <= 0 || !$cap) break;
+				if ($cap <= 0 || !$cap || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 				$cap--;
-				$this->output->writeln("Seeding training for employee $empId (" . ($i + 1) . "/$perEmployee)");
+				// $this->output->writeln("Seeding training for employee $empId (" . ($i + 1) . "/$perEmployee)");
 				Training::query()->create(
 					$this->makeRow((string) $empId, $types, $trainers, $companies, $branches, $docs)
 				);
@@ -133,7 +136,7 @@ class TrainingSeeder extends Seeder
 			$requiredCerts = $this->pickMany($docs, random_int(1, min(3, count($docs))));
 		}
 		$this->output ??= new \Symfony\Component\Console\Output\ConsoleOutput();
-		$this->output->writeln("Seeding training for employee $employeeId");
+		// $this->output->writeln("Seeding training for employee $employeeId");
 		return [
 			'name' => null,
 
@@ -166,6 +169,7 @@ class TrainingSeeder extends Seeder
 			CC::COL_RQ_CERT => $requiredCerts,
 			'tags' => $this->maybeArray(60, ['training', 'hrm', 'compliance']),
 			'metadata' => $this->maybeArray(60, ['seed' => true, 'v' => 1]),
+			DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
 		];
 	}
 

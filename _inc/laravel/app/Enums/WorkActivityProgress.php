@@ -18,7 +18,7 @@ enum WorkActivityProgress: string
 		if ($value === null)
 			return self::Pending;
 
-		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			'pending', 'pendente', 'pendiente', 'enattente', 'wartend', '未定' => self::Pending,
 			'started', 'iniciado', 'iniciada', 'commence', 'begonnen', '開始' => self::Started,

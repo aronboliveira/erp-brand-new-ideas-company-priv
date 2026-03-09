@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{Complaint, Employee};
 
 class ComplaintTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -28,15 +33,12 @@ class ComplaintTest extends TestCase
 			'employee_id'       => $owner->id,
 			'title'             => 'Late Delivery',
 			'description'       => 'Package arrived 3 days late',
-			'created_by'        => 'admin_user',
 			'complaint_date'    => '2025-05-22',
 		];
 
 		$complaint = Complaint::create($data);
 
-		foreach ($data as $key => $value) {
-			$this->assertEquals($value, $complaint->$key);
-		}
+		$this->assertFillableMatches($data, $complaint);
 	}
 
 	/**
@@ -52,7 +54,6 @@ class ComplaintTest extends TestCase
 			'employee_id'       => Employee::factory()->create()->id,
 			'title'             => 'Test',
 			'description'       => 'Desc',
-			'created_by'        => 'user1',
 			'complaint_date'    => '2025-05-22',
 		]);
 
@@ -76,10 +77,10 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->complaintAgainst();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('complaint_against', $relation->getLocalKeyName());
+		$this->assertSame('complaint_against',                $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -91,10 +92,10 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->complaintFrom();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('id',             $relation->getForeignKeyName());
-		$this->assertSame('complaint_from', $relation->getLocalKeyName());
+		$this->assertSame('complaint_from',             $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -106,9 +107,9 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->employee();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('id',          $relation->getForeignKeyName());
-		$this->assertSame('employee_id', $relation->getLocalKeyName());
+		$this->assertSame('employee_id',          $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 }

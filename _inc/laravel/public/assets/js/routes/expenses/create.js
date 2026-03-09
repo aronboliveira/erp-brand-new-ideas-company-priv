@@ -1,5 +1,13 @@
 // assets/js/routes/expenses/create.js
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const qs = (s, r = document) => r.querySelector(s);
     const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -8,34 +16,6 @@
       if (el.getAttribute(attr) === "true") return false;
       el.setAttribute(attr, "true");
       return true;
-    };
-    const toast = msg => {
-      const hasBootstrap = !!(
-        document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-      );
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      if (hasBootstrap) {
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = msg;
-        t.appendChild(b);
-        container.appendChild(t);
-        bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(msg);
-      }
     };
 
     const guardForm = fm => {
@@ -48,9 +28,9 @@
           if (url !== "#" && action !== "#") return;
           e.preventDefault();
           const msg =
-            fm.getAttribute("data-guard-msg") ??
-            "Store expense route is unavailable. Please contact technical support or your domain administrator.";
-          toast(msg);
+            fm.getAttribute("data-guard-msg") ||
+            getMsg("store_expense_unavailable");
+          scheduleError(msg, "submit");
           fm.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
@@ -66,9 +46,8 @@
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
           const msg =
-            a.getAttribute("data-guard-msg") ??
-            "Route is unavailable. Please contact technical support or your domain administrator.";
-          toast(msg);
+            a.getAttribute("data-guard-msg") || getMsg("route_unavailable");
+          scheduleError(msg, "click");
           a.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
@@ -90,11 +69,12 @@
         if (!selectEl) return;
         const url = (selectEl.getAttribute("data-url") ?? "#").trim();
         const guard =
-          selectEl.getAttribute("data-guard-msg") ?? "Endpoint unavailable.";
+          selectEl.getAttribute("data-guard-msg") ||
+          getMsg("endpoint_unavailable");
         const id = selectEl.value;
         if (!id) return;
         if (url === "#") {
-          toast(guard);
+          scheduleError(guard, "change");
           return;
         }
         const token = (qs("#token")?.value ?? "").trim();
@@ -110,13 +90,7 @@
         const data = await res.json().catch(() => ({}));
         const detail = qs(detailSel);
         if (!detail) return;
-        detail.replaceChildren();
-        const _serverMarkup = data?.html ?? "";
-        if (_serverMarkup) {
-          const _tmpl = document.createElement("template");
-          _tmpl.innerHTML = _serverMarkup;
-          detail.append(_tmpl.content);
-        }
+        detail.innerHTML = data?.html ?? "";
         detail.classList.toggle(
           "d-none",
           !(data?.html && String(data.html).trim().length),
@@ -228,8 +202,7 @@
             if (price && data?.price !== undefined)
               price.value = String(data.price ?? "");
             if (taxesBox && data?.taxesHtml !== undefined)
-              // SECURITY: Use safe HTML insertion instead of innerHTML
-              safeSethtmlContent(taxesBox, String(data.taxesHtml ?? ""));
+              taxesBox.innerHTML = String(data.taxesHtml ?? "");
             if (taxRate && data?.taxRate !== undefined)
               taxRate.value = String(data.taxRate ?? "");
             if (taxPrice && data?.taxPrice !== undefined)

@@ -15,10 +15,12 @@ class UsersConstants
 	public const COL_SL = 'storage_limit';
 	public const COL_AV = 'avatar';
 	public const COL_MC = 'messenger_color';
+	public const COL_MSG_CL = self::COL_MC;
 	public const COL_LG = 'lang';
 	public const COL_DPL = 'default_pipeline';
 	public const COL_A_ST = 'active_status';
 	public const COL_D_ST = 'delete_status';
+	public const COL_DEL_STT = self::COL_D_ST;
 	public const COL_MD = 'mode';
 	public const COL_DM = 'dark_mode';
 	public const COL_IA = 'is_active';
@@ -45,8 +47,6 @@ class UsersConstants
 	public const COL_TEL = 'phone';
 	public const COL_ADR = 'address';
 	public const COL_IU = 'is_user';
-	public const COL_MSG_CL = 'messenger_color';
-	public const COL_DEL_STT = 'delete_status';
 	public const COL_ACC_HD = 'account_holder_name';
 	public const COL_ACC_NM = 'account_number';
 	public const COL_BANK_NM = 'bank_name';
@@ -72,5 +72,4 @@ class UsersConstants
 	public const COL_VD_ID = 'vendor_id';
 	public const COL_ENT_TP = 'entity_type';
 	public const COL_ENT_CD = 'entity_code';
-	public const COL_RQ_PLN = 'requested_plan';
 }

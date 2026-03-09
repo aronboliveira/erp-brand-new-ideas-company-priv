@@ -5,7 +5,7 @@ namespace Tests\Unit\Exports;
 use App\Exports\AccountStatementExport;
 use App\Models\Revenue;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 class AccountStatementExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -27,9 +27,13 @@ class AccountStatementExportTest extends TestCase
 		$user = User::factory()->create();
 		$other = User::factory()->create();
 
-		// Create statements for both users
-		Revenue::factory()->count(2)->create(['created_by' => $user?->id]);
-		Revenue::factory()->count(1)->create(['created_by' => $other->id]);
+		// Create statements for $user (Auth must be active for HasAuditFields)
+		Auth::login($user);
+		Revenue::factory()->count(2)->create();
+
+		// Create statements for other user
+		Auth::login($other);
+		Revenue::factory()->count(1)->create();
 
 		Auth::login($user);
 
@@ -41,11 +45,19 @@ class AccountStatementExportTest extends TestCase
 
 		// Each record must exclude the removed attributes
 		$collection->each(function ($statement) {
-			foreach ([
-				'account_id', 'add_receipt', 'category_id', 'created_at',
-				'created_by', 'customer_id', 'payment_method', 'reference',
-				'updated_at'
-			] as $attr) {
+			foreach (
+				[
+					'account_id',
+					'add_receipt',
+					'category_id',
+					'created_at',
+					'created_by',
+					'customer_id',
+					'payment_method',
+					'reference',
+					'updated_at'
+				] as $attr
+			) {
 				$this->assertFalse(isset($statement->{$attr}), "Attribute {$attr} still present.");
 			}
 		});

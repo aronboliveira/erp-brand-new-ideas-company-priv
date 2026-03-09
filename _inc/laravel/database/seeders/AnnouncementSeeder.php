@@ -257,13 +257,13 @@ class AnnouncementSeeder extends Seeder
 				}
 			}
 
-			// Ensure we have exactly 256 titles
-			while (count($titles) < 256) {
+			// Ensure we have exactly 4 titles (was 256)
+			while (count($titles) < 4) {
 				$titles[] = 'Profissional Multidisciplinar ' . (count($titles) + 1);
 			}
 
-			// Trim array to exactly 256
-			$titles = array_slice($titles, 0, 256);
+			// Trim array to exactly 4 (was 256)
+			$titles = array_slice($titles, 0, 4);
 
 			echo "Total de cargos: " . count($titles) . "\n";
 			echo "Cargos únicos: " . count(array_unique($titles)) . "\n";
@@ -424,8 +424,8 @@ class AnnouncementSeeder extends Seeder
 			echo "Array has {$finalCount} elements (2^{$logResult}) which is a power of 2!";
 			foreach ($titles as $baseTitle) {
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Anúncio: {$baseTitle}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Anúncio: {$baseTitle}");
 					$branchId = $this->pick($branchIds);
 					$deptId   = $this->pick($deptIds);
 					$employee = $this->pickOrNull($empIds, 0.7);
@@ -505,7 +505,7 @@ class AnnouncementSeeder extends Seeder
 							'requirements'       => $requirements,
 							'tags'               => $tags,
 							'steps'              => $steps,
-							DC::COL_TABLE_CREATOR    => null, // preencha se desejar atrelar usuário criador
+							DC::COL_TABLE_CREATOR    => DC::DEFAULT_UUID,
 						]
 					);
 				} catch (\Exception $e) {

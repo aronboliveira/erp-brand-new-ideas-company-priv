@@ -1,70 +1,60 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        SettingsConstants as SC,
-        StacksConstants,
-        UsersConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    /** @var \App\Models\User|null $user */
-    $user = Auth::user();
+    try {
+$user = Auth::user();
 
-    $lang = Utility::fetchUserLang(user: $user);
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $ns = VW::DL;
+        $ns = VW::DL;
 
-    $kanbanName  = "{$ns}.index";
-    $createName  = "{$ns}.create";
-    $showName    = "{$ns}.show";
-    $editName    = "{$ns}.edit";
-    $destroyName = "{$ns}.destroy";
+        $kanbanName  = "{$ns}.index";
+        $createName  = "{$ns}.create";
+        $showName    = "{$ns}.show";
+        $editName    = "{$ns}.edit";
+        $destroyName = "{$ns}.destroy";
 
-    $hasKanban  = Route::has($kanbanName);
-    $hasCreate  = Route::has($createName);
-    $hasShow    = Route::has($showName);
-    $hasEdit    = Route::has($editName);
-    $hasDelete  = Route::has($destroyName);
+        $hasKanban  = Route::has($kanbanName);
+        $hasCreate  = Route::has($createName);
+        $hasShow    = Route::has($showName);
+        $hasEdit    = Route::has($editName);
+        $hasDelete  = Route::has($destroyName);
 
-    $kanbanGuard  = Utility::fetchLinkMessage($lang, $ns, 'deals_index_route_unavailable')
-        ?? 'Deals Kanban route is unavailable. Please contact technical support or your domain administrator.';
-    $createGuard  = Utility::fetchLinkMessage($lang, $ns, 'deals_create_route_unavailable')
-        ?? 'Deal create route is unavailable. Please contact technical support or your domain administrator.';
-    $showGuard    = Utility::fetchLinkMessage($lang, $ns, 'deal_show_route_unavailable')
-        ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
-    $editGuard    = Utility::fetchLinkMessage($lang, $ns, 'deals_edit_route_unavailable')
-        ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
-    $deleteGuard  = Utility::fetchLinkMessage($lang, $ns, 'deal_destroy_route_unavailable')
-        ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
+        $kanbanGuard  = Utility::fetchLinkMessage($lang, $ns, 'deals_index_route_unavailable')
+            ?? 'Deals Kanban route is unavailable. Please contact technical support or your domain administrator.';
+        $createGuard  = Utility::fetchLinkMessage($lang, $ns, 'deals_create_route_unavailable')
+            ?? 'Deal create route is unavailable. Please contact technical support or your domain administrator.';
+        $showGuard    = Utility::fetchLinkMessage($lang, $ns, 'deal_show_route_unavailable')
+            ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
+        $editGuard    = Utility::fetchLinkMessage($lang, $ns, 'deals_edit_route_unavailable')
+            ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
+        $deleteGuard  = Utility::fetchLinkMessage($lang, $ns, 'deal_destroy_route_unavailable')
+            ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
 
-    $cntRaw = $cntDeal ?? null;
-    if (Utility::isFilled($cntRaw))
-        $totals = $cntRaw;
-    else {
-        $currencySymbol = $settings[SC::CR_SB] ?? '';
-        $position       = $settings[SC::CR_SB_P] ?? '';
-        $amount         = '—';
-        $display = match ($position) {
-            'pre' => $currencySymbol . $amount,
-            'pos' => $amount . ($currencySymbol ? ' ' . $currencySymbol : ''),
-            default => $amount,
-        };
-        $totals = [
-            'total'       => $display,
-            'this_month'  => $display,
-            'this_week'   => $display,
-            'last_30days' => $display,
-        ];
+        $cntRaw = $cntDeal ?? null;
+        if (Utility::isFilled($cntRaw))
+            $totals = $cntRaw;
+        else {
+            $currencySymbol = $settings[SC::CR_SB] ?? '';
+            $position       = $settings[SC::CR_SB_P] ?? '';
+            $amount         = '—';
+            $display = match ($position) {
+                'pre' => $currencySymbol . $amount,
+                'pos' => $amount . ($currencySymbol ? ' ' . $currencySymbol : ''),
+                default => $amount,
+            };
+            $totals = [
+                'total'       => $display,
+                'this_month'  => $display,
+                'this_week'   => $display,
+                'last_30days' => $display,
+            ];
+        }
+        $dealsList = (isset($deals) && (is_array($deals) || $deals instanceof \Illuminate\Support\Collection))
+            ? $deals
+            : [];
+        $isPriceFormatAvailable = method_exists($user, 'priceFormat');
+    } catch (\Throwable $e) {
+        \Log::error('deals/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
-    $dealsList = (isset($deals) && (is_array($deals) || $deals instanceof \Illuminate\Support\Collection))
-        ? $deals
-        : [];
-    $isPriceFormatAvailable = method_exists($user, 'priceFormat');
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -201,26 +191,26 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Deal') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Deal') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $kanbanUrl = $hasKanban ? route($kanbanName) : '#';
             $createUrl = $hasCreate ? route($createName) : '#';
-        @endphp
+@endphp
         <a
             id="deals-kanban-btn"
             href="{{ $kanbanUrl }}"
             data-url="{{ $kanbanUrl }}"
-            data-guard-msg="{{ $kanbanGuard }}"
+            data-guard-msg="{{ base64_encode($kanbanGuard) }}"
             data-bs-toggle="tooltip"
             title="{{ __('Kanban View') }}"
             class="{{ VC::BT_SM_PM }}"
@@ -232,7 +222,7 @@
             id="deals-create-btn"
             href="{{ $createUrl }}"
             data-url="{{ $createUrl }}"
-            data-guard-msg="{{ $createGuard }}"
+            data-guard-msg="{{ base64_encode($createGuard) }}"
             data-size="lg"
             data-ajax-popup="true"
             data-bs-toggle="tooltip"
@@ -273,7 +263,7 @@
                                 <h4 class="{{ VC::MB0 }}">{{ $totals['this_month'] ?? __('No totals for this month') }}</h4>
                             </div>
                             <div class="{{ VC::C_AT }}">
-                                <div class="theme-avatar bg-primary">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-layers-difference"></i>
                                 </div>
                             </div>
@@ -317,10 +307,10 @@
             </div>
         </div>
         <div class="{{ VC::RW }}">
-            <div class="col-xl-12">
+            <div class="{{ VC::CXL12 }}">
                 <div class="{{ VC::CD }}">
                     <div class="{{ VC::CD }}-body table-border-style">
-                        <div class="table-responsive">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="table datatable">
                                 <thead>
                                 <tr>
@@ -336,16 +326,20 @@
                                 @if( (is_countable($dealsList) ? count($dealsList) : 0) > 0 )
                                     @foreach ($dealsList as $deal)
                                         @php
-                                            $dealId      = $deal->id ?? null;
-                                            $dealName    = $deal->name ?? __('No deal name available');
-                                            $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
-                                            $stageName   = $deal->stage->name ?? __('—');
-                                            $tasksCount  = is_countable($deal->tasks ?? []) ? count($deal->tasks) : 0;
-                                            $doneCount   = is_countable($deal->complete_tasks ?? []) ? count($deal->complete_tasks) : 0;
-                                            $viewUrl     = ($hasShow && !empty($deal->is_active) && $dealId) ? route($showName, $dealId) : '#';
-                                            $editUrl     = ($hasEdit && $dealId) ? route($editName, $dealId) : '#';
-                                            $deleteUrl   = ($hasDelete && $dealId) ? route($destroyName, $dealId) : '#';
-                                        @endphp
+                                            try {
+                                                $dealId      = $deal->id ?? null;
+                                                $dealName    = $deal->name ?? __('No deal name available');
+                                                $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
+                                                $stageName   = $deal->stage->name ?? __('—');
+                                                $tasksCount  = is_countable($deal->tasks ?? []) ? count($deal->tasks) : 0;
+                                                $doneCount   = is_countable($deal->complete_tasks ?? []) ? count($deal->complete_tasks) : 0;
+                                                $viewUrl     = ($hasShow && !empty($deal->is_active) && $dealId) ? route($showName, $dealId) : '#';
+                                                $editUrl     = ($hasEdit && $dealId) ? route($editName, $dealId) : '#';
+                                                $deleteUrl   = ($hasDelete && $dealId) ? route($destroyName, $dealId) : '#';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('deals/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $dealName }}</td>
                                             <td>
@@ -354,17 +348,23 @@
                                             <td>{{ $stageName }}</td>
                                             <td>{{ $tasksCount }}/{{ $doneCount }}</td>
                                             <td>
-                                                @php $dealUsers = $deal->users ?? []; @endphp
+                                                @php
+ $dealUsers = $deal->users ?? [];
+@endphp
                                                 @if(Utility::isFilled($dealUsers))
                                                     @foreach($dealUsers as $assignee)
                                                         @php
-                                                            $avatar = !empty($assignee->avatar)
-                                                                ? asset('storage/uploads/avatar/'.$assignee->avatar)
-                                                                : asset('storage/uploads/avatar/avatar.png');
-                                                            $assigneeName = $assignee->name ?? '';
-                                                        @endphp
-                                                        <a href="#" class="btn btn-sm p-0 rounded-circle" tabindex="-1" aria-label="{{ $assigneeName }}">
-                                                            <img alt="{{ __('avatar') }}" data-bs-toggle="tooltip" title="{{ $assigneeName }}"
+                                                            try {
+                                                                $avatar = !empty($assignee->avatar)
+                                                                    ? asset('storage/uploads/avatar/'.$assignee->avatar)
+                                                                    : asset('storage/uploads/avatar/avatar.png');
+                                                                $assigneeName = $assignee->name ?? '';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('deals/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
+                                                        <a href="#" class="{{ VC::BT_SM }} p-0 rounded-circle" tabindex="-1" aria-label="{{ $assigneeName }}">
+                                                            <img alt="avatar" data-bs-toggle="tooltip" title="{{ $assigneeName }}"
                                                                  src="{{ $avatar }}" class="rounded-circle" width="25" height="25">
                                                         </a>
                                                     @endforeach
@@ -378,12 +378,12 @@
                                                     <span class="{{ VC::DFL_AIC }}">
                                                         @can('view deal')
                                                             @if(!empty($deal->is_active))
-                                                                <div class="action-btn bg-warning ms-2">
+                                                                <div class="{{ VC::ACT_BTN_WRN }}">
                                                                     <a
                                                                         id="deal-view-btn-{{ $dealId }}"
                                                                         href="{{ $viewUrl }}"
                                                                         data-url="{{ $viewUrl }}"
-                                                                        data-guard-msg="{{ $showGuard }}"
+                                                                        data-guard-msg="{{ base64_encode($showGuard) }}"
                                                                         class="{{ VC::BT_SM_FL_CT }}"
                                                                         data-size="xl"
                                                                         data-bs-toggle="tooltip"
@@ -397,12 +397,12 @@
                                                         @endcan
 
                                                         @can('edit deal')
-                                                            <div class="action-btn bg-info ms-2">
+                                                            <div class="{{ VC::ACT_BTN_INF }}">
                                                                 <a
                                                                     id="deal-edit-btn-{{ $dealId }}"
                                                                     href="{{ $editUrl }}"
                                                                     data-url="{{ $editUrl }}"
-                                                                    data-guard-msg="{{ $editGuard }}"
+                                                                    data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                     class="{{ VC::BT_SM_FL_CT }}"
                                                                     data-ajax-popup="true"
                                                                     data-size="xl"
@@ -416,7 +416,7 @@
                                                         @endcan
 
                                                         @can('delete deal')
-                                                            <div class="action-btn bg-danger ms-2">
+                                                            <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Form::open([
                                                                     'route'  => [$destroyName, $dealId],
                                                                     'method' => 'DELETE',
@@ -426,7 +426,7 @@
                                                                         id="deal-delete-btn-{{ $dealId }}"
                                                                         href="{{ $deleteUrl }}"
                                                                         data-url="{{ $deleteUrl }}"
-                                                                        data-guard-msg="{{ $deleteGuard }}"
+                                                                        data-guard-msg="{{ base64_encode($deleteGuard) }}"
                                                                         class="{{ VC::BT_SM_FL_CT }} bs-pass-para"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Delete') }}"

@@ -1,28 +1,42 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Model\Utility;
-    use Illuminate\Support\Facades\{Gate, Route};
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in appraisals/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in appraisals/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in appraisals/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Appraisal')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Appraisal')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Appraisal')}}</li>
 @endsection
 @push(StacksConstants::ADM_CSS)
     <style>
@@ -31,187 +45,52 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script defer src="{{ asset('js/bootstrap-toggle.js') }}"></script>
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/appraisals/lang/index.js') }}"></script>
     <script defer>
         (() => {
-          const errFb = '# ERROR';
-          const dataClientLocalized = 'data-client-localized';
-          const dataGuardMsg = 'data-guard-msg';
-          const langSessionKey = 'erp-np-lang';
-          const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') {
-              msg = el.getAttribute(dataGuardMsg) ?? errFb;
-            } else {
-              let lang = (window.sessionStorage.getItem(langSessionKey) ?? document.documentElement.lang ?? 'en')
-                .toLowerCase()
-                .replace(/_/g, '-');
-              lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-              msg = window.translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    window.translations?.['en']?.[msgKey] ??
-                    errFb;
-              if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-              }
-            }
-            return msg;
-          };
-          const showError = message => {
-            try {
-              let container = document.querySelector('#bootstrap-toast-container');
-              if (!container) {
-                const hasBs = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                  .some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
-                if (hasBs) {
-                  container = document.createElement('div');
-                  container.id = 'bootstrap-toast-container';
-                  container.setAttribute('aria-live', 'polite');
-                  container.setAttribute('aria-atomic', 'true');
-                  document.body.appendChild(container);
-                }
-              }
-              if (container && window.bootstrap.Toast) {
-                let toast = container.querySelector('.toast');
-                if (!toast) {
-                  toast = document.createElement('div');
-                  toast.className = 'toast';
-                  toast.setAttribute('role', 'alert');
-                  toast.setAttribute('aria-live', 'assertive');
-                  toast.setAttribute('aria-atomic', 'true');
-                  const body = document.createElement('div');
-                  body.className = 'toast-body';
-                  toast.appendChild(body);
-                  container.appendChild(toast);
-                  if (toast.getAttribute('data-click-listener') !== 'true') {
-                    toast.addEventListener('click', () => body.textContent = message);
-                    toast.setAttribute('data-click-listener', 'true');
-                  }
-                }
-                toast.querySelector('.toast-body').textContent = message;
-                new bootstrap.Toast(toast).show();
-              } else {
-                alert(message);
-              }
-            } catch {
-              alert(message);
-            }
-          };
-          let errorMessage = '';
-          const onErrorPointerUp = () => {
-            if (errorMessage) {
-              showError(errorMessage);
-              errorMessage = '';
-            }
-          };
-          document.addEventListener('pointerup', onErrorPointerUp);
-          new MutationObserver((ms, obs) => {
-            ms.forEach(m => m.removedNodes.forEach(n => {
-              if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onErrorPointerUp);
-                obs.disconnect();
-              }
-            }));
-          }).observe(document.body, { childList: true, subtree: true });
-          document.addEventListener('DOMContentLoaded', () => {
-            const empEl = document.getElementById('employee');
-            if (empEl && empEl.dataset.listenerAttached !== 'true') {
-              empEl.dataset.listenerAttached = 'true';
-              const obs1 = new MutationObserver((ms, obs) => {
-                ms.forEach(m => m.removedNodes.forEach(n => {
-                  if (n === empEl) {
-                    empEl.removeEventListener('change', onEmployeeChange);
-                    obs.disconnect();
-                  }
-                }));
-              });
-              obs1.observe(document.body, { childList: true, subtree: true });
-              empEl.addEventListener('change', onEmployeeChange);
-            }
-            const branchEl = document.getElementById('branch');
-            if (branchEl && branchEl.dataset.listenerAttached !== 'true') {
-              branchEl.dataset.listenerAttached = 'true';
-              const obs2 = new MutationObserver((ms, obs) => {
-                ms.forEach(m => m.removedNodes.forEach(n => {
-                  if (n === branchEl) {
-                    branchEl.removeEventListener('change', onBranchChange);
-                    obs.disconnect();
-                  }
-                }));
-              });
-              obs2.observe(document.body, { childList: true, subtree: true });
-              branchEl.addEventListener('change', onBranchChange);
-            }
-            if (empEl) onEmployeeChange.call(empEl);
-          });
-          function onEmployeeChange() {
-            loadStars(this.value);
-          }
-          function onBranchChange() {
-            loadEmployees(this.value);
-          }
-          function loadStars(empId) {
-            try {
-              const url = '{{ route("empByStar") }}';
-              if (!url || url === '#') {
-                errorMessage = getLocalizedMessage('emp_by_star_route_unavailable', document.getElementById('employee') || document.body);
-                return;
-              }
-              $.ajax({
-                url,
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                  employee: empId ?? '',
-                  _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
-                }
-              })
-              .done(data => {
-                const stEl = document.getElementById('stares');
-                if (stEl) stEl.innerHTML = data.html ?? '';
-              })
-              .fail(() => {
-                errorMessage = getLocalizedMessage('emp_by_star_unavailable', document.getElementById('employee') || document.body);
-              });
-            } catch {
-              errorMessage = getLocalizedMessage('emp_by_star_unavailable', document.getElementById('employee') || document.body);
-            }
-          }
-          function loadEmployees(branchId) {
-            try {
-              const url = '{{ route("getemployee") }}';
-              if (!url || url === '#') {
-                errorMessage = getLocalizedMessage('getemployee_route_unavailable', document.getElementById('branch') || document.body);
-                return;
-              }
-              $.ajax({
-                url,
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                  branch_id: branchId ?? '',
-                  _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
-                }
-              })
-              .done(data => {
+            const getMsg = (key, el) => window.RouteGuard?.getMsg?.(el, key) ?? el?.getAttribute?.('data-guard-msg') ?? '# ERROR';
+            const showError = msg => window.RouteGuard?.showToast?.(msg, 'error') ?? alert(msg);
+            const csrfToken = () => window.RouteGuard?.csrfToken?.() ?? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+            let errorMessage = '';
+            const onErrorPointerUp = () => { if (errorMessage) { showError(errorMessage); errorMessage = ''; } };
+            document.addEventListener('pointerup', onErrorPointerUp);
+            document.addEventListener('DOMContentLoaded', () => {
                 const empEl = document.getElementById('employee');
-                if (!empEl) return;
-                empEl.innerHTML = '<option value="">{{ __("Select Employee") }}</option>';
-                (data.employee || []).forEach(val => {
-                  const o = document.createElement('option');
-                  o.value = val.id;
-                  o.textContent = val.name;
-                  empEl.appendChild(o);
-                });
-              })
-              .fail(() => {
-                errorMessage = getLocalizedMessage('employee_fetch_unavailable', document.getElementById('branch') || document.body);
-              });
-            } catch {
-              errorMessage = getLocalizedMessage('employee_fetch_unavailable', document.getElementById('branch') || document.body);
+                const branchEl = document.getElementById('branch');
+                if (empEl && empEl.dataset.listenerAttached !== 'true') {
+                    empEl.dataset.listenerAttached = 'true';
+                    empEl.addEventListener('change', function() { loadStars(this.value); });
+                }
+                if (branchEl && branchEl.dataset.listenerAttached !== 'true') {
+                    branchEl.dataset.listenerAttached = 'true';
+                    branchEl.addEventListener('change', function() { loadEmployees(this.value); });
+                }
+                if (empEl) loadStars(empEl.value);
+            });
+            function loadStars(empId) {
+                try {
+                    const url = '{{ route("appraisals.employees.star") }}';
+                    if (!url || url === '#') { errorMessage = getMsg('emp_by_star_route_unavailable', document.getElementById('employee')); return; }
+                    $.ajax({ url, type: 'POST', dataType: 'json', data: { employee: empId ?? '', _token: csrfToken() } })
+                        .done(data => { const stEl = document.getElementById('stares'); if (stEl) stEl.innerHTML = data.html ?? ''; })
+                        .fail(() => { errorMessage = getMsg('emp_by_star_unavailable', document.getElementById('employee')); });
+                } catch { errorMessage = getMsg('emp_by_star_unavailable', document.getElementById('employee')); }
             }
-          }
+            function loadEmployees(branchId) {
+                try {
+                    const url = '{{ route("appraisals.get.employee") }}';
+                    if (!url || url === '#') { errorMessage = getMsg('getemployee_route_unavailable', document.getElementById('branch')); return; }
+                    $.ajax({ url, type: 'POST', dataType: 'json', data: { branch_id: branchId ?? '', _token: csrfToken() } })
+                        .done(data => {
+                            const empEl = document.getElementById('employee');
+                            if (!empEl) return;
+                            empEl.innerHTML = '<option value="">{{ __("Select Employee") }}</option>';
+                            (data.employee || []).forEach(val => { const o = document.createElement('option'); o.value = val.id; o.textContent = val.name; empEl.appendChild(o); });
+                        })
+                        .fail(() => { errorMessage = getMsg('employee_fetch_unavailable', document.getElementById('branch')); });
+                } catch { errorMessage = getMsg('employee_fetch_unavailable', document.getElementById('branch')); }
+            }
         })();
     </script>
 @endpush
@@ -219,25 +98,29 @@
     <div class="{{ ViewClassNamesConstants::FEND }}">
         @can('create appraisal')
             @php
-                $createAppraisalRoute = Route::has(ViewsConstants::APR.'.create')
-                    ? route(ViewsConstants::APR.'.create')
-                    : Route::has(Str::kebab(ViewsConstants::APR.'.create'))
-                        ? route(Str::kebab(ViewsConstants::APR.'.create'))
-                        : '#';
-                $createAppraisalId = 'appraisal-create-link';
-                $createAppraisalMsg = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::APR,
-                    'appraisal_create_route_unavailable'
-                ) ?? 'Create Appraisal route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $createAppraisalRoute = Route::has(ViewsConstants::APR.'.create')
+                        ? route(ViewsConstants::APR.'.create')
+                        : (Route::has(Str::kebab(ViewsConstants::APR.'.create'))
+                            ? route(Str::kebab(ViewsConstants::APR.'.create'))
+                            : '#');
+                    $createAppraisalId = 'appraisal-create-link';
+                    $createAppraisalMsg = Utility::fetchLinkMessage(
+                        $lang,
+                        ViewsConstants::APR,
+                        'appraisal_create_route_unavailable'
+                    ) ?? 'Create Appraisal route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('appraisals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 id="{{ $createAppraisalId }}"
                 href="#"
                 data-size="lg"
                 data-url="{{ $createAppraisalRoute }}"
                 data-sv-localized="true"
-                data-guard-msg="{{ $createAppraisalMsg }}"
+                data-guard-msg="{{ base64_encode($createAppraisalMsg) }}"
                 data-ajax-popup="true"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
@@ -255,8 +138,8 @@
     <div class="{{ ViewClassNamesConstants::RW }}">
         <div class="{{ ViewClassNamesConstants::C12 }}">
             <div class="{{ ViewClassNamesConstants::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ ViewClassNamesConstants::TB }} datatable">
                             <thead>
                                 <tr>
@@ -275,11 +158,15 @@
                             <tbody class="font-style">
                                 @foreach($appraisals as $appraisal)
                                     @php
-                                        $designation = $appraisal->employees->designation->id ?? 0;
-                                        $targetRating = Utility::getTargetrating($designation,$competencyCount);
-                                        $ratingData = json_decode($appraisal->rating,true) ?? [];
-                                        $overallrating = $ratingData ? array_sum($ratingData)/count($ratingData) : 0;
-                                    @endphp
+                                        try {
+                                            $designation = $appraisal->employees->designation->id ?? 0;
+                                            $targetRating = Utility::getTargetrating($designation,$competencyCount);
+                                            $ratingData = json_decode($appraisal->rating,true) ?? [];
+                                            $overallrating = $ratingData ? array_sum($ratingData)/count($ratingData) : 0;
+                                        } catch (\Throwable $e) {
+                                            \Log::error('appraisals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ $appraisal->branches->name ?? __('Failed to fetch branch name') }}</td>
                                         <td>{{ $appraisal->employees->department->name ?? __('Failed to fetch department name') }}</td>
@@ -318,24 +205,28 @@
                                           <td>
                                             @can('show appraisal')
                                                 @php
-                                                    $lang = Utility::fetchUserLang();
-                                                    $showRoute = Route::has(ViewsConstants::APR.'.show')
-                                                        ? route(ViewsConstants::APR.'.show', $appraisal->id)
-                                                        : '#';
-                                                    $showId = 'appraisal-show-' . $appraisal->id . '-link';
-                                                    $showMsg = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::APR,
-                                                        'appraisal_show_route_unavailable'
-                                                    ) ?? 'Appraisal show route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $lang = Utility::fetchUserLang();
+                                                        $showRoute = Route::has(ViewsConstants::APR.'.show')
+                                                            ? route(ViewsConstants::APR.'.show', $appraisal->id)
+                                                            : '#';
+                                                        $showId = 'appraisal-show-' . $appraisal->id . '-link';
+                                                        $showMsg = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::APR,
+                                                            'appraisal_show_route_unavailable'
+                                                        ) ?? 'Appraisal show route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('appraisals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_INF }}">
                                                     <a
                                                         id="{{ $showId }}"
                                                         href="#"
                                                         data-url="{{ $showRoute }}"
                                                         data-sv-localized="true"
-                                                        data-guard-msg="{{ $showMsg }}"
+                                                        data-guard-msg="{{ base64_encode($showMsg) }}"
                                                         data-size="lg"
                                                         data-ajax-popup="true"
                                                         data-title="{{ __('Appraisal Detail') }}"
@@ -349,23 +240,27 @@
                                             @endcan
                                             @can('edit appraisal')
                                                 @php
-                                                    $editRoute = Route::has(ViewsConstants::APR.'.edit')
-                                                        ? route(ViewsConstants::APR.'.edit', $appraisal->id)
-                                                        : '#';
-                                                    $editId = 'appraisal-edit-' . $appraisal->id . '-link';
-                                                    $editMsg = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::APR,
-                                                        'appraisal_edit_route_unavailable'
-                                                    ) ?? 'Appraisal edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $editRoute = Route::has(ViewsConstants::APR.'.edit')
+                                                            ? route(ViewsConstants::APR.'.edit', $appraisal->id)
+                                                            : '#';
+                                                        $editId = 'appraisal-edit-' . $appraisal->id . '-link';
+                                                        $editMsg = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::APR,
+                                                            'appraisal_edit_route_unavailable'
+                                                        ) ?? 'Appraisal edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('appraisals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
                                                     <a
                                                         id="{{ $editId }}"
                                                         href="#"
                                                         data-url="{{ $editRoute }}"
                                                         data-sv-localized="true"
-                                                        data-guard-msg="{{ $editMsg }}"
+                                                        data-guard-msg="{{ base64_encode($editMsg) }}"
                                                         data-size="lg"
                                                         data-ajax-popup="true"
                                                         data-title="{{ __('Edit Appraisal') }}"
@@ -379,20 +274,24 @@
                                             @endcan
                                             @can('delete appraisal')
                                                 @php
-                                                    $deleteRoute = Route::has(ViewsConstants::APR.'.destroy')
-                                                        ? route(ViewsConstants::APR.'.destroy', $appraisal->id)
-                                                        : '#';
-                                                    $deleteId = 'appraisal-delete-' . $appraisal->id . '-link';
-                                                    $deleteMsg = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::APR,
-                                                        'appraisal_destroy_route_unavailable'
-                                                    ) ?? 'Appraisal delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $deleteRoute = Route::has(ViewsConstants::APR.'.destroy')
+                                                            ? route(ViewsConstants::APR.'.destroy', $appraisal->id)
+                                                            : '#';
+                                                        $deleteId = 'appraisal-delete-' . $appraisal->id . '-link';
+                                                        $deleteMsg = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::APR,
+                                                            'appraisal_destroy_route_unavailable'
+                                                        ) ?? 'Appraisal delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('appraisals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method' => 'DELETE',
-                                                        'route'  => [$deleteRoute],
+                                                        'url'    => $deleteRoute,
                                                         'id'     => 'delete-form-'.$appraisal->id
                                                     ]) !!}
                                                         <a
@@ -401,7 +300,7 @@
                                                             class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
                                                             data-url="{{ $deleteRoute }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $deleteMsg }}"
+                                                            data-guard-msg="{{ base64_encode($deleteMsg) }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone.') }}"
@@ -433,28 +332,7 @@
                                                                   if ((!url || url === '#') && (!href || href === '#')) {
                                                                       event.preventDefault();
                                                                       const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                      const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                      let container = document.getElementById('toast-container');
-                                                                      if (!container) {
-                                                                          container = document.createElement('div');
-                                                                          container.id = 'toast-container';
-                                                                          document.body.appendChild(container);
-                                                                      }
-                                                                      if (bootstrapLink && window.bootstrap) {
-                                                                          const toastEl = document.createElement('div');
-                                                                          toastEl.className = 'toast';
-                                                                          toastEl.setAttribute('role', 'alert');
-                                                                          toastEl.setAttribute('aria-live', 'assertive');
-                                                                          toastEl.setAttribute('aria-atomic', 'true');
-                                                                          const body = document.createElement('div');
-                                                                          body.className = 'toast-body';
-                                                                          body.textContent = msg;
-                                                                          toastEl.appendChild(body);
-                                                                          container.appendChild(toastEl);
-                                                                          bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                      } else {
-                                                                          alert(msg);
-                                                                      }
+                                                                      (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                       el.setAttribute('data-failed-route', 'true');
                                                                   }
                                                               } catch {}

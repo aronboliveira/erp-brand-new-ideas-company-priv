@@ -4,11 +4,15 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\{Carbon};
+use Illuminate\Support\Facades\{Log};
 
 class JobApplicationNote extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_JB_AP_NTS;
@@ -92,41 +96,56 @@ class JobApplicationNote extends Model
 
     public function getNoteResolvedAttribute(): ?string
     {
-        return $this->cacheOnce('note_resolved', function (): ?string {
-            $note = is_scalar($this->getAttribute('note') ?? null) ? trim((string) $this->getAttribute('note')) : '';
-            if ($note !== '') return $note;
+        try {
+            return $this->cacheOnce('note_resolved', function (): ?string {
+                $note = is_scalar($this->getAttribute('note') ?? null) ? trim((string) $this->getAttribute('note')) : '';
+                if ($note !== '') return $note;
 
-            $row = $this->getRelationValue('noteRow');
-            if (!$row) return null;
+                $row = $this->getRelationValue('noteRow');
+                if (!$row) return null;
 
-            foreach (['note', 'content', 'body', 'text', 'description'] as $col) {
-                $v = $row->getAttribute($col);
-                if (is_scalar($v) && trim((string) $v) !== '') return trim((string) $v);
-            }
+                foreach (['note', 'content', 'body', 'text', 'description'] as $col) {
+                    $v = $row->getAttribute($col);
+                    if (is_scalar($v) && trim((string) $v) !== '') return trim((string) $v);
+                }
 
-            return null;
-        });
+                return null;
+            });
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getNoteResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getAuthorResolvedAttribute(): ?string
     {
-        return $this->cacheOnce('author_resolved', function (): ?string {
-            $author = is_scalar($this->getAttribute('author') ?? null) ? trim((string) $this->getAttribute('author')) : '';
-            if ($author !== '') return $author;
+        try {
+            return $this->cacheOnce('author_resolved', function (): ?string {
+                $author = is_scalar($this->getAttribute('author') ?? null) ? trim((string) $this->getAttribute('author')) : '';
+                if ($author !== '') return $author;
 
-            $u = $this->getRelationValue('authorUser');
-            $name = $u?->getAttribute('name');
-            return is_scalar($name) && trim((string) $name) !== '' ? trim((string) $name) : null;
-        });
+                $u = $this->getRelationValue('authorUser');
+                $name = $u?->getAttribute('name');
+                return is_scalar($name) && trim((string) $name) !== '' ? trim((string) $name) : null;
+            });
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getAuthorResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getReviewerResolvedAttribute(): ?string
     {
-        return $this->cacheOnce('reviewer_resolved', function (): ?string {
-            $u = $this->getRelationValue('reviewerUser');
-            $name = $u?->getAttribute('name');
-            return is_scalar($name) && trim((string) $name) !== '' ? trim((string) $name) : null;
-        });
+        try {
+            return $this->cacheOnce('reviewer_resolved', function (): ?string {
+                $u = $this->getRelationValue('reviewerUser');
+                $name = $u?->getAttribute('name');
+                return is_scalar($name) && trim((string) $name) !== '' ? trim((string) $name) : null;
+            });
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getReviewerResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     protected function cacheOnce(string $key, callable $fn): mixed

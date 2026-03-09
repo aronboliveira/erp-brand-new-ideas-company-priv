@@ -1,19 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Gate, Route};
-    use Illuminate\Support\Str;
-
-    $lang       = Utility::fetchUserLang();
-    $hasActions = Gate::check('edit document type') || Gate::check('delete document type');
-    $colspan    = $hasActions ? 3 : 2;
+    try {
+$lang       = Utility::fetchUserLang();
+        $hasActions = Gate::check('edit document type') || Gate::check('delete document type');
+        $colspan    = $hasActions ? 3 : 2;
+    } catch (\Throwable $e) {
+        \Log::error('documents/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 
@@ -22,28 +14,32 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Document Type') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Document Type') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create document type')
             @php
-                $docCreateBase  = VW::DOC.'.create';
-                $docCreateKebab = Str::kebab($docCreateBase);
-                $docCreateName  = Route::has($docCreateBase) ? $docCreateBase : (Route::has($docCreateKebab) ? $docCreateKebab : null);
-                $docCreateUrl   = $docCreateName ? route($docCreateName) : '#';
-                $docCreateGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'create_document_route_unavailable') ?? 'Create document route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $docCreateBase  = VW::DOC.'.create';
+                    $docCreateKebab = Str::kebab($docCreateBase);
+                    $docCreateName  = Route::has($docCreateBase) ? $docCreateBase : (Route::has($docCreateKebab) ? $docCreateKebab : null);
+                    $docCreateUrl   = $docCreateName ? route($docCreateName) : '#';
+                    $docCreateGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'create_document_route_unavailable') ?? 'Create document route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('documents/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="document-create-btn"
                href="{{ $docCreateUrl }}"
                data-url="{{ $docCreateUrl }}"
-               data-guard-msg="{{ $docCreateGuard }}"
+               data-guard-msg="{{ base64_encode($docCreateGuard) }}"
                data-sv-localized="true"
                data-ajax-popup="true"
                data-title="{{ __('Create New Document') }}"
@@ -58,13 +54,13 @@
 
 @section(YW::ADM_CTT)
     <div class="row">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.hrm_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -78,10 +74,14 @@
                             <tbody class="font-style">
                                 @forelse($documents as $document)
                                     @php
-                                        $docName = !empty($document->name) ? $document->name : __('No name available for document');
-                                        $req     = (int) ($document->is_required ?? 0);
-                                        $docId   = (string) ($document->id ?? '');
-                                    @endphp
+                                        try {
+                                            $docName = !empty($document->name) ? $document->name : __('No name available for document');
+                                            $req     = (int) ($document->is_required ?? 0);
+                                            $docId   = (string) ($document->id ?? '');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('documents/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ $docName }}</td>
                                         <td>
@@ -95,17 +95,21 @@
                                             <td>
                                                 @can('edit document type')
                                                     @php
-                                                        $docEditBase  = VW::DOC.'.edit';
-                                                        $docEditKebab = Str::kebab($docEditBase);
-                                                        $docEditName  = Route::has($docEditBase) ? $docEditBase : (Route::has($docEditKebab) ? $docEditKebab : null);
-                                                        $docEditUrl   = ($docEditName && $docId !== '') ? route($docEditName, [$docId]) : '#';
-                                                        $docEditGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'edit_document_route_unavailable') ?? 'Edit document route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $docEditBase  = VW::DOC.'.edit';
+                                                            $docEditKebab = Str::kebab($docEditBase);
+                                                            $docEditName  = Route::has($docEditBase) ? $docEditBase : (Route::has($docEditKebab) ? $docEditKebab : null);
+                                                            $docEditUrl   = ($docEditName && $docId !== '') ? route($docEditName, [$docId]) : '#';
+                                                            $docEditGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'edit_document_route_unavailable') ?? 'Edit document route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('documents/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                         <a id="document-edit-btn-{{ $docId }}"
                                                            href="{{ $docEditUrl }}"
                                                            data-url="{{ $docEditUrl }}"
-                                                           data-guard-msg="{{ $docEditGuard }}"
+                                                           data-guard-msg="{{ base64_encode($docEditGuard) }}"
                                                            data-sv-localized="true"
                                                            data-ajax-popup="true"
                                                            data-title="{{ __('Edit Document Type') }}"
@@ -118,15 +122,19 @@
                                                 @endcan
                                                 @can('delete document type')
                                                     @php
-                                                        $docDestroyBase  = VW::DOC.'.destroy';
-                                                        $docDestroyKebab = Str::kebab($docDestroyBase);
-                                                        $docDestroyName  = Route::has($docDestroyBase) ? $docDestroyBase : (Route::has($docDestroyKebab) ? $docDestroyKebab : null);
-                                                        $docDestroyUrl   = ($docDestroyName && $docId !== '') ? route($docDestroyName, [$docId]) : '#';
-                                                        $docDestroyGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'destroy_document_route_unavailable') ?? 'Delete document route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $formId          = 'delete-form-'.$docId;
-                                                        $areYouSure      = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                        $irreversible    = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                    @endphp
+                                                        try {
+                                                            $docDestroyBase  = VW::DOC.'.destroy';
+                                                            $docDestroyKebab = Str::kebab($docDestroyBase);
+                                                            $docDestroyName  = Route::has($docDestroyBase) ? $docDestroyBase : (Route::has($docDestroyKebab) ? $docDestroyKebab : null);
+                                                            $docDestroyUrl   = ($docDestroyName && $docId !== '') ? route($docDestroyName, [$docId]) : '#';
+                                                            $docDestroyGuard = Utility::fetchLinkMessage($lang, VW::DOC, 'destroy_document_route_unavailable') ?? 'Delete document route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $formId          = 'delete-form-'.$docId;
+                                                            $areYouSure      = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                            $irreversible    = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('documents/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {{ Form::open([
                                                             'method' => 'DELETE',
@@ -136,7 +144,7 @@
                                                             <a id="delete-document-btn-{{ $docId }}"
                                                                href="{{ $docDestroyUrl }}"
                                                                data-url="{{ $docDestroyUrl }}"
-                                                               data-guard-msg="{{ $docDestroyGuard }}"
+                                                               data-guard-msg="{{ base64_encode($docDestroyGuard) }}"
                                                                data-sv-localized="true"
                                                                class="{{ VC::BT_SM_CT_PR }}"
                                                                data-bs-toggle="tooltip"
@@ -153,7 +161,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">
                                             {{ __('No Document Types Found') }}
                                         </td>
                                     </tr>

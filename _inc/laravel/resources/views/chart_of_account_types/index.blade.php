@@ -1,28 +1,20 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        ViewsConstants,
-        PermissionsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-        StacksConstants
-    };
-    $lang = Utility::fetchUserLang();
-    $createName     = ViewsConstants::COA_TP . '.create';
-    $createRoute    = Route::has($createName)
-        ? route($createName)
-        : (Route::has(Str::kebab($createName))
-            ? route(Str::kebab($createName))
-            : '#');
-    $createGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COA_TP,
-        'chart_of_account_type_create_route_unavailable'
-    ) ?? 'Create Chart of Account Type route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $createName     = ViewsConstants::COA_TP . '.create';
+        $createRoute    = Route::has($createName)
+            ? route($createName)
+            : (Route::has(Str::kebab($createName))
+                ? route(Str::kebab($createName))
+                : '#');
+        $createGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::COA_TP,
+            'chart_of_account_type_create_route_unavailable'
+        ) ?? 'Create Chart of Account Type route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('chart_of_account_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -39,7 +31,7 @@
                     href="#"
                     id="createTypeBtn"
                     data-url="{{ $createRoute }}"
-                    data-guard-msg="{{ $createGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                     data-listener-alias="create-type"
                     data-ajax-popup="true"
                     data-title="{{ __('Create New Type') }}"
@@ -68,12 +60,12 @@
                             <tbody>
                                 @php
                                     $typesIterable = (is_array($types ?? null) && count($types ?? [])) || (($types ?? null) instanceof Collection && ($types)->isNotEmpty());
-                                @endphp
+@endphp
                                 @if($typesIterable)
                                     @foreach($types as $type)
                                         @php
                                             $typeId = data_get($type, 'id');
-                                        @endphp
+@endphp
                                         <tr>
                                             <td>{{ !empty(data_get($type, 'name')) ? data_get($type, 'name') : __('No chart of account type name available') }}</td>
                                             <td class="Action">
@@ -82,17 +74,21 @@
                                                         @php
                                                             $editRoute = !empty($typeId) && Route::has(ViewsConstants::COA_TP . '.edit') ? route(ViewsConstants::COA_TP . '.edit', $typeId) : '#';
                                                             $editGuardMsg = Utility::fetchLinkMessage($lang ?? null, ViewsConstants::COA_TP, 'chart_of_account_type_edit_route_unavailable') ?? __('Failed to open chart of account type editor');
-                                                        @endphp
-                                                        <a href="{{ $editRoute }}" class="edit-icon{{ $editRoute === '#' ? ' disabled' : '' }}" data-url="{{ $editRoute }}" data-guard-msg="{{ $editGuardMsg }}" data-listener-alias="edit-type" data-ajax-popup="true" data-title="{{ __('Edit Unit') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
+@endphp
+                                                        <a href="{{ $editRoute }}" class="edit-icon{{ $editRoute === '#' ? ' disabled' : '' }}" data-url="{{ $editRoute }}" data-guard-msg="{{ base64_encode($editGuardMsg) }}" data-listener-alias="edit-type" data-ajax-popup="true" data-title="{{ __('Edit Unit') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
                                                     @endcan
                                                     @can('delete constant chart of account type')
                                                         @php
-                                                            $destroyRoute = !empty($typeId) && Route::has(ViewsConstants::COA_TP . '.destroy') ? route(ViewsConstants::COA_TP . '.destroy', $typeId) : '#';
-                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang ?? null, ViewsConstants::COA_TP, 'chart_of_account_type_destroy_route_unavailable') ?? __('Failed to open chart of account type deletion');
-                                                            $deleteFormId = 'delete-form-' . ($typeId ?? 'x');
-                                                        @endphp
+                                                            try {
+                                                                $destroyRoute = !empty($typeId) && Route::has(ViewsConstants::COA_TP . '.destroy') ? route(ViewsConstants::COA_TP . '.destroy', $typeId) : '#';
+                                                                $destroyGuardMsg = Utility::fetchLinkMessage($lang ?? null, ViewsConstants::COA_TP, 'chart_of_account_type_destroy_route_unavailable') ?? __('Failed to open chart of account type deletion');
+                                                                $deleteFormId = 'delete-form-' . ($typeId ?? 'x');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('chart_of_account_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Form::open(['method' => 'DELETE', 'url' => $destroyRoute, 'id' => $deleteFormId, 'data-url' => $destroyRoute, 'data-guard-msg' => $destroyGuardMsg]) !!}
-                                                            <a href="#" class="delete-icon{{ $destroyRoute === '#' ? ' disabled' : '' }}" data-listener-alias="delete-type" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"><i class="ti ti-trash"></i></a>
+                                                            <a href="#" class="delete-icon{{ $destroyRoute === '#' ? ' disabled' : '' }}" data-listener-alias="delete-type" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"><i class="{{ VC::TI_TRS }}"></i></a>
                                                         {!! Form::close() !!}
                                                     @endcan
                                                 </span>
@@ -100,7 +96,7 @@
                                         </tr>
                                     @endforeach
                                 @else
-                                    <tr><td colspan="2" class="text-center text-dark">{{ __('No chart of account types available') }}</td></tr>
+                                    <tr><td colspan="2" class="{{ VC::TXCT_DK }}">{{ __('No chart of account types available') }}</td></tr>
                                 @endif
                             </tbody>
                         </table>

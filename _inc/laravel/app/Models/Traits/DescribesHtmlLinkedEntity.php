@@ -2,7 +2,8 @@
 
 namespace App\Traits;
 
-use Illuminate\Database\{Eloquent\Model, Schema\Blueprint};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Schema\{Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 trait DescribesHtmlLinkedEntity
@@ -45,86 +46,100 @@ trait DescribesHtmlLinkedEntity
 		return self::htmlLinkedColumns($includeTags);
 	}
 
-	/**
-	 * Return html-linked attributes present in the model instance AND schema.
-	 */
-	protected function getHtmlLinkedAttributes(bool $includeTags = true): array
+		protected function getHtmlLinkedAttributes(bool $includeTags = true): array
 	{
-		$out = [];
-		$table = $this->getTable();
+		    try {
+    		$out = [];
+    		$table = $this->getTable();
 
-		foreach (self::htmlLinkedColumns($includeTags) as $col) {
-			if (!Schema::hasColumn($table, $col)) continue;
-			$out[$col] = $this->getAttribute($col);
-		}
+    		foreach (self::htmlLinkedColumns($includeTags) as $col) {
+    			if (!Schema::hasColumn($table, $col)) continue;
+    			$out[$col] = $this->getAttribute($col);
+    		}
 
-		return $out;
+    		return $out;
+		    } catch (\Throwable $e) {
+		        Log::error(static::class . '::getHtmlLinkedAttributes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		        return [];
+		    }
 	}
 
-	/**
-	 * Useful when building a “client render payload”:
-	 * returns a single merged array with only html-linked keys.
-	 */
-	protected static function normalizeHtmlLinkedPayload(array $attr, bool $includeTags = true): array
+		protected static function normalizeHtmlLinkedPayload(array $attr, bool $includeTags = true): array
 	{
-		$keys = array_flip(self::htmlLinkedColumns($includeTags));
-		$out = array_intersect_key($attr, $keys);
-		foreach ($out as $k => $v) {
-			if ($v === null) continue;
-			if (is_array($v) && $v === []) $out[$k] = null;
-		}
+		    try {
+    		$keys = array_flip(self::htmlLinkedColumns($includeTags));
+    		$out = array_intersect_key($attr, $keys);
+    		foreach ($out as $k => $v) {
+    			if ($v === null) continue;
+    			if (is_array($v) && $v === []) $out[$k] = null;
+    		}
 
-		return $out;
+    		return $out;
+		    } catch (\Throwable $e) {
+		        Log::error(static::class . '::normalizeHtmlLinkedPayload — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		        return [];
+		    }
 	}
-
 
 	protected function addHtmlLinkedColumns(Blueprint $table, bool $includeTags = true): void
 	{
-		$table->json('aria')->nullable();
-		$table->json('dataset')->nullable();
-		$table->json('selectors')->nullable();
-		$table->json('size')->nullable();
-		if ($includeTags) $table->json('tags')->nullable();
+	    try {
+    		$table->json('aria')->nullable();
+    		$table->json('dataset')->nullable();
+    		$table->json('selectors')->nullable();
+    		$table->json('size')->nullable();
+    		if ($includeTags) $table->json('tags')->nullable();
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::addHtmlLinkedColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected function dropHtmlLinkedColumns(Blueprint $table, string $tableName, bool $includeTags = true): void
 	{
-		$cols = ['aria', 'dataset', 'selectors', 'size'];
-		if ($includeTags) $cols[] = 'tags';
-		foreach ($cols as $col) {
-			try {
-				Schema::hasColumn($tableName, $col) &&
-					$table->dropColumn($col);
-			} catch (\Exception $e) {
-				Log::warning(
-					'Failed to drop foreign key for '
-						. $col
-						. ': '
-						. $e->getMessage()
-				);
-			}
-		}
+	    try {
+    		$cols = ['aria', 'dataset', 'selectors', 'size'];
+    		if ($includeTags) $cols[] = 'tags';
+    		foreach ($cols as $col) {
+    			try {
+    				Schema::hasColumn($tableName, $col) &&
+    					$table->dropColumn($col);
+    			} catch (\Exception $e) {
+    				Log::warning(
+    					'Failed to drop foreign key for '
+    						. $col
+    						. ': '
+    						. $e->getMessage()
+    				);
+    			}
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::dropHtmlLinkedColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected static function bootDescribesHtmlLinkedEntity(): void
 	{
-		static::saving(function (Model $model): void {
-			$table = $model->getTable();
+	    try {
+    		static::saving(function (Model $model): void {
+    			$table = $model->getTable();
 
-			try {
-				if (!Schema::hasTable($table)) return;
+    			try {
+    				if (!Schema::hasTable($table)) return;
 
-				static::normalizeHtmlLinkedMetadata($model);
-			} catch (\Throwable $e) {
-				Log::warning(static::class . ' failed to normalize html-linked attributes before saving', [
-					'table' => $table,
-					'id'    => $model->getAttribute('id'),
-					'error' => $e->getMessage(),
-					'file'  => $e->getFile(),
-					'line'  => $e->getLine(),
-				]);
-			}
-		});
+    				static::normalizeHtmlLinkedMetadata($model);
+    			} catch (\Throwable $e) {
+    				Log::warning(static::class . ' failed to normalize html-linked attributes before saving', [
+    					'table' => $table,
+    					'id'    => $model->getAttribute('id'),
+    					'error' => $e->getMessage(),
+    					'file'  => $e->getFile(),
+    					'line'  => $e->getLine(),
+    				]);
+    			}
+    		});
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::bootDescribesHtmlLinkedEntity — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected static function hasCol(Model $m, string $col): bool
@@ -145,150 +160,184 @@ trait DescribesHtmlLinkedEntity
 
 	protected static function normalizeHtmlLinkedMetadata(Model $model): void
 	{
-		if (self::hasCol($model, 'aria')) {
-			$aria = static::normalizeAssocArray($model->getAttribute('aria'));
-			$aria = static::sanitizeAriaArray($aria);
-			$model->setAttribute('aria', $aria ?: null);
-		}
+	    try {
+    		if (self::hasCol($model, 'aria')) {
+    			$aria = static::normalizeAssocArray($model->getAttribute('aria'));
+    			$aria = static::sanitizeAriaArray($aria);
+    			$model->setAttribute('aria', $aria ?: null);
+    		}
 
-		if (self::hasCol($model, 'dataset')) {
-			$dataset = static::normalizeAssocArray($model->getAttribute('dataset'));
-			$dataset = static::sanitizeDatasetArray($dataset);
-			$model->setAttribute('dataset', $dataset ?: null);
-		}
+    		if (self::hasCol($model, 'dataset')) {
+    			$dataset = static::normalizeAssocArray($model->getAttribute('dataset'));
+    			$dataset = static::sanitizeDatasetArray($dataset);
+    			$model->setAttribute('dataset', $dataset ?: null);
+    		}
 
-		if (self::hasCol($model, 'selectors')) {
-			$selectors = NormalizesArrays::normalizeArrayField($model->getAttribute('selectors'));
-			$selectors = static::sanitizeSelectorsArray($selectors);
-			$model->setAttribute('selectors', $selectors ?: null);
-		}
+    		if (self::hasCol($model, 'selectors')) {
+    			$selectors = NormalizesArrays::normalizeArrayField($model->getAttribute('selectors'));
+    			$selectors = static::sanitizeSelectorsArray($selectors);
+    			$model->setAttribute('selectors', $selectors ?: null);
+    		}
 
-		if (self::hasCol($model, 'size')) {
-			$size = static::normalizeAssocArray($model->getAttribute('size'));
-			$size = static::sanitizeSizeArray($size);
-			$model->setAttribute('size', $size ?: null);
-		}
+    		if (self::hasCol($model, 'size')) {
+    			$size = static::normalizeAssocArray($model->getAttribute('size'));
+    			$size = static::sanitizeSizeArray($size);
+    			$model->setAttribute('size', $size ?: null);
+    		}
 
-		if (self::hasCol($model, 'tags')) {
-			$tags = NormalizesArrays::normalizeArrayField($model->getAttribute('tags'));
-			$tags = static::sanitizeTagsArray($tags);
-			$model->setAttribute('tags', $tags ?: null);
-		}
+    		if (self::hasCol($model, 'tags')) {
+    			$tags = NormalizesArrays::normalizeArrayField($model->getAttribute('tags'));
+    			$tags = static::sanitizeTagsArray($tags);
+    			$model->setAttribute('tags', $tags ?: null);
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeHtmlLinkedMetadata — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected static function normalizeAssocArray(mixed $value): array
 	{
-		$array = NormalizesArrays::normalizeArrayField($value);
-		if ($array === []) return [];
+	    try {
+    		$array = NormalizesArrays::normalizeArrayField($value);
+    		if ($array === []) return [];
 
-		if (array_keys($array) === range(0, count($array) - 1)) {
-			$assoc = [];
-			foreach ($array as $item) {
-				if (!is_array($item) || count($item) !== 2) continue;
-				[$k, $v] = array_values($item);
-				if (!is_string($k)) continue;
-				$assoc[$k] = $v;
-			}
-			return $assoc ?: [];
-		}
+    		if (array_keys($array) === range(0, count($array) - 1)) {
+    			$assoc = [];
+    			foreach ($array as $item) {
+    				if (!is_array($item) || count($item) !== 2) continue;
+    				[$k, $v] = array_values($item);
+    				if (!is_string($k)) continue;
+    				$assoc[$k] = $v;
+    			}
+    			return $assoc ?: [];
+    		}
 
-		return $array;
+    		return $array;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeAssocArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function sanitizeTagsArray(array $tags): array
 	{
-		$clean = [];
+	    try {
+    		$clean = [];
 
-		foreach ($tags as $tag) {
-			if (!is_string($tag)) continue;
-			$tag = trim($tag);
-			if ($tag === '') continue;
-			$clean[] = \Illuminate\Support\Str::slug($tag, '_');
-		}
+    		foreach ($tags as $tag) {
+    			if (!is_string($tag)) continue;
+    			$tag = trim($tag);
+    			if ($tag === '') continue;
+    			$clean[] = \Illuminate\Support\Str::slug($tag, '_');
+    		}
 
-		return array_values(array_unique($clean));
+    		return array_values(array_unique($clean));
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::sanitizeTagsArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function sanitizeAriaArray(array $aria): array
 	{
-		$result = [];
+	    try {
+    		$result = [];
 
-		foreach ($aria as $key => $value) {
-			if (!is_string($key)) continue;
+    		foreach ($aria as $key => $value) {
+    			if (!is_string($key)) continue;
 
-			$attr = strtolower(trim($key));
-			if (!str_starts_with($attr, 'aria-')) $attr = 'aria-' . ltrim($attr, '-');
-			if (!in_array($attr, static::ALLOWED_ARIA, true)) continue;
+    			$attr = strtolower(trim($key));
+    			if (!str_starts_with($attr, 'aria-')) $attr = 'aria-' . ltrim($attr, '-');
+    			if (!in_array($attr, static::ALLOWED_ARIA, true)) continue;
 
-			if ($value === null) continue;
-			if (is_bool($value)) $value = $value ? 'true' : 'false';
-			else {
-				$value = trim((string) $value);
-				if ($value === '') continue;
-			}
+    			if ($value === null) continue;
+    			if (is_bool($value)) $value = $value ? 'true' : 'false';
+    			else {
+    				$value = trim((string) $value);
+    				if ($value === '') continue;
+    			}
 
-			$result[$attr] = $value;
-		}
+    			$result[$attr] = $value;
+    		}
 
-		return $result;
+    		return $result;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::sanitizeAriaArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function sanitizeDatasetArray(array $dataset): array
 	{
-		$result = [];
+	    try {
+    		$result = [];
 
-		foreach ($dataset as $key => $value) {
-			if (!is_string($key)) continue;
+    		foreach ($dataset as $key => $value) {
+    			if (!is_string($key)) continue;
 
-			$attr = strtolower(trim($key));
-			if (!str_starts_with($attr, 'data-')) $attr = 'data-' . ltrim($attr, '-');
+    			$attr = strtolower(trim($key));
+    			if (!str_starts_with($attr, 'data-')) $attr = 'data-' . ltrim($attr, '-');
 
-			if ($value === null) continue;
-			if (is_bool($value)) $value = $value ? 'true' : 'false';
-			else {
-				$value = trim((string) $value);
-				if ($value === '') continue;
-			}
+    			if ($value === null) continue;
+    			if (is_bool($value)) $value = $value ? 'true' : 'false';
+    			else {
+    				$value = trim((string) $value);
+    				if ($value === '') continue;
+    			}
 
-			$result[$attr] = $value;
-		}
+    			$result[$attr] = $value;
+    		}
 
-		return $result;
+    		return $result;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::sanitizeDatasetArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function sanitizeSelectorsArray(array $selectors): array
 	{
-		$clean = [];
+	    try {
+    		$clean = [];
 
-		foreach ($selectors as $selector) {
-			if (!is_string($selector)) continue;
+    		foreach ($selectors as $selector) {
+    			if (!is_string($selector)) continue;
 
-			$selector = trim($selector);
-			if ($selector === '') continue;
-			if (!preg_match('/^[#.][A-Za-z0-9_-]+$/', $selector)) continue;
+    			$selector = trim($selector);
+    			if ($selector === '') continue;
+    			if (!preg_match('/^[#.][A-Za-z0-9_-]+$/', $selector)) continue;
 
-			$clean[] = $selector;
-		}
+    			$clean[] = $selector;
+    		}
 
-		return array_values(array_unique($clean));
+    		return array_values(array_unique($clean));
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::sanitizeSelectorsArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function sanitizeSizeArray(?array $size): ?array
 	{
-		if (!$size) return null;
+	    try {
+    		if (!$size) return null;
 
-		$result = [];
+    		$result = [];
 
-		foreach (['width', 'height'] as $key) {
-			if (!array_key_exists($key, $size)) continue;
+    		foreach (['width', 'height'] as $key) {
+    			if (!array_key_exists($key, $size)) continue;
 
-			$value = trim((string) $size[$key]);
-			if ($value === '') continue;
-			if (!preg_match('/^\d+(\.\d+)?(px|em|rem|%|vw|vh)$/', $value)) continue;
+    			$value = trim((string) $size[$key]);
+    			if ($value === '') continue;
+    			if (!preg_match('/^\d+(\.\d+)?(px|em|rem|%|vw|vh)$/', $value)) continue;
 
-			$result[$key] = $value;
-		}
+    			$result[$key] = $value;
+    		}
 
-		return $result === [] ? null : $result;
+    		return $result === [] ? null : $result;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::sanitizeSizeArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 }

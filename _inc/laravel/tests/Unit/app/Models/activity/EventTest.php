@@ -8,6 +8,11 @@ use App\Models\Event;
 
 class EventTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -31,9 +36,7 @@ class EventTest extends TestCase
 
 		$event = Event::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $event->$field);
-		}
+		$this->assertFillableMatches($data, $event);
 	}
 
 	/**

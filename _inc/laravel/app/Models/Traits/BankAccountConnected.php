@@ -2,14 +2,13 @@
 
 namespace App\Traits;
 
-use App\Models\BankAccount;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
+use App\Models\{BankAccount};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\Facades\{Log};
 
 trait BankAccountConnected
 {
-  // TODO: add migration for account_id foreign key
-  public function account(): BelongsTo
+    public function account(): BelongsTo
   {
     return $this->belongsTo(BankAccount::class, 'account_id');
   }

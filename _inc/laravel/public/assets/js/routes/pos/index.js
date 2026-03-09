@@ -1,4 +1,7 @@
+/** @requires ERPGuard */
 (() => {
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
   const q = (s, r = document) => r.querySelector(s);
   const qa = (s, r = document) => Array.from(r.querySelectorAll(s));
 
@@ -22,34 +25,7 @@
     );
   };
 
-  const ensureToastContainer = () => {
-    const wrapId = "toast-wrap-guard";
-    let wrap = q("#" + wrapId);
-    if (!wrap) {
-      wrap = document.createElement("div");
-      wrap.id = wrapId;
-      wrap.className = "position-fixed top-0 end-0 p-3";
-      wrap.style.zIndex = "1080";
-      document.body.appendChild(wrap);
-    }
-    return wrap;
-  };
-
-  const toast = (msg, variant = "danger") => {
-    const wrap = ensureToastContainer();
-    const node = document.createElement("div");
-    node.className = `toast align-items-center text-bg-${variant} border-0`;
-    node.setAttribute("role", "alert");
-    node.setAttribute("aria-live", "assertive");
-    node.setAttribute("aria-atomic", "true");
-    node.innerHTML =
-      `<div class="d-flex"><div class="toast-body">${msg}</div>` +
-      `<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-    wrap.appendChild(node);
-    if (window.bootstrap?.Toast)
-      new window.bootstrap.Toast(node, { autohide: true, delay: 3000 }).show();
-    else alert(msg);
-  };
+  const toast = (msg, variant = "danger") => guard.showToast(msg, variant);
 
   const guardMsg = (el, key) =>
     el?.getAttribute("data-guard-msg") || translate(key, "# ERROR");

@@ -5,10 +5,15 @@ use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Support\Str
 };
-use App\Models\WebhookSetting;
+use App\Models\WebhookSettings as WebhookSetting;
 
 class WebhookSettingTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -27,9 +32,7 @@ class WebhookSettingTest extends TestCase
 
 		$ws = WebhookSetting::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $ws->$field);
-		}
+		$this->assertFillableMatches($data, $ws);
 	}
 
 	/**

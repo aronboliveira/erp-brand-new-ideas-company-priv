@@ -11,70 +11,18 @@
     return;
   }
 
-  const ERR_FB = "# ERROR";
-  const DCL = "data-client-localized";
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
   const DLA = "data-listener-active";
   const DPL = "data-pointer-listener";
   const DMK = "data-msg-key";
-
-  const hasBootstrapCss = () =>
-    !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-
-  const getMsg = (el, fallbackKey) => {
-    let msg = ERR_FB;
-    if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
-      msg = el.getAttribute(DGM) || ERR_FB;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const key = el.getAttribute(DMK) || fallbackKey;
-      msg =
-        window.translations?.[lang]?.[key] ||
-        el.getAttribute(DGM) ||
-        window.translations?.en?.[key] ||
-        ERR_FB;
-      if (msg !== ERR_FB) {
-        el.setAttribute(DGM, msg);
-        el.setAttribute(DCL, "true");
-      }
-    }
-    return msg;
-  };
-
-  const showError = (el, key) => {
-    const msg = getMsg(el, key);
-    if (hasBootstrapCss() && window.bootstrap) {
-      let wrap = document.getElementById("toast-wrap-ld-calls");
-      if (!wrap) {
-        wrap = document.createElement("div");
-        wrap.id = "toast-wrap-ld-calls";
-        wrap.className = "position-fixed top-0 end-0 p-3";
-        wrap.style.zIndex = "1080";
-        document.body.appendChild(wrap);
-      }
-      const t = document.createElement("div");
-      t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
-      t.innerHTML =
-        '<div class="d-flex"><div class="toast-body">' +
-        msg +
-        '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-      wrap.appendChild(t);
-      new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-    } else {
-      alert(msg);
-    }
-  };
 
   const handlersClick = new WeakMap();
   const handlersPointer = new WeakMap();
@@ -88,7 +36,9 @@
         const href = el.getAttribute("href");
         if ((!url || url === "#") && (!href || href === "#")) {
           e.preventDefault();
-          showError(el, "ld_call_route_unavailable");
+          const key = el.getAttribute(DMK) || "ld_call_route_unavailable";
+          const msg = el.getAttribute(DGM) || getMsg(key);
+          scheduleError(msg, "click");
         }
       } catch (_) {}
     };
@@ -108,7 +58,9 @@
         if ((!url || url === "#") && (!action || action === "#")) {
           e.preventDefault();
           e.stopPropagation();
-          showError(form, "ld_call_route_unavailable");
+          const key = form.getAttribute(DMK) || "ld_call_route_unavailable";
+          const msg = form.getAttribute(DGM) || getMsg(key);
+          scheduleError(msg, "pointerup");
         }
       } catch (_) {}
     };
@@ -173,7 +125,7 @@
             n.querySelectorAll?.("a[" + DLA + "]").forEach(unbindAnchorGuard);
             if (n.id === "ld-call-form") unbindFormPointerGuard(n);
             n.querySelectorAll?.("#ld-call-form").forEach(
-              unbindFormPointerGuard
+              unbindFormPointerGuard,
             );
           }
         });

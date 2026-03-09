@@ -1,10 +1,8 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
+    try {
+} catch (\Throwable $e) {
+        \Log::error('customers/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -52,7 +50,7 @@
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
                 t.innerHTML =
-                '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
             }
             const body = t.querySelector(".toast-body");
@@ -172,44 +170,48 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="{{ VC::RW }}">
                         @php
-                            $widgets = [
-                                [
-                                    'percent' => $invoiceChartData['progressData']['unpaidPr'],
-                                    'color'   => 'bg-danger',
-                                    'label'   => __('Unpaid'),
-                                    'bar'     => 'text-danger',
-                                    'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
-                                                $invoiceChartData['progressData']['totalUnpaidInvoice'],
-                                ],
-                                [
-                                    'percent' => $invoiceChartData['progressData']['paidPr'],
-                                    'color'   => 'bg-primary',
-                                    'label'   => __('Paid'),
-                                    'bar'     => 'text-success',
-                                    'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
-                                                $invoiceChartData['progressData']['totalPaidInvoice'],
-                                ],
-                                [
-                                    'percent' => $invoiceChartData['progressData']['partialPr'],
-                                    'color'   => 'bg-info',
-                                    'label'   => __('Partial Paid'),
-                                    'bar'     => 'text-info',
-                                    'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
-                                                $invoiceChartData['progressData']['totalPartialInvoice'],
-                                ],
-                                [
-                                    'percent' => $invoiceChartData['progressData']['duePr'],
-                                    'color'   => 'bg-warning',
-                                    'label'   => __('Due'),
-                                    'bar'     => 'text-warning',
-                                    'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
-                                                $invoiceChartData['progressData']['totalDueInvoice'],
-                                ],
-                            ];
-                        @endphp
+                            try {
+                                $widgets = [
+                                    [
+                                        'percent' => $invoiceChartData['progressData']['unpaidPr'],
+                                        'color'   => 'bg-danger',
+                                        'label'   => __('Unpaid'),
+                                        'bar'     => 'text-danger',
+                                        'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
+                                                    $invoiceChartData['progressData']['totalUnpaidInvoice'],
+                                    ],
+                                    [
+                                        'percent' => $invoiceChartData['progressData']['paidPr'],
+                                        'color'   => 'bg-primary',
+                                        'label'   => __('Paid'),
+                                        'bar'     => 'text-success',
+                                        'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
+                                                    $invoiceChartData['progressData']['totalPaidInvoice'],
+                                    ],
+                                    [
+                                        'percent' => $invoiceChartData['progressData']['partialPr'],
+                                        'color'   => 'bg-info',
+                                        'label'   => __('Partial Paid'),
+                                        'bar'     => 'text-info',
+                                        'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
+                                                    $invoiceChartData['progressData']['totalPartialInvoice'],
+                                    ],
+                                    [
+                                        'percent' => $invoiceChartData['progressData']['duePr'],
+                                        'color'   => 'bg-warning',
+                                        'label'   => __('Due'),
+                                        'bar'     => 'text-warning',
+                                        'ratio'   => $invoiceChartData['progressData']['totalInvoice'] . '/' .
+                                                    $invoiceChartData['progressData']['totalDueInvoice'],
+                                    ],
+                                ];
+                            } catch (\Throwable $e) {
+                                \Log::error('customers/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         @foreach($widgets as $w)
                             <div class="col">
                                 <div class="{{ VC::LG_FLSH }}">
@@ -241,7 +243,7 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <h6>{{ __('Current year') . ' - ' . date('Y') }}</h6>
                     <div class="scrollbar-inner">
                         <div id="chart-sales" height="300"></div>
@@ -251,5 +253,3 @@
         </div>
     </div>
 @endsection
-
-

@@ -1,11 +1,5 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use InvalidArgumentException;
-
-	$lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
 
 	$formId = 'create-tax-form';
 	$taxStoreBaseName = ViewsConstants::TX;
@@ -64,7 +58,7 @@
 				{{ Form::text('name', '', ['class' => VC::FM_CT, 'required' => 'required']) }}
 				@error('name')
 				<small class="invalid-name" role="alert">
-					<strong class="text-danger">{{ $message }}</strong>
+					<strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
 				</small>
 				@enderror
 			</div>
@@ -73,7 +67,7 @@
 				{{ Form::number('rate', '', ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01']) }}
 				@error('rate')
 				<small class="invalid-rate" role="alert">
-					<strong class="text-danger">{{ $message }}</strong>
+					<strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
 				</small>
 				@enderror
 			</div>

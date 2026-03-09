@@ -5,6 +5,4 @@ return [
     'sent' => 'Wir haben den Link zum Zurücksetzen Ihres Passworts per E-Mail gesendet!',
     'token' => 'Dieses Token zum Zurücksetzen des Passworts ist ungültig.',
     'user' => 'Wir können keinen Benutzer mit dieser E-Mail-Adresse finden.',
-
-    'throttled' => 'Sie haben kürzlich eine Passwortzurücksetzung angefordert. Bitte überprüfen Sie Ihre E-Mails.',
 ];

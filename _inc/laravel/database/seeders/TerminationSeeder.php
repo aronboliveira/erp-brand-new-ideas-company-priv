@@ -49,8 +49,8 @@ final class TerminationSeeder extends Seeder
 					if (Termination::where(UC::COL_EMP_ID, $empId)->exists()) {
 						continue;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Demissão para funcionário ID: {$empId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Demissão para funcionário ID: {$empId}");
 					// datas coerentes: aviso ∈ [hoje-12m, hoje], desligamento ∈ [aviso+7, aviso+60]
 					$noticeDate = now('America/Sao_Paulo')->subDays(random_int(0, 365));
 					$termDate   = (clone $noticeDate)->addDays(random_int(7, 60));

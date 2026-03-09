@@ -1,31 +1,77 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang        = Utility::fetchUserLang();
-    $hasGoal     = !empty($goal ?? null) && data_get($goal, 'id');
-
-    $typesIsList = (is_array($types ?? null) && count($types ?? []) > 0) || (($types ?? null) instanceof Collection && $types->isNotEmpty());
-    $typeOptions = $typesIsList ? (is_array($types) ? $types : $types->toArray()) : [__('No types available')];
-
-    $updateUrl      = '#';
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::GL, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasGoal ??= false;
+	$typesIsList ??= false;
+	$typeOptions ??= [];
+	$updateUrl ??= '#';
+	$updateGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasGoal = !empty($goal ?? null) && data_get($goal, 'id');
+		$typesIsList = (is_array($types ?? null) && count($types ?? []) > 0) || (($types ?? null) instanceof Collection && $types->isNotEmpty());
+		$typeOptions = $typesIsList ? (is_array($types) ? $types : $types->toArray()) : [__('No types available')];
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::GL, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in goals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in goals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in goals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @can('edit goal')
     @php
-        $updateBase     = VW::GL . '.update';
-        $updateKebab    = Str::kebab($updateBase);
-        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-        $updateUrl      = ($updateResolved && $hasGoal) ? route($updateResolved, $goal->id) : '#';
-    @endphp
+        $updateBase ??= '';
+        $updateKebab ??= '';
+        $updateResolved ??= null;
+        try {
+            $updateBase = VW::GL . '.update';
+            $updateKebab = Str::kebab($updateBase);
+            $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+            $updateUrl = ($updateResolved && $hasGoal) ? (route($updateResolved, $goal->id) ?? '#') : '#';
+        } catch (\Error $e) {
+            Log::error('Error in goals/edit.blade.php @can edit @php block', [
+                'exception_class' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Exception in goals/edit.blade.php @can edit @php block', [
+                'exception_class' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Throwable in goals/edit.blade.php @can edit @php block', [
+                'exception_class' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        }
+@endphp
 @endcan
 
 @if(!$hasGoal)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested goal was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested goal was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($goal, [
         'url'               => $updateUrl,
@@ -66,9 +112,11 @@
                     {{ Form::date('to', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                 </div>
                 <div class="{{ VC::FM_GCB12 }}">
-                    @php $isDisplay = (int) data_get($goal ?? [], 'is_display', 0) === 1; @endphp
+                    @php
+ $isDisplay = (int) data_get($goal ?? [], 'is_display', 0) === 1;
+@endphp
                     <input class="form-check-input" type="checkbox" name="is_display" id="is_display" {{ $isDisplay ? 'checked' : '' }}>
-                    <label class="custom-control-label form-label" for="is_display">{{ __('Display On Dashboard') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="is_display">{{ __('Display On Dashboard') }}</label>
                 </div>
             </div>
         </div>

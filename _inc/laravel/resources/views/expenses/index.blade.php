@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Gate, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YW::ADM_PG_TTL)
@@ -22,41 +15,55 @@
     <script defer src="{{ asset('assets/js/routes/expenses/url.js') }}"></script>
 @endpush
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Expense')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Expense')}}</li>
 @endsection
 @php
-    $indexBase     = VW::PRJ_EXP . '.index';
-    $indexKebab    = Str::kebab($indexBase);
-    $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
-    $indexUrl      = $indexResolved ? route($indexResolved) : '#';
-    $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+        // Use $indexUrl from controller if set, otherwise try to generate (with project ID if available)
+        if (!isset($indexUrl) || $indexUrl === '#') {
+            $indexBase     = VW::PRJ_EXP . '.index';
+            $indexKebab    = Str::kebab($indexBase);
+            $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+            // Only use project routes if we have a project ID
+            $projectId     = $project?->id ?? $id ?? request()->route('id') ?? null;
+            $indexUrl      = $indexResolved && $projectId ? route($indexResolved, ['id' => $projectId]) : (Route::has('expenses.index') ? route('expenses.index') : '#');
+        }
+        $indexGuardMsg = $indexGuardMsg ?? Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @section(YW::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create bill')
             @php
-                $createBase     = VW::PRJ_EXP . '.create';
-                $createKebab    = Str::kebab($createBase);
-                $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-                $createUrl      = $createResolved ? route($createResolved, 0) : '#';
-                $createGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'create_expense_route_unavailable') ?? 'Create expense route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $projectId      = $projectId ?? $project?->id ?? $id ?? request()->route('id') ?? request()->route('pid') ?? null;
+                    $createBase     = VW::PRJ_EXP . '.create';
+                    $createKebab    = Str::kebab($createBase);
+                    $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+                    $createUrl      = $createResolved && $projectId ? route($createResolved, ['pid' => $projectId]) : (Route::has('expenses.create') ? route('expenses.create') : '#');
+                    $createGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'create_expense_route_unavailable') ?? 'Create expense route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 id="exp-create-btn"
                 href="{{ $createUrl }}"
                 data-url="{{ $createUrl }}"
-                data-guard-msg="{{ $createGuardMsg }}"
+                data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                 class="{{ VC::BT_SM_PM }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
             >
-                <i class="ti ti-plus"></i>
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
         @endcan
     </div>
@@ -64,9 +71,9 @@
 @section(YW::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div id="multiCollapseExample1" class="mt-2">
+            <div id="multiCollapseExample1" class="{{ VC::MT2 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         {{ Form::open([
                             'url'    => $indexUrl,
                             'method' => 'GET',
@@ -75,7 +82,7 @@
                             'data-guard-msg' => $indexGuardMsg
                         ]) }}
                         <div class="{{ VC::R_FLX_ALC_JCE }}">
-                            <div class="col-xl-10">
+                            <div class="{{ VC::CXL10 }}">
                                 <div class="{{ VC::RW }}">
                                     <div class="{{ VC::C3 }}"></div>
                                     <div class="{{ VC::C3 }}"></div>
@@ -95,7 +102,7 @@
                             </div>
                             <div class="col-auto {{ VC::MT4 }}">
                                 <div class="{{ VC::RW }}">
-                                    <div class="col-auto">
+                                    <div class="{{ VC::C_AT }}">
                                         <a
                                             href="#"
                                             class="{{ VC::BT_SM_PM }}"
@@ -108,7 +115,7 @@
                                         <a
                                             href="{{ $indexUrl }}"
                                             data-url="{{ $indexUrl }}"
-                                            data-guard-msg="{{ $indexGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($indexGuardMsg) }}"
                                             class="{{ VC::BT_SM_DG }}"
                                             id="exp-filter-reset"
                                             data-bs-toggle="tooltip"
@@ -129,8 +136,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -147,23 +154,34 @@
                             @php
                                 $isExpenseNumberFormatAvailable = method_exists($user, 'expenseNumberFormat');
                                 $isDateFormatAvailable          = method_exists($user, 'dateFormat');
-                            @endphp
+@endphp
                             @if(Utility::isFilled($expenses) ?? [])
                                 @foreach ($expenses as $expense)
                                     @php
-                                        $showBase     = VW::PRJ_EXP . '.show';
-                                        $showKebab    = Str::kebab($showBase);
-                                        $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-                                        $encryptedId  = Crypt::encrypt($expense->id);
-                                        $showUrl      = $showResolved ? route($showResolved, $encryptedId) : '#';
-                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'show_expense_route_unavailable') ?? 'Show expense route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        $encryptedId  = '';
+                                        $showUrl      = '#';
+                                        $showGuardMsg = 'Show expense route is unavailable.';
+                                        $editUrl      = '#';
+                                        $editGuardMsg = 'Edit expense route is unavailable.';
+                                        $deleteUrl    = '#';
+                                        $deleteGuardMsg = 'Delete expense route is unavailable.';
+                                        try {
+                                            $showBase     = VW::PRJ_EXP . '.show';
+                                            $showKebab    = Str::kebab($showBase);
+                                            $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
+                                            $encryptedId  = Crypt::encrypt($expense->id);
+                                            $showUrl      = $showResolved ? route($showResolved, $encryptedId) : '#';
+                                            $showGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'show_expense_route_unavailable') ?? 'Show expense route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td class="Id">
                                             <a
                                                 href="{{ $showUrl }}"
                                                 data-url="{{ $showUrl }}"
-                                                data-guard-msg="{{ $showGuardMsg }}"
+                                                data-guard-msg="{{ base64_encode($showGuardMsg) }}"
                                                 class="{{ VC::BT_OUTPM }}"
                                             >
                                                 {{ $isExpenseNumberFormatAvailable ? $user->expenseNumberFormat($expense->bill_id) : __('Failed to format expense number') }}
@@ -172,7 +190,7 @@
                                         <td>{{ !empty($expense->category?->name) ? $expense->category->name : __('No category name available for expense ') }}</td>
                                         <td>{{ $isDateFormatAvailable ? $user->dateFormat($expense->bill_date) : __('Failed to format date') }}</td>
                                         <td>
-                                            <span class="status_badge badge bg-primary p-2 px-3 rounded">
+                                            <span class="status_badge badge {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded">
                                                 {{ __(Invoice::$statuses[$expense->status]) }}
                                             </span>
                                         </td>
@@ -184,7 +202,7 @@
                                                             <a
                                                                 href="{{ $showUrl }}"
                                                                 data-url="{{ $showUrl }}"
-                                                                data-guard-msg="{{ $showGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($showGuardMsg) }}"
                                                                 class="{{ VC::BT_SM_CT }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Show') }}"
@@ -196,17 +214,21 @@
 
                                                     @can('edit bill')
                                                         @php
-                                                            $editBase     = VW::PRJ_EXP . '.edit';
-                                                            $editKebab    = Str::kebab($editBase);
-                                                            $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                                                            $editUrl      = $editResolved ? route($editResolved, $encryptedId) : '#';
-                                                            $editGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'edit_expense_route_unavailable') ?? 'Edit expense route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $editBase     = VW::PRJ_EXP . '.edit';
+                                                                $editKebab    = Str::kebab($editBase);
+                                                                $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                                                                $editUrl      = $editResolved ? route($editResolved, $encryptedId) : '#';
+                                                                $editGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'edit_expense_route_unavailable') ?? 'Edit expense route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a
                                                                 href="{{ $editUrl }}"
                                                                 data-url="{{ $editUrl }}"
-                                                                data-guard-msg="{{ $editGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                 class="{{ VC::BT_SM_CT }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Edit') }}"
@@ -218,12 +240,16 @@
 
                                                     @can('delete bill')
                                                         @php
-                                                            $destroyBase     = VW::PRJ_EXP . '.destroy';
-                                                            $destroyKebab    = Str::kebab($destroyBase);
-                                                            $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                                                            $destroyUrl      = $destroyResolved ? route($destroyResolved, $expense->id) : '#';
-                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'destroy_expense_route_unavailable') ?? 'Delete expense route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $destroyBase     = VW::PRJ_EXP . '.destroy';
+                                                                $destroyKebab    = Str::kebab($destroyBase);
+                                                                $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                                $destroyUrl      = $destroyResolved ? route($destroyResolved, $expense->id) : '#';
+                                                                $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'destroy_expense_route_unavailable') ?? 'Delete expense route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('expenses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Form::open([
                                                                 'method' => 'DELETE',
@@ -254,9 +280,10 @@
                             @else
                                 <tr>
                                     <td colspan="5">
-                                        <div class="text-center text-muted">{{ __('No expenses found.') }}</div>
+                                        <div class="{{ VC::TXCT_MT }}">{{ __('No expenses found.') }}</div>
                                     </td>
                                 </tr>
+                            @endif
                             </tbody>
                         </table>
                     </div>

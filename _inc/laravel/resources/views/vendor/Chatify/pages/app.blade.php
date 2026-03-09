@@ -1,26 +1,16 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        ViewsConstants as VW,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\{
-        Facades\Auth, 
-        Facades\Log,
-        Facades\Route,
-        Facades\View as ViewFacade, 
-        Str
-    };
+    try {
+$user = Auth::user();
+        $setting = Utility::colorset();
+        $color   = (!empty($setting['color'])) ? $setting['color'] : 'theme-3';
 
-    $user = Auth::user();
-    $setting = Utility::colorset();
-    $color   = (!empty($setting['color'])) ? $setting['color'] : 'theme-3';
-
-    $dashBase  = 'dashboard';
-    $dashKebab = Str::kebab($dashBase);
-    $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
-    $dashUrl   = $dashName ? route($dashName) : '#';
+        $dashBase  = 'dashboard';
+        $dashKebab = Str::kebab($dashBase);
+        $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
+        $dashUrl   = $dashName ? route($dashName) : '#';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/pages/app — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -184,7 +174,7 @@
                                 } else {
                                     Log::warning('Chatify::layouts.info view does not exist');
                                 }
-                            @endphp
+@endphp
                         </div>
                     </div>
                 </div>
@@ -201,7 +191,6 @@
 @if (preg_match('/^theme-([1-9]|10)$/', $color))
     <link rel="stylesheet" href="{{ asset('assets/css/routes/vendors/chatify/' . $color . '.css') }}" />
 @endif
-
 
 {{--@if($color == "theme-1")--}}
 {{--    <style type="text/css">--}}
@@ -244,7 +233,6 @@
 {{--    </link>--}}
 {{--@endif--}}
 
-
 {{--@if($color == "theme-2")--}}
 {{--    <style type="text/css">--}}
 {{--        .m-list-active, .m-list-active:hover, .m-list-active:focus {--}}
@@ -285,7 +273,6 @@
 
 {{--    </style>--}}
 {{--@endif--}}
-
 
 {{--@if($color == "theme-3")--}}
 {{--    <style type="text/css">--}}
@@ -331,10 +318,8 @@
 {{--            color: #fff !important;--}}
 {{--        }--}}
 
-
 {{--    </style>--}}
 {{--@endif--}}
-
 
 {{--@if($color == "theme-4")--}}
 {{--    <style type="text/css">--}}

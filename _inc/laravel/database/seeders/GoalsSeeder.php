@@ -46,7 +46,8 @@ class GoalsSeeder extends Seeder
 
 		// Regra: TOTAL = 8 x N (N = baseTypeCount * multiplier)
 		$totalTypes   = $baseTypeCount * $multiplier;
-		$targetTotal  = 8 * $totalTypes;
+		// $targetTotal  = 8 * $totalTypes; // ORIGINAL — unbounded
+		$targetTotal  = min(2, 8 * $totalTypes); // HARD CAP
 
 		// Dados auxiliares de FKs (somente leitura => DB::table)
 		$employeesIds = Schema::hasTable(DC::TABLE_EMPLOYEES)
@@ -246,14 +247,14 @@ class GoalsSeeder extends Seeder
 					$isDisplay = fake()->boolean(85);
 
 					// Log em console antes da criação
-					$output->writeln(sprintf(
-						'Criando Goal "%s" do tipo "%s" com período %s -> %s e alvo %.2f',
-						$name,
-						$typeValue,
-						$startBase->toDateString(),
-						$endBase->toDateString(),
-						$amount
-					));
+					// $output->writeln(sprintf(
+					// 	'Criando Goal "%s" do tipo "%s" com período %s -> %s e alvo %.2f',
+					// 	$name,
+					// 	$typeValue,
+					// 	$startBase->toDateString(),
+					// 	$endBase->toDateString(),
+					// 	$amount
+					// ));
 
 					// Criação via Model (respeita booted + casts + validações)
 					Goal::query()->create([
@@ -271,6 +272,7 @@ class GoalsSeeder extends Seeder
 						'sponsors'     => $sponsors,
 						'stakeholders' => $stakeholders,
 						'tags'         => $tags,
+						DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
 					]);
 
 					$created++;

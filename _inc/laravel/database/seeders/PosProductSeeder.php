@@ -14,11 +14,13 @@ class PosProductSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const CAP = 4096;
+	// private const CAP = 4096;
+	private const CAP = 2;
 	private const LIMIT_IDS = 50000;
 	private const PICK_ATTEMPTS = 24;
 	private const WRITE_EVERY = 1;
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{
@@ -45,6 +47,7 @@ class PosProductSeeder extends Seeder
 		$rawTarget = min(self::CAP, $maxPossible);
 		$target = $this->normalizeTarget($rawTarget);
 		if ($target > self::CAP) $target = self::CAP - (self::CAP % 64);
+		if ($target <= 0) $target = self::CAP;
 
 		$this->out->writeln("<info>[PosProductSeeder] target={$target} (max_possible={$maxPossible})</info>");
 
@@ -77,8 +80,8 @@ class PosProductSeeder extends Seeder
 				$m->setAttribute('discount', $discount);
 				$m->setAttribute('description', ($pidx % 5 === 0) ? 'seeded pos line item' : null);
 
-				if (self::WRITE_EVERY === 1)
-					$this->out->writeln("<comment>[PosProductSeeder] creating pos={$posId} prd={$prodId} qty={$qty} price={$price} tax={$tax} disc={$discount}</comment>");
+				// if (self::WRITE_EVERY === 1)
+				// 	$this->out->writeln("<comment>[PosProductSeeder] creating pos={$posId} prd={$prodId} qty={$qty} price={$price} tax={$tax} disc={$discount}</comment>");
 
 				$m->save();
 				$created++;
@@ -120,8 +123,8 @@ class PosProductSeeder extends Seeder
 				$m->setAttribute('discount', $discount);
 				$m->setAttribute('description', ($spreadAttempts % 6 === 0) ? 'seeded pos line item (spread)' : null);
 
-				if (self::WRITE_EVERY === 1)
-					$this->out->writeln("<comment>[PosProductSeeder] creating pos={$posId} prd={$prodId} qty={$qty} price={$price} tax={$tax} disc={$discount}</comment>");
+				// if (self::WRITE_EVERY === 1)
+				// 	$this->out->writeln("<comment>[PosProductSeeder] creating pos={$posId} prd={$prodId} qty={$qty} price={$price} tax={$tax} disc={$discount}</comment>");
 
 				$m->save();
 				$created++;

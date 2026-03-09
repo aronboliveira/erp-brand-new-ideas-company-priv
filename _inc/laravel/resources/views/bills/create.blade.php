@@ -1,51 +1,44 @@
 
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $billIndexRoute = Route::has(ViewsConstants::BIL . '.index')
-        ? route(ViewsConstants::BIL . '.index')
-        : '#';
-    $billIndexId  = 'bill-index-link';
-    $billIndexMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BIL,
-        'bill_index_route_unavailable'
-    ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $billIndexRoute = Route::has(ViewsConstants::BIL . '.index')
+            ? route(ViewsConstants::BIL . '.index')
+            : '#';
+        $billIndexId  = 'bill-index-link';
+        $billIndexMsg = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::BIL,
+            'bill_index_route_unavailable'
+        ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $product_services ??= [];
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Bill Create')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="{{ $billIndexId }}"
             href="{{ $billIndexRoute }}"
             data-url="{{ $billIndexRoute }}"
-            data-guard-msg="{{ $billIndexMsg }}"
+            data-guard-msg="{{ base64_encode($billIndexMsg) }}"
         >
             {{ __('Bill') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Bill Create')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Bill Create')}}</li>
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/bills/index.js') }}"></script>
     @endpush
@@ -59,16 +52,20 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         @php
-            $billsStoreRoute    = Route::has(ViewsConstants::BIL)
-                ? route(ViewsConstants::BIL)
-                : '#';
-            $billsStoreFormId   = 'bills-store-form';
-            $billsStoreMsg      = Utility::fetchLinkMessage(
-                $lang,
-                ViewsConstants::BIL,
-                'bill_store_route_unavailable'
-            ) ?? 'Bill store route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $billsStoreRoute    = Route::has(ViewsConstants::BIL)
+                    ? route(ViewsConstants::BIL)
+                    : '#';
+                $billsStoreFormId   = 'bills-store-form';
+                $billsStoreMsg      = Utility::fetchLinkMessage(
+                    $lang,
+                    ViewsConstants::BIL,
+                    'bill_store_route_unavailable'
+                ) ?? 'Bill store route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         {{ Form::open([
             'url'            => $billsStoreRoute,
             'id'             => $billsStoreFormId,
@@ -85,16 +82,20 @@
                             <div class="{{ VC::FM_G }}">
                                 {{ Form::label('vendor_id', __('Vendor'), ['class'=>VC::FM_LB]) }}
                                 @php
-                                    $vendorRoute = Route::has(ViewsConstants::BIL . '.vendor')
-                                        ? route(ViewsConstants::BIL . '.vendor')
-                                        : '#';
-                                    $vendorMsg      = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::BIL,
-                                            'bill_vendor_fetch_route_unavailable'
-                                        ) ?? 'Vendor fetch route is unavailable. Please contact technical support or your domain administrator.';
-                                    $vendorSelectId = 'vendor_select';
-                                @endphp
+                                    try {
+                                        $vendorRoute = Route::has(ViewsConstants::BIL . '.vendor')
+                                            ? route(ViewsConstants::BIL . '.vendor')
+                                            : '#';
+                                        $vendorMsg      = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::BIL,
+                                                'bill_vendor_fetch_route_unavailable'
+                                            ) ?? 'Vendor fetch route is unavailable. Please contact technical support or your domain administrator.';
+                                        $vendorSelectId = 'vendor_select';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 @if(!empty($vendors) && ((is_array($vendors) && count($vendors)) || ($vendors instanceof Collection && $vendors->isNotEmpty())))
                                     {{ Form::select('vendor_id', $vendors, $vendorId, [
                                         'class'         => VC::FM_CT_SL,
@@ -134,32 +135,7 @@
                                                         return msg;
                                                     };
                                                     const showError = message => {
-                                                        try {
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        const bsLink = document.querySelector('link[href*="bootstrap"]');
-                                                        if (bsLink && window.bootstrap) {
-                                                            const toast = document.createElement('div');
-                                                            toast.className = 'toast';
-                                                            toast.setAttribute('role','alert');
-                                                            toast.setAttribute('aria-live','assertive');
-                                                            toast.setAttribute('aria-atomic','true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = message;
-                                                            toast.appendChild(body);
-                                                            container.appendChild(toast);
-                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                        } else {
-                                                            alert(message);
-                                                        }
-                                                        } catch {
-                                                        alert(message);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(message);
                                                     };
                                                     let errorMsg = '';
                                                     const onPointerUp = () => {
@@ -182,7 +158,7 @@
                                                         const sel = 'body .repeater';
                                                         const container = document.querySelector(sel);
                                                         if (!container) return;
-                                                    
+
                                                         const drag = $(sel + ' tbody').sortable({ handle: '.sort-handler' });
                                                         const rep = $(sel).repeater({
                                                             initEmpty: false,
@@ -220,7 +196,7 @@
                                                         } catch {
                                                         errorMsg = getMsg('calculation_error', document.body);
                                                         }
-                                                    
+
                                                         const onVendorChange = async () => {
                                                         try {
                                                             $('#vendor_detail').toggleClass('d-none d-block', true);
@@ -245,7 +221,7 @@
                                                         $('#vendor-box').toggleClass('d-none d-block', true);
                                                         $('#vendor_detail').toggleClass('d-block d-none', true);
                                                         });
-                                                    
+
                                                         const onItemChange = async function(){
                                                         const el = this;
                                                         try {
@@ -261,7 +237,7 @@
                                                             let totalRate=0, taxesHtml='', taxIds=[];
                                                             if (data.taxes && data.taxes.length) {
                                                             data.taxes.forEach(t=>{
-                                                                taxesHtml+=`<span class="badge bg-primary mt-1 mr-2">${t.name} (${t.rate}%)</span>`;
+                                                                taxesHtml+=`<span class="badge {{ VC::BG_P }} {{ VC::MT1 }} {{ VC::MR2 }}">${t.name} (${t.rate}%)</span>`;
                                                                 taxIds.push(t.id);
                                                                 totalRate+=parseFloat(t.rate);
                                                             });
@@ -273,14 +249,14 @@
                                                             row.find('.tax').val(taxIds);
                                                             row.find('.unit').html(data.unit);
                                                             row.find('.discount').val(0);
-                                                    
+
                                                             $('.quantity, .price, .discount, .accountAmount').trigger('keyup change');
                                                         } catch {
                                                             errorMsg = getMsg('item_data_fetch_failed', this);
                                                         }
                                                         };
                                                         $(document).on('change', '.item', onItemChange);
-                                                    
+
                                                         const recalc = () => {
                                                         try {
                                                             let totalPrice=0, totalTax=0, totalAmt=0, totalAccount=0;
@@ -327,14 +303,19 @@
                             <div id="vendor_detail" class="d-none"></div>
                         </div>
                         @php
-                            $fields = [
-                                ['bill_date','date', __('Bill Date'), true],
-                                ['due_date','date', __('Due Date'), true],
-                                ['bill_id','readonly', __('Bill Identifier'), false, $bill_id],
-                                ['category_id','select', __('Category'), false, null, $category],
-                                ['order_id','text', __('Order Identifier'), false],
-                            ];
-                        @endphp
+                            try {
+                                $fields = [
+                                    ['bill_date','date', __('Bill Date'), true],
+                                    ['due_date','date', __('Due Date'), true],
+                                    ['bill_id','readonly', __('Bill Identifier'), false, $bill_id],
+                                    ['category_id','select', __('Category'), false, null, $category],
+                                    ['order_id','text', __('Order Identifier'), false],
+                                ];
+                            } catch (\Throwable $e) {
+                                \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+                            $fields ??= [];
+@endphp
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::RW }}">
                                 @foreach($fields as $f)
@@ -371,7 +352,7 @@
             </div>
         </div>
         <div class="{{ VC::C12 }} mt-4">
-            <h5 class="mb-3">{{ __('Product & Services') }}</h5>
+            <h5 class="{{ VC::MB3 }}">{{ __('Product & Services') }}</h5>
             <div class="{{ VC::CD }} repeater">
                 <div class="item-section py-2 {{ VC::RW }} {{ VC::JCE }}">
                     <a href="#" data-repeater-create class="{{ VC::BT_SM_PM }}">
@@ -388,9 +369,9 @@
                                     <th>{{ __('Price') }}</th>
                                     <th>{{ __('Discount') }}</th>
                                     <th>{{ __('Tax') }} (%)</th>
-                                    <th class="text-end">
+                                    <th class="{{ VC::TX_END }}">
                                         {{ __('Amount') }}
-                                        <br><small class="text-danger fw-bold">{{ __('after tax & discount') }}</small>
+                                        <br><small class="{{ VC::TX_DNG }} fw-bold">{{ __('after tax & discount') }}</small>
                                     </th>
                                     <th></th>
                                 </tr>
@@ -398,15 +379,19 @@
                             <tbody data-repeater-item>
                                 <tr>
                                     @php
-                                        $productRoute     = Route::has(ViewsConstants::BIL . '.product')
-                                            ? route(ViewsConstants::BIL . '.product')
-                                            : '#';
-                                        $itemGuardMsg     = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::BIL,
-                                            'product_fetch_route_unavailable'
-                                        ) ?? 'Product fetch route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $productRoute     = Route::has(ViewsConstants::BIL . '.product')
+                                                ? route(ViewsConstants::BIL . '.product')
+                                                : '#';
+                                            $itemGuardMsg     = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::BIL,
+                                                'product_fetch_route_unavailable'
+                                            ) ?? 'Product fetch route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <td class="{{ VC::FM_G }}">
                                         {{ Form::select('item', $product_services, '', [
                                             'class'         => VC::FM_CT_SL . ' item-select',
@@ -425,39 +410,18 @@
                                                             const url = select.getAttribute('data-url');
                                                             if (!url || url === '#') {
                                                                 const msg           = select.getAttribute('data-guard-msg');
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container       = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container       = document.createElement('div');
-                                                                    container.id    = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl      = document.createElement('div');
-                                                                    toastEl.className  = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body         = document.createElement('div');
-                                                                    body.className     = 'toast-body';
-                                                                    body.textContent   = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
+                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                 select.setAttribute('data-failed-route', 'true');
                                                                 return;
                                                             }
-                                    
+
                                                             const productId = select.value ?? '';
                                                             const response  = await fetch(`${url}?product_id=${encodeURIComponent(productId)}`, {
                                                                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
                                                             });
                                                             if (!response.ok) throw new Error(`Network error: ${response.status}`);
                                                             const data = await response.json();
-                                    
+
                                                             document.querySelectorAll('[data-product-field]').forEach(el => {
                                                                 const key = el.getAttribute('data-product-field');
                                                                 const val = data[key] ?? '';
@@ -481,19 +445,19 @@
                                     <td class="{{ VC::FM_G }}">
                                         <div class="{{ VC::DFL }} {{ VC::INP_GP_TXT }}">
                                             {{ Form::text('quantity', '', ['class'=>'form-control quantity','placeholder'=>__('Qty')]) }}
-                                            <span class="unit input-group-text bg-transparent"></span>
+                                            <span class="unit {{ VC::TXTS_TRP }}"></span>
                                         </div>
                                     </td>
                                     <td class="{{ VC::FM_G }}">
                                         <div class="{{ VC::DFL }} {{ VC::INP_GP_TXT }}">
                                             {{ Form::text('price', '', ['class'=>'form-control price','placeholder'=>__('Price')]) }}
-                                            <span class="input-group-text bg-transparent">{{ $user->currencySymbol() }}</span>
+                                            <span class="{{ VC::TXTS_TRP }}">{{ $user->currencySymbol() }}</span>
                                         </div>
                                     </td>
                                     <td class="{{ VC::FM_G }}">
                                         <div class="{{ VC::DFL }} {{ VC::INP_GP_TXT }}">
                                             {{ Form::text('discount','',['class'=>'form-control discount','placeholder'=>__('Discount')]) }}
-                                            <span class="input-group-text bg-transparent">{{ $user->currencySymbol() }}</span>
+                                            <span class="{{ VC::TXTS_TRP }}">{{ $user->currencySymbol() }}</span>
                                         </div>
                                     </td>
                                     <td class="{{ VC::FM_G }}">
@@ -504,7 +468,7 @@
                                             {{ Form::hidden('itemTaxRate','',['class'=>'itemTaxRate']) }}
                                         </div>
                                     </td>
-                                    <td class="text-end amount">0.00</td>
+                                    <td class="{{ VC::TX_END }} amount">0.00</td>
                                     <td>
                                         @can('delete proposal product')
                                             <a href="#" class="{{ VC::TRS_M2 }}" data-repeater-delete></a>
@@ -525,7 +489,7 @@
                                         ]) }}
                                     </td>
                                     <td></td>
-                                    <td class="text-end accountamount">0.00</td>
+                                    <td class="{{ VC::TX_END }} accountamount">0.00</td>
                                 </tr>
                             </tbody>
                             <tfoot>
@@ -537,14 +501,14 @@
                                     <tr>
                                         <td colspan="4"></td>
                                         <td><strong>{{ __($r[0]) }} ({{ $user->currencySymbol() }})</strong></td>
-                                        <td class="text-end {{ $r[1] }}">0.00</td>
+                                        <td class="{{ VC::TX_END }} {{ $r[1] }}">0.00</td>
                                         <td></td>
                                     </tr>
                                 @endforeach
                                 <tr>
                                     <td colspan="4"></td>
-                                    <td class="text-primary"><strong>{{ __('Total Amount') }} ({{ $user->currencySymbol() }})</strong></td>
-                                    <td class="text-primary text-end totalAmount">0.00</td>
+                                    <td class="{{ VC::TX_PM }}"><strong>{{ __('Total Amount') }} ({{ $user->currencySymbol() }})</strong></td>
+                                    <td class="{{ VC::TX_PM }} {{ VC::TX_END }} totalAmount">0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -555,22 +519,26 @@
             <div class="{{ VC::RW }} mt-4">
                 <div class="{{ VC::C12 }} {{ VC::JCE }}">
                     @php
-                        $cancelRoute        = Route::has(ViewsConstants::BIL . '.index')
-                            ? route(ViewsConstants::BIL . '.index')
-                            : '#';
-                        $cancelBtnId        = 'bill-cancel-btn';
-                        $cancelGuardMsg     = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::BIL,
-                            'bill_index_route_unavailable'
-                        ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $cancelRoute        = Route::has(ViewsConstants::BIL . '.index')
+                                ? route(ViewsConstants::BIL . '.index')
+                                : '#';
+                            $cancelBtnId        = 'bill-cancel-btn';
+                            $cancelGuardMsg     = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::BIL,
+                                'bill_index_route_unavailable'
+                            ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('bills/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <button
                         id="{{ $cancelBtnId }}"
                         type="button"
                         class="{{ VC::BT_LG }}"
                         data-url="{{ $cancelRoute }}"
-                        data-guard-msg="{{ $cancelGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($cancelGuardMsg) }}"
                     >
                         {{ __('Cancel') }}
                     </button>
@@ -629,4 +597,3 @@
         @endpush
     </div>
 @endsection
-

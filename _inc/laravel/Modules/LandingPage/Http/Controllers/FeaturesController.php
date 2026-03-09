@@ -2,8 +2,8 @@
 
 namespace Modules\LandingPage\Http\Controllers;
 
-use App\Config\Constants\{PermissionsConstants, UsersConstants};
-use App\Http\Controllers\Controller as AppController;
+use App\Config\Constants\{PermissionsConstants as PMC, UsersConstants as UC};
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\ChecksLogin;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,18 +11,18 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, View};
 use Illuminate\Support\Collection;
 use Modules\LandingPage\{
-    Config\Constants\RoutesResourcesConstants,
+    Config\Constants\RoutesResourcesConstants as RRC,
     Entities\LandingPageSetting
 };
-use Modules\LandingPage\Config\Constants\SettingsConstants as LPC;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use Modules\LandingPage\Config\Constants\SettingsConstants as LPSC;
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 final class FeaturesController extends AppController
 {
     use ChecksLogin;
 
-    public const ENTITY = RoutesResourcesConstants::FT;
-    private const LP = RoutesResourcesConstants::LP;
+    public const ENTITY = RRC::FT;
+    private const LP = RRC::LP;
     private const VIEW_BASE   = self::LP . '::' . self::LP . '.' . self::ENTITY;
     private const DIR         = 'uploads/landing_page_image';
     private const FEATURE_NAME = 'feature_of_features';
@@ -38,6 +38,9 @@ final class FeaturesController extends AppController
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($ur instanceof User) $user = $ur;
             $userId = $user->id ?? $userId;
+            if (!isset($user) || $user->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             Log::info("[$action] start", ['user_id' => $userId, 'uri' => $request->getRequestUri()]);
             try {
                 $settingsStart = microtime(true);
@@ -59,7 +62,6 @@ final class FeaturesController extends AppController
                 return view($baseView, ['settings' => $settings, 'feature_of_features' => $features, 'other_features' => $others]);
             } catch (\Throwable $e) {
                 Log::error("[$action] error", ['error' => $e->getMessage()]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
         }, ['uri' => $request->getRequestUri()]);
@@ -72,7 +74,6 @@ final class FeaturesController extends AppController
     {
         $method = __METHOD__;
         $function = __FUNCTION__;
-        Log::debug($method . ' - start', ['id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method, $function) {
             $stepStart = microtime(true);
             $userId = '#UNAUTHENTICATED';
@@ -91,16 +92,13 @@ final class FeaturesController extends AppController
                     Log::warning("[$function] view not found", ['attempted' => self::ENTITY . '.' . $function]);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
                 }
-                Log::debug("[$function] resolved view", ['view' => $baseView]);
                 $this->logExecutionTime($stepStart, 'renderView', 'completed');
                 return view($baseView, compact('setting'));
             } catch (ModelNotFoundException $e) {
                 Log::warning($method . ' setting not found', ['id' => $id]);
-                Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
                 return redirect()->back()->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method);
             }
         }, ['id' => $id]);
@@ -112,19 +110,17 @@ final class FeaturesController extends AppController
         return $this->measureProfile($function, function () use ($function) {
             try {
                 $method = static::class . '::' . $function;
-                Log::info($method, [UsersConstants::COL_USER_ID => Auth::id()]);
+                Log::info($method, [UC::COL_USER_ID => Auth::id()]);
                 $startView = microtime(true);
                 $view = self::getFirstExistingView(static::VIEW_BASE . '.create');
                 if (!$view) {
                     Log::warning("[create] view not found", ['attempted' => static::VIEW_BASE . '.create']);
                     throw new \RuntimeException("View not found: " . static::VIEW_BASE . '.create');
                 }
-                Log::debug("[create] resolved view", ['view' => $view]);
                 $this->logExecutionTime($startView, $function . '::view', 'completed');
                 return view($view);
             } catch (\Throwable $e) {
                 Log::error("[$function] failed", ['error' => $e->getMessage()]);
-                Log::debug("[$function] exception trace", ['trace' => $e->getTraceAsString()]);
                 throw $e;
             }
         }, func_get_args());
@@ -136,16 +132,16 @@ final class FeaturesController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $action) {
-            Log::info("$action invoked", [UsersConstants::COL_USER_ID => Auth::id()]);
+            Log::info("$action invoked", [UC::COL_USER_ID => Auth::id()]);
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
                 $fields = [
-                    LPC::FT_STT_K => 'on' ?? LPC::FT_STT_DEF,
-                    LPC::FT_TTL_K => $request[LPC::FT_TTL_K] ?? LPC::FT_TTL_DEF,
-                    LPC::FT_HDG_K => $request[LPC::FT_HDG_K] ?? LPC::FT_HDG_DEF,
-                    LPC::FT_DESC_K => $request[LPC::FT_DESC_K] ?? LPC::FT_DESC_DEF,
-                    LPC::FT_BUY_LNK_K => $request[LPC::FT_BUY_LNK_K] ?? LPC::FT_BUY_LNK_DEF
+                    LPSC::FT_STT_K => 'on' ?? LPSC::FT_STT_DEF,
+                    LPSC::FT_TTL_K => $request[LPSC::FT_TTL_K] ?? LPSC::FT_TTL_DEF,
+                    LPSC::FT_HDG_K => $request[LPSC::FT_HDG_K] ?? LPSC::FT_HDG_DEF,
+                    LPSC::FT_DESC_K => $request[LPSC::FT_DESC_K] ?? LPSC::FT_DESC_DEF,
+                    LPSC::FT_BUY_LNK_K => $request[LPSC::FT_BUY_LNK_K] ?? LPSC::FT_BUY_LNK_DEF
                 ];
                 foreach ($fields as $name => $value) {
                     LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value]);
@@ -157,7 +153,6 @@ final class FeaturesController extends AppController
                 return redirect()->back()->with(['success' => 'Settings updated']);
             } catch (\Throwable $e) {
                 DB::rollBack();
-                Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all()]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action);
             }
@@ -178,9 +173,8 @@ final class FeaturesController extends AppController
             if ($ur instanceof RedirectResponse) return $ur;
             $user = $ur;
             $permStart = microtime(true);
-            if ($user[UsersConstants::COL_TP] !== PermissionsConstants::SA) {
+            if ($user[UC::COL_TP] !== PMC::SA) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
-                Log::debug("[$action] user type '{$user[UsersConstants::COL_TP]}' lacks SA");
                 $this->logExecutionTime($permStart, $action . '::permission', 'error');
                 return defaultPermissionDenial($request, null, $action);
             }
@@ -195,15 +189,12 @@ final class FeaturesController extends AppController
                     Log::warning("[edit] view not found", ['attempted' => self::ENTITY . '.edit']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.edit');
                 }
-                Log::debug("[edit] resolved view", ['view' => $view]);
                 return view($view, compact('setting'));
             } catch (ModelNotFoundException $e) {
                 Log::warning("[$action] setting not found", ['id' => $id, 'error' => ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'type' => get_class($e)], 'uri' => $request->getRequestUri()]);
-                Log::debug("[$action] exception trace", ['id' => $id, 'request' => ['method' => $request->getMethod(), 'uri' => $request->getRequestUri(), 'headers' => $request->headers->all()], 'error' => ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'type' => get_class($e)], 'trace' => $e->getTraceAsString()]);
                 return redirect()->back()->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
         }, ['id' => $id, 'user_id' => Auth::id()]);
@@ -212,7 +203,6 @@ final class FeaturesController extends AppController
     public function update(Request $request, string|int $id): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => Auth::id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($request, $id, $method) {
             $stepStart = microtime(true);
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
@@ -234,7 +224,6 @@ final class FeaturesController extends AppController
                 Log::info($method . ' - succeeded', ['user_id' => Auth::id(), 'id' => $id]);
                 return redirect()->back()->with(['success' => 'Setting updated']);
             } catch (\Throwable $e) {
-                Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
                 Log::error($method . ' - failed to update setting', ['user_id' => Auth::id(), 'id' => $id]);
                 DB::rollBack();
                 return defaultUndefinedException($request, $e, $method);
@@ -247,7 +236,7 @@ final class FeaturesController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $id, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' invoked', [UsersConstants::COL_USER_ID => Auth::id(), 'id' => $id]);
+            Log::info($method . ' invoked', [UC::COL_USER_ID => Auth::id(), 'id' => $id]);
             if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             DB::beginTransaction();
             try {
@@ -261,7 +250,6 @@ final class FeaturesController extends AppController
                 DB::rollBack();
                 $this->logExecutionTime($startError, $function . '::rollback', 'failed');
                 Log::error($method . ' failed to delete setting', ['id' => $id, 'error' => $e->getMessage()]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method);
             }
         }, func_get_args());
@@ -274,7 +262,7 @@ final class FeaturesController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($action) {
-            Log::info("$action invoked", [UsersConstants::COL_USER_ID => Auth::id()]);
+            Log::info("$action invoked", [UC::COL_USER_ID => Auth::id()]);
             $stepStart = microtime(true);
             try {
                 LandingPageSetting::settings();
@@ -285,10 +273,8 @@ final class FeaturesController extends AppController
                     Log::warning("[create] view not found", ['attempted' => self::ENTITY . '.create']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.create');
                 }
-                Log::debug("[create] resolved view", ['view' => $view]);
                 return view($view);
             } catch (\Throwable $e) {
-                Log::debug("$action exception trace", ['exception' => $e]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
                 return redirect()->back()->with('error', 'An error occurred while loading the feature creation form.');
             }
@@ -316,7 +302,6 @@ final class FeaturesController extends AppController
                     $this->logExecutionTime($uploadStart, $action . '::uploadFile', 'completed');
                     if ($upload['flag'] === 0) {
                         Log::warning("[$action] upload failed", ['msg' => $upload['msg']]);
-                        Log::debug("[$action] debug upload details", ['upload' => $upload]);
                         DB::rollBack();
                         return redirect()->back()->with('error', __($upload['msg']));
                     }
@@ -334,7 +319,6 @@ final class FeaturesController extends AppController
             } catch (\Throwable $e) {
                 DB::rollBack();
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
         }, []);
@@ -344,7 +328,6 @@ final class FeaturesController extends AppController
     public function featureEdit(string|int $key): mixed
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => Auth::id(), 'key' => $key]);
         return $this->measureProfile($method, function () use ($key, $method) {
             try {
                 $stepStart = microtime(true);
@@ -353,19 +336,16 @@ final class FeaturesController extends AppController
                 $stepStart = microtime(true);
                 $list = json_decode(LandingPageSetting::settings()[self::FEATURE_NAME] ?? '[]', true) ?: [];
                 $this->logExecutionTime($stepStart, 'decodeFeatureList', 'completed');
-                Log::debug($method . ' - feature list loaded', ['count' => count($list)]);
                 $stepStart = microtime(true);
                 $view = self::getFirstExistingView(self::ENTITY . '.edit');
                 if (!$view) {
                     Log::warning("[edit] view not found", ['attempted' => self::ENTITY . '.edit']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.edit');
                 }
-                Log::debug("[edit] resolved view", ['view' => $view]);
                 $this->logExecutionTime($stepStart, 'renderEditView', 'completed');
                 return view($view, ['feature' => $list[$key] ?? null, 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' exception trace', ['trace' => $e->getTraceAsString()]);
                 return redirect()->back()->with('error', 'An error occurred while loading the feature edit form.');
             }
         }, ['user_id' => Auth::id(), 'key' => $key]);
@@ -377,7 +357,7 @@ final class FeaturesController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' invoked', [UsersConstants::COL_USER_ID => Auth::id(), 'key' => $key]);
+            Log::info($method . ' invoked', [UC::COL_USER_ID => Auth::id(), 'key' => $key]);
             DB::beginTransaction();
             try {
                 $startFetch = microtime(true);
@@ -396,7 +376,6 @@ final class FeaturesController extends AppController
                     $this->logExecutionTime($fileStart, $function . '::uploadFile', $upload['flag'] === 0 ? 'failed' : 'completed');
                     if ($upload['flag'] === 0) {
                         Log::warning($method . ' upload failed', ['msg' => $upload['msg']]);
-                        Log::debug($method . ' debug upload', ['response' => $upload]);
                         return redirect()->back()->with('error', __($upload['msg']));
                     }
                     $list[$key]['feature_logo'] = $file;
@@ -413,7 +392,6 @@ final class FeaturesController extends AppController
                 DB::rollBack();
                 $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method);
             }
         }, func_get_args());
@@ -426,7 +404,7 @@ final class FeaturesController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $key, $action) {
-            Log::info("$action invoked", [UsersConstants::COL_USER_ID => Auth::id(), 'key' => $key]);
+            Log::info("$action invoked", [UC::COL_USER_ID => Auth::id(), 'key' => $key]);
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
@@ -439,7 +417,6 @@ final class FeaturesController extends AppController
                 return redirect()->back()->with(['success' => 'Feature deleted']);
             } catch (\Throwable $e) {
                 DB::rollBack();
-                Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), 'key' => $key]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action);
             }
@@ -468,7 +445,6 @@ final class FeaturesController extends AppController
                     $this->logExecutionTime($uploadStart, $action . '::uploadFile', 'completed');
                     if ($upload['flag'] === 0) {
                         Log::warning("[$action] upload failed", ['msg' => $upload['msg']]);
-                        Log::debug("[$action] debug upload details", ['upload' => $upload]);
                         DB::rollBack();
                         return redirect()->back()->with('error', __($upload['msg']));
                     }
@@ -488,7 +464,6 @@ final class FeaturesController extends AppController
             } catch (\Throwable $e) {
                 DB::rollBack();
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
         }, []);
@@ -498,7 +473,6 @@ final class FeaturesController extends AppController
     public function featuresCreate(): mixed
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => Auth::id()]);
         return $this->measureProfile($method, function () use ($method) {
             try {
                 $stepStart = microtime(true);
@@ -513,12 +487,10 @@ final class FeaturesController extends AppController
                     Log::warning("[features_create] view not found", ['attempted' => self::ENTITY . '.features_create']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.features_create');
                 }
-                Log::debug("[features_create] resolved view", ['view' => $view]);
                 $this->logExecutionTime($stepStart, 'renderView', 'completed');
                 return view($view);
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' exception trace', ['trace' => $e->getTraceAsString()]);
                 return redirect()->back()->with('error', 'An error occurred while loading the features creation form.');
             }
         }, ['user_id' => Auth::id()]);
@@ -530,7 +502,7 @@ final class FeaturesController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' invoked', [UsersConstants::COL_USER_ID => Auth::id()]);
+            Log::info($method . ' invoked', [UC::COL_USER_ID => Auth::id()]);
             DB::beginTransaction();
             try {
                 $startSettings = microtime(true);
@@ -549,7 +521,6 @@ final class FeaturesController extends AppController
                     $this->logExecutionTime($startUpload, $function . '::uploadFile', $upload['flag'] === 0 ? 'failed' : 'completed');
                     if ($upload['flag'] === 0) {
                         Log::warning($method . ' upload failed', ['msg' => $upload['msg']]);
-                        Log::debug($method . ' debug upload', ['response' => $upload]);
                         DB::rollBack();
                         return redirect()->back()->with('error', __($upload['msg']));
                     }
@@ -571,7 +542,6 @@ final class FeaturesController extends AppController
                 DB::rollBack();
                 $this->logExecutionTime($timeError, $function . '::exception', 'failed');
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method);
             }
         }, func_get_args());
@@ -584,7 +554,7 @@ final class FeaturesController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($key, $action) {
-            Log::info("$action invoked", [UsersConstants::COL_USER_ID => Auth::id(), 'key' => $key]);
+            Log::info("$action invoked", [UC::COL_USER_ID => Auth::id(), 'key' => $key]);
             $stepStart = microtime(true);
             try {
                 $list = json_decode(LandingPageSetting::settings()[self::OTHER_NAME], true) ?? [];
@@ -595,10 +565,8 @@ final class FeaturesController extends AppController
                     Log::warning("[features_edit] view not found", ['attempted' => self::ENTITY . '.features_edit']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.features_edit');
                 }
-                Log::debug("[features_edit] resolved view", ['view' => $view]);
                 return view($view, ['other_features' => $list[$key], 'key' => $key]);
             } catch (\Throwable $e) {
-                Log::debug("$action exception trace", ['exception' => $e, 'key' => $key]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'key' => $key]);
                 return redirect()->back()->with('error', 'An error occurred while loading the other feature edit form.');
             }
@@ -626,7 +594,6 @@ final class FeaturesController extends AppController
                     $this->logExecutionTime($uploadStart, $action . '::uploadFile', 'completed');
                     if ($upload['flag'] === 0) {
                         Log::warning("[$action] upload failed", ['msg' => $upload['msg']]);
-                        Log::debug("[$action] debug upload details", ['upload' => $upload]);
                         DB::rollBack();
                         return redirect()->back()->with('error', __($upload['msg']));
                     }
@@ -643,17 +610,23 @@ final class FeaturesController extends AppController
             } catch (\Throwable $e) {
                 DB::rollBack();
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'key' => $key]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action);
             }
         }, ['key' => $key]);
     }
 
     public const FTRS_DEL = 'featuresDelete';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function featuresDelete(Request $request, string|int $key): RedirectResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => Auth::id(), 'key' => $key]);
         return $this->measureProfile($method, function () use ($request, $key, $method) {
             $stepStart = microtime(true);
             DB::beginTransaction();
@@ -676,7 +649,6 @@ final class FeaturesController extends AppController
                 $this->logExecutionTime($stepStart, 'commitTransaction', 'completed');
                 return redirect()->back()->with(['success' => 'Other feature deleted']);
             } catch (\Throwable $e) {
-                Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'user_id' => Auth::id(), 'key' => $key]);
                 Log::error($method . ' - failed to delete feature', ['user_id' => Auth::id(), 'key' => $key]);
                 DB::rollBack();
                 return defaultUndefinedException($request, $e, $method);

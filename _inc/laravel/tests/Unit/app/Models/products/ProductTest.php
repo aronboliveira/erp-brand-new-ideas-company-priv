@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class ProductTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -15,7 +20,13 @@ class ProductTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'name', 'price', 'description', 'image', 'type', 'created_by',
+			'product_service_id',
+			'name',
+			'price',
+			'quantity',
+			'description',
+			'image',
+			'type',
 		];
 
 		$this->assertSame($expected, (new Product)->getFillable());

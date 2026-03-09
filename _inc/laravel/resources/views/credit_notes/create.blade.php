@@ -1,23 +1,20 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    $lang        = Utility::fetchUserLang();
-    $routeName   = ViewsConstants::INV . '.credit.note';
-    $creditRoute = Route::has($routeName)
-        ? route($routeName, $invoice_id)
-        : '#';
-    $formId      = 'invoiceCreditNoteForm_' . $invoice_id;
-    $guardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::INV,
-        'credit_note_route_unavailable'
-    ) ?? 'Add credit note route is unavailable. Please contact technical support or your domain administrator.';
+    $fields ??= [];
+    try {
+$lang        = Utility::fetchUserLang();
+        $routeName   = ViewsConstants::INV . '.credit.note';
+        $creditRoute = Route::has($routeName)
+            ? route($routeName, $invoice_id)
+            : '#';
+        $formId      = 'invoiceCreditNoteForm_' . $invoice_id;
+        $guardMsg    = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::INV,
+            'credit_note_route_unavailable'
+        ) ?? 'Add credit note route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('credit_notes/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {{ Form::open([
     'route'          => [$creditRoute],
@@ -31,7 +28,9 @@
             @foreach($fields as $f)
                 <div class="{{ VC::CM6 }}{{ $f['cols'] === 12 ? ' ' . VC::C12 : '' }} {{ VC::FM_G }}">
                     {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                    @php $attrs = $f['attrs']; @endphp
+                    @php
+ $attrs = $f['attrs'];
+@endphp
                     @if($f['type'] === 'textarea')
                         {{ Form::textarea($f['name'], $f['value'] ?? null, $attrs) }}
                     @else
@@ -45,42 +44,13 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Add') }}</button>
     </div>
+    <script src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const url = form.getAttribute('data-url') ?? '#';
-                    if (url !== '#') return;
-                    event.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (e) {}
-            });
+            if (window.RouteGuard?.guardFormSubmit) {
+                window.RouteGuard.guardFormSubmit(form);
+            }
         })();
     </script>
 {{ Form::close() }}

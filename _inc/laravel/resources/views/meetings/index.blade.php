@@ -1,47 +1,66 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Gate, Route};
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in meetings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in meetings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in meetings/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Meeting')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Meeting')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Meeting')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create meeting')
             @php
-                $calendarUrl   = Route::has(ViewsConstants::MT.'.calendar')
-                    ? route(ViewsConstants::MT.'.calendar')
-                    : '#';
-                $createUrl     = Route::has(ViewsConstants::MT.'.create')
-                    ? route(ViewsConstants::MT.'.create')
-                    : '#';
-                $calendarClass = 'calendar-meeting-link';
-                $createClass   = 'create-meeting-link';
-            @endphp
+                try {
+                    $calendarUrl   = Route::has(ViewsConstants::MT.'.calendar')
+                        ? route(ViewsConstants::MT.'.calendar')
+                        : '#';
+                    $createUrl     = Route::has(ViewsConstants::MT.'.create')
+                        ? route(ViewsConstants::MT.'.create')
+                        : '#';
+                    $calendarClass = 'calendar-meeting-link';
+                    $createClass   = 'create-meeting-link';
+                } catch (\Throwable $e) {
+                    \Log::error('meetings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 href="{{ $calendarUrl }}"
                 id="{{ $calendarClass }}"
                 class="{{ ViewClassNamesConstants::BT_SM_PM }} {{ $calendarClass }}"
                 data-url="{{ $calendarUrl }}"
-                data-guard-msg="{{ __('Calendar view route is unavailable. Please contact technical support or your domain administrator.') }}"
+                data-guard-msg="{{ base64_encode(__('Calendar view route is unavailable. Please contact technical support or your domain administrator.')) }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Calendar View') }}"
                 data-original-title="{{ __('Calendar View') }}"
@@ -53,7 +72,7 @@
                 id="{{ $createClass }}"
                 class="{{ ViewClassNamesConstants::BT_SM_PM }} {{ $createClass }}"
                 data-url="{{ $createUrl }}"
-                data-guard-msg="{{ __('Create meeting route is unavailable. Please contact technical support or your domain administrator.') }}"
+                data-guard-msg="{{ base64_encode(__('Create meeting route is unavailable. Please contact technical support or your domain administrator.')) }}"
                 data-size="lg"
                 data-ajax-popup="true"
                 data-title="{{ __('Create New Meeting') }}"
@@ -68,10 +87,10 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -94,17 +113,21 @@
                                             <td>
                                                 @can('edit meeting')
                                                     @php
-                                                        $editUrl    = Route::has(ViewsConstants::MT.'.edit')
-                                                            ? route(ViewsConstants::MT.'.edit', $meeting->id)
-                                                            : '#';
-                                                        $editClass  = 'edit-meeting-link';
-                                                    @endphp
+                                                        try {
+                                                            $editUrl    = Route::has(ViewsConstants::MT.'.edit')
+                                                                ? route(ViewsConstants::MT.'.edit', $meeting->id)
+                                                                : '#';
+                                                            $editClass  = 'edit-meeting-link';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('meetings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
                                                         <a
                                                             href="{{ $editUrl }}"
                                                             class="{{ ViewClassNamesConstants::BT_SM_CT }} {{ $editClass }}"
                                                             data-url="{{ $editUrl }}"
-                                                            data-guard-msg="{{ __('Edit meeting route is unavailable. Please contact technical support or your domain administrator.') }}"
+                                                            data-guard-msg="{{ base64_encode(__('Edit meeting route is unavailable. Please contact technical support or your domain administrator.')) }}"
                                                             data-size="lg"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Meeting') }}"
@@ -118,12 +141,16 @@
                                                 @endcan
                                                 @can('delete meeting')
                                                     @php
-                                                        $deleteUrl   = Route::has(ViewsConstants::MT.'.destroy')
-                                                            ? route(ViewsConstants::MT.'.destroy', $meeting->id)
-                                                            : '#';
-                                                        $deleteClass = 'delete-meeting-link';
-                                                        $formId      = 'delete-meeting-form-'.$meeting->id;
-                                                    @endphp
+                                                        try {
+                                                            $deleteUrl   = Route::has(ViewsConstants::MT.'.destroy')
+                                                                ? route(ViewsConstants::MT.'.destroy', $meeting->id)
+                                                                : '#';
+                                                            $deleteClass = 'delete-meeting-link';
+                                                            $formId      = 'delete-meeting-form-'.$meeting->id;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('meetings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method' => 'DELETE',
@@ -134,7 +161,7 @@
                                                                 href="{{ $deleteUrl }}"
                                                                 class="{{ ViewClassNamesConstants::BT_SM_CT_PR }} {{ $deleteClass }}"
                                                                 data-url="{{ $deleteUrl }}"
-                                                                data-guard-msg="{{ __('Delete meeting route is unavailable. Please contact technical support or your domain administrator.') }}"
+                                                                data-guard-msg="{{ base64_encode(__('Delete meeting route is unavailable. Please contact technical support or your domain administrator.')) }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
                                                                 data-original-title="{{ __('Delete') }}"
@@ -147,13 +174,13 @@
                                                     </div>
                                                 @endcan
                                             </td>
-                                        @endif                                
+                                        @endif
                                     </tr>
                                 @endforeach
                             @else
                                 <tr>
                                     <td colspan="4">
-                                        <div class="text-center p-4">
+                                        <div class="{{ VC::TXCT }} {{ VC::P4 }}">
                                             <h5>{{ __('No meetings available') }}</h5>
                                         </div>
                                     </td>
@@ -224,7 +251,7 @@
                 toast.setAttribute("role", "alert");
                 toast.setAttribute("aria-live", "assertive");
                 toast.setAttribute("aria-atomic", "true");
-                toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 container.append(toast);
                 new bootstrap.Toast(toast, { autohide: true, delay: 5000 }).show();
                 } else {
@@ -272,7 +299,7 @@
                 if (!deptDiv) return;
 
                 deptDiv.innerHTML =
-                    '<select class="form-control" id="department_id" name="department_id[]" multiple></select>';
+                    '<select class="{{ VC::FM_CT }}" id="department_id" name="department_id[]" multiple></select>';
 
                 const select = document.getElementById("department_id");
                 if (!select) return;
@@ -310,7 +337,7 @@
                 if (!empDiv) return;
 
                 empDiv.innerHTML =
-                    '<select class="form-control" id="employee_id" name="employee_id[]" multiple></select>';
+                    '<select class="{{ VC::FM_CT }}" id="employee_id" name="employee_id[]" multiple></select>';
 
                 const select = document.getElementById("employee_id");
                 if (!select) return;

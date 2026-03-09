@@ -1,15 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
-	use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{
-		ExtendingLandingPageLayoutConstants as E,
-		RoutesResourcesConstants              as R,
-		SettingsConstants                     as LPC
-	};
-    use Nwidart\Modules\Facades\Module;
-    
+
+
 	$lpSettings ??= [];
 	$logo       ??= '';
     $lang = Utility::fetchUserLang() ?? app()->getLocale();
@@ -151,19 +142,21 @@
                         </div>
                         <div class="card">
                             <div class="card-header">
-                                <div class="row align-items-center">
+                                <div class="{{ VC::R_ALC }}">
                                     <div class="{{ VC::CLMS9 }}">
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
                                     <div class="{{ VC::CLMS_JCE3 }}">
-                                        @php $createRoute = R::TTMN.'.create'; @endphp
+                                        @php
+ $createRoute = R::TTMN.'.create';
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ Route::has($createRoute) ? route($createRoute) : '#' }}"
                                             data-ajax-popup="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Discover Feature Create') }}"
-                                            class="btn btn-sm btn-primary {{ Route::has($createRoute) ? '' : 'disabled' }}"
+                                            class="{{ VC::BT_SM_PM }} {{ Route::has($createRoute) ? '' : 'disabled' }}"
                                             {{ Route::has($createRoute) ? '' : 'aria-disabled="true"' }}
                                         >
                                             <i class="{{ VC::TI_PLS_LG }}"></i>
@@ -193,7 +186,7 @@
                                            @if (Utility::isFilled($testimonials))
                                             @php
                                                 $no = 1
-                                            @endphp
+@endphp
                                                 @foreach ($testimonials as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
@@ -265,15 +258,9 @@
                             </div>
                         </div>
 
-
-
-
                     {{--  End for all settings tab --}}
                 </div>
             </div>
         </div>
     </div>
 @endsection
-
-
-

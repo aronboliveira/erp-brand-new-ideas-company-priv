@@ -337,9 +337,12 @@ class WarehouseSeeder extends Seeder
 				}
 			}
 
+			$HARD_CAP = 2;
+			$created = 0;
 			$count = self::FAKE_COUNT;
 
 			for ($i = 0; $i < $count; $i++) {
+				if ($created >= $HARD_CAP) break;
 				try {
 					do {
 						$candidate = 'WRH-' . Str::upper(fake()->bothify('??-###'));
@@ -438,7 +441,7 @@ class WarehouseSeeder extends Seeder
 						? fake()->randomElement($companyPool)
 						: null;
 
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Armazém {$code} com nome {$name} ({$countryIso}/{$locale})");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Armazém {$code} com nome {$name} ({$countryIso}/{$locale})");
 
 					Warehouse::query()->create([
 						'code'                  => $code,
@@ -471,6 +474,7 @@ class WarehouseSeeder extends Seeder
 						CC::COL_WK_DYS          => $mondayToFriday,
 						UC::COL_AVG_RT          => $f->randomFloat(2, 3.5, 5.0),
 					]);
+					$created++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;

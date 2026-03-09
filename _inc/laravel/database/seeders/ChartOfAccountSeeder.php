@@ -48,6 +48,7 @@ final class ChartOfAccountSeeder extends Seeder
 
 			$created = 0;
 			$updated = 0;
+			$HARD_CAP = 2; // limit total iterations for dev/test speed
 
 			foreach ($types as $typeId => $type) {
 				$subtypes = $subtypesByType->get($typeId) ?? collect();
@@ -57,6 +58,7 @@ final class ChartOfAccountSeeder extends Seeder
 					$n = $faker->numberBetween(2, 4);
 
 					for ($i = 0; $i < $n; $i++) {
+						if (($created + $updated) >= $HARD_CAP) break 3; // HARD_CAP guard
 						try {
 							// Código determinístico por (type, subtype, i) para idempotência do updateOrCreate
 							$codeBase = hexdec(substr(md5($typeId . $subtype->id), 0, 6)) % 900000 + 100000;
@@ -77,8 +79,8 @@ final class ChartOfAccountSeeder extends Seeder
 								(string) ($subtype->{CHTC::COL_NM} ?? 'Subtipo'),
 								$i + 1
 							);
-							(new \Symfony\Component\Console\Output\ConsoleOutput
-							)->writeln("Criando Gráfico de Conta: {$name}");
+							// (new \Symfony\Component\Console\Output\ConsoleOutput
+							// )->writeln("Criando Gráfico de Conta: {$name}");
 							$payload = [
 								CHTC::COL_NM         => $name,
 								CHTC::COL_CD         => $code,

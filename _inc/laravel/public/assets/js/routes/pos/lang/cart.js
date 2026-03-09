@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 window.translations = window.translations || {};
 (function () {
   const dict = {

@@ -1,24 +1,19 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-
-    $lang                    = Utility::fetchUserLang();
-    $routeName               = ViewsConstants::CST_FD;
-    $createUrl               = Route::has($routeName)
-        ? route($routeName)
-        : '#';
-    $formId                  = 'custom-field-store-form';
-    $guardMsg                = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CST_FD,
-        'custom_field_index_route_unavailable'
-    ) ?? 'Custom Field index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang                    = Utility::fetchUserLang();
+        $routeName               = ViewsConstants::CST_FD;
+        $createUrl               = Route::has($routeName)
+            ? route($routeName)
+            : '#';
+        $formId                  = 'custom-field-store-form';
+        $guardMsg                = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::CST_FD,
+            'custom_field_index_route_unavailable'
+        ) ?? 'Custom Field index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('custom_fields/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

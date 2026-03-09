@@ -56,6 +56,7 @@ class NotificationTemplatesSeeder extends Seeder
 
 		$faker   = fake();
 		$created = 0;
+		$HARD_CAP = 2; // HARD CAP guard
 
 		$categoriesPool = [
 			'system',
@@ -85,6 +86,7 @@ class NotificationTemplatesSeeder extends Seeder
 		];
 
 		foreach ($types as $index => $typeEnum) {
+			if ($created >= $HARD_CAP) break; // HARD CAP guard
 			$targetForType = $perTypeBase + ($index < $remainder ? 1 : 0);
 			if ($targetForType <= 0) {
 				continue;
@@ -212,7 +214,7 @@ class NotificationTemplatesSeeder extends Seeder
 					DC::COL_TABLE_CREATOR  => $creatorId,
 					// DC::COL_TABLE_UPDATER pode ficar null; o boot/casts lidam depois
 				];
-				(new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification template {$payload['slug']}{$payload['name']} ({$payload['type']})");
+				// (new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification template {$payload['slug']}{$payload['name']} ({$payload['type']})");
 				// Usa o Model para disparar booted(), casts e normalizações
 				NotificationTemplate::query()->create($payload);
 				$created++;

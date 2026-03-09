@@ -1,14 +1,8 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
+} catch (\Throwable $e) {
+        \Log::error('dashboard/pos_dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -18,132 +12,54 @@
     <script async src="{{ asset('assets/js/routes/dashboards/pos/lang/chart.js') }}"></script>
     <script async>
         (() => {
-        const ERR_FB = '# ERROR';
-        const DS_CLIENT = 'data-client-localized';
-        const DS_GUARD  = 'data-guard-msg';
-        const LANG_KEY  = 'erp-np-lang';
-        let errorMessage = '';
-        
-        const getLocalizedMessage = (key, el) => {
-            let msg = ERR_FB;
-            if (el.getAttribute(DS_CLIENT) === 'true') {
-            msg = el.getAttribute(DS_GUARD) || msg;
-            } else {
-            let lang = (sessionStorage.getItem(LANG_KEY) || document.documentElement.lang || 'en')
-                .toLowerCase().replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-            msg = translations?.[lang]?.[key]
-                ?? el.getAttribute(DS_GUARD)
-                ?? translations?.['en']?.[key]
-                ?? msg;
-            if (msg !== ERR_FB) {
-                el.setAttribute(DS_GUARD, msg);
-                el.setAttribute(DS_CLIENT, 'true');
-            }
-            }
-            return msg;
-        };
-        
-        const showError = message => {
-            try {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const hasBs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-            if (hasBs) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role','alert');
-                toast.setAttribute('aria-live','assertive');
-                toast.setAttribute('aria-atomic','true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toast.appendChild(body);
-                container.appendChild(toast);
-                bootstrap.Toast.getOrCreateInstance(toast).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        
-        const onErrorPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onErrorPointerUp);
-        new MutationObserver((muts, obs) => {
-            muts.forEach(m => Array.from(m.removedNodes).forEach(n => {
-            if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onErrorPointerUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body, { childList:true, subtree:true });
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            try {
-            const chartEl = document.querySelector('#traffic-chart');
-            if (!chartEl) throw new Error('traffic_chart_unavailable');
-        
-            const opts = {
-                chart: {
-                height: 350,
-                type: 'area',
-                toolbar: { show: false }
-                },
-                dataLabels: { enabled: false },
-                stroke: { width: 2, curve: 'smooth' },
-                series: [
-                {
-                    name: '{{ __("Purchase") }}',
-                    data: {!! json_encode($purchasesArray['value']) !!}
-                },
-                {
-                    name: '{{ __("POS") }}',
-                    data: {!! json_encode($posesArray['value']) !!}
-                }
-                ],
-                xaxis: {
-                categories: {!! json_encode($purchasesArray['label']) !!},
-                title: { text: '{{ __("Days") }}' }
-                },
-                colors: ['#ff3a6e', '#6fd943'],
-                grid: { strokeDashArray: 4 },
-                legend: { show: false },
-                yaxis: { title: { text: '{{ __("Amount") }}' } }
+            const RG = window.RouteGuard || {};
+            const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '');
+            const showError = RG.showToast || (m => { if (m) console.warn('[Dashboard]', m); });
+            let errorMessage = '';
+            const onErrorPointerUp = () => {
+                if (errorMessage) { showError(errorMessage); errorMessage = ''; }
             };
-        
-            new ApexCharts(chartEl, opts).render();
-            } catch (e) {
-            errorMessage = getLocalizedMessage(e.message, document.querySelector('#traffic-chart') || document.body);
-            }
-        });
+            document.addEventListener('pointerup', onErrorPointerUp);
+            window.addEventListener('DOMContentLoaded', () => {
+                try {
+                    const chartEl = document.querySelector('#traffic-chart');
+                    if (!chartEl) throw new Error('traffic_chart_unavailable');
+                    const opts = {
+                        chart: { height: 350, type: 'area', toolbar: { show: false } },
+                        dataLabels: { enabled: false },
+                        stroke: { width: 2, curve: 'smooth' },
+                        series: [
+                            { name: '{{ __("Purchase") }}', data: {!! json_encode($purchasesArray['value']) !!} },
+                            { name: '{{ __("POS") }}', data: {!! json_encode($posesArray['value']) !!} }
+                        ],
+                        xaxis: { categories: {!! json_encode($purchasesArray['label']) !!}, title: { text: '{{ __("Days") }}' } },
+                        colors: ['#ff3a6e', '#6fd943'],
+                        grid: { strokeDashArray: 4 },
+                        legend: { show: false },
+                        yaxis: { title: { text: '{{ __("Amount") }}' } }
+                    };
+                    new ApexCharts(chartEl, opts).render();
+                } catch (e) {
+                    errorMessage = getMsg(e.message, document.querySelector('#traffic-chart') || document.body);
+                }
+            });
         })();
     </script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('POS')}}</li>
+    <li class="{{ VC::BCI }}">{{__('POS')}}</li>
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -166,7 +82,7 @@
 
         <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -189,12 +105,12 @@
 
         <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
                                 <div class="theme-avatar bg-info">
-                                    <i class="ti ti-report-money"></i>
+                                    <i class="{{ VC::TI_RPT_MN }}"></i>
                                 </div>
                                 <div class="ms-3">
                                     <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
@@ -212,7 +128,7 @@
 
         <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                             <div class="{{ VC::DFL_AIC }}">
@@ -235,17 +151,17 @@
 
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="{{ VC::RW }}">
-                        <div class="col-6">
+                        <div class="{{ VC::C6 }}">
                             <h5>{{ __('Purchase Vs POS Report') }}</h5>
                         </div>
-                        <div class="col-6 text-end">
+                        <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                             <h6>{{ __('Last 10 Days') }}</h6>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div id="traffic-chart"></div>
                 </div>
             </div>

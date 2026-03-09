@@ -31,7 +31,6 @@ class SendDealEmail extends Mailable
     {
 
 
-        return $this->view('email.deal_mail')->with('dArr', $this->dArr)->subject($this->subject);
-
+        return $this->view('email.deal_mail')->with('dArr', $this->dArr)->subject($this->subject ?? 'Deal Notification');
     }
 }

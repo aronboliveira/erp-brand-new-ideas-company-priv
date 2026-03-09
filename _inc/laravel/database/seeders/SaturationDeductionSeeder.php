@@ -35,6 +35,7 @@ final class SaturationDeductionSeeder extends Seeder
 				'Ajuste corretivo',
 			];
 
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
 			$created = 0;
 			$updated = 0;
 
@@ -49,9 +50,10 @@ final class SaturationDeductionSeeder extends Seeder
 					$picked = collect($titles)->shuffle()->take($qty);
 
 					foreach ($picked as $title) {
+						if ($created >= $HARD_CAP) break 2; // Hard cap guard
 						$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Dedução Saturada para Funcionário {$ref}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Dedução Saturada para Funcionário {$ref}");
 						$usePercentage = (random_int(0, 1) === 1);
 						$type = $usePercentage ? 'percentage' : 'fixed';
 

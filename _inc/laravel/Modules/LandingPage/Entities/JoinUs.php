@@ -2,9 +2,9 @@
 
 namespace Modules\LandingPage\Entities;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\{UsesUuids};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
 
 class JoinUs extends Model
 {

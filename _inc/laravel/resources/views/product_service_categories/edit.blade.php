@@ -1,18 +1,44 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Config\Constants\StacksConstants;
-    use App\Models\Utility;
-    $lang = Utility::fetchUserLang();
-    $routeKey        = ViewsConstants::PRD_SV_CAT . '.update';
-    $kebabRouteKey   = Str::kebab($routeKey);
-    $updateRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
-    $updateRouteArr  = $updateRouteName ? [$updateRouteName, $category->id] : ['#'];
-    $updateRouteUrl  = $updateRouteName ? route($updateRouteName, $category->id) : '#';
-    $updateGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_update_route_unavailable') ?? 'Product category update route is unavailable. Please contact technical support or your domain administrator.';
-    $formId          = 'update-category-form-' . $category->id;
+$lang ??= 'en';
+	$routeKey ??= '';
+	$kebabRouteKey ??= '';
+	$updateRouteName ??= null;
+	$updateRouteArr ??= ['#'];
+	$updateRouteUrl ??= '#';
+	$updateGuardMsg ??= '';
+	$formId ??= 'update-category-form';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$routeKey = ViewsConstants::PRD_SV_CAT . '.update';
+		$kebabRouteKey = Str::kebab($routeKey);
+		$categoryId = data_get($category ?? null, 'id');
+		$updateRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
+		$updateRouteArr = ($updateRouteName && $categoryId) ? [$updateRouteName, $categoryId] : ['#'];
+		$updateRouteUrl = ($updateRouteName && $categoryId) ? (route($updateRouteName, $categoryId) ?? '#') : '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_update_route_unavailable') ?? 'Product category update route is unavailable. Please contact technical support or your domain administrator.';
+		$formId = 'update-category-form-' . ($categoryId ?: 'unknown');
+	} catch (\Error $e) {
+		Log::error('Error in product_service_categories/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in product_service_categories/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in product_service_categories/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {!! Form::model($category, [
     'route'          => $updateRouteArr,
@@ -56,7 +82,7 @@
         const errFb = '# ERROR';
         const dataClientLocalized = 'data-client-localized';
         const dataGuardMsg = 'data-guard-msg';
-    
+
         const getLocalizedMessage = (el, msgKey) => {
           let msg = errFb;
           if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') msg = el.getAttribute(dataGuardMsg) || errFb;
@@ -79,14 +105,14 @@
               toast.setAttribute('role','alert');
               toast.setAttribute('aria-live','assertive');
               toast.setAttribute('aria-atomic','true');
-              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${message}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
               document.body.appendChild(toast);
             }
             new bootstrap.Toast(document.querySelector('#error-toast')).show();
           } else { alert(message); }
         };
         try {
-          if (typeof $ === 'undefined') { 
+          if (typeof $ === 'undefined') {
               if (
                   window.location.hostname === "localhost" ||
                   window.location.hostname === "127.0.0.1"
@@ -100,7 +126,7 @@
               if (!$acc.length) return;
               if (type !== 'product & service') $acc.removeClass('d-none').addClass('d-block');
               else $acc.addClass('d-none').removeClass('d-block');
-            } catch { 
+            } catch {
               const el = this;
               if (!el.hasAttribute(dataListenerAdded)) {
                 el.addEventListener('click', ()=>handleErrorDisplay(el,'account_toggle_unavailable'));
@@ -118,12 +144,12 @@
             const obs = new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('pointerup',()=>handleErrorDisplay(el,key)); o.disconnect(); }});
             obs.observe(document.body,{childList:true,subtree:true});
           };
-    
+
           $(document).on('change','#type',function() {
             const el = this;
             try {
               const type = $(el).val() ?? '';
-              const url = '{{ route(ViewsConstants::PRD_SV_CAT.".getAccount") }}' || '';
+              const url = '{{ route(ViewsConstants::PRD_SV_CAT.".get_account") }}' || '';
               if (!url || url === '#') { attachPointerGuard(el,'get_account_unavailable'); return; }
               $.ajax({
                 url,
@@ -146,7 +172,7 @@
             } catch { attachPointerGuard(el,'get_account_unavailable'); }
           });
           $(function(){ try { $type.trigger('change'); } catch { attachPointerGuard($type.get(0),'get_account_unavailable'); } });
-        } catch(e) { 
+        } catch(e) {
             if (
                 window.location.hostname === "localhost" ||
                 window.location.hostname === "127.0.0.1"
@@ -167,28 +193,7 @@
                     if (url !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (error) {}
             });

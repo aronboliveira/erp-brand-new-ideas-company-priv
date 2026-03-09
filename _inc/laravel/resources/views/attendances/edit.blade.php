@@ -1,11 +1,5 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use InvalidArgumentException;
-
-	$employees ??= [];
+$employees ??= [];
 	$EmployeeAttendance ??= null;
 
 	$lang = Utility::fetchUserLang();
@@ -63,14 +57,18 @@
 			<div class="row">
 				@foreach(($fields ?? []) as $f)
 					@php
-						$fname = data_get($f, 'name') ?? 'unknown';
-						$ftype = data_get($f, 'type') ?? 'text';
-						$flabel = data_get($f, 'label') ?? __('No label available');
-						$fclass = data_get($f, 'class') ?? 'form-control';
-						$fopts = data_get($f, 'options') ?? [];
-						$fcol = data_get($f, 'col') ?? 'col-lg-6';
-					@endphp
-					<div class="form-group {{ $fcol }}">
+						try {
+						    $fname = data_get($f, 'name') ?? 'unknown';
+						    $ftype = data_get($f, 'type') ?? 'text';
+						    $flabel = data_get($f, 'label') ?? __('No label available');
+						    $fclass = data_get($f, 'class') ?? 'form-control';
+						    $fopts = data_get($f, 'options') ?? [];
+						    $fcol = data_get($f, 'col') ?? 'col-lg-6';
+						} catch (\Throwable $e) {
+						    \Log::error('attendances/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+						}
+@endphp
+					<div class="{{ VC::FM_G }} {{ $fcol }}">
 						{{ Form::label($fname, $flabel, ['class' => 'form-label']) }}
 						@if($ftype === 'select')
 							{{ Form::select($fname, $fopts, null, ['class' => $fclass]) }}
@@ -94,9 +92,9 @@
 @else
 	<div class="modal-body">
 		<div class="row">
-			<div class="col-md-12">
+			<div class="{{ VC::CM12 }}">
 				<div class="{{ VC::ALERT }} {{ VC::ALERT_DANGER }}">
-					<h4 class="text-danger">{{ __('No Attendance Record Found') }}</h4>
+					<h4 class="{{ VC::TX_DNG }}">{{ __('No Attendance Record Found') }}</h4>
 					<p>{{ __('The attendance record data is invalid or not found. Please refresh the page and try again.') }}</p>
 				</div>
 			</div>

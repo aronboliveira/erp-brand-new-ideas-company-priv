@@ -1,40 +1,62 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants,
-        StacksConstants as ST,
-        YieldingConstants as YW,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Collection, Str};
-    use Illuminate\Support\Facades\{Auth, Route};
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $monthIsList = is_array($month ?? null) && count($month ?? []) > 0;
-    $yearIsList  = is_array($year ?? null)  && count($year ?? [])  > 0;
-
-    $indexBase     = VW::PY_SLP.'.index';
-    $indexResolved = Route::has($indexBase) ? $indexBase : null;
-    $indexUrl      = $indexResolved ? route($indexResolved) : '#';
-    $indexGuard    = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'payslip_index_route_unavailable')
-                    ?? __('Payslip index route is unavailable. Please contact technical support or your domain administrator.');
-
-    $storeBase     = VW::PY_SLP.'.store';
-    $storeResolved = Route::has($storeBase) ? $storeBase : null;
-    $storeUrl      = $storeResolved ? route($storeResolved) : '#';
-    $storeGuard    = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'store_route_unavailable')
-                    ?? __('Store Payslip route is unavailable. Please contact technical support or your domain administrator.');
-
-    $exportBase     = VW::PY_SLP.'.export';
-    $exportResolved = Route::has($exportBase) ? $exportBase : null;
-    $exportUrl      = $exportResolved ? route($exportResolved) : '#';
-    $exportGuard    = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'export_route_unavailable')
-                     ?? __('Export Payslip route is unavailable. Please contact technical support or your domain administrator.');
+$user ??= null;
+	$lang ??= 'en';
+	$monthIsList ??= false;
+	$yearIsList ??= false;
+	$indexBase ??= '';
+	$indexResolved ??= null;
+	$indexUrl ??= '#';
+	$indexGuard ??= '';
+	$storeBase ??= '';
+	$storeResolved ??= null;
+	$storeUrl ??= '#';
+	$storeGuard ??= '';
+	$exportBase ??= '';
+	$exportResolved ??= null;
+	$exportUrl ??= '#';
+	$exportGuard ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$monthIsList = is_array($month ?? null) && count($month ?? []) > 0;
+		$yearIsList = is_array($year ?? null) && count($year ?? []) > 0;
+		$indexBase = VW::PY_SLP . '.index';
+		$indexResolved = Route::has($indexBase) ? $indexBase : null;
+		$indexUrl = $indexResolved ? (route($indexResolved) ?? '#') : '#';
+		$indexGuard = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'payslip_index_route_unavailable')
+			?? __('Payslip index route is unavailable. Please contact technical support or your domain administrator.');
+		$storeBase = VW::PY_SLP . '.store';
+		$storeResolved = Route::has($storeBase) ? $storeBase : null;
+		$storeUrl = $storeResolved ? (route($storeResolved) ?? '#') : '#';
+		$storeGuard = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'store_route_unavailable')
+			?? __('Store Payslip route is unavailable. Please contact technical support or your domain administrator.');
+		$exportBase = VW::PY_SLP . '.export';
+		$exportResolved = Route::has($exportBase) ? $exportBase : null;
+		$exportUrl = $exportResolved ? (route($exportResolved) ?? '#') : '#';
+		$exportGuard = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'export_route_unavailable')
+			?? __('Export Payslip route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in payslips/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in payslips/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in payslips/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(EL::ADM)
@@ -44,16 +66,16 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a id="bc-payslip-index-link"
            href="{{ $indexUrl }}"
            data-url="{{ $indexUrl }}"
-           data-guard-msg="{{ $indexGuard }}"
+           data-guard-msg="{{ base64_encode($indexGuard) }}"
            data-sv-localized="true">
             {{ __('Payslip') }}
         </a>
@@ -63,7 +85,7 @@
 @section(YW::ADM_CTT)
     <div class="{{ VC::C12 }} {{ VC::MT4 }}">
         <div class="card">
-            <div class="card-body">
+            <div class="{{ VC::CD_BD }}">
                 {{ Form::open([
                     'url'               => $storeUrl,
                     'method'            => 'POST',
@@ -110,7 +132,7 @@
 
     <div class="{{ VC::C12 }}">
         <div class="card">
-            <div class="card-header">
+            <div class="{{ VC::CD_HD }}">
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::CM4 }}">
                         <div class="{{ VC::DFL_AIC }}">
@@ -125,7 +147,9 @@
                                         <select class="{{ VC::FM_CT_SL }} month_date" name="filter_month" aria-hidden="true">
                                             <option value="--">--</option>
                                             @foreach($month as $k => $mon)
-                                                @php $selected = (date('m') == $k) ? 'selected' : ''; @endphp
+                                                @php
+ $selected = (date('m') == $k) ? 'selected' : '';
+@endphp
                                                 <option value="{{ $k }}" {{ $selected }}>{{ $mon }}</option>
                                             @endforeach
                                         </select>
@@ -170,8 +194,8 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body table-border-style">
-                <div class="table-responsive">
+            <div class="{{ VC::CD_BD_TB_BD }}">
+                <div class="{{ VC::TB_RSP }}">
                     <table class="{{ VC::TB }}" id="pc-dt-render-column-cells">
                         <thead>
                             <tr>
@@ -265,7 +289,7 @@
             t.setAttribute("aria-live", "assertive");
             t.setAttribute("aria-atomic", "true");
             t.innerHTML =
-                '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
             container.appendChild(t);
             }
             var body = t.querySelector(".toast-body");
@@ -315,10 +339,10 @@
             rows.forEach(function (v) {
                 var status =
                 v[6] === "Paid"
-                    ? '<div class="badge bg-success p-2 px-3 rounded"><a href="#" class="text-white">' +
+                    ? '<div class="badge bg-success p-2 {{ VC::PX3 }} rounded"><a href="#" class="{{ VC::TXT_WT }}">' +
                     v[6] +
                     "</a></div>"
-                    : '<div class="badge bg-danger p-2 px-3 rounded"><a href="#" class="text-white">' +
+                    : '<div class="badge bg-danger p-2 {{ VC::PX3 }} rounded"><a href="#" class="{{ VC::TXT_WT }}">' +
                     v[6] +
                     "</a></div>";
                 var id = v[0];
@@ -327,7 +351,7 @@
                 var payslipBtn =
                 payslipId !== 0
                     ? `<a href="#" data-url="{{ url('payslip/pdf/') }}/'+id+'/'+datePicker+'" data-size="lg" data-ajax-popup="true" class="btn-sm btn btn-warning" data-title="{{ __('Employee Payslip') }}">{{ __('Payslip') }}</a> '):"";
-                var clickToPaid=(v[6]==="UnPaid"&&payslipId!==0)?('<a href="{{ url('payslip/paysalary/') }}/'+id+'/'+datePicker+'" class="btn-sm btn btn-primary">{{ __('Click To Paid') }}</a> `
+                var clickToPaid=(v[6]==="UnPaid"&&payslipId!==0)?('<a href="{{ url('payslip/paysalary/') }}/'+id+'/'+datePicker+'" class="btn-sm {{ VC::BT_PRM }}">{{ __('Click To Paid') }}</a> `
                     : "";
                 var edit =
                 payslipId !== 0 && v[6] === "UnPaid"
@@ -341,7 +365,7 @@
                     : "";
                 html +=
                 "<tr>" +
-                '<td><a class="btn btn-outline-primary" href="' +
+                '<td><a class="{{ VC::BT_OUTPM }}" href="' +
                 employeeLink +
                 '">' +
                 v[1] +
@@ -413,7 +437,7 @@
             $(".filter_month").val(month);
             $(".filter_year").val(year);
             var datePicker = year + "-" + month;
-            var url = "{{ route(VW::PY_SLP.'.searchJson') }}";
+            var url = "{{ route(VW::PY_SLP.'.search_json') }}";
             if (!url || url === "#") {
             armClickError("payslip_unavailable");
             return;

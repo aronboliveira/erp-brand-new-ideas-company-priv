@@ -1,16 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Gate, Route};
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -22,38 +15,38 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Warehouse')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Warehouse')}}</li>
 @endsection
 
 @php
-    use App\Config\Constants\{
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\{Facades\Route, Str};
-
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
-            $createBase  = VW::WRH . '.create';
-            $createKebab = Str::kebab($createBase);
-            $createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-            $createUrl   = $createName ? route($createName) : '#';
-            $createGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'create_warehouse_route_unavailable')
-                ?? 'Create warehouse route is unavailable. Please contact technical support or your domain administrator.';
-            $createId    = 'warehouse-create-link';
-        @endphp
+            try {
+                $createBase  = VW::WRH . '.create';
+                $createKebab = Str::kebab($createBase);
+                $createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+                $createUrl   = $createName ? route($createName) : '#';
+                $createGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'create_warehouse_route_unavailable')
+                    ?? 'Create warehouse route is unavailable. Please contact technical support or your domain administrator.';
+                $createId    = 'warehouse-create-link';
+            } catch (\Throwable $e) {
+                \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a id="{{ $createId }}"
            href="{{ $createUrl }}"
            data-url="{{ $createUrl }}"
@@ -61,7 +54,7 @@
            data-bs-toggle="tooltip"
            title="{{ __('Create') }}"
            data-title="{{ __('Create Warehouse') }}"
-           data-guard-msg="{{ $createGuard }}"
+           data-guard-msg="{{ base64_encode($createGuard) }}"
            data-sv-localized="true"
            class="{{ VC::BT_SM_PM }}">
             <i class="{{ VC::TI_PLS }}"></i>
@@ -74,10 +67,10 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        <div class="col-xl-12">
+        <div class="{{ VC::CXL12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -92,7 +85,7 @@
                                 @forelse((($warehouses ?? null) instanceof Collection || is_array($warehouses ?? null)) ? $warehouses : [] as $warehouse)
                                     @php
                                         $wid = (string) data_get($warehouse, 'id', '');
-                                    @endphp
+@endphp
                                     <tr class="font-style">
                                         <td>{{ (string) (data_get($warehouse,'name') ?: __('No name available')) }}</td>
                                         <td>{{ (string) (data_get($warehouse,'address') ?: __('No address available')) }}</td>
@@ -103,21 +96,25 @@
                                             <td class="Action">
                                                 @can('show warehouse')
                                                     @php
-                                                        $showBase  = VW::WRH . '.show';
-                                                        $showKebab = Str::kebab($showBase);
-                                                        $showName  = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-                                                        $showUrl   = ($showName && $wid !== '') ? route($showName, [$wid]) : '#';
-                                                        $showGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'show_warehouse_route_unavailable')
-                                                            ?? 'Show warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $showId    = 'warehouse-show-link-' . $wid;
-                                                    @endphp
+                                                        try {
+                                                            $showBase  = VW::WRH . '.show';
+                                                            $showKebab = Str::kebab($showBase);
+                                                            $showName  = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
+                                                            $showUrl   = ($showName && $wid !== '') ? route($showName, [$wid]) : '#';
+                                                            $showGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'show_warehouse_route_unavailable')
+                                                                ?? 'Show warehouse route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $showId    = 'warehouse-show-link-' . $wid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_WRN }}">
                                                         <a id="{{ $showId }}"
                                                            href="{{ $showUrl }}"
                                                            data-url="{{ $showUrl }}"
                                                            data-bs-toggle="tooltip"
                                                            title="{{ __('View') }}"
-                                                           data-guard-msg="{{ $showGuard }}"
+                                                           data-guard-msg="{{ base64_encode($showGuard) }}"
                                                            data-sv-localized="true"
                                                            class="{{ VC::BT_SM_FL_CT }}">
                                                             <i class="{{ VC::TI_EYE_WT }}"></i>
@@ -138,15 +135,8 @@
                                                                             if (href && href !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = a.getAttribute('data-guard-msg') ?? 'Show warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            let c = document.getElementById('toast-container');
-                                                                            if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
-                                                                            const ok = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                                                            if (ok) {
-                                                                                const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                                                                                const b = document.createElement('div'); b.className = 'toast-body'; b.textContent = msg;
-                                                                                t.appendChild(b); c.appendChild(t);
-                                                                                try { window.bootstrap.Toast.getOrCreateInstance(t).show(); } catch { alert(msg); }
-                                                                            } else { alert(msg); }
+                                                                            const RG = window.RouteGuard || {};
+                                                                            (RG.showToast || (m => alert(m)))(msg);
                                                                             a.setAttribute('data-failed-route','true');
                                                                         } catch {}
                                                                     });
@@ -157,14 +147,18 @@
                                                 @endcan
                                                 @can('edit warehouse')
                                                     @php
-                                                        $editBase  = VW::WRH . '.edit';
-                                                        $editKebab = Str::kebab($editBase);
-                                                        $editName  = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                                                        $editUrl   = ($editName && $wid !== '') ? route($editName, [$wid]) : '#';
-                                                        $editGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'edit_warehouse_route_unavailable')
-                                                            ?? 'Edit warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $editId    = 'warehouse-edit-link-' . $wid;
-                                                    @endphp
+                                                        try {
+                                                            $editBase  = VW::WRH . '.edit';
+                                                            $editKebab = Str::kebab($editBase);
+                                                            $editName  = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                                                            $editUrl   = ($editName && $wid !== '') ? route($editName, [$wid]) : '#';
+                                                            $editGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'edit_warehouse_route_unavailable')
+                                                                ?? 'Edit warehouse route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $editId    = 'warehouse-edit-link-' . $wid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_INF }}">
                                                         <a id="{{ $editId }}"
                                                            href="{{ $editUrl }}"
@@ -174,7 +168,7 @@
                                                            data-bs-toggle="tooltip"
                                                            title="{{ __('Edit') }}"
                                                            data-title="{{ __('Edit Warehouse') }}"
-                                                           data-guard-msg="{{ $editGuard }}"
+                                                           data-guard-msg="{{ base64_encode($editGuard) }}"
                                                            data-sv-localized="true"
                                                            class="{{ VC::BT_SM_CT }}">
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
@@ -195,15 +189,8 @@
                                                                             if (href && href !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = a.getAttribute('data-guard-msg') ?? 'Edit warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            let c = document.getElementById('toast-container');
-                                                                            if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
-                                                                            const ok = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                                                            if (ok) {
-                                                                                const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                                                                                const b = document.createElement('div'); b.className = 'toast-body'; b.textContent = msg;
-                                                                                t.appendChild(b); c.appendChild(t);
-                                                                                try { window.bootstrap.Toast.getOrCreateInstance(t).show(); } catch { alert(msg); }
-                                                                            } else { alert(msg); }
+                                                                            const RG = window.RouteGuard || {};
+                                                                            (RG.showToast || (m => alert(m)))(msg);
                                                                             a.setAttribute('data-failed-route','true');
                                                                         } catch {}
                                                                     });
@@ -214,15 +201,19 @@
                                                 @endcan
                                                 @can('delete warehouse')
                                                     @php
-                                                        $delBase   = VW::WRH . '.destroy';
-                                                        $delKebab  = Str::kebab($delBase);
-                                                        $delName   = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
-                                                        $delUrl    = ($delName && $wid !== '') ? route($delName, [$wid]) : '#';
-                                                        $delGuard  = Utility::fetchLinkMessage($lang, VW::WRH, 'delete_warehouse_route_unavailable')
-                                                            ?? 'Delete warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $formId    = 'delete-form-' . $wid;
-                                                        $btnId     = 'delete-trigger-' . $wid;
-                                                    @endphp
+                                                        try {
+                                                            $delBase   = VW::WRH . '.destroy';
+                                                            $delKebab  = Str::kebab($delBase);
+                                                            $delName   = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
+                                                            $delUrl    = ($delName && $wid !== '') ? route($delName, [$wid]) : '#';
+                                                            $delGuard  = Utility::fetchLinkMessage($lang, VW::WRH, 'delete_warehouse_route_unavailable')
+                                                                ?? 'Delete warehouse route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $formId    = 'delete-form-' . $wid;
+                                                            $btnId     = 'delete-trigger-' . $wid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('warehouses/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Form::open([
                                                             'method'               => 'DELETE',
@@ -268,15 +259,8 @@
                                                                             e.preventDefault();
 
                                                                             const msg = f.getAttribute('data-guard-msg') || 'Delete warehouse route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            let c = document.getElementById('toast-container');
-                                                                            if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
-                                                                            const ok = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                                                            if (ok) {
-                                                                                const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                                                                                const b = document.createElement('div'); b.className = 'toast-body'; b.textContent = msg;
-                                                                                t.appendChild(b); c.appendChild(t);
-                                                                                try { window.bootstrap.Toast.getOrCreateInstance(t).show(); } catch { alert(msg); }
-                                                                            } else { alert(msg); }
+                                                                            const RG = window.RouteGuard || {};
+                                                                            (RG.showToast || (m => alert(m)))(msg);
                                                                             f.setAttribute('data-failed-route','true');
                                                                         } catch {}
                                                                     });
@@ -290,7 +274,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">{{ __('No warehouses available') }}</td>
+                                        <td colspan="5" class="{{ VC::TXCT_MT }}">{{ __('No warehouses available') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

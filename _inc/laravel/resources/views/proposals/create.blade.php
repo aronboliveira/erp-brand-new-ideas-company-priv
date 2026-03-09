@@ -1,52 +1,44 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $proposalIndexBaseName = ViewsConstants::PPS . '.index';
-    $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
-    $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
-    $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
-    $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $proposalIndexBaseName = ViewsConstants::PPS . '.index';
+        $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
+        $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
+        $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
+        $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('proposals/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Proposal Create')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="proposal-index-link"
             href="{{ $proposalIndexUrl }}"
             data-url="{{ $proposalIndexUrl }}"
-            data-guard-msg="{{ $proposalIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($proposalIndexGuardMsg) }}"
         >
             {{ __('Proposal') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Proposal Create')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Proposal Create')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -75,7 +67,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
@@ -108,7 +100,7 @@ Object.keys(t).forEach(
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -136,7 +128,7 @@ Object.keys(t).forEach(
 
             const renderBadges=(taxes)=>{
             if(!Array.isArray(taxes)||!taxes.length) return '-';
-            return taxes.map(t=>`<span class="badge bg-primary mt-1 mr-2">${t.name} (${t.rate}%)</span>`).join('');
+            return taxes.map(t=>`<span class="badge {{ VC::BG_P }} {{ VC::MT1 }} {{ VC::MR2 }}">${t.name} (${t.rate}%)</span>`).join('');
             };
 
             const recalcRowAndTotals=($row)=>{
@@ -156,12 +148,12 @@ Object.keys(t).forEach(
             };
 
             try{
-            if(typeof $==="undefined"){ 
+            if(typeof $==="undefined"){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
-                ) console.error("jQuery unavailable");     
-                return; 
+                ) console.error("jQuery unavailable");
+                return;
             }
 
             $(()=>{
@@ -287,7 +279,7 @@ Object.keys(t).forEach(
 
             });
 
-            }catch(e){ 
+            }catch(e){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -301,13 +293,17 @@ Object.keys(t).forEach(
 @section('content')
     <div class="row">
     @php
-        $proposalStoreBaseName = ViewsConstants::PPS;
-        $proposalStoreKebabName = Str::kebab($proposalStoreBaseName);
-        $proposalStoreResolvedName = Route::has($proposalStoreBaseName) ? $proposalStoreBaseName : (Route::has($proposalStoreKebabName) ? $proposalStoreKebabName : null);
-        $proposalStoreUrl = $proposalStoreResolvedName ? route($proposalStoreResolvedName) : '#';
-        $proposalStoreGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_store_route_unavailable') ?? 'Proposal store route is unavailable. Please contact technical support or your domain administrator.';
-        $proposalStoreFormId = 'proposal-store-form';
-    @endphp
+        try {
+            $proposalStoreBaseName = ViewsConstants::PPS;
+            $proposalStoreKebabName = Str::kebab($proposalStoreBaseName);
+            $proposalStoreResolvedName = Route::has($proposalStoreBaseName) ? $proposalStoreBaseName : (Route::has($proposalStoreKebabName) ? $proposalStoreKebabName : null);
+            $proposalStoreUrl = $proposalStoreResolvedName ? route($proposalStoreResolvedName) : '#';
+            $proposalStoreGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_store_route_unavailable') ?? 'Proposal store route is unavailable. Please contact technical support or your domain administrator.';
+            $proposalStoreFormId = 'proposal-store-form';
+        } catch (\Throwable $e) {
+            \Log::error('proposals/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     {!! Form::open([
         'url'            => $proposalStoreUrl,
         'class'          => 'w-100',
@@ -315,21 +311,25 @@ Object.keys(t).forEach(
         'data-url'       => $proposalStoreUrl,
         'data-guard-msg' => $proposalStoreGuardMsg
     ]) !!}
-        <div class="col-12">
+        <div class="{{ VC::C12 }}">
             <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
             <div class="card">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group" id="customer-box">
+                        <div class="{{ VC::CM6 }}">
+                            <div class="{{ VC::FM_G }}" id="customer-box">
                                 {{ Form::label('customer_id', __('Customer'),['class'=>'form-label']) }}
                                 @php
-                                    $proposalCustomerBaseName = ViewsConstants::PPS . '.customer';
-                                    $proposalCustomerKebabName = Str::kebab($proposalCustomerBaseName);
-                                    $proposalCustomerResolvedName = Route::has($proposalCustomerBaseName) ? $proposalCustomerBaseName : (Route::has($proposalCustomerKebabName) ? $proposalCustomerKebabName : null);
-                                    $proposalCustomerUrl = $proposalCustomerResolvedName ? route($proposalCustomerResolvedName) : '#';
-                                    $proposalCustomerGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_customer_route_unavailable') ?? 'Proposal customer route is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
+                                    try {
+                                        $proposalCustomerBaseName = ViewsConstants::PPS . '.customer';
+                                        $proposalCustomerKebabName = Str::kebab($proposalCustomerBaseName);
+                                        $proposalCustomerResolvedName = Route::has($proposalCustomerBaseName) ? $proposalCustomerBaseName : (Route::has($proposalCustomerKebabName) ? $proposalCustomerKebabName : null);
+                                        $proposalCustomerUrl = $proposalCustomerResolvedName ? route($proposalCustomerResolvedName) : '#';
+                                        $proposalCustomerGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_customer_route_unavailable') ?? 'Proposal customer route is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('proposals/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 {{ Form::select(
                                     'customer_id',
                                     $customers,
@@ -353,28 +353,7 @@ Object.keys(t).forEach(
                                                     const url = el.getAttribute('data-url') || '#';
                                                     if (url !== '#') return;
                                                     const msg = el.getAttribute('data-guard-msg') || '# ERROR';
-                                                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bs) {
-                                                        const toast = document.createElement('div');
-                                                        toast.className = 'toast';
-                                                        toast.setAttribute('role','alert');
-                                                        toast.setAttribute('aria-live','assertive');
-                                                        toast.setAttribute('aria-atomic','true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toast.appendChild(body);
-                                                        container.appendChild(toast);
-                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
+                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                     el.setAttribute('data-failed-route', 'true');
                                                 } catch (error) {}
                                             });
@@ -385,47 +364,46 @@ Object.keys(t).forEach(
                             <div id="customer_detail" class="d-none">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="{{ VC::CM6 }}">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                                <div class="{{ VC::CM6 }}">
+                                    <div class="{{ VC::FM_G }}">
                                         {{ Form::label('issue_date', __('Issue Date'),['class'=>'form-label']) }}
                                         <div class="form-icon-user">
                                             {{Form::date('issue_date',null,array('class'=>'form-control','required'=>'required'))}}
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                                <div class="{{ VC::CM6 }}">
+                                    <div class="{{ VC::FM_G }}">
                                         {{ Form::label('category_id', __('Category'),['class'=>'form-label']) }}
                                         {{ Form::select('category_id', $category,null, array('class' => 'form-control select','required'=>'required')) }}
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
+                                <div class="{{ VC::CM6 }}">
+                                    <div class="{{ VC::FM_G }}">
                                         {{ Form::label('proposal_number', __('Proposal Number'),['class'=>'form-label']) }}
                                         <div class="form-icon-user">
-                                            <input type="text" class="form-control" value="{{$proposal_number}}" readonly>
+                                            <input type="text" class="{{ VC::FM_CT }}" value="{{$proposal_number}}" readonly>
                                         </div>
                                     </div>
                                 </div>
-                                    {{--                                <div class="col-md-6">--}}
-                                    {{--                                    <div class="form-check custom-checkbox mt-4">--}}
+                                    {{--                                <div class="{{ VC::CM6 }}">--}}
+                                    {{--                                    <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }} {{ VC::MT4 }}">--}}
                                     {{--                                        <input class="form-check-input" type="checkbox" name="discount_apply" id="discount_apply">--}}
                                     {{--                                        <label class="form-check-label " for="discount_apply">{{__('Discount Apply')}}</label>--}}
                                     {{--                                    </div>--}}
                                     {{--                                </div>--}}
 
-
-                                    {{--                                <div class="col-md-6">--}}
-                                    {{--                                    <div class="form-group">--}}
+                                    {{--                                <div class="{{ VC::CM6 }}">--}}
+                                    {{--                                    <div class="{{ VC::FM_G }}">--}}
                                     {{--                                        {{Form::label('sku',__('SKU')) }}--}}
                                     {{--                                        {!!Form::text('sku', null,array('class' => 'form-control','required'=>'required')) !!}--}}
                                     {{--                                    </div>--}}
                                     {{--                                </div>--}}
                                 @if(!$customFields->isEmpty())
-                                    <div class="col-md-6">
-                                        <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                                    <div class="{{ VC::CM6 }}">
+                                        <div class="{{ VC::TAB_FD_SH }}" id="tab-2" role="tabpanel">
                                             @include(ViewsConstants::CST_FD . '.formBuilder')
                                         </div>
                                     </div>
@@ -436,10 +414,10 @@ Object.keys(t).forEach(
                 </div>
             </div>
         </div>
-        <div class="col-12">
-            <h5 class="d-inline-block mb-4">{{__('Product & Services')}}</h5>
+        <div class="{{ VC::C12 }}">
+            <h5 class="d-inline-block {{ VC::MB4 }}">{{__('Product & Services')}}</h5>
             <div class="card repeater">
-                <div class="item-section py-2">
+                <div class="item-section {{ VC::PY2 }}">
                     <div class="{{ VC::DFL_AIC }} {{ VC::FEND }} me-2">
                         <a href="#"
                         data-repeater-create
@@ -449,9 +427,9 @@ Object.keys(t).forEach(
                             <i class="{{ VC::TI_PLS }}"></i> {{ __('Add item') }}
                         </a>
                     </div>
-                    <div class="card-body mt-3">
-                        <div class="table-responsive">
-                            <table class="table mb-0" data-repeater-list="items">
+                    <div class="{{ VC::CD_BD }} {{ VC::MT3 }}">
+                        <div class="{{ VC::TB_RSP }}">
+                            <table class="{{ VC::TB_MB0 }}" data-repeater-list="items">
                                 <thead>
                                 <tr>
                                     <th>{{__('Items')}}</th>
@@ -460,23 +438,27 @@ Object.keys(t).forEach(
                                     <th>{{__('Discount')}}</th>
                                     <th>{{__('Tax')}} (%)</th>
 
-                                    <th class="text-end">{{__('Amount')}} <br>
-                                        <small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small>
+                                    <th class="{{ VC::TX_END }}">{{__('Amount')}} <br>
+                                        <small class="{{ VC::TX_DNG }} font-weight-bold">{{__('after tax & discount')}}</small>
                                     </th>
                                     <th></th>
                                 </tr>
                                 </thead>
                                 <tbody class="ui-sortable" data-repeater-item>
                                 <tr>
-                                    <td width="25%" class="form-group pt-0">
+                                    <td width="25%" class="{{ VC::FM_G }} pt-0">
                                         @php
-                                            $proposalProductBaseName = ViewsConstants::PPS . '.product';
-                                            $proposalProductKebabName = Str::kebab($proposalProductBaseName);
-                                            $proposalProductResolvedName = Route::has($proposalProductBaseName) ? $proposalProductBaseName : (Route::has($proposalProductKebabName) ? $proposalProductKebabName : null);
-                                            $proposalProductUrl = $proposalProductResolvedName ? route($proposalProductResolvedName) : '#';
-                                            $proposalProductGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_product_route_unavailable') ?? 'Proposal product route is unavailable. Please contact technical support or your domain administrator.';
-                                            $proposalItemSelectId = 'proposal-item-select';
-                                        @endphp
+                                            try {
+                                                $proposalProductBaseName = ViewsConstants::PPS . '.product';
+                                                $proposalProductKebabName = Str::kebab($proposalProductBaseName);
+                                                $proposalProductResolvedName = Route::has($proposalProductBaseName) ? $proposalProductBaseName : (Route::has($proposalProductKebabName) ? $proposalProductKebabName : null);
+                                                $proposalProductUrl = $proposalProductResolvedName ? route($proposalProductResolvedName) : '#';
+                                                $proposalProductGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_product_route_unavailable') ?? 'Proposal product route is unavailable. Please contact technical support or your domain administrator.';
+                                                $proposalItemSelectId = 'proposal-item-select';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('proposals/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         {{ Form::select(
                                             'item',
                                             $product_services,
@@ -499,28 +481,7 @@ Object.keys(t).forEach(
                                                             const url = el.getAttribute('data-url') || '#';
                                                             if (url !== '#') return;
                                                             const msg = el.getAttribute('data-guard-msg') || '# ERROR';
-                                                            const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bs) {
-                                                                const toast = document.createElement('div');
-                                                                toast.className = 'toast';
-                                                                toast.setAttribute('role','alert');
-                                                                toast.setAttribute('aria-live','assertive');
-                                                                toast.setAttribute('aria-atomic','true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toast.appendChild(body);
-                                                                container.appendChild(toast);
-                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
+                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                             el.setAttribute('data-failed-route', 'true');
                                                         } catch (error) {}
                                                     });
@@ -568,7 +529,7 @@ Object.keys(t).forEach(
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-end amount">
+                                    <td class="{{ VC::TX_END }} amount">
                                         0.00
                                     </td>
                                     <td>
@@ -577,7 +538,7 @@ Object.keys(t).forEach(
                                 </tr>
                                 <tr>
                                     <td colspan="2">
-                                        <div class="form-group">
+                                        <div class="{{ VC::FM_G }}">
                                             {{ Form::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'1','placeholder'=>__('Description')]) }}
                                         </div>
                                     </td>
@@ -591,7 +552,7 @@ Object.keys(t).forEach(
                                     <td>&nbsp;</td>
                                     <td></td>
                                     <td><strong>{{__('Sub Total')}} ({{$user?->currencySymbol()}})</strong></td>
-                                    <td class="text-end subTotal">0.00</td>
+                                    <td class="{{ VC::TX_END }} subTotal">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
@@ -600,7 +561,7 @@ Object.keys(t).forEach(
                                     <td>&nbsp;</td>
                                     <td></td>
                                     <td><strong>{{__('Discount')}} ({{$user?->currencySymbol()}})</strong></td>
-                                    <td class="text-end totalDiscount">0.00</td>
+                                    <td class="{{ VC::TX_END }} totalDiscount">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
@@ -609,7 +570,7 @@ Object.keys(t).forEach(
                                     <td>&nbsp;</td>
                                     <td></td>
                                     <td><strong>{{__('Tax')}} ({{$user?->currencySymbol()}})</strong></td>
-                                    <td class="text-end totalTax">0.00</td>
+                                    <td class="{{ VC::TX_END }} totalTax">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
@@ -618,7 +579,7 @@ Object.keys(t).forEach(
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td class="blue-text border-none"><strong>{{__('Total Amount')}} ({{$user?->currencySymbol()}})</strong></td>
-                                    <td class="text-end totalAmount blue-text border-none"></td>
+                                    <td class="{{ VC::TX_END }} totalAmount blue-text border-none"></td>
                                     <td></td>
                                 </tr>
                                 </tfoot>
@@ -629,20 +590,24 @@ Object.keys(t).forEach(
             </div>
             <div class="modal-footer">
                 @php
-                    $proposalIndexBaseName = ViewsConstants::PPS . '.index';
-                    $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
-                    $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
-                    $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
-                    $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
-                    $proposalIndexBtnId = 'proposal-index-cancel-btn';
-                @endphp
+                    try {
+                        $proposalIndexBaseName = ViewsConstants::PPS . '.index';
+                        $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
+                        $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
+                        $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
+                        $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
+                        $proposalIndexBtnId = 'proposal-index-cancel-btn';
+                    } catch (\Throwable $e) {
+                        \Log::error('proposals/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <input
                     type="button"
                     value="{{ __('Cancel') }}"
                     id="{{ $proposalIndexBtnId }}"
                     class="{{ VC::BT_LG }}"
                     data-url="{{ $proposalIndexUrl }}"
-                    data-guard-msg="{{ $proposalIndexGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($proposalIndexGuardMsg) }}"
                 >
                 @push(StacksConstants::ADM_SCR_PG)
                     <script defer>
@@ -655,28 +620,7 @@ Object.keys(t).forEach(
                                     const url = btn.getAttribute('data-url') || '#';
                                     if (url === '#') {
                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         btn.setAttribute('data-failed-route', 'true');
                                         return;
                                     }
@@ -705,32 +649,10 @@ Object.keys(t).forEach(
                     if (url !== '#' || action !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (err) {}
             });
         })();
     </script>
 @endpush
-

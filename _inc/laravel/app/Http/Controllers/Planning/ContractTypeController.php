@@ -1,222 +1,503 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    UsersConstants,
-    ViewsConstants
-};
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, UsersConstants as UC, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{Contract, ContractType};
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, ConsoleOutputs};
+use Illuminate\Database\QueryException;
 use Illuminate\Http\{RedirectResponse, Request};
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\{Auth, Log};
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class ContractTypeController extends Controller
 {
-    use ChecksLogin;
+    use ChecksLogin, ConsoleOutputs;
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): RedirectResponse|View
     {
-        $function = __FUNCTION__;
-        $action = class_basename(static::class) . '@' . __FUNCTION__;
-        return $this->measureProfile($action, function () use ($action, $request, $function) {
-            Log::info("[$action] started", ['user_ip' => $request->ip()]);
-            $checkStart = microtime(true);
-            $userOrRedirect = self::_checkLogin();
-            $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
-            if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (!$user?->can('manage contract type')) {
-                Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
-                return defaultPermissionDenial($request, null, $action);
-            }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $viewPath ??= VW::CTC_TP . '.' . $action;
+            $types ??= collect();
             try {
-                if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CPN) {
-                    Log::warning("[$action] invalid user type", ['user_id' => $user?->id, 'type' => $user[UsersConstants::COL_TP]]);
-                    return defaultPermissionDenial($request, null, $action);
+                if (!$user?->can('manage contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+                if (!in_array(($user[UC::COL_TP] ?? null), [PMC::CPN, PMC::SA], true))
+                    return defaultPermissionDenial($request, new \Exception('Invalid user type'), $method);
+
+                $t = microtime(true);
+                $types = ContractType::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get() ?? $types;
+                $this->logExecutionTime($t, $action . '::fetchTypes', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
-                $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
-                $this->logExecutionTime($typesStart, $action . '::fetchTypes', 'completed');
-                Log::info("[$action] loaded types", ['count' => $types->count(), 'user_id' => $user?->id]);
-                return view(ViewsConstants::CTC_TP . '.' . $function, compact('types'));
+
+                $this->consoleOutput($method . ' loaded', 'info');
+                return view($viewPath, compact('types'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error("[$action] failed", ['error' => $e->getMessage(), 'user_id' => $user?->id]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['user_id' => Auth::id()]);
     }
 
     public function create(Request $request): RedirectResponse|View
     {
-        $function = __FUNCTION__;
+        $action = __FUNCTION__;
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['user_id' => auth()->id()]);
-        return $this->measureProfile($method, function () use ($request, $method, $function) {
-            $stepStart = microtime(true);
-            Log::info($method . ' started');
-            $this->logExecutionTime($stepStart, 'logStart', 'completed');
-            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            $stepStart = microtime(true);
-            if (!$user?->can('create contract type')) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
-                return defaultPermissionDenial($request, null, $method);
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $viewPath ??= VW::CTC_TP . '.' . $action;
+            try {
+                if (!$user?->can('create contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                $this->consoleOutput($method . ' loaded', 'info');
+                return view($viewPath);
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
-            $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
-            Log::info($method . ' rendering form', ['user_id' => $user?->id]);
-            return view(ViewsConstants::CTC_TP . '.' . $function);
-        }, ['user_id' => auth()->id()]);
+        }, ['user_id' => Auth::id()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $function = __FUNCTION__;
-        return $this->measureProfile($function, function () use ($request, $function) {
-            $method = static::class . '::' . $function;
-            $startAction = microtime(true);
-            Log::info($method . ' started', ['input' => $request->only('name')]);
-            if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) {
-                $this->logExecutionTime($startAction, $function . '::login', 'failed');
-                return $userOrRedirect;
-            }
-            $user = $userOrRedirect;
-            $this->logExecutionTime($startAction, $function . '::login', 'completed');
-            if (!$user?->can('create contract type')) {
-                Log::warning($method . ' permission denied', [UsersConstants::COL_USER_ID => $user?->id]);
-                return defaultPermissionDenial($request, null, $method);
-            }
-            $startValidation = microtime(true);
-            $v = validator($request->all(), ['name' => 'required|max:255']);
-            if ($v->fails()) {
-                Log::warning($method . ' validation failed', ['errors' => $v->errors()->all()]);
-                $this->logExecutionTime($startValidation, $function . '::validation', 'failed');
-                return redirect()->back()->with('error', $v->errors()->first());
-            }
-            $this->logExecutionTime($startValidation, $function . '::validation', 'completed');
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                $startCreate = microtime(true);
+                if (!$user?->can('create contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), ['name' => 'required|max:255'])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                DB::beginTransaction();
+                $inTransaction = true;
                 ContractType::create([
-                    'name' => $request->input('name'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    'name' => $data['name'] ?? '',
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
-                $this->logExecutionTime($startCreate, $function . '::createContractType', 'completed');
-                Log::info($method . ' created type', ['name' => $request->input('name'), UsersConstants::COL_USER_ID => $user?->id]);
-                return redirect()->route(ViewsConstants::CTC_TP . '.index')
+                DB::commit();
+                $inTransaction = false;
+
+                $this->consoleOutput($method . ' created', 'info');
+                return Redirect::route(VW::CTC_TP . '.index')
                     ->with('success', __('Contract Type successfully created.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                $timeError = microtime(true);
-                Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
-                $this->logExecutionTime($timeError, $function . '::exception', 'failed');
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
                 return defaultUndefinedException($request, $e, $method);
             }
-        }, func_get_args());
+        });
     }
 
     public function show(Request $request, ContractType $contractType): RedirectResponse|View|null
     {
-        $class = static::class;
-        $function = __FUNCTION__;
-        $action = "{$class}::{$function}";
-        return $this->measureProfile($action, function () use ($request, $contractType, $action, $function) {
-            Log::info("$action started", ['contract_type_id' => $contractType->id]);
-            $stepStart = microtime(true);
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $contractType, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $viewPath ??= VW::CTC_TP . '.' . $action;
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                $user = $userOrRedirect;
-                if (!$user?->can('manage contract type')) {
-                    Log::warning("$action permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
-                    return defaultPermissionDenial($request, null, $action);
-                }
-                if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
-                    Log::warning("$action ownership denied", [
-                        UsersConstants::COL_USER_ID => $user?->id,
-                        'contract_type_id' => $contractType->id
+                if (!$user?->can('manage contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+                if (($contractType[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('Ownership denied'), $method);
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'contract_type_id' => $contractType?->id,
+                        'user_id' => $user?->id,
                     ]);
-                    return defaultPermissionDenial($request, null, $action);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
-                Log::info("$action rendering", ['contract_type_id' => $contractType->id]);
-                $this->logExecutionTime($stepStart, 'render contract type view', 'completed');
-                return view(ViewsConstants::CTC_TP . '.' . $function, compact('contractType'));
+
+                $this->consoleOutput($method . ' loaded', 'info');
+                return view($viewPath, compact('contractType'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), 'contract_type_id' => $contractType->id]);
-                Log::error("$action failed", ['error' => $e->getMessage(), 'contract_type_id' => $contractType->id]);
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function edit(Request $request, ContractType $contractType): RedirectResponse|View
     {
-        $function = __FUNCTION__;
-        $action = class_basename(static::class) . '@' . __FUNCTION__;
-        return $this->measureProfile($action, function () use ($action, $request, $contractType, $function) {
-            Log::info("[$action] started", ['contract_type_id' => $contractType->id]);
-            $checkStart = microtime(true);
-            $userOrRedirect = self::_checkLogin();
-            $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
-            if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (!$user?->can('edit contract type')) {
-                Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
-                return defaultPermissionDenial($request, null, $action);
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $contractType, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $viewPath ??= VW::CTC_TP . '.' . $action;
+            try {
+                if (!$user?->can('edit contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+                if (($contractType[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('Ownership denied'), $method);
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'contract_type_id' => $contractType?->id,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                $this->consoleOutput($method . ' loaded', 'info');
+                return view($viewPath, compact('contractType'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
-            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning("[$action] ownership denied", ['user_id' => $user?->id, 'contract_type_id' => $contractType->id]);
-                return defaultPermissionDenial($request, null, $action);
-            }
-            Log::info("[$action] rendering form", ['contract_type_id' => $contractType->id]);
-            return view(ViewsConstants::CTC_TP . '.' . $function, compact('contractType'));
         }, ['contract_type_id' => $contractType->id]);
     }
 
     public function update(Request $request, ContractType $contractType): RedirectResponse
     {
+        $action = __FUNCTION__;
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['contract_type_id' => $contractType->id, 'input' => $request->only('name')]);
-        return $this->measureProfile($method, function () use ($request, $contractType, $method) {
-            $stepStart = microtime(true);
-            Log::info($method . ' started', ['contract_type_id' => $contractType->id, 'input' => $request->only('name')]);
-            $this->logExecutionTime($stepStart, 'logStart', 'completed');
-            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            $stepStart = microtime(true);
-            if (!$user?->can('edit contract type')) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
-                return defaultPermissionDenial($request, null, $method);
-            }
-            $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
-            $stepStart = microtime(true);
-            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning($method . ' ownership denied', ['user_id' => $user?->id, 'contract_type_id' => $contractType->id]);
-                return defaultPermissionDenial($request, null, $method);
-            }
-            $this->logExecutionTime($stepStart, 'checkOwnership', 'completed');
-            $stepStart = microtime(true);
-            $v = validator($request->all(), ['name' => 'required|max:255']);
-            $this->logExecutionTime($stepStart, 'validateRequest', 'completed');
-            if ($v->fails()) {
-                Log::warning($method . ' validation failed', ['errors' => $v->errors()->all()]);
-                return redirect()->back()->with('error', $v->errors()->first());
-            }
-            $stepStart = microtime(true);
+        return $this->measureProfile($action, function () use ($request, $contractType, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
+                if (!$user?->can('edit contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+                if (($contractType[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('Ownership denied'), $method);
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), ['name' => 'required|max:255'])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                DB::beginTransaction();
+                $inTransaction = true;
                 $contractType->update([
-                    'name' => $request->input('name'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    'name' => $data['name'] ?? $contractType->name,
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
-                $this->logExecutionTime($stepStart, 'updateContractType', 'completed');
-                Log::info($method . ' updated', ['contract_type_id' => $contractType->id]);
-                return redirect()->route(ViewsConstants::CTC_TP . '.index')
+                DB::commit();
+                $inTransaction = false;
+
+                $this->consoleOutput($method . ' updated', 'info');
+                return Redirect::route(VW::CTC_TP . '.index')
                     ->with('success', __('Contract Type successfully updated.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
                 return defaultUndefinedException($request, $e, $method);
             }
         }, ['contract_type_id' => $contractType->id]);
@@ -224,43 +505,76 @@ class ContractTypeController extends Controller
 
     public function destroy(Request $request, ContractType $contractType): RedirectResponse
     {
-        $function = __FUNCTION__;
-        return $this->measureProfile($function, function () use ($request, $contractType, $function) {
-            $method = static::class . '::' . $function;
-            $startAction = microtime(true);
-            Log::info($method . ' started', ['contract_type_id' => $contractType->id]);
-            if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) {
-                $this->logExecutionTime($startAction, $function . '::login', 'failed');
-                return $userOrRedirect;
-            }
-            $user = $userOrRedirect;
-            $this->logExecutionTime($startAction, $function . '::login', 'completed');
-            if (!$user?->can('delete contract type')) {
-                Log::warning($method . ' permission denied', [UsersConstants::COL_USER_ID => $user?->id]);
-                return defaultPermissionDenial($request, null, $method);
-            }
-            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning($method . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id, 'contract_type_id' => $contractType->id]);
-                return defaultPermissionDenial($request, null, $method);
-            }
-            if (Contract::where('type', $contractType->id)->exists()) {
-                Log::warning($method . ' prevented—type in use', ['contract_type_id' => $contractType->id]);
-                return redirect()->back()->with('error', __('This type is in use; please reassign or delete related contracts first.'));
-            }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $contractType, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $inTransaction ??= false;
             try {
-                $startDelete = microtime(true);
+                if (!$user?->can('delete contract type'))
+                    return defaultPermissionDenial($request, new \Exception('Permission denied'), $method);
+                if (($contractType[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('Ownership denied'), $method);
+
+                $typeId = $contractType?->id;
+                $typeId = is_numeric($typeId) ? (int) $typeId : null;
+                if (!$typeId) return Redirect::back()->with('error', __('Contract Type not found.'));
+                if (Contract::where('type', $typeId)->exists())
+                    return Redirect::back()->with('error', __('This type is in use; please reassign or delete related contracts first.'));
+
+                DB::beginTransaction();
+                $inTransaction = true;
                 $contractType->delete();
-                $this->logExecutionTime($startDelete, $function . '::delete', 'completed');
-                Log::info($method . ' deleted', ['contract_type_id' => $contractType->id]);
-                return redirect()->route(ViewsConstants::CTC_TP . '.index')
+                DB::commit();
+                $inTransaction = false;
+
+                $this->consoleOutput($method . ' deleted', 'info');
+                return Redirect::route(VW::CTC_TP . '.index')
                     ->with('success', __('Contract Type successfully deleted.'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                $timeError = microtime(true);
-                $this->logExecutionTime($timeError, $function . '::exception', 'failed');
-                Log::error($method . ' failed', ['error' => $e->getMessage()]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'contract_type_id' => $contractType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
                 return defaultUndefinedException($request, $e, $method);
             }
-        }, func_get_args());
+        }, ['contract_type_id' => $contractType->id]);
     }
 }

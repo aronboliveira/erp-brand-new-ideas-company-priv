@@ -1,16 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('sources/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,32 +12,36 @@
 @push(StacksConstants::ADM_SCR_PG)
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Sources')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Sources')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
-            $sourceCreateBaseName        = ViewsConstants::SRC . '.create';
-            $sourceCreateKebabName       = Str::kebab($sourceCreateBaseName);
-            $sourceCreateResolvedName    = Route::has($sourceCreateBaseName)
-                ? $sourceCreateBaseName
-                : (Route::has($sourceCreateKebabName) ? $sourceCreateKebabName : null);
-            $sourceCreateUrl             = $sourceCreateResolvedName ? route($sourceCreateResolvedName) : '#';
-            $sourceCreateGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_create_route_unavailable') ?? 'Source create route is unavailable. Please contact technical support or your domain administrator.';
-            $sourceCreateBtnId           = 'source-create-btn';
-        @endphp
+            try {
+                $sourceCreateBaseName        = ViewsConstants::SRC . '.create';
+                $sourceCreateKebabName       = Str::kebab($sourceCreateBaseName);
+                $sourceCreateResolvedName    = Route::has($sourceCreateBaseName)
+                    ? $sourceCreateBaseName
+                    : (Route::has($sourceCreateKebabName) ? $sourceCreateKebabName : null);
+                $sourceCreateUrl             = $sourceCreateResolvedName ? route($sourceCreateResolvedName) : '#';
+                $sourceCreateGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_create_route_unavailable') ?? 'Source create route is unavailable. Please contact technical support or your domain administrator.';
+                $sourceCreateBtnId           = 'source-create-btn';
+            } catch (\Throwable $e) {
+                \Log::error('sources/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a
             id="{{ $sourceCreateBtnId }}"
             href="{{ $sourceCreateUrl }}"
             data-size="md"
             data-url="{{ $sourceCreateUrl }}"
-            data-guard-msg="{{ $sourceCreateGuardMsg }}"
+            data-guard-msg="{{ base64_encode($sourceCreateGuardMsg) }}"
             data-ajax-popup="true"
             data-bs-toggle="tooltip"
             title="{{ __('Create New Sources') }}"
@@ -64,28 +61,8 @@
                             if (url !== '#') return;
                             e.preventDefault();
                             const msg = el.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
+                            const RG = window.RouteGuard || {};
+                            (RG.showToast || (m => alert(m)))(msg);
                             el.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     });
@@ -96,13 +73,13 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.crm_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -118,21 +95,25 @@
                                             @can('edit source')
                                                 <div class="{{ VC::ACT_BTN_INF }}">
                                                     @php
-                                                        $sourceEditBaseName        = ViewsConstants::SRC . '.edit';
-                                                        $sourceEditKebabName       = Str::kebab($sourceEditBaseName);
-                                                        $sourceEditResolvedName    = Route::has($sourceEditBaseName)
-                                                            ? $sourceEditBaseName
-                                                            : (Route::has($sourceEditKebabName) ? $sourceEditKebabName : null);
-                                                        $sourceEditUrl             = $sourceEditResolvedName ? route($sourceEditResolvedName, $source->id) : '#';
-                                                        $sourceEditGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_edit_route_unavailable') ?? 'Source edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $sourceEditBtnId           = 'source-edit-btn-' . $source->id;
-                                                    @endphp
+                                                        try {
+                                                            $sourceEditBaseName        = ViewsConstants::SRC . '.edit';
+                                                            $sourceEditKebabName       = Str::kebab($sourceEditBaseName);
+                                                            $sourceEditResolvedName    = Route::has($sourceEditBaseName)
+                                                                ? $sourceEditBaseName
+                                                                : (Route::has($sourceEditKebabName) ? $sourceEditKebabName : null);
+                                                            $sourceEditUrl             = $sourceEditResolvedName ? route($sourceEditResolvedName, $source->id) : '#';
+                                                            $sourceEditGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_edit_route_unavailable') ?? 'Source edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $sourceEditBtnId           = 'source-edit-btn-' . $source->id;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('sources/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a
                                                         id="{{ $sourceEditBtnId }}"
                                                         href="{{ $sourceEditUrl }}"
                                                         class="{{ VC::BT_SM_FL_CT }}"
                                                         data-url="{{ $sourceEditUrl }}"
-                                                        data-guard-msg="{{ $sourceEditGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($sourceEditGuardMsg) }}"
                                                         data-ajax-popup="true"
                                                         data-size="md"
                                                         data-bs-toggle="tooltip"
@@ -153,28 +134,8 @@
                                                                         if (url !== '#') return;
                                                                         e.preventDefault();
                                                                         const msg = el.getAttribute('data-guard-msg') || '# ERROR';
-                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (hasBootstrap) {
-                                                                            const toast = document.createElement('div');
-                                                                            toast.className = 'toast';
-                                                                            toast.setAttribute('role','alert');
-                                                                            toast.setAttribute('aria-live','assertive');
-                                                                            toast.setAttribute('aria-atomic','true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toast.appendChild(body);
-                                                                            container.appendChild(toast);
-                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        const RG = window.RouteGuard || {};
+                                                                        (RG.showToast || (m => alert(m)))(msg);
                                                                         el.setAttribute('data-failed-route', 'true');
                                                                     } catch (err) {}
                                                                 });
@@ -186,23 +147,27 @@
                                             @can('delete source')
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     @php
-                                                        $sourceDestroyBaseName        = ViewsConstants::SRC . '.destroy';
-                                                        $sourceDestroyKebabName       = Str::kebab($sourceDestroyBaseName);
-                                                        $sourceDestroyResolvedName    = Route::has($sourceDestroyBaseName)
-                                                            ? $sourceDestroyBaseName
-                                                            : (Route::has($sourceDestroyKebabName) ? $sourceDestroyKebabName : null);
-                                                        $sourceDestroyRouteArray      = $sourceDestroyResolvedName ? [$sourceDestroyResolvedName, $source->id] : ['#'];
-                                                        $sourceDestroyUrl             = $sourceDestroyResolvedName ? route($sourceDestroyResolvedName, $source->id) : '#';
-                                                        $sourceDestroyGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_destroy_route_unavailable') ?? 'Source destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $sourceDeleteFormId           = 'source-delete-form-' . $source->id;
-                                                        $sourceDeleteBtnId            = 'source-destroy-btn-' . $source->id;
-                                                    @endphp
+                                                        try {
+                                                            $sourceDestroyBaseName        = ViewsConstants::SRC . '.destroy';
+                                                            $sourceDestroyKebabName       = Str::kebab($sourceDestroyBaseName);
+                                                            $sourceDestroyResolvedName    = Route::has($sourceDestroyBaseName)
+                                                                ? $sourceDestroyBaseName
+                                                                : (Route::has($sourceDestroyKebabName) ? $sourceDestroyKebabName : null);
+                                                            $sourceDestroyRouteArray      = $sourceDestroyResolvedName ? [$sourceDestroyResolvedName, $source->id] : ['#'];
+                                                            $sourceDestroyUrl             = $sourceDestroyResolvedName ? route($sourceDestroyResolvedName, $source->id) : '#';
+                                                            $sourceDestroyGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_destroy_route_unavailable') ?? 'Source destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $sourceDeleteFormId           = 'source-delete-form-' . $source->id;
+                                                            $sourceDeleteBtnId            = 'source-destroy-btn-' . $source->id;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('sources/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     {!! Form::open(['method' => 'DELETE', 'route' => $sourceDestroyRouteArray, 'id' => $sourceDeleteFormId]) !!}
                                                         <a
                                                             id="{{ $sourceDeleteBtnId }}"
                                                             href="{{ $sourceDestroyUrl }}"
                                                             data-url="{{ $sourceDestroyUrl }}"
-                                                            data-guard-msg="{{ $sourceDestroyGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sourceDestroyGuardMsg) }}"
                                                             class="{{ VC::BT_SM_CT_PR }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
@@ -222,28 +187,8 @@
                                                                         if (url !== '#') return;
                                                                         e.preventDefault();
                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (hasBootstrap) {
-                                                                            const toast = document.createElement('div');
-                                                                            toast.className = 'toast';
-                                                                            toast.setAttribute('role','alert');
-                                                                            toast.setAttribute('aria-live','assertive');
-                                                                            toast.setAttribute('aria-atomic','true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toast.appendChild(body);
-                                                                            container.appendChild(toast);
-                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        const RG = window.RouteGuard || {};
+                                                                        (RG.showToast || (m => alert(m)))(msg);
                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                     } catch (err) {}
                                                                 });

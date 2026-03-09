@@ -9,6 +9,11 @@ use App\Models\{Expense, Project, ProjectTask, User};
 
 class ExpenseTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -35,9 +40,7 @@ class ExpenseTest extends TestCase
 
 		$expense = Expense::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $expense->$field);
-		}
+		$this->assertFillableMatches($data, $expense);
 	}
 
 	/**
@@ -69,10 +72,10 @@ class ExpenseTest extends TestCase
 	{
 		$relation = (new Expense)->project();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(Project::class,          get_class($relation->getRelated()));
-		$this->assertSame('id',                    $relation->getForeignKeyName());
-		$this->assertSame('project_id',            $relation->getLocalKeyName());
+		$this->assertSame('project_id',                    $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -84,10 +87,10 @@ class ExpenseTest extends TestCase
 	{
 		$relation = (new Expense)->task();
 
-		$this->assertInstanceOf(HasOne::class,       $relation);
+		$this->assertInstanceOf(BelongsTo::class,       $relation);
 		$this->assertSame(ProjectTask::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                      $relation->getForeignKeyName());
-		$this->assertSame('task_id',                 $relation->getLocalKeyName());
+		$this->assertSame('task_id',                      $relation->getForeignKeyName());
+		$this->assertSame('id',                 $relation->getOwnerKeyName());
 	}
 
 	/**

@@ -36,7 +36,9 @@ enum CallType: string
 	case VideoConference = 'video_conference';
 	case AudioConference = 'audio_conference';
 	case ScreenShare = 'screen_share';
-	case Other = 'other';
+	    case Outbound = 'outbound';
+    case Inbound = 'inbound';
+    case Other = 'other';
 
 	public static function normalize(?string $value): self
 	{

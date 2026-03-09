@@ -9,9 +9,18 @@ namespace Tests\Unit\Models;
 use App\Models\Plan;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class PlanTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
+
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -21,9 +30,12 @@ class PlanTest extends TestCase
 	public function durations_method_returns_expected_options(): void
 	{
 		$expected = [
-			'lifetime' => 'Lifetime',
-			'month'    => 'Per Month',
-			'year'     => 'Per Year',
+			'lifetime'    => 'Lifetime',
+			'month'       => 'Per Month',
+			'semimonthly' => 'Semi Monthly',
+			'quarterly'   => 'Quarterly',
+			'semiannual'  => 'Semi Annual',
+			'year'        => 'Per Year',
 		];
 
 		$this->assertSame($expected, Plan::durations());
@@ -52,7 +64,7 @@ class PlanTest extends TestCase
 	 **/
 	public function total_plan_proxies_to_count(): void
 	{
-		Mockery::mock('alias:' . Plan::class)
+		$this->aliasMock(Plan::class)
 			->shouldReceive('count')
 			->once()
 			->andReturn(42);
@@ -70,7 +82,7 @@ class PlanTest extends TestCase
 	public function get_plan_caches_result(): void
 	{
 		$fake = new Plan;
-		Mockery::mock('alias:' . Plan::class)
+		$this->aliasMock(Plan::class)
 			->makePartial()
 			->shouldReceive('find')
 			->once()

@@ -107,8 +107,10 @@ abstract class CardNote extends Model
 			$invoiceColumn = Schema::hasColumn($model->getTable(), BC::COL_INV_ID)
 				? BC::COL_INV_ID
 				: 'invoice';
-			$billId    = $model->getAttribute($billColumn);
-			$invoiceId = $model->getAttribute($invoiceColumn);
+			// Use raw attributes to avoid triggering relation resolution
+			// when the FK column name matches a relation method name
+			$billId    = $model->getAttributes()[$billColumn] ?? null;
+			$invoiceId = $model->getAttributes()[$invoiceColumn] ?? null;
 			if (!$billId && !$invoiceId)
 				throw new RuntimeException('Card notes must be linked to a bill or an invoice.');
 			$model->setAttribute(BC::COL_CURR_N_INTR, $model->normalizedCurrentInstallment());
@@ -126,12 +128,27 @@ abstract class CardNote extends Model
 
 	public function invoice(): ?BelongsTo
 	{
-		return $this->belongsTo(Invoice::class, Schema::hasColumn($this->getTable(), BC::COL_INV_ID) ? BC::COL_INV_ID : 'invoice', 'id');
+		$fk = Schema::hasColumn($this->getTable(), BC::COL_INV_ID)
+			? BC::COL_INV_ID
+			: 'invoice';
+		// Guard: when FK name equals 'invoice' (same as this method),
+		// ensure the attribute exists to prevent infinite recursion
+		// in BelongsTo::addConstraints → $this->child->{foreignKey}
+		if ($fk === 'invoice' && !array_key_exists('invoice', $this->getAttributes())) {
+			$this->setAttribute('invoice', null);
+		}
+		return $this->belongsTo(Invoice::class, $fk, 'id');
 	}
 
 	public function bill(): ?BelongsTo
 	{
-		return $this->belongsTo(Bill::class, Schema::hasColumn($this->getTable(), BC::COL_BL_ID) ? BC::COL_BL_ID : 'bill', 'id');
+		$fk = Schema::hasColumn($this->getTable(), BC::COL_BL_ID)
+			? BC::COL_BL_ID
+			: 'bill';
+		if ($fk === 'bill' && !array_key_exists('bill', $this->getAttributes())) {
+			$this->setAttribute('bill', null);
+		}
+		return $this->belongsTo(Bill::class, $fk, 'id');
 	}
 
 	public function bankAccount(): ?BelongsTo
@@ -172,25 +189,40 @@ abstract class CardNote extends Model
 
 	public function isRefunded(): bool
 	{
-		return in_array(
-			$this->paymentStatus(),
-			[PaymentStatus::Refunded, PaymentStatus::PartiallyRefunded],
-			true
-		);
+		try {
+			return in_array(
+				$this->paymentStatus(),
+				[PaymentStatus::Refunded, PaymentStatus::PartiallyRefunded],
+				true
+			);
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::isRefunded — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return false;
+		}
 	}
 
 	protected function billColumn(): string
 	{
-		return Schema::hasColumn($this->getTable(), BC::COL_BL_ID)
-			? BC::COL_BL_ID
-			: 'bill';
+		try {
+			return Schema::hasColumn($this->getTable(), BC::COL_BL_ID)
+				? BC::COL_BL_ID
+				: 'bill';
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::billColumn — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return '';
+		}
 	}
 
 	protected function invoiceColumn(): string
 	{
-		return Schema::hasColumn($this->getTable(), BC::COL_INV_ID)
-			? BC::COL_INV_ID
-			: 'invoice';
+		try {
+			return Schema::hasColumn($this->getTable(), BC::COL_INV_ID)
+				? BC::COL_INV_ID
+				: 'invoice';
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::invoiceColumn — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return '';
+		}
 	}
 
 
@@ -206,19 +238,29 @@ abstract class CardNote extends Model
 
 	public function getEffectiveDocumentType(): string
 	{
-		if ($this->isLinkedToInvoice()) return 'invoice';
-		if ($this->isLinkedToBill()) return 'bill';
+		try {
+			if ($this->isLinkedToInvoice()) return 'invoice';
+			if ($this->isLinkedToBill()) return 'bill';
 
-		return 'unlinked';
+			return 'unlinked';
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::getEffectiveDocumentType — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return '';
+		}
 	}
 
 	public function getEffectiveDocumentId(): ?string
 	{
-		if ($this->isLinkedToInvoice())
-			return (string) $this->getAttribute($this->invoiceColumn());
-		if ($this->isLinkedToBill())
-			return (string) $this->getAttribute($this->billColumn());
-		return null;
+		try {
+			if ($this->isLinkedToInvoice())
+				return (string) $this->getAttribute($this->invoiceColumn());
+			if ($this->isLinkedToBill())
+				return (string) $this->getAttribute($this->billColumn());
+			return null;
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::getEffectiveDocumentId — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return '';
+		}
 	}
 
 	public function getMonetarySign(): int
@@ -242,90 +284,111 @@ abstract class CardNote extends Model
 
 	public function setCardNumberAttribute(?string $value): void
 	{
-		if ($value === null || $value === '') {
-			$this->attributes[BC::COL_CD_NB] = null;
-			$this->attributes[BC::COL_CD_DG] = null;
+		try {
+			if ($value === null || $value === '') {
+				$this->attributes[BC::COL_CD_NB] = null;
+				$this->attributes[BC::COL_CD_DG] = null;
 
-			return;
+				return;
+			}
+
+			$digits = preg_replace('/\D+/', '', $value) ?: null;
+			$this->attributes[BC::COL_CD_NB] = $digits;
+			$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::setCardNumberAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
 		}
-
-		$digits = preg_replace('/\D+/', '', $value) ?: null;
-		$this->attributes[BC::COL_CD_NB] = $digits;
-		$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
 	}
 
 	public function setCardDigitsAttribute(?string $value): void
 	{
-		if (!$value) {
-			$this->attributes[BC::COL_CD_DG] = null;
+		try {
+			if (!$value) {
+				$this->attributes[BC::COL_CD_DG] = null;
 
-			return;
+				return;
+			}
+
+			$digits = preg_replace('/\D+/', '', $value) ?: null;
+			$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::setCardDigitsAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
 		}
-
-		$digits = preg_replace('/\D+/', '', $value) ?: null;
-		$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
 	}
 
 	protected function normalizedCurrentInstallment(): int
 	{
-		$current = (int) ($this->getAttribute(BC::COL_CURR_N_INTR) ?? 1);
-		if ($current < 1)
-			$current = 1;
-		return $current;
+		try {
+			$current = (int) ($this->getAttribute(BC::COL_CURR_N_INTR) ?? 1);
+			if ($current < 1)
+				$current = 1;
+			return $current;
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::normalizedCurrentInstallment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return 0;
+		}
 	}
 
 	protected function normalizeCardExpiration(): void
 	{
-		$rawYear = $this->getAttribute(BC::COL_CD_EX_Y);
-		$year    = (int) ($rawYear ?? 0);
-		if ($year <= 0) {
-			$this->setAttribute(BC::COL_CD_EX_Y, null);
-			$this->setAttribute(BC::COL_CD_EX_M, null);
-			return;
+		try {
+			$rawYear = $this->getAttribute(BC::COL_CD_EX_Y);
+			$year    = (int) ($rawYear ?? 0);
+			if ($year <= 0) {
+				$this->setAttribute(BC::COL_CD_EX_Y, null);
+				$this->setAttribute(BC::COL_CD_EX_M, null);
+				return;
+			}
+			$now          = now();
+			$currentYear  = (int) $now->format('Y');
+			$currentMonth = (int) $now->format('n');
+			if ($year < $currentYear)
+				$year = $currentYear;
+			$this->setAttribute(BC::COL_CD_EX_Y, (string) $year);
+			$rawMonth = $this->getAttribute(BC::COL_CD_EX_M);
+			if (!$rawMonth)
+				return;
+			$monthName = $rawMonth instanceof MonthName
+				? strtolower($rawMonth->value)
+				: strtolower((string) $rawMonth);
+			$map = [
+				'january'   => 1,
+				'february'  => 2,
+				'march'     => 3,
+				'april'     => 4,
+				'may'       => 5,
+				'june'      => 6,
+				'july'      => 7,
+				'august'    => 8,
+				'september' => 9,
+				'october'   => 10,
+				'november'  => 11,
+				'december'  => 12,
+			];
+			$month = $map[$monthName] ?? null;
+			if ($month === null)
+				return;
+			if ($year === $currentYear && $month < $currentMonth)
+				foreach ($map as $name => $num)
+					if ($num === $currentMonth) {
+						$this->setAttribute(BC::COL_CD_EX_M, $name);
+						break;
+					}
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::normalizeCardExpiration — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
 		}
-		$now          = now();
-		$currentYear  = (int) $now->format('Y');
-		$currentMonth = (int) $now->format('n');
-		if ($year < $currentYear)
-			$year = $currentYear;
-		$this->setAttribute(BC::COL_CD_EX_Y, (string) $year);
-		$rawMonth = $this->getAttribute(BC::COL_CD_EX_M);
-		if (!$rawMonth)
-			return;
-		$monthName = $rawMonth instanceof MonthName
-			? strtolower($rawMonth->value)
-			: strtolower((string) $rawMonth);
-		$map = [
-			'january'   => 1,
-			'february'  => 2,
-			'march'     => 3,
-			'april'     => 4,
-			'may'       => 5,
-			'june'      => 6,
-			'july'      => 7,
-			'august'    => 8,
-			'september' => 9,
-			'october'   => 10,
-			'november'  => 11,
-			'december'  => 12,
-		];
-		$month = $map[$monthName] ?? null;
-		if ($month === null)
-			return;
-		if ($year === $currentYear && $month < $currentMonth)
-			foreach ($map as $name => $num)
-				if ($num === $currentMonth) {
-					$this->setAttribute(BC::COL_CD_EX_M, $name);
-					break;
-				}
 	}
 
 
 	protected function normalizeCardDigits(): void
 	{
-		if (!($this->attributes[BC::COL_CD_NB] ?? null)) return;
+		try {
+			if (!($this->attributes[BC::COL_CD_NB] ?? null)) return;
 
-		$digits = preg_replace('/\D+/', '', $this->attributes[BC::COL_CD_NB]) ?: null;
-		$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
+			$digits = preg_replace('/\D+/', '', $this->attributes[BC::COL_CD_NB]) ?: null;
+			$this->attributes[BC::COL_CD_DG] = $digits ? substr($digits, -4) : null;
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::normalizeCardDigits — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		}
 	}
 }

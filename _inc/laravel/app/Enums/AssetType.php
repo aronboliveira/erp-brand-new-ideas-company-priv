@@ -68,7 +68,7 @@ enum AssetType: string
 		if ($value === null)
 			return self::Other;
 
-		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// IT variations
 			'laptop', 'notebook', 'mobilecomputer', 'portablecomputer' => self::Laptop,

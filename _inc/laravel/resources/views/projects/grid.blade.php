@@ -1,86 +1,94 @@
 @php
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Config\Constants\ViewsConstants as VW;
-    use App\Config\Constants\StacksConstants;
-    use App\Models\{Project, Utility};
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Facades\Auth;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-    $lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
+
+        if (!function_exists('resolveProjectRoute')) {
+        function resolveProjectRoute($base, $kebabFallback = true) {
+            if (Route::has($base)) return $base;
+            if ($kebabFallback) {
+                $kebab = Str::kebab($base);
+                if (Route::has($kebab)) return $kebab;
+            }
+            return null;
+        }
+    }
+
+        if (!function_exists('safeProjectRoute')) {
+        function safeProjectRoute($routeName, $params = []) {
+            $resolved = resolveProjectRoute($routeName);
+            if (!$resolved || empty($params[0])) return '#';
+            try {
+                return route($resolved, $params);
+            } catch (\Exception $e) {
+                return '#';
+            }
+        }
+    }
 @endphp
 
 @if(isset($projects) && !empty($projects) && count($projects) > 0)
-    <div class="col-12">
+    <div class="{{ VC::C12 }}">
         <div class="row">
             @foreach ($projects as $key => $project)
                 @php
-                    $projectId = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
-                    $projectName = isset($project) && !empty(data_get($project, 'project_name')) ? data_get($project, 'project_name') : '';
-                    $showBase = VW::PRJ . '.show';
-                    $showKebab = Str::kebab($showBase);
-                    $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-                    $showParams = $projectId ? [$projectId] : ['#'];
-                    $showUrl = ($showResolved && $projectId) ? route($showResolved, $showParams) : '#';
-                    $showLinkId = 'project-show-link-' . ($projectId ?? 'x');
-                    $showGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                    $copyCandidates = [
-                        'project.copy',
-                        Str::kebab('project.copy'),
-                        VW::PRJ . '.copy',
-                        Str::kebab(VW::PRJ . '.copy'),
-                    ];
-                    $copyResolved = null;
-                    foreach ($copyCandidates as $c) { if (Route::has($c)) { $copyResolved = $c; break; } }
-                    $copyParams = $projectId ? [$projectId] : ['#'];
-                    $copyUrl = ($copyResolved && $projectId) ? route($copyResolved, $copyParams) : '#';
-                    $copyLinkId = 'project-copy-link-' . ($projectId ?? 'x');
-                    $copyGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'copy_project_unavailable') ?? 'Copy project route is unavailable. Please contact technical support or your domain administrator.';
-                    $editBase = VW::PRJ . '.edit';
-                    $editKebab = Str::kebab($editBase);
-                    $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                    $editParams = $projectId ? [$projectId] : ['#'];
-                    $editUrl = ($editResolved && $projectId) ? route($editResolved, $editParams) : '#';
-                    $editLinkId = 'project-edit-link-' . ($projectId ?? 'x');
-                    $editGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_edit_route_unavailable') ?? 'Edit project route is unavailable. Please contact technical support or your domain administrator.';
-                    $destroyBase = VW::PRJ . '.destroy';
-                    $destroyKebab = Str::kebab($destroyBase);
-                    $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                    $destroyParams = $projectId ? [$projectId] : ['#'];
-                    $destroyUrl = ($destroyResolved && $projectId) ? route($destroyResolved, $destroyParams) : '#';
-                    $deleteFormId = 'project-delete-form-' . ($projectId ?? 'x');
-                    $deleteLinkId = 'project-delete-link-' . ($projectId ?? 'x');
-                    $deleteGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'delete_project_route_unavailable') ?? 'Delete project route is unavailable. Please contact technical support or your domain administrator.';
-                    $areYouSureMsg = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                    $irreversibleMsg = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                    $inviteCandidates = [
-                        VW::PRJ . '.invite.member.view',
-                        Str::kebab(VW::PRJ . '.invite.member.view'),
-                    ];
-                    $inviteResolved = null;
-                    foreach ($inviteCandidates as $c) { if (Route::has($c)) { $inviteResolved = $c; break; } }
-                    $inviteParams = $projectId ? [$projectId] : ['#'];
-                    $inviteUrl = ($inviteResolved && $projectId) ? route($inviteResolved, $inviteParams) : '#';
-                    $inviteLinkId = 'project-invite-link-' . ($projectId ?? 'x');
-                    $inviteGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'invite_project_member_unavailable') ?? 'Invite project member route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
+                                        try {
+                                            $projectId = data_get($project, 'id');
+                                                                $projectName = data_get($project, 'project_name') ?: data_get($project, 'name') ?: __('Unnamed Project');
+                                                                $projectSlug = $projectId ? 'prj-' . $projectId : 'prj-x-' . $key;
+
+                                            $showUrl = safeProjectRoute(VW::PRJ . '.show', [$projectId]);
+                                                                $copyUrl = safeProjectRoute(VW::PRJ . '.copy', [$projectId]) ?: safeProjectRoute('project.copy', [$projectId]);
+                                                                $editUrl = safeProjectRoute(VW::PRJ . '.edit', [$projectId]);
+                                                                $destroyUrl = safeProjectRoute(VW::PRJ . '.destroy', [$projectId]);
+                                                                $inviteUrl = safeProjectRoute(VW::PRJ . '.invite.member.view', [$projectId]);
+
+                                            $showLinkId = 'project-show-link-' . $projectSlug;
+                                                                $copyLinkId = 'project-copy-link-' . $projectSlug;
+                                                                $editLinkId = 'project-edit-link-' . $projectSlug;
+                                                                $deleteLinkId = 'project-delete-link-' . $projectSlug;
+                                                                $deleteFormId = 'project-delete-form-' . $projectSlug;
+                                                                $inviteLinkId = 'project-invite-link-' . $projectSlug;
+
+                                            $messages = [
+                                                                    'show' => Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable')
+                                                                            ?? __('Show project route is unavailable. Please contact support.'),
+                                                                    'copy' => Utility::fetchLinkMessage($lang, VW::PRJ, 'copy_project_unavailable')
+                                                                            ?? __('Copy project route is unavailable. Please contact support.'),
+                                                                    'edit' => Utility::fetchLinkMessage($lang, VW::PRJ, 'project_edit_route_unavailable')
+                                                                            ?? __('Edit project route is unavailable. Please contact support.'),
+                                                                    'delete' => Utility::fetchLinkMessage($lang, VW::PRJ, 'delete_project_route_unavailable')
+                                                                            ?? __('Delete project route is unavailable. Please contact support.'),
+                                                                    'invite' => Utility::fetchLinkMessage($lang, VW::PRJ, 'invite_project_member_unavailable')
+                                                                            ?? __('Invite member route is unavailable. Please contact support.'),
+                                                                    'confirm' => Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? __('Are You Sure?'),
+                                                                    'irreversible' => Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action')
+                                                                            ?? __('This action cannot be undone. Do you want to continue?'),
+                                                                ];
+                                        } catch (\Throwable $e) {
+                                            \Log::error('projects/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                 @if(isset($project) && is_object($project))
-                    <div class="col-md-6 col-xxl-3">
-                        <div class="card">
-                            <div class="card-header border-0 pb-0">
-                                <div class="d-flex align-items-center">
+                    <div class="{{ VC::CM6 }} col-xxl-3" data-project-id="{{ $projectId }}" data-project-card>
+                        <div class="card" style="transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'" onmouseleave="this.style.transform=''; this.style.boxShadow=''">
+                            <div class="{{ VC::CD_HD }} border-0 pb-0">
+                                <div class="{{ VC::DFL_AIC }}">
                                     @if(isset($project->img_image) && !empty($project->img_image))
-                                        <img {{ $project->img_image }} class="img-fluid wid-30 me-2" alt="">
+                                        <img {{ $project->img_image }} class="{{ VC::IMG_FL }} wid-30 me-2" alt="">
                                     @else
-                                        <img src="{{ asset('default-project-image.png') }}" class="img-fluid wid-30 me-2" alt="">
+                                        <img src="{{ asset('default-project-image.png') }}" class="{{ VC::IMG_FL }} wid-30 me-2" alt="">
                                     @endif
-                                    <h5 class="mb-0">
-                                        <a class="text-dark" 
-                                        id="{{ !empty($showLinkId) ? $showLinkId : 'show-link-default' }}" 
-                                        href="{{ !empty($showUrl) ? $showUrl : '#' }}" 
-                                        data-url="{{ !empty($showUrl) ? $showUrl : '#' }}" 
-                                        data-guard-msg="{{ !empty($showGuardMsg) ? $showGuardMsg : '' }}">
-                                            {{ !empty($projectName) ? $projectName : (data_get($project, 'name') ?: __('Unnamed Project')) }}
+                                    <h5 class="{{ VC::MB0 }}">
+                                        <a class="{{ VC::TX_DK }} project-show-link"
+                                        id="{{ $showLinkId }}"
+                                        href="{{ $showUrl }}"
+                                        data-url="{{ $showUrl }}"
+                                        data-guard-msg="{{ base64_encode($messages['show']) }}"
+                                        data-project-id="{{ $projectId }}"
+                                        aria-label="{{ __('View project') }}: {{ $projectName }}"
+                                        style="transition: color 0.2s ease;"
+                                        onmouseenter="this.style.color='#0d6efd'"
+                                        onmouseleave="this.style.color=''">
+                                            {{ $projectName }}
                                         </a>
                                     </h5>
                                 </div>
@@ -91,61 +99,74 @@
                                         </button>
                                         <div class="{{ defined('VC::DRP_MN_EM') ? VC::DRP_MN_EM : 'dropdown-menu dropdown-menu-end' }}">
                                             @can('create project')
-                                                @if(!empty($copyUrl) && !empty($copyLinkId))
-                                                    <a class="dropdown-item"
+                                                @if($copyUrl !== '#')
+                                                    <a class="{{ VC::DRP_IT }} project-action-link"
                                                     id="{{ $copyLinkId }}"
                                                     data-ajax-popup="true"
                                                     data-size="md"
                                                     data-title="{{ __('Duplicate Project') }}"
                                                     href="{{ $copyUrl }}"
                                                     data-url="{{ $copyUrl }}"
-                                                    data-guard-msg="{{ !empty($copyGuardMsg) ? $copyGuardMsg : '' }}">
-                                                        <i class="ti ti-copy"></i> <span>{{ __('Duplicate') }}</span>
+                                                    data-action="copy"
+                                                    data-project-id="{{ $projectId }}"
+                                                    data-guard-msg="{{ base64_encode($messages['copy']) }}"
+                                                    aria-label="{{ __('Duplicate project') }}: {{ $projectName }}">
+                                                        <i class="{{ VC::TI_COPY }}"></i> <span>{{ __('Duplicate') }}</span>
                                                     </a>
                                                 @endif
                                             @endcan
                                             @can('edit project')
-                                                @if(!empty($editUrl) && !empty($editLinkId))
+                                                @if($editUrl !== '#')
                                                     <a href="{{ $editUrl }}"
                                                     id="{{ $editLinkId }}"
                                                     data-size="lg"
                                                     data-url="{{ $editUrl }}"
                                                     data-ajax-popup="true"
-                                                    class="dropdown-item"
+                                                    class="{{ VC::DRP_IT }} project-action-link"
+                                                    data-action="edit"
+                                                    data-project-id="{{ $projectId }}"
                                                     data-bs-original-title="{{ __('Edit Project') }}"
-                                                    data-guard-msg="{{ !empty($editGuardMsg) ? $editGuardMsg : '' }}">
-                                                        <i class="{{ defined('VC::TI_PC') ? VC::TI_PC : 'ti ti-pencil' }}"></i>
+                                                    data-guard-msg="{{ base64_encode($messages['edit']) }}"
+                                                    aria-label="{{ __('Edit project') }}: {{ $projectName }}">
+                                                        <i class="{{ VC::TI_PC }}"></i>
                                                         <span>{{ __('Edit') }}</span>
                                                     </a>
                                                 @endif
                                             @endcan
                                             @can('delete project')
-                                                @if(!empty($destroyUrl) && !empty($deleteFormId) && !empty($deleteLinkId))
+                                                @if($destroyUrl !== '#')
                                                     {!! Form::open(['method' => 'DELETE', 'url' => $destroyUrl, 'id' => $deleteFormId]) !!}
                                                         <a href="#!"
                                                         id="{{ $deleteLinkId }}"
-                                                        class="dropdown-item bs-pass-para"
+                                                        class="{{ VC::DRP_IT }} bs-pass-para project-action-link"
                                                         data-url="{{ $destroyUrl }}"
-                                                        data-guard-msg="{{ !empty($deleteGuardMsg) ? $deleteGuardMsg : '' }}"
-                                                        data-confirm="{{ !empty($areYouSureMsg) ? __($areYouSureMsg) : __('Are you sure?') }}|{{ !empty($irreversibleMsg) ? __($irreversibleMsg) : __('This action is irreversible.') }}"
-                                                        data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
-                                                            <i class="{{ defined('VC::TI_ARC') ? VC::TI_ARC : 'ti ti-archive' }}"></i>
+                                                        data-action="delete"
+                                                        data-project-id="{{ $projectId }}"
+                                                        data-form-id="{{ $deleteFormId }}"
+                                                        data-guard-msg="{{ base64_encode($messages['delete']) }}"
+                                                        data-confirm="{{ $messages['confirm'] }}|{{ $messages['irreversible'] }}"
+                                                        data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
+                                                        aria-label="{{ __('Delete project') }}: {{ $projectName }}">
+                                                            <i class="{{ VC::TI_ARC }}"></i>
                                                             <span>{{ __('Delete') }}</span>
                                                         </a>
                                                     {!! Form::close() !!}
                                                 @endif
                                             @endcan
-                                            
+
                                             @can('edit project')
-                                                @if(!empty($inviteUrl) && !empty($inviteLinkId))
+                                                @if($inviteUrl !== '#')
                                                     <a href="{{ $inviteUrl }}"
                                                     id="{{ $inviteLinkId }}"
                                                     data-size="lg"
                                                     data-url="{{ $inviteUrl }}"
                                                     data-ajax-popup="true"
-                                                    class="dropdown-item"
+                                                    class="{{ VC::DRP_IT }} project-action-link"
+                                                    data-action="invite"
+                                                    data-project-id="{{ $projectId }}"
                                                     data-bs-original-title="{{ __('Invite User') }}"
-                                                    data-guard-msg="{{ !empty($inviteGuardMsg) ? $inviteGuardMsg : '' }}">
+                                                    data-guard-msg="{{ base64_encode($messages['invite']) }}"
+                                                    aria-label="{{ __('Invite user to project') }}: {{ $projectName }}">
                                                         <i class="ti ti-send"></i>
                                                         <span>{{ __('Invite User') }}</span>
                                                     </a>
@@ -155,46 +176,46 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row g-2 justify-content-between">
-                                    <div class="col-auto">
-                                        @if(isset($project->status) && class_exists('Project') && 
-                                            method_exists('Project', '__callStatic') && 
-                                            isset(Project::$status_color) && 
+                            <div class="{{ VC::CD_BD }}">
+                                <div class="row g-2 {{ VC::JCB }}">
+                                    <div class="{{ VC::C_AT }}">
+                                        @if(isset($project->status) && class_exists('Project') &&
+                                            method_exists('Project', '__callStatic') &&
+                                            isset(Project::$status_color) &&
                                             isset(Project::$project_status) &&
-                                            is_array(Project::$status_color) && 
+                                            is_array(Project::$status_color) &&
                                             is_array(Project::$project_status))
                                             @php
                                                 $statusColor = data_get(Project::$status_color, $project->status, 'secondary');
                                                 $statusText = data_get(Project::$project_status, $project->status, 'Unknown');
-                                            @endphp
+@endphp
                                             <span class="badge rounded-pill bg-{{ $statusColor }}">{{ __($statusText) }}</span>
                                         @else
                                             <span class="badge rounded-pill bg-secondary">{{ __('Unknown Status') }}</span>
                                         @endif
                                     </div>
                                 </div>
-                                <p class="text-muted text-sm mt-3">
+                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MT3 }}">
                                     {{ data_get($project, 'description', __('No description available')) }}
                                 </p>
                                 <small>{{ __('MEMBERS') }}</small>
                                 <div class="user-group">
-                                    @if(isset($project->users) && 
-                                        (is_array($project->users) || is_object($project->users)) && 
-                                        !empty($project->users) && 
+                                    @if(isset($project->users) &&
+                                        (is_array($project->users) || is_object($project->users)) &&
+                                        !empty($project->users) &&
                                         count($project->users) > 0)
                                         @foreach($project->users as $ukey => $user)
                                             @if(is_numeric($ukey) && $ukey < 3 && isset($user) && is_object($user))
-                                                <a href="#" class="avatar rounded-circle avatar-sm">
+                                                <a href="#" class="{{ VC::AV_CC_SM }}">
                                                     @if(isset($user->avatar) && !empty($user->avatar) && is_string($user->avatar))
-                                                        <img src="{{ asset('/storage/uploads/avatar/'.$user->avatar) }}" 
-                                                            alt="{{ __('image') }}" 
-                                                            data-bs-toggle="tooltip" 
+                                                        <img src="{{ asset('/storage/uploads/avatar/'.$user->avatar) }}"
+                                                            alt="image"
+                                                            data-bs-toggle="tooltip"
                                                             title="{{ data_get($user, 'name', 'Unknown User') }}">
                                                     @else
-                                                        <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}" 
-                                                            alt="{{ __('image') }}" 
-                                                            data-bs-toggle="tooltip" 
+                                                        <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}"
+                                                            alt="image"
+                                                            data-bs-toggle="tooltip"
                                                             title="{{ data_get($user, 'name', 'Unknown User') }}">
                                                     @endif
                                                 </a>
@@ -203,14 +224,14 @@
                                             @endif
                                         @endforeach
                                     @else
-                                        <span class="text-muted text-sm">{{ __('No members assigned') }}</span>
+                                        <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('No members assigned') }}</span>
                                     @endif
                                 </div>
-                                
-                                <div class="card mb-0 mt-3">
-                                    <div class="card-body p-3">
+
+                                <div class="card {{ VC::MB0 }} {{ VC::MT3 }}">
+                                    <div class="{{ VC::CD_BD }} p-3">
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 @if(isset($project->start_date) && !empty($project->start_date))
                                                     @php
                                                         $startDate = $project->start_date;
@@ -226,14 +247,14 @@
                                                                 $formattedStartDate = $startDate;
                                                             }
                                                         }
-                                                    @endphp
-                                                    <h6 class="mb-0 {{ $isOverdue ? 'text-danger' : '' }}">{{ $formattedStartDate }}</h6>
+@endphp
+                                                    <h6 class="{{ VC::MB0 }} {{ $isOverdue ? 'text-danger' : '' }}">{{ $formattedStartDate }}</h6>
                                                 @else
-                                                    <h6 class="mb-0">{{ __('Not set') }}</h6>
+                                                    <h6 class="{{ VC::MB0 }}">{{ __('Not set') }}</h6>
                                                 @endif
-                                                <p class="text-muted text-sm mb-0">{{ __('Start Date') }}</p>
+                                                <p class="{{ VC::TXT_MT_TXSM_MB0 }}">{{ __('Start Date') }}</p>
                                             </div>
-                                            <div class="col-6 text-end">
+                                            <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                                 @if(isset($project->end_date) && !empty($project->end_date))
                                                     @php
                                                         $endDate = $project->end_date;
@@ -247,12 +268,12 @@
                                                                 $formattedEndDate = $endDate;
                                                             }
                                                         }
-                                                    @endphp
-                                                    <h6 class="mb-0">{{ $formattedEndDate }}</h6>
+@endphp
+                                                    <h6 class="{{ VC::MB0 }}">{{ $formattedEndDate }}</h6>
                                                 @else
-                                                    <h6 class="mb-0">{{ __('Not set') }}</h6>
+                                                    <h6 class="{{ VC::MB0 }}">{{ __('Not set') }}</h6>
                                                 @endif
-                                                <p class="text-muted text-sm mb-0">{{ __('Due Date') }}</p>
+                                                <p class="{{ VC::TXT_MT_TXSM_MB0 }}">{{ __('Due Date') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -261,10 +282,10 @@
                         </div>
                     </div>
                 @else
-                    <div class="col-md-6 col-xxl-3">
+                    <div class="{{ VC::CM6 }} col-xxl-3">
                         <div class="card">
-                            <div class="card-body text-center">
-                                <p class="text-muted">{{ __('Project data not available') }}</p>
+                            <div class="{{ VC::CD_BD }} {{ VC::TXCT }}">
+                                <p class="{{ VC::TXT_MT }}">{{ __('Project data not available') }}</p>
                             </div>
                         </div>
                     </div>
@@ -272,87 +293,127 @@
             @endforeach
         </div>
     </div>
+    @push(StacksConstants::ADM_SCR_PG)
     <script>
         (() => {
-            try {
-                const guard = (el) => {
+            'use strict';
+
+            const ProjectGridHandler = {
+                initialized: false,
+
+                // DRY: Centralized toast notification using RouteGuard
+                showToast(message, type = 'warning') {
+                    (window.RouteGuard?.showToast || (m => alert(m)))(message);
+                },
+
+                // Route guard with defensive checks
+                guardRoute(el) {
                     try {
+                        if (!el) return true;
                         const href = el.getAttribute('href') || '#';
                         const url = el.getAttribute('data-url') || href || '#';
-                        if (href !== '#' || url !== '#') return false;
-                        const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            container.className = 'position-fixed top-0 end-0 p-3';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                            toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                            inst.show();
-                        } else {
-                            alert(msg);
-                        }
+
+                        if (href !== '#' && url !== '#') return false;
+
+                        const msg = el.getAttribute('data-guard-msg') ||
+                                  '{{ __('Route is unavailable. Please contact support.') }}';
+                        this.showToast(msg);
                         el.setAttribute('data-failed-route', 'true');
                         return true;
-                    } catch (err) { return true; }
-                };
-                const addClick = (el, flagName) => {
+                    } catch (err) {
+                        console.error('[ProjectGrid] Guard error:', err);
+                        return true;
+                    }
+                },
+
+                // DRY: Attach click handler with debouncing
+                attachClickHandler(el, action = 'default') {
                     try {
                         if (!el) return;
-                        if (el.hasAttribute(flagName) && el.getAttribute(flagName) === 'true') return;
+                        const flagName = `data-${action}-listener`;
+                        if (el.getAttribute(flagName) === 'true') return;
+
                         el.setAttribute(flagName, 'true');
-                        el.addEventListener('click', function (e) {
+
+                        let debounceTimer = null;
+                        el.addEventListener('click', (e) => {
                             try {
-                                if (guard(el)) { e.preventDefault(); }
-                            } catch (err) {}
+                                if (el.dataset.processing === 'true') {
+                                    e.preventDefault();
+                                    return;
+                                }
+
+                                if (this.guardRoute(el)) {
+                                    e.preventDefault();
+                                    return;
+                                }
+
+                                // Debounce to prevent double-clicks
+                                if (debounceTimer) {
+                                    e.preventDefault();
+                                    return;
+                                }
+
+                                el.dataset.processing = 'true';
+                                debounceTimer = setTimeout(() => {
+                                    el.dataset.processing = 'false';
+                                    debounceTimer = null;
+                                }, 1000);
+
+                                console.log(`[ProjectGrid] ${action} action triggered for project:`, el.dataset.projectId);
+                            } catch (err) {
+                                console.error(`[ProjectGrid] ${action} handler error:`, err);
+                            }
                         }, { passive: false });
-                    } catch (err) {}
-                };
-                const showLinks = document.querySelectorAll('a[id^="project-show-link-"]');
-                for (let i = 0; i < showLinks.length; i++) { addClick(showLinks[i], 'data-show-listener'); }
-                const copyLinks = document.querySelectorAll('a[id^="project-copy-link-"]');
-                for (let i = 0; i < copyLinks.length; i++) { addClick(copyLinks[i], 'data-copy-listener'); }
-                const editLinks = document.querySelectorAll('a[id^="project-edit-link-"]');
-                for (let i = 0; i < editLinks.length; i++) { addClick(editLinks[i], 'data-edit-listener'); }
-                const deleteLinks = document.querySelectorAll('a[id^="project-delete-link-"]');
-                for (let i = 0; i < deleteLinks.length; i++) {
+                    } catch (err) {
+                        console.error('[ProjectGrid] Attach handler error:', err);
+                    }
+                },
+
+                // Initialize all handlers
+                init() {
+                    if (this.initialized) return;
+
                     try {
-                        const el = deleteLinks[i];
-                        const flag = 'data-delete-listener';
-                        if (el.hasAttribute(flag) && el.getAttribute(flag) === 'true') continue;
-                        el.setAttribute(flag, 'true');
-                        el.addEventListener('click', function (e) {
-                            try {
-                                const prevented = guard(el);
-                                if (prevented) { e.preventDefault(); return; }
-                            } catch (err) {}
-                        }, { passive: false });
-                    } catch (err) {}
+                        // Use class-based selectors for better performance
+                        const showLinks = document.querySelectorAll('.project-show-link');
+                        const actionLinks = document.querySelectorAll('.project-action-link');
+
+                        showLinks.forEach(el => this.attachClickHandler(el, 'show'));
+
+                        actionLinks.forEach(el => {
+                            const action = el.dataset.action || 'action';
+                            this.attachClickHandler(el, action);
+                        });
+
+                        this.initialized = true;
+                        console.log('[ProjectGrid] Initialized successfully:', {
+                            showLinks: showLinks.length,
+                            actionLinks: actionLinks.length
+                        });
+                    } catch (err) {
+                        console.error('[ProjectGrid] Initialization error:', err);
+                    }
                 }
-                const inviteLinks = document.querySelectorAll('a[id^="project-invite-link-"]');
-                for (let i = 0; i < inviteLinks.length; i++) { addClick(inviteLinks[i], 'data-invite-listener'); }
-            } catch (error) {}
+            };
+
+            // Initialize on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => ProjectGridHandler.init());
+            } else {
+                ProjectGridHandler.init();
+            }
+
+            // Expose for potential dynamic content loading
+            window.ProjectGridHandler = ProjectGridHandler;
         })();
     </script>
+    @endpush
 @else
-    <div class="col-xl-12 col-lg-12 col-sm-12">
+    <div class="{{ VC::CXL12 }} {{ VC::CL12 }} {{ VC::CS12 }}">
         <div class="card">
-            <div class="card-body">
-                <h6 class="text-center mb-0">{{ __('No Projects Found.') }}</h6>
+            <div class="{{ VC::CD_BD }}">
+                <h6 class="{{ VC::TXCT }} {{ VC::MB0 }}">{{ __('No Projects Found.') }}</h6>
             </div>
         </div>
     </div>

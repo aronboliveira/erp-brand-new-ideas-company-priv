@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class UserLeadSeeder extends Seeder
 {
 	// Parâmetros fixos (mocking) — NÃO usar env()
-	private const BATCH_SIZE       = 1000;
+	private const BATCH_SIZE       = 2; // was 1000
 	private const LOGS_MAX_ITEMS   = 3;   // entradas por registro
 	private const ROLE_BIAS        = [
 		// viés leve para perfis não-gerenciais
@@ -191,7 +191,7 @@ class UserLeadSeeder extends Seeder
 						if (Schema::hasColumn(DC::TABLE_USR_LD, DC::COL_TABLE_UPDATER)) {
 							$row->{DC::COL_TABLE_UPDATER} = $userId;
 						}
-						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Usuário {$userId} para Lead {$leadId} com papel de {$role}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Usuário {$userId} para Lead {$leadId} com papel de {$role}");
 						$row->save();
 
 						// marca par utilizado

@@ -1,27 +1,25 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Collection;
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+        $employeeId = (string) data_get($payslip ?? null, 'employee_id', '');
+        $routeName  = VW::PY_SLP . '.updateEmployee';
+        $resolved   = Route::has($routeName) ? route($routeName, $employeeId)
+                   : ($employeeId !== '' ? url(trim(VW::PY_SLP, '/') . '/employee/update/' . urlencode($employeeId)) : '#');
 
-    $employeeId = (string) data_get($payslip ?? null, 'employee_id', '');
-    $routeName  = VW::PY_SLP . '.updateEmployee';
-    $resolved   = Route::has($routeName) ? route($routeName, $employeeId)
-               : ($employeeId !== '' ? url(trim(VW::PY_SLP, '/') . '/employee/update/' . urlencode($employeeId)) : '#');
-
-    $guardMsg = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'update_employee_route_unavailable')
-            ?? 'Update employee route is unavailable. Please contact technical support or your domain administrator.';
+        $guardMsg = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'update_employee_route_unavailable')
+                ?? 'Update employee route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('payslips/salary_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="col-form-label">
     <div class="{{ VC::RW }} {{ VC::PX3 }}">
         <div class="{{ VC::CM4 }} {{ VC::MB3 }}">
             <h6 class="emp-title {{ VC::MB0 }}">{{ __('Employee') }}</h6>
-            <h6 class="emp-title black-text">
+            <h6 class="{{ VC::EMP_TTL_BK }}">
                 {{ data_get($payslip??null,'employees.employee_id')
                     ? ($user?->employeeIdFormat(data_get($payslip,'employees.employee_id')) ?? __('Failed to format employee ID'))
                     : __('No employee ID available') }}
@@ -30,7 +28,7 @@
 
         <div class="{{ VC::CM4 }} {{ VC::MB3 }}">
             <h6 class="emp-title {{ VC::MB0 }}">{{ __('Basic Salary') }}</h6>
-            <h6 class="emp-title black-text">
+            <h6 class="{{ VC::EMP_TTL_BK }}">
                 {{ data_get($payslip??null,'gross_salary')!==null
                     ? ($user?->priceFormat(data_get($payslip,'gross_salary')) ?? __('Failed to format salary'))
                     : __('No basic salary available') }}
@@ -39,14 +37,14 @@
 
         <div class="{{ VC::CM4 }} {{ VC::MB3 }}">
             <h6 class="emp-title {{ VC::MB0 }}">{{ __('Payroll Month') }}</h6>
-            <h6 class="emp-title black-text">
+            <h6 class="{{ VC::EMP_TTL_BK }}">
                 {{ data_get($payslip??null,'salary_month')
                     ? ($user?->dateFormat(data_get($payslip,'salary_month')) ?? __('Failed to format date'))
                     : __('No payroll month available') }}
             </h6>
         </div>
 
-        <div class="col-lg-12 our-system">
+        <div class="{{ VC::CL12 }} our-system">
             {!! Form::open([
                 'url'                  => $resolved,
                 'method'               => 'post',
@@ -82,13 +80,13 @@
                     <div class="tab-content pt-4">
                         <div id="allowance" class="tab-pane in active">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $allowances = json_decode((string) data_get($payslip??null,'allowance','[]'));
                                                 $allowances = is_iterable($allowances) ? $allowances : [];
-                                            @endphp
+@endphp
                                             @foreach($allowances as $allowance)
                                                 <div class="{{ VC::CM12 }} {{ VC::FM_G }}">
                                                     {!! Form::label('title', data_get($allowance,'title',__('No allowance title available')), ['class' => VC::FM_LB]) !!}
@@ -104,13 +102,13 @@
 
                         <div id="commission" class="tab-pane">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $commissions = json_decode((string) data_get($payslip??null,'commission','[]'));
                                                 $commissions = is_iterable($commissions) ? $commissions : [];
-                                            @endphp
+@endphp
                                             @foreach($commissions as $commission)
                                                 <div class="{{ VC::CM12 }} {{ VC::FM_G }}">
                                                     {!! Form::label('title', data_get($commission,'title',__('No commission title available')), ['class' => VC::FM_LB]) !!}
@@ -126,13 +124,13 @@
 
                         <div id="loan" class="tab-pane">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $loans = json_decode((string) data_get($payslip??null,'loan','[]'));
                                                 $loans = is_iterable($loans) ? $loans : [];
-                                            @endphp
+@endphp
                                             @foreach($loans as $loan)
                                                 <div class="{{ VC::CM12 }} {{ VC::FM_G }}">
                                                     {!! Form::label('title', data_get($loan,'title',__('No loan title available')), ['class' => VC::FM_LB]) !!}
@@ -148,13 +146,13 @@
 
                         <div id="deduction" class="tab-pane">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $saturation_deductions = json_decode((string) data_get($payslip??null,'saturation_deduction','[]'));
                                                 $saturation_deductions = is_iterable($saturation_deductions) ? $saturation_deductions : [];
-                                            @endphp
+@endphp
                                             @foreach($saturation_deductions as $deduction)
                                                 <div class="{{ VC::CM12 }} {{ VC::FM_G }}">
                                                     {!! Form::label('title', data_get($deduction,'title',__('No deduction title available')), ['class' => VC::FM_LB]) !!}
@@ -170,13 +168,13 @@
 
                         <div id="payment" class="tab-pane">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $other_payments = json_decode((string) data_get($payslip??null,'other_payment','[]'));
                                                 $other_payments = is_iterable($other_payments) ? $other_payments : [];
-                                            @endphp
+@endphp
                                             @foreach($other_payments as $payment)
                                                 <div class="{{ VC::CM12 }} {{ VC::FM_G }}">
                                                     {!! Form::label('title', data_get($payment,'title',__('No other payment title available')), ['class' => VC::FM_LB]) !!}
@@ -192,13 +190,13 @@
 
                         <div id="overtime" class="tab-pane">
                             <div class="{{ VC::RW }}">
-                                <div class="col-lg-12">
+                                <div class="{{ VC::CL12 }}">
                                     <div class="{{ VC::CD }} bg-none {{ VC::MB0 }}">
                                         <div class="{{ VC::RW }} {{ VC::PX3 }}">
                                             @php
                                                 $overtimes = json_decode((string) data_get($payslip??null,'overtime','[]'));
                                                 $overtimes = is_iterable($overtimes) ? $overtimes : [];
-                                            @endphp
+@endphp
                                             @foreach($overtimes as $overtime)
                                                 <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                                                     {!! Form::label('rate', data_get($overtime,'title',__('Overtime')).' '.__('Rate'), ['class' => VC::FM_LB]) !!}

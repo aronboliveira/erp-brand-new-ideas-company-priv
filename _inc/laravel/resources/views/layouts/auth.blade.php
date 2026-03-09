@@ -1,21 +1,6 @@
 <!DOCTYPE html>
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants as SC,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\Log;
-	use Modules\LandingPage\Config\Constants\{
-		ExtendingLandingPageLayoutConstants as E,
-		RoutesResourcesConstants       as R
-	};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$uri??='';
+$uri??='';
 	$backtrace??=[];
 	$compiledPath??='';
 	$filePath??='';
@@ -43,11 +28,11 @@
 			&&str_contains($f,storage_path('framework/views'))
 		)??'';
 		if($compiledPath&&file_exists($compiledPath)){
-			$contents=file_get_contents($compiledPath);
-			$filePath=preg_match(
+			$contents=(string)(file_get_contents($compiledPath)?:'');
+			$filePath=($contents && preg_match(
 				'/\*\*PATH\s+(.+\.blade\.php)\s+ENDPATH\*\*/',
 				$contents,$m
-			)?$m[1]:'unknown.blade.php';
+			))?$m[1]:'unknown.blade.php';
 		}else$filePath='unknown.blade.php';
 	} catch (\Error $e) {
 		Log::error(
@@ -84,18 +69,6 @@
 		$filePath='unknown.blade.php';
 	}
 	try {
-		Log::debug(
-			"Rendering Authentication Layout Blade ({$filePath})",
-			['route'=>$uri,'user'=>optional(auth()->user())->id??'Unidentified User']
-		);
-	} catch (Error|Exception|Throwable $e) {}
-	try {
-		(new ConsoleOutput)
-			->writeln(
-				"Rendering Authentication Layout Blade ({$filePath}) for {$uri}"
-			);
-	} catch (Error|Exception|Throwable $e) {}
-	try {
 		$data=Utility::prepareCommonViewData()?:[];
 		$setting=$data[SC::ENTITY]??
 			SC::DFT_SETTINGS;
@@ -110,9 +83,16 @@
 		$color=$data[SC::THM_CLR]??
 			SC::THM_CLR_DEF;
 		$siteRtl=$data[SC::RTL]??'off';
-		$lang=$data[SC::LCL]?? Utility::fetchUserLang() ??
-			str_replace('_','-',app()->getLocale())??
-			DatabaseConstants::DEFAULT_LANG;
+		$routeLang=request()->route('lang');
+		$lang=($routeLang && in_array($routeLang, array_keys(Utility::langList()), true) ? $routeLang : null)
+			?? str_replace('_','-',app()->getLocale())
+			?? $data[SC::LCL]
+			?? Utility::fetchUserLang()
+			?? DatabaseConstants::DEFAULT_LANG;
+		if(in_array($lang,['ar','he'],true))
+			$siteRtl='on';
+		elseif($routeLang && !in_array($routeLang,['ar','he'],true))
+			$siteRtl=$data[SC::RTL]??'off';
 		$meta_title=$data[SC::MT_TTL_K]??
 			config('app.name','ERPNovaPrestech');
 		$meta_desc=$data[SC::MT_DESC_LONG]??
@@ -169,19 +149,19 @@
             'meta_desc' => $meta_desc
         ])
         @include('fragments.og', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.x', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.favicon', ['faviconUrl' => $faviconUrl])
-        @include('fragments.stylesheets', ['settings' => $colorSettings]) 
+        @include('fragments.stylesheets', ['settings' => $colorSettings])
         @if ($colorSettings[SC::CST_DRK] ==='on' && is_file(asset('assets/css/custom-auth-dark.css')))
             <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-dark.css') }}" id="custom-auth-style-link">
         @else
@@ -191,6 +171,16 @@
             <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="style-rtl-link">
             <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-rtl.css') }}" id="custom-auth-rtl-link">
         @endif
+        <link rel="stylesheet" href="{{ asset('assets/css/auth-enhancements.css') }}">
+        {{-- ERP Guard & Utils Initialization (Blocking) --}}
+        <script>
+            window.ERPGuard = window.ERPGuard || null;
+            window.ERPUtils = window.ERPUtils || null;
+        </script>
+        {{-- Transparent base64 decode for data-guard-msg attributes --}}
+        <script>
+            (function(){var o=Element.prototype.getAttribute;Element.prototype.getAttribute=function(n){var v=o.call(this,n);if(n==='data-guard-msg'&&v){try{return decodeURIComponent(atob(v))}catch(e){try{return atob(v)}catch(e2){return v}}}return v}})();
+        </script>
     </head>
     <body class="{{ $color }}">
         <div class="custom-login">
@@ -204,7 +194,7 @@
                     <nav class="{{ VC::NVB_DEF }}">
                         <div class="{{ VC::CT }}">
                             <div class="{{ VC::NVB_BR }}">
-                            <a class="{{ VC::NVB_BR }}" href="#">
+                            <a class="{{ VC::NVB_BR }}" href="https://prestech.com.br/site/" rel="external" target="_blank" hreflang="pt-BR" title="Nova Prestech">
                                 @php
                                     $srcDark='';
                                     $srcLight='';
@@ -246,12 +236,12 @@
                                             ]
                                         );
                                     }
-                                @endphp
+@endphp
                                 @if ($colorSettings[SC::CST_DRK] === 'on')
                                     <img
                                         class="{{ VC::LOGO }}"
                                         src="{{ asset($srcDark) }}"
-                                        alt="{{ __('Company Logo') }}"
+                                        alt="Company Logo"
                                         loading="lazy"
                                         @if($bgDark)
                                             style="{{ $bgDark }}"
@@ -261,7 +251,7 @@
                                     <img
                                         class="{{ VC::LOGO }}"
                                         src="{{ asset($srcLight) }}"
-                                        alt="{{ __('Company Logo') }}"
+                                        alt="Company Logo"
                                         loading="lazy"
                                         @if($bgLight)
                                             style="{{ $bgLight }}"
@@ -294,7 +284,7 @@
                     <div class="{{ VC::AUT_FT }}">
                         <div class="{{ VC::CT }}">
                             <div class="{{ VC::RW }}">
-                                <div class="col-12">
+                                <div class="{{ VC::C12 }}">
                                     <span>&copy; {{ date('Y') }}
                                         {{ Utility::getValByName(SC::FT_TXT) ?: config('app.name', 'Storego Saas') }}
                                     </span>
@@ -318,30 +308,59 @@
         style="display: none;"
         >
             <div class="toast-header">
-                <strong class="me-auto text-danger">{{ __('Oops!') }}</strong>
+                <strong class="me-auto {{ VC::TX_DNG }}">Oops!</strong>
                 <button
                 type="button"
-                class="btn-close"
+                class="{{ VC::BT_CL }}"
                 data-bs-dismiss="toast"
-                aria-label="{{ __('Close') }}"
+                aria-label="Close"
                 ></button>
             </div>
             <div class="toast-body">
                 @stack('toasts')
             </div>
         </div>
-        {{-- <div class="auth-wrapper auth-v3">
-        <div class="bg-auth-side bg-primary"></div>
+        @if(session('toast_error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var toast = document.getElementById('loginToast');
+                if (!toast) return;
+                var body = toast.querySelector('.toast-body');
+                if (body) body.textContent = @json(session('toast_error'));
+                toast.style.display = 'block';
+                toast.style.zIndex = '1100';
+                var bs = new bootstrap.Toast(toast, { delay: 5000 });
+                bs.show();
+                toast.addEventListener('hidden.bs.toast', function h() {
+                    if (body) body.textContent = '';
+                    toast.style.display = 'none';
+                    toast.removeEventListener('hidden.bs.toast', h);
+                });
+                // Briefly outline the email and password inputs
+                var inputs = document.querySelectorAll('input[name="email"], input[name="password"]');
+                inputs.forEach(function (inp) {
+                    inp.style.outline = '2px solid #dc3545';
+                    inp.style.outlineOffset = '1px';
+                    inp.style.transition = 'outline-color 2s ease';
+                    setTimeout(function () {
+                        inp.style.outlineColor = 'transparent';
+                        setTimeout(function () { inp.style.outline = ''; inp.style.outlineOffset = ''; }, 2100);
+                    }, 2500);
+                });
+            });
+        </script>
+        @endif
+        <div class="bg-auth-side {{ VC::BG_P }}"></div>
             <div class="auth-content">
-                <nav class="{{ VC::NVB_DEF }} navbar-light">
+                <nav class="{{ VC::NVB_DEF }} navbar-light" style="border-block: 1px solid #eeeeee;">
                     <div class="container-fluid pe-2">
                         <a class="{{ VC::NVB_BR }}" href="#">
                             @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] ==='on')
                                 <img src="{{ $logo . '/' . (isset($company_logo_lt) && !empty($company_logo_lt) ? $company_logo_lt : SC::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}">
+                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
                             @else
                                 <img src="{{ $logo . '/' . (isset($company_logo_dk) && !empty($company_logo_dk) ? $company_logo_dk : SC::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}">
+                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
                             @endif
                         </a>
                         <button
@@ -351,13 +370,13 @@
                             data-bs-target="#navbarTogglerDemo01"
                             aria-controls="navbarTogglerDemo01"
                             aria-expanded="false"
-                            aria-label="{{ __('Toggle navigation') }}"
+                            aria-label="Toggle navigation"
                         >
                             <span class="{{ VC::NVB_TG_IC }}"></span>
                         </button>
                         <div class="{{ VC::NVB_CLP }}" id="navbarTogglerDemo01" style="flex-grow: 0;">
                             <ul class="{{ VC::NVB_NAV_LG }}">
-                                <li class="nav-item">
+                                <li class="{{ VC::NV_IT }}">
                                     @include(R::LP.'::'.E::LOS.'.buttons')
                                 </li>
 
@@ -369,10 +388,10 @@
                         </div>
                     </div>
                 </nav>
-                <div class="{{ VC::CD }}">
-                    <div class="row align-items-center text-start">
+                <div class="card" style="scrollbar-width: none;">
+                    <div class="{{ VC::R_ALC }} text-start">
                         <div class="col-xl-6">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 @yield(YieldingConstants::AUTH_CTT)
                             </div>
                         </div>
@@ -381,12 +400,12 @@
                                 <img
                                     src="{{ asset('assets/images/auth/img-auth-3.svg') }}"
                                     alt=""
-                                    class="img-fluid"
+                                    class="{{ VC::IMG_FL }}"
                                 />
-                                <h3 class="text-white mb-4 mt-5">
+                                <h3 class="{{ VC::TXT_WT }} {{ VC::MB4 }} mt-5">
                                     “Attention is the new currency”
                                 </h3>
-                                <p class="text-white">
+                                <p class="{{ VC::TXT_WT }}">
                                     The more effortless the writing looks, the more effort the
                                     writer actually put into the process.
                                 </p>
@@ -397,8 +416,8 @@
                 <div class="{{ VC::AUT_FT }}">
                     <div class="container-fluid">
                         <div class="{{ VC::RW }}">
-                            <div class="col-6">
-                                <p class="mb-0"> &copy;
+                            <div class="{{ VC::C6 }}">
+                                <p class="{{ VC::MB0 }}"> &copy;
                                     {{ date('Y') }} {{ Utility::getValByName(SC::FT_TXT) ? Utility::getValByName(SC::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
                                 </p>
                             </div>
@@ -407,7 +426,7 @@
                     </div>
                 </div>
             </div>
-        </div> --}}
+        </div>
         <script src="{{ asset('assets/js/vendor-all.js') }}"></script>
         <script defer src="{{ asset('assets/js/plugins/bootstrap.min.js') }}"></script>
         <script defer src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
@@ -444,6 +463,10 @@
                 });
             });
         </script>
+        {{-- ERP Guard & Utils Core Classes — MUST load before @stack so dependent scripts have access --}}
+        <script src="{{ asset('assets/js/core/erp-guard.js') }}"></script>
+        <script src="{{ asset('assets/js/core/erp-utils.js') }}"></script>
+        <script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}"></script>
         @stack(StacksConstants::AUTH_CST_SCR)
         <script>
            (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
@@ -451,5 +474,6 @@
                 '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
             );
         </script>
+        @include('partials.global-error-handler')
     </body>
 </html>

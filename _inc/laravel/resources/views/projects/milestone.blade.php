@@ -1,144 +1,64 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang                                          = isset($lang) && $lang ? $lang : Utility::fetchUserLang();
+    try {
+$lang = isset($lang) && $lang ? $lang : Utility::fetchUserLang();
+
+            function resolveMilestoneRoute($baseName) {
+            $kebab = Str::kebab($baseName);
+            return Route::has($baseName) ? $baseName : (Route::has($kebab) ? $kebab : null);
+        }
+
+            function safeMilestoneRoute($routeName, $params = []) {
+            return $routeName ? route($routeName, $params) : '#';
+        }
+
+            $guardMessages = [
+            'milestone_store' => Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_store_route_unavailable') ?? 'Milestone store route is unavailable. Please contact technical support or your domain administrator.',
+            'ai_generate' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'generate_project_milestone_route_unavailable') ?? 'Generate project milestone route is unavailable. Please contact technical support or your domain administrator.',
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('projects/milestone — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if (!empty($project) && !empty($project->id))
     @php
-        $milestoneStoreBaseRouteName      = ViewsConstants::ML . '.store';
-        $milestoneStoreKebabRouteName     = Str::kebab($milestoneStoreBaseRouteName);
-        $milestoneStoreResolvedRouteName  = Route::has($milestoneStoreBaseRouteName)
-            ? $milestoneStoreBaseRouteName
-            : (Route::has($milestoneStoreKebabRouteName) ? $milestoneStoreKebabRouteName : null);
-        $milestoneStoreRouteArray         = $milestoneStoreResolvedRouteName ? [$milestoneStoreResolvedRouteName, $project->id] : ['#'];
-        $milestoneStoreUrl                = $milestoneStoreResolvedRouteName ? route($milestoneStoreResolvedRouteName, $project->id) : '#';
-        $milestoneStoreGuardMsg           = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_store_route_unavailable') ?? 'Milestone store route is unavailable. Please contact technical support or your domain administrator.';
-        $milestoneStoreFormId             = 'milestone-store-form-' . $project->id;
-    @endphp
+        try {
+            $milestoneStoreRouteName = resolveMilestoneRoute(ViewsConstants::ML . '.store');
+            $milestoneStoreUrl = safeMilestoneRoute($milestoneStoreRouteName, $project->id);
+            $milestoneStoreRouteArray = $milestoneStoreRouteName ? [$milestoneStoreRouteName, $project->id] : ['#'];
+        } catch (\Throwable $e) {
+            \Log::error('projects/milestone — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     {!! Form::open([
         'route'          => $milestoneStoreRouteArray,
         'method'         => 'post',
-        'id'             => $milestoneStoreFormId,
+        'id'             => 'milestone-store-form-' . $project->id,
         'data-url'       => $milestoneStoreUrl,
-        'data-guard-msg' => $milestoneStoreGuardMsg
+        'data-guard-msg' => $guardMessages['milestone_store']
     ]) !!}
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const form = document.getElementById('{{ $milestoneStoreFormId }}');
-                    if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                    form.setAttribute('data-listener-active', 'true');
-                    form.addEventListener('submit', e => {
-                        try {
-                            const url = form.getAttribute('data-url') || '#';
-                            const action = form.getAttribute('action') || '#';
-                            if (url !== '#' || action !== '#') return;
-                            e.preventDefault();
-                            const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            form.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                })();
-            </script>
-        @endpush
         <div class="modal-body">
             {{-- start for ai module --}}
-            @php $plan = Utility::getChatGPTSettings(); @endphp
+            @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
-                <div class="text-end">
+                <div class="{{ VC::TX_END }}">
                     @php
-                        $genProjMilestoneBaseName                          = 'generate';
-                        $genProjMilestoneKebabName                         = Str::kebab($genProjMilestoneBaseName);
-                        $genProjMilestoneResolvedName                      = Route::has($genProjMilestoneBaseName)
-                            ? $genProjMilestoneBaseName
-                            : (Route::has($genProjMilestoneKebabName) ? $genProjMilestoneKebabName : null);
-                        $genProjMilestoneUrl                               = $genProjMilestoneResolvedName ? route($genProjMilestoneResolvedName, ['project milestone']) : '#';
-                        $genProjMilestoneGuardMsg                          = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'generate_project_milestone_route_unavailable') ?? 'Generate project milestone route is unavailable. Please contact technical support or your domain administrator.';
-                        $genProjMilestoneLinkId                            = 'generate-project-milestone-link';
-                    @endphp
-                    <a
-                        id="{{ $genProjMilestoneLinkId }}"
-                        href="{{ $genProjMilestoneUrl }}"
+                        $genRouteName = resolveMilestoneRoute('generate');
+                        $genUrl = safeMilestoneRoute($genRouteName, ['project milestone']);
+@endphp
+                    <a href="{{ $genUrl }}"
                         data-size="md"
                         class="{{ VC::BT_PRM }} btn-icon btn-sm"
                         data-ajax-popup-over="true"
-                        data-url="{{ $genProjMilestoneUrl }}"
-                        data-guard-msg="{{ $genProjMilestoneGuardMsg }}"
+                        data-route-guard
+                        data-url="{{ $genUrl }}"
+                        data-guard-msg="{{ base64_encode($guardMessages['ai_generate']) }}"
                         data-bs-placement="top"
-                        data-title="{{ __('Generate content with AI') }}"
-                    >
+                        data-title="{{ __('Generate content with AI') }}">
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                     </a>
-                    @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const link = document.getElementById('{{ $genProjMilestoneLinkId }}');
-                                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                                link.setAttribute('data-listener-active', 'true');
-                                link.addEventListener('click', e => {
-                                    try {
-                                        const url = link.getAttribute('data-url') || '#';
-                                        if (url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        link.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            })();
-                        </script>
-                    @endpush
                 </div>
             @endif
             {{-- end for ai module --}}
@@ -149,7 +69,7 @@
                     {{ Form::text('title', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                     @error('title')
                         <span class="invalid-title" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
@@ -159,7 +79,7 @@
                     {!! Form::select('status', \App\Models\Project::$project_status, null, ['class' => VC::FM_CT_SL, 'required' => 'required']) !!}
                     @error('status')
                         <span class="invalid-status" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
@@ -186,7 +106,7 @@
                     {!! Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 2]) !!}
                     @error('description')
                         <span class="invalid-description" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>

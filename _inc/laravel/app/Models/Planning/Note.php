@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
-use App\Enums\AppModuleType;
+use App\Enums\{AppModuleType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, MorphTo};
+use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Cache, Log};
-use Illuminate\Support\Str;
 
 class Note extends Model
 {
@@ -137,10 +137,15 @@ class Note extends Model
 
     public function moduleTypeEnum(): AppModuleType
     {
-        $raw = $this->getAttribute(AC::COL_MT);
-        return $raw instanceof AppModuleType
-            ? $raw
-            : AppModuleType::normalize(is_scalar($raw) ? (string) $raw : null);
+        try {
+            $raw = $this->getAttribute(AC::COL_MT);
+            return $raw instanceof AppModuleType
+                ? $raw
+                : AppModuleType::normalize(is_scalar($raw) ? (string) $raw : null);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::moduleTypeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     public function getModuleTypeLabelAttribute(): string
@@ -175,33 +180,43 @@ class Note extends Model
 
     public static function cacheKeyForModuleNotes(AppModuleType|string|null $type, ?string $moduleId): string
     {
-        $enum = $type instanceof AppModuleType ? $type : AppModuleType::normalize(is_scalar($type) ? (string) $type : null);
-        $mid = trim((string) ($moduleId ?? ''));
-        $mid = $mid !== '' ? $mid : 'none';
-        return 'notes:module:' . $enum->value . ':' . $mid;
+        try {
+            $enum = $type instanceof AppModuleType ? $type : AppModuleType::normalize(is_scalar($type) ? (string) $type : null);
+            $mid = trim((string) ($moduleId ?? ''));
+            $mid = $mid !== '' ? $mid : 'none';
+            return 'notes:module:' . $enum->value . ':' . $mid;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::cacheKeyForModuleNotes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public static function cachedForModule(AppModuleType|string|null $type, ?string $moduleId, int $ttlSeconds = 300)
     {
-        $key = self::cacheKeyForModuleNotes($type, $moduleId);
-
         try {
-            return Cache::remember($key, $ttlSeconds, static function () use ($type, $moduleId) {
-                return static::query()
-                    ->forModule($type, $moduleId)
-                    ->recent()
-                    ->get();
-            });
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' cachedForModule failed', [
-                'type' => is_scalar($type) ? (string) $type : (is_object($type) ? get_class($type) : null),
-                'module_id' => $moduleId,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+            $key = self::cacheKeyForModuleNotes($type, $moduleId);
 
-            return static::query()->forModule($type, $moduleId)->recent()->get();
+            try {
+                return Cache::remember($key, $ttlSeconds, static function () use ($type, $moduleId) {
+                    return static::query()
+                        ->forModule($type, $moduleId)
+                        ->recent()
+                        ->get();
+                });
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' cachedForModule failed', [
+                    'type' => is_scalar($type) ? (string) $type : (is_object($type) ? get_class($type) : null),
+                    'module_id' => $moduleId,
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
+                return static::query()->forModule($type, $moduleId)->recent()->get();
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::cachedForModule — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
         }
     }
 

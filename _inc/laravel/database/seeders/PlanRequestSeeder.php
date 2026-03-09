@@ -14,7 +14,8 @@ class PlanRequestSeeder extends Seeder
 	private ConsoleOutput $out;
 
 	private const MIN_ROWS = 32;
-	private const HARD_CAP = 4096;
+	// private const HARD_CAP = 4096;
+	private const HARD_CAP = 2;
 
 	// Keep this high enough to handle "already exists" collisions when the table is partially seeded.
 	private const MAX_GLOBAL_ATTEMPTS = 400000;
@@ -67,7 +68,8 @@ class PlanRequestSeeder extends Seeder
 			$approx = (int) ceil(count($userIds) * 0.25) * 2; // heuristic
 			$target = min($cap, max($target, $approx));
 
-			$hasRequestedPlanCol = Schema::hasColumn(DC::TABLE_USERS, UC::COL_RQ_PLN);
+			// $hasRequestedPlanCol = Schema::hasColumn(DC::TABLE_USERS, UC::COL_RQ_PLN);
+			$hasRequestedPlanCol = Schema::hasColumn(DC::TABLE_USERS, UC::COL_RP);
 
 			$this->out->writeln(
 				'PlanRequestSeeder: plans=' . count($planIds)
@@ -104,7 +106,7 @@ class PlanRequestSeeder extends Seeder
 
 					if ($this->createIfNotExists($userId, $planId, $freqs, $hasRequestedPlanCol)) {
 						$created++;
-						$this->out->writeln("PLAN_REQ create: user={$userId} plan={$planId} created={$created}/{$target}");
+						// $this->out->writeln("PLAN_REQ create: user={$userId} plan={$planId} created={$created}/{$target}");
 					}
 				}
 			}
@@ -127,7 +129,7 @@ class PlanRequestSeeder extends Seeder
 
 				if ($this->createIfNotExists($userId, $planId, $freqs, $hasRequestedPlanCol)) {
 					$created++;
-					$this->out->writeln("PLAN_REQ create: user={$userId} plan={$planId} created={$created}/{$padTarget} (pad)");
+					// $this->out->writeln("PLAN_REQ create: user={$userId} plan={$planId} created={$created}/{$padTarget} (pad)");
 				}
 			}
 
@@ -192,7 +194,8 @@ class PlanRequestSeeder extends Seeder
 			try {
 				DB::table(DC::TABLE_USERS)
 					->where('id', $userId)
-					->update([UC::COL_RQ_PLN => $planId]);
+					// ->update([UC::COL_RQ_PLN => $planId]);
+					->update([UC::COL_RP => $planId]);
 			} catch (\Throwable $e) {
 				Log::debug(self::class . ' failed updating user requested_plan', [
 					'file' => $e->getFile(),

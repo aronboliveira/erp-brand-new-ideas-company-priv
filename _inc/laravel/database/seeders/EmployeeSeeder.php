@@ -32,6 +32,12 @@ final class EmployeeSeeder extends Seeder
 		$faker = fake('pt_BR');
 
 		DB::transaction(function () use ($faker) {
+			$clock = microtime(true);
+			// private const HARD_CAP = 160;
+			$HARD_CAP = 4;
+			// private const SECONDS_LIMIT = 300;
+			$SECONDS_LIMIT = 32;
+
 			$this->ensureSystemUser();
 
 			$branchIds = Br::query()->pluck('id')->all();
@@ -52,11 +58,10 @@ final class EmployeeSeeder extends Seeder
 				->all();
 
 			$genders = array_map(fn($e) => $e->value, Gender::cases());
-			$minLate = min(1, count($deptIds) * 2, count($branchIds) * DepartmentSeeder::MIN_DEPTS_PER_BRANCH) * DepartmentSeeder::MIN_DSG_PER_DEPT;
-			$maxLate = max(2, count($deptIds) * count($branchIds), count($branchIds) * DepartmentSeeder::MAX_DEPTS_PER_BRANCH) * DepartmentSeeder::MAX_DSG_PER_DEPT;
-			$quantity = min(160 * (floor(log10(count($deptIds) ?: 1)) + 1), random_int($minLate, $maxLate));
-			$employeedUsers = 0;
-			for ($i = 0; $i < $quantity; $i++) {
+			$created = 0;
+
+			for ($i = 0; $i < $HARD_CAP; $i++) {
+				if ((microtime(true) - $clock) > $SECONDS_LIMIT) break;
 				try {
 					do $id = Str::uuid()->toString();
 					while (Emp::where('id', $id)->exists());
@@ -69,19 +74,12 @@ final class EmployeeSeeder extends Seeder
 					$dsgId    = $faker->randomElement($dsgIds);
 
 					$maybeUserId = null;
-					if ($availableUserIds && $employeedUsers < $quantity * 0.75) {
-						do {
-							$key = array_rand($availableUserIds);
-							$candidateId = $availableUserIds[$key];
-							if (Emp::where(UC::COL_USER_ID, $candidateId)->exists()) {
-								unset($availableUserIds[$key]);
-								$candidateId = null;
-							}
-						} while ($candidateId === null && $availableUserIds);
-
-						if ($candidateId !== null) {
+					if ($availableUserIds) {
+						$key = array_rand($availableUserIds);
+						$candidateId = $availableUserIds[$key];
+						if (!Emp::where(UC::COL_USER_ID, $candidateId)->exists()) {
 							$maybeUserId = $candidateId;
-							$employeedUsers++;
+							unset($availableUserIds[$key]);
 						}
 					}
 
@@ -90,54 +88,20 @@ final class EmployeeSeeder extends Seeder
 
 					$name  = $faker->name();
 					$email = $faker->boolean(70) ? strtolower($faker->unique()->safeEmail()) : null;
-
-					if ($email !== null) {
-						while (Emp::where('email', $email)->exists()) {
-							$email = strtolower($faker->unique()->safeEmail());
-						}
-					}
-
 					$phone = $faker->boolean(70) ? preg_replace('/\D+/', '', $faker->unique()->phoneNumber()) : null;
-					if ($phone !== null) {
-						while (Emp::where('phone', $phone)->exists()) {
-							$phone = preg_replace('/\D+/', '', $faker->unique()->phoneNumber());
-						}
-					}
-
 					$accNumber = $faker->boolean(50) ? preg_replace('/\s+/u', '', $faker->bothify('BR-####-#####')) : null;
-					if ($accNumber !== null) {
-						while (Emp::where(UC::COL_ACC_NM, $accNumber)->exists()) {
-							$accNumber = preg_replace('/\s+/u', '', $faker->bothify('BR-####-#####'));
-						}
-					}
 
 					$documents = [
 						['tipo' => 'RG', 'numero' => (string) $faker->numerify('#########')],
 						['tipo' => 'CPF', 'numero' => (string) $faker->numerify('###########')],
 					];
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Funcionário: {$name}");
-					$employeeAsUser = DB::table(DC::TABLE_USERS)
-						->where('id', $maybeUserId)
-						->exists();
+
+					$employeeAsUser = $maybeUserId && DB::table(DC::TABLE_USERS)->where('id', $maybeUserId)->exists();
 					$isManager = $faker->boolean(10);
 					if ($employeeAsUser) {
-						DB::table(DC::TABLE_USERS)
-							->where('id', $maybeUserId)
-							->update([UC::COL_EMP_ID => $publicId]);
-						if (DB::table(DC::TABLE_USERS)
-							->where('id', $maybeUserId)
-							->whereIn('type', ['admin', 'company', 'super admin'])
-							->exists()
-						)
-							$isManager = $faker->boolean(50);
-						else if (DB::table(DC::TABLE_USERS)
-							->where('id', $maybeUserId)
-							->whereIn('type', ['vendor', 'client', 'customer'])
-							->exists()
-						)
-							$isManager = false;
+						DB::table(DC::TABLE_USERS)->where('id', $maybeUserId)->update([UC::COL_EMP_ID => $publicId]);
 					}
+
 					$emp = new Emp();
 					$emp->id                     = $id;
 					$emp->{UC::COL_EMP_ID}       = $publicId;
@@ -148,7 +112,7 @@ final class EmployeeSeeder extends Seeder
 					$emp->phone                  = $phone;
 					$emp->gender                 = $faker->randomElement($genders);
 					$emp->notes                  = $faker->optional()->sentence();
-					$emp->password               = Str::password(); // cast hashed
+					$emp->password               = Str::password();
 					$emp->address                = $faker->optional()->address();
 					$dob = $faker->dateTimeBetween('-60 years', '-18 years');
 					$emp->dob = $faker->boolean(80) ? $dob->format('Y-m-d') : null;
@@ -166,13 +130,15 @@ final class EmployeeSeeder extends Seeder
 					$emp->{UC::COL_SLR_TP}       = $maybePayId;
 					$emp->{UC::COL_IA}           = 1;
 					$emp->{DC::COL_TABLE_CREATOR}    = DC::DEFAULT_UUID;
-
 					$emp->save();
+					$created++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;
 				}
 			}
+			$elapsed = round(microtime(true) - $clock, 2);
+			(new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("[EmployeeSeeder] Done. Created: {$created} in {$elapsed}s");
 		}, 3);
 	}
 }

@@ -11,7 +11,7 @@
 @section('container')
     @php
         $envErrors = data_get($environment ?? [], 'errors', null);
-    @endphp
+@endphp
     <form method="post" action="{{ route('LaravelInstaller::environmentSaveClassic') }}">
         {!! csrf_field() !!}
         <textarea class="textarea" name="envConfig">{{ old('envConfig', $envConfig ?? '') }}</textarea>

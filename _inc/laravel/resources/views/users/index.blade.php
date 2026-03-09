@@ -1,26 +1,16 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants as PC,
-        StacksConstants,
-        UsersConstants as UC,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Gate, Route, Storage};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$profile = Utility::getFile('uploads/avatar');
+        $user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $profile = Utility::getFile('uploads/avatar');
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $dashBase  = 'dashboard';
-    $dashKebab = Str::kebab($dashBase);
-    $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
-    $dashUrl   = $dashName ? route($dashName) : '#';
+        $dashBase  = 'dashboard';
+        $dashKebab = Str::kebab($dashBase);
+        $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
+        $dashUrl   = $dashName ? route($dashName) : '#';
+    } catch (\Throwable $e) {
+        \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -30,29 +20,33 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('User') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('User') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @if ($user?->{UC::COL_TP} == PC::CPN || strtolower((string)($user?->{UC::COL_TP} ?? '')) == PC::HR || $user?->{UC::COL_TP} == PC::SA)
             @php
-                $logsBase  = VW::USR . '.log';
-                $logsKebab = Str::kebab($logsBase);
-                $logsName  = Route::has($logsBase) ? $logsBase : (Route::has($logsKebab) ? $logsKebab : null);
-                $logsUrl   = $logsName ? route($logsName, []) : '#';
-                $logsGuard = Utility::fetchLinkMessage($lang, VW::USR, 'view_user_log_unavailable') ?? 'User logs route is unavailable. Please contact technical support or your domain administrator.';
-                $logsId    = 'users-log-link';
-            @endphp
+                try {
+                    $logsBase  = VW::USR . '.log';
+                    $logsKebab = Str::kebab($logsBase);
+                    $logsName  = Route::has($logsBase) ? $logsBase : (Route::has($logsKebab) ? $logsKebab : null);
+                    $logsUrl   = $logsName ? route($logsName, []) : '#';
+                    $logsGuard = Utility::fetchLinkMessage($lang, VW::USR, 'view_user_log_unavailable') ?? 'User logs route is unavailable. Please contact technical support or your domain administrator.';
+                    $logsId    = 'users-log-link';
+                } catch (\Throwable $e) {
+                    \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="{{ $logsId }}"
                href="{{ $logsUrl }}"
                data-url="{{ $logsUrl }}"
-               data-guard-msg="{{ $logsGuard }}"
+               data-guard-msg="{{ base64_encode($logsGuard) }}"
                class="{{ VC::BT_SM }} {{ Request::segment(1) === VW::USR ? 'active' : '' }} {{ VC::BT_PRM }}"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
@@ -63,20 +57,24 @@
 
         @can(PC::CR_USER)
             @php
-                $createBase  = VW::USR . '.create';
-                $createKebab = Str::kebab($createBase);
-                $createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-                $createUrl   = $createName ? route($createName, []) : '#';
-                $createGuard = Utility::fetchLinkMessage($lang, VW::USR, 'create_user_unavailable') ?? 'Create user route is unavailable. Please contact technical support or your domain administrator.';
-                $createId    = 'user-create-link';
-            @endphp
+                try {
+                    $createBase  = VW::USR . '.create';
+                    $createKebab = Str::kebab($createBase);
+                    $createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+                    $createUrl   = $createName ? route($createName, []) : '#';
+                    $createGuard = Utility::fetchLinkMessage($lang, VW::USR, 'create_user_unavailable') ?? 'Create user route is unavailable. Please contact technical support or your domain administrator.';
+                    $createId    = 'user-create-link';
+                } catch (\Throwable $e) {
+                    \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="{{ $createId }}"
                href="{{ $createUrl }}"
                data-url="{{ $createUrl }}"
                data-ajax-popup="true"
                data-bs-toggle="tooltip"
                title="{{ __('Create') }}"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="{{ base64_encode($createGuard) }}"
                class="{{ VC::BT_SM_PM }}">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -92,7 +90,7 @@
                     @php
                         $uid = (string) data_get($usr, 'id', '');
                         $isActive = (int) (data_get($usr, UC::COL_IA) ?? 0) === 1;
-                    @endphp
+@endphp
 
                     <div class="{{ VC::CM3 }} {{ VC::MB4 }}">
                         <div class="{{ VC::CD }}">
@@ -110,25 +108,29 @@
                                         <div class="btn-group card-option">
                                             @if($isActive)
                                                 <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="ti ti-dots-vertical"></i>
+                                                    <i class="{{ VC::TD_DOTV }}"></i>
                                                 </button>
                                                 <div class="{{ VC::DRP_MN_EM }}">
                                                     @can(PC::ED_USER)
                                                         @php
-                                                            $editBase  = VW::USR . '.edit';
-                                                            $editName  = Route::has($editBase) ? $editBase : (Route::has(Str::kebab($editBase)) ? Str::kebab($editBase) : null);
-                                                            $editUrl   = ($editName && $uid) ? route($editName, [$uid]) : '#';
-                                                            $editGuard = Utility::fetchLinkMessage($lang, VW::USR, 'edit_user_route_unavailable') ?? 'Edit user route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $editId    = 'user-edit-link-' . $uid;
-                                                        @endphp
+                                                            try {
+                                                                $editBase  = VW::USR . '.edit';
+                                                                $editName  = Route::has($editBase) ? $editBase : (Route::has(Str::kebab($editBase)) ? Str::kebab($editBase) : null);
+                                                                $editUrl   = ($editName && $uid) ? route($editName, [$uid]) : '#';
+                                                                $editGuard = Utility::fetchLinkMessage($lang, VW::USR, 'edit_user_route_unavailable') ?? 'Edit user route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $editId    = 'user-edit-link-' . $uid;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <a id="{{ $editId }}"
                                                            href="{{ $editUrl }}"
                                                            data-url="{{ $editUrl }}"
                                                            data-size="lg"
                                                            data-ajax-popup="true"
-                                                           class="dropdown-item"
+                                                           class="{{ VC::DRP_IT }}"
                                                            title="{{ __('Edit User') }}"
-                                                           data-guard-msg="{{ $editGuard }}">
+                                                           data-guard-msg="{{ base64_encode($editGuard) }}">
                                                             <i class="{{ VC::TI_PC }}"></i><span>{{ __('Edit') }}</span>
                                                         </a>
 
@@ -165,12 +167,16 @@
 
                                                     @can(PC::DEL_USER)
                                                         @php
-                                                            $delBase   = VW::USR . '.destroy';
-                                                            $delName   = Route::has($delBase) ? $delBase : (Route::has(Str::kebab($delBase)) ? Str::kebab($delBase) : null);
-                                                            $delUrl    = ($delName && $uid) ? route($delName, [$uid]) : '#';
-                                                            $delGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'delete_user_route_unavailable') ?? 'Delete user route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $delFormId = 'user-delete-form-' . $uid;
-                                                        @endphp
+                                                            try {
+                                                                $delBase   = VW::USR . '.destroy';
+                                                                $delName   = Route::has($delBase) ? $delBase : (Route::has(Str::kebab($delBase)) ? Str::kebab($delBase) : null);
+                                                                $delUrl    = ($delName && $uid) ? route($delName, [$uid]) : '#';
+                                                                $delGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'delete_user_route_unavailable') ?? 'Delete user route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $delFormId = 'user-delete-form-' . $uid;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Form::open([
                                                             'method'               => 'DELETE',
                                                             'url'                  => $delUrl,
@@ -180,7 +186,7 @@
                                                             'data-sv-localized'    => 'true',
                                                         ]) !!}
                                                             <a href="#!"
-                                                               class="dropdown-item bs-pass-para"
+                                                               class="{{ VC::DRP_IT }} bs-pass-para"
                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();">
                                                                 <i class="{{ VC::TI_ARC }}"></i>
@@ -226,21 +232,25 @@
                                                     @endcan
 
                                                     @php
-                                                        $resetBase  = VW::USR . '.reset';
-                                                        $resetName  = Route::has($resetBase) ? $resetBase : (Route::has(Str::kebab($resetBase)) ? Str::kebab($resetBase) : null);
-                                                        $encId      = $uid !== '' ? Crypt::encrypt($uid) : '';
-                                                        $resetUrl   = ($resetName && $encId) ? route($resetName, [$encId]) : '#';
-                                                        $resetGuard = Utility::fetchLinkMessage($lang, VW::USR, 'reset_user_password_route_unavailable') ?? 'Reset password route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $resetId    = 'user-reset-link-' . $uid;
-                                                    @endphp
+                                                        try {
+                                                            $resetBase  = VW::USR . '.reset';
+                                                            $resetName  = Route::has($resetBase) ? $resetBase : (Route::has(Str::kebab($resetBase)) ? Str::kebab($resetBase) : null);
+                                                            $encId      = $uid !== '' ? Crypt::encrypt($uid) : '';
+                                                            $resetUrl   = ($resetName && $encId) ? route($resetName, [$encId]) : '#';
+                                                            $resetGuard = Utility::fetchLinkMessage($lang, VW::USR, 'reset_user_password_route_unavailable') ?? 'Reset password route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $resetId    = 'user-reset-link-' . $uid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a id="{{ $resetId }}"
                                                        href="{{ $resetUrl }}"
                                                        data-url="{{ $resetUrl }}"
                                                        data-ajax-popup="true"
                                                        data-size="md"
-                                                       class="dropdown-item"
+                                                       class="{{ VC::DRP_IT }}"
                                                        title="{{ __('Reset Password') }}"
-                                                       data-guard-msg="{{ $resetGuard }}">
+                                                       data-guard-msg="{{ base64_encode($resetGuard) }}">
                                                         <i class="ti ti-adjustments"></i><span>{{ __('Reset Password') }}</span>
                                                     </a>
 
@@ -282,7 +292,7 @@
                                 @endif
                             </div>
 
-                            <div class="card-body full-card text-center">
+                            <div class="{{ VC::CD_BD }} full-card {{ VC::TXCT }}">
                                 <div class="img-fluid {{ VC::AV_CC }} card-avatar">
                                     <img src="{{ data_get($usr,'avatar') ? asset(Storage::url('uploads/avatar/'.data_get($usr,'avatar'))) : asset(Storage::url('uploads/avatar/avatar.png')) }}" class="img-user wid-80 round-img {{ VC::AV_CC }}">
                                 </div>
@@ -290,34 +300,38 @@
                                 @if((int) (data_get($usr,'delete_status') ?? 0) === 0)
                                     <h5 class="office-time {{ VC::MB0 }}">{{ __('Soft Deleted') }}</h5>
                                 @endif
-                                <small class="text-primary">{{ data_get($usr,'email') ?: __('No email available') }}</small>
+                                <small class="{{ VC::TX_PM }}">{{ data_get($usr,'email') ?: __('No email available') }}</small>
                                 <p></p>
-                                <div class="text-center" data-bs-toggle="tooltip" title="{{ __('Last Login') }}">
+                                <div class="{{ VC::TXCT }}" data-bs-toggle="tooltip" title="{{ __('Last Login') }}">
                                     {{ data_get($usr,'last_login_at') ?: __('No last login available') }}
                                 </div>
 
                                 @if((string) (data_get($usr,UC::COL_TP) ?? '') === PC::SA)
                                     @php
-                                        $upgBase   = VW::PLN . '.upgrade';
-                                        $upgName   = Route::has($upgBase) ? $upgBase : (Route::has(Str::kebab($upgBase)) ? Str::kebab($upgBase) : null);
-                                        $upgUrl    = ($upgName && $uid) ? route($upgName, [$uid]) : '#';
-                                        $upgGuard  = Utility::fetchLinkMessage($lang, VW::PLN, 'upgrade_plan_route_unavailable') ?? 'Upgrade plan route is unavailable. Please contact technical support or your domain administrator.';
-                                        $upgId     = 'plan-upgrade-link-' . $uid;
-                                    @endphp
+                                        try {
+                                            $upgBase   = VW::PLN . '.upgrade';
+                                            $upgName   = Route::has($upgBase) ? $upgBase : (Route::has(Str::kebab($upgBase)) ? Str::kebab($upgBase) : null);
+                                            $upgUrl    = ($upgName && $uid) ? route($upgName, [$uid]) : '#';
+                                            $upgGuard  = Utility::fetchLinkMessage($lang, VW::PLN, 'upgrade_plan_route_unavailable') ?? 'Upgrade plan route is unavailable. Please contact technical support or your domain administrator.';
+                                            $upgId     = 'plan-upgrade-link-' . $uid;
+                                        } catch (\Throwable $e) {
+                                            \Log::error('users/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
 
                                     <div class="{{ VC::MT4 }}">
                                         <div class="{{ VC::R_FLX_ALC_JCE }}">
-                                            <div class="col-6 text-center">
+                                            <div class="{{ VC::C6 }} {{ VC::TXCT }}">
                                                 <span class="d-block font-bold {{ VC::MB0 }}">{{ data_get($usr,'currentPlan.name') ?: __('No plan name available') }}</span>
                                             </div>
-                                            <div class="col-6 text-center">
+                                            <div class="{{ VC::C6 }} {{ VC::TXCT }}">
                                                 <a id="{{ $upgId }}"
                                                    href="{{ $upgUrl }}"
                                                    data-url="{{ $upgUrl }}"
                                                    data-size="lg"
                                                    data-ajax-popup="true"
                                                    class="{{ VC::BT_OUTPM }}"
-                                                   data-guard-msg="{{ $upgGuard }}">
+                                                   data-guard-msg="{{ base64_encode($upgGuard) }}">
                                                     {{ __('Upgrade Plan') }}
                                                 </a>
                                             </div>
@@ -365,7 +379,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="{{ VC::CM12 }}"><p class="text-center text-muted">{{ __('No users available') }}</p></div>
+                    <div class="{{ VC::CM12 }}"><p class="{{ VC::TXCT_MT }}">{{ __('No users available') }}</p></div>
                 @endforelse
             </div>
         </div>

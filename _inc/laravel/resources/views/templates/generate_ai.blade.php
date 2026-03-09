@@ -1,9 +1,4 @@
 @php
-use App\Config\Constants\{DatabaseConstants, StacksConstants, ViewClassNamesConstants as VC};
-use App\Models\Utility;
-use Collective\Html\FormFacade as Form;
-use Illuminate\Support\{Facades\Log, Str};
-
 $templateName ??= [];
 $lang = Utility::fetchUserLang();
 $formId = 'ai-template-form';
@@ -56,11 +51,15 @@ $tone = [
             {{ Form::label('template', $labelForWhat, ['class' => VC::FM_LB]) }}<br>
             @foreach(is_iterable($templateName) ? $templateName : [] as $key => $value)
             @php
-            $valId = data_get($value, 'id') ?? '';
-            $valTm = data_get($value, 'template_name') ?? '';
-            $human = (string) Str::of($valTm)->replace('_', ' ')->title() ?: __('No template name available');
-            $inputId = 'product_name_' . $valId;
-            @endphp
+            try {
+                $valId = data_get($value, 'id') ?? '';
+                $valTm = data_get($value, 'template_name') ?? '';
+                $human = (string) Str::of($valTm)->replace('_', ' ')->title() ?: __('No template name available');
+                $inputId = 'product_name_' . $valId;
+            } catch (\Throwable $e) {
+                \Log::error('templates/generate_ai — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
             <div class="{{ VC::FM_CHK_IL }}">
                 <input class="form-check-input template_name" type="radio" name="template_name" value="{{ $valId }}" id="{{ $inputId }}" data-name="{{ $valTm }}">
                 <label class="form-check-label" for="{{ $inputId }}">{{ $human }}</label>

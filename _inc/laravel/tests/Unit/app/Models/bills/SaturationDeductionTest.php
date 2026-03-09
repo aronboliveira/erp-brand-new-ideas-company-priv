@@ -3,24 +3,26 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
 };
-use App\Models\{
-	SaturationDeduction,
-	Employee,
-	DeductionOption
-};
+use App\Models\{SaturationDeduction, DeductionOption, Employee};
 
 class SaturationDeductionTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
 	 ** @test
 	 **
-	 ** SaturationDeduction is mass assignable for employee_id, deduction_option, title, amount, and created_by
+	 ** SaturationDeduction is mass assignable for employee_id, deduction_option, title, and amount
 	 **/
 	public function saturation_deduction_is_fillable()
 	{
@@ -32,14 +34,11 @@ class SaturationDeductionTest extends TestCase
 			'deduction_option' => $option->id,
 			'title'            => 'Health Deduction',
 			'amount'           => 123.45,
-			'created_by'       => 'admin_user',
 		];
 
 		$sd = SaturationDeduction::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $sd->$field);
-		}
+		$this->assertFillableMatches($data, $sd);
 	}
 
 	/**
@@ -84,10 +83,10 @@ class SaturationDeductionTest extends TestCase
 	{
 		$relation = (new SaturationDeduction)->employee();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class,     get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('employee_id',       $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                $relation->getForeignKeyName());
+		$this->assertSame('id',       $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -99,9 +98,9 @@ class SaturationDeductionTest extends TestCase
 	{
 		$relation = (new SaturationDeduction)->deductionOption();
 
-		$this->assertInstanceOf(HasOne::class,     $relation);
+		$this->assertInstanceOf(BelongsTo::class,     $relation);
 		$this->assertSame(DeductionOption::class,  get_class($relation->getRelated()));
-		$this->assertSame('id',                    $relation->getForeignKeyName());
-		$this->assertSame('deduction_option',      $relation->getLocalKeyName());
+		$this->assertSame('deduction_option',                    $relation->getForeignKeyName());
+		$this->assertSame('id',      $relation->getOwnerKeyName());
 	}
 }

@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const formEl = document.getElementById("invoice-template-settings-form");
     if (!formEl) {
@@ -17,37 +25,11 @@
         }
         e.preventDefault();
         const guardMsg =
-          formEl.getAttribute("data-guard-msg") ??
-          "Invoice template settings route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-        let toastContainer = document.getElementById("toast-container");
-        if (!toastContainer) {
-          toastContainer = document.createElement("div");
-          toastContainer.id = "toast-container";
-          toastContainer.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          toastContainer.style.zIndex = "1080";
-          document.body.appendChild(toastContainer);
-        }
-        if (hasBootstrap) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const toastBody = document.createElement("div");
-          toastBody.className = "toast-body";
-          toastBody.textContent = guardMsg;
-          toast.appendChild(toastBody);
-          toastContainer.appendChild(toast);
-          bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(guardMsg);
-        }
+          formEl.getAttribute("data-guard-msg") ||
+          getMsg("invoice_settings_unavailable");
+        scheduleError(guardMsg, "submit");
         formEl.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (_) {}
     });
-  } catch (err) {}
+  } catch (_) {}
 })();

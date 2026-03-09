@@ -1,36 +1,55 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in contracts/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in contracts/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in contracts/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::open(['url' => ViewsConstants::CTC]) }}
   <div class="modal-body">
       {{-- start for ai module --}}
-      @php $plan = Utility::getChatGPTSettings(); @endphp
+      @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
       @if($plan?->{PlansConstants::COL_GPT} == 1)
-      <div class="text-end">
+      <div class="{{ VC::TX_END }}">
         @php
-            $aiGenerateContractRouteBase    = 'generate';
-            $aiGenerateContractRouteKebab   = Str::kebab($aiGenerateContractRouteBase);
-            $aiGenerateContractResolvedName = Route::has($aiGenerateContractRouteBase)
-                ? $aiGenerateContractRouteBase
-                : (Route::has($aiGenerateContractRouteKebab) ? $aiGenerateContractRouteKebab : null);
-            $aiGenerateContractTopic        = 'contract';
-            $aiGenerateContractUrl          = $aiGenerateContractResolvedName ? route($aiGenerateContractResolvedName, [$aiGenerateContractTopic]) : '#';
-            $aiGenerateContractLang         = $lang ?? Utility::fetchUserLang();
-            $aiGenerateContractGuardMsg     = Utility::fetchLinkMessage($aiGenerateContractLang, ViewsConstants::CTC, 'generate_ai_contract_route_unavailable') ?? 'Generate AI contract route is unavailable. Please contact technical support or your domain administrator.';
-            $aiGenerateContractLinkId       = 'ai-generate-contract-link';
-        @endphp
+            $aiGenerateContractRouteBase    ??= 'generate';
+            try {
+                $aiGenerateContractRouteKebab   = Str::kebab($aiGenerateContractRouteBase);
+                $aiGenerateContractResolvedName = Route::has($aiGenerateContractRouteBase)
+                    ? $aiGenerateContractRouteBase
+                    : (Route::has($aiGenerateContractRouteKebab) ? $aiGenerateContractRouteKebab : null);
+                $aiGenerateContractTopic        = 'contract';
+                $aiGenerateContractUrl          = $aiGenerateContractResolvedName ? route($aiGenerateContractResolvedName, [$aiGenerateContractTopic]) : '#';
+                $aiGenerateContractLang         = $lang ?? Utility::fetchUserLang();
+                $aiGenerateContractGuardMsg     = Utility::fetchLinkMessage($aiGenerateContractLang, ViewsConstants::CTC, 'generate_ai_contract_route_unavailable') ?? 'Generate AI contract route is unavailable. Please contact technical support or your domain administrator.';
+                $aiGenerateContractLinkId       = 'ai-generate-contract-link';
+            } catch (\Throwable $e) {
+                \Log::error('contracts/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a href="{{ $aiGenerateContractUrl }}"
            id="{{ $aiGenerateContractLinkId }}"
            data-size="md"
@@ -39,7 +58,7 @@
            data-url="{{ $aiGenerateContractUrl }}"
            data-bs-placement="top"
            data-title="{{ __('Generate content with AI') }}"
-           data-guard-msg="{{ $aiGenerateContractGuardMsg }}"
+           data-guard-msg="{{ base64_encode($aiGenerateContractGuardMsg) }}"
            data-sv-localized="true">
             <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
         </a>
@@ -97,7 +116,7 @@
       <div class="{{ VC::RW }}">
           <div class="{{ VC::FM_GCB12 }}">
               {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
-              {!! Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => '3']) !!}
+              {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => '3']) }}
           </div>
       </div>
   </div>

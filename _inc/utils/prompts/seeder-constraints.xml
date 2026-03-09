@@ -1,0 +1,69 @@
+* YOU SHOULD NOT USE ARRAY_FILTER TO REMOVE NULLS FOR NULLABLE COLUMNS, LEAVE THEM THERE SINCE IT'S NOT A RAW DB INSERT;
+* IF NEED TO FILTER THE LISTS FOR ANY OTHER REASON THAT'S IS NOT NULLISH REMOVAL, THEN USE COLLECTION'S METHODS OR ARRAY_VALUES/ARRAY_COLUMNS TO ENSURE SHAPE CONSISTENCY;
+* You NEED to ensure "break out" strategies for excessive attempting while loops;
+* Always create a Symfony Console output instance for detailing the variation created;
+* QUERIES FOR READING ONLY SHOULD BE OPTIMIZED WITH RAW SQL METHODS;
+* BE EXTREMELY CAREFUL WITH DECODING WHEN CALLING insert() OR RAW DB METHODS (any that skips the Model's $casts and ::boted);
+* FOR unique() OR CONTEXTUALLY IMPORTANT UNIQUINE COLUMNS (even though not constrained as such) FOR THE MOCKS, RUN A do/while CHECKING IF THE QUERY RETURNS POSITIVE FOR EXISTS;
+* Create a private instance of the Symfony Console Output and call writeln for it right before saving/creating with a brief detail of the created variation;
+* For every while loop, create an attempt limit to "break free" from excessive abnormal number of attempts;
+* Always ensure a minimum amount of iterations per entity in the main loop (ex.: if the looping demands subtypes and types, then ensure at least 1 iteration foreach possible subtype and 1 iteration for each possible type);
+* The number of final entities should be in the order of power of 2 {log(count(ENTITY), 2) % 1 === 0} to ensure better distribution on relational constraints;
+* Ensure a clock limiter (the seeder cannot be running for more than X seconds, default 600s for financial/criticals modules, else 300s for others) to avoid infinite loops on complex relational constraints;
+* Always ensure a HardCap limiter (the seeder cannot attempt more than X times overall, default 512 * [1-6], with the range being defined by how critical and complex the module is) to avoid infinite loops on complex relational constraints;
+* Use the ErrorHandler helper for catching and logging exceptions on the seeder operations:
+namespace App\Helpers;
+
+use Illuminate\Support\Facades\Log;
+
+class ErrorHandler
+{
+	/**
+	 * Evaluate if candidate error exists in data aggregator and log to appropriate channel
+	 * 
+	 * @param array $dataAggregator Reference to the error collection array
+	 * @param array $candidate The candidate error to check and potentially add
+	 * @param string $secondaryChannel Log level for duplicate messages (default: 'debug')
+	 * @param string $mainChannel Log level for new unique errors (default: 'warning')
+	 * @return void
+	 */
+	public static function evaluateExistenceToLogChannel(
+		array &$dataAggregator,
+		array $candidate,
+		string $secondaryChannel = 'debug',
+		string $mainChannel = 'warning',
+		?string $seed = null
+	): void {
+		try {
+			if (!isset($candidate['message'])) {
+				Log::error('ErrorHandler::evaluateExistenceToLogChannel - Candidate missing required "message" key', [
+					'candidate' => $candidate,
+				]);
+				return;
+			}
+			$context = $candidate['context'] ?? [];
+			$message = $candidate['message'];
+			if (\in_array($candidate, $dataAggregator, true)) {
+				!empty($seed) && Log::debug("{$seed} failed");
+				return;
+			}
+			$existingMessages = \array_column($dataAggregator, 'message');
+			$messageExists = \in_array($message, $existingMessages, true);
+			if (!(method_exists(Log::class, $mainChannel) && is_callable(Log::class, $mainChannel)))
+				$mainChannel = 'warning';
+			if (!(method_exists(Log::class, $secondaryChannel) && is_callable(Log::class, $secondaryChannel)))
+				$secondaryChannel = 'debug';
+			if ($messageExists)
+				Log::$secondaryChannel($message, $context);
+			else
+				Log::$mainChannel($message, $context);
+			$dataAggregator[] = $candidate;
+		} catch (\Throwable $e) {
+			Log::error('ErrorHandler::evaluateExistenceToLogChannel - Failed to process error', [
+				'error' => $e->getMessage(),
+				'candidate' => $candidate ?? null,
+			]);
+		}
+	}
+}
+

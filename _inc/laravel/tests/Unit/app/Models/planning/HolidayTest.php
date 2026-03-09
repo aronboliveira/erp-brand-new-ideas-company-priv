@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Holiday;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HolidayTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -16,8 +22,32 @@ class HolidayTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Holiday::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'code',
+			'name',
+			'date',
+			'end_date',
+			'occasion',
+			'type',
+			'observance',
+			'recurring',
+			'event',
+			'award',
+			'coupon',
+			'project',
+			'task',
+			'meeting',
+			'goal',
+			'reduced_shift_by',
+			'countries',
+			'states',
+			'designations',
+			'departments',
+			'branches',
+			'companies',
+			'vendors',
+			'customers',
+		];
 
 		$this->assertSame($expected, (new Holiday)->getFillable());
 	}
@@ -30,13 +60,13 @@ class HolidayTest extends TestCase
 	 **/
 	public function user_relation_is_has_one(): void
 	{
-		$rel = (new Holiday)->user();
+		$rel = (new Holiday)->createdBy();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',          $rel->getForeignKeyName());
-		$this->assertSame('created_by',  $rel->getLocalKeyName());
+		$this->assertSame('created_by',          $rel->getForeignKeyName());
+		$this->assertSame('id',  $rel->getOwnerKeyName());
 	}
 }

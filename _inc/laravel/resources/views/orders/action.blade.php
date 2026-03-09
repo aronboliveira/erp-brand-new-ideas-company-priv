@@ -1,21 +1,17 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
+    try {
+$lang        = Utility::fetchUserLang();
+        $hasOrder    = !empty($order ?? null) && data_get($order, 'id');
+        $path        = \App\Models\Utility::getFile('uploads/order') ?: '';
+        $bankDetails = $admin_payment_setting['bank_details'] ?? null;
 
-    $lang        = Utility::fetchUserLang();
-    $hasOrder    = !empty($order ?? null) && data_get($order, 'id');
-    $path        = \App\Models\Utility::getFile('uploads/order') ?: '';
-    $bankDetails = $admin_payment_setting['bank_details'] ?? null;
-
-    $changeName  = VW::OD . '.change.status';
-    $actionUrl   = ($hasOrder && Route::has($changeName)) ? route($changeName, $order->id) : '#';
-    $guardMsg    = Utility::fetchLinkMessage($lang, VW::OD, 'change_status_route_unavailable')
-                   ?? __('Change status route is unavailable. Please contact technical support or your domain administrator.');
+        $changeName  = VW::OD . '.change.status';
+        $actionUrl   = ($hasOrder && Route::has($changeName)) ? route($changeName, $order->id) : '#';
+        $guardMsg    = Utility::fetchLinkMessage($lang, VW::OD, 'change_status_route_unavailable')
+                       ?? __('Change status route is unavailable. Please contact technical support or your domain administrator.');
+    } catch (\Throwable $e) {
+        \Log::error('orders/action — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if($hasOrder)
@@ -53,7 +49,7 @@
                         </tr>
                         <tr>
                             <th>{{ __('Bank Details') }}</th>
-                            <td>{!! $bankDetails ?: __('No bank details available.') !!}</td>
+                            <td>{!! $bankDetails ? Purifier::clean($bankDetails, 'default') : e(__('No bank details available.')) !!}</td>
                         </tr>
                         @if(!empty(data_get($order, 'receipt')))
                             <tr>

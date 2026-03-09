@@ -1,17 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-        StacksConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('roles/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -20,24 +12,28 @@
 @push(StacksConstants::ADM_SCR_PG)
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Role') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Role') }}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
-            $rlCreateBase = ViewsConstants::RL.'.create';
-            $rlCreateKebab = Str::kebab($rlCreateBase);
-            $rlCreateResolved = Route::has($rlCreateBase) ? $rlCreateBase : (Route::has($rlCreateKebab) ? $rlCreateKebab : null);
-            $rlCreateUrl = $rlCreateResolved ? route($rlCreateResolved) : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $rlCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'create_role_route_unavailable') ?? 'Create role route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $rlCreateBase = ViewsConstants::RL.'.create';
+                $rlCreateKebab = Str::kebab($rlCreateBase);
+                $rlCreateResolved = Route::has($rlCreateBase) ? $rlCreateBase : (Route::has($rlCreateKebab) ? $rlCreateKebab : null);
+                $rlCreateUrl = $rlCreateResolved ? route($rlCreateResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $rlCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'create_role_route_unavailable') ?? 'Create role route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('roles/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a
             href="{{ $rlCreateUrl }}"
             data-size="lg"
@@ -46,7 +42,7 @@
             data-bs-toggle="tooltip"
             title="{{ __('Create New Role') }}"
             class="{{ VC::BT_SM_PM }} role-create"
-            data-guard-msg="{{ $rlCreateGuardMsg }}"
+            data-guard-msg="{{ base64_encode($rlCreateGuardMsg) }}"
             data-sv-localized="true"
         >
             <i class="{{ VC::TI_PLS }}"></i>
@@ -59,10 +55,10 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        <div class="col-xl-12">
+        <div class="{{ VC::CXL12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -79,27 +75,31 @@
                                             <td class="Permission">
                                                 @php
                                                 	$__perms = (is_object($role) && method_exists($role,'permissions')) ? ($role->permissions()->pluck('name') ?? collect()) : collect();
-                                                @endphp
+@endphp
                                                 @forelse($__perms as $permissionName)
                                                     <span class="{{ VC::BDG }} rounded p-2 m-1 px-3 {{ VC::BG_P }}">{{ $permissionName ?: __('No permission name available') }}</span>
                                                 @empty
-                                                    <span class="text-muted">{{ __('No permissions available') }}</span>
+                                                    <span class="{{ VC::TXT_MT }}">{{ __('No permissions available') }}</span>
                                                 @endforelse
                                             </td>
                                             <td class="Action">
                                                 <span>
                                                     @can(PermissionsConstants::ED_ROLE)
                                                         @php
-                                                            $rlEditBase = ViewsConstants::RL.'.edit';
-                                                            $rlEditKebab = Str::kebab($rlEditBase);
-                                                            $rlEditResolved = Route::has($rlEditBase) ? $rlEditBase : (Route::has($rlEditKebab) ? $rlEditKebab : null);
-                                                            $roleIdValue = data_get($role, 'id');
-                                                            $rlEncryptedId = $roleIdValue ? Crypt::encrypt($roleIdValue) : null;
-                                                            $rlEditUrl = ($rlEditResolved && $rlEncryptedId) ? route($rlEditResolved, $rlEncryptedId) : '#';
-                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $rlEditGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'edit_role_route_unavailable') ?? 'Edit role route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $rlAnchorId = 'role-edit-'.($roleIdValue ? substr(md5((string) $roleIdValue), 0, 8) : 'x');
-                                                        @endphp
+                                                            try {
+                                                                $rlEditBase = ViewsConstants::RL.'.edit';
+                                                                $rlEditKebab = Str::kebab($rlEditBase);
+                                                                $rlEditResolved = Route::has($rlEditBase) ? $rlEditBase : (Route::has($rlEditKebab) ? $rlEditKebab : null);
+                                                                $roleIdValue = data_get($role, 'id');
+                                                                $rlEncryptedId = $roleIdValue ? Crypt::encrypt($roleIdValue) : null;
+                                                                $rlEditUrl = ($rlEditResolved && $rlEncryptedId) ? route($rlEditResolved, $rlEncryptedId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $rlEditGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'edit_role_route_unavailable') ?? 'Edit role route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $rlAnchorId = 'role-edit-'.($roleIdValue ? substr(md5((string) $roleIdValue), 0, 8) : 'x');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('roles/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_INF }}">
                                                             <a
                                                                 id="{{ $rlAnchorId }}"
@@ -112,7 +112,7 @@
                                                                 title="{{ __('Edit') }}"
                                                                 data-title="{{ __('Role Edit') }}"
                                                                 aria-label="{{ __('Edit Role') }}"
-                                                                data-guard-msg="{{ $rlEditGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($rlEditGuardMsg) }}"
                                                                 data-sv-localized="true"
                                                             >
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
@@ -133,28 +133,7 @@
                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Edit role route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                             } catch (err) {}
                                                                         });
@@ -168,19 +147,23 @@
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Form::open(['method' => 'DELETE','route' => [ViewsConstants::RL.'.destroy', data_get($role,'id','0')],'id' => 'delete-form-'.data_get($role,'id','0')]) !!}
                                                                     @php
-                                                                        $rlDestroyBase = ViewsConstants::RL.'.destroy';
-                                                                        $rlDestroyKebab = Str::kebab($rlDestroyBase);
-                                                                        $rlDestroyResolved = Route::has($rlDestroyBase) ? $rlDestroyBase : (Route::has($rlDestroyKebab) ? $rlDestroyKebab : null);
-                                                                        $roleIdValue = data_get($role, 'id');
-                                                                        $rlEncryptedId = $roleIdValue ? Crypt::encrypt($roleIdValue) : null;
-                                                                        $rlDestroyUrl = ($rlDestroyResolved && $rlEncryptedId) ? route($rlDestroyResolved, $rlEncryptedId) : '#';
-                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                        $rlDeleteGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'delete_role_route_unavailable') ?? 'Delete role route is unavailable. Please contact technical support or your domain administrator.';
-                                                                        $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                                        $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                                        $formId = 'delete-form-'.($roleIdValue ?? 'x');
-                                                                        $anchorId = 'role-delete-btn-'.($roleIdValue ?? 'x');
-                                                                    @endphp
+                                                                        try {
+                                                                            $rlDestroyBase = ViewsConstants::RL.'.destroy';
+                                                                            $rlDestroyKebab = Str::kebab($rlDestroyBase);
+                                                                            $rlDestroyResolved = Route::has($rlDestroyBase) ? $rlDestroyBase : (Route::has($rlDestroyKebab) ? $rlDestroyKebab : null);
+                                                                            $roleIdValue = data_get($role, 'id');
+                                                                            $rlEncryptedId = $roleIdValue ? Crypt::encrypt($roleIdValue) : null;
+                                                                            $rlDestroyUrl = ($rlDestroyResolved && $rlEncryptedId) ? route($rlDestroyResolved, $rlEncryptedId) : '#';
+                                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                            $rlDeleteGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RL, 'delete_role_route_unavailable') ?? 'Delete role route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                                            $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                                            $formId = 'delete-form-'.($roleIdValue ?? 'x');
+                                                                            $anchorId = 'role-delete-btn-'.($roleIdValue ?? 'x');
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('roles/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     {!! Form::open(['method' => 'DELETE', 'url' => $rlDestroyUrl, 'id' => $formId]) !!}
                                                                         <a
                                                                             id="{{ $anchorId }}"
@@ -191,7 +174,7 @@
                                                                             data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
                                                                             data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                                             data-url="{{ $rlDestroyUrl }}"
-                                                                            data-guard-msg="{{ $rlDeleteGuardMsg }}"
+                                                                            data-guard-msg="{{ base64_encode($rlDeleteGuardMsg) }}"
                                                                             data-sv-localized="true"
                                                                         >
                                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
@@ -214,28 +197,7 @@
                                                                                             if (url !== '#' && href !== '#' && action !== '#') { return; }
                                                                                             e.preventDefault();
                                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Delete role route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                            let container = document.getElementById('toast-container');
-                                                                                            if (!container) {
-                                                                                                container = document.createElement('div');
-                                                                                                container.id = 'toast-container';
-                                                                                                document.body.appendChild(container);
-                                                                                            }
-                                                                                            if (hasBootstrap) {
-                                                                                                const toast = document.createElement('div');
-                                                                                                toast.className = 'toast';
-                                                                                                toast.setAttribute('role', 'alert');
-                                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                                const body = document.createElement('div');
-                                                                                                body.className = 'toast-body';
-                                                                                                body.textContent = msg;
-                                                                                                toast.appendChild(body);
-                                                                                                container.appendChild(toast);
-                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                            } else {
-                                                                                                alert(msg);
-                                                                                            }
+                                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                             el.setAttribute('data-failed-route', 'true');
                                                                                             if (form) { form.setAttribute('data-failed-route', 'true'); }
                                                                                         } catch (err) {}
@@ -256,7 +218,7 @@
                                     @endif
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted">{{ __('No roles available') }}</td>
+                                        <td colspan="3" class="{{ VC::TXCT_MT }}">{{ __('No roles available') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -267,4 +229,3 @@
         </div>
     </div>
 @endsection
-

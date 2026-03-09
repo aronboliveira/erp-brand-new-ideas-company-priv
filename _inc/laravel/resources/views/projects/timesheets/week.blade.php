@@ -1,15 +1,17 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    $lang                     = Utility::fetchUserLang();
-    $timesheetPopupGuardMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'timesheet_popup_route_unavailable')
-        ?? 'Timesheet popup route is unavailable. Please contact technical support or your domain administrator.';
-    $hoursLabel               = __('Hours');
-    $minutesLabel             = __('Minutes');
-    $totalLabel               = __('Total');
-    $timeLoggedLabel          = __('Time Logged');
-    $dateCols                 = is_countable($totalDateTimes ?? null) ? count($totalDateTimes) : 0;
-    $projectHeaderColspan     = $dateCols + 2;
+    try {
+$lang                     = Utility::fetchUserLang();
+        $timesheetPopupGuardMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'timesheet_popup_route_unavailable')
+            ?? 'Timesheet popup route is unavailable. Please contact technical support or your domain administrator.';
+        $hoursLabel               = __('Hours');
+        $minutesLabel             = __('Minutes');
+        $totalLabel               = __('Total');
+        $timeLoggedLabel          = __('Time Logged');
+        $dateCols                 = is_countable($totalDateTimes ?? null) ? count($totalDateTimes) : 0;
+        $projectHeaderColspan     = $dateCols + 2;
+    } catch (\Throwable $e) {
+        \Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <table class="{{ VC::TB }} {{ VC::MB0 }}">
     <thead>
@@ -19,49 +21,58 @@
                 @php
                     $dayAbbr = method_exists($perioddate, 'format') ? $perioddate->format('D')   : '';
                     $dayDate = method_exists($perioddate, 'format') ? $perioddate->format('d M') : '';
-                @endphp
+@endphp
                 <th scope="col" class="heading">
                     <span>{{ $dayAbbr }}</span>
                     <span>{{ $dayDate }}</span>
                 </th>
             @endforeach
-            <th class="text-center">{{ $totalLabel }}</th>
+            <th class="{{ VC::TXCT }}">{{ $totalLabel }}</th>
         </tr>
     </thead>
 
     <tbody class="tbody">
-        @php($hasAllProjects = !empty($allProjects))
-        @if($hasAllProjects)
-            @foreach (($timesheetArray ?? []) as $pIdx => $timesheet)
-                <tr>
-                    <td class="project-name" colspan="{{ $projectHeaderColspan }}" data-bs-toggle="tooltip" title="{{ __('Project') }}">
-                        {{ $timesheet['project_name'] ?? __('(Unnamed project)') }}
-                    </td>
-                </tr>
-                @foreach (($timesheet['taskArray'] ?? []) as $tIdx => $taskTimesheet)
-                    @foreach (($taskTimesheet['dateArray'] ?? []) as $dateTimeArray)
-                        @php
-                            $taskName = $taskTimesheet['task_name'] ?? __('(Unnamed task)');
-                            $userId   = $dateTimeArray['user_id']   ?? null;
-                            $taskId   = $taskTimesheet['task_id']   ?? null;
-                            $projId   = $timesheet['project_id']    ?? null;
-                            $rowTotal = $dateTimeArray['totaltime'] ?? '00:00';
-                            $rowTotal = ($rowTotal && $rowTotal !== '00:00') ? $rowTotal : '00:00';
-                        @endphp
+        @php
+	try {
+		($hasAllProjects = !empty($allProjects))
+		        @if($hasAllProjects)
+		            @foreach (($timesheetArray ?? []) as $pIdx => $timesheet)
+		                <tr>
+		                    <td class="project-name" colspan="{{ $projectHeaderColspan }}" data-bs-toggle="tooltip" title="{{ __('Project') }}">
+		                        {{ $timesheet['project_name'] ?? __('(Unnamed project)') }}
+		                    </td>
+		                </tr>
+		                @foreach (($timesheet['taskArray'] ?? []) as $tIdx => $taskTimesheet)
+		                    @foreach (($taskTimesheet['dateArray'] ?? []) as $dateTimeArray)
+		                        @php
+		                            $taskName = $taskTimesheet['task_name'] ?? __('(Unnamed task)');
+		                            $userId   = $dateTimeArray['user_id']   ?? null;
+		                            $taskId   = $taskTimesheet['task_id']   ?? null;
+		                            $projId   = $timesheet['project_id']    ?? null;
+		                            $rowTotal = $dateTimeArray['totaltime'] ?? '00:00';
+		                            $rowTotal = ($rowTotal && $rowTotal !== '00:00') ? $rowTotal : '00:00';
+	} catch (\Throwable $e) {
+		\Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
                         <tr class="timesheet-user">
                             <td class="task-name" data-bs-toggle="tooltip" title="{{ __('Task') }}">
                                 {{ $taskName }}
                             </td>
                             @foreach (($dateTimeArray['week'] ?? []) as $dateSubArray)
                                 @php
-                                    $cellTime  = $dateSubArray['time'] ?? '00:00';
-                                    $cellTime  = ($cellTime && $cellTime !== '00:00') ? $cellTime : '00:00';
-                                    $cellType  = $dateSubArray['type'] ?? '';
-                                    $cellDate  = $dateSubArray['date'] ?? '';
-                                    $cellUrl   = !empty($dateSubArray['url']) ? $dateSubArray['url'] : '#';
-                                    $hasValue  = $cellTime !== '00:00';
-                                    $borderCls = $hasValue ? 'border-dark' : 'border-white';
-                                @endphp
+                                    try {
+                                        $cellTime  = $dateSubArray['time'] ?? '00:00';
+                                        $cellTime  = ($cellTime && $cellTime !== '00:00') ? $cellTime : '00:00';
+                                        $cellType  = $dateSubArray['type'] ?? '';
+                                        $cellDate  = $dateSubArray['date'] ?? '';
+                                        $cellUrl   = !empty($dateSubArray['url']) ? $dateSubArray['url'] : '#';
+                                        $hasValue  = $cellTime !== '00:00';
+                                        $borderCls = $hasValue ? 'border-dark' : 'border-white';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <td>
                                     <input
                                         class="{{ VC::FM_CT }} {{ $borderCls }} wid-120 task-time day-time"
@@ -72,7 +83,7 @@
                                         data-date="{{ $cellDate }}"
                                         data-ajax-timesheet-popup="true"
                                         data-url="{{ $cellUrl }}"
-                                        data-guard-msg="{{ $timesheetPopupGuardMsg }}"
+                                        data-guard-msg="{{ base64_encode($timesheetPopupGuardMsg) }}"
                                         type="text"
                                         inputmode="numeric"
                                         pattern="^\d{2}:\d{2}$"
@@ -81,41 +92,50 @@
                                     >
                                 </td>
                             @endforeach
-                            @php($rowBorder = $rowTotal !== '00:00' ? 'border-dark' : 'border-white')
-                            <td class="text-center total-task-time day-time">
-                                <input
-                                    class="{{ VC::FM_CT }} {{ $rowBorder }} wid-120 total-task-time day-time"
-                                    type="text"
-                                    inputmode="numeric"
-                                    pattern="^\d{2}:\d{2}$"
-                                    aria-label="{{ __('Row total time (HH:MM)') }}"
-                                    value="{{ $rowTotal }}"
-                                >
-                            </td>
-                        </tr>
-                    @endforeach
-                @endforeach
-            @endforeach
-        @else
-            @foreach (($timesheetArray ?? []) as $k => $timesheet)
-                @php
-                    $taskName = $timesheet['task_name'] ?? __('(Unnamed task)');
-                    $taskId   = $timesheet['task_id']   ?? null;
-                    $rowTotal = $timesheet['totaltime'] ?? '00:00';
-                    $rowTotal = ($rowTotal && $rowTotal !== '00:00') ? $rowTotal : '00:00';
-                @endphp
+                            @php
+	try {
+		($rowBorder = $rowTotal !== '00:00' ? 'border-dark' : 'border-white')
+		                            <td class="{{ VC::TXCT }} total-task-time day-time">
+		                                <input
+		                                    class="{{ VC::FM_CT }} {{ $rowBorder }} wid-120 total-task-time day-time"
+		                                    type="text"
+		                                    inputmode="numeric"
+		                                    pattern="^\d{2}:\d{2}$"
+		                                    aria-label="{{ __('Row total time (HH:MM)') }}"
+		                                    value="{{ $rowTotal }}"
+		                                >
+		                            </td>
+		                        </tr>
+		                    @endforeach
+		                @endforeach
+		            @endforeach
+		        @else
+		            @foreach (($timesheetArray ?? []) as $k => $timesheet)
+		                @php
+		                    $taskName = $timesheet['task_name'] ?? __('(Unnamed task)');
+		                    $taskId   = $timesheet['task_id']   ?? null;
+		                    $rowTotal = $timesheet['totaltime'] ?? '00:00';
+		                    $rowTotal = ($rowTotal && $rowTotal !== '00:00') ? $rowTotal : '00:00';
+	} catch (\Throwable $e) {
+		\Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
                 <tr>
                     <td class="task-name">{{ $taskName }}</td>
                     @foreach (($timesheet['dateArray'] ?? []) as $day => $datetime)
                         @php
-                            $cellTime  = $datetime['time'] ?? '00:00';
-                            $cellTime  = ($cellTime && $cellTime !== '00:00') ? $cellTime : '00:00';
-                            $cellType  = $datetime['type'] ?? '';
-                            $cellDate  = $datetime['date'] ?? '';
-                            $cellUrl   = !empty($datetime['url']) ? $datetime['url'] : '#';
-                            $hasValue  = $cellTime !== '00:00';
-                            $borderCls = $hasValue ? 'border-dark' : 'border-white';
-                        @endphp
+                            try {
+                                $cellTime  = $datetime['time'] ?? '00:00';
+                                $cellTime  = ($cellTime && $cellTime !== '00:00') ? $cellTime : '00:00';
+                                $cellType  = $datetime['type'] ?? '';
+                                $cellDate  = $datetime['date'] ?? '';
+                                $cellUrl   = !empty($datetime['url']) ? $datetime['url'] : '#';
+                                $hasValue  = $cellTime !== '00:00';
+                                $borderCls = $hasValue ? 'border-dark' : 'border-white';
+                            } catch (\Throwable $e) {
+                                \Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         <td>
                             <input
                                 class="{{ VC::FM_CT }} {{ $borderCls }} wid-120 task-time day-time1"
@@ -124,7 +144,7 @@
                                 data-date="{{ $cellDate }}"
                                 data-ajax-timesheet-popup="true"
                                 data-url="{{ $cellUrl }}"
-                                data-guard-msg="{{ $timesheetPopupGuardMsg }}"
+                                data-guard-msg="{{ base64_encode($timesheetPopupGuardMsg) }}"
                                 type="text"
                                 inputmode="numeric"
                                 pattern="^\d{2}:\d{2}$"
@@ -133,35 +153,44 @@
                             >
                         </td>
                     @endforeach
-                    @php($rowBorder = $rowTotal !== '00:00' ? 'border-dark' : 'border-white')
-                    <td class="text-center total-task-time day-time1">
-                        <input
-                            class="{{ VC::FM_CT }} {{ $rowBorder }} wid-120 task-time day-time1"
-                            type="text"
-                            inputmode="numeric"
-                            pattern="^\d{2}:\d{2}$"
-                            aria-label="{{ __('Row total time (HH:MM)') }}"
-                            value="{{ $rowTotal }}"
-                        >
-                    </td>
-                </tr>
-            @endforeach
-        @endif
-    </tbody>
+                    @php
+	try {
+		($rowBorder = $rowTotal !== '00:00' ? 'border-dark' : 'border-white')
+		                    <td class="{{ VC::TXCT }} total-task-time day-time1">
+		                        <input
+		                            class="{{ VC::FM_CT }} {{ $rowBorder }} wid-120 task-time day-time1"
+		                            type="text"
+		                            inputmode="numeric"
+		                            pattern="^\d{2}:\d{2}$"
+		                            aria-label="{{ __('Row total time (HH:MM)') }}"
+		                            value="{{ $rowTotal }}"
+		                        >
+		                    </td>
+		                </tr>
+		            @endforeach
+		        @endif
+		    </tbody>
 
-    <tfoot>
-        @php
-            $grandTotal = $calculatedtotaltaskdatetime ?? '00:00';
-            $grandTotal = ($grandTotal && $grandTotal !== '00:00') ? $grandTotal : '00:00';
-        @endphp
+		    <tfoot>
+		        @php
+		            $grandTotal = $calculatedtotaltaskdatetime ?? '00:00';
+		            $grandTotal = ($grandTotal && $grandTotal !== '00:00') ? $grandTotal : '00:00';
+	} catch (\Throwable $e) {
+		\Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
+@endphp
         <tr class="{{ VC::BG_P }}">
             <td>{{ $totalLabel }}</td>
             @foreach (($totalDateTimes ?? []) as $idx => $totaldatetime)
                 @php
-                    $colTotal  = $totaldatetime ?? '00:00';
-                    $colTotal  = ($colTotal && $colTotal !== '00:00') ? $colTotal : '00:00';
-                    $borderCls = $colTotal !== '00:00' ? 'border-dark' : 'border-white';
-                @endphp
+                    try {
+                        $colTotal  = $totaldatetime ?? '00:00';
+                        $colTotal  = ($colTotal && $colTotal !== '00:00') ? $colTotal : '00:00';
+                        $borderCls = $colTotal !== '00:00' ? 'border-dark' : 'border-white';
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/timesheets/week — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <td class="total-date-time">
                     <input
                         class="{{ VC::FM_CT }} {{ VC::BG_TPR }} {{ $borderCls }} wid-120"
@@ -174,7 +203,7 @@
                 </td>
             @endforeach
             @php($grandBorder = $grandTotal !== '00:00' ? 'border-dark' : 'border-white')
-            <td class="text-center total-value1">
+            <td class="{{ VC::TXCT }} total-value1">
                 <input
                     class="{{ VC::FM_CT }} {{ VC::BG_TPR }} {{ $grandBorder }} wid-120"
                     type="text"
@@ -194,12 +223,12 @@
     </span>
 </div>
 <script defer>
-    (() => {
-        try {
-            const selector = 'input[data-ajax-timesheet-popup="true"]';
-            document.querySelectorAll(selector).forEach((el) => {
-                if (el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
+    if (typeof window.TimesheetWeekHandler === 'undefined') {
+        window.TimesheetWeekHandler = {
+            init() {
+                document.querySelectorAll('input[data-ajax-timesheet-popup="true"]').forEach(el => this.attachGuard(el));
+            },
+            attachGuard(el) {
                 const guard = (evt) => {
                     try {
                         const url = (el.getAttribute('data-url') || '').trim();
@@ -210,40 +239,39 @@
                         }
                         const msg = el.getAttribute('data-guard-msg')
                             || 'Timesheet popup route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-
-                        el.setAttribute('data-failed-route', 'true');
+                        this.showToast(msg);
                     } catch (_) {}
                 };
                 el.addEventListener('click', guard, { passive: false });
                 el.addEventListener('keydown', (e) => {
                     if (e && (e.key === 'Enter' || e.keyCode === 13)) guard(e);
                 }, { passive: false });
-            });
-        } catch (_) {}
-    })();
+            },
+            showToast(msg) {
+                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                if (hasBootstrap) {
+                    const toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    const body = document.createElement('div');
+                    body.className = 'toast-body';
+                    body.textContent = msg;
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                } else {
+                    alert(msg);
+                }
+            }
+        };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.TimesheetWeekHandler.init()) : window.TimesheetWeekHandler.init();
+    }
 </script>

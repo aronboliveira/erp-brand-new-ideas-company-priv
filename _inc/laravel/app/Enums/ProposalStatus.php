@@ -68,6 +68,7 @@ enum ProposalStatus: string
 			'reviewing'                 => self::Open,
 			'aberto'                    => self::Open,
 			'enviado'                   => self::Open,
+			'enviado'                   => self::Open,
 			'envoyé'                    => self::Open,
 			'offen'                     => self::Open,
 			'aperto'                    => self::Open,
@@ -76,6 +77,8 @@ enum ProposalStatus: string
 			// Accepted
 			'accepted'                  => self::Accepted,
 			'approved'                  => self::Accepted,
+			'approved'                  => self::Accepted,
+			'confirmed'                 => self::Accepted,
 			'confirmed'                 => self::Accepted,
 			'signed'                    => self::Accepted,
 			'contracted'                => self::Accepted,

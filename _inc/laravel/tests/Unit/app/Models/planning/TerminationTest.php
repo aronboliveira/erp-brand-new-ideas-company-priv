@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Termination;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TerminationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,13 @@ class TerminationTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Termination::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'employee_id',
+			'notice_date',
+			'termination_date',
+			'termination_type',
+			'description',
+		];
 
 		$this->assertSame($expected, (new Termination)->getFillable());
 	}
@@ -31,11 +42,11 @@ class TerminationTest extends TestCase
 		$term = new Termination;
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$term->employee()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$term->terminationType()
 		);
 	}

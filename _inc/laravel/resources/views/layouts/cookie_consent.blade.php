@@ -1,8 +1,5 @@
 @php
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$settings??=[];
+$settings??=[];
 	$uri??='';
 	$backtrace??=[];
 	$filePath??='';
@@ -84,24 +81,12 @@
 		);
 		$filePath='unknown.blade.php';
 	}
-	try {
-		Log::debug(
-			"Rendering Cookie Consent Layout ({$filePath})",
-			['route'=>$uri,'user'=>optional(auth()->user())->id??'Unidentified User']
-		);
-	} catch (Error|Exception|Throwable $e) {}
-	try {
-		(new ConsoleOutput)
-			->writeln(
-				"Rendering Cookie Consent Layout ({$filePath}) for {$uri}"
-			);
-	} catch (Error|Exception|Throwable $e) {}
 @endphp
 
 <link rel="stylesheet" href="{{ asset('css/cookieconsent.css') }}" media="screen" />
 <script src="{{ asset('js/cookieconsent.js') }}"></script>
 <script>
-    let language_code = document.documentElement.getAttribute('lang') || 'en', 
+    let language_code = document.documentElement.getAttribute('lang') || 'en',
         languages = window.languages || {};
     languages[language_code] = {
         consent_modal: {

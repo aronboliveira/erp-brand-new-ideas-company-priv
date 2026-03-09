@@ -33,7 +33,7 @@ enum FieldType: string
 		if ($value === null)
 			return self::Text;
 
-		$normalizedValue = preg_replace('/[^a-z0-9_\-]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9_\-]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Text variations
 			'text', 'string', 'input', 'textfield' => self::Text,

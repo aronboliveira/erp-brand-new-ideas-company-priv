@@ -1,15 +1,15 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $storeBaseName   = VW::PRJ_STG;
-    $storeKebabName  = Str::kebab($storeBaseName);
-    $storeResolved   = Route::has($storeBaseName) ? $storeBaseName : (Route::has($storeKebabName) ? $storeKebabName : null);
-    $storeUrl        = $storeResolved ? route($storeResolved) : '#';
-    $formId          = 'create-project-stage-form';
-    $formGuardMsg    = Utility::fetchLinkMessage($lang, VW::PRJ_STG, 'store_project_stage_unavailable') ?? 'Store project stage route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $storeBaseName   = VW::PRJ_STG;
+        $storeKebabName  = Str::kebab($storeBaseName);
+        $storeResolved   = Route::has($storeBaseName) ? $storeBaseName : (Route::has($storeKebabName) ? $storeKebabName : null);
+        $storeUrl        = $storeResolved ? route($storeResolved) : '#';
+        $formId          = 'create-project-stage-form';
+        $formGuardMsg    = Utility::fetchLinkMessage($lang, VW::PRJ_STG, 'store_project_stage_unavailable') ?? 'Store project stage route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('project_stages/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <div class="{{ VC::CD }} bg-none card-box">
     {!! Form::open([

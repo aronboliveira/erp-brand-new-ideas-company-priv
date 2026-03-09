@@ -13,10 +13,11 @@ class RecordLanding
 		return $next($request);
 	}
 
-	public function terminate(Request $request, $response)
+	public function terminate(Request $request, mixed $response): void
 	{
 		if (
 			$request->getMethod() === 'GET'
+			&& method_exists($response, 'getStatusCode')
 			&& $response->getStatusCode() < 400
 			&& $routeName = $request->route()?->getName()
 		) {

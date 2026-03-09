@@ -1,25 +1,18 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-        StacksConstants
-    };
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-
-    $lang          = Utility::fetchUserLang();
-    $createRoute   = Route::has(VW::AWD . '.create')
-        ? route(VW::AWD . '.create')
-        : '#';
-    $createMsg     = Utility::fetchLinkMessage(
-        $lang,
-        VW::AWD,
-        'award_create_route_unavailable'
-    ) ?? 'Award create route is unavailable. Please contact technical support or your domain administrator.';
-    $createBtnId   = 'award-create-button';
+    try {
+$lang          = Utility::fetchUserLang();
+        $createRoute   = Route::has(VW::AWD . '.create')
+            ? route(VW::AWD . '.create')
+            : '#';
+        $createMsg     = Utility::fetchLinkMessage(
+            $lang,
+            VW::AWD,
+            'award_create_route_unavailable'
+        ) ?? 'Award create route is unavailable. Please contact technical support or your domain administrator.';
+        $createBtnId   = 'award-create-button';
+    } catch (\Throwable $e) {
+        \Log::error('awards/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -27,12 +20,12 @@
 @section(YieldingConstants::ADM_PG_TTL, __('Manage Award'))
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Award') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Award') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -41,7 +34,7 @@
             <a id="{{ $createBtnId }}"
                href="{{ $createRoute }}"
                data-url="{{ $createRoute }}"
-               data-guard-msg="{{ $createMsg }}"
+               data-guard-msg="{{ base64_encode($createMsg) }}"
                data-size="lg"
                data-ajax-popup="true"
                data-bs-toggle="tooltip"
@@ -59,7 +52,7 @@
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body table-border-style">
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -78,25 +71,29 @@
                             <tbody class="font-style">
                                 @foreach($awards as $award)
                                     @php
-                                        $editRoute   = Route::has(VW::AWD . '.edit')
-                                            ? route(VW::AWD . '.edit', $award->id)
-                                            : '#';
-                                        $editMsg     = Utility::fetchLinkMessage(
-                                            $lang,
-                                            VW::AWD,
-                                            'award_edit_route_unavailable'
-                                        ) ?? 'Award edit route is unavailable. Please contact technical support or your domain administrator.';
-                                        $editBtnId   = 'award-edit-' . $award->id;
-                                        $destroyRoute = Route::has(VW::AWD . '.destroy')
-                                            ? route(VW::AWD . '.destroy', $award->id)
-                                            : '#';
-                                        $destroyMsg   = Utility::fetchLinkMessage(
-                                            $lang,
-                                            VW::AWD,
-                                            'award_destroy_route_unavailable'
-                                        ) ?? 'Award destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                        $deleteBtnId  = 'award-delete-' . $award->id;
-                                    @endphp
+                                        try {
+                                            $editRoute   = Route::has(VW::AWD . '.edit')
+                                                ? route(VW::AWD . '.edit', $award->id)
+                                                : '#';
+                                            $editMsg     = Utility::fetchLinkMessage(
+                                                $lang,
+                                                VW::AWD,
+                                                'award_edit_route_unavailable'
+                                            ) ?? 'Award edit route is unavailable. Please contact technical support or your domain administrator.';
+                                            $editBtnId   = 'award-edit-' . $award->id;
+                                            $destroyRoute = Route::has(VW::AWD . '.destroy')
+                                                ? route(VW::AWD . '.destroy', $award->id)
+                                                : '#';
+                                            $destroyMsg   = Utility::fetchLinkMessage(
+                                                $lang,
+                                                VW::AWD,
+                                                'award_destroy_route_unavailable'
+                                            ) ?? 'Award destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                            $deleteBtnId  = 'award-delete-' . $award->id;
+                                        } catch (\Throwable $e) {
+                                            \Log::error('awards/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         @role('company')
                                             <td>{{ $award->employee->name ?? '' }}</td>
@@ -112,7 +109,7 @@
                                                         <a id="{{ $editBtnId }}"
                                                            href="{{ $editRoute }}"
                                                            data-url="{{ $editRoute }}"
-                                                           data-guard-msg="{{ $editMsg }}"
+                                                           data-guard-msg="{{ base64_encode($editMsg) }}"
                                                            data-size="lg"
                                                            data-ajax-popup="true"
                                                            data-title="{{ __('Edit Award') }}"
@@ -158,5 +155,6 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/awards/index.js') }}"></script>
 @endpush

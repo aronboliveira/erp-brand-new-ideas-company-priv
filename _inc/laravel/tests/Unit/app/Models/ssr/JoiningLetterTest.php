@@ -6,13 +6,22 @@ namespace Tests\Unit\Models;
 use App\Models\{JoiningLetter, Utility};
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class JoiningLetterTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -22,7 +31,10 @@ class JoiningLetterTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['id', 'lang', 'content', 'created_by'];
+		$expected = [
+			'lang',
+			'content',
+		];
 		$this->assertSame($expected, (new JoiningLetter)->getFillable());
 	}
 
@@ -36,7 +48,7 @@ class JoiningLetterTest extends TestCase
 	public function replace_variable_applies_settings_and_obj_values(): void
 	{
 		// Mock Utility::settings() to provide predictable values
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -78,7 +90,7 @@ class JoiningLetterTest extends TestCase
 	public function replace_variable_handles_missing_values_as_dash(): void
 	{
 		// Mock Utility::settings() to return empty strings for company data
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -103,7 +115,7 @@ class JoiningLetterTest extends TestCase
 	public function default_joining_letter_register_creates_expected_number_of_records(): void
 	{
 		// Count of languages in defaultJoiningLetterRegister: ar, zh, da, de, en, es, fr, he, it, ja, nl, pl, pt, ru, tr, pt-br = 16
-		$createMock = Mockery::mock('alias:' . JoiningLetter::class)
+		$createMock = $this->aliasMock(JoiningLetter::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)

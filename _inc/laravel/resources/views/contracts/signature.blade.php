@@ -1,11 +1,9 @@
 @php
-    use App\Config\Constants\{
-        PermissionsConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-    };
-    use Illuminate\Support\Facades\Auth;
-    $user = Auth::user();
+    try {
+$user = Auth::user();
+    } catch (\Throwable $e) {
+        \Log::error('contracts/signature — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(!empty($contract) && isset($contract->id))
     <form id='form_pad' method="post" enctype="multipart/form-data">
@@ -14,19 +12,19 @@
             <div class="row">
             @csrf
                 <input type="hidden" name="contract_id" value="{{$contract->id}}">
-                <div class="form-control" >
+                <div class="{{ VC::FM_CT }}" >
                     <canvas id="signature-pad" class="signature-pad" height=200 ></canvas>
                     <input type="hidden" @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN) name="company_signature" @elseif($user?->{UsersConstants::COL_TP} === PermissionsConstants::CL ) name="client_signature" @endif id="SignupImage1">
                 </div>
-                <div class="mt-1">
+                <div class="{{ VC::MT1 }}">
                 <button type="button" class="btn-sm btn-danger" id="clearSig">{{__('Clear')}}</button>
                 </div>
 
             </div>
         </div>
         <div class="modal-footer">
-            <input type="button" value="{{__('Cancel')}}" class="btn btn-secondary btn-light" data-bs-dismiss="modal">
-            <input type="button" id="addSig" value="{{__('Sign')}}" class="btn btn-primary ms-2">
+            <input type="button" value="{{__('Cancel')}}" class="{{ VC::BT_SEC_LG }}" data-bs-dismiss="modal">
+            <input type="button" id="addSig" value="{{__('Sign')}}" class="{{ VC::BT_PRM }} {{ VC::MS2 }}">
         </div>
     </form>
     <script src="{{asset('assets/js/plugins/signature_pad/signature_pad.min.js')}}"></script>
@@ -71,7 +69,7 @@
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
                 t.innerHTML =
-                '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
             }
             const body = t.querySelector(".toast-body");
@@ -293,6 +291,6 @@
         </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Close')}}" class="btn btn-secondary btn-light" data-bs-dismiss="modal">
+        <input type="button" value="{{__('Close')}}" class="{{ VC::BT_SEC_LG }}" data-bs-dismiss="modal">
     </div>
 @endif

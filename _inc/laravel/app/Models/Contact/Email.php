@@ -8,13 +8,19 @@ use App\Config\Constants\{
     EmailsConstants as EC,
     MessagesConstants as MC
 };
-use App\Enums\AppModuleType;
-use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesAddresses, UsesUuids};
-use Carbon\Carbon;
+use App\Enums\{AppModuleType};
+use App\Traits\{
+	DefinesDates,
+	FiltersSecureAttachments,
+	HasAuditFields,
+	NormalizesAddresses,
+	UsesUuids
+};
+use Carbon\{Carbon};
 use Illuminate\Database\Eloquent\{Builder, Model, SoftDeletes};
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{DB, Log};
-use Illuminate\Support\Str;
 
 class Email extends Model
 {
@@ -33,7 +39,7 @@ class Email extends Model
     ];
 
     protected $fillable = [
-        EC::COL_TT,              // title
+        EC::COL_TT,
         'provider',
         'description',
         'body',
@@ -45,16 +51,16 @@ class Email extends Model
         'to',
         EC::COL_TO_ID,
 
-        AC::COL_IS_RPL,           // is_reply
+        AC::COL_IS_RPL,
         'thread',
         'cc',
         'bcc',
 
-        AC::COL_IS_FV,            // is_favorite
-        MC::COL_IS_DFT,           // is_draft
-        MC::COL_IS_TRS,           // is_trashed
-        MC::COL_IS_ARC,           // is_archived
-        MC::COL_IS_SPAM,          // is_spam
+        AC::COL_IS_FV,
+        MC::COL_IS_DFT,
+        MC::COL_IS_TRS,
+        MC::COL_IS_ARC,
+        MC::COL_IS_SPAM,
 
         DC::COL_MW_FREE,
         MC::COL_SNT_AT,
@@ -63,10 +69,10 @@ class Email extends Model
 
         EC::COL_D_URL,
         DC::COL_DOC_ID,
-        EC::COL_EM_KEY,               // unique identifier (legacy name "email")
+        EC::COL_EM_KEY,
 
-        AC::COL_MT,               // module_type
-        AC::COL_MI,               // module_id (legacy)
+        AC::COL_MT,
+        AC::COL_MI,
 
         'counter',
         'headers',
@@ -140,28 +146,7 @@ class Email extends Model
 
     protected static function booted(): void
     {
-        // todo too heavy for mocking, use only in production
-        // static::saving(function (self $m): void {
-        //     try {
-        //         $m->normalizeCoreStrings();
-        //         $m->normalizeUuids();
-        //         $m->ensureUniqueIdentifier();
-        //         $m->normalizeModuleType();
-        //         $m->normalizeJsonFields();
-        //         $m->normalizeFromToWithFallbacks();
-        //         $m->normalizeFlagsAndTimestamps();
-        //     } catch (\Throwable $e) {
-        //         Log::error(self::class . ' saving failed', [
-        //             'id'        => (string) ($m->getAttribute('id') ?? ''),
-        //             'from_id'   => (string) ($m->getAttribute(EC::COL_FROM_ID) ?? ''),
-        //             'to_id'     => (string) ($m->getAttribute(EC::COL_TO_ID) ?? ''),
-        //             'error'     => $e->getMessage(),
-        //             'method' => 'static::saving'
-        //         ]);
-        //         throw $e;
-        //     }
-        // });
-        static::addGlobalScope('order_created_desc', function (Builder $b): void {
+                                                                                                                                                                                static::addGlobalScope('order_created_desc', function (Builder $b): void {
             $b->reorder()->orderBy(DC::COL_C_AT, 'desc');
         });
     }
@@ -199,27 +184,42 @@ class Email extends Model
 
     public function getFromResolvedAttribute(): ?string
     {
-        $from = $this->getAttribute(EC::COL_FROM);
-        if (is_string($from) && trim($from) !== '') return $from;
+        try {
+            $from = $this->getAttribute(EC::COL_FROM);
+            if (is_string($from) && trim($from) !== '') return $from;
 
-        $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_FROM_ID) ?? ''));
-        return $resolved ?: $this->fallbackFromEmail();
+            $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_FROM_ID) ?? ''));
+            return $resolved ?: $this->fallbackFromEmail();
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getFromResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getToResolvedAttribute(): ?string
     {
-        $to = $this->getAttribute('to');
-        if (is_string($to) && trim($to) !== '') return $to;
+        try {
+            $to = $this->getAttribute('to');
+            if (is_string($to) && trim($to) !== '') return $to;
 
-        $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_TO_ID) ?? ''));
-        return $resolved ?: $this->fallbackToEmail();
+            $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_TO_ID) ?? ''));
+            return $resolved ?: $this->fallbackToEmail();
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getToResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getIsDeliverableAttribute(): bool
     {
-        $f = $this->getAttribute('from_resolved');
-        $t = $this->getAttribute('to_resolved');
-        return is_string($f) && $f !== '' && is_string($t) && $t !== '';
+        try {
+            $f = $this->getAttribute('from_resolved');
+            $t = $this->getAttribute('to_resolved');
+            return is_string($f) && $f !== '' && is_string($t) && $t !== '';
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getIsDeliverableAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return false;
+        }
     }
 
     public function getIsThreadedAttribute(): bool
@@ -236,22 +236,27 @@ class Email extends Model
 
     public function getRecipientsAllAttribute(): array
     {
-        $out = [];
+        try {
+            $out = [];
 
-        $to = $this->getAttribute('to_resolved');
-        if (is_string($to) && $to !== '') $out[] = $to;
+            $to = $this->getAttribute('to_resolved');
+            if (is_string($to) && $to !== '') $out[] = $to;
 
-        foreach (['cc', 'bcc'] as $k) {
-            $v = $this->getAttribute($k);
-            if (!is_array($v)) continue;
-            foreach ($v as $item) {
-                if (!is_string($item)) continue;
-                $item = trim($item);
-                if ($item !== '') $out[] = $item;
+            foreach (['cc', 'bcc'] as $k) {
+                $v = $this->getAttribute($k);
+                if (!is_array($v)) continue;
+                foreach ($v as $item) {
+                    if (!is_string($item)) continue;
+                    $item = trim($item);
+                    if ($item !== '') $out[] = $item;
+                }
             }
-        }
 
-        return array_values(array_unique($out));
+            return array_values(array_unique($out));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getRecipientsAllAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     public function scopeInboxFor(Builder $q, string $userId): Builder
@@ -274,256 +279,299 @@ class Email extends Model
 
     private function normalizeCoreStrings(): void
     {
-        foreach ([EC::COL_TT, 'provider', 'description', 'body', 'html', 'notes', EC::COL_D_URL] as $k) {
-            $raw = $this->getAttribute($k);
-            if ($raw === null) continue;
-            if (!is_string($raw)) {
-                $this->setAttribute($k, null);
-                continue;
+        try {
+            foreach ([EC::COL_TT, 'provider', 'description', 'body', 'html', 'notes', EC::COL_D_URL] as $k) {
+                $raw = $this->getAttribute($k);
+                if ($raw === null) continue;
+                if (!is_string($raw)) {
+                    $this->setAttribute($k, null);
+                    continue;
+                }
+                $v = trim($raw);
+                $this->setAttribute($k, $v === '' ? null : $v);
             }
-            $v = trim($raw);
-            $this->setAttribute($k, $v === '' ? null : $v);
-        }
 
-        $cnt = (int) ($this->getAttribute('counter') ?? 0);
-        $this->setAttribute('counter', max(0, $cnt));
+            $cnt = (int) ($this->getAttribute('counter') ?? 0);
+            $this->setAttribute('counter', max(0, $cnt));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeCoreStrings — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     private function normalizeUuids(): void
     {
-        foreach ([EC::COL_FROM_ID, EC::COL_TO_ID, DC::COL_DOC_ID, AC::COL_MI] as $k) {
-            $raw = $this->getAttribute($k);
-            if ($raw === null) continue;
+        try {
+            foreach ([EC::COL_FROM_ID, EC::COL_TO_ID, DC::COL_DOC_ID, AC::COL_MI] as $k) {
+                $raw = $this->getAttribute($k);
+                if ($raw === null) continue;
 
-            if (!is_string($raw)) {
-                $this->setAttribute($k, null);
-                continue;
+                if (!is_string($raw)) {
+                    $this->setAttribute($k, null);
+                    continue;
+                }
+
+                $v = trim($raw);
+                if ($v === '') $this->setAttribute($k, null);
+                elseif (!Utility::looksLikeUuid($v)) $this->setAttribute($k, null);
+                else $this->setAttribute($k, $v);
             }
-
-            $v = trim($raw);
-            if ($v === '') $this->setAttribute($k, null);
-            elseif (!Utility::looksLikeUuid($v)) $this->setAttribute($k, null);
-            else $this->setAttribute($k, $v);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeUuids — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     private function ensureUniqueIdentifier(): void
     {
-        $raw = $this->getAttribute(EC::COL_EM_KEY);
-        $candidateKey = null;
-        if (!is_string($raw) || trim($raw) === '') {
-            $retriesLimit = 1024;
-            do {
-                $retriesLimit--;
-                $candidateKey = (string) Str::uuid();
-            } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
-            if (!$retriesLimit) {
-                Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
-                    'method' => __METHOD__,
-                    'id'     => (string) ($this->getAttribute('id') ?? ''),
-                ]);
-                throw new \RuntimeException('Failed to generate unique email identifier');
+        try {
+            $raw = $this->getAttribute(EC::COL_EM_KEY);
+            $candidateKey = null;
+            if (!is_string($raw) || trim($raw) === '') {
+                $retriesLimit = 1024;
+                do {
+                    $retriesLimit--;
+                    $candidateKey = (string) Str::uuid();
+                } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
+                if (!$retriesLimit) {
+                    Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
+                        'method' => __METHOD__,
+                        'id'     => (string) ($this->getAttribute('id') ?? ''),
+                    ]);
+                    throw new \RuntimeException('Failed to generate unique email identifier');
+                }
+                !empty($candidateKey) && $this->setAttribute(EC::COL_EM_KEY, $candidateKey);
+            } else {
+                $v = trim($raw);
+                $retriesLimit = 1024;
+                do {
+                    $retriesLimit--;
+                    $candidateKey = (string) Str::uuid();
+                } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
+                if (!$retriesLimit) {
+                    Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
+                        'method' => __METHOD__,
+                        'id'     => (string) ($this->getAttribute('id') ?? ''),
+                    ]);
+                    throw new \RuntimeException('Failed to generate unique email identifier');
+                }
+                $this->setAttribute(EC::COL_EM_KEY, $v === '' ? (string) Str::uuid() : $v);
             }
-            !empty($candidateKey) && $this->setAttribute(EC::COL_EM_KEY, $candidateKey);
-        } else {
-            $v = trim($raw);
-            $retriesLimit = 1024;
-            do {
-                $retriesLimit--;
-                $candidateKey = (string) Str::uuid();
-            } while (self::where(EC::COL_EM_KEY, $candidateKey)->exists() && $retriesLimit > 0);
-            if (!$retriesLimit) {
-                Log::error(self::class . ' ensureUniqueIdentifier failed to generate unique key', [
-                    'method' => __METHOD__,
-                    'id'     => (string) ($this->getAttribute('id') ?? ''),
-                ]);
-                throw new \RuntimeException('Failed to generate unique email identifier');
-            }
-            $this->setAttribute(EC::COL_EM_KEY, $v === '' ? (string) Str::uuid() : $v);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::ensureUniqueIdentifier — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     private function normalizeModuleType(): void
     {
-        $raw  = $this->getAttribute(AC::COL_MT);
-        $enum = $raw instanceof AppModuleType ? $raw : AppModuleType::normalize(is_string($raw) ? $raw : null);
-        $this->setAttribute(AC::COL_MT, $enum->value);
+        try {
+            $raw  = $this->getAttribute(AC::COL_MT);
+            $enum = $raw instanceof AppModuleType ? $raw : AppModuleType::normalize(is_string($raw) ? $raw : null);
+            $this->setAttribute(AC::COL_MT, $enum->value);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeModuleType — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     private function normalizeJsonFields(): void
     {
-        $thread = $this->getAttribute('thread');
-        if (is_string($thread))
-            $thread = self::normalizeArrayField($thread);
+        try {
+            $thread = $this->getAttribute('thread');
+            if (is_string($thread))
+                $thread = self::normalizeArrayField($thread);
 
-        if (is_array($thread)) {
-            $filtered = [];
-            foreach ($thread as $id) {
-                if (!is_string($id)) continue;
-                $id = trim($id);
-                if ($id !== '' && Utility::looksLikeUuid($id)) $filtered[] = $id;
+            if (is_array($thread)) {
+                $filtered = [];
+                foreach ($thread as $id) {
+                    if (!is_string($id)) continue;
+                    $id = trim($id);
+                    if ($id !== '' && Utility::looksLikeUuid($id)) $filtered[] = $id;
+                }
+                $this->setAttribute('thread', array_values(array_unique($filtered)));
+            } elseif ($thread !== null) {
+                $this->setAttribute('thread', null);
             }
-            $this->setAttribute('thread', array_values(array_unique($filtered)));
-        } elseif ($thread !== null) {
-            $this->setAttribute('thread', null);
+
+            foreach (['cc', 'bcc'] as $k) {
+                $v = $this->getAttribute($k);
+                if (is_string($v))
+                    $v = self::normalizeArrayField($v);
+
+                if (!is_array($v)) {
+                    $this->setAttribute($k, null);
+                    continue;
+                }
+
+                $out = [];
+                foreach ($v as $item) {
+                    if (!is_string($item)) continue;
+                    $norm = self::normalizeEmail($item, "email.{$k}", (string) ($this->getAttribute('id') ?? ''));
+                    if (is_string($norm) && trim($norm) !== '') $out[] = $norm;
+                }
+                $this->setAttribute($k, $out ? array_values(array_unique($out)) : null);
+            }
+
+            $this->ensureJsonAttributesAreEncoded([
+                'thread',
+                'cc',
+                'bcc',
+                'headers',
+                'attachments',
+                'templates',
+                'variables',
+                'settings',
+                DC::COL_MW_SCAN,
+                'metadata',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeJsonFields — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
-
-        foreach (['cc', 'bcc'] as $k) {
-            $v = $this->getAttribute($k);
-            if (is_string($v))
-                $v = self::normalizeArrayField($v);
-
-            if (!is_array($v)) {
-                $this->setAttribute($k, null);
-                continue;
-            }
-
-            $out = [];
-            foreach ($v as $item) {
-                if (!is_string($item)) continue;
-                $norm = self::normalizeEmail($item, "email.{$k}", (string) ($this->getAttribute('id') ?? ''));
-                if (is_string($norm) && trim($norm) !== '') $out[] = $norm;
-            }
-            $this->setAttribute($k, $out ? array_values(array_unique($out)) : null);
-        }
-
-        $this->ensureJsonAttributesAreEncoded([
-            'thread',
-            'cc',
-            'bcc',
-            'headers',
-            'attachments',
-            'templates',
-            'variables',
-            'settings',
-            DC::COL_MW_SCAN,
-            'metadata',
-        ]);
     }
 
     private function normalizeFromToWithFallbacks(): void
     {
-        $from = $this->getAttribute(EC::COL_FROM);
-        $to   = $this->getAttribute('to');
+        try {
+            $from = $this->getAttribute(EC::COL_FROM);
+            $to   = $this->getAttribute('to');
 
-        if (is_string($from)) $from = self::normalizeEmail($from, 'email.from', (string) ($this->getAttribute('id') ?? ''));
-        if (is_string($to))   $to   = self::normalizeEmail($to, 'email.to', (string) ($this->getAttribute('id') ?? ''));
+            if (is_string($from)) $from = self::normalizeEmail($from, 'email.from', (string) ($this->getAttribute('id') ?? ''));
+            if (is_string($to))   $to   = self::normalizeEmail($to, 'email.to', (string) ($this->getAttribute('id') ?? ''));
 
-        $this->setAttribute(EC::COL_FROM, (is_string($from) && trim($from) !== '') ? $from : null);
-        $this->setAttribute('to', (is_string($to) && trim($to) !== '') ? $to : null);
+            $this->setAttribute(EC::COL_FROM, (is_string($from) && trim($from) !== '') ? $from : null);
+            $this->setAttribute('to', (is_string($to) && trim($to) !== '') ? $to : null);
 
-        if (!$this->getAttribute(EC::COL_FROM)) {
-            $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_FROM_ID) ?? ''));
-            $this->setAttribute(EC::COL_FROM, $resolved ?: $this->fallbackFromEmail());
-        }
+            if (!$this->getAttribute(EC::COL_FROM)) {
+                $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_FROM_ID) ?? ''));
+                $this->setAttribute(EC::COL_FROM, $resolved ?: $this->fallbackFromEmail());
+            }
 
-        if (!$this->getAttribute('to')) {
-            $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_TO_ID) ?? ''));
-            $this->setAttribute('to', $resolved ?: $this->fallbackToEmail());
+            if (!$this->getAttribute('to')) {
+                $resolved = $this->resolveUserEmail((string) ($this->getAttribute(EC::COL_TO_ID) ?? ''));
+                $this->setAttribute('to', $resolved ?: $this->fallbackToEmail());
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeFromToWithFallbacks — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     private function normalizeFlagsAndTimestamps(): void
     {
-        foreach ([AC::COL_IS_RPL, AC::COL_IS_FV, MC::COL_IS_DFT, MC::COL_IS_TRS, MC::COL_IS_ARC, MC::COL_IS_SPAM, DC::COL_MW_FREE, MC::COL_IS_RD] as $k) {
-            $this->setAttribute($k, (bool) ($this->getAttribute($k) ?? false));
-        }
-
-        $now = Carbon::now('America/Sao_Paulo');
-
-        $sent = $this->getAttribute(MC::COL_SNT_AT);
-        $read = $this->getAttribute(MC::COL_RD_AT);
-
         try {
-            if ($sent) {
-                $sentAt = $sent instanceof Carbon ? $sent : Carbon::parse((string) $sent, 'America/Sao_Paulo');
-                if ($sentAt->isFuture()) $sentAt = $now;
-                $this->setAttribute(MC::COL_SNT_AT, $sentAt);
+            foreach ([AC::COL_IS_RPL, AC::COL_IS_FV, MC::COL_IS_DFT, MC::COL_IS_TRS, MC::COL_IS_ARC, MC::COL_IS_SPAM, DC::COL_MW_FREE, MC::COL_IS_RD] as $k) {
+                $this->setAttribute($k, (bool) ($this->getAttribute($k) ?? false));
             }
-        } catch (\Throwable $e) {
-            Log::warning(self::class . ' invalid sent_at', [
-                'error' => $e->getMessage(),
-                'method' => __METHOD__,
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'original' => is_string($sent) ? $sent : '#NULL',
-            ]);
-            $this->setAttribute(MC::COL_SNT_AT, null);
-        }
 
-        $isRead = (bool) $this->getAttribute(MC::COL_IS_RD);
+            $now = Carbon::now('America/Sao_Paulo');
 
-        if (!$isRead)
-            $this->setAttribute(MC::COL_RD_AT, null);
-        else {
+            $sent = $this->getAttribute(MC::COL_SNT_AT);
+            $read = $this->getAttribute(MC::COL_RD_AT);
+
             try {
-                $readAt = $read ? ($read instanceof Carbon ? $read : Carbon::parse((string) $read, 'America/Sao_Paulo')) : $now;
-                if ($readAt->isFuture()) $readAt = $now;
-
-                $sentAt = $this->getAttribute(MC::COL_SNT_AT);
-                if ($sentAt instanceof Carbon && $readAt->lt($sentAt)) $readAt = $sentAt;
-
-                $this->setAttribute(MC::COL_RD_AT, $readAt);
+                if ($sent) {
+                    $sentAt = $sent instanceof Carbon ? $sent : Carbon::parse((string) $sent, 'America/Sao_Paulo');
+                    if ($sentAt->isFuture()) $sentAt = $now;
+                    $this->setAttribute(MC::COL_SNT_AT, $sentAt);
+                }
             } catch (\Throwable $e) {
-                Log::warning(self::class . ' invalid read_at', [
+                Log::warning(self::class . ' invalid sent_at', [
                     'error' => $e->getMessage(),
                     'method' => __METHOD__,
                     'line' => $e->getLine(),
                     'file' => $e->getFile(),
-                    'original' => is_string($read) ? $read : '#NULL',
+                    'original' => is_string($sent) ? $sent : '#NULL',
                 ]);
-                $this->setAttribute(MC::COL_RD_AT, null);
-                $this->setAttribute(MC::COL_IS_RD, false);
+                $this->setAttribute(MC::COL_SNT_AT, null);
             }
+
+            $isRead = (bool) $this->getAttribute(MC::COL_IS_RD);
+
+            if (!$isRead)
+                $this->setAttribute(MC::COL_RD_AT, null);
+            else {
+                try {
+                    $readAt = $read ? ($read instanceof Carbon ? $read : Carbon::parse((string) $read, 'America/Sao_Paulo')) : $now;
+                    if ($readAt->isFuture()) $readAt = $now;
+
+                    $sentAt = $this->getAttribute(MC::COL_SNT_AT);
+                    if ($sentAt instanceof Carbon && $readAt->lt($sentAt)) $readAt = $sentAt;
+
+                    $this->setAttribute(MC::COL_RD_AT, $readAt);
+                } catch (\Throwable $e) {
+                    Log::warning(self::class . ' invalid read_at', [
+                        'error' => $e->getMessage(),
+                        'method' => __METHOD__,
+                        'line' => $e->getLine(),
+                        'file' => $e->getFile(),
+                        'original' => is_string($read) ? $read : '#NULL',
+                    ]);
+                    $this->setAttribute(MC::COL_RD_AT, null);
+                    $this->setAttribute(MC::COL_IS_RD, false);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeFlagsAndTimestamps — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     private function resolveUserEmail(string $userId): ?string
     {
-        $userId = trim($userId);
-        if ($userId === '' || !Utility::looksLikeUuid($userId)) return null;
-
-        if (array_key_exists($userId, self::$cache['user_email']))
-            return self::$cache['user_email'][$userId];
-
         try {
-            $email = (string) (DB::table(DC::TABLE_USERS)->where('id', $userId)->value('email') ?? '');
-            $email = self::normalizeEmail($email, 'user.email', $userId);
-            self::$cache['user_email'][$userId] = (is_string($email) && trim($email) !== '') ? $email : null;
-        } catch (\Throwable $e) {
-            Log::debug(self::class . ' failed resolving user email', [
-                'user_id' => $userId,
-                'error'   => $e->getMessage(),
-            ]);
-            self::$cache['user_email'][$userId] = null;
-        }
+            $userId = trim($userId);
+            if ($userId === '' || !Utility::looksLikeUuid($userId)) return null;
 
-        return self::$cache['user_email'][$userId];
+            if (array_key_exists($userId, self::$cache['user_email']))
+                return self::$cache['user_email'][$userId];
+
+            try {
+                $email = (string) (DB::table(DC::TABLE_USERS)->where('id', $userId)->value('email') ?? '');
+                $email = self::normalizeEmail($email, 'user.email', $userId);
+                self::$cache['user_email'][$userId] = (is_string($email) && trim($email) !== '') ? $email : null;
+            } catch (\Throwable $e) {
+                Log::debug(self::class . ' failed resolving user email', [
+                    'user_id' => $userId,
+                    'error'   => $e->getMessage(),
+                ]);
+                self::$cache['user_email'][$userId] = null;
+            }
+
+            return self::$cache['user_email'][$userId];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::resolveUserEmail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     private function fallbackFromEmail(): ?string
     {
-        if (array_key_exists('from', self::$cache['fallback']))
+        try {
+            if (array_key_exists('from', self::$cache['fallback']))
+                return self::$cache['fallback']['from'];
+
+            self::$cache['fallback']['from'] =
+                $this->emailFromSystemUser()
+                ?: $this->emailFromAnyAdmin(['super admin', 'admin'])
+                ?: $this->emailFromAnyUser();
+
             return self::$cache['fallback']['from'];
-
-        self::$cache['fallback']['from'] =
-            $this->emailFromSystemUser()
-            ?: $this->emailFromAnyAdmin(['super admin', 'admin'])
-            ?: $this->emailFromAnyUser();
-
-        return self::$cache['fallback']['from'];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::fallbackFromEmail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     private function fallbackToEmail(): ?string
     {
-        if (array_key_exists('to', self::$cache['fallback']))
+        try {
+            if (array_key_exists('to', self::$cache['fallback']))
+                return self::$cache['fallback']['to'];
+
+            self::$cache['fallback']['to'] =
+                $this->emailFromAnyAdmin(['super admin', 'admin'])
+                ?: $this->emailFromAnyUser();
+
             return self::$cache['fallback']['to'];
-
-        self::$cache['fallback']['to'] =
-            $this->emailFromAnyAdmin(['super admin', 'admin'])
-            ?: $this->emailFromAnyUser();
-
-        return self::$cache['fallback']['to'];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::fallbackToEmail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     private function emailFromSystemUser(): ?string

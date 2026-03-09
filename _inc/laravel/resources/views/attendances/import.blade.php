@@ -1,10 +1,5 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Facades\Storage, Str};
-	use InvalidArgumentException;
-	$lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
 	$formId = 'import-employee-attendance-form';
 	$importBaseName = ViewsConstants::EMP_ATD . '.import';
 	$importResolved = null;
@@ -76,7 +71,7 @@
 		<div class="{{ VC::RW }}">
 			<div class="{{ VC::C12 }} mb-6">
 				{{ Form::label('file', $downloadSampleLabel, ['class' => VC::FM_LB]) }}
-				<a id="{{ $sampleLinkId }}" href="{{ $sampleUrl }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $sampleUrl }}" data-guard-msg="{{ $sampleGuardMsg }}" data-sv-localized="true">
+				<a id="{{ $sampleLinkId }}" href="{{ $sampleUrl }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $sampleUrl }}" data-guard-msg="{{ base64_encode($sampleGuardMsg) }}" data-sv-localized="true">
 					<i class="{{ VC::TI_DWN }}"></i> {{ $downloadLabel }}
 				</a>
 			</div>

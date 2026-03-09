@@ -1,15 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants as ST,
-		ViewsConstants as VW,
-		ViewClassNamesConstants as VC
-	};
-	use App\Models\{Job, Utility};
-	use Illuminate\Support\Facades\{Log, Route};
-	use Illuminate\Support\{Collection, Str};
-	$data ??= [];
+$data ??= [];
 	$logo ??= '';
 	$colorSettings ??= [];
 	$color ??= '';
@@ -39,9 +29,10 @@
 	}
 	$data = Utility::fallbackSettings($data);
 	$lang = Utility::fetchUserLang();
+	$companySettings ??= [];
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $lang ? str_replace('_','-',is_string(app()->getLocale())?app()->getLocale():DatabaseConstants::DEFAULT_LANG) }}">
+<html lang="{{ $lang ? str_replace('_','-',is_string(app()->getLocale())?app()->getLocale():DatabaseConstants::DEFAULT_LANG) : DatabaseConstants::DEFAULT_LANG }}">
 	<head>
 		@include('fragments.std',['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_vp'=>'shrink-to-fit=no'])
 		<title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('Career') }}</title>
@@ -66,17 +57,19 @@
 			<div class="job-content">
 				<nav class="{{ VC::NVB }}">
 					<div class="{{ VC::CT }}">
-						@php $companyLogo = !empty($company_logos) ? $company_logos : ST::CPN_LG_LT_DEF; @endphp
+						@php
+ $companyLogo = !empty($company_logos) ? $company_logos : SC::CPN_LG_LT_DEF;
+@endphp
 						<a class="{{ VC::NVB_BR }}" href="#">
-							<img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="{{ __('logo') }}" style="width:90px">
+							<img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="logo" style="width:90px">
 						</a>
 					</div>
 				</nav>
 				<section class="job-banner">
 					<div class="job-banner-bg"><img src="{{ asset('/storage/uploads/job/banner.png') }}" alt=""></div>
 					<div class="{{ VC::CT }}">
-						<div class="job-banner-content text-center text-white">
-							<h1 class="text-white mb-3">{{ __(' We help') }} <br> {{ __('businesses grow') }}</h1>
+						<div class="job-banner-content {{ VC::TXCT }} {{ VC::TXT_WT }}">
+							<h1 class="{{ VC::TXT_WT }} {{ VC::MB3 }}">{{ __(' We help') }} <br> {{ __('businesses grow') }}</h1>
 							<p>{{ __('Work there. Find the dream job you’ve always wanted..') }}</p>
 						</div>
 					</div>
@@ -84,63 +77,73 @@
 				<section class="placedjob-section">
 					<div class="{{ VC::CT }}">
 						<div class="section-title bg-light">
-							@php $totaljob = Job::where('created_by',$id ?? null)->count(); @endphp
-							<h2 class="h1 mb-3"><span class="text-primary">+{{ (int) $totaljob }}</span> {{ __('Job openings') }}</h2>
+							@php
+ $totaljob = Job::where('created_by',$id ?? null)->count();
+@endphp
+							<h2 class="h1 {{ VC::MB3 }}"><span class="{{ VC::TX_PM }}">+{{ (int) $totaljob }}</span> {{ __('Job openings') }}</h2>
 							<p>{{ __('Always looking for better ways to do things, innovate') }} <br> {{ __('and help people achieve their goals') }}.</p>
 						</div>
 						<div class="row g-4">
 							@if((is_array($jobs ?? null) && count($jobs ?? [])) || (($jobs ?? null) instanceof Collection && $jobs->isNotEmpty()))
 								@foreach($jobs as $job)
 									@php
-										$branch = data_get($job,'branches.name');
-										$code = data_get($job,'code');
-										$langCode = data_get($job,'createdBy.lang',DatabaseConstants::DEFAULT_LANG);
-										$title = data_get($job,'title',__('No job title available'));
-										$skills = array_filter(array_map('trim',explode(',',(string) data_get($job,'skill',''))));
-										$positions = (int) data_get($job,'position',0);
-									@endphp
-									<div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 job-card">
+										try {
+										    $branch = data_get($job,'branches.name');
+										    $code = data_get($job,'code');
+										    $langCode = data_get($job,'createdBy.lang',DatabaseConstants::DEFAULT_LANG);
+										    $title = data_get($job,'title',__('No job title available'));
+										    $skills = array_filter(array_map('trim',explode(',',(string) data_get($job,'skill',''))));
+										    $positions = (int) data_get($job,'position',0);
+										} catch (\Throwable $e) {
+										    \Log::error('jobs/career — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+										}
+@endphp
+									<div class="{{ VC::CXL3 }} {{ VC::CL4 }} {{ VC::CM6 }} {{ VC::CS6 }} job-card">
 										<div class="job-card-body">
-											<div class="d-flex mb-3 align-items-center justify-content-between">
+											<div class="{{ VC::DFL }} {{ VC::MB3 }} {{ VC::ALC }} {{ VC::JCB }}">
 												<img src="{{ asset('/storage/uploads/job/figma.png') }}" alt="">
 												<span>{{ !empty($branch) ? $branch : __('No branch name available') }} <i class="ti ti-map-pin ms-1"></i></span>
 											</div>
-											<h5 class="mb-3">
-												<a href="{{ $reqUrl }}" class="text-dark job-requirement-link" data-url="{{ $reqUrl }}">{{ $title }}</a>
+											<h5 class="{{ VC::MB3 }}">
+												<a href="{{ $reqUrl }}" class="{{ VC::TX_DK }} job-requirement-link" data-url="{{ $reqUrl }}">{{ $title }}</a>
 											</h5>
-											<div class="d-flex mb-3 align-items-start flex-column flex-xl-row flex-md-row flex-lg-column">
-												<span class="d-inline-block me-2"><i class="ti ti-circle-plus"></i> {{ $positions }} {{ __('position available') }}</span>
+											<div class="{{ VC::DFL }} {{ VC::MB3 }} align-items-start flex-column flex-xl-row flex-md-row flex-lg-column">
+												<span class="d-inline-block me-2"><i class="{{ VC::TI_CC_PLS }}"></i> {{ $positions }} {{ __('position available') }}</span>
 											</div>
-											<div class="d-flex flex-wrap gap-1 align-items-center">
+											<div class="{{ VC::DFL }} flex-wrap gap-1 {{ VC::ALC }}">
 												@if(Utility::isFilled($skills) ?? [])
 													@foreach($skills as $sk)
-														<span class="badge rounded p-2 bg-primary">{{ $sk }}</span>
+														<span class="badge rounded p-2 {{ VC::BG_P }}">{{ $sk }}</span>
 													@endforeach
 												@else
-													<span class="badge rounded p-2 bg-primary">{{ __('No skills available') }}</span>
+													<span class="badge rounded p-2 {{ VC::BG_P }}">{{ __('No skills available') }}</span>
 												@endif
 											</div>
 											@php
-													$jobCode               = isset($code) ? (string) $code : '';
-													$langCodeStr           = isset($langCode) ? (string) $langCode : app()->getLocale();
+													try {
+													    $jobCode               = isset($code) ? (string) $code : '';
+													    $langCodeStr           = isset($langCode) ? (string) $langCode : app()->getLocale();
 
-													$reqBase               = VW::JB.'.requirement';
-													$reqKebab              = Str::kebab($reqBase);
-													$reqResolved           = Route::has($reqBase) ? $reqBase : (Route::has($reqKebab) ? $reqKebab : null);
-													$reqUrl                = ($reqResolved && $jobCode !== '') ? route($reqResolved, [$jobCode, $langCodeStr]) : '#';
+													    $reqBase               = VW::JB.'.requirement';
+													    $reqKebab              = Str::kebab($reqBase);
+													    $reqResolved           = Route::has($reqBase) ? $reqBase : (Route::has($reqKebab) ? $reqKebab : null);
+													    $reqUrl                = ($reqResolved && $jobCode !== '') ? route($reqResolved, [$jobCode, $langCodeStr]) : '#';
 
-													$reqGuardMsg           = Utility::fetchLinkMessage($lang, VW::JB, 'requirement_job_route_unavailable')
-																										?? 'Job requirement route is unavailable. Please contact technical support or your domain administrator.';
+													    $reqGuardMsg           = Utility::fetchLinkMessage($lang, VW::JB, 'requirement_job_route_unavailable')
+													    													?? 'Job requirement route is unavailable. Please contact technical support or your domain administrator.';
 
-													$reqLinkId             = 'job-requirement-link-'.($jobCode !== '' ? $jobCode : 'x');
-											@endphp
+													    $reqLinkId             = 'job-requirement-link-'.($jobCode !== '' ? $jobCode : 'x');
+													} catch (\Throwable $e) {
+													    \Log::error('jobs/career — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+													}
+@endphp
 
 											<a
 													id="{{ $reqLinkId }}"
 													href="{{ $reqUrl }}"
-													class="btn btn-primary w-100 mt-4 job-requirement-link"
+													class="{{ VC::BT_PRM }} {{ VC::W100 }} {{ VC::MT4 }} job-requirement-link"
 													data-url="{{ $reqUrl }}"
-													data-guard-msg="{{ $reqGuardMsg }}"
+													data-guard-msg="{{ base64_encode($reqGuardMsg) }}"
 													data-sv-localized="true"
 													{{ $reqUrl === '#' ? 'aria-disabled=true' : '' }}
 											>
@@ -151,7 +154,7 @@
 									</div>
 								@endforeach
 							@else
-								<div class="col-12"><p class="text-center my-4">{{ __('No jobs available') }}</p></div>
+								<div class="{{ VC::C12 }}"><p class="{{ VC::TXCT }} {{ VC::MY4 }}">{{ __('No jobs available') }}</p></div>
 							@endif
 						</div>
 					</div>
@@ -166,10 +169,8 @@
         <script async src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
         <script async src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
 				<script defer src="{{ asset('assets/js/routes/jobs/career.js') }}"></script>
-        @if($get_cookie['enable_cookie'] == 'on')
+        @if(is_array($get_cookie) && ($get_cookie['enable_cookie'] ?? '') == 'on')
             @includeIf(ExtendingLayoutsConstants::CKC)
         @endif
 	</body>
 </html>
-
-    

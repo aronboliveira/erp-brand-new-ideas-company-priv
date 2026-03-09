@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Database\Eloquent\Relations\HasOne,
 	Foundation\Testing\RefreshDatabase,
@@ -11,6 +12,11 @@ use App\Models\{IpRestrict, User};
 
 class IpRestrictTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -28,9 +34,7 @@ class IpRestrictTest extends TestCase
 
 		$ir = IpRestrict::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $ir->$field);
-		}
+		$this->assertFillableMatches($data, $ir);
 	}
 
 	/**
@@ -61,9 +65,9 @@ class IpRestrictTest extends TestCase
 	{
 		$relation = (new IpRestrict)->user();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('created_by',        $relation->getLocalKeyName());
+		$this->assertSame('created_by',                $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 }

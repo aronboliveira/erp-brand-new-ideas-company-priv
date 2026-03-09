@@ -22,7 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class UserContactSeeder extends Seeder
 {
 	private const OWNER_RATIO = 0.25;
-	private const MAX_PER_OWNER = 32;
+	// private const MAX_PER_OWNER = 32;
+	private const MAX_PER_OWNER = 4; /* original: 32 */
 
 	private const MAX_PICK_ATTEMPTS = 64;
 	private const MAX_UNIQUE_ATTEMPTS = 48;
@@ -101,9 +102,9 @@ class UserContactSeeder extends Seeder
 						emailIds: $emailIds
 					);
 
-					$out->writeln(
-						'Creating contact for owner ' . $ownerId . ' contact ' . $contactUserId . ' role ' . $role->value
-					);
+					// $out->writeln(
+					// 	'Creating contact for owner ' . $ownerId . ' contact ' . $contactUserId . ' role ' . $role->value
+					// );
 					UserContact::create($payload);
 
 					$created++;
@@ -542,8 +543,9 @@ class UserContactSeeder extends Seeder
 			$id = (string) ($o['id'] ?? '');
 			if ($id === '') continue;
 
-			$min = 8;
-			$max = self::MAX_PER_OWNER;
+			// $min = 8;
+			$min = min(1, self::MAX_PER_OWNER); /* original: 8; safe for any MAX_PER_OWNER */
+			$max = max(1, self::MAX_PER_OWNER);
 
 			$plan[$id] = random_int($min, $max);
 		}
@@ -569,6 +571,9 @@ class UserContactSeeder extends Seeder
 
 	private function adjustPlanToTarget(array $plan, int $target): array
 	{
+		// $target = $target; // ORIGINAL — unbounded
+		$target = min(2, $target); // HARD CAP
+
 		$ids = array_keys($plan);
 		if (empty($ids)) return $plan;
 
@@ -577,7 +582,7 @@ class UserContactSeeder extends Seeder
 		if ($sum === $target) return $plan;
 
 		$guard = 0;
-		while ($sum < $target && $guard++ < 4096) {
+		while ($sum < $target && $guard++ < 10) { // ORIGINAL guard: 4096
 			$changed = false;
 
 			foreach ($ids as $id) {
@@ -597,7 +602,7 @@ class UserContactSeeder extends Seeder
 		}
 
 		$guard = 0;
-		while ($sum > $target && $guard++ < 4096) {
+		while ($sum > $target && $guard++ < 10) { // ORIGINAL guard: 4096
 			foreach ($ids as $id) {
 				if ($sum <= $target) break;
 

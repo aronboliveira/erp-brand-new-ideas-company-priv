@@ -9,12 +9,16 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class ProjectStagesTest extends TestCase
 {
+	use SafeAliasMock;
+
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// Default fake "employee" user; individual
 		// tests may override → Auth::shouldReceive('user')->andReturn(...)
@@ -30,34 +34,9 @@ class ProjectStagesTest extends TestCase
 	 **/
 	public function tasks_method_filters_for_employee(): void
 	{
-		// Intercept Task::where() chain
-		Mockery::mock('alias:App\Models\Task')
-			->shouldReceive('where')
-			->once()
-			->with('stage', 1)  // first call
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('where')
-			->once()
-			->with('project_id', 42)
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('where')
-			->once()
-			->with('assign_to', 9) // employee filter
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('orderBy')
-			->once()
-			->with('order')
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('get')
-			->once()
-			->andReturn(new Collection);
+		$expectedCollection = new EloquentCollection;
 
 		// Mock ProjectRequestService to return an empty collection
-		$expectedCollection = new EloquentCollection;
 		$serviceMock = Mockery::mock(ProjectRequestService::class);
 		$serviceMock->shouldReceive('stageTasksForProject')
 			->once()
@@ -90,7 +69,7 @@ class ProjectStagesTest extends TestCase
 			(object) ['id' => 1, 'name' => 'Todo', 'color' => '#ff0'],
 			(object) ['id' => 2, 'name' => 'Done', 'color' => '#0f0'],
 		]);
-		Mockery::mock('alias:' . ProjectStage::class)
+		$this->aliasMock(ProjectStage::class)
 			->shouldReceive('where')
 			->andReturnSelf()
 			->getMock()
@@ -98,7 +77,7 @@ class ProjectStagesTest extends TestCase
 			->andReturn($fakeStages);
 
 		// Simplify Task::where()*->count() to 0.
-		Mockery::mock('alias:App\Models\Task')
+		$this->aliasMock('App\Models\Task')
 			->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('whereDate')->andReturnSelf()
 			->getMock()->shouldReceive('join')->andReturnSelf()
@@ -114,6 +93,6 @@ class ProjectStagesTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-	DatabaseConstants,
-	UsersConstants,
-	ViewsConstants
+	DatabaseConstants as DC,
+	UsersConstants as UC,
+	ViewsConstants as VW
 };
 use App\Models\JobStage;
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\{
 	View as ViewFacade
 };
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class JobStageController extends Controller
 {
@@ -30,6 +33,14 @@ class JobStageController extends Controller
 	private const PERM_CREATE = 'create job stage';
 	private const PERM_EDIT  = 'edit job stage';
 	private const PERM_DELETE = 'delete job stage';
+	public const IDX = 'index';
+	public const CRT = 'create';
+	public const STR = 'store';
+	public const SHW = 'show';
+	public const EDT = 'edit';
+	public const UPD = 'update';
+	public const DEL = 'destroy';
+
 
 	public function index(Request $req): RedirectResponse|View
 	{
@@ -39,8 +50,8 @@ class JobStageController extends Controller
 			if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 			if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
 			try {
-				$stages = JobStage::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->orderBy('order')->get();
-				$view = ViewsConstants::JB_STG . '.' . $action;
+				$stages = JobStage::where(DC::COL_TABLE_CREATOR, $u->creatorId())->orderBy('order')->get();
+				$view = VW::JB_STG . '.' . $action;
 				if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \RuntimeException('View not found'), $method);
 				Log::debug($method . ' loaded', ['count' => $stages->count()]);
 				return ViewFacade::make($view, compact('stages'));
@@ -58,7 +69,7 @@ class JobStageController extends Controller
 		return $this->measureProfile($action, function () use ($req, $action, $method) {
 			if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 			if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
-			$view = ViewsConstants::JB_STG . '.' . $action;
+			$view = VW::JB_STG . '.' . $action;
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \RuntimeException('View not found'), $method);
 			return ViewFacade::make($view);
 		}, []);
@@ -70,12 +81,12 @@ class JobStageController extends Controller
 		$cls = __CLASS__;
 		$method = __METHOD__;
 		return $this->measureProfile($action, function () use ($req, $jobStage, $action, $cls, $method) {
-			Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()->id, 'stage_id' => $jobStage->id]);
+			Log::debug($method . ' start', [UC::COL_USER_ID => $req->user()->id, 'stage_id' => $jobStage->id]);
 			try {
 				if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 				if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
 				if ($jobStage->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $method);
-				$view = ViewsConstants::JB_STG . '.' . $action;
+				$view = VW::JB_STG . '.' . $action;
 				if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \RuntimeException('View not found'), $method);
 				return ViewFacade::make($view, compact('jobStage'));
 			} catch (\Throwable $e) {
@@ -95,7 +106,7 @@ class JobStageController extends Controller
 			$v = Validator::make($req->all(), ['title' => 'required']);
 			if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
 			try {
-				JobStage::create(['title' => $req->input('title'), DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()]);
+				JobStage::create(['title' => $req->input('title'), DC::COL_TABLE_CREATOR => $u->creatorId()]);
 				Log::debug($method . ' created');
 				return redirect()->back()->with('success', __('Job stage successfully created.'));
 			} catch (\Throwable $e) {
@@ -112,7 +123,7 @@ class JobStageController extends Controller
 		return $this->measureProfile($action, function () use ($req, $jobStage, $action, $method) {
 			if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 			if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
-			$view = ViewsConstants::JB_STG . '.' . $action;
+			$view = VW::JB_STG . '.' . $action;
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \RuntimeException('View not found'), $method);
 			return ViewFacade::make($view, compact('jobStage'));
 		}, ['stage_id' => $jobStage->id]);
@@ -128,7 +139,7 @@ class JobStageController extends Controller
 			$v = Validator::make($req->all(), ['title' => 'required']);
 			if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
 			try {
-				$jobStage->update(['title' => $req->input('title'), DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()]);
+				$jobStage->update(['title' => $req->input('title'), DC::COL_TABLE_CREATOR => $u->creatorId()]);
 				Log::debug($method . ' updated', ['stage_id' => $jobStage->id]);
 				return redirect()->back()->with('success', __('Job stage successfully updated.'));
 			} catch (\Throwable $e) {
@@ -157,6 +168,7 @@ class JobStageController extends Controller
 		}, ['stage_id' => $jobStage->id]);
 	}
 
+	public const ORD = 'order';
 	public function order(Request $req): void
 	{
 		$action = __FUNCTION__;

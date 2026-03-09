@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Abstracts\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
-use function App\Http\Controllers\defaultUndefinedException;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class VerifyEmailController extends Controller
 {
@@ -21,15 +21,21 @@ class VerifyEmailController extends Controller
       try {
         $stepStart = microtime(true);
         if ($request->user()->hasVerifiedEmail())
-          return redirect()->intended(RouteServiceProvider::HOME . '?verified=1');
+          return redirect(RouteServiceProvider::HOME . '?verified=1');
         $this->logExecutionTime($stepStart, 'checkAlreadyVerified', 'completed');
         $stepStart = microtime(true);
         if ($request->user()->markEmailAsVerified()) event(new Verified($request->user()));
         $this->logExecutionTime($stepStart, 'markEmailVerified', 'completed');
-        return redirect()->intended(RouteServiceProvider::HOME . '?verified=1');
+        return redirect(RouteServiceProvider::HOME . '?verified=1');
       } catch (\Throwable $e) {
-        Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'user_id' => $request->user()->id, 'id' => $id]);
-        Log::error($method . ' - email verification failed', ['user_id' => $request->user()->id, 'id' => $id]);
+        Log::error($method . ' - email verification failed', [
+            'file' => __FILE__,
+            'class' => __CLASS__,
+            'error_class' => get_class($e),
+            'message' => $e->getMessage(),
+            'user_id' => $request->user()->id,
+            'id' => $id
+        ]);
         return defaultUndefinedException($request, $e, $method);
       }
     }, ['user_id' => $request->user()->id, 'id' => $id]);

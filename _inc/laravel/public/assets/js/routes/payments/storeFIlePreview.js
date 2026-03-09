@@ -1,7 +1,15 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
   try {
     const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-preview-target]')
+      document.querySelectorAll('input[type="file"][data-preview-target]'),
     );
     if (!inputs.length) return;
     inputs.forEach(inp => {

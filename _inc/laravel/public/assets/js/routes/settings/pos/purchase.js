@@ -1,39 +1,11 @@
+/** @requires ERPGuard */
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
+
   const DATA_LISTENER_ADDED = "data-listener-added";
-  const getMsg = (el, msgKey) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    )
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const key = msgKey;
-      msg =
-        window.translations?.[lang]?.[key] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[key] ||
-        errFb;
-      if (msg !== errFb) {
-        el?.setAttribute(dataGuardMsg, msg);
-        el?.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
   const showFeedback = (el, key, ev = "click") => {
-    const text = getMsg(el || document.body, key);
+    const text = guard.getMsg(key);
     const hasBs =
       document.querySelector('link[href*="bootstrap"]') &&
       window.bootstrap?.Toast;
@@ -46,7 +18,7 @@
         toast.setAttribute("role", "alert");
         toast.setAttribute("aria-live", "assertive");
         toast.setAttribute("aria-atomic", "true");
-        { toast.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = text; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); toast.append(_d); }
+        toast.innerHTML = `<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
         document.body.appendChild(toast);
       }
       const handler = () => new bootstrap.Toast(toast).show();

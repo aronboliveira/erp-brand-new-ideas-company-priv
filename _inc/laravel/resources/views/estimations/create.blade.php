@@ -1,27 +1,25 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-
-    $lang                = Utility::fetchUserLang();
-    $estStoreBase        = VW::EST;
-    $estStoreKebab       = Str::kebab($estStoreBase);
-    $estStoreResolved    = Route::has($estStoreBase) ? $estStoreBase : (Route::has($estStoreKebab) ? $estStoreKebab : null);
-    $estStoreUrl         = $estStoreResolved ? route($estStoreResolved) : '#';
-    $estStoreFormId      = 'estimate-store-form';
-    $estStoreGuardMsg    = Utility::fetchLinkMessage($lang, VW::EST, 'store_estimate_route_unavailable') ?? 'Store estimate route is unavailable. Please contact technical support or your domain administrator.';
-    $clientsIsList       = (is_array($client ?? null) && count($client ?? []) > 0) || (($client ?? null) instanceof Collection && $client->isNotEmpty());
-    $taxesIsList         = (is_array($taxes  ?? null) && count($taxes  ?? []) > 0) || (($taxes  ?? null) instanceof Collection && $taxes->isNotEmpty());
-    $clientOptions       = $clientsIsList ? (is_array($client) ? $client : $client->toArray()) : [__('No clients available')];
-    $taxOptions          = $taxesIsList   ? (is_array($taxes)  ? $taxes  : $taxes->toArray())  : [__('No taxes available')];
-    $taxIndexBase        = VW::TX.'.index';
-    $taxIndexKebab       = Str::kebab($taxIndexBase);
-    $taxIndexResolved    = Route::has($taxIndexBase) ? $taxIndexBase : (Route::has($taxIndexKebab) ? $taxIndexKebab : null);
-    $taxIndexUrl         = $taxIndexResolved ? route($taxIndexResolved) : '#';
-    $taxIndexLinkId      = 'tax-index-link';
-    $taxIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::TX, 'tx_index_route_unavailable') ?? 'Tax index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang                = Utility::fetchUserLang();
+        $estStoreBase        = VW::EST;
+        $estStoreKebab       = Str::kebab($estStoreBase);
+        $estStoreResolved    = Route::has($estStoreBase) ? $estStoreBase : (Route::has($estStoreKebab) ? $estStoreKebab : null);
+        $estStoreUrl         = $estStoreResolved ? route($estStoreResolved) : '#';
+        $estStoreFormId      = 'estimate-store-form';
+        $estStoreGuardMsg    = Utility::fetchLinkMessage($lang, VW::EST, 'store_estimate_route_unavailable') ?? 'Store estimate route is unavailable. Please contact technical support or your domain administrator.';
+        $clientsIsList       = (is_array($client ?? null) && count($client ?? []) > 0) || (($client ?? null) instanceof Collection && $client->isNotEmpty());
+        $taxesIsList         = (is_array($taxes  ?? null) && count($taxes  ?? []) > 0) || (($taxes  ?? null) instanceof Collection && $taxes->isNotEmpty());
+        $clientOptions       = $clientsIsList ? (is_array($client) ? $client : $client->toArray()) : [__('No clients available')];
+        $taxOptions          = $taxesIsList   ? (is_array($taxes)  ? $taxes  : $taxes->toArray())  : [__('No taxes available')];
+        $taxIndexBase        = VW::TX.'.index';
+        $taxIndexKebab       = Str::kebab($taxIndexBase);
+        $taxIndexResolved    = Route::has($taxIndexBase) ? $taxIndexBase : (Route::has($taxIndexKebab) ? $taxIndexKebab : null);
+        $taxIndexUrl         = $taxIndexResolved ? route($taxIndexResolved) : '#';
+        $taxIndexLinkId      = 'tax-index-link';
+        $taxIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::TX, 'tx_index_route_unavailable') ?? 'Tax index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('estimations/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="{{ VC::CD }} bg-none card-box">
@@ -68,7 +66,7 @@
                             id="{{ $taxIndexLinkId }}"
                             href="{{ $taxIndexUrl }}"
                             data-url="{{ $taxIndexUrl }}"
-                            data-guard-msg="{{ $taxIndexGuardMsg }}"
+                            data-guard-msg="{{ base64_encode($taxIndexGuardMsg) }}"
                             data-sv-localized="true"
                         >{{ __('here') }}</a>.
                     </div>

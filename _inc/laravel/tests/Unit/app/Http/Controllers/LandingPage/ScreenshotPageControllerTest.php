@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Modules\LandingPage;
+namespace Tests\Unit\app\Http\Controllers\LandingPage;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;

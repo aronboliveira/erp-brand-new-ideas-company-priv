@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\app\Http\Views\Components;
 
 use Tests\TestCase;
 use App\View\Components\GuestLayout;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 
-class GuestLayoutComponentTest extends TestCase
+class GuestLayoutTest extends TestCase
 {
 	/**
 	 ** @test

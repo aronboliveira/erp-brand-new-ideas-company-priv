@@ -1,156 +1,521 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{DatabaseConstants, ViewsConstants as VW};
+use App\Config\Constants\{DatabaseConstants as DC, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\LeaveType;
-use App\Traits\{ChecksLogin, ChecksPermissions};
+use App\Traits\{ChecksLogin, ChecksPermissions, ConsoleOutputs};
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\View as ViewFacade;
+use Illuminate\Support\{Arr, Facades\DB, Facades\Log, Facades\Redirect, Facades\Validator, Facades\View as ViewFacade};
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class LeaveTypeController extends Controller
 {
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, ConsoleOutputs;
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): View|RedirectResponse|JsonResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::LV_TP . '.index';
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::LV_TP . '.index';
 
-        return $this->measureProfile($action, function () use ($request, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'manage leave type', VW::LV_TP . '.index')) !== true) return $redirect;
-            $leaveTypes = LeaveType::query()
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-                ->get();
-            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::LV_TP . '.index'));
-            return view($view, compact('leaveTypes'));
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $leaveTypes ??= collect();
+            try {
+                if (($redirect = self::guard($request, 'manage leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+
+                $t = microtime(true);
+                $leaveTypes = LeaveType::query()
+                    ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->get() ?? $leaveTypes;
+                $this->logExecutionTime($t, $action . '::fetchLeaveTypes', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('leaveTypes'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            }
         });
     }
 
     public function create(Request $request): View|RedirectResponse|JsonResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::LV_TP . '.create';
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::LV_TP . '.create';
 
-        return $this->measureProfile($action, function () use ($request, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'create leave type', VW::LV_TP . '.index')) !== true) return $redirect;
-            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::LV_TP . '.index'));
-            return view($view);
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            try {
+                if (($redirect = self::guard($request, 'create leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath);
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            }
         });
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $action) {
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'create leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                $validator = Validator::make($request->all(), [
+                if (($redirect = self::guard($request, 'create leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
                     'title' => 'required',
-                    'days'  => 'required'
+                    'days' => 'required'
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                $createData = Arr::only($data, ['title', 'days']);
+                $createData[DC::COL_TABLE_CREATOR] = $user?->creatorId();
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
+                LeaveType::create($createData);
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully created.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
                 ]);
-                if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
-                $data = Arr::only($request->all(), ['title', 'days']);
-                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
-                LeaveType::create($data);
-                return redirect()->route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully created.'));
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function show(Request $request, LeaveType $leaveType): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-
-        return $this->measureProfile($action, function () use ($request, $leaveType) {
-            if ((self::_checkLogin()) instanceof RedirectResponse) return self::_checkLogin();
-            return redirect()->route(VW::LV_TP . '.index')->with([$request, $leaveType]);
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $leaveType, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user ??= $u;
+            try {
+                if (($leaveType->created_by ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException(), $method);
+                return Redirect::route(VW::LV_TP . '.index');
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                return defaultUndefinedException($request, $e, $method);
+            }
         });
     }
 
     public function edit(Request $request, LeaveType $leaveType): View|RedirectResponse|JsonResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = VW::LV_TP . '.edit';
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::LV_TP . '.edit';
 
-        return $this->measureProfile($action, function () use ($request, $leaveType, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $leaveType, $action, $method, $viewPath) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'edit leave type', VW::LV_TP . '.index')) !== true) return $redirect;
-            if ($leaveType->created_by !== $user?->creatorId())
-                return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
-            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::LV_TP . '.index'));
-            return view($view, compact('leaveType'));
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            try {
+                if (($redirect = self::guard($request, 'edit leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+                if (($leaveType->created_by ?? null) !== $user?->creatorId())
+                    return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'leave_type_id' => $leaveType?->id,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('leaveType'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            }
         });
     }
 
     public function update(Request $request, LeaveType $leaveType): RedirectResponse|JsonResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $leaveType, $action) {
+        return $this->measureProfile($action, function () use ($request, $leaveType, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'edit leave type', VW::LV_TP . '.index')) !== true) return $redirect;
-            if ($leaveType->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $action, route(VW::LV_TP . '.index'));
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                $validator = Validator::make($request->all(), [
+                if (($redirect = self::guard($request, 'edit leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+                if (($leaveType->created_by ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $method, route(VW::LV_TP . '.index'));
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
                     'title' => 'required',
-                    'days'  => 'required'
+                    'days' => 'required'
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                $updateData = Arr::only($data, ['title', 'days']);
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
+                $leaveType->update($updateData);
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully updated.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
                 ]);
-                if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
-                $data = Arr::only($request->all(), ['title', 'days']);
-                $leaveType->update($data);
-                return redirect()->route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully updated.'));
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function destroy(Request $request, LeaveType $leaveType): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $leaveType, $action) {
+        return $this->measureProfile($action, function () use ($request, $leaveType, $action, $method) {
+            $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'delete leave type', VW::LV_TP . '.index')) !== true) return $redirect;
-            if ($leaveType->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $action, route(VW::LV_TP . '.index'));
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $inTransaction ??= false;
             try {
+                if (($redirect = self::guard($request, 'delete leave type', VW::LV_TP . '.index')) !== true) return $redirect;
+                if (($leaveType->created_by ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $method, route(VW::LV_TP . '.index'));
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $leaveType->delete();
-                return redirect()->route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully deleted.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully deleted.'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'leave_type_id' => $leaveType?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }

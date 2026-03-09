@@ -1,61 +1,9 @@
 (() => {
-  try {
-    const f = document.getElementById("purchase-store-form");
-    if (!f) return;
-    const flag = "data-submit-listener";
-    if (f.hasAttribute(flag) && f.getAttribute(flag) === "true") return;
-    f.setAttribute(flag, "true");
-    f.addEventListener(
-      "submit",
-      function (e) {
-        try {
-          const action = f.getAttribute("action") || "#";
-          const url = f.getAttribute("data-url") || action || "#";
-          if (action !== "#" && url !== "#") return;
-          e.preventDefault();
-          const msg =
-            f.getAttribute("data-guard-msg") ||
-            "Store purchase route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            typeof window !== "undefined" &&
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
-          let container = document.getElementById("toast-container");
-          if (!container) {
-            container = document.createElement("div");
-            container.id = "toast-container";
-            container.className =
-              "toast-container position-fixed top-0 end-0 p-3";
-            container.style.zIndex = "1080";
-            container.className = "position-fixed top-0 end-0 p-3";
-            document.body.appendChild(container);
-          }
-          if (linkEl && hasBootstrapToast) {
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
-            const body = document.createElement("div");
-            body.className = "toast-body";
-            body.textContent = msg;
-            toast.appendChild(body);
-            container.appendChild(toast);
-            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-            toast.addEventListener("hidden.bs.toast", function () {
-              try {
-                toast.remove();
-              } catch (_) {}
-            });
-            inst.show();
-          } else {
-            alert(msg);
-          }
-          f.setAttribute("data-failed-route", "true");
-        } catch (_) {}
-      },
-      { passive: false }
-    );
-  } catch (_) {}
+  const guard = window.ERPGuard;
+  if (!guard) return;
+  guard.bindSubmitGuard("#purchase-store-form", {
+    msgKey: "action_unavailable",
+    fallbackMsg:
+      "Store purchase route is unavailable. Please contact technical support or your domain administrator.",
+  });
 })();

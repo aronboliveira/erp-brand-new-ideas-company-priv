@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shapes;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    MiddlewaresConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    UsersConstants,
-    ViewsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    MiddlewaresConstants as MWC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC,
+    ViewsConstants as VW
 };
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{
     FormBuilder,
     FormField,
@@ -24,6 +25,7 @@ use App\Models\{
     Utility
 };
 use App\Traits\ChecksLogin;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{
     JsonResponse,
     RedirectResponse,
@@ -37,7 +39,9 @@ use Illuminate\Support\Facades\{
     Validator,
     View as ViewFacade
 };
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
 class FormBuilderController extends Controller
 {
@@ -47,7 +51,7 @@ class FormBuilderController extends Controller
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+        $this->middleware([MWC::AUTH, MWC::XSS]);
     }
 
     public function index(): View|Response|RedirectResponse
@@ -55,18 +59,18 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.index';
+        $viewPath = VW::FM_BD . '.index';
 
         return $this->measureProfile($action, function () use ($sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", [UC::COL_USER_ID => $user?->id]);
 
-            if ($r = $this->_authorize(request(), PermissionsConstants::MNG_FM_BD)) return $r;
+            if ($r = $this->_authorize(request(), PMC::MNG_FM_BD)) return $r;
 
             $t = microtime(true);
-            $forms = FormBuilder::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+            $forms = FormBuilder::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
             $this->logExecutionTime($t, "$sig::fetchForms", 'completed');
 
             $t = microtime(true);
@@ -86,7 +90,7 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.create';
+        $viewPath = VW::FM_BD . '.create';
 
         return $this->measureProfile($action, function () use ($sig, $viewPath) {
             Log::info("$sig start");
@@ -123,20 +127,28 @@ class FormBuilderController extends Controller
             try {
                 $t = microtime(true);
                 $form = FormBuilder::create([
-                    'name'        => $req->name,
-                    'code'        => uniqid() . time(),
-                    'is_active'   => $req->boolean('is_active'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    'name'           => $req->name,
+                    'code'           => uniqid() . time(),
+                    AC::COL_IA       => $req->boolean(AC::COL_IA),
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::createFormTransaction", 'completed');
 
                 Log::info("$sig created", ['id' => $form->id]);
-                return redirect()->route(ViewsConstants::FM_BD . '.index')
+                return redirect()->route(VW::FM_BD . '.index')
                     ->with('success', __('Form successfully created.'));
+            } catch (ValidationException $e) {
+                DB::rollBack();
+                Log::error("$sig validation error", ['file' => __FILE__, 'class' => __CLASS__, 'error_class' => get_class($e), 'message' => $e->getMessage()]);
+                return redirect()->back()->with('error', $e->getMessage());
+            } catch (ModelNotFoundException $e) {
+                DB::rollBack();
+                Log::error("$sig model not found", ['file' => __FILE__, 'class' => __CLASS__, 'error_class' => get_class($e), 'message' => $e->getMessage()]);
+                return redirect()->back()->with('error', __('Resource not found.'));
             } catch (\Throwable $e) {
                 DB::rollBack();
-                Log::error("$sig failed", ['err' => $e->getMessage()]);
+                Log::error("$sig failed", ['file' => __FILE__, 'class' => __CLASS__, 'error_class' => get_class($e), 'message' => $e->getMessage()]);
                 return redirect()->back()->with('error', __('Unexpected error.'));
             }
         });
@@ -147,16 +159,16 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.show';
+        $viewPath = VW::FM_BD . '.show';
 
         return $this->measureProfile($action, function () use ($form, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", ['id' => $form->id, UC::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'manage form field')) return $r;
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("$sig denied", ['id' => $form->id]);
                 return response()->json(['error' => __('Permission Denied.')], 401);
             }
@@ -177,16 +189,16 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.edit';
+        $viewPath = VW::FM_BD . '.edit';
 
         return $this->measureProfile($action, function () use ($form, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", ['id' => $form->id, UC::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'edit form builder')) return $r;
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("$sig denied", ['id' => $form->id]);
                 return response()->json(['error' => __('Permission Denied.')], 401);
             }
@@ -212,8 +224,8 @@ class FormBuilderController extends Controller
             Log::info("$sig start", ['id' => $form->id, 'input' => $req->all()]);
 
             if ($r = $this->_authorize($req, 'edit form builder')) return $r;
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $req->user()->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
             $req->validate(['name' => 'required']);
@@ -221,12 +233,12 @@ class FormBuilderController extends Controller
 
             $form->update([
                 'name'           => $req->name,
-                'is_active'      => $req->boolean('is_active'),
+                AC::COL_IA       => $req->boolean(AC::COL_IA),
                 'is_lead_active' => false,
             ]);
 
             Log::info("$sig updated", ['id' => $form->id]);
-            return redirect()->route(ViewsConstants::FM_BD . '.index')
+            return redirect()->route(VW::FM_BD . '.index')
                 ->with('success', __('Form successfully updated.'));
         });
     }
@@ -241,11 +253,11 @@ class FormBuilderController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", ['id' => $form->id, UC::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'delete form builder')) return $r;
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
             DB::transaction(function () use ($form) {
@@ -257,7 +269,7 @@ class FormBuilderController extends Controller
             $this->logExecutionTime($t, "$sig::transaction", 'completed');
 
             Log::info("$sig deleted", ['id' => $form->id]);
-            return redirect()->route(ViewsConstants::FM_BD . '.index')
+            return redirect()->route(VW::FM_BD . '.index')
                 ->with('success', __('Form successfully deleted!'));
         });
     }
@@ -268,13 +280,13 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.fieldCreate';
+        $viewPath = VW::FM_BD . '.fieldCreate';
 
         return $this->measureProfile($action, function () use ($formId, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['form_id' => $formId, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", ['form_id' => $formId, UC::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'create form field')) return $r;
 
@@ -282,8 +294,8 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types = FormBuilder::$fieldTypes;
 
@@ -311,8 +323,8 @@ class FormBuilderController extends Controller
             if ($r = $this->_authorize($req, 'create form field')) return $r;
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $req->user()->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $names = $req->input('name', []);
             $types = $req->input('type', []);
@@ -324,7 +336,7 @@ class FormBuilderController extends Controller
                     'form_id'     => $formId,
                     'name'        => $val,
                     'type'        => $types[$key] ?? null,
-                    DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId(),
+                    DC::COL_TABLE_CREATOR => $req->user()->creatorId(),
                 ]);
             }
             $this->logExecutionTime($t, "$sig::createFields", 'completed');
@@ -339,7 +351,7 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.field_edit';
+        $viewPath = VW::FM_BD . '.field_edit';
 
         return $this->measureProfile($action, function () use ($formId, $fieldId, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -354,8 +366,8 @@ class FormBuilderController extends Controller
             $field = FormField::findOrFail($fieldId);
             $this->logExecutionTime($t, "$sig::findFormAndField", 'completed');
 
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types = FormBuilder::$fieldTypes;
 
@@ -387,8 +399,8 @@ class FormBuilderController extends Controller
             $this->logExecutionTime($t, "$sig::validate", 'completed');
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $req->user()->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
             FormField::findOrFail($fieldId)->update(['name' => $req->name, 'type' => $req->type]);
@@ -415,8 +427,8 @@ class FormBuilderController extends Controller
             if ($r = $this->_authorize(request(), 'delete form field')) return $r;
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
             $exists = FormFieldResponse::where(function ($q) use ($fieldId) {
@@ -428,7 +440,7 @@ class FormBuilderController extends Controller
 
             if ($exists) {
                 Log::warning("$sig bound field", ['field_id' => $fieldId]);
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Please remove this field from Convert Lead.'));
+                return redirect(self::REDIRECT_BACK)->with('error', __('Please remove this field from Convert Lead.'));
             }
 
             $t = microtime(true);
@@ -446,13 +458,13 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.response';
+        $viewPath = VW::FM_BD . '.response';
 
         return $this->measureProfile($action, function () use ($formId, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['form_id' => $formId, UsersConstants::COL_USER_ID => Auth::id()]);
+            Log::info("$sig start", ['form_id' => $formId, UC::COL_USER_ID => Auth::id()]);
 
             if ($r = $this->_authorize(request(), 'view form response')) return $r;
 
@@ -460,7 +472,7 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return response()->json(['error' => __('Permission Denied.')], 401);
 
             $t = microtime(true);
@@ -480,13 +492,13 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.response_detail';
+        $viewPath = VW::FM_BD . '.response_detail';
 
         return $this->measureProfile($action, function () use ($responseId, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['response_id' => $responseId, UsersConstants::COL_USER_ID => Auth::id()]);
+            Log::info("$sig start", ['response_id' => $responseId, UC::COL_USER_ID => Auth::id()]);
 
             if ($r = $this->_authorize(request(), 'view form response')) return $r;
 
@@ -495,7 +507,7 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($resp->form_id);
             $this->logExecutionTime($t, "$sig::findResponseAndForm", 'completed');
 
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return response()->json(['error' => __('Permission Denied.')], 401);
 
             $data = json_decode($resp->response, true);
@@ -517,7 +529,7 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.form_view';
+        $viewPath = VW::FM_BD . '.form_view';
 
         return $this->measureProfile($action, function () use ($code, $sig, $viewPath) {
             Log::info("$sig start", ['code' => $code]);
@@ -580,25 +592,25 @@ class FormBuilderController extends Controller
                         throw new \Exception('Email exists');
                     }
 
-                    $stage = LeadStage::where(ProjectsConstants::COL_PPL_ID, $mapping->pipeline_id)
-                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $form[DatabaseConstants::COL_TABLE_CREATOR])
+                    $stage = LeadStage::where(PJC::COL_PPL_ID, $mapping->pipeline_id)
+                        ->where(DC::COL_TABLE_CREATOR, $form[DC::COL_TABLE_CREATOR])
                         ->firstOrFail();
 
                     $lead = Lead::create([
                         'name'       => $req->field[$mapping->name_id] ?? '',
                         'email'      => $email,
                         'subject'    => $req->field[$mapping->subject_id] ?? '',
-                        UsersConstants::COL_USER_ID    => $mapping->user_id,
-                        ProjectsConstants::COL_PPL_ID  => $mapping->pipeline_id,
+                        UC::COL_USER_ID    => $mapping->user_id,
+                        PJC::COL_PPL_ID     => $mapping->pipeline_id,
                         'stage_id'   => $stage->id,
-                        DatabaseConstants::COL_TABLE_CREATOR => $form[DatabaseConstants::COL_TABLE_CREATOR],
+                        DC::COL_TABLE_CREATOR => $form[DC::COL_TABLE_CREATOR],
                         'date'       => now()->toDateString(),
                     ]);
 
                     UserLead::insert(array_map(fn($uid) => [
-                        UsersConstants::COL_USER_ID => $uid,
-                        'lead_id'                   => $lead->id
-                    ], [$form[DatabaseConstants::COL_TABLE_CREATOR], $mapping->user_id]));
+                        UC::COL_USER_ID => $uid,
+                        'lead_id'       => $lead->id
+                    ], [$form[DC::COL_TABLE_CREATOR], $mapping->user_id]));
                 });
                 $this->logExecutionTime($t, "$sig::leadTransaction", 'completed');
             }
@@ -613,29 +625,29 @@ class FormBuilderController extends Controller
         $action   = __FUNCTION__;
         $class    = static::class;
         $sig      = "$class::$action";
-        $viewPath = ViewsConstants::FM_BD . '.form_field';
+        $viewPath = VW::FM_BD . '.form_field';
 
         return $this->measureProfile($action, function () use ($formId, $sig, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            Log::info("$sig start", ['form_id' => $formId, UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("$sig start", ['form_id' => $formId, UC::COL_USER_ID => $user?->id]);
 
-            if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CPN)
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($user[UC::COL_TP] !== PMC::CPN)
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types     = $form->form_field->pluck('name', 'id');
             $binding   = FormFieldResponse::firstOrNew(['form_id' => $formId]);
-            $users     = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+            $users     = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                 ->where('type', '!=', 'client')->pluck('name', 'id');
-            $pipelines = Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             $t = microtime(true);
             if (!ViewFacade::exists($viewPath)) {
@@ -649,6 +661,14 @@ class FormBuilderController extends Controller
     }
 
     public const BD_STR = 'bindStore';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function bindStore(Request $req, int|string $formId): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -661,12 +681,12 @@ class FormBuilderController extends Controller
 
             Log::info("$sig start", ['form_id' => $formId, 'input' => $req->all()]);
 
-            if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CPN)
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($user[UC::COL_TP] !== PMC::CPN)
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            if ($form[DC::COL_TABLE_CREATOR] !== $user?->creatorId())
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $form->is_lead_active = $req->boolean('is_lead_active');
             $form->save();
@@ -674,11 +694,11 @@ class FormBuilderController extends Controller
             if ($form->is_lead_active) {
                 $t = microtime(true);
                 $req->validate([
-                    'subject_id'                 => 'required',
-                    'name_id'                    => 'required',
-                    'email_id'                   => 'required',
-                    UsersConstants::COL_USER_ID  => 'required',
-                    ProjectsConstants::COL_PPL_ID => 'required',
+                    'subject_id'     => 'required',
+                    'name_id'        => 'required',
+                    'email_id'       => 'required',
+                    UC::COL_USER_ID  => 'required',
+                    PJC::COL_PPL_ID   => 'required',
                 ]);
                 $this->logExecutionTime($t, "$sig::validate", 'completed');
             }
@@ -686,7 +706,7 @@ class FormBuilderController extends Controller
             $t = microtime(true);
             FormFieldResponse::updateOrCreate(
                 ['form_id' => $formId],
-                $req->only(['subject_id', 'name_id', 'email_id', UsersConstants::COL_USER_ID, ProjectsConstants::COL_PPL_ID])
+                $req->only(['subject_id', 'name_id', 'email_id', UC::COL_USER_ID, PJC::COL_PPL_ID])
             );
             $this->logExecutionTime($t, "$sig::bindFields", 'completed');
 
@@ -700,17 +720,28 @@ class FormBuilderController extends Controller
         $user = $req->user();
         if (!$user?->can($perm)) {
             Log::warning('Permission denied', [
-                UsersConstants::COL_USER_ID => $user?->id,
+                UC::COL_USER_ID => $user?->id,
                 'perm'   => $perm,
                 'method' => __METHOD__
             ]);
             return defaultPermissionDenial($req, new \Exception($perm), __CLASS__ . '::' . __FUNCTION__);
         }
         Log::info('Permission granted', [
-            UsersConstants::COL_USER_ID => $user?->id,
+            UC::COL_USER_ID => $user?->id,
             'perm'   => $perm,
             'method' => __METHOD__
         ]);
         return null;
+    }
+
+    /**
+     * Show a single form field.
+     * TODO: Implement full field-show view.
+     */
+    public function formFieldShow(Request $req, int|string $id, int|string $fid): \Illuminate\View\View|RedirectResponse
+    {
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+        if ($r = $this->_authorize($req, 'manage form builder')) return $r;
+        return redirect()->route(VW::FM_FD . '.edit', ['id' => $id, 'fid' => $fid]);
     }
 }

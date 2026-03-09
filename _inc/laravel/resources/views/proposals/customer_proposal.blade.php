@@ -1,15 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants as SC,
-		ViewClassNamesConstants as VC,
-		ViewsConstants as VW,
-	};
-	use App\Models\{Proposal,Utility};
-	use Illuminate\Support\Facades\{Crypt,Log};
-    use Illuminate\Support\Str;
-	$proposal ??= null;
+$proposal ??= null;
 	$data ??= [];
 	$logo ??= '';
 	$company_favicon ??= '';
@@ -84,14 +74,14 @@
             <meta name="title" content="{{$meta_title}}">
             <meta name="description" content="{{$meta_desc}}">
             @include('fragments.og', [
-                'meta_title' => $meta_title, 
-                'meta_desc' => $meta_desc, 
+                'meta_title' => $meta_title,
+                'meta_desc' => $meta_desc,
                 'meta_image' => $meta_image,
                 'meta_logo' => $meta_logo
             ])
             @include('fragments.x', [
-                'meta_title' => $meta_title, 
-                'meta_desc' => $meta_desc, 
+                'meta_title' => $meta_title,
+                'meta_desc' => $meta_desc,
                 'meta_image' => $meta_image,
                 'meta_logo' => $meta_logo
             ])
@@ -125,39 +115,43 @@
                     <div class="{{ VC::CM12 }} {{ VC::DFL_AIC_JCB }} justify-content-md-end">
                         <div class="all-button-box mx-2">
                             @php
-                                $proposalPdfBaseName     = ViewsConstants::PPS.'.pdf';
-                                $proposalPdfKebabName    = Str::kebab($proposalPdfBaseName);
-                                $proposalPdfResolvedName = Route::has($proposalPdfBaseName)
-                                    ? $proposalPdfBaseName
-                                    : (Route::has($proposalPdfKebabName) ? $proposalPdfKebabName : null);
-                                $proposalIdValue         = isset($proposal) && !empty($proposal->id) ? $proposal->id : null;
-                                $encryptedProposalId     = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
-                                $proposalPdfUrl          = ($proposalPdfResolvedName && $encryptedProposalId) ? route($proposalPdfResolvedName, $encryptedProposalId) : '#';
-                                $proposalPdfGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'download_proposal_pdf_route_unavailable') ?? 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
-                                $proposalPdfLinkId       = 'proposal-pdf-download-link-'.($proposalIdValue ?? 'x');
-                            @endphp
+                                try {
+                                    $proposalPdfBaseName     = ViewsConstants::PPS.'.pdf';
+                                    $proposalPdfKebabName    = Str::kebab($proposalPdfBaseName);
+                                    $proposalPdfResolvedName = Route::has($proposalPdfBaseName)
+                                        ? $proposalPdfBaseName
+                                        : (Route::has($proposalPdfKebabName) ? $proposalPdfKebabName : null);
+                                    $proposalIdValue         = isset($proposal) && !empty($proposal->id) ? $proposal->id : null;
+                                    $encryptedProposalId     = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
+                                    $proposalPdfUrl          = ($proposalPdfResolvedName && $encryptedProposalId) ? route($proposalPdfResolvedName, $encryptedProposalId) : '#';
+                                    $proposalPdfGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'download_proposal_pdf_route_unavailable') ?? 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
+                                    $proposalPdfLinkId       = 'proposal-pdf-download-link-'.($proposalIdValue ?? 'x');
+                                } catch (\Throwable $e) {
+                                    \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <a href="{{ $proposalPdfUrl }}"
                             id="{{ $proposalPdfLinkId }}"
                             target="_blank"
                             class="{{ VC::BT_PRM }} {{ VC::MT3 }}"
                             data-url="{{ $proposalPdfUrl }}"
-                            data-guard-msg="{{ $proposalPdfGuardMsg }}">
+                            data-guard-msg="{{ base64_encode($proposalPdfGuardMsg) }}">
                                 {{ __('Download') }}
                             </a>
                         </div>
                     </div>
                 </div>
                 <div class="{{ VC::RW }}">
-                    <div class="col-12">
+                    <div class="{{ VC::C12 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="proposal">
                                     <div class="proposal-print">
                                         <div class="{{ VC::RW }} invoice-title mt-2">
-                                            <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12">
+                                            <div class="{{ VC::CXS12 }} {{ VC::CS12 }} col-nd-6 {{ VC::CL6 }} {{ VC::C12 }}">
                                                 <h2>{{__('Proposal')}}</h2>
                                             </div>
-                                            <div class="col-12">
+                                            <div class="{{ VC::C12 }}">
                                                 <hr>
                                             </div>
                                         </div>
@@ -190,23 +184,27 @@
                                                 <div class="{{ VC::FEND }} {{ VC::MT3 }}">
                                                     @if(!empty($proposal->id))
                                                         @php
-                                                            $proposalLinkCopyBaseName     = ViewsConstants::PPS.'.link.copy';
-                                                            $proposalLinkCopyKebabName    = Str::kebab($proposalLinkCopyBaseName);
-                                                            $proposalLinkCopyResolvedName = Route::has($proposalLinkCopyBaseName)
-                                                                ? $proposalLinkCopyBaseName
-                                                                : (Route::has($proposalLinkCopyKebabName) ? $proposalLinkCopyKebabName : null);
-                                                            $proposalIdValue              = isset($proposal) && !empty($proposal->id) ? $proposal->id : null;
-                                                            $encryptedProposalId          = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
-                                                            $proposalLinkCopyUrl          = ($proposalLinkCopyResolvedName && $encryptedProposalId) ? route($proposalLinkCopyResolvedName, $encryptedProposalId) : '#';
-                                                            $langValue                    = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $proposalLinkCopyGuardMsg     = Utility::fetchLinkMessage($langValue, ViewsConstants::PPS, 'copy_proposal_link_route_unavailable') ?? 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $proposalLinkCopyQrId         = 'proposal-link-copy-qr-'.($proposalIdValue ?? 'x');
-                                                        @endphp
+                                                            try {
+                                                                $proposalLinkCopyBaseName     = ViewsConstants::PPS.'.link.copy';
+                                                                $proposalLinkCopyKebabName    = Str::kebab($proposalLinkCopyBaseName);
+                                                                $proposalLinkCopyResolvedName = Route::has($proposalLinkCopyBaseName)
+                                                                    ? $proposalLinkCopyBaseName
+                                                                    : (Route::has($proposalLinkCopyKebabName) ? $proposalLinkCopyKebabName : null);
+                                                                $proposalIdValue              = isset($proposal) && !empty($proposal->id) ? $proposal->id : null;
+                                                                $encryptedProposalId          = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
+                                                                $proposalLinkCopyUrl          = ($proposalLinkCopyResolvedName && $encryptedProposalId) ? route($proposalLinkCopyResolvedName, $encryptedProposalId) : '#';
+                                                                $langValue                    = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $proposalLinkCopyGuardMsg     = Utility::fetchLinkMessage($langValue, ViewsConstants::PPS, 'copy_proposal_link_route_unavailable') ?? 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $proposalLinkCopyQrId         = 'proposal-link-copy-qr-'.($proposalIdValue ?? 'x');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div id="{{ $proposalLinkCopyQrId }}"
                                                             class="{{ VC::DBL }}"
                                                             data-url="{{ $proposalLinkCopyUrl }}"
-                                                            data-guard-msg="{{ $proposalLinkCopyGuardMsg }}">
-                                                            {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
+                                                            data-guard-msg="{{ base64_encode($proposalLinkCopyGuardMsg) }}">
+                                                            {!! DNS2D::getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
                                                         </div>
                                                         <script defer>
                                                             (() => {
@@ -220,28 +218,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = c.getAttribute('data-guard-msg') || 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             c.setAttribute('data-failed-route', 'true');
                                                                         } catch (err) {}
                                                                     });
@@ -258,41 +235,49 @@
                                         <div class="{{ VC::RW }} {{ VC::MT3 }}">
                                             <div class="col">
                                                 @php
-                                                    $proposalStatusClasses = [
-                                                        0 => 'bg-primary',
-                                                        1 => 'bg-info',
-                                                        2 => 'bg-success', 
-                                                        3 => 'bg-warning',
-                                                        4 => 'bg-danger'
-                                                    ];
-                                                    
-                                                    $isValidStatus = !empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status <= 4;
-                                                    $bgClass = $isValidStatus ? $proposalStatusClasses[$proposal->status] : 'bg-secondary';
-                                                    $statusText = $isValidStatus ? __(Proposal::$statuses[$proposal->status]) : __('Unknown status');
-                                                @endphp
+                                                    try {
+                                                        $proposalStatusClasses = [
+                                                            0 => 'bg-primary',
+                                                            1 => 'bg-info',
+                                                            2 => 'bg-success',
+                                                            3 => 'bg-warning',
+                                                            4 => 'bg-danger'
+                                                        ];
+
+                                                        $isValidStatus = !empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status <= 4;
+                                                        $bgClass = $isValidStatus ? $proposalStatusClasses[$proposal->status] : 'bg-secondary';
+                                                        $statusText = $isValidStatus ? __(Proposal::$statuses[$proposal->status]) : __('Unknown status');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <small>
                                                     <strong>{{__('Status')}} :</strong><br>
                                                     <span class="{{ VC::BDG }} badge-pill {{ $bgClass }}">{{ $statusText }}</span>
-                                                </small>                                            
+                                                </small>
                                             </div>
                                             <div class="{{ VC::RW }}">
-                                                <div class="col text-end">
+                                                <div class="col {{ VC::TX_END }}">
                                                     <div class="{{ VC::DFL }} {{ VC::ALC }} justify-content-end">
                                                         <div class="me-4">
                                                             <small>
                                                                 <strong>{{__('Issue Date')}} :</strong><br>
                                                                 @php
-                                                                    $issueDate = null;
-                                                                    if (isset($proposal) && is_object($proposal) && !empty($proposal->issue_date)) {
-                                                                        $issueDate = isset($user) && is_object($user) && method_exists($user, 'dateFormat') 
-                                                                            ? $user->dateFormat($proposal->issue_date)
-                                                                            : date('M d, Y', strtotime($proposal->issue_date));
+                                                                    $issueDate ??= null;
+                                                                    try {
+                                                                        if (isset($proposal) && is_object($proposal) && !empty($proposal->issue_date)) {
+                                                                            $issueDate = isset($user) && is_object($user) && method_exists($user, 'dateFormat')
+                                                                                ? $user->dateFormat($proposal->issue_date)
+                                                                                : date('M d, Y', strtotime($proposal->issue_date));
+                                                                        }
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                                     }
-                                                                @endphp
+@endphp
                                                                 @if(!empty($issueDate))
                                                                     {{ $issueDate }}<br><br>
                                                                 @else
-                                                                    <span class="text-muted">{{ __('Issue date not available') }}</span><br><br>
+                                                                    <span class="{{ VC::TXT_MT }}">{{ __('Issue date not available') }}</span><br><br>
                                                                 @endif
                                                             </small>
                                                         </div>
@@ -303,7 +288,7 @@
                                                 @php
                                                     $proposalCustomFields = is_object($proposal) && property_exists($proposal, 'customField') ? $proposal->customField : [];
                                                     $hasCustomFields = !empty($proposalCustomFields) && (is_array($proposalCustomFields) || is_countable($proposalCustomFields));
-                                                @endphp
+@endphp
                                                 @if($hasCustomFields && count($proposalCustomFields) > 0)
                                                     @foreach($customFields as $field)
                                                         @if(isset($field) && is_object($field) && property_exists($field, 'name') && property_exists($field, 'id'))
@@ -311,13 +296,17 @@
                                                                 <small>
                                                                     <strong>{{ $field->name }} :</strong><br>
                                                                     @php
-                                                                        $fieldValue = null;
-                                                                        if (is_array($proposalCustomFields)) {
-                                                                            $fieldValue = $proposalCustomFields[$field->id] ?? __('Custom field not provided');
-                                                                        } elseif (is_object($proposalCustomFields)) {
-                                                                            $fieldValue = $proposalCustomFields->{$field->id} ?? __('Custom field not provided');
+                                                                        $fieldValue ??= null;
+                                                                        try {
+                                                                            if (is_array($proposalCustomFields)) {
+                                                                                $fieldValue = $proposalCustomFields[$field->id] ?? __('Custom field not provided');
+                                                                            } elseif (is_object($proposalCustomFields)) {
+                                                                                $fieldValue = $proposalCustomFields->{$field->id} ?? __('Custom field not provided');
+                                                                            }
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                                         }
-                                                                    @endphp
+@endphp
                                                                     {{ !empty($fieldValue) && $fieldValue !== __('Custom field not provided') ? $fieldValue : __('Custom field not provided') }}
                                                                     <br><br>
                                                                 </small>
@@ -327,31 +316,35 @@
                                                 @endif
                                             @endif
                                             <div class="{{ VC::RW }} {{ VC::MT4 }}">
-                                                <div class="col-md-12">
+                                                <div class="{{ VC::CM12 }}">
                                                     <div class="font-weight-bold">{{__('Product Summary')}}</div>
                                                     <small>{{__('All items here cannot be deleted.')}}</small>
-                                                    <div class="table-responsive mt-2">
+                                                    <div class="{{ VC::TB_RSP }} {{ VC::MT2 }}">
                                                         <table class="{{ VC::TB }} {{ VC::MB0 }} table-striped">
                                                             <tr>
-                                                                <th class="text-dark" data-width="40">#</th>
-                                                                <th class="text-dark">{{__('Product')}}</th>
-                                                                <th class="text-dark">{{__('Quantity')}}</th>
-                                                                <th class="text-dark">{{__('Rate')}}</th>
-                                                                <th class="text-dark">{{__('Tax')}}</th>
-                                                                <th class="text-dark">{{__('Discount')}}</th>
-                                                                <th class="text-dark">{{__('Description')}}</th>
-                                                                <th class="text-end text-dark" width="12%">{{__('Price')}}<br>
-                                                                    <small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small>
+                                                                <th class="{{ VC::TX_DK }}" data-width="40">#</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Product')}}</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Quantity')}}</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Rate')}}</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Tax')}}</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Discount')}}</th>
+                                                                <th class="{{ VC::TX_DK }}">{{__('Description')}}</th>
+                                                                <th class="{{ VC::TX_END }} {{ VC::TX_DK }}" width="12%">{{__('Price')}}<br>
+                                                                    <small class="{{ VC::TX_DNG }} font-weight-bold">{{__('after tax & discount')}}</small>
                                                                 </th>
                                                             </tr>
                                                             @php
-                                                                $totalQuantity = 0;
-                                                                $totalRate = 0;
-                                                                $totalTaxPrice = 0;
-                                                                $totalDiscount = 0;
-                                                                $taxesData = [];
-                                                                $items = isset($items) && !empty($items) ? $items : [];
-                                                            @endphp
+                                                                $totalQuantity ??= 0;
+                                                                $totalRate ??= 0;
+                                                                $totalTaxPrice ??= 0;
+                                                                $totalDiscount ??= 0;
+                                                                $taxesData ??= [];
+                                                                try {
+                                                                    $items = isset($items) && !empty($items) ? $items : [];
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('proposals/customer_proposal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             @if(!empty($items))
                                                                 @foreach($items as $key => $item)
                                                                     @if(isset($item) && is_object($item))
@@ -362,10 +355,10 @@
                                                                             $itemTax = property_exists($item, 'tax') ? $item->tax : null;
                                                                             $itemDescription = property_exists($item, 'description') ? ($item->description ?? __('No description provided')) : __('No description provided');
                                                                             $itemProduct = property_exists($item, 'product') ? $item->product : null;
-                                                                            $productName = (isset($itemProduct) && is_object($itemProduct) && property_exists($itemProduct, 'name')) 
-                                                                                ? ($itemProduct->name ?? __('Product name not available')) 
+                                                                            $productName = (isset($itemProduct) && is_object($itemProduct) && property_exists($itemProduct, 'name'))
+                                                                                ? ($itemProduct->name ?? __('Product name not available'))
                                                                                 : __('Product name not available');
-                                                                            
+
                                                                             $taxes = [];
                                                                             if (!empty($itemTax) && class_exists('Utility')) {
                                                                                 try {
@@ -389,7 +382,7 @@
                                                                                     $taxes = [];
                                                                                 }
                                                                             }
-                                                                        @endphp
+@endphp
                                                                         <tr>
                                                                             <td>{{ $key + 1 }}</td>
                                                                             <td>{{ $productName }}</td>
@@ -404,13 +397,15 @@
                                                                             <td>
                                                                                 @if(!empty($taxes))
                                                                                     <table>
-                                                                                        @php $totalTaxRate = 0; @endphp
+                                                                                        @php
+ $totalTaxRate ??= 0;
+@endphp
                                                                                         @foreach($taxes as $tax)
                                                                                             @if(isset($tax) && is_object($tax) && property_exists($tax, 'name') && property_exists($tax, 'rate'))
                                                                                                 @php
                                                                                                     $taxPrice = method_exists('Utility', 'taxRate') ? Utility::taxRate($tax->rate, $itemPrice, $itemQuantity) : 0;
                                                                                                     $totalTaxPrice += $taxPrice;
-                                                                                                @endphp
+@endphp
                                                                                                 <tr>
                                                                                                     <td>{{ $tax->name . ' (' . $tax->rate . '%)' }}</td>
                                                                                                     <td>
@@ -425,7 +420,7 @@
                                                                                         @endforeach
                                                                                     </table>
                                                                                 @else
-                                                                                    <span class="text-muted">{{ __('No tax applied') }}</span>
+                                                                                    <span class="{{ VC::TXT_MT }}">{{ __('No tax applied') }}</span>
                                                                                 @endif
                                                                             </td>
                                                                             <td>
@@ -436,8 +431,10 @@
                                                                                 @endif
                                                                             </td>
                                                                             <td>{{ $itemDescription }}</td>
-                                                                            <td class="text-end">
-                                                                                @php $lineTotal = $itemPrice * $itemQuantity; @endphp
+                                                                            <td class="{{ VC::TX_END }}">
+                                                                                @php
+ $lineTotal = $itemPrice * $itemQuantity;
+@endphp
                                                                                 @if(isset($user) && is_object($user) && method_exists($user, 'priceFormat'))
                                                                                     {{ $user->priceFormat($lineTotal) }}
                                                                                 @else
@@ -449,7 +446,7 @@
                                                                 @endforeach
                                                             @else
                                                                 <tr>
-                                                                    <td colspan="8" class="text-center text-muted">{{ __('No items available') }}</td>
+                                                                    <td colspan="8" class="{{ VC::TXCT_MT }}">{{ __('No items available') }}</td>
                                                                 </tr>
                                                             @endif
                                                             <tfoot>
@@ -484,11 +481,11 @@
                                                                 @if(isset($proposal) && is_object($proposal))
                                                                     <tr>
                                                                         <td colspan="6"></td>
-                                                                        <td class="text-end"><b>{{__('Sub Total')}}</b></td>
-                                                                        <td class="text-end">
+                                                                        <td class="{{ VC::TX_END }}"><b>{{__('Sub Total')}}</b></td>
+                                                                        <td class="{{ VC::TX_END }}">
                                                                             @php
                                                                                 $subTotal = method_exists($proposal, 'getSubTotal') ? $proposal->getSubTotal() : 0;
-                                                                            @endphp
+@endphp
                                                                             @if(isset($user) && is_object($user) && method_exists($user, 'priceFormat'))
                                                                                 {{ $user->priceFormat($subTotal) }}
                                                                             @else
@@ -498,11 +495,11 @@
                                                                     </tr>
                                                                     <tr>
                                                                         <td colspan="6"></td>
-                                                                        <td class="text-end"><b>{{__('Discount')}}</b></td>
-                                                                        <td class="text-end">
+                                                                        <td class="{{ VC::TX_END }}"><b>{{__('Discount')}}</b></td>
+                                                                        <td class="{{ VC::TX_END }}">
                                                                             @php
                                                                                 $totalDiscountAmount = method_exists($proposal, 'getTotalDiscount') ? $proposal->getTotalDiscount() : 0;
-                                                                            @endphp
+@endphp
                                                                             @if(isset($user) && is_object($user) && method_exists($user, 'priceFormat'))
                                                                                 {{ $user->priceFormat($totalDiscountAmount) }}
                                                                             @else
@@ -514,8 +511,8 @@
                                                                         @foreach($taxesData as $taxName => $taxPrice)
                                                                             <tr>
                                                                                 <td colspan="6"></td>
-                                                                                <td class="text-end"><b>{{ $taxName }}</b></td>
-                                                                                <td class="text-end">
+                                                                                <td class="{{ VC::TX_END }}"><b>{{ $taxName }}</b></td>
+                                                                                <td class="{{ VC::TX_END }}">
                                                                                     @if(isset($user) && is_object($user) && method_exists($user, 'priceFormat'))
                                                                                         {{ $user->priceFormat($taxPrice) }}
                                                                                     @else
@@ -527,11 +524,11 @@
                                                                     @endif
                                                                     <tr>
                                                                         <td colspan="6"></td>
-                                                                        <td class="blue-text text-end"><b>{{__('Total')}}</b></td>
-                                                                        <td class="blue-text text-end">
+                                                                        <td class="blue-text {{ VC::TX_END }}"><b>{{__('Total')}}</b></td>
+                                                                        <td class="blue-text {{ VC::TX_END }}">
                                                                             @php
                                                                                 $grandTotal = method_exists($proposal, 'getTotal') ? $proposal->getTotal() : 0;
-                                                                            @endphp
+@endphp
                                                                             @if(isset($user) && is_object($user) && method_exists($user, 'priceFormat'))
                                                                                 {{ $user->priceFormat($grandTotal) }}
                                                                             @else
@@ -557,29 +554,29 @@
                 <div class="footer-dark">
                     <div class="{{ VC::CT }}">
                         <div class="{{ VC::RW }} {{ VC::ALC }} justify-content-md-between py-4 {{ VC::MT4 }} delimiter-top">
-                            <div class="col-md-6">
-                                <div class="copyright text-sm font-weight-bold text-center text-md-left">
+                            <div class="{{ VC::CM6 }}">
+                                <div class="copyright {{ VC::TXSM }} font-weight-bold {{ VC::TXCT }} text-md-left">
                                     {{!empty($companySettings[SC::FT_TXT]) ? $companySettings[SC::FT_TXT]->value : __('No footer text available')}}
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="{{ VC::CM6 }}">
                                 <ul class="{{ VC::NAV }} justify-content-center justify-content-md-end mt-3 mt-md-0">
-                                    <li class="nav-item">
+                                    <li class="{{ VC::NV_IT }}">
                                         <a class="{{ VC::NV_LK }}" href="#" target="_blank">
                                             <i class="fab fa-dribbble"></i>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    <li class="{{ VC::NV_IT }}">
                                         <a class="{{ VC::NV_LK }}" href="#" target="_blank">
                                             <i class="fab fa-instagram"></i>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    <li class="{{ VC::NV_IT }}">
                                         <a class="{{ VC::NV_LK }}" href="#" target="_blank">
                                             <i class="fab fa-github"></i>
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    <li class="{{ VC::NV_IT }}">
                                         <a class="{{ VC::NV_LK }}" href="#" target="_blank">
                                             <i class="fab fa-facebook"></i>
                                         </a>
@@ -606,12 +603,12 @@
             <script defer src="{{ asset('js/jscolor.js') }}"></script>
             @if($message = Session::get('success'))
                 <script>
-                    show_toastr('success', @json($message));
+                    show_toastr('success', '{!! $message !!}');
                 </script>
             @endif
             @if($message = Session::get('error'))
                 <script>
-                    show_toastr('error', @json($message));
+                    show_toastr('error', '{!! $message !!}');
                 </script>
             @endif
             @if($get_cookie['enable_cookie'] == 'on')
@@ -630,32 +627,10 @@
                                 if (href !== '#' || url !== '#') return;
                                 e.preventDefault();
                                 const msg = l.getAttribute('data-guard-msg') || 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (hasBootstrap) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role', 'alert');
-                                    toast.setAttribute('aria-live', 'assertive');
-                                    toast.setAttribute('aria-atomic', 'true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
+                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                 l.setAttribute('data-failed-route', 'true');
                             } catch (err) {}
                         });
                     } catch (error) {}
                 })();
             </script>
-

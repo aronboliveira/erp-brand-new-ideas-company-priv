@@ -1,12 +1,5 @@
 @php
-# Template 1
-	use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-	use App\Models\{Utility};
-	use Illuminate\Support\Facades\{Auth, Log, Storage};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$usr ??= null;
+$usr ??= null;
 	$siteRtl ??= (string)'';
 	$SITE_RTL ??= (string)'';
 	$color ??= (string)'#ffffff';
@@ -17,7 +10,7 @@
 	$client ??= null;
 	$items ??= [];
 	$border_color ??= (string)'black';
-	$lang ??= (string)'';	
+	$lang ??= (string)'';
 	try {
 		$usr = Auth::user();
 	} catch (InvalidArgumentException $e) {
@@ -139,16 +132,20 @@
                                                         <div class="d-table-th w-7">{{ __('Item') }}</div>
                                                         <div class="d-table-th w-5">{{ __('Price') }}</div>
                                                         <div class="d-table-th w-5">{{ __('Quantity') }}</div>
-                                                        <div class="d-table-th w-4 text-end">{{ __('Totals') }}</div>
+                                                        <div class="d-table-th w-4 {{ VC::TX_END }}">{{ __('Totals') }}</div>
                                                     </div>
                                                     <div class="d-table-body">
                                                         @if(!empty($items))
                                                             @foreach($items as $key => $item)
                                                                 @php
-                                                                    $price = isset($item->pivot->price) ? (float)$item->pivot->price : null;
-                                                                    $qty = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
-                                                                    $lineTotal = (is_numeric($price) && is_numeric($qty)) ? ($price * $qty) : null;
-                                                                @endphp
+                                                                    try {
+                                                                        $price = isset($item->pivot->price) ? (float)$item->pivot->price : null;
+                                                                        $qty = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
+                                                                        $lineTotal = (is_numeric($price) && is_numeric($qty)) ? ($price * $qty) : null;
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('estimations/templates/template1 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="d-table-tr" style="border-bottom:1px solid {{ $border_color }};">
                                                                     <div class="d-table-td w-2"><span>{{ (int)$key + 1 }}</span></div>
                                                                     <div class="d-table-td w-7"><pre data-v-f2a183a6>{{ isset($item->name) && $item->name !== '' ? $item->name : __('No item name available') }}</pre></div>
@@ -160,7 +157,7 @@
                                                                         @endif
                                                                     </pre></div>
                                                                     <div class="d-table-td w-5"><pre data-v-f2a183a6>{{ !is_null($qty) ? $qty : __('No quantity available') }}</pre></div>
-                                                                    <div class="d-table-td w-4 text-end"><span>
+                                                                    <div class="d-table-td w-4 {{ VC::TX_END }}"><span>
                                                                         @if(!is_null($lineTotal))
                                                                             {{ (is_object($usr) && method_exists($usr,'priceFormat')) ? (string)$usr->priceFormat($lineTotal) : number_format((float)$lineTotal,2) }}
                                                                         @else
@@ -175,7 +172,7 @@
                                                                 <div class="d-table-td w-7"><pre data-v-f2a183a6>-</pre></div>
                                                                 <div class="d-table-td w-5"><pre data-v-f2a183a6>-</pre></div>
                                                                 <div class="d-table-td w-5"><pre data-v-f2a183a6>-</pre></div>
-                                                                <div class="d-table-td w-4 text-end"><span>-</span></div>
+                                                                <div class="d-table-td w-4 {{ VC::TX_END }}"><span>-</span></div>
                                                             </div>
                                                         @endif
                                                     </div>
@@ -183,11 +180,15 @@
                                                         <div data-v-f2a183a6 class="d-table-controls"></div>
                                                         <div data-v-f2a183a6 class="d-table-summary">
                                                             @php
-                                                                $subtotal = (float)($estimation?->getSubTotal() ?? 0);
-                                                                $discount = (float)($estimation->discount ?? 0);
-                                                                $tax = (float)($estimation?->getTax() ?? 0);
-                                                                $total = $subtotal - $discount + $tax;
-                                                            @endphp
+                                                                try {
+                                                                    $subtotal = (float)($estimation?->getSubTotal() ?? 0);
+                                                                    $discount = (float)($estimation->discount ?? 0);
+                                                                    $tax = (float)($estimation?->getTax() ?? 0);
+                                                                    $total = $subtotal - $discount + $tax;
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/templates/template1 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div data-v-f2a183a6 class="d-table-summary-item">
                                                                 <div data-v-f2a183a6 class="d-table-label">{{ __('Subtotal') }}:</div>
                                                                 <div data-v-f2a183a6 class="d-table-value">{{ (is_object($usr) && method_exists($usr,'priceFormat')) ? (string)$usr->priceFormat($subtotal) : number_format($subtotal,2) }}</div>
@@ -220,7 +221,7 @@
                                     </div>
                                 </div>
                                 @if(empty($estimation) || empty($client))
-                                    <div class="text-center mt-3">{{ __('Some estimation or client data is missing') }}</div>
+                                    <div class="{{ VC::TXCT }} {{ VC::MT3 }}">{{ __('Some estimation or client data is missing') }}</div>
                                 @endif
                             </div>
                         </div>

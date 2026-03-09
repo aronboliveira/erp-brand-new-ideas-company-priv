@@ -1,47 +1,42 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang = Utility::fetchUserLang();
+    $data ??= [];
+    $warehouse ??= $warehouses ?? [];
+    $vendor ??= $vendors ?? [];
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('reports/daily_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Purchase')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Daily Purchase Report') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Daily Purchase Report') }}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('download')
             @php
                 $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_daily_purchase_unavailable') ?? 'Download function for daily purchases is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+@endphp
             <a href="#"
             id="download-pdf-link"
-            class="{{ VW::BT_SM_PM }} download-daily-purchase"
+            class="{{ VC::BT_SM_PM }} download-daily-purchase"
             data-func-name="saveAsPDF"
-            data-guard-msg="{{ $downloadGuardMsg }}"
+            data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
             data-sv-localized="true"
             data-bs-toggle="tooltip"
             title="{{ __('Download') }}"
             data-original-title="{{ __('Download') }}">
-                <span class="btn-inner--icon"><i class="{{ VW::TI_DWN }}"></i></span>
+                <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/purchases/daily/download.js') }}" defer></script>
@@ -52,11 +47,11 @@
 @section(YieldingConstants::ADM_CTT)
     @php
         $monthlyPurchaseUrl = Route::has(VW::RPT . '.monthly.purchase') ? route(VW::RPT . '.monthly.purchase') : '#';
-    @endphp
-    <ul class="{{ VW::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
-        <li class="nav-item">
+@endphp
+    <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link active"
+                class="{{ VC::NV_LK }} active"
                 id="pills-home-tab"
                 data-bs-toggle="pill"
                 href="#daily-chart"
@@ -67,9 +62,9 @@
                 {{ __('Daily') }}
             </a>
         </li>
-        <li class="nav-item">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link"
+                class="{{ VC::NV_LK }}"
                 id="pills-profile-tab"
                 data-bs-toggle="pill"
                 href="{{ $monthlyPurchaseUrl }}"
@@ -83,30 +78,38 @@
         </li>
     </ul>
     @php
-        $flagAttrName = 'data-monthlyPurchase-listener-added';
-        $guardAttrName = 'data-url';
-        $urlAttrName = 'data-url';
-        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_purchase_unavailable')
-        ?? 'Monthly purchase route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        $flagAttrName ??= 'data-monthlyPurchase-listener-added';
+        $guardAttrName ??= 'data-url';
+        $urlAttrName ??= 'data-url';
+        try {
+            $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_purchase_unavailable')
+            ?? 'Monthly purchase route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('reports/daily_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="row">
-        <div class="col-sm-12">
-            <div class="mt-2" >
+        <div class="{{ VC::CS12 }}">
+            <div class="{{ VC::MT2 }}" >
                 <div class="card">
                     @php
-                        $dailyPurchaseBase    = VW::RPT.'.daily.purchase';
-                        $dailyPurchaseKebab   = Str::kebab($dailyPurchaseBase);
-                        $dailyPurchaseResolved= Route::has($dailyPurchaseBase) ? $dailyPurchaseBase : (Route::has($dailyPurchaseKebab) ? $dailyPurchaseKebab : null);
-                        $dailyPurchaseUrl     = $dailyPurchaseResolved ? route($dailyPurchaseResolved) : '#';
-                        $formId               = 'daily_purchase_report_submit';
-                        $applyGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_apply_purchase_route_unavailable') ?? 'Daily purchase apply route is unavailable. Please contact technical support or your domain administrator.';
-                        $resetGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_reset_purchase_route_unavailable') ?? 'Daily purchase reset route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $dailyPurchaseBase    = VW::RPT.'.daily.purchase';
+                            $dailyPurchaseKebab   = Str::kebab($dailyPurchaseBase);
+                            $dailyPurchaseResolved= Route::has($dailyPurchaseBase) ? $dailyPurchaseBase : (Route::has($dailyPurchaseKebab) ? $dailyPurchaseKebab : null);
+                            $dailyPurchaseUrl     = $dailyPurchaseResolved ? route($dailyPurchaseResolved) : '#';
+                            $formId               = 'daily_purchase_report_submit';
+                            $applyGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_apply_purchase_route_unavailable') ?? 'Daily purchase apply route is unavailable. Please contact technical support or your domain administrator.';
+                            $resetGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_reset_purchase_route_unavailable') ?? 'Daily purchase reset route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('reports/daily_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="row">
-                        <div class="col-sm-12">
-                            <div class="mt-2">
+                        <div class="{{ VC::CS12 }}">
+                            <div class="{{ VC::MT2 }}">
                                 <div class="card">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         {{ Form::open([
                                             'method'            => 'GET',
                                             'url'               => $dailyPurchaseUrl,
@@ -115,51 +118,51 @@
                                             'data-guard-msg'    => $applyGuardMsg,
                                             'data-sv-localized' => 'true',
                                         ]) }}
-                                            <div class="{{ VW::R_FLX_ALC_JCE }}">
-                                                <div class="{{ VW::CL_POS1 }}">
+                                            <div class="{{ VC::R_FLX_ALC_JCE }}">
+                                                <div class="{{ VC::CL_POS1 }}">
                                                     <div class="btn-box">
                                                         {{ Form::label('start_date', __('Start Date'), ['class'=>'form-label']) }}
                                                         {{ Form::date('start_date', isset($_GET['start_date']) ? $_GET['start_date'] : '', ['class' => 'form-control month-btn']) }}
                                                     </div>
                                                 </div>
-                                                <div class="{{ VW::CL_POS2 }}">
+                                                <div class="{{ VC::CL_POS2 }}">
                                                     <div class="btn-box">
                                                         {{ Form::label('end_date', __('End Date'), ['class'=>'form-label']) }}
                                                         {{ Form::date('end_date', isset($_GET['end_date']) ? $_GET['end_date'] : '', ['class' => 'form-control month-btn']) }}
                                                     </div>
                                                 </div>
-                                                <div class="{{ VW::CL_POS3 }}">
+                                                <div class="{{ VC::CL_POS3 }}">
                                                     <div class="btn-box">
                                                         {{ Form::label('warehouse', __('Warehouse'), ['class'=>'form-label']) }}
                                                         {{ Form::select('warehouse', $warehouse, isset($_GET['warehouse']) ? $_GET['warehouse'] : '', ['class' => 'form-control select']) }}
                                                     </div>
                                                 </div>
-                                                <div class="{{ VW::CL_POS3 }}">
+                                                <div class="{{ VC::CL_POS3 }}">
                                                     <div class="btn-box">
                                                         {{ Form::label('vendor', __('Vendor'), ['class'=>'form-label']) }}
                                                         {{ Form::select('vendor', $vendor, isset($_GET['vendor']) ? $_GET['vendor'] : '', ['class' => 'form-control select']) }}
                                                     </div>
                                                 </div>
-                                                <div class="{{ VW::C_AT_FEND }}">
+                                                <div class="{{ VC::C_AT_FEND }}">
                                                     <a href="#"
-                                                    class="{{ VW::BT_SM_PM }} apply-daily-purchase-link"
+                                                    class="{{ VC::BT_SM_PM }} apply-daily-purchase-link"
                                                     data-form-id="{{ $formId }}"
-                                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     data-original-title="{{ __('apply') }}"
                                                     title="{{ __('Apply') }}">
-                                                        <span class="btn-inner--icon"><i class="{{ VW::TI_SRC }}"></i></span>
+                                                        <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                                     </a>
                                                     <a href="{{ $dailyPurchaseUrl }}"
-                                                    class="{{ VW::BT_SM_DG }} reset-daily-purchase-link"
+                                                    class="{{ VC::BT_SM_DG }} reset-daily-purchase-link"
                                                     data-url="{{ $dailyPurchaseUrl }}"
-                                                    data-guard-msg="{{ $resetGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     data-original-title="{{ __('Reset') }}"
                                                     title="{{ __('Reset') }}">
-                                                        <span class="btn-inner--icon"><i class="{{ VW::TI_TRS_OFF }}"></i></span>
+                                                        <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                                     </a>
                                                 </div>
                                             </div>
@@ -181,50 +184,50 @@
         <div class="row mt-0">
             <div class="col">
                 <input type="hidden" value="{{$filter['warehouse'].' '.__('Daily Purchase').' '.'Report of'.' '.$filter['startDate'].' to '.$filter['endDate']}}" id="filename">
-                <div class="{{ VW::CD_POS }}">
-                    <h7 class="{{ VW::RPT_TX_GR }}">{{__('Report')}} :</h7>
-                    <h6 class="{{ VW::CD_POS }}">{{__('Daily Purchase Report')}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Report')}} :</h7>
+                    <h6 class="{{ VC::CD_POS }}">{{__('Daily Purchase Report')}}</h6>
                 </div>
             </div>
             @if(!empty($filter['warehouse']))
 
                 <div class="col">
-                    <div class="{{ VW::CD_POS }}">
-                        <h7 class="{{ VW::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
-                        <h6 class="{{ VW::CD_POS }}">{{$filter['warehouse']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
+                        <h6 class="{{ VC::CD_POS }}">{{$filter['warehouse']}}</h6>
                     </div>
                 </div>
             @endif
             @if(!empty($filter['vendor']))
                 <div class="col">
-                    <div class="{{ VW::CD_POS }}">
-                        <h7 class="{{ VW::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
-                        <h6 class="{{ VW::CD_POS }}">{{$filter['vendor']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
+                        <h6 class="{{ VC::CD_POS }}">{{$filter['vendor']}}</h6>
                     </div>
                 </div>
             @endif
             <div class="col">
-                <div class="{{ VW::CD_POS }}">
-                    <h7 class="{{ VW::RPT_TX_GR }}">{{__('Duration')}} :</h7>
-                    <h6 class="{{ VW::CD_POS }}">{{$filter['startDate'].' to '.$filter['endDate']}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Duration')}} :</h7>
+                    <h6 class="{{ VC::CD_POS }}">{{$filter['startDate'].' to '.$filter['endDate']}}</h6>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="{{ VC::C12 }}">
                 <div class="card">
                     <div class="setting-tab">
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="daily-chart" role="tabpanel">
-                                <div class="col-lg-12">
-                                    <div class="card-header">
+                            <div class="{{ VC::TAB_FD_SH }} active" id="daily-chart" role="tabpanel">
+                                <div class="{{ VC::CL12 }}">
+                                    <div class="{{ VC::CD_HD }}">
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <h6>{{ __('Daily Report') }}</h6>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <div id="daily-purchase"></div>
                                     </div>
                                 </div>
@@ -263,7 +266,7 @@
             tr: { chart_fail: "Günlük satın alma grafiği oluşturulamadı" },
             zh: { chart_fail: "无法渲染每日采购图表" }
           };
-        
+
           let toastContainer = null;
           const getToastContainer = () => {
             if (!toastContainer) {
@@ -273,7 +276,7 @@
             }
             return toastContainer;
           };
-        
+
           const showError = (key) => {
             const errFb = "# ERROR";
             const dataClientLocalized = "data-client-localized";
@@ -298,7 +301,7 @@
             }
             }
             const hasBootstrap = document.querySelector(BS_LINK) && window.bootstrap?.Toast;
-            
+
             if (hasBootstrap) {
               const container = getToastContainer();
               const toast = document.createElement('div');
@@ -306,32 +309,32 @@
               toast.setAttribute('role', 'alert');
               toast.setAttribute('aria-live', 'assertive');
               toast.setAttribute('aria-atomic', 'true');
-              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
               container.append(toast);
               new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
             } else {
               alert(msg);
             }
           };
-        
+
           const renderChart = () => {
             try {
               const chartContainer = document.querySelector(CHART_CONTAINER);
               if (!chartContainer) return;
-              
+
               const data = JSON.parse(JSON.stringify({!! json_encode($data) !!})) ?? [];
               const categories = JSON.parse(JSON.stringify({!! json_encode($arrDuration) !!})) ?? [];
-              
+
               if (!data.length || !categories.length) {
                 showError('chart_fail');
                 return;
               }
-        
+
               if (typeof ApexCharts === 'undefined') {
                 showError('chart_fail');
                 return;
               }
-        
+
               const chartOptions = {
                 series: [{ name: '{{ __("Purchase") }}', data }],
                 chart: {
@@ -361,16 +364,16 @@
                 legend: { show: false },
                 yaxis: { title: { text: '{{ __("Amount") }}' } }
               };
-        
+
               if (chartContainer.chart) chartContainer.chart.destroy();
-              
+
               chartContainer.chart = new ApexCharts(chartContainer, chartOptions);
               chartContainer.chart.render();
             } catch (e) {
               showError('chart_fail');
             }
           };
-        
+
           const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
               mutation.removedNodes.forEach(node => {
@@ -383,9 +386,9 @@
               });
             });
           });
-        
+
           observer.observe(document.body, { childList: true, subtree: true });
-        
+
           if (document.readyState !== 'loading') {
             renderChart();
           } else {
@@ -413,11 +416,11 @@
                 tr: { no_permission: "Bu sayfayı görüntüleme izniniz yok" },
                 zh: { no_permission: "您没有权限查看此页面" }
             };
-            
+
             const flagAttr = @json($flagAttrName);
             const guardAttr = @json($guardAttrName);
             const urlAttr = @json($urlAttrName);
-            
+
             let toastContainer = null;
             const getToastContainer = () => {
                 if (!toastContainer) {
@@ -427,7 +430,7 @@
                 }
                 return toastContainer;
             };
-            
+
             const showError = (key) => {
                 const errFb = "# ERROR";
                 const dataClientLocalized = "data-client-localized";
@@ -458,19 +461,19 @@
                 toast.setAttribute('role', 'alert');
                 toast.setAttribute('aria-live', 'assertive');
                 toast.setAttribute('aria-atomic', 'true');
-                toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 container.append(toast);
                 new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
                 } else {
                 alert(msg);
                 }
             };
-            
+
             const handleClick = (e, url) => {
                 e.preventDefault();
                 window.location.href = url;
             };
-            
+
             const observer = new MutationObserver(mutations => {
                 mutations.forEach(mutation => {
                 mutation.removedNodes.forEach(node => {
@@ -481,25 +484,25 @@
                 });
                 });
             });
-            
+
             try {
                 const el = document.getElementById("pills-profile-tab");
                 if (!el) return;
-                
+
                 if (el.getAttribute(flagAttr) === "true") return;
                 el.setAttribute(flagAttr, "true");
-                
+
                 observer.observe(document.body, { childList: true, subtree: true });
-                
+
                 const dataUrl = el.getAttribute(guardAttr) ?? el.getAttribute(urlAttr);
                 const hrefAttr = el.getAttribute("href");
                 const url = dataUrl ?? hrefAttr;
-                
+
                 if (dataUrl === "#" && hrefAttr === "#") {
                 showError('no_permission');
                 return;
                 }
-                
+
                 const clickHandler = (e) => handleClick(e, url);
                 el.eventHandler = clickHandler;
                 el.addEventListener("click", clickHandler);
@@ -527,13 +530,13 @@
             tr: { filter_unavailable: "Filtre kullanılamıyor" },
             zh: { filter_unavailable: "筛选器不可用" }
         };
-        
-        const APPLY_CLASS = '{{ VW::BT_SM_PM }}';
-        const RESET_CLASS = '{{ VW::BT_SM_DG }}';
+
+        const APPLY_CLASS = '{{ VC::BT_SM_PM }}';
+        const RESET_CLASS = '{{ VC::BT_SM_DG }}';
         const APPLY_ATTR = 'data-apply-listener';
         const RESET_ATTR = 'data-reset-listener';
         const FORM_ID = 'daily_purchase_report_submit';
-        
+
         let toastContainer = null;
         const getToastContainer = () => {
             if (!toastContainer) {
@@ -543,14 +546,14 @@
             }
             return toastContainer;
         };
-        
+
         const showError = (message) => {
             let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
                 .toLowerCase()
                 .replace(/_/g, "-");
             lang === "pt-br" ? lang : lang.slice(0, 2);
             const msg = translations[lang]?.filter_unavailable || message;
-            
+
             if (window.bootstrap?.Toast) {
             const container = getToastContainer();
             const toast = document.createElement('div');
@@ -558,23 +561,23 @@
             toast.setAttribute('role', 'alert');
             toast.setAttribute('aria-live', 'assertive');
             toast.setAttribute('aria-atomic', 'true');
-            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+            toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
             container.append(toast);
             new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
             } else {
             alert(msg);
             }
         };
-        
+
         const handleButtonClick = (btn, isApply) => {
             const url = btn.getAttribute('data-url')
             const href = btn.getAttribute('href');
             if ((!url || url === '#') && (!href || href === '#')) {
-                showError("{{ $filterUnavailableMsg }}");
+                showError("{{ $filterUnavailableMsg ?? __('Filter action is unavailable. Please contact technical support.') }}");
                 btn.setAttribute('data-failed-route', 'true');
                 return;
             }
-            
+
             if (isApply) {
             const form = document.getElementById(FORM_ID);
             if (form) form.submit();
@@ -582,7 +585,7 @@
             window.location.href = url;
             }
         };
-        
+
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
             mutation.removedNodes.forEach(node => {
@@ -599,10 +602,10 @@
             });
             });
         });
-        
+
         try {
             observer.observe(document.body, { childList: true, subtree: true });
-        
+
             const applyBtn = document.querySelector(`a.${APPLY_CLASS}`);
             if (applyBtn && !applyBtn.getAttribute(APPLY_ATTR)) {
             applyBtn.setAttribute(APPLY_ATTR, 'true');
@@ -613,7 +616,7 @@
             applyBtn.applyHandler = handler;
             applyBtn.addEventListener('click', handler);
             }
-        
+
             const resetBtn = document.querySelector(`a.${RESET_CLASS}`);
             if (resetBtn && !resetBtn.getAttribute(RESET_ATTR)) {
             resetBtn.setAttribute(RESET_ATTR, 'true');
@@ -627,5 +630,5 @@
         } catch (error) {
         }
         })();
-    </script>   
+    </script>
 @endpush

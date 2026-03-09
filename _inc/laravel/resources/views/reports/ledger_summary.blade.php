@@ -1,17 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Bill, BillPayment, ChartOfAccount, Invoice, Utility, Vendor};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +13,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Ledger Summary') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Ledger Summary') }}</li>
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
@@ -34,19 +28,19 @@
     <script defer src="{{ asset('assets/js/routes/reports/ledgers/pdf.js') }}"></script>
 @endpush
 
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}"> --}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}"> --}}
 {{--            <i class="ti ti-filter"></i> --}}
 {{--        </a> --}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_ledger_summary_unavailable') ?? 'Download function for ledger summaries is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-ledger-summary-link"
         class="{{ VC::BT_SM_PM }} download-ledger-summary"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -62,16 +56,20 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $ledgerBase          = ViewsConstants::RPT.'.ledger';
-                            $ledgerKebab         = Str::kebab($ledgerBase);
-                            $ledgerResolved      = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                            $ledgerUrl           = $ledgerResolved ? route($ledgerResolved) : '#';
-                            $ledgerGuardMsg      = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'ledger_report_route_unavailable') ?? 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $ledgerBase          = ViewsConstants::RPT.'.ledger';
+                                $ledgerKebab         = Str::kebab($ledgerBase);
+                                $ledgerResolved      = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                $ledgerUrl           = $ledgerResolved ? route($ledgerResolved) : '#';
+                                $ledgerGuardMsg      = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'ledger_report_route_unavailable') ?? 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $ledgerUrl,
@@ -81,7 +79,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box"></div>
@@ -112,7 +110,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-ledger"
                                             data-form-id="report_ledger"
-                                            data-guard-msg="{{ $ledgerGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -122,7 +120,7 @@
                                             <a href="{{ $ledgerUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-ledger"
                                             data-url="{{ $ledgerUrl }}"
-                                            data-guard-msg="{{ $ledgerGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -147,8 +145,8 @@
         <div class="{{ VC::RW }} {{ VC::MB4 }}">
             <div class="{{ VC::C12 }} {{ VC::MB4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
@@ -163,37 +161,47 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $balance = 0;
-                                        $totalDebit = 0;
-                                        $totalCredit = 0;
-                                        $accountArrays = [];
-                                        foreach ($accountss as $key => $account) {
-                                            $chartDatas = Utility::getAccountData($account->id, $filter['startDateRange'], $filter['endDateRange']);
-                                            $a = [0 => ['account' => $account->id]];
-                                            $chartDatas = array_merge($chartDatas, $a);
-                                            $accountArrays[] = $chartDatas;
+                                        $balance ??= 0;
+                                        $totalDebit ??= 0;
+                                        $totalCredit ??= 0;
+                                        $accountArrays ??= [];
+                                        try {
+                                            foreach ($items as $key => $account) {
+                                                $chartDatas = Utility::getAccountData($account->id, $filter['startDateRange'], $filter['endDateRange']);
+                                                $a = [0 => ['account' => $account->id]];
+                                                $chartDatas = array_merge($chartDatas, $a);
+                                                $accountArrays[] = $chartDatas;
+                                            }
+                                        } catch (\Throwable $e) {
+                                            \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                         }
-                                    @endphp
+@endphp
                                     @foreach ($accountArrays as $account)
 
                                         @foreach ($account[0] as $a)
-                                            @php $accountName = ChartOfAccount::find($a); @endphp
+                                            @php
+ $accountName = ChartOfAccount::find($a);
+@endphp
                                             @foreach ($account['invoice'] as $invoiceData)
                                                 @if ($account['invoice'] != [])
                                                     <tr>
                                                         <td>{{ $accountName->name }}</td>
                                                         @php
                                                             $invoice = Invoice::where('id', $invoiceData->invoice_id)->first();
-                                                        @endphp
+@endphp
                                                         <td>{{ !empty($invoice->customer) ? $invoice->customer->name : '-' }}</td>
                                                         <td>{{ $user?->invoiceNumberFormat($invoice->invoice_id) }}</td>
                                                         <td>{{ $invoiceData->created_at->format('d-m-Y') }}</td>
                                                         <td>-</td>
                                                         @php
-                                                            $total = $invoiceData->price * $invoiceData->quantity;
-                                                            $balance += $total;
-                                                            $totalCredit += $total;
-                                                        @endphp
+                                                            try {
+                                                                $total = $invoiceData->price * $invoiceData->quantity;
+                                                                $balance += $total;
+                                                                $totalCredit += $total;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <td>{{ $user?->priceFormat($total) }}</td>
                                                         <td>{{ $user?->priceFormat($balance) }}</td>
                                                     </tr>
@@ -205,7 +213,7 @@
                                                     <td>{{ $accountName->name }}</td>
                                                     @php
                                                         $invoice = Invoice::where('id', $invoicePaymentData->invoice_id)->first();
-                                                    @endphp
+@endphp
                                                     <td>{{ !empty($invoice->customer) ? $invoice->customer->name : '-' }}</td>
                                                     <td>{{ $user?->invoiceNumberFormat($invoice->invoice_id) }} {{ __(' Manually Payment') }}</td>
                                                     <td>{{ $invoicePaymentData->created_at->format('d-m-Y') }}</td>
@@ -214,7 +222,7 @@
                                                     @php
                                                         $balance += $invoicePaymentData->amount;
                                                         $totalCredit += $invoicePaymentData->amount;
-                                                    @endphp
+@endphp
                                                     <td>{{ $user?->priceFormat($balance) }}</td>
                                                 </tr>
                                             @endforeach
@@ -230,7 +238,7 @@
                                                     @php
                                                         $balance += $revenueData->amount;
                                                         $totalCredit += $revenueData->amount;
-                                                    @endphp
+@endphp
                                                     <td>{{ $user?->priceFormat($balance) }}</td>
                                                 </tr>
                                             @endforeach
@@ -241,15 +249,19 @@
                                                     @php
                                                         $bill = Bill::find($billProduct->bill_id);
                                                         $vendor = Vendor::find(!empty($bill) ? $bill->vendor_id : '');
-                                                    @endphp
+@endphp
                                                     <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
                                                     <td>{{ $user?->billNumberFormat($bill->bill_id) }}</td>
                                                     <td>{{ $billProduct->created_at->format('d-m-Y') }}</td>
                                                     @php
-                                                        $total = $billProduct->price * $billProduct->quantity;
-                                                        $balance -= $total;
-                                                        $totalCredit -= $total;
-                                                    @endphp
+                                                        try {
+                                                            $total = $billProduct->price * $billProduct->quantity;
+                                                            $balance -= $total;
+                                                            $totalCredit -= $total;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <td>{{ $user?->priceFormat($total) }}</td>
                                                     <td>-</td>
                                                     <td>{{ $user?->priceFormat($balance) }}</td>
@@ -260,7 +272,7 @@
                                                 @php
                                                     $bill = Bill::find($billData->ref_id);
                                                     $vendor = Vendor::find(!empty($bill) ? $bill->vendor_id : '');
-                                                @endphp
+@endphp
                                                 <tr>
                                                     <td>{{ $accountName->name }}</td>
                                                     <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
@@ -276,7 +288,7 @@
                                                     @php
                                                         $balance -= $billData->price;
                                                         $totalDebit -= $billData->price;
-                                                    @endphp
+@endphp
                                                     <td>{{ $user?->priceFormat($balance) }}</td>
                                                 </tr>
                                             @endforeach
@@ -284,10 +296,14 @@
                                             @foreach ($account['billpayment'] as $billPaymentData)
                                                 @if($account['billpayment'] != [])
                                                     @php
-                                                        $bill = BillPayment::where('bill_id', $billPaymentData->bill_id)->first();
-                                                        $billId = Bill::find($billPaymentData->bill_id);
-                                                        $vendor = Vendor::find($billId->vendor_id);
-                                                    @endphp
+                                                        try {
+                                                            $bill = BillPayment::where('bill_id', $billPaymentData->bill_id)->first();
+                                                            $billId = Bill::find($billPaymentData->bill_id);
+                                                            $vendor = Vendor::find($billId->vendor_id);
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/ledger_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <tr>
                                                         <td>{{ $accountName->name }}</td>
                                                         <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
@@ -302,7 +318,7 @@
                                                         @php
                                                             $balance -= $billPaymentData->amount;
                                                             $totalDebit += $billPaymentData->amount;
-                                                        @endphp
+@endphp
                                                         <td>{{ $user?->priceFormat($balance) }}</td>
                                                     </tr>
                                                 @endif
@@ -311,7 +327,7 @@
                                             @foreach ($account['payment'] as $paymentData)
                                                 @php
                                                     $vendor = Vendor::find($paymentData->vendor_id);
-                                                @endphp
+@endphp
                                                 <tr>
                                                     <td>{{ $accountName->name }}</td>
                                                     <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
@@ -322,15 +338,15 @@
                                                     @php
                                                         $balance -= $paymentData->amount;
                                                         $totalDebit += $paymentData->amount;
-                                                    @endphp
+@endphp
                                                     <td>{{ $user?->priceFormat($balance) }}</td>
                                                 </tr>
                                             @endforeach
 
                                             @php
-                                                $debit = 0;
-                                                $credit = 0;
-                                            @endphp
+                                                $debit ??= 0;
+                                                $credit ??= 0;
+@endphp
                                             @foreach ($account['journalItem'] as $journalItemData)
                                                 <tr>
                                                     <td>{{ $accountName->name }}</td>
@@ -349,9 +365,13 @@
                                                     @endif
                                                     <td>
                                                         @if ($journalItemData->debit)
-                                                            @php $balance -= $journalItemData->debit @endphp
+                                                            @php
+ $balance -= $journalItemData->debit
+@endphp
                                                         @else
-                                                            @php $balance += $journalItemData->credit @endphp
+                                                            @php
+ $balance += $journalItemData->credit
+@endphp
                                                         @endif
                                                         {{ $user?->priceFormat($balance) }}
                                                     </td>
@@ -368,56 +388,56 @@
         </div>
     </div>
 @endsection
-        {{-- <div class="row mt-2">
+        {{-- <div class="row {{ VC::MT2 }}">
             <div class="col">
                 <input type="hidden"
                     value="{{ __('Ledger') . ' ' . 'Report of' . ' ' . $filter['startDateRange'] . ' to ' . $filter['endDateRange'] }}"
                     id="filename">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Report') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ __('Ledger Summary') }}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Ledger Summary') }}</h7>
                 </div>
             </div>
 
             <div class="col">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Duration') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $filter['startDateRange'] . ' to ' . $filter['endDateRange'] }}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $filter['startDateRange'] . ' to ' . $filter['endDateRange'] }}</h7>
                 </div>
             </div>
         </div> --}}
         {{-- @if (!empty($account))
-            <div class="row mt-2">
+            <div class="row {{ VC::MT2 }}">
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Account Name') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $account->name }}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Account Name') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $account->name }}</h7>
                     </div>
                 </div>
 
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Account Code') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $account->code }}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Account Code') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $account->code }}</h7>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Total Debit') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $user?->priceFormat($filter['debit']) }}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Total Debit') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filter['debit']) }}</h7>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Total Credit') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $user?->priceFormat($filter['credit']) }}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Total Credit') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filter['credit']) }}</h7>
                     </div>
                 </div>
 
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Balance') }} :</h6>
-                        <h7 class="text-sm mb-0">
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Balance') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">
                             {{ $filter['balance'] > 0 ? __('Cr') . '. ' . $user?->priceFormat(abs($filter['balance'])) : __('Dr') . '. ' . $user?->priceFormat(abs($filter['balance'])) }}
                         </h7>
                     </div>

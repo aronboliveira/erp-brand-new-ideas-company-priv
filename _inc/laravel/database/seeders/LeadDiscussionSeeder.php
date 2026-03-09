@@ -48,7 +48,8 @@ class LeadDiscussionSeeder extends Seeder
 
 		// Se não informado, semear pelo menos 64 × (n de leads)
 		if ($target <= 0) {
-			$target = max(64 * count($leadIds), 64);
+			// $target = max(64 * count($leadIds), 64); /* original */
+			$target = 2; /* HARD_CAP: original was 64 × count($leadIds) */
 		}
 
 		$inserted = 0;
@@ -171,7 +172,7 @@ class LeadDiscussionSeeder extends Seeder
 						if (Schema::hasColumn(DC::TABLE_LD_DSC, DC::COL_TABLE_UPDATER)) {
 							$row->{DC::COL_TABLE_UPDATER} = $userId;
 						}
-						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Discussão de Lead {$leadId} para usuário {$userId}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando Discussão de Lead {$leadId} para usuário {$userId}");
 						$row->save();
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());

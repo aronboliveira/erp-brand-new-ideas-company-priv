@@ -25,7 +25,8 @@ final class TravelSeeder extends Seeder
 	 */
 	private const PAST_DAYS  = 180;
 	private const FUTURE_DAYS = 60;
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{
@@ -56,9 +57,10 @@ final class TravelSeeder extends Seeder
 				'Visita comercial',
 				'Vistoria de infraestrutura',
 			];
-			$hardCap = 3200;
+			// $hardCap = 3200;
+			$HARD_CAP = 2;
 			foreach ($employees as $empId) {
-				if (! $hardCap || $hardCap <= 0)
+				if (! $HARD_CAP || $HARD_CAP <= 0)
 					break;
 				$count = random_int(0, self::MAX_TRIPS_PER_EMPLOYEE);
 				if ($count === 0) {
@@ -70,11 +72,11 @@ final class TravelSeeder extends Seeder
 						Log::info('TravelSeeder: limite de tempo atingido, encerrando carga antecipadamente.');
 						return;
 					}
-					if (!$hardCap || $hardCap <= 0)
+					if (!$HARD_CAP || $HARD_CAP <= 0)
 						return;
-					$hardCap--;
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Viagem ou Dispensa para funcionário ID: {$empId}");
+					$HARD_CAP--;
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Viagem ou Dispensa para funcionário ID: {$empId}");
 					try {
 						// Datas coerentes no fuso de São Paulo
 						$now   = now('America/Sao_Paulo');

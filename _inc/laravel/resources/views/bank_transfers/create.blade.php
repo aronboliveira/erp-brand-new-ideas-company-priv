@@ -1,25 +1,21 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use Collective\Html\FormFacade as Form;
-    $lang = Utility::fetchUserLang();
-    $bankTrfRoute = Route::has(ViewsConstants::BNK_TRF)
-        ? route(ViewsConstants::BNK_TRF)
-        : (Route::has(Str::kebab(ViewsConstants::BNK_TRF))
-            ? route(Str::kebab(ViewsConstants::BNK_TRF))
-            : '#');
-    $formId     = 'bank-transfer-form';
-    $bankTrfMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BNK_TRF,
-        'bank_transfer_index_route_unavailable'
-    ) ?? 'Bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+    $bankAccount ??= [];
+    try {
+$lang = Utility::fetchUserLang();
+        $bankTrfRoute = Route::has(ViewsConstants::BNK_TRF)
+            ? route(ViewsConstants::BNK_TRF)
+            : (Route::has(Str::kebab(ViewsConstants::BNK_TRF))
+                ? route(Str::kebab(ViewsConstants::BNK_TRF))
+                : '#');
+        $formId     = 'bank-transfer-form';
+        $bankTrfMsg = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::BNK_TRF,
+            'bank_transfer_index_route_unavailable'
+        ) ?? 'Bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('bank_transfers/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -62,4 +58,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/bank/transfers/store.js') }}"></script>
 {{ Form::close() }}
-

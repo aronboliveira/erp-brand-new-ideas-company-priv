@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    PlansConstants,
-    ProjectsConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    PlansConstants as PLC,
+    ProjectsConstants as PJC,
+    SettingsConstants as SC,
+    UsersConstants as UC,
+    ViewsConstants as VW
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\{
     CustomField,
     Employee,
@@ -35,7 +35,6 @@ use Illuminate\Http\{
     Request
 };
 use Illuminate\Support\Facades\{
-    Auth,
     Crypt,
     DB,
     File,
@@ -46,6 +45,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class UserController extends AppController
 {
@@ -59,16 +59,16 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
                 $user = $request->user();
-                Log::debug("$cls::$action start", [UsersConstants::COL_USER_ID => $user?->id]);
-                $query = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->with('current_plan');
-                $users = $user[UsersConstants::COL_TP] === PermissionsConstants::SA
-                    ? $query->where(UsersConstants::COL_TP, PermissionsConstants::CPN)->get()
-                    : $query->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->get();
-                $view = ViewsConstants::USR . '.' . $action;
+                Log::debug("$cls::$action start", [UC::COL_USER_ID => $user?->id]);
+                $query = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->with('current_plan');
+                $users = $user[UC::COL_TP] === PMC::SA
+                    ? $query->where(UC::COL_TP, PMC::CPN)->get()
+                    : $query->where(UC::COL_TP, '!=', PMC::CL)->get();
+                $view = VW::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
-                return ViewFacade::make($view, compact(DatabaseConstants::TABLE_USERS));
+                return ViewFacade::make($view, compact(DC::TABLE_USERS));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -84,10 +84,10 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::CR_USER, ViewsConstants::USR . '.index');
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('module', self::SINGULAR)->get();
-                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
-                $view = ViewsConstants::USR . '.' . $action;
+                self::guard($request, PMC::CR_USER, VW::USR . '.index');
+                $customFields = CustomField::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())->where('module', self::SINGULAR)->get();
+                $roles = Role::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PMC::CL)->pluck('name', 'id');
+                $view = VW::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('roles', 'customFields'));
             } catch (AuthorizationException $e) {
@@ -105,36 +105,36 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::CR_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::CR_USER, VW::USR . '.index');
                 $rules = [
-                    UsersConstants::COL_NM => 'required|max:120',
-                    UsersConstants::COL_EM => 'required|email|unique:users',
-                    UsersConstants::COL_PW => 'required|min:6'
+                    UC::COL_NM => 'required|max:120',
+                    UC::COL_EM => 'required|email|unique:users',
+                    UC::COL_PW => 'required|min:6'
                 ];
-                if ($request->user()[UsersConstants::COL_TP] !== PermissionsConstants::SA) $rules['role'] = 'required';
+                if ($request->user()[UC::COL_TP] !== PMC::SA) $rules['role'] = 'required';
                 $validator = Validator::make($request->all(), $rules);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
 
                 $psw = $request->input('password');
                 $data = [
-                    UsersConstants::COL_NM           => $request->input(UsersConstants::COL_NM),
-                    UsersConstants::COL_EM           => $request->input(UsersConstants::COL_EM),
-                    UsersConstants::COL_PW           => Hash::make($psw),
-                    UsersConstants::COL_TP           => $request->user()[UsersConstants::COL_TP] === PermissionsConstants::SA
-                        ? PermissionsConstants::CPN
+                    UC::COL_NM           => $request->input(UC::COL_NM),
+                    UC::COL_EM           => $request->input(UC::COL_EM),
+                    UC::COL_PW           => Hash::make($psw),
+                    UC::COL_TP           => $request->user()[UC::COL_TP] === PMC::SA
+                        ? PMC::CPN
                         : Role::findById($request->input('role'))->name,
-                    UsersConstants::COL_LG           => DB::table(DatabaseConstants::TABLE_SETTINGS)
-                        ->where(UsersConstants::COL_NM, SettingsConstants::DEF_LNG)
-                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
-                        ->value('value') ?: DatabaseConstants::DEFAULT_LANG,
-                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
-                    UsersConstants::COL_U_AT         => now(),
+                    UC::COL_LG           => DB::table(DC::TABLE_SETTINGS)
+                        ->where(UC::COL_NM, SC::DEF_LNG)
+                        ->where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())
+                        ->value('value') ?: DC::DEFAULT_LANG,
+                    DC::COL_TABLE_CREATOR => $request->user()->creatorId(),
+                    UC::COL_U_AT         => now(),
                 ];
 
-                if ($request->user()[UsersConstants::COL_TP] === PermissionsConstants::SA) {
+                if ($request->user()[UC::COL_TP] === PMC::SA) {
                     $data['plan'] = Plan::first()->id;
                     $user = User::create($data);
-                    $user?->assignRole(Role::findByName(PermissionsConstants::CPN));
+                    $user?->assignRole(Role::findByName(PMC::CPN));
                     $initializers = [
                         [$user,                   User::USR_DEF_DT_REG],
                         [$user,                   User::USR_WA_REG],
@@ -157,7 +157,7 @@ class UserController extends AppController
                     $existing  = User::find($creator);
                     $totalUsers = $existing->countUsers();
                     $plan      = Plan::find($existing->plan);
-                    if ($totalUsers >= $plan[PlansConstants::COL_MAX_U] && $plan[PlansConstants::COL_MAX_U] !== -1)
+                    if ($totalUsers >= $plan[PLC::COL_MAX_U] && $plan[PLC::COL_MAX_U] !== -1)
                         return redirect()->back()->with('error', __('Your user limit is over, Please upgrade plan.'));
                     $user = User::create($data);
                     $role = Role::findById($request->input('role'));
@@ -168,7 +168,7 @@ class UserController extends AppController
                 if (Utility::settings()['new_user'] ?? false)
                     Utility::sendEmailTemplate('new_user', [$user?->email], ['email' => $user?->email, 'password' => $psw]);
 
-                return redirect()->route(ViewsConstants::USR . '.index')->with('success', __('User successfully created.'));
+                return redirect()->route(VW::USR . '.index')->with('success', __('User successfully created.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -182,7 +182,7 @@ class UserController extends AppController
         $action = __FUNCTION__;
         $cls = __CLASS__;
         return $this->measureProfile($action, function () {
-            return redirect()->route(ViewsConstants::USR . '.index');
+            return redirect()->route(VW::USR . '.index');
         });
     }
 
@@ -193,13 +193,13 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
-                $userDetail   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
+                self::guard($request, PMC::ED_USER, VW::USR . '.index');
+                $userDetail   = User::findOrFail($id);
                 $customFields = CustomField::getData($userDetail, self::SINGULAR);
-                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
-                $view = ViewsConstants::USR . '.' . $action;
+                $roles = Role::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PMC::CL)->pluck('name', 'id');
+                $view = VW::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
-                return ViewFacade::make($view, compact('userDetail', DatabaseConstants::TABLE_ROLES, 'customFields'));
+                return ViewFacade::make($view, compact('userDetail', DC::TABLE_ROLES, 'customFields'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -215,26 +215,26 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::ED_USER, VW::USR . '.index');
                 $rules = ['name' => 'required|max:120', 'email' => "required|email|unique:users,email,$id"];
-                if ($request->user()[UsersConstants::COL_TP] !== PermissionsConstants::SA) $rules['role'] = 'required';
+                if ($request->user()[UC::COL_TP] !== PMC::SA) $rules['role'] = 'required';
                 $validator = Validator::make($request->all(), $rules);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
 
-                $userDetail = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
+                $userDetail = User::findOrFail($id);
                 $input = $request->only(['name', 'email']);
-                if ($request->user()[UsersConstants::COL_TP] !== PermissionsConstants::SA) {
+                if ($request->user()[UC::COL_TP] !== PMC::SA) {
                     $role = Role::findById($request->input('role'));
-                    $input[UsersConstants::COL_TP] = $role->name;
+                    $input[UC::COL_TP] = $role->name;
                 } else {
-                    $role = Role::findByName(PermissionsConstants::CPN);
-                    $input[UsersConstants::COL_TP] = $role->name;
+                    $role = Role::findByName(PMC::CPN);
+                    $input[UC::COL_TP] = $role->name;
                 }
                 $userDetail->fill($input)->save();
                 CustomField::saveData($userDetail, $request->input('customField', []));
                 $userDetail->roles()->sync([$role->id]);
 
-                return redirect()->route(ViewsConstants::USR . '.index')->with('success', __('User successfully updated.'));
+                return redirect()->route(VW::USR . '.index')->with('success', __('User successfully updated.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -250,16 +250,16 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::DEL_USER, ViewsConstants::USR . '.index');
-                $user = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id);
-                if ($request->user()[UsersConstants::COL_TP] === PermissionsConstants::SA) {
+                self::guard($request, PMC::DEL_USER, VW::USR . '.index');
+                $user = User::findOrFail($id);
+                if ($request->user()[UC::COL_TP] === PMC::SA) {
                     $user->delete_status = $user?->delete_status ? 0 : 1;
                     $user?->save();
-                } elseif ($request->user()[UsersConstants::COL_TP] === PermissionsConstants::CPN) {
-                    Employee::where(UsersConstants::COL_USER_ID, $user?->id)->delete();
+                } elseif ($request->user()[UC::COL_TP] === PMC::CPN) {
+                    Employee::where(UC::COL_USER_ID, $user?->id)->delete();
                     $user?->delete();
                 }
-                return redirect()->route(ViewsConstants::USR . '.index')->with('success', __('User successfully deleted.'));
+                return redirect()->route(VW::USR . '.index')->with('success', __('User successfully deleted.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -268,6 +268,7 @@ class UserController extends AppController
         });
     }
 
+    public const PRF = 'profile';
     public function profile(Request $request): RedirectResponse|View
     {
         $action = __FUNCTION__;
@@ -275,11 +276,11 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
                 $userDetail = $request->user();
                 $userDetail->customField = CustomField::getData($userDetail, self::SINGULAR);
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $userDetail->creatorId())->where('module', self::SINGULAR)->get();
-                $view = ViewsConstants::USR . '.profile';
+                $customFields = CustomField::where(DC::COL_TABLE_CREATOR, $userDetail->creatorId())->where('module', self::SINGULAR)->get();
+                $view = VW::USR . '.profile';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('userDetail', 'customFields'));
             } catch (AuthorizationException $e) {
@@ -298,12 +299,12 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER);
+                self::guard($request, PMC::ED_USER);
                 $userDetail = $request->user();
                 $validator = Validator::make($request->all(), [
                     'name'    => 'required|max:120',
                     'email'   => 'required|email|unique:users,email,' . $userDetail->id,
-                    'profile' => 'nullable|file|mimes:jpg,png,jpeg,gif|max:' . SettingsConstants::MAX_U_SIZE_DEF,
+                    'profile' => 'nullable|file|mimes:jpg,png,jpeg,gif|max:' . SC::MAX_U_SIZE_DEF,
                 ]);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
                 if ($request->hasFile('profile')) {
@@ -311,7 +312,7 @@ class UserController extends AppController
                     $filename  = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                     $extension = $file->getClientOriginalExtension();
                     $storeName = $filename . '_' . time() . '.' . $extension;
-                    $dir       = (Utility::getStorageSetting()[SettingsConstants::STR_STT] ?? 'local') === 'local' ? 'uploads/avatar/' : 'uploads/avatar';
+                    $dir       = (Utility::getStorageSetting()[SC::STR_STT] ?? 'local') === 'local' ? 'uploads/avatar/' : 'uploads/avatar';
                     $oldPath   = $dir . $userDetail->avatar;
                     File::exists($oldPath) && File::delete($oldPath);
                     $upload = Utility::uploadFile($request, 'profile', $storeName, $dir, []);
@@ -320,7 +321,7 @@ class UserController extends AppController
                         return redirect()->route('profile')->with('error', __($upload['msg'] ?? 'Upload failed'));
                     }
                     $userDetail->avatar = $storeName;
-                    Log::debug("$cls::$action avatar", [UsersConstants::COL_USER_ID => $userDetail->id, 'file' => $storeName]);
+                    Log::debug("$cls::$action avatar", [UC::COL_USER_ID => $userDetail->id, 'file' => $storeName]);
                 }
                 $userDetail->fill($request->only('name', 'email'))->save();
                 CustomField::saveData($userDetail, $request->input('customField', []));
@@ -342,7 +343,7 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER);
+                self::guard($request, PMC::ED_USER);
                 $validator = Validator::make($request->all(), [
                     'old_password' => 'required',
                     'password'     => 'required|min:6|confirmed',
@@ -353,7 +354,7 @@ class UserController extends AppController
                     return redirect()->back()->with('error', __('Please enter correct current password.'));
                 $user->password = Hash::make($request->input('password'));
                 $user?->save();
-                Log::debug("$cls::$action changed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::debug("$cls::$action changed", [UC::COL_USER_ID => $user?->id]);
                 // ! ALERT
                 return redirect()->route('profile')->with('success', __('Password successfully updated.'));
             } catch (AuthorizationException $e) {
@@ -378,12 +379,10 @@ class UserController extends AppController
                     return response()->json(['error' => $validator->errors()->first()], Response::HTTP_BAD_REQUEST);
                 $todo = UserToDo::create([
                     'title'                 => $request->input('title'),
-                    UsersConstants::COL_USER_ID => $request->user()->id,
+                    UC::COL_USER_ID => $request->user()->id,
                 ]);
-                // ! ALERT
-                $todo->updateUrl = route('todo.update', [$todo->id]);
-                // ! ALERT
-                $todo->deleteUrl = route('todo.destroy', [$todo->id]);
+                $todo->updateUrl = route(VW::TD . '.update', [$todo->id]);
+                $todo->deleteUrl = route(VW::TD . '.destroy', [$todo->id]);
                 Log::debug("$cls::$action created", ['id' => $todo->id]);
                 return response()->json($todo, Response::HTTP_CREATED);
             } catch (\Throwable $e) {
@@ -394,7 +393,7 @@ class UserController extends AppController
     }
 
     public const TD_UPD = 'todoUpdate';
-    public function todoUpdate(int $todoId): JsonResponse
+    public function todoUpdate(string|int $todoId): JsonResponse
     {
         $action = __FUNCTION__;
         $cls = __CLASS__;
@@ -402,11 +401,14 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
                     return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
-                $todo = UserToDo::where('user_id', $userOrRedirect->id)->findOrFail($todoId);
-                $todo[ProjectsConstants::COL_IS_CP] = !$todo[ProjectsConstants::COL_IS_CP];
+                $todo = UserToDo::findOrFail($todoId);
+                $todo[PJC::COL_IS_CP] = !$todo[PJC::COL_IS_CP];
                 $todo->save();
-                Log::debug("$cls::$action toggled", ['id' => $todo->id, 'complete' => $todo[ProjectsConstants::COL_IS_CP]]);
+                Log::debug("$cls::$action toggled", ['id' => $todo->id, 'complete' => $todo[PJC::COL_IS_CP]]);
                 return response()->json($todo, Response::HTTP_OK);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                Log::debug("$cls::$action not found", ['id' => $todoId]);
+                return response()->json(['error' => 'Todo not found'], Response::HTTP_NOT_FOUND);
             } catch (\Throwable $e) {
                 Log::debug("$cls::$action error", ['error' => $e->getMessage()]);
                 return response()->json(['error' => 'Server error'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -423,10 +425,13 @@ class UserController extends AppController
             try {
                 if ((self::_checkLogin()) instanceof RedirectResponse)
                     return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
-                $todo = UserToDo::where('user_id', Auth::id())->findOrFail($id);
+                $todo = UserToDo::findOrFail($id);
                 $todo->delete();
                 Log::debug("$cls::$action deleted", ['id' => $id]);
                 return response()->json(['success' => true], Response::HTTP_OK);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                Log::debug("$cls::$action not found", ['id' => $id]);
+                return response()->json(['error' => 'Todo not found'], Response::HTTP_NOT_FOUND);
             } catch (\Throwable $e) {
                 Log::debug("$cls::$action error", ['error' => $e->getMessage()]);
                 return response()->json(['error' => 'Server error'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -442,12 +447,12 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER);
+                self::guard($request, PMC::ED_USER);
                 $user = $request->user();
                 $user->mode = $user->mode == 'light' ? 'dark' : 'light';
                 $user->dark_mode = $user->mode == 'dark' ? 1 : 0;
                 $user?->save();
-                Log::debug("$cls::$action", [UsersConstants::COL_USER_ID => $user?->id, 'mode' => $user?->mode]);
+                Log::debug("$cls::$action", [UC::COL_USER_ID => $user?->id, 'mode' => $user?->mode]);
                 return redirect()->back();
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
@@ -465,11 +470,11 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $userId, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
                 $user = User::findOrFail($userId);
                 $plans = Plan::all();
                 $adminPaymentSetting = Utility::getAdminPaymentSetting();
-                $view = ViewsConstants::USR . '.plan';
+                $view = VW::USR . '.plan';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact(self::SINGULAR, 'plans', 'adminPaymentSetting'));
             } catch (AuthorizationException $e) {
@@ -489,7 +494,7 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $u = $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
                 $user = User::findOrFail($userId);
                 $assign = $user?->assignPlan($planId);
                 $plan  = Plan::findOrFail($planId);
@@ -502,7 +507,7 @@ class UserController extends AppController
                         'price'          => $plan->price,
                         'price_currency' => $u->planPrice()['currency'] ?? '',
                         'payment_status' => 'success',
-                        UsersConstants::COL_USER_ID => $user?->id,
+                        UC::COL_USER_ID => $user?->id,
                     ]);
                     return redirect()->back()->with('success', __('Plan successfully upgraded.'));
                 }
@@ -523,10 +528,10 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::ED_USER, VW::USR . '.index');
                 $id   = Crypt::decrypt($id);
                 $user = User::findOrFail($id);
-                $view = ViewsConstants::USR . '.reset';
+                $view = VW::USR . '.reset';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact(self::SINGULAR));
             } catch (AuthorizationException $e) {
@@ -545,14 +550,14 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::ED_USER, VW::USR . '.index');
                 $validator = Validator::make($request->all(), ['password' => 'required|confirmed']);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
-                $user = User::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->findOrFail($id);
+                $user = User::findOrFail($id);
                 $user->password = Hash::make($request->input('password'));
                 $user?->save();
-                Log::debug("$cls::$action", [UsersConstants::COL_USER_ID => $user?->id]);
-                return redirect()->route(ViewsConstants::USR . '.index')->with('success', __('User Password successfully updated.'));
+                Log::debug("$cls::$action", [UC::COL_USER_ID => $user?->id]);
+                return redirect()->route(VW::USR . '.index')->with('success', __('User Password successfully updated.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -569,27 +574,27 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
-                $filterUser = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
-                    ->pluck(UsersConstants::COL_NM, 'id')
+                if (($g = self::guard($request, PMC::MNG_USER, VW::USR . '.index')) !== true) return $g;
+                $filteruser = User::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())
+                    ->pluck(UC::COL_NM, 'id')
                     ->prepend(__('Select User'), '');
                 $query = DB::table('login_details')
-                    ->join(DatabaseConstants::TABLE_USERS, 'login_details.' . UsersConstants::COL_USER_ID, '=', DatabaseConstants::TABLE_USERS . '.id')
-                    ->select('login_details.*', DatabaseConstants::TABLE_USERS . '.id as user_id', DatabaseConstants::TABLE_USERS . '.name as user_name')
-                    ->where('login_details.' . DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId());
+                    ->join(DC::TABLE_USERS, 'login_details.' . UC::COL_USER_ID, '=', DC::TABLE_USERS . '.id')
+                    ->select('login_details.*', DC::TABLE_USERS . '.id as user_id', DC::TABLE_USERS . '.name as user_name')
+                    ->where('login_details.' . DC::COL_TABLE_CREATOR, $request->user()->creatorId());
                 if ($request->filled('month')) {
                     $query->whereMonth('date', date('m', strtotime($request->month)))
                         ->whereYear('date', date('Y', strtotime($request->month)));
                 } else {
                     $query->whereMonth('date', date('m'))->whereYear('date', date('Y'));
                 }
-                if ($request->filled(DatabaseConstants::TABLE_USERS))
-                    $query->where(UsersConstants::COL_USER_ID, $request->users);
+                if ($request->filled(DC::TABLE_USERS))
+                    $query->where(UC::COL_USER_ID, $request->users);
                 $userDetails      = $query->get();
-                $lastLoginDetails = LoginDetail::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
-                $view = ViewsConstants::USR . '.userlog';
+                $lastLoginDetails = LoginDetail::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
+                $view = VW::USR . '.userlog';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
-                return ViewFacade::make($view, compact('userDetails', 'lastLoginDetails', 'filterUser'));
+                return ViewFacade::make($view, compact('userDetails', 'lastLoginDetails', 'filteruser'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
@@ -607,9 +612,9 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
                 $detail = LoginDetail::findOrFail($id);
-                $view = ViewsConstants::USR . '.userlogview';
+                $view = VW::USR . '.userlogview';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('detail'));
             } catch (AuthorizationException $e) {
@@ -622,6 +627,14 @@ class UserController extends AppController
     }
 
     public const USR_LOG_DSTR = 'userLogDestroy';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function userLogDestroy(Request $request, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -629,15 +642,214 @@ class UserController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
-                LoginDetail::where(UsersConstants::COL_USER_ID, $id)->delete();
-                Log::debug("$cls::$action cleared", [UsersConstants::COL_USER_ID => $id]);
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
+                LoginDetail::where(UC::COL_USER_ID, $id)->delete();
+                Log::debug("$cls::$action cleared", [UC::COL_USER_ID => $id]);
                 return redirect()->back()->with('success', __('Login details deleted.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {
                 Log::debug("$cls::$action error", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "$cls::$action");
+            }
+        });
+    }
+
+    public const FLT_USR_VW = 'filterUserView';
+    public function filterUserView(Request $request): View|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user = $userOrRedirect;
+                self::guard($request, PMC::MNG_USER, VW::USR . '.index');
+                $users = User::where(DC::COL_TABLE_CREATOR, $user->creatorId())->get();
+                return view(VW::USR . '.index', compact('users'));
+            } catch (\Throwable $e) {
+                Log::debug("$cls::$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, "$cls::$action");
+            }
+        });
+    }
+
+    public const CHK_USR_EXT = 'checkUserExists';
+    public function checkUserExists(Request $request): JsonResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['exists' => false, 'error' => 'Unauthorized'], 403);
+                $email = $request->input('email', '');
+                $exists = User::where('email', $email)->exists();
+                return response()->json(['exists' => $exists]);
+            } catch (\Throwable $e) {
+                Log::debug("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['exists' => false, 'error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Get tasks associated with a specific project for the current user.
+     */
+    public const GT_PRJ_TSK = 'getProjectTask';
+    public function getProjectTask(Request $request): JsonResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $projectId = $request->input('project_id');
+                if (empty($projectId))
+                    return response()->json(['tasks' => []]);
+                $tasks = \App\Models\ProjectTask::where('project_id', $projectId)->pluck('name', 'id');
+                return response()->json(['tasks' => $tasks]);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Mark a notification as seen/read.
+     */
+    public const NTF_SN = 'notificationSeen';
+    public function notificationSeen(Request $request, int|string $id): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $user = $request->user();
+                $notification = $user?->notifications()?->where('id', $id)->first();
+                if ($notification) {
+                    $notification->markAsRead();
+                    Log::info("$cls::$action marked", ['notification_id' => $id, UC::COL_USER_ID => $user?->id]);
+                }
+                return response()->json(['success' => true]);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Search users by name or email.
+     */
+    public const SRC = 'search';
+    public function search(Request $request): JsonResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $user = $request->user();
+                $search = $request->input('q', '');
+                $users = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                    ->where(function ($q) use ($search) {
+                        $q->where(UC::COL_NM, 'LIKE', "%{$search}%")
+                            ->orWhere(UC::COL_EM, 'LIKE', "%{$search}%");
+                    })
+                    ->limit(20)
+                    ->get([UC::COL_NM, UC::COL_EM, 'id']);
+                return response()->json(['users' => $users]);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Get detailed info for a specific user.
+     */
+    public const USR_INF = 'userInfo';
+    public function userInfo(Request $request, int|string $id): JsonResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $user = $request->user();
+                $target = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                return response()->json([
+                    'id' => $target->id,
+                    UC::COL_NM => $target[UC::COL_NM],
+                    UC::COL_EM => $target[UC::COL_EM],
+                    UC::COL_TP => $target[UC::COL_TP],
+                ]);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                return response()->json(['error' => 'User not found'], 404);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Update the authenticated user's profile.
+     */
+    public const UPD_PRF = 'updateProfile';
+    public function updateProfile(Request $request): RedirectResponse|JsonResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return $userOrRedirect;
+                $user = $request->user();
+                if (!$user) return redirect()->back()->with('error', __('User not found.'));
+
+                $validator = Validator::make($request->all(), [
+                    UC::COL_NM => 'required|string|max:255',
+                    UC::COL_EM => 'required|email|max:255|unique:users,' . UC::COL_EM . ',' . $user->id,
+                    'avatar'   => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                ]);
+
+                if ($validator->fails()) {
+                    if ($request->expectsJson())
+                        return response()->json(['errors' => $validator->errors()], 422);
+                    return redirect()->back()->withErrors($validator)->withInput();
+                }
+
+                $user->{UC::COL_NM} = $request->input(UC::COL_NM);
+                $user->{UC::COL_EM} = $request->input(UC::COL_EM);
+
+                if ($request->hasFile('avatar')) {
+                    $avatar = $request->file('avatar');
+                    $path = $avatar->store('avatars', 'public');
+                    $user->avatar = $path;
+                }
+
+                $user->save();
+
+                Log::info("$cls::$action updated", [UC::COL_USER_ID => $user->id]);
+
+                if ($request->expectsJson())
+                    return response()->json(['success' => true, 'message' => __('Profile updated successfully.')]);
+
+                return redirect()->back()->with('success', __('Profile updated successfully.'));
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                if ($request->expectsJson())
+                    return response()->json(['error' => $e->getMessage()], 500);
+                return redirect()->back()->with('error', __('Failed to update profile.'));
             }
         });
     }

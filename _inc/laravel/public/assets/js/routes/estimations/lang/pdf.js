@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -14,7 +15,6 @@
       estimate_pdf_unavailable: "Error al generar el PDF del presupuesto.",
     },
     fr: { estimate_pdf_unavailable: "Échec de la génération du PDF du devis." },
-    he: { estimate_pdf_unavailable: "לא ניתן ליצור PDF להצעת המחיר." },
     it: {
       estimate_pdf_unavailable: "Impossibile generare il PDF del preventivo.",
     },

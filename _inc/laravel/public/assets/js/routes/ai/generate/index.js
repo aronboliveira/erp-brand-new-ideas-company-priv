@@ -1,5 +1,10 @@
+/**
+ * @file AI Generate Index Route Guard
+ * @description Handles AI template generation button with custom logic
+ */
 (() => {
   try {
+    const guard = window.ERPGuard;
     const f = document.getElementById("ai-template-form");
     const btn = document.getElementById("ai-generate-btn");
     const desc = document.getElementById("ai-description");
@@ -9,38 +14,9 @@
     btn.setAttribute("data-listener-active", "true");
 
     const showNotice = msg => {
-      try {
-        if (!msg) return;
-        const bsLink = document.querySelector('link[href*="bootstrap"]');
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        if (
-          bsLink &&
-          typeof window.bootstrap !== "undefined" &&
-          window.bootstrap?.Toast
-        ) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          window.bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-      } catch (_) {
+      if (guard) {
+        guard.showToast(msg);
+      } else {
         alert(msg);
       }
     };
@@ -50,7 +26,7 @@
         e.preventDefault();
 
         const selected = f.querySelector(
-          'input.template_name[type="radio"]:checked'
+          'input.template_name[type="radio"]:checked',
         );
         if (!selected) {
           const msg =
@@ -105,7 +81,7 @@
           console.error(
             "[assets/js/routes/aiTemplates/generate.js] Click handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -117,7 +93,7 @@
       console.error(
         "[assets/js/routes/aiTemplates/generate.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

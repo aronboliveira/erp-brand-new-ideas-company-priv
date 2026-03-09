@@ -9,10 +9,16 @@ use Tests\TestCase;
 
 class LanguageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -22,7 +28,11 @@ class LanguageTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['id', 'code', 'full_name'];
+		$expected = [
+			'code',
+			'full_name',
+			'created_by',
+		];
 		$this->assertSame($expected, (new Language)->getFillable());
 	}
 

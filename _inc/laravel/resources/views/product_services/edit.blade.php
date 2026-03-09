@@ -1,43 +1,60 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants,
-        PlansConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang        = Utility::fetchUserLang();
-    $plan        = Utility::getChatGPTSettings();
-
-    $hasModel    = !empty($productService ?? null) && data_get($productService, 'id');
-
-    $updateBase     = VW::PRD_SV . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $productService->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'update_route_unavailable')
-                        ?? __('Update Product Service route is unavailable. Please contact technical support or your domain administrator.');
-
-    $genUrl   = route('generate', [VW::PRD_SV]);
-    $genGuard = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'generate_route_unavailable')
-                ?? __('Generate content route for Product Service is unavailable. Please contact technical support or your domain administrator.');
-
-    $fields = [
-        ['name'=>'name',                   'type'=>'text',     'label'=>__('Name'),             'required'=>true],
-        ['name'=>'sku',                    'type'=>'text',     'label'=>__('SKU'),              'required'=>true],
-        ['name'=>'sale_price',             'type'=>'number',   'label'=>__('Sale Price'),       'required'=>true,'step'=>'0.01'],
-        ['name'=>'sale_chart_account_id',   'type'=>'select',   'label'=>__('Income Account'),   'options'=>$incomeChartAccounts ?? [],'required'=>true],
-        ['name'=>'purchase_price',         'type'=>'number',   'label'=>__('Purchase Price'),   'required'=>true,'step'=>'0.01'],
-        ['name'=>'expense_chart_account_id','type'=>'select',   'label'=>__('Expense Account'),  'options'=>$expenseChartAccounts ?? [],'required'=>true],
-        ['name'=>'tax_id',                 'type'=>'select2',  'label'=>__('Tax'),              'options'=>$tax ?? [],'multiple'=>true],
-        ['name'=>'category_id',            'type'=>'select',   'label'=>__('Category'),         'options'=>$category ?? [],'required'=>true],
-        ['name'=>'unit_id',                'type'=>'select',   'label'=>__('Unit'),             'options'=>$unit ?? [],'required'=>true],
-        ['name'=>'description',            'type'=>'textarea','label'=>__('Description'),      'rows'=>2],
-    ];
+$lang ??= 'en';
+	$plan ??= null;
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$genUrl ??= '#';
+	$genGuard ??= '';
+	$fields ??= [];
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$plan = Utility::getChatGPTSettings();
+		$hasModel = !empty($productService ?? null) && data_get($productService, 'id');
+		$updateBase = VW::PRD_SV . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasModel) ? (route($updateResolved, data_get($productService ?? null, 'id')) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'update_route_unavailable') ?? __('Update Product Service route is unavailable. Please contact technical support or your domain administrator.');
+		$genUrl = Route::has('generate') ? (route('generate', [VW::PRD_SV]) ?? '#') : '#';
+		$genGuard = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'generate_route_unavailable') ?? __('Generate content route for Product Service is unavailable. Please contact technical support or your domain administrator.');
+		$fields = [
+			['name' => 'name', 'type' => 'text', 'label' => __('Name'), 'required' => true],
+			['name' => 'sku', 'type' => 'text', 'label' => __('SKU'), 'required' => true],
+			['name' => 'sale_price', 'type' => 'number', 'label' => __('Sale Price'), 'required' => true, 'step' => '0.01'],
+			['name' => 'sale_chart_account_id', 'type' => 'select', 'label' => __('Income Account'), 'options' => $incomeChartAccounts ?? [], 'required' => true],
+			['name' => 'purchase_price', 'type' => 'number', 'label' => __('Purchase Price'), 'required' => true, 'step' => '0.01'],
+			['name' => 'expense_chart_account_id', 'type' => 'select', 'label' => __('Expense Account'), 'options' => $expenseChartAccounts ?? [], 'required' => true],
+			['name' => 'tax_id', 'type' => 'select2', 'label' => __('Tax'), 'options' => $tax ?? [], 'multiple' => true],
+			['name' => 'category_id', 'type' => 'select', 'label' => __('Category'), 'options' => $category ?? [], 'required' => true],
+			['name' => 'unit_id', 'type' => 'select', 'label' => __('Unit'), 'options' => $unit ?? [], 'required' => true],
+			['name' => 'description', 'type' => 'textarea', 'label' => __('Description'), 'rows' => 2],
+		];
+	} catch (\Error $e) {
+		Log::error('Error in product_services/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in product_services/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in product_services/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)
@@ -52,13 +69,13 @@
     ]) }}
         <div class="modal-body">
             @if($plan?->{PlansConstants::COL_GPT} == 1)
-                <div class="text-end mb-3">
+                <div class="{{ VC::TX_END }} {{ VC::MB3 }}">
                     <a href="#"
                        class="{{ VC::BT_SM_PM }} btn-icon"
                        data-ajax-popup-over="true"
                        data-size="md"
                        data-url="{{ $genUrl }}"
-                       data-guard-msg="{{ $genGuard }}"
+                       data-guard-msg="{{ base64_encode($genGuard) }}"
                        data-sv-localized="true"
                        data-bs-placement="top"
                        data-title="{{ __('Generate content with AI') }}">
@@ -70,14 +87,18 @@
             <div class="row">
                 @foreach($fields as $f)
                     @php
-                        $attrs = ['class'=> VC::FM_CT];
-                        if(!empty($f['required'])) $attrs['required']='required';
-                        if(!empty($f['step']))     $attrs['step']=$f['step'];
-                        $wrapClass = VC::FM_GCB6;
-                    @endphp
+                        try {
+                            $attrs = ['class'=> VC::FM_CT];
+                            if(!empty($f['required'])) $attrs['required']='required';
+                            if(!empty($f['step']))     $attrs['step']=$f['step'];
+                            $wrapClass = VC::FM_GCB6;
+                        } catch (\Throwable $e) {
+                            \Log::error('product_services/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ $wrapClass }}">
                         {{ Form::label($f['name'], $f['label'], ['class'=> VC::FM_LB]) }}
-                        @if(!empty($f['required']))<span class="text-danger">*</span>@endif
+                        @if(!empty($f['required']))<span class="{{ VC::TX_DNG }}">*</span>@endif
 
                         @if($f['type']=='text' || $f['type']=='number')
                             {{ $f['type']=='text' ? Form::text($f['name'], null, $attrs) : Form::number($f['name'], null, $attrs) }}
@@ -104,7 +125,7 @@
                             >
                             <img
                                 id="image"
-                                class="mt-3"
+                                class="{{ VC::MT3 }}"
                                 width="100"
                                 src="{{ $productService->pro_image
                                     ? asset(Storage::url('uploads/pro_image/'.$productService->pro_image))
@@ -136,13 +157,13 @@
                 </div>
 
                 <div class="{{ VC::FM_GCB6 }} quantity {{ $productService->type=='service' ? 'd-none' : '' }}">
-                    {{ Form::label('quantity', __('Quantity'), ['class'=> VC::FM_LB]) }}<span class="text-danger">*</span>
+                    {{ Form::label('quantity', __('Quantity'), ['class'=> VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                     {{ Form::text('quantity', null, [ 'class'=> VC::FM_CT, 'required'=>'required' ]) }}
                 </div>
 
                 @if(!empty($customFields) && $customFields instanceof Collection && $customFields->isNotEmpty())
                     <div class="{{ VC::FM_GCB6 }}">
-                        <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                        <div class="{{ VC::TAB_FD_SH }}" id="tab-2" role="tabpanel">
                             @include(VW::CST_FD . '.form_builder')
                         </div>
                     </div>
@@ -162,5 +183,3 @@
 @else
     <div>{{ __('No Product Service could be found.') }}</div>
 @endif
-
-

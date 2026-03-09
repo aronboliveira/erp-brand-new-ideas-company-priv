@@ -1,35 +1,54 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use Collective\Html\FormFacade as Form;
-
-    $lang                     = Utility::fetchUserLang();
-    $contractTypeUpdateRoute  = Route::has(ViewsConstants::CTC_TP . '.update')
-        ? route(ViewsConstants::CTC_TP . '.update', $contractType->id)
-        : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.update'))
-            ? route(Str::kebab(ViewsConstants::CTC_TP . '.update'), $contractType->id)
-            : '#');
-    $contractTypeFormId       = 'contract-type-update-form-' . $contractType->id;
-    $contractTypeUpdateMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CTC_TP,
-        'contract_type_update_route_unavailable'
-    ) ?? 'Contract Type update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$contractTypeUpdateRoute ??= '#';
+	$contractTypeFormId ??= 'contract-type-update-form';
+	$contractTypeUpdateMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$contractTypeId = data_get($contractType ?? null, 'id');
+		$contractTypeUpdateRoute = $contractTypeId && Route::has(ViewsConstants::CTC_TP . '.update')
+			? (route(ViewsConstants::CTC_TP . '.update', $contractTypeId) ?? '#')
+			: ($contractTypeId && Route::has(Str::kebab(ViewsConstants::CTC_TP . '.update'))
+				? (route(Str::kebab(ViewsConstants::CTC_TP . '.update'), $contractTypeId) ?? '#')
+				: '#');
+		$contractTypeFormId = 'contract-type-update-form-' . ($contractTypeId ?: 'unknown');
+		$contractTypeUpdateMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CTC_TP,
+			'contract_type_update_route_unavailable'
+		) ?? 'Contract Type update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in contract_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in contract_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in contract_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($contractType) && isset($contractType->id))
     {{ Form::model($contractType, [
-        'route'          => [$contractTypeUpdateRoute],
+        'url'            => $contractTypeUpdateRoute,
         'method'         => 'PUT',
         'id'             => $contractTypeFormId,
         'data-url'       => $contractTypeUpdateRoute,
         'data-guard-msg' => $contractTypeUpdateMsg,
+        'data-sv-localized' => 'true',
     ]) }}
         <div class="modal-body">
             <div class="{{ VC::RW }}">
@@ -43,47 +62,7 @@
             <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
             <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
         </div>
-        <script defer>
-            (() => {
-                const form = document.getElementById('{{ $contractTypeFormId }}');
-                if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                form.setAttribute('data-listener-active', 'true');
-                form.addEventListener('submit', event => {
-                    try {
-                        const action = form.getAttribute('action');
-                        const url    = form.getAttribute('data-url');
-                        if ((action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            })();
-        </script>
     {{ Form::close() }}
 @else
-    <div class="alert text-muted">{{ __('Contract Type not found') }}</div>
+    <div class="alert {{ VC::TXT_MT }}">{{ __('Contract Type not found') }}</div>
 @endif
-

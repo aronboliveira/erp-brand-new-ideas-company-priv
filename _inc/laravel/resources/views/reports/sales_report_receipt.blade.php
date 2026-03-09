@@ -1,22 +1,13 @@
 {{-- @extends(ExtendingLayoutsConstants::ADM) --}}
 @php
-    use App\Config\Constants\{
-        DatabaseConstants,
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $authUser = $creatorUser?->creatorId() ?? null;
-    $creatorUser = User::find($authUser);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $authUser = $creatorUser?->creatorId() ?? null;
+        $creatorUser = User::find($authUser);
+    } catch (\Throwable $e) {
+        \Log::error('reports/sales_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
     <head>
@@ -40,11 +31,11 @@
     <body class="{{ $color }}">
         <div class="{{ VC::MT4 }}">
             <div class="{{ VC::RW }} justify-content-center" id="printableArea">
-                <div class="col-md-8">
+                <div class="{{ VC::CM8 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             @if ($reportName === '#item')
-                                <div class="account-main-title mb-5">
+                                <div class="account-main-title {{ VC::MB5 }}">
                                     <h5>
                                         {{ __('Sales By Item of :name as of :start to :end', [
                                             'name'  => $creatorUser?->name,
@@ -53,34 +44,40 @@
                                         ]) }}
                                     </h5>
 
-                                    @php $totQty = 0; $totAmt = 0.0; @endphp
+                                    @php
+ $totQty = 0; $totAmt = 0.0;
+@endphp
                                     <table class="{{ VC::TB }} table-flush {{ VC::MT3 }}" id="report-items-table">
                                         <thead>
                                             <tr>
                                                 <th width="33%">{{ __('Invoice Item') }}</th>
-                                                <th width="33%" class="text-end">{{ __('Quantity Sold') }}</th>
-                                                <th width="33%" class="text-end">{{ __('Amount') }}</th>
-                                                <th class="text-end">{{ __('Average Price') }}</th>
+                                                <th width="33%" class="{{ VC::TX_END }}">{{ __('Quantity Sold') }}</th>
+                                                <th width="33%" class="{{ VC::TX_END }}">{{ __('Amount') }}</th>
+                                                <th class="{{ VC::TX_END }}">{{ __('Average Price') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse ($invoiceItems as $row)
                                                 @php
-                                                    $qty   = (float) ($row['quantity'] ?? 0);
-                                                    $amt   = (float) ($row['price'] ?? 0);
-                                                    $avg   = (float) ($row['avg_price'] ?? ($qty > 0 ? $amt / $qty : 0));
-                                                    $totQty += $qty;
-                                                    $totAmt += $amt;
-                                                @endphp
+                                                    try {
+                                                        $qty   = (float) ($row['quantity'] ?? 0);
+                                                        $amt   = (float) ($row['price'] ?? 0);
+                                                        $avg   = (float) ($row['avg_price'] ?? ($qty > 0 ? $amt / $qty : 0));
+                                                        $totQty += $qty;
+                                                        $totAmt += $amt;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/sales_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $row['name'] }}</td>
-                                                    <td class="text-end">{{ $qty }}</td>
-                                                    <td class="text-end">{{ $user?->priceFormat($amt) }}</td>
-                                                    <td class="text-end">{{ $user?->priceFormat($avg) }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $qty }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($amt) }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($avg) }}</td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted">{{ __('No data found') }}</td>
+                                                    <td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No data found') }}</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -89,9 +86,9 @@
                                             <tfoot>
                                                 <tr>
                                                     <th>{{ __('Total') }}</th>
-                                                    <th class="text-end">{{ $totQty }}</th>
-                                                    <th class="text-end">{{ $user?->priceFormat($totAmt) }}</th>
-                                                    <th class="text-end">
+                                                    <th class="{{ VC::TX_END }}">{{ $totQty }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($totAmt) }}</th>
+                                                    <th class="{{ VC::TX_END }}">
                                                         {{ $user?->priceFormat($totQty > 0 ? ($totAmt / $totQty) : 0) }}
                                                     </th>
                                                 </tr>
@@ -100,7 +97,7 @@
                                     </table>
                                 </div>
                             @else
-                                <div class="account-main-title mb-5">
+                                <div class="account-main-title {{ VC::MB5 }}">
                                     <h5>
                                         {{ __('Sales By Customer of :name as of :start to :end', [
                                             'name'  => $creatorUser?->name,
@@ -109,35 +106,41 @@
                                         ]) }}
                                     </h5>
 
-                                    @php $totCount = 0; $totSales = 0.0; $totSalesWithTax = 0.0; @endphp
+                                    @php
+ $totCount = 0; $totSales = 0.0; $totSalesWithTax = 0.0;
+@endphp
                                     <table class="{{ VC::TB }} table-flush {{ VC::MT3 }}" id="report-customers-table">
                                         <thead>
                                             <tr>
                                                 <th width="33%">{{ __('Customer Name') }}</th>
-                                                <th width="33%" class="text-end">{{ __('Invoice Count') }}</th>
-                                                <th width="33%" class="text-end">{{ __('Sales') }}</th>
-                                                <th class="text-end">{{ __('Sales With Tax') }}</th>
+                                                <th width="33%" class="{{ VC::TX_END }}">{{ __('Invoice Count') }}</th>
+                                                <th width="33%" class="{{ VC::TX_END }}">{{ __('Sales') }}</th>
+                                                <th class="{{ VC::TX_END }}">{{ __('Sales With Tax') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse ($invoiceCustomers as $row)
                                                 @php
-                                                    $count = (int) ($row['invoice_count'] ?? 0);
-                                                    $amt   = (float) ($row['price'] ?? 0);
-                                                    $tax   = (float) ($row['total_tax'] ?? 0);
-                                                    $totCount        += $count;
-                                                    $totSales        += $amt;
-                                                    $totSalesWithTax += ($amt + $tax);
-                                                @endphp
+                                                    try {
+                                                        $count = (int) ($row['invoice_count'] ?? 0);
+                                                        $amt   = (float) ($row['price'] ?? 0);
+                                                        $tax   = (float) ($row['total_tax'] ?? 0);
+                                                        $totCount        += $count;
+                                                        $totSales        += $amt;
+                                                        $totSalesWithTax += ($amt + $tax);
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/sales_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $row['name'] }}</td>
-                                                    <td class="text-end">{{ $count }}</td>
-                                                    <td class="text-end">{{ $user?->priceFormat($amt) }}</td>
-                                                    <td class="text-end">{{ $user?->priceFormat($amt + $tax) }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $count }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($amt) }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($amt + $tax) }}</td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted">{{ __('No data found') }}</td>
+                                                    <td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No data found') }}</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -146,9 +149,9 @@
                                             <tfoot>
                                                 <tr>
                                                     <th>{{ __('Total') }}</th>
-                                                    <th class="text-end">{{ $totCount }}</th>
-                                                    <th class="text-end">{{ $user?->priceFormat($totSales) }}</th>
-                                                    <th class="text-end">{{ $user?->priceFormat($totSalesWithTax) }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $totCount }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($totSales) }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($totSalesWithTax) }}</th>
                                                 </tr>
                                             </tfoot>
                                         @endif

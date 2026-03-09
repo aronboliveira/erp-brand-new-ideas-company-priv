@@ -24,6 +24,7 @@ class StripHtmlComments
 		$startTime = microtime(true);
 		$class = class_basename(static::class);
 		try {
+			$response = null;
 			Log::debug($class . ' middleware started', [
 				'url' => $request->fullUrl(),
 				'method' => $request->method(),

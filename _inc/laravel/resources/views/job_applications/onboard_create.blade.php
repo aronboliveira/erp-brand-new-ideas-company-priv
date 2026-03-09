@@ -1,26 +1,24 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId   = 'job-ob-store-form-' . (is_numeric($id ?? null) ? $id : 'x');
+        $base     = VW::JB.'.on.board.store';
+        $baseKb   = Str::kebab($base);
+        $resolved = Route::has($base) ? $base : (Route::has($baseKb) ? $baseKb : null);
+        $action   = ($resolved && is_numeric($id ?? null)) ? route($resolved, [$id]) : '#';
+        $guardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'store_board_route_unavailable') ?? __('Job onboarding creation route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId   = 'job-ob-store-form-' . (is_numeric($id ?? null) ? $id : 'x');
-    $base     = VW::JB.'.on.board.store';
-    $baseKb   = Str::kebab($base);
-    $resolved = Route::has($base) ? $base : (Route::has($baseKb) ? $baseKb : null);
-    $action   = ($resolved && is_numeric($id ?? null)) ? route($resolved, [$id]) : '#';
-    $guardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'store_board_route_unavailable') ?? __('Job onboarding creation route is unavailable. Please contact technical support or your domain administrator.');
+        $appsIsList  = (is_array($applications ?? null) && count($applications ?? []) > 0) || (($applications ?? null) instanceof Collection && $applications->isNotEmpty());
+        $appsOptions = $appsIsList ? (is_array($applications) ? $applications : $applications->toArray()) : ['' => __('No interviewers available')];
 
-    $appsIsList  = (is_array($applications ?? null) && count($applications ?? []) > 0) || (($applications ?? null) instanceof Collection && $applications->isNotEmpty());
-    $appsOptions = $appsIsList ? (is_array($applications) ? $applications : $applications->toArray()) : ['' => __('No interviewers available')];
-
-    $salaryTypeIsList     = (is_array($salary_type ?? null) && $salary_type) || (($salary_type ?? null) instanceof Collection && $salary_type->isNotEmpty());
-    $salaryDurationIsList = (is_array($salary_duration ?? null) && $salary_duration) || (($salary_duration ?? null) instanceof Collection && $salary_duration->isNotEmpty());
-    $jobTypeIsList        = (is_array($job_type ?? null) && $job_type) || (($job_type ?? null) instanceof Collection && $job_type->isNotEmpty());
-    $statusIsList         = (is_array($status ?? null) && $status) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
+        $salaryTypeIsList     = (is_array($salary_type ?? null) && $salary_type) || (($salary_type ?? null) instanceof Collection && $salary_type->isNotEmpty());
+        $salaryDurationIsList = (is_array($salary_duration ?? null) && $salary_duration) || (($salary_duration ?? null) instanceof Collection && $salary_duration->isNotEmpty());
+        $jobTypeIsList        = (is_array($job_type ?? null) && $job_type) || (($job_type ?? null) instanceof Collection && $job_type->isNotEmpty());
+        $statusIsList         = (is_array($status ?? null) && $status) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
+    } catch (\Throwable $e) {
+        \Log::error('job_applications/onboard_create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

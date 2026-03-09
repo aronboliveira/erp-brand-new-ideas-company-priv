@@ -56,7 +56,8 @@ class ProjectEmailTemplateSeeder extends Seeder
 		$userIds = Schema::hasTable(DC::TABLE_USERS) ? $this->fetchIds(DC::TABLE_USERS) : [];
 
 		$existing = $this->safeCount($table);
-		$hardCap  = (int) (env('PROJECT_EMAIL_TEMPLATE_HARD_CAP') ?: 65536);
+		// $hardCap  = (int) (env('PROJECT_EMAIL_TEMPLATE_HARD_CAP') ?: 65536);
+		$hardCap  = (int) (env('PROJECT_EMAIL_TEMPLATE_HARD_CAP') ?: 2);
 		$remainingCap = max(0, $hardCap - $existing);
 
 		if ($remainingCap <= 0) {
@@ -152,9 +153,9 @@ class ProjectEmailTemplateSeeder extends Seeder
 					DC::COL_TABLE_UPDATER => $updatedBy,
 				];
 
-				$this->out->writeln(
-					"[PRJ-EM-TMP] proj={$projectId} tmp={$templateId} code={$code} active=" . ((int) $payload[EC::COL_IA]) . " seq={$seq}"
-				);
+				// $this->out->writeln(
+				// 	"[PRJ-EM-TMP] proj={$projectId} tmp={$templateId} code={$code} active=" . ((int) $payload[EC::COL_IA]) . " seq={$seq}"
+				// );
 
 				try {
 					$m = new ProjectEmailTemplate();

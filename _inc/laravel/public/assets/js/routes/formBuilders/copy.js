@@ -1,24 +1,18 @@
 (() => {
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof getMsg !== "function") {
+    void(0);
+    return;
+  }
+
   const SUCCESS_KEY = "link_copy_success";
   const FAILURE_KEY = "link_copy_failed";
   const LISTENER_ATTR = "data-copy-listener";
   const SELECTOR = [".cp_link", ".iframe_link"];
+
   const showMsg = (key, isError = false) => {
-    const msg = (() => {
-      let lang = (
-        sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      return (
-        window.translations?.[lang]?.[key] ||
-        window.translations?.["en"]?.[key] ||
-        "# ERROR"
-      );
-    })();
+    const msg = getMsg(key);
     show_toastr(isError ? "error" : "success", msg);
   };
 

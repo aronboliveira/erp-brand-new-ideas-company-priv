@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Gate, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,29 +12,33 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Revenue')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Revenue')}}</li>
 @endsection
 
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create revenue')
             @php
-                $rvnCreateBase = VW::RVN.'.create';
-                $rvnCreateKebab = Str::kebab($rvnCreateBase);
-                $rvnCreateResolved = Route::has($rvnCreateBase) ? $rvnCreateBase : (Route::has($rvnCreateKebab) ? $rvnCreateKebab : null);
-                $rvnCreateUrl = $rvnCreateResolved ? route($rvnCreateResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $rvnCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'create_revenue_route_unavailable') ?? 'Create revenue route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $rvnCreateBase = VW::RVN.'.create';
+                    $rvnCreateKebab = Str::kebab($rvnCreateBase);
+                    $rvnCreateResolved = Route::has($rvnCreateBase) ? $rvnCreateBase : (Route::has($rvnCreateKebab) ? $rvnCreateKebab : null);
+                    $rvnCreateUrl = $rvnCreateResolved ? route($rvnCreateResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $rvnCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'create_revenue_route_unavailable') ?? 'Create revenue route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 href="{{ $rvnCreateUrl }}"
                 data-size="lg"
@@ -51,7 +48,7 @@
                 class="{{ VC::BT_SM_PM }} revenue-create"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
-                data-guard-msg="{{ $rvnCreateGuardMsg }}"
+                data-guard-msg="{{ base64_encode($rvnCreateGuardMsg) }}"
                 data-sv-localized="true"
             >
                 <i class="{{ VC::TI_PLS }}"></i>
@@ -66,24 +63,28 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $rvnIndexBase = VW::RVN.'.index';
-                            $rvnIndexKebab = Str::kebab($rvnIndexBase);
-                            $rvnIndexResolved = Route::has($rvnIndexBase) ? $rvnIndexBase : (Route::has($rvnIndexKebab) ? $rvnIndexKebab : null);
-                            $rvnIndexUrl = $rvnIndexResolved ? route($rvnIndexResolved) : '#';
-                            $rvnFormId = 'revenue_form';
-                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'apply_revenue_route_unavailable') ?? 'Apply revenue route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'reset_revenue_route_unavailable') ?? 'Reset revenue route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $rvnIndexBase = VW::RVN.'.index';
+                                $rvnIndexKebab = Str::kebab($rvnIndexBase);
+                                $rvnIndexResolved = Route::has($rvnIndexBase) ? $rvnIndexBase : (Route::has($rvnIndexKebab) ? $rvnIndexKebab : null);
+                                $rvnIndexUrl = $rvnIndexResolved ? route($rvnIndexResolved) : '#';
+                                $rvnFormId = 'revenue_form';
+                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'apply_revenue_route_unavailable') ?? 'Apply revenue route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'reset_revenue_route_unavailable') ?? 'Reset revenue route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open(['method' => 'GET', 'url' => $rvnIndexUrl, 'id' => $rvnFormId, 'data-url' => $rvnIndexUrl, 'data-guard-msg' => $applyGuardMsg, 'data-sv-localized' => 'true']) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
-                                        <div class="col-3">
+                                        <div class="{{ VC::C3 }}">
                                             {{ Form::label('date', __('Date'), ['class' => VC::FM_LB]) }}
                                             {{ Form::text('date', $_GET['date'] ?? null, ['class' => 'month-btn ' . VC::FM_CT, 'id' => 'pc-daterangepicker-1', 'readonly']) }}
                                         </div>
@@ -113,7 +114,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-revenue"
                                             data-form-id="{{ $rvnFormId }}"
-                                            data-guard-msg="{{ $applyGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -123,7 +124,7 @@
                                             <a href="{{ $rvnIndexUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-revenue"
                                             data-url="{{ $rvnIndexUrl }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -147,9 +148,9 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style mt-2">
+                <div class="{{ VC::CD_BD_TB_BD }} {{ VC::MT2 }}">
                     <h5></h5>
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                             <tr>
@@ -169,7 +170,7 @@
                             <tbody>
                             @php
                             	$revenuePath = Utility::getFile('uploads/revenue') ?? '';
-                            @endphp
+@endphp
                             @forelse(($revenues ?? []) as $revenue)
                                 <tr class="font-style">
                                     <td>{{ $user?->dateFormat(data_get($revenue,'date')) ?? __('Failed to get date') }}</td>
@@ -182,7 +183,7 @@
                                     <td>
                                         @php
                                         	$receipt = data_get($revenue,'add_receipt');
-                                        @endphp
+@endphp
                                         @if(!empty($receipt) && !empty($revenuePath))
                                             <div class="{{ VC::ACT_BTN_PRIM }}">
                                                 <a class="{{ VC::BT_SM_CT }}" href="{{ $revenuePath . '/' . $receipt }}" download>
@@ -190,13 +191,17 @@
                                                 </a>
                                             </div>
                                             @php
-                                                $fileName = isset($receipt) && is_string($receipt) ? $receipt : null;
-                                                $basePath = isset($revenuePath) && is_string($revenuePath) ? rtrim($revenuePath, '/\\') : null;
-                                                $downloadUrl = ($basePath && $fileName) ? ($basePath . '/' . $fileName) : '#';
-                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                $downloadGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'download_revenue_receipt_unavailable') ?? 'Download revenue receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                $anchorId = 'revenue-receipt-download-'.($fileName ? substr(md5($fileName), 0, 8) : 'x');
-                                            @endphp
+                                                try {
+                                                    $fileName = isset($receipt) && is_string($receipt) ? $receipt : null;
+                                                    $basePath = isset($revenuePath) && is_string($revenuePath) ? rtrim($revenuePath, '/\\') : null;
+                                                    $downloadUrl = ($basePath && $fileName) ? ($basePath . '/' . $fileName) : '#';
+                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                    $downloadGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'download_revenue_receipt_unavailable') ?? 'Download revenue receipt route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $anchorId = 'revenue-receipt-download-'.($fileName ? substr(md5($fileName), 0, 8) : 'x');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <a
                                                 id="{{ $anchorId }}"
                                                 href="{{ $downloadUrl }}"
@@ -206,11 +211,11 @@
                                                 target="_blank"
                                                 rel="noopener"
                                                 data-url="{{ $downloadUrl }}"
-                                                data-guard-msg="{{ $downloadGuardMsg }}"
+                                                data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
                                                 data-sv-localized="true"
                                             >
                                                 <span class="btn-inner--icon">
-                                                    <i class="ti ti-crosshair text-white"></i>
+                                                    <i class="ti ti-crosshair {{ VC::TXT_WT }}"></i>
                                                 </span>
                                             </a>
                                             @push(StacksConstants::ADM_SCR_PG)
@@ -228,28 +233,7 @@
                                                                     if (url !== '#' && href !== '#') { return; }
                                                                     e.preventDefault();
                                                                     const msg = el.getAttribute('data-guard-msg') ?? 'Download revenue receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (hasBootstrap) {
-                                                                        const toast = document.createElement('div');
-                                                                        toast.className = 'toast';
-                                                                        toast.setAttribute('role', 'alert');
-                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toast.appendChild(body);
-                                                                        container.appendChild(toast);
-                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
+                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                     el.setAttribute('data-failed-route', 'true');
                                                                 } catch (err) {}
                                                             });
@@ -267,16 +251,20 @@
                                                 @can('edit revenue')
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                         @php
-                                                            $rvnEditBase = VW::RVN.'.edit';
-                                                            $rvnEditKebab = Str::kebab($rvnEditBase);
-                                                            $rvnEditResolved = Route::has($rvnEditBase) ? $rvnEditBase : (Route::has($rvnEditKebab) ? $rvnEditKebab : null);
-                                                            $rvnIdValue = data_get($revenue, 'id');
-                                                            $rvnEncryptedId = $rvnIdValue ? Crypt::encrypt($rvnIdValue) : null;
-                                                            $rvnEditUrl = ($rvnEditResolved && $rvnEncryptedId) ? route($rvnEditResolved, $rvnEncryptedId) : '#';
-                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $rvnEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'edit_revenue_route_unavailable') ?? 'Edit revenue route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $anchorId = 'revenue-edit-btn-'.Str::uuid();
-                                                        @endphp
+                                                            try {
+                                                                $rvnEditBase = VW::RVN.'.edit';
+                                                                $rvnEditKebab = Str::kebab($rvnEditBase);
+                                                                $rvnEditResolved = Route::has($rvnEditBase) ? $rvnEditBase : (Route::has($rvnEditKebab) ? $rvnEditKebab : null);
+                                                                $rvnIdValue = data_get($revenue, 'id');
+                                                                $rvnEncryptedId = $rvnIdValue ? Crypt::encrypt($rvnIdValue) : null;
+                                                                $rvnEditUrl = ($rvnEditResolved && $rvnEncryptedId) ? route($rvnEditResolved, $rvnEncryptedId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $rvnEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'edit_revenue_route_unavailable') ?? 'Edit revenue route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $anchorId = 'revenue-edit-btn-'.Str::uuid();
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <a
                                                             id="{{ $anchorId }}"
                                                             href="{{ $rvnEditUrl }}"
@@ -288,7 +276,7 @@
                                                             title="{{ __('Edit') }}"
                                                             aria-label="{{ __('Edit Revenue') }}"
                                                             data-url="{{ $rvnEditUrl }}"
-                                                            data-guard-msg="{{ $rvnEditGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($rvnEditGuardMsg) }}"
                                                             data-sv-localized="true"
                                                         >
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
@@ -308,28 +296,7 @@
                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Edit revenue route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                             } catch (err) {}
                                                                         });
@@ -342,19 +309,23 @@
                                                 @can('delete revenue')
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         @php
-                                                            $rvnDestroyBase = VW::RVN.'.destroy';
-                                                            $rvnDestroyKebab = Str::kebab($rvnDestroyBase);
-                                                            $rvnDestroyResolved = Route::has($rvnDestroyBase) ? $rvnDestroyBase : (Route::has($rvnDestroyKebab) ? $rvnDestroyKebab : null);
-                                                            $rvnIdValue = data_get($revenue, 'id');
-                                                            $rvnEncryptedId = $rvnIdValue ? Crypt::encrypt($rvnIdValue) : null;
-                                                            $rvnDestroyUrl = ($rvnDestroyResolved && $rvnEncryptedId) ? route($rvnDestroyResolved, $rvnEncryptedId) : '#';
-                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $deleteGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'delete_revenue_route_unavailable') ?? 'Delete revenue route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                            $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                            $formId = 'delete-revenue-form-'.Str::uuid();
-                                                            $anchorId = 'revenue-delete-btn-'.Str::uuid();
-                                                        @endphp
+                                                            try {
+                                                                $rvnDestroyBase = VW::RVN.'.destroy';
+                                                                $rvnDestroyKebab = Str::kebab($rvnDestroyBase);
+                                                                $rvnDestroyResolved = Route::has($rvnDestroyBase) ? $rvnDestroyBase : (Route::has($rvnDestroyKebab) ? $rvnDestroyKebab : null);
+                                                                $rvnIdValue = data_get($revenue, 'id');
+                                                                $rvnEncryptedId = $rvnIdValue ? Crypt::encrypt($rvnIdValue) : null;
+                                                                $rvnDestroyUrl = ($rvnDestroyResolved && $rvnEncryptedId) ? route($rvnDestroyResolved, $rvnEncryptedId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $deleteGuardMsg = Utility::fetchLinkMessage($langValue, VW::RVN, 'delete_revenue_route_unavailable') ?? 'Delete revenue route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                                $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                                $formId = 'delete-revenue-form-'.Str::uuid();
+                                                                $anchorId = 'revenue-delete-btn-'.Str::uuid();
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('revenues/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Form::open(['method' => 'DELETE', 'url' => $rvnDestroyUrl, 'id' => $formId, 'class' => 'd-inline']) !!}
                                                             <a
                                                                 id="{{ $anchorId }}"
@@ -366,7 +337,7 @@
                                                                 data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
                                                                 data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                                 data-url="{{ $rvnDestroyUrl }}"
-                                                                data-guard-msg="{{ $deleteGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($deleteGuardMsg) }}"
                                                                 data-sv-localized="true"
                                                             >
                                                                 <i class="{{ VC::TI_TRS_WT }}"></i>
@@ -389,28 +360,7 @@
                                                                                 if (url !== '#' && href !== '#' && action !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Delete revenue route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                                 if (form) { form.setAttribute('data-failed-route', 'true'); }
                                                                             } catch (err) {}
@@ -427,7 +377,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted">{{ __('No revenues available') }}</td>
+                                    <td colspan="9" class="{{ VC::TXCT_MT }}">{{ __('No revenues available') }}</td>
                                 </tr>
                             @endforelse
                             </tbody>
@@ -440,11 +390,11 @@
 @endsection
 
                                             {{--                                        @if(!empty($revenue->add_receipt))--}}
-                                            {{--                                            <a href="{{asset(Storage::url('uploads/revenue')).'/'.$revenue->add_receipt}}" download="" class="action-btn bg-primary ms-2 mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Download')}}" target="_blank"><span class="btn-inner--icon"><i class="ti ti-download text-white" ></i></span></a>--}}
+                                            {{--                                            <a href="{{asset(Storage::url('uploads/revenue')).'/'.$revenue->add_receipt}}" download="" class="{{ VC::ACT_BTN_PRIM }} {{ VC::BT_SM_CT }}" data-bs-toggle="tooltip" title="{{__('Download')}}" target="_blank"><span class="btn-inner--icon"><i class="{{ VC::TI_DWN }} {{ VC::TXT_WT }}" ></i></span></a>--}}
 
-                                            {{--                                            <div class="action-btn bg-secondary">--}}
-                                            {{--                                                <a class="mx-3 btn btn-sm align-items-center" href="{{asset(Storage::url('uploads/revenue')).'/'.$revenue->add_receipt}}" target="_blank"  >--}}
-                                            {{--                                                    <i class="ti ti-crosshair text-white" data-bs-toggle="tooltip" data-bs-original-title="{{ __('Preview') }}"></i>--}}
+                                            {{--                                            <div class="{{ VC::ACT_BTN }} bg-secondary">--}}
+                                            {{--                                                <a class="{{ VC::BT_SM_CT }}" href="{{asset(Storage::url('uploads/revenue')).'/'.$revenue->add_receipt}}" target="_blank"  >--}}
+                                            {{--                                                    <i class="ti ti-crosshair {{ VC::TXT_WT }}" data-bs-toggle="tooltip" data-bs-original-title="{{ __('Preview') }}"></i>--}}
                                             {{--                                                </a>--}}
                                             {{--                                            </div>--}}
                                             {{--                                        @else--}}

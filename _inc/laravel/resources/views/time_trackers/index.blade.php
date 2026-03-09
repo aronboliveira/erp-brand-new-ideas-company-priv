@@ -1,26 +1,19 @@
 @php
-	use App\Config\Constants\{
-		ExtendingLayoutsConstants,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants as VW,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Facades\Storage, Str};
+	try {
+$lang = Utility::fetchUserLang();
 
-	$lang = Utility::fetchUserLang();
+		$dashResolved = Route::has('dashboard') ? 'dashboard' : (Route::has(Str::kebab('dashboard')) ? Str::kebab('dashboard') : null);
+		$dashUrl = $dashResolved ? route($dashResolved) : '#';
+		$dashGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'dashboard_route_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
 
-	$dashResolved = Route::has('dashboard') ? 'dashboard' : (Route::has(Str::kebab('dashboard')) ? Str::kebab('dashboard') : null);
-	$dashUrl = $dashResolved ? route($dashResolved) : '#';
-	$dashGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'dashboard_route_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+		$viewBase = VW::TMT . '.images.index';
+		$viewResolvedName = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
 
-	$viewBase = VW::TMT . '.images.index';
-	$viewResolvedName = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
-
-	$destroyBase = VW::TMT . '.destroy';
-	$destroyResolvedName = Route::has($destroyBase) ? $destroyBase : (Route::has(Str::kebab($destroyBase)) ? Str::kebab($destroyBase) : null);
+		$destroyBase = VW::TMT . '.destroy';
+		$destroyResolvedName = Route::has($destroyBase) ? $destroyBase : (Route::has(Str::kebab($destroyBase)) ? Str::kebab($destroyBase) : null);
+	} catch (\Throwable $e) {
+		\Log::error('time_trackers/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -29,17 +22,17 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-	<li class="breadcrumb-item">
+	<li class="{{ VC::BCI }}">
 		<a id="dashboard-link"
 		   href="{{ $dashUrl }}"
 		   data-url="{{ $dashUrl }}"
-		   data-guard-msg="{{ $dashGuardMsg }}"
+		   data-guard-msg="{{ base64_encode($dashGuardMsg) }}"
 		   data-sv-localized="true"
 		   {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
 			{{ __('Dashboard') }}
 		</a>
 	</li>
-	<li class="breadcrumb-item">{{ __('Tracker') }}</li>
+	<li class="{{ VC::BCI }}">{{ __('Tracker') }}</li>
 @endsection
 
 @push(StacksConstants::ADM_CSS)
@@ -51,8 +44,8 @@
 	<div class="{{ VC::RW }}">
 		<div class="{{ VC::C12 }}">
 			<div class="card">
-				<div class="card-body table-border-style mt-2">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }} {{ VC::MT2 }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="table datatable">
 							<thead>
 								<tr>
@@ -68,16 +61,20 @@
 							<tbody>
 								@foreach(($trackers ?? []) as $tracker)
 									@php
-										$total_name = \App\Models\Utility::secondToTime($tracker->total_time ?? 0) ?? __('No total available');
+										try {
+										    $total_name = \App\Models\Utility::secondToTime($tracker->total_time ?? 0) ?? __('No total available');
 
-										$viewUrl = ($viewResolvedName && ($tracker->id ?? null)) ? route($viewResolvedName, [$tracker->id]) : '#';
-										$viewGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_view_tracker_images_unavailable') ?? 'View tracker images route is unavailable. Please contact technical support or your domain administrator.';
+										    $viewUrl = ($viewResolvedName && ($tracker->id ?? null)) ? route($viewResolvedName, [$tracker->id]) : '#';
+										    $viewGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_view_tracker_images_unavailable') ?? 'View tracker images route is unavailable. Please contact technical support or your domain administrator.';
 
-										$destroyUrl = ($destroyResolvedName && ($tracker->id ?? null)) ? route($destroyResolvedName, [$tracker->id]) : '#';
-										$destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_delete_tracker_unavailable') ?? 'Delete tracker route is unavailable. Please contact technical support or your domain administrator.';
-										$formId = 'delete-form-' . ($tracker->id ?? 'unknown');
-										$imgId = 'track-images-' . ($tracker->id ?? 'unknown');
-									@endphp
+										    $destroyUrl = ($destroyResolvedName && ($tracker->id ?? null)) ? route($destroyResolvedName, [$tracker->id]) : '#';
+										    $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_delete_tracker_unavailable') ?? 'Delete tracker route is unavailable. Please contact technical support or your domain administrator.';
+										    $formId = 'delete-form-' . ($tracker->id ?? 'unknown');
+										    $imgId = 'track-images-' . ($tracker->id ?? 'unknown');
+										} catch (\Throwable $e) {
+										    \Log::error('time_trackers/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+										}
+@endphp
 									<tr>
 										<td>{{ $tracker->name ?? __('No title available') }}</td>
 										<td>{{ $tracker->project_task ?? __('No task available') }}</td>
@@ -86,7 +83,7 @@
 										<td>{{ isset($tracker->end_time) ? date('H:i:s', strtotime($tracker->end_time)) : __('No end time') }}</td>
 										<td>{{ $total_name }}</td>
 										<td>
-											<img alt="{{ __('Image placeholder') }}"
+											<img alt="Image placeholder"
 												 src="{{ asset('assets/images/gallery.png') }}"
 												 class="{{ VC::AV_CC_SM }} view-images"
 												 data-bs-toggle="tooltip"
@@ -96,7 +93,7 @@
 												 data-id="{{ $tracker->id ?? '' }}"
 												 id="{{ $imgId }}"
 												 data-url="{{ $viewUrl }}"
-												 data-guard-msg="{{ $viewGuardMsg }}"
+												 data-guard-msg="{{ base64_encode($viewGuardMsg) }}"
 												 data-sv-localized="true">
 
 											<div class="{{ VC::ACT_BTN_DNG_2 }}">
@@ -131,8 +128,8 @@
 	</div>
 
 	<div class="{{ VC::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered modal-lg ss_modale" role="document">
-			<div class="modal-content image_sider_div"></div>
+		<div class="{{ VC::MDL_DLG }} modal-dialog-centered modal-lg ss_modale" role="document">
+			<div class="{{ VC::MDL_CTT }} image_sider_div"></div>
 		</div>
 	</div>
 @endsection

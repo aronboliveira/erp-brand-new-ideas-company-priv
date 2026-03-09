@@ -1,35 +1,46 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Products;
 
-use App\Config\Constants\{DatabaseConstants, ViewsConstants};
-use App\Http\Controllers\Controller;
+use App\Config\Constants\{
+    DatabaseConstants as DC,
+    ViewsConstants as VW
+};
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\ProposalProduct;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class ProposalProductController extends Controller
 {
     use ChecksLogin;
     use ChecksPermissions;
 
-    private const REDIRECT_INDEX = ViewsConstants::PPS_PRD . '.index';
+    private const REDIRECT_INDEX = VW::PPS_PRD . '.index';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): View|RedirectResponse|null
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PPS_PRD . '.index';
+        $view = VW::PPS_PRD . '.index';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             if (($redirect = self::guard($request, 'manage proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
             try {
-                $products = ProposalProduct::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $products = ProposalProduct::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 return view($view, compact('products'));
             } catch (\Throwable $e) {
                 Log::error("$action error", ['error' => $e->getMessage()]);
@@ -43,7 +54,7 @@ class ProposalProductController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PPS_PRD . '.create';
+        $view = VW::PPS_PRD . '.create';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -62,7 +73,7 @@ class ProposalProductController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PPS_PRD . '.show';
+        $view = VW::PPS_PRD . '.show';
 
         return $this->measureProfile($action, function () use ($request, $proposalProduct, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -103,7 +114,7 @@ class ProposalProductController extends Controller
                     'name'        => $request->input('name'),
                     'description' => $request->input('description'),
                     'price'       => $request->input('price'),
-                    DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId(),
+                    DC::COL_TABLE_CREATOR  => $user?->creatorId(),
                 ]);
                 DB::commit();
                 return redirect()->route(self::REDIRECT_INDEX)
@@ -121,7 +132,7 @@ class ProposalProductController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PPS_PRD . '.edit';
+        $view = VW::PPS_PRD . '.edit';
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;

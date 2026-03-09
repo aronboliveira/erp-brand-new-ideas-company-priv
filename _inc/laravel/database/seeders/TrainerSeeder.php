@@ -416,6 +416,9 @@ class TrainerSeeder extends Seeder
 	): int {
 		if ($need <= 0) return 0;
 
+		// $need = $need; // ORIGINAL — unbounded
+		$need = min(2, $need); // HARD CAP
+
 		$created = 0;
 		$attempts = 0;
 

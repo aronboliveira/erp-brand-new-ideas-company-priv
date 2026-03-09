@@ -86,12 +86,14 @@ class VendorSeeder extends Seeder
 				->whereIn('type', ['vendor', 'company'])
 				->get()
 				->all();
+			$HARD_CAP = 2; // HARD CAP guard
 			while (count($seed) < max(User::where('type', 'vendor')->count(), self::MIN_VENDORS * count(UserType::cases()))) {
 				if ($acc > $userNum / count(UserType::cases())) break;
+				if ($acc >= $HARD_CAP) break; // HARD CAP guard
 				do $candidateEmail = $companiesPool[array_rand($companiesPool)]->email ?? $faker->username() . '_' . Str::random(8) . '@' . $faker->domainName();
 				while (in_array($candidateEmail, array_map(fn($e) => $e[1], $seed)));
-				(new \Symfony\Component\Console\Output\ConsoleOutput
-				)->writeln("Criando semente para fornecedor: " . $candidateEmail);
+				// (new \Symfony\Component\Console\Output\ConsoleOutput
+				// )->writeln("Criando semente para fornecedor: " . $candidateEmail);
 				$seed[] = [
 					$companiesPool[array_rand($companiesPool)]->name ?? $faker->company(),
 					$candidateEmail,
@@ -114,13 +116,17 @@ class VendorSeeder extends Seeder
 				->where('type', 'vendor')
 				->pluck('id')
 				->all();
+			if (empty($usersAsVendors)) {
+				// Fallback: use any user so array_rand doesn't fail
+				$usersAsVendors = User::query()->pluck('id')->all();
+			}
 			$remainingUsers = $usersAsVendors;
 			foreach ($seed as [$name, $email, $ctr, $uf]) {
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Fornecedor: {$name}, Email: {$email}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Fornecedor: {$name}, Email: {$email}");
 					$offers = $this->buildOffers($productIds);
-					$chosenUser = $usersAsVendors[array_rand($usersAsVendors)] ?? null;
+					$chosenUser = !empty($usersAsVendors) ? $usersAsVendors[array_rand($usersAsVendors)] : null;
 					$remainingUsers = array_filter($remainingUsers, fn($u) => $u !== $chosenUser);
 					$mainTaxId = $this->requireAnyId(DC::TABLE_TAXES, 'tributário');
 					$payload = [

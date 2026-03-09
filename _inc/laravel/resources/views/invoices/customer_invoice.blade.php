@@ -1,15 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants
-	};
-	use App\Models\{Invoice,Utility};
-    use Illuminate\Support\{Collection, Str};
-	use Illuminate\Support\Facades\{Auth,Crypt,Gate,Log,Route,Storage};
-	$invoice ??= null;
+$invoice ??= null;
 	$creatorId ??= '';
 	$data ??= [];
 	$logo ??= '';
@@ -80,7 +70,7 @@
     <head>
         @php
             $title = $creatorId && $companyDataAvailable && Utility::companyData($creatorId, 'title_text');
-        @endphp
+@endphp
         <title>
             {{ $title ?: config('app.name', 'ERPNovaPrestech') }}
             - {{ __('Invoice') }}</title>
@@ -90,14 +80,14 @@
             'meta_vp' => "maximum-scale=1, shrink-to-fit=no"
         ])
         @include('fragments.og', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.x', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
@@ -114,44 +104,52 @@
     <body class="{{ $color }}">
         @if(!empty($invoice && isset($invoice->id)))
             @php
-                $due = is_callable([$invoice, 'getDue']) ? $invoice->getDue() : 999999999999999.9999999999;
-                $canFormatDate = is_callable([Utility::class, 'dateFormat']);
-                $canFormatPrice = is_callable([Utility::class, 'priceFormat']);
-                $canTaxRate = is_callable([Utility::class, 'taxRate']);
-                $companyDataAvailable = is_callable([Utility::class, 'companyData']);
-                $canGetTotal = is_callable([$invoice, 'getTotal']);
-                $total = $canGetTotal ? $invoice->getTotal() : 9999999999999999999999999999999.9999;
-                $canGetCredit = is_callable([$invoice, 'invoiceTotalCreditNote']);
-                $totalCredit = $canGetCredit ? $invoice->invoiceTotalCreditNote() : -9999999999999999999999999999999.9999;
-                $user_plan ??= $user?->{UsersConstants::COL_PL};
-                $userPlanAv = !empty($user_plan) && isset($user_plan->id);
-                $invoice_user ??= $invoice?->customer_id;
-                $invoiceUserAv = !empty($invoice_user) && isset($invoice_user->id) ? $invoice_user : null;
-                $siteCurrency = !empty($company_setting['site_currency']) ?: __('Failed to retrieve Site Currency');
-            @endphp
+                try {
+                    $due = is_callable([$invoice, 'getDue']) ? $invoice->getDue() : 999999999999999.9999999999;
+                    $canFormatDate = is_callable([Utility::class, 'dateFormat']);
+                    $canFormatPrice = is_callable([Utility::class, 'priceFormat']);
+                    $canTaxRate = is_callable([Utility::class, 'taxRate']);
+                    $companyDataAvailable = is_callable([Utility::class, 'companyData']);
+                    $canGetTotal = is_callable([$invoice, 'getTotal']);
+                    $total = $canGetTotal ? $invoice->getTotal() : 9999999999999999999999999999999.9999;
+                    $canGetCredit = is_callable([$invoice, 'invoiceTotalCreditNote']);
+                    $totalCredit = $canGetCredit ? $invoice->invoiceTotalCreditNote() : -9999999999999999999999999999999.9999;
+                    $user_plan ??= $user?->{UsersConstants::COL_PL};
+                    $userPlanAv = !empty($user_plan) && isset($user_plan->id);
+                    $invoice_user ??= $invoice?->customer_id;
+                    $invoiceUserAv = !empty($invoice_user) && isset($invoice_user->id) ? $invoice_user : null;
+                    $siteCurrency = !empty($company_setting['site_currency']) ?: __('Failed to retrieve Site Currency');
+                } catch (\Throwable $e) {
+                    \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <header class="header header-transparent" id="header-main"></header>
             <div class="{{ VC::MCT_CT }}">
                 <div class="{{ VC::RW }} justify-content-between align-items-center mb-3">
                     <div class="col-md-12 {{ VC::DFL }} {{ VC::ALC }} justify-content-between justify-content-md-end">
                         <div class="all-button-box mx-2">
                             @php
-                                $routeName         = ViewsConstants::INV . '.pdf';
-                                $encryptedInvoice  = Crypt::encrypt($invoice->id);
-                                $pdfRoute          = Route::has($routeName)
-                                    ? route($routeName, $encryptedInvoice)
-                                    : '#';
-                                $downloadGuardMsg  = Utility::fetchLinkMessage(
-                                    $lang,
-                                    ViewsConstants::INV,
-                                    'invoice_pdf_route_unavailable'
-                                ) ?? 'Download invoice PDF route is unavailable. Please contact technical support or your domain administrator.';
-                            @endphp
+                                try {
+                                    $routeName         = ViewsConstants::INV . '.pdf';
+                                    $encryptedInvoice  = Crypt::encrypt($invoice->id);
+                                    $pdfRoute          = Route::has($routeName)
+                                        ? route($routeName, $encryptedInvoice)
+                                        : '#';
+                                    $downloadGuardMsg  = Utility::fetchLinkMessage(
+                                        $lang,
+                                        ViewsConstants::INV,
+                                        'invoice_pdf_route_unavailable'
+                                    ) ?? 'Download invoice PDF route is unavailable. Please contact technical support or your domain administrator.';
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <a
                                 href="{{ $pdfRoute }}"
                                 target="_blank"
                                 class="{{ VC::BT_PRM }} mt-3"
                                 data-url="{{ $pdfRoute }}"
-                                data-guard-msg="{{ $downloadGuardMsg }}"
+                                data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
                                 data-listener-alias="download-invoice-pdf"
                             >
                                 {{ __('Download') }}
@@ -202,9 +200,9 @@
                     </div>
                 </div>
                 <div class="{{ VC::RW }}">
-                    <div class="col-12">
+                    <div class="{{ VC::C12 }}">
                         <div class="card">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="invoice">
                                     <div class="invoice-print">
                                         <div class="{{ VC::RW }} invoice-title {{ VC::MT2 }}">
@@ -265,24 +263,28 @@
                                             @endif
                                             <div class="{{ VC::C12 }} {{ VC::CM4 }} col-lg-4 {{ VC::DFL }} {{ VC::JCE }}">
                                                 @php
-                                                    $routeName      = ViewsConstants::INV . '.link.copy';
-                                                    $copyLinkRoute  = Route::has($routeName)
-                                                        ? route($routeName, Crypt::encrypt($invoice->id))
-                                                        : '#';
-                                                    $guardMsg       = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'link_copy_route_unavailable'
-                                                    ) ?? 'Invoice link copy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $routeName      = ViewsConstants::INV . '.link.copy';
+                                                        $copyLinkRoute  = Route::has($routeName)
+                                                            ? route($routeName, Crypt::encrypt($invoice->id))
+                                                            : '#';
+                                                        $guardMsg       = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'link_copy_route_unavailable'
+                                                        ) ?? 'Invoice link copy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::FEND }} {{ VC::MT3 }}">
                                                     <div
                                                         class="qr-code-wrapper"
                                                         data-url="{{ $copyLinkRoute }}"
-                                                        data-guard-msg="{{ $guardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                         data-listener-alias="qrcode-copy-link"
                                                     >
-                                                        {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML($copyLinkRoute, 'QRCODE', 2, 2) : __('Failed to generate QRCode') !!}
+                                                        {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML($copyLinkRoute, 'QRCODE', 2, 2) : __('Failed to generate QRCode') !!}
                                                     </div>
                                                 </div>
                                                 @push(StacksConstants::ADM_SCR_PG)
@@ -294,14 +296,20 @@
                                             <div class="{{ VC::C12 }} {{ VC::CM4 }} col-lg-4">
                                                 <small>
                                                     <strong>{{ __('Status') }} :</strong><br>
-                                                    @php $badge = match($invoice->status) {
-                                                        0 => 'bg-primary',
-                                                        1 => 'bg-warning',
-                                                        2 => 'bg-danger',
-                                                        3 => 'bg-info',
-                                                        4 => 'bg-primary',
-                                                        default => 'bg-secondary',
-                                                    }; @endphp
+                                                    @php
+ try {
+     $badge = match($invoice->status) {
+                                                            0 => 'bg-primary',
+                                                            1 => 'bg-warning',
+                                                            2 => 'bg-danger',
+                                                            3 => 'bg-info',
+                                                            4 => 'bg-primary',
+                                                            default => 'bg-secondary',
+                                                        };
+ } catch (\Throwable $e) {
+     \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+ }
+@endphp
                                                     <span class="badge {{ $badge }}">
                                                         {{ __(!empty(Invoice::$statuses) ? Invoice::$statuses[$invoice->status] : __('Failed to retrieve status')) }}
                                                     </span>
@@ -325,85 +333,93 @@
                                                 <div class="table-responsive {{ VC::MT2 }}">
                                                     <table class="{{ VC::TB }} {{ VC::MB0 }} table-striped">
                                                         <tr>
-                                                            <th data-width="40" class="text-dark">#</th>
-                                                            <th class="text-dark">{{ __('Product') }}</th>
-                                                            <th class="text-dark">{{ __('Quantity') }}</th>
-                                                            <th class="text-dark">{{ __('Rate') }}</th>
-                                                            <th class="text-dark">{{ __('Discount') }}</th>
-                                                            <th class="text-dark">{{ __('Tax') }}</th>
-                                                            <th class="text-dark">{{ __('Description') }}</th>
-                                                            <th class="text-end text-dark" width="12%">
+                                                            <th data-width="40" class="{{ VC::TX_DK }}">#</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Product') }}</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Quantity') }}</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Rate') }}</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Discount') }}</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Tax') }}</th>
+                                                            <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                                            <th class="{{ VC::TX_END }} {{ VC::TX_DK }}" width="12%">
                                                                 {{ __('Price') }}<br>
-                                                                <small class="text-danger font-weight-bold">
+                                                                <small class="{{ VC::TX_DNG }} font-weight-bold">
                                                                     {{ __('after tax & discount') }}
                                                                 </small>
                                                             </th>
                                                         </tr>
                                                         @php
-                                                            $totalQuantity = 0;
-                                                            $totalRate     = 0;
-                                                            $totalTaxPrice = 0;
-                                                            $totalDiscount = 0;
-                                                            $itemsWithCalculations = [];
-                                                        @endphp
+                                                            $totalQuantity ??= 0;
+                                                            $totalRate     ??= 0;
+                                                            $totalTaxPrice ??= 0;
+                                                            $totalDiscount ??= 0;
+                                                            $itemsWithCalculations ??= [];
+@endphp
                                                         @if(Utility::isFilled($items) ?? [])
                                                             @foreach ($items as $key => $item)
                                                                 @php
-                                                                    $itemTaxes = [];
-                                                                    $itemTotalTaxPrice = 0;
-                                                                    $itemQuantity = !empty($item->quantity) ? $item->quantity : 0;
-                                                                    $itemPrice = !empty($item->price) ? $item->price : 99999999999.99999;
-                                                                    $itemDiscount = !empty($item->discount) ? $item->discount : 0;
-                                                                    
-                                                                    if (!empty($item->tax)) {
-                                                                        $taxes = is_callable([Utility::class, 'tax']) ? Utility::tax($item->tax) : [];
+                                                                    $itemTaxes ??= [];
+                                                                    $itemTotalTaxPrice ??= 0;
+                                                                    try {
+                                                                        $itemQuantity = !empty($item->quantity) ? $item->quantity : 0;
+                                                                        $itemPrice = !empty($item->price) ? $item->price : 99999999999.99999;
+                                                                        $itemDiscount = !empty($item->discount) ? $item->discount : 0;
 
-                                                                        if(Utility::isFilled($taxes) ?? []) {
-                                                                            if (!$canTaxRate) {
-                                                                                Log::warning("Cannot calculate tax rate for invoice {$invoice->id} item ID {$item->id} because Utility::taxRate is not callable.");
+                                                                        if (!empty($item->tax)) {
+                                                                            $taxes = is_callable([Utility::class, 'tax']) ? Utility::tax($item->tax) : [];
+
+                                                                            if(Utility::isFilled($taxes) ?? []) {
+                                                                                if (!$canTaxRate) {
+                                                                                    Log::warning("Cannot calculate tax rate for invoice {$invoice->id} item ID {$item->id} because Utility::taxRate is not callable.");
+                                                                                }
+
+                                                                                foreach ($taxes as $tax) {
+                                                                                    $taxPrice = $canTaxRate ? Utility::taxRate(
+                                                                                        !empty($tax->rate) ? $tax->rate : 0,
+                                                                                        $itemPrice,
+                                                                                        $itemQuantity,
+                                                                                        $itemDiscount
+                                                                                    ) : 0;
+
+                                                                                    $itemTaxes[] = [
+                                                                                        'tax' => $tax,
+                                                                                        'price' => $taxPrice
+                                                                                    ];
+                                                                                    $itemTotalTaxPrice += $taxPrice;
+                                                                                }
+                                                                            } else {
+                                                                                Log::warning("No taxes found for invoice {$invoice->id} item ID {$item->id}");
                                                                             }
-                                                                            
-                                                                            foreach ($taxes as $tax) {
-                                                                                $taxPrice = $canTaxRate ? Utility::taxRate(
-                                                                                    !empty($tax->rate) ? $tax->rate : 0,
-                                                                                    $itemPrice,
-                                                                                    $itemQuantity,
-                                                                                    $itemDiscount
-                                                                                ) : 0;
-                                                                                
-                                                                                $itemTaxes[] = [
-                                                                                    'tax' => $tax,
-                                                                                    'price' => $taxPrice
-                                                                                ];
-                                                                                $itemTotalTaxPrice += $taxPrice;
-                                                                            }
-                                                                        } else {
-                                                                            Log::warning("No taxes found for invoice {$invoice->id} item ID {$item->id}");
                                                                         }
+
+                                                                        $itemsWithCalculations[$key] = [
+                                                                            'item' => $item,
+                                                                            'quantity' => $itemQuantity,
+                                                                            'price' => $itemPrice,
+                                                                            'discount' => $itemDiscount,
+                                                                            'taxes' => $itemTaxes,
+                                                                            'totalTaxPrice' => $itemTotalTaxPrice
+                                                                        ];
+
+                                                                        $totalQuantity += $itemQuantity;
+                                                                        $totalRate += $itemPrice;
+                                                                        $totalDiscount += $itemDiscount;
+                                                                        $totalTaxPrice += $itemTotalTaxPrice;
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                                     }
-                                                                    
-                                                                    $itemsWithCalculations[$key] = [
-                                                                        'item' => $item,
-                                                                        'quantity' => $itemQuantity,
-                                                                        'price' => $itemPrice,
-                                                                        'discount' => $itemDiscount,
-                                                                        'taxes' => $itemTaxes,
-                                                                        'totalTaxPrice' => $itemTotalTaxPrice
-                                                                    ];
-                                                                    
-                                                                    $totalQuantity += $itemQuantity;
-                                                                    $totalRate += $itemPrice;
-                                                                    $totalDiscount += $itemDiscount;
-                                                                    $totalTaxPrice += $itemTotalTaxPrice;
-                                                                @endphp
+@endphp
                                                             @endforeach
 
                                                             @foreach ($itemsWithCalculations as $key => $itemData)
                                                                 @php
-                                                                    $item = $itemData['item'];
-                                                                    $itemTaxes = $itemData['taxes'];
-                                                                    $itemTotalTaxPrice = $itemData['totalTaxPrice'];
-                                                                @endphp
+                                                                    try {
+                                                                        $item = $itemData['item'];
+                                                                        $itemTaxes = $itemData['taxes'];
+                                                                        $itemTotalTaxPrice = $itemData['totalTaxPrice'];
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <tr>
                                                                     <td>{{ $key + 1 }}</td>
                                                                     <td>{{ isset($item->product) && isset($item->product->name) && !empty($item->product->name) ? $item->product->name : __('No name available for product') }}</td>
@@ -425,7 +441,7 @@
                                                                         @endif
                                                                     </td>
                                                                     <td>{{ $item->description ?: __('No description for item') }}</td>
-                                                                    <td class="text-end">
+                                                                    <td class="{{ VC::TX_END }}">
                                                                         {{ $canFormatPrice ? Utility::priceFormat(
                                                                             $settings,
                                                                             $itemData['price'] * $itemData['quantity']
@@ -437,7 +453,7 @@
                                                             @endforeach
                                                         @else
                                                             <tr>
-                                                                <td colspan="8" class="text-center">
+                                                                <td colspan="8" class="{{ VC::TXCT }}">
                                                                     {{ __('No data available in table') }}
                                                                 </td>
                                                             </tr>
@@ -454,15 +470,15 @@
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
-                                                                <td class="text-end">
+                                                                <td class="{{ VC::TX_END }}"><b>{{ __('Sub Total') }}</b></td>
+                                                                <td class="{{ VC::TX_END }}">
                                                                     {{ $canFormatPrice && is_callable([$invoice, 'getSubTotal']) ?Utility::priceFormat($settings, $invoice->getSubTotal()) : __('Failed to format subtotal') }}
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{ __('Discount') }}</b></td>
-                                                                <td class="text-end">
+                                                                <td class="{{ VC::TX_END }}"><b>{{ __('Discount') }}</b></td>
+                                                                <td class="{{ VC::TX_END }}">
                                                                     {{ $canFormatPrice && is_callable([$invoice, 'getTotalDiscount']) ?Utility::priceFormat($settings, $invoice->getTotalDiscount()) : __('Failed to format total discount')}}
                                                                 </td>
                                                             </tr>
@@ -470,8 +486,8 @@
                                                                 @foreach ($taxesData as $taxName => $taxPrice)
                                                                     <tr>
                                                                         <td colspan="6"></td>
-                                                                        <td class="text-end"><b>{{ $taxName }}</b></td>
-                                                                        <td class="text-end">
+                                                                        <td class="{{ VC::TX_END }}"><b>{{ $taxName }}</b></td>
+                                                                        <td class="{{ VC::TX_END }}">
                                                                             {{ $canFormatPrice ? Utility::priceFormat($settings, $taxPrice) : __('Failed to format tax price') }}
                                                                         </td>
                                                                     </tr>
@@ -479,23 +495,23 @@
                                                             @else
                                                                 <tr>
                                                                     <td colspan="6"></td>
-                                                                    <td class="text-end"><b>{{ __('Tax') }}</b></td>
-                                                                    <td class="text-end">
+                                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Tax') }}</b></td>
+                                                                    <td class="{{ VC::TX_END }}">
                                                                         {{__('No data for taxes')}}
                                                                     </td>
                                                                 </tr>
                                                             @endif
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
-                                                                <td class="blue-text text-end">
+                                                                <td class="blue-text {{ VC::TX_END }}"><b>{{ __('Total') }}</b></td>
+                                                                <td class="blue-text {{ VC::TX_END }}">
                                                                     {{ $canFormatPrice && $canGetTotal ? Utility::priceFormat($settings, $total) : __('Failed to format total') }}
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{ __('Paid') }}</b></td>
-                                                                <td class="text-end">
+                                                                <td class="{{ VC::TX_END }}"><b>{{ __('Paid') }}</b></td>
+                                                                <td class="{{ VC::TX_END }}">
                                                                     {{ $canFormatPrice && $canGetTotal && $canGetCredit ? Utility::priceFormat(
                                                                         $settings,
                                                                         $total
@@ -506,15 +522,15 @@
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{ __('Credit Note') }}</b></td>
-                                                                <td class="text-end">
+                                                                <td class="{{ VC::TX_END }}"><b>{{ __('Credit Note') }}</b></td>
+                                                                <td class="{{ VC::TX_END }}">
                                                                     {{ $canFormatPrice && $canGetCredit ? Utility::priceFormat($settings, $totalCredit) : __('Failed to format credit note') }}
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{ __('Due') }}</b></td>
-                                                                <td class="text-end">
+                                                                <td class="{{ VC::TX_END }}"><b>{{ __('Due') }}</b></td>
+                                                                <td class="{{ VC::TX_END }}">
                                                                     {{ $canFormatPrice ? Utility::priceFormat($settings, $due) : __('Failed to format due') }}
                                                                 </td>
                                                             </tr>
@@ -529,7 +545,7 @@
                         </div>
                     </div>
                     <div class="{{ VC::C12 }}">
-                        <h5 class="h4 d-inline-block font-weight-400 mb-2">{{ __('Receipt Summary') }}</h5><br>
+                        <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB2 }}">{{ __('Receipt Summary') }}</h5><br>
                         @if(!$invoiceUserAv || !$userPlanAv)
                             <small>{{ __('Failed to access plans data') }}</small><br />
                         @else
@@ -546,19 +562,21 @@
                                 <div class="{{ VC::tableResponsive ?? 'table-responsive' }}">
                                     <table class="{{ VC::TB }}">
                                         <tr>
-                                            <th class="text-dark">{{ __('Date') }}</th>
-                                            <th class="text-dark">{{ __('Amount') }}</th>
-                                            <th class="text-dark">{{ __('Payment Type') }}</th>
-                                            <th class="text-dark">{{ __('Account') }}</th>
-                                            <th class="text-dark">{{ __('Reference') }}</th>
-                                            <th class="text-dark">{{ __('Description') }}</th>
-                                            <th class="text-dark">{{ __('Receipt') }}</th>
-                                            <th class="text-dark">{{ __('OrderId') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Date') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Amount') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Payment Type') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Account') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Reference') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('Receipt') }}</th>
+                                            <th class="{{ VC::TX_DK }}">{{ __('OrderId') }}</th>
                                             @can('delete invoice product')
-                                                <th class="text-dark">{{ __('Action') }}</th>
+                                                <th class="{{ VC::TX_DK }}">{{ __('Action') }}</th>
                                             @endcan
                                         </tr>
-                                        @php $path = Utility::getFile('uploads/order'); @endphp
+                                        @php
+ $path = Utility::getFile('uploads/order');
+@endphp
                                         @forelse ($invoice->payments as $key => $payment)
                                             <tr>
                                                 <td>{{ $canFormatDate ? (!empty($payment->date) ? Utility::dateFormat($settings, $payment->date) : __('No date available for payment')) : __('Failed to format Payment date') }}</td>
@@ -573,24 +591,28 @@
                                                     </td>
                                                 @else
                                                     @if ($user_plan->storage_limit <= $invoice_user->storage_limit)
-                                                        <td><small class="text-danger font-bold">{{__('Your plan storage limit is over')}}</small></td>
+                                                        <td><small class="{{ VC::TX_DNG }} font-bold">{{__('Your plan storage limit is over')}}</small></td>
                                                     @else
                                                         <td>
                                                             @if (!empty($payment->receipt))
                                                                 @php
-                                                                    $receiptUrl  = $path . '/' . $payment->receipt;
-                                                                    $guardMsg    = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::INV,
-                                                                        'payment_receipt_route_unavailable'
-                                                                    ) ?? 'Payment receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $receiptUrl  = $path . '/' . $payment->receipt;
+                                                                        $guardMsg    = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::INV,
+                                                                            'payment_receipt_route_unavailable'
+                                                                        ) ?? 'Payment receipt route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a
                                                                     href="{{ $receiptUrl }}"
                                                                     target="_blank"
                                                                     class="{{ VC::BT_SM_CT_PR }}"
                                                                     data-url="{{ $receiptUrl }}"
-                                                                    data-guard-msg="{{ $guardMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                     data-listener-alias="payment-receipt"
                                                                 >
                                                                     <i class="{{ VC::TI_FL }}"></i> {{ __('Receipt') }}
@@ -600,19 +622,23 @@
                                                                 @endpush
                                                             @elseif(!empty($payment->add_receipt))
                                                                 @php
-                                                                    $receiptUrl = asset(Storage::url('uploads/payment') . '/' . $payment->add_receipt);
-                                                                    $guardMsg = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::INV,
-                                                                        'payment_add_receipt_route_unavailable'
-                                                                    ) ?? 'Payment receipt URL is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $receiptUrl = asset(Storage::url('uploads/payment') . '/' . $payment->add_receipt);
+                                                                        $guardMsg = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::INV,
+                                                                            'payment_add_receipt_route_unavailable'
+                                                                        ) ?? 'Payment receipt URL is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a
                                                                     href="{{ $receiptUrl }}"
                                                                     target="_blank"
                                                                     class="{{ VC::BT_SM_CT_PR }}"
                                                                     data-url="{{ $receiptUrl }}"
-                                                                    data-guard-msg="{{ $guardMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                     data-listener-alias="payment-add-receipt"
                                                                 >
                                                                     <i class="{{ VC::TI_FL }}"></i> {{ __('Receipt') }}
@@ -621,7 +647,7 @@
                                                                     <script defer src="{{ asset('assets/js/routes/invoices/customers/addPaymentReceipt.js') }}"></script>
                                                                 @endpush
                                                             @else
-                                                                <div><small class="text-muted">{{ __('No receipt available') }}</small></div>
+                                                                <div><small class="{{ VC::TXT_MT }}">{{ __('No receipt available') }}</small></div>
                                                             @endif
                                                         </td>
                                                     @endif
@@ -629,18 +655,22 @@
                                                 <td>{{ $payment->order_id ?: __('Failed to retrieve order ID') }}</td>
                                                 @can('delete invoice product')
                                                     @php
-                                                        $deleteName  = ViewsConstants::INV . '.payment.destroy';
-                                                        $deleteRoute = Route::has($deleteName)
-                                                            ? route($deleteName, [$invoice->id, $payment->id])
-                                                            : '#';
-                                                        $delPayFormId      = 'delete-form-' . $payment->id;
-                                                        $lang        = Utility::fetchUserLang();
-                                                        $guardMsg    = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::INV,
-                                                            'payment_delete_route_unavailable'
-                                                        ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $deleteName  = ViewsConstants::INV . '.payment.destroy';
+                                                            $deleteRoute = Route::has($deleteName)
+                                                                ? route($deleteName, [$invoice->id, $payment->id])
+                                                                : '#';
+                                                            $delPayFormId      = 'delete-form-' . $payment->id;
+                                                            $lang        = Utility::fetchUserLang();
+                                                            $guardMsg    = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::INV,
+                                                                'payment_delete_route_unavailable'
+                                                            ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <td>
                                                         <div class="{{ VC::ACT_BTN_DNG }} {{ VC::MS2 }}">
                                                             {!! Form::open([
@@ -673,29 +703,8 @@
                                                                         const url = link.getAttribute('data-url') ?? '#';
                                                                         if (url !== '#') return;
                                                                         event.preventDefault();
-                                                                        const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container       = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container       = document.createElement('div');
-                                                                            container.id    = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl      = document.createElement('div');
-                                                                            toastEl.className  = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body         = document.createElement('div');
-                                                                            body.className     = 'toast-body';
-                                                                            body.textContent   = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        const msg = link.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                         link.setAttribute('data-failed-route', 'true');
                                                                     } catch (e) {}
                                                                 });
@@ -707,7 +716,7 @@
                                         @empty
                                             <tr>
                                                 <td colspan="{{ Gate::check('delete invoice product') ? 9 : 8 }}"
-                                                    class="text-center text-dark">
+                                                    class="{{ VC::TXCT_DK }}">
                                                     {{ __('No Data Found') }}
                                                 </td>
                                             </tr>
@@ -725,27 +734,31 @@
                                                         </td>
                                                     @else
                                                         @if ($user_plan->storage_limit <= $invoice_user->storage_limit)
-                                                            <td><small class="text-danger font-bold">{{__('Your plan storage limit is over')}}</small></td>
+                                                            <td><small class="{{ VC::TX_DNG }} font-bold">{{__('Your plan storage limit is over')}}</small></td>
                                                         @else
                                                             <td>
                                                                 @if ($bankPayment->receipt)
                                                                     @php
-                                                                        $receiptUrl         = !empty($bankPayment->receipt)
-                                                                            ? ($path . '/' . $bankPayment->receipt)
-                                                                            : '#';
-                                                                        $guardMsg           = Utility::fetchLinkMessage(
-                                                                            $lang,
-                                                                            ViewsConstants::INV,
-                                                                            'bank_payment_receipt_route_unavailable'
-                                                                        ) ?? 'Bank payment receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                                        $listenerAlias      = 'bankpayment-receipt-' . $bankPayment->id;
-                                                                    @endphp
+                                                                        try {
+                                                                            $receiptUrl         = !empty($bankPayment->receipt)
+                                                                                ? ($path . '/' . $bankPayment->receipt)
+                                                                                : '#';
+                                                                            $guardMsg           = Utility::fetchLinkMessage(
+                                                                                $lang,
+                                                                                ViewsConstants::INV,
+                                                                                'bank_payment_receipt_route_unavailable'
+                                                                            ) ?? 'Bank payment receipt route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            $listenerAlias      = 'bankpayment-receipt-' . $bankPayment->id;
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     <a
                                                                         href="{{ $receiptUrl }}"
                                                                         target="_blank"
                                                                         class="{{ VC::BT_SM_CT_PR }}"
                                                                         data-url="{{ $receiptUrl }}"
-                                                                        data-guard-msg="{{ $guardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                         data-listener-alias="{{ $listenerAlias }}"
                                                                     >
                                                                         <i class="{{ VC::TI_FL }}"></i> {{ __('Receipt') }}
@@ -754,7 +767,7 @@
                                                                         <script defer src="{{ asset('assets/js/routes/invoices/customers/bankPaymentReceipt.js') }}"></script>
                                                                     @endpush
                                                                 @else
-                                                                    <div><small class="text-muted">{{ __('No bank payment receipt available') }}</small></div>
+                                                                    <div><small class="{{ VC::TXT_MT }}">{{ __('No bank payment receipt available') }}</small></div>
                                                                 @endif
                                                             </td>
                                                         @endif
@@ -765,21 +778,25 @@
                                                             @if (!empty($bankPayment) && $bankPayment->status == 'Pending')
                                                                 <div class="{{ VC::ACT_BTN_INF }}">
                                                                     @php
-                                                                        $actionName       = ViewsConstants::INV . '.action';
-                                                                        $actionRoute      = Route::has($actionName)
-                                                                            ? route($actionName, $bankPayment->id)
-                                                                            : '#';
-                                                                        $guardMsg         = Utility::fetchLinkMessage(
-                                                                            $lang,
-                                                                            ViewsConstants::INV,
-                                                                            'payment_status_route_unavailable'
-                                                                        ) ?? 'Payment status route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    @endphp
+                                                                        try {
+                                                                            $actionName       = ViewsConstants::INV . '.action';
+                                                                            $actionRoute      = Route::has($actionName)
+                                                                                ? route($actionName, $bankPayment->id)
+                                                                                : '#';
+                                                                            $guardMsg         = Utility::fetchLinkMessage(
+                                                                                $lang,
+                                                                                ViewsConstants::INV,
+                                                                                'payment_status_route_unavailable'
+                                                                            ) ?? 'Payment status route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     <a
                                                                         href="#"
                                                                         id="paymentStatusBtn_{{ $bankPayment->id }}"
                                                                         data-url="{{ $actionRoute }}"
-                                                                        data-guard-msg="{{ $guardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                         data-listener-alias="payment-status-{{ $bankPayment->id }}"
                                                                         data-ajax-popup="true"
                                                                         data-size="lg"
@@ -802,29 +819,8 @@
                                                                                         const url = btn.getAttribute('data-url') ?? '#';
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
-                                                                                        const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        let container       = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container       = document.createElement('div');
-                                                                                            container.id    = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl      = document.createElement('div');
-                                                                                            toastEl.className  = 'toast';
-                                                                                            toastEl.setAttribute('role', 'alert');
-                                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                                            const body         = document.createElement('div');
-                                                                                            body.className     = 'toast-body';
-                                                                                            body.textContent   = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                                     } catch {}
                                                                                 });
@@ -834,18 +830,22 @@
                                                                 </div>
                                                             @endif
                                                             @php
-                                                                $destroyName     = ViewsConstants::INV . '.payment.destroy';
-                                                                $destroyRoute    = Route::has($destroyName)
-                                                                    ? route($destroyName, [$invoice->id, $bankPayment->id])
-                                                                    : '#';
-                                                                $guardMsg        = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::INV,
-                                                                    'payment_destroy_route_unavailable'
-                                                                ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $bankPayFormId          = 'delete-form-' . $bankPayment->id;
-                                                                $listenerAlias   = 'delete-bankpayment-' . $bankPayment->id;
-                                                            @endphp
+                                                                try {
+                                                                    $destroyName     = ViewsConstants::INV . '.payment.destroy';
+                                                                    $destroyRoute    = Route::has($destroyName)
+                                                                        ? route($destroyName, [$invoice->id, $bankPayment->id])
+                                                                        : '#';
+                                                                    $guardMsg        = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::INV,
+                                                                        'payment_destroy_route_unavailable'
+                                                                    ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $bankPayFormId          = 'delete-form-' . $bankPayment->id;
+                                                                    $listenerAlias   = 'delete-bankpayment-' . $bankPayment->id;
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_DNG }} {{ VC::MS2 }}">
                                                                 {!! Form::open([
                                                                     'method'         => 'DELETE',
@@ -876,7 +876,7 @@
                                         @else
                                             <tr>
                                                 <td colspan="{{ Gate::check('delete invoice product') ? 9 : 8 }}"
-                                                    class="text-center text-dark">
+                                                    class="{{ VC::TXCT_DK }}">
                                                     {{ __('No Data Found for Bank Payments') }}
                                                 </td>
                                             </tr>
@@ -890,15 +890,15 @@
                 @if (!empty($due) && $due > 0)
                     <div class="{{ VC::MD_FD }}" id="paymentModal" tabindex="-1" role="dialog"
                         aria-labelledby="paymentModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="paymentModalLabel">{{ __('Add Payment') }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="{{ __('Close') }}"></button>
+                        <div class="{{ VC::MDL_DLG }} modal-lg" role="document">
+                            <div class="{{ VC::MDL_CTT }}">
+                                <div class="{{ VC::MDL_HDR }}">
+                                    <h5 class="{{ VC::MDL_TTL }}" id="paymentModalLabel">{{ __('Add Payment') }}</h5>
+                                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="card bg-none card-box">
+                                    <div class="{{ VC::CD_BGN_BX }}">
                                         <section class="nav-tabs p-2">
                                             @if (!empty($company_payment_setting) &&
                                                 ((isset($company_payment_setting['is_stripe_enabled']) && $company_payment_setting['is_stripe_enabled'] == 'on') ||
@@ -945,9 +945,9 @@
                                                         $company_payment_setting['is_midtrans_enabled'] == 'on') ||
                                                     (isset($company_payment_setting['is_xendit_enabled']) &&
                                                         $company_payment_setting['is_xendit_enabled'] == 'on')))
-                                                <ul class="nav nav-pills  mb-3" role="tablist">
+                                                <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" role="tablist">
                                                     @if ($company_payment_setting['is_bank_transfer_enabled'] == 'on' && !empty($company_payment_setting['bank_details']))
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 active"
                                                                 data-bs-toggle="tab" href="#bank-transfer-payment"
                                                                 role="tab" aria-controls="bank"
@@ -958,7 +958,7 @@
                                                         $company_payment_setting['is_stripe_enabled'] == 'on' &&
                                                             !empty($company_payment_setting['stripe_key']) &&
                                                             !empty($company_payment_setting['stripe_secret']))
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1"
                                                                 data-bs-toggle="tab" href="#stripe-payment" role="tab"
                                                                 aria-controls="stripe"
@@ -969,7 +969,7 @@
                                                         $company_payment_setting['is_paypal_enabled'] == 'on' &&
                                                             !empty($company_payment_setting['paypal_client_id']) &&
                                                             !empty($company_payment_setting['paypal_secret_key']))
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paypal-payment" role="tab"
                                                                 aria-controls="paypal"
@@ -980,7 +980,7 @@
                                                         $company_payment_setting['is_paystack_enabled'] == 'on' &&
                                                             !empty($company_payment_setting['paystack_public_key']) &&
                                                             !empty($company_payment_setting['paystack_secret_key']))
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paystack-payment" role="tab"
                                                                 aria-controls="paystack"
@@ -989,7 +989,7 @@
                                                     @endif
                                                     @if (isset($company_payment_setting['is_flutterwave_enabled']) &&
                                                             $company_payment_setting['is_flutterwave_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#flutterwave-payment"
                                                                 role="tab" aria-controls="flutterwave"
@@ -997,7 +997,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_razorpay_enabled']) && $company_payment_setting['is_razorpay_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#razorpay-payment" role="tab"
                                                                 aria-controls="razorpay"
@@ -1005,7 +1005,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_mercado_enabled']) && $company_payment_setting['is_mercado_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#mercado-payment" role="tab"
                                                                 aria-controls="mercado"
@@ -1013,7 +1013,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_paytm_enabled']) && $company_payment_setting['is_paytm_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paytm-payment" role="tab"
                                                                 aria-controls="paytm"
@@ -1021,7 +1021,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_mollie_enabled']) && $company_payment_setting['is_mollie_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#mollie-payment" role="tab"
                                                                 aria-controls="mollie"
@@ -1029,7 +1029,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_skrill_enabled']) && $company_payment_setting['is_skrill_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#skrill-payment" role="tab"
                                                                 aria-controls="skrill"
@@ -1037,7 +1037,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_coingate_enabled']) && $company_payment_setting['is_coingate_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#coingate-payment" role="tab"
                                                                 aria-controls="coingate"
@@ -1048,7 +1048,7 @@
                                                         $company_payment_setting['is_paymentwall_enabled'] == 'on' &&
                                                             !empty($company_payment_setting['paymentwall_public_key']) &&
                                                             !empty($company_payment_setting['paymentwall_private_key']))
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paymentwall-payment"
                                                                 role="tab" aria-controls="paymentwall"
@@ -1056,7 +1056,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_toyyibpay_enabled']) && $company_payment_setting['is_toyyibpay_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#toyyibpay-payment" role="tab"
                                                                 aria-controls="toyyibpay"
@@ -1064,7 +1064,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_payfast_enabled']) && $company_payment_setting['is_payfast_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 onclick=get_payfast_status() data-bs-toggle="tab"
                                                                 href="#payfast-payment" role="tab"
@@ -1073,7 +1073,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_iyzipay_enabled']) && $company_payment_setting['is_iyzipay_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#iyzipay-payment" role="tab"
                                                                 aria-controls="iyzipay"
@@ -1081,7 +1081,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_sspay_enabled']) && $company_payment_setting['is_sspay_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#sspay-payment" role="tab"
                                                                 aria-controls="sspay"
@@ -1089,7 +1089,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_paytab_enabled']) && $company_payment_setting['is_paytab_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paytab-payment" role="tab"
                                                                 aria-controls="paytab"
@@ -1097,7 +1097,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_benefit_enabled']) && $company_payment_setting['is_benefit_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#benefit-payment" role="tab"
                                                                 aria-controls="benefit"
@@ -1105,7 +1105,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_cashfree_enabled']) && $company_payment_setting['is_cashfree_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#cashfree-payment" role="tab"
                                                                 aria-controls="cashfree"
@@ -1113,7 +1113,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_aamarpay_enabled']) && $company_payment_setting['is_aamarpay_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#aamarpay-payment" role="tab"
                                                                 aria-controls="aamarpay"
@@ -1121,7 +1121,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_paytr_enabled']) && $company_payment_setting['is_paytr_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#paytr-payment" role="tab"
                                                                 aria-controls="paytr"
@@ -1129,7 +1129,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_yookassa_enabled']) && $company_payment_setting['is_yookassa_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#yookassa-payment" role="tab"
                                                                 aria-controls="yookassa"
@@ -1137,7 +1137,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_midtrans_enabled']) && $company_payment_setting['is_midtrans_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#midtrans-payment" role="tab"
                                                                 aria-controls="midtrans"
@@ -1145,7 +1145,7 @@
                                                         </li>
                                                     @endif
                                                     @if (isset($company_payment_setting['is_xendit_enabled']) && $company_payment_setting['is_xendit_enabled'] == 'on')
-                                                        <li class="nav-item mb-2">
+                                                        <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
                                                                 data-bs-toggle="tab" href="#xendit-payment" role="tab"
                                                                 aria-controls="xendit"
@@ -1161,17 +1161,21 @@
                                                             !empty($company_payment_setting['bank_details'])))
                                                     <div class="tab-pane fade active show" id="bank-transfer-payment" role="tabpanel" aria-labelledby="bank-transfer-payment">
                                                         @php
-                                                            $bankRouteName = ViewsConstants::CST.'.pay.with.bank';
-                                                            $bankPayRoute  = Route::has($bankRouteName)
-                                                                ? route($bankRouteName)
-                                                                : '#';
-                                                            $bankPayFormId    = 'bankPaymentForm';
-                                                            $bankGuardMsg  = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'pay_with_bank_route_unavailable'
-                                                            ) ?? 'Payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $bankRouteName = ViewsConstants::CST.'.pay.with.bank';
+                                                                $bankPayRoute  = Route::has($bankRouteName)
+                                                                    ? route($bankRouteName)
+                                                                    : '#';
+                                                                $bankPayFormId    = 'bankPaymentForm';
+                                                                $bankGuardMsg  = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'pay_with_bank_route_unavailable'
+                                                                ) ?? 'Payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             id="{{ $bankPayFormId }}"
                                                             class="w3-container w3-display-middle w3-card-4"
@@ -1179,36 +1183,36 @@
                                                             enctype="multipart/form-data"
                                                             action="{{ $bankPayRoute }}"
                                                             data-url="{{ $bankPayRoute }}"
-                                                            data-guard-msg="{{ $bankGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($bankGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
                                                             <div class="row">
-                                                                <div class="col-6">
+                                                                <div class="{{ VC::C6 }}">
                                                                     <div class="custom-radio">
                                                                         <label class="font-16 font-bold">{{ __('Bank Details') }} :</label>
                                                                     </div>
-                                                                    <p class="mb-0 pt-1 text-sm">
+                                                                    <p class="{{ VC::MB0 }} pt-1 {{ VC::TXSM }}">
                                                                         {!! !empty($company_payment_setting['bank_details']) ?: __('Failed to retrieve data for Bank Details') !!}
                                                                     </p>
                                                                 </div>
-                                                                <div class="col-6">
+                                                                <div class="{{ VC::C6 }}">
                                                                     {{ Form::label('payment_receipt', __('Payment Receipt'), ['class' => "{{ VC::FM_LB }}"]) }}
-                                                                    <div class="choose-file form-group">
-                                                                        <input type="file" name="payment_receipt" id="image" class="form-control">
+                                                                    <div class="choose-file {{ VC::FM_G }}">
+                                                                        <input type="file" name="payment_receipt" id="image" class="{{ VC::FM_CT }}">
                                                                         <p class="upload_file"></p>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="row mt-2">
-                                                                <div class="form-group col-md-12">
+                                                            <div class="row {{ VC::MT2 }}">
+                                                                <div class="{{ VC::FM_GCB12 }}">
                                                                     <label for="amount">{{ __('Amount') }}</label>
                                                                     <div class="input-group">
                                                                         <span class="input-group-prepend">
-                                                                            <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                            <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                         </span>
                                                                         <input
-                                                                            class="form-control"
+                                                                            class="{{ VC::FM_CT }}"
                                                                             required="required"
                                                                             min="0"
                                                                             name="amount"
@@ -1242,23 +1246,27 @@
                                                             !empty($company_payment_setting['stripe_secret'])))
                                                     <div class="tab-pane fade" id="stripe-payment" role="tabpanel" aria-labelledby="stripe-payment">
                                                         @php
-                                                            $stripeRouteName   = ViewsConstants::CST.'.payment';
-                                                            $stripePayRoute    = Route::has($stripeRouteName)
-                                                                ? route($stripeRouteName, $invoice->id)
-                                                                : '#';
-                                                            $stripeGuardMsg    = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_stripe_route_unavailable'
-                                                            ) ?? 'Payment route for Stripe is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $stripeRouteName   = ViewsConstants::CST.'.payment';
+                                                                $stripePayRoute    = Route::has($stripeRouteName)
+                                                                    ? route($stripeRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $stripeGuardMsg    = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_stripe_route_unavailable'
+                                                                ) ?? 'Payment route for Stripe is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             id="stripe-payment-form"
                                                             class="require-validation"
                                                             method="POST"
                                                             action="{{ route($stripePayRoute) }}"
                                                             data-url="{{ $stripePayRoute }}"
-                                                            data-guard-msg="{{ $stripeGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($stripeGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <div class="row">
@@ -1266,42 +1274,42 @@
                                                                     <div class="custom-radio">
                                                                         <label class="font-16 font-weight-bold">{{ __('Credit / Debit Card') }}</label>
                                                                     </div>
-                                                                    <p class="mb-0 pt-1 text-sm">
+                                                                    <p class="{{ VC::MB0 }} pt-1 {{ VC::TXSM }}">
                                                                         {{ __('Safe money transfer using your bank account. We support Mastercard, Visa, Discover and American express.') }}
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="row">
-                                                                <div class="col-md-12">
-                                                                    <div class="form-group">
+                                                                <div class="{{ VC::CM12 }}">
+                                                                    <div class="{{ VC::FM_G }}">
                                                                         <label for="card-name-on">{{ __('Name on card') }}</label>
                                                                         <input
                                                                             type="text"
                                                                             name="name"
                                                                             id="card-name-on"
-                                                                            class="form-control required"
+                                                                            class="{{ VC::FM_CT }} required"
                                                                         >
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-12">
+                                                                <div class="{{ VC::CM12 }}">
                                                                     <div id="card-element">
                                                                         <div id="card-errors" role="alert"></div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="row">
-                                                                <div class="form-group col-md-12">
+                                                                <div class="{{ VC::FM_GCB12 }}">
                                                                     <br>
                                                                     <label for="amount">{{ __('Amount') }}</label>
                                                                     <div class="input-group">
                                                                         <span class="input-group-prepend">
-                                                                            <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                            <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                         </span>
                                                                         <input
                                                                             id="amount"
-                                                                            class="form-control"
+                                                                            class="{{ VC::FM_CT }}"
                                                                             required="required"
                                                                             min="0"
                                                                             name="amount"
@@ -1313,9 +1321,9 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="row">
-                                                                <div class="col-12">
+                                                                <div class="{{ VC::C12 }}">
                                                                     <div class="error" style="display: none;">
                                                                         <div class="alert-danger alert">
                                                                             {{ __('Please correct the errors and try again.') }}
@@ -1323,7 +1331,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button class="{{ VC::BT_PRM }}" type="submit">{{ __('Make Payment') }}</button>
                                                             </div>
@@ -1342,36 +1350,40 @@
                                                             !empty($company_payment_setting['paypal_secret_key'])))
                                                     <div class="tab-pane fade" id="paypal-payment" role="tabpanel" aria-labelledby="paypal-payment">
                                                         @php
-                                                            $paypalRouteName       = ViewsConstants::CST . '.pay.with.paypal';
-                                                            $paypalActionUrl       = Route::has($paypalRouteName)
-                                                                ? route($paypalRouteName, $invoice->id)
-                                                                : '#';
-                                                            $payPalFormId                = 'paypalPaymentForm_' . $invoice->id;
-                                                            $paypalGuardMsg        = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_paypal_route_unavailable'
-                                                            ) ?? 'Payment with PayPal route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $paypalRouteName       = ViewsConstants::CST . '.pay.with.paypal';
+                                                                $paypalActionUrl       = Route::has($paypalRouteName)
+                                                                    ? route($paypalRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $payPalFormId                = 'paypalPaymentForm_' . $invoice->id;
+                                                                $paypalGuardMsg        = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_paypal_route_unavailable'
+                                                                ) ?? 'Payment with PayPal route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             class="w3-container w3-display-middle w3-card-4"
                                                             method="POST"
                                                             id="{{ $payPalFormId }}"
                                                             action="{{ $paypalActionUrl }}"
                                                             data-url="{{ $paypalActionUrl }}"
-                                                            data-guard-msg="{{ $paypalGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($paypalGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <div class="row">
-                                                                <div class="form-group col-md-12">
+                                                                <div class="{{ VC::FM_GCB12 }}">
                                                                     <label for="amount">{{ __('Amount') }}</label>
                                                                     <div class="input-group">
                                                                         <span class="input-group-prepend">
-                                                                            <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                            <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                         </span>
                                                                         <input
                                                                             id="amount"
-                                                                            class="form-control"
+                                                                            class="{{ VC::FM_CT }}"
                                                                             required="required"
                                                                             name="amount"
                                                                             type="number"
@@ -1405,29 +1417,8 @@
                                                                             const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -1442,38 +1433,42 @@
                                                         !empty($company_payment_setting['paystack_secret_key']))
                                                     <div class="tab-pane fade" id="paystack-payment" role="tabpanel" aria-labelledby="paypal-payment">
                                                         @php
-                                                            $routeName          = ViewsConstants::CST . '.pay.with.paystack';
-                                                            $paystackActionUrl  = Route::has($routeName)
-                                                                ? route($routeName, $invoice->id)
-                                                                : '#';
-                                                            $payStackFormId             = 'paystack-payment-form';
-                                                            $guardMsgKey        = 'payment_with_paystack_route_unavailable';
-                                                            $paystackGuardMsg   = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                $guardMsgKey
-                                                            ) ?? 'Payment with Paystack route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $routeName          = ViewsConstants::CST . '.pay.with.paystack';
+                                                                $paystackActionUrl  = Route::has($routeName)
+                                                                    ? route($routeName, $invoice->id)
+                                                                    : '#';
+                                                                $payStackFormId             = 'paystack-payment-form';
+                                                                $guardMsgKey        = 'payment_with_paystack_route_unavailable';
+                                                                $paystackGuardMsg   = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    $guardMsgKey
+                                                                ) ?? 'Payment with Paystack route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             id="{{ $payStackFormId }}"
                                                             class="w3-container w3-display-middle w3-card-4"
                                                             method="POST"
                                                             action="{{ $paystackActionUrl }}"
                                                             data-url="{{ $paystackActionUrl }}"
-                                                            data-guard-msg="{{ $paystackGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($paystackGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -1484,7 +1479,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_paystack"
@@ -1504,7 +1499,7 @@
                                                                     ) return;
                                                                     form.setAttribute('data-listener-active', 'true');
                                                                     btn.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     btn.addEventListener('click', event => {
                                                                         try {
                                                                             const url = form.getAttribute('data-url') ?? '#';
@@ -1513,29 +1508,8 @@
                                                                                 return;
                                                                             }
                                                                             event.preventDefault();
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -1550,17 +1524,21 @@
                                                         !empty($company_payment_setting['paystack_secret_key']))
                                                     <div class="tab-pane fade" id="flutterwave-payment" role="tabpanel" aria-labelledby="paypal-payment">
                                                         @php
-                                                            $flutterwaveName       = ViewsConstants::CST . '.pay.with.flutterwave';
-                                                            $flutterwaveRoute      = Route::has($flutterwaveName)
-                                                                ? route($flutterwaveName)
-                                                                : '#';
-                                                            $fwFormId               = 'flutterwavePaymentForm_' . $invoice->id;
-                                                            $flutterwaveGuardMsg   = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_flutterwave_route_unavailable'
-                                                            ) ?? 'Payment with flutterwave route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $flutterwaveName       = ViewsConstants::CST . '.pay.with.flutterwave';
+                                                                $flutterwaveRoute      = Route::has($flutterwaveName)
+                                                                    ? route($flutterwaveName)
+                                                                    : '#';
+                                                                $fwFormId               = 'flutterwavePaymentForm_' . $invoice->id;
+                                                                $flutterwaveGuardMsg   = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_flutterwave_route_unavailable'
+                                                                ) ?? 'Payment with flutterwave route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             action="{{ $flutterwaveRoute }}"
@@ -1568,20 +1546,20 @@
                                                             class="require-validation"
                                                             id="{{ $fwFormId }}"
                                                             data-url="{{ $flutterwaveRoute }}"
-                                                            data-guard-msg="{{ $flutterwaveGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($flutterwaveGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -1592,7 +1570,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_flutterwave"
@@ -1610,10 +1588,10 @@
                                                                     if (form.getAttribute('data-listener-active') === 'true'
                                                                         || btn.getAttribute('data-listener-active') === 'true'
                                                                     ) return;
-                                                        
+
                                                                     form.setAttribute('data-listener-active', 'true');
                                                                     btn.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     btn.addEventListener('click', event => {
                                                                         try {
                                                                             const url = form.getAttribute('data-url') ?? '#';
@@ -1622,34 +1600,8 @@
                                                                                 return;
                                                                             }
                                                                             event.preventDefault();
-                                                        
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                        
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                        
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                        
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                        
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -1661,17 +1613,21 @@
                                                 @if (isset($company_payment_setting['is_razorpay_enabled']) && $company_payment_setting['is_razorpay_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="razorpay-payment" role="tabpanel" aria-labelledby="paypal-payment">
                                                         @php
-                                                            $routeName            = ViewsConstants::CST . '.pay.with.razorpay';
-                                                            $razorpayActionUrl    = Route::has($routeName)
-                                                                ? route($routeName)
-                                                                : '#';
-                                                            $rzFormId               = 'razorpay-payment-form';
-                                                            $razorpayGuardMsg     = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_razorpay_route_unavailable'
-                                                            ) ?? 'Payment with Razorpay route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $routeName            = ViewsConstants::CST . '.pay.with.razorpay';
+                                                                $razorpayActionUrl    = Route::has($routeName)
+                                                                    ? route($routeName)
+                                                                    : '#';
+                                                                $rzFormId               = 'razorpay-payment-form';
+                                                                $razorpayGuardMsg     = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_razorpay_route_unavailable'
+                                                                ) ?? 'Payment with Razorpay route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $rzFormId }}"
@@ -1679,20 +1635,20 @@
                                                             method="POST"
                                                             action="{{ $razorpayActionUrl }}"
                                                             data-url="{{ $razorpayActionUrl }}"
-                                                            data-guard-msg="{{ $razorpayGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($razorpayGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -1703,7 +1659,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_razorpay"
@@ -1722,10 +1678,10 @@
                                                                         form.getAttribute('data-listener-active') === 'true' ||
                                                                         btn.getAttribute('data-listener-active') === 'true'
                                                                     ) return;
-                                                        
+
                                                                     form.setAttribute('data-listener-active', 'true');
                                                                     btn.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     btn.addEventListener('click', event => {
                                                                         try {
                                                                             const url = form.getAttribute('data-url') ?? '#';
@@ -1734,29 +1690,8 @@
                                                                                 return;
                                                                             }
                                                                             event.preventDefault();
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -1769,17 +1704,21 @@
                                                 @if (isset($company_payment_setting['is_mercado_enabled']) && $company_payment_setting['is_mercado_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="mercado-payment" role="tabpanel" aria-labelledby="mercado-payment">
                                                         @php
-                                                            $mercadoRouteName         = ViewsConstants::CST . '.pay.with.mercado';
-                                                            $mercadoActionUrl         = Route::has($mercadoRouteName)
-                                                                ? route($mercadoRouteName, $invoice->id)
-                                                                : '#';
-                                                            $mercadoFormId            = 'mercadoPaymentForm_' . $invoice->id;
-                                                            $mercadoGuardMsg          = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_mercado_route_unavailable'
-                                                            ) ?? 'Payment with Mercado route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $mercadoRouteName         = ViewsConstants::CST . '.pay.with.mercado';
+                                                                $mercadoActionUrl         = Route::has($mercadoRouteName)
+                                                                    ? route($mercadoRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $mercadoFormId            = 'mercadoPaymentForm_' . $invoice->id;
+                                                                $mercadoGuardMsg          = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_mercado_route_unavailable'
+                                                                ) ?? 'Payment with Mercado route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $mercadoFormId }}"
@@ -1787,20 +1726,20 @@
                                                             method="post"
                                                             action="{{ $mercadoActionUrl }}"
                                                             data-url="{{ $mercadoActionUrl }}"
-                                                            data-guard-msg="{{ $mercadoGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($mercadoGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -1811,7 +1750,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_mercado"
@@ -1831,29 +1770,8 @@
                                                                             const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -1865,17 +1783,21 @@
                                                 @if (isset($company_payment_setting['is_paytm_enabled']) && $company_payment_setting['is_paytm_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="paytm-payment" role="tabpanel" aria-labelledby="paytm-payment">
                                                         @php
-                                                            $paytmRouteName         = ViewsConstants::CST . '.pay.with.paytm';
-                                                            $paytmActionUrl         = Route::has($paytmRouteName)
-                                                                ? route($paytmRouteName, $invoice->id)
-                                                                : '#';
-                                                            $paytmFormId            = 'paytmPaymentForm_' . $invoice->id;
-                                                            $paytmGuardMsg          = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_paytm_route_unavailable'
-                                                            ) ?? 'Payment with Paytm route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $paytmRouteName         = ViewsConstants::CST . '.pay.with.paytm';
+                                                                $paytmActionUrl         = Route::has($paytmRouteName)
+                                                                    ? route($paytmRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $paytmFormId            = 'paytmPaymentForm_' . $invoice->id;
+                                                                $paytmGuardMsg          = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_paytm_route_unavailable'
+                                                                ) ?? 'Payment with Paytm route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $paytmFormId }}"
@@ -1883,20 +1805,20 @@
                                                             method="post"
                                                             action="{{ $paytmActionUrl }}"
                                                             data-url="{{ $paytmActionUrl }}"
-                                                            data-guard-msg="{{ $paytmGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($paytmGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -1907,21 +1829,21 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
-                                                            <div class="col-md-12">
-                                                                <div class="form-group">
-                                                                    <label for="mobile" class="text-dark">{{ __('Mobile Number') }}</label>
+
+                                                            <div class="{{ VC::CM12 }}">
+                                                                <div class="{{ VC::FM_G }}">
+                                                                    <label for="mobile" class="{{ VC::TX_DK }}">{{ __('Mobile Number') }}</label>
                                                                     <input
                                                                         type="text"
                                                                         id="mobile"
                                                                         name="mobile"
-                                                                        class="form-control mobile"
+                                                                        class="{{ VC::FM_CT }} mobile"
                                                                         placeholder="{{ __('Enter Mobile Number') }}"
                                                                         required
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_paytm_btn_{{ $invoice->id }}"
@@ -1937,38 +1859,14 @@
                                                                     const formEl = document.getElementById('{{ $paytmFormId }}');
                                                                     if (!formEl || formEl.getAttribute('data-listener-active') === 'true') return;
                                                                     formEl.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     formEl.addEventListener('submit', event => {
                                                                         try {
                                                                             const url = formEl.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                        
-                                                                            const msg           = formEl.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                        
-                                                                            if (bsLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                        
+                                                                            const msg = formEl.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             formEl.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -1981,17 +1879,21 @@
                                                 @if (isset($company_payment_setting['is_mollie_enabled']) && $company_payment_setting['is_mollie_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="mollie-payment" role="tabpanel" aria-labelledby="mollie-payment">
                                                         @php
-                                                            $mollieRouteName        = ViewsConstants::CST . '.pay.with.mollie';
-                                                            $mollieRouteUrl         = Route::has($mollieRouteName)
-                                                                ? route($mollieRouteName, $invoice->id)
-                                                                : '#';
-                                                            $mollieFormId           = 'molliePaymentForm_' . $invoice->id;
-                                                            $mollieGuardMsg         = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_mollie_route_unavailable'
-                                                            ) ?? 'Payment with Mollie route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $mollieRouteName        = ViewsConstants::CST . '.pay.with.mollie';
+                                                                $mollieRouteUrl         = Route::has($mollieRouteName)
+                                                                    ? route($mollieRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $mollieFormId           = 'molliePaymentForm_' . $invoice->id;
+                                                                $mollieGuardMsg         = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_mollie_route_unavailable'
+                                                                ) ?? 'Payment with Mollie route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $mollieFormId }}"
@@ -1999,20 +1901,20 @@
                                                             method="post"
                                                             action="{{ $mollieRouteUrl }}"
                                                             data-url="{{ $mollieRouteUrl }}"
-                                                            data-guard-msg="{{ $mollieGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($mollieGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -2023,7 +1925,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_mollie"
@@ -2043,29 +1945,8 @@
                                                                             const url = mollieForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = mollieForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const bodyEl       = document.createElement('div');
-                                                                                bodyEl.className   = 'toast-body';
-                                                                                bodyEl.textContent = msg;
-                                                                                toastEl.appendChild(bodyEl);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = mollieForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             mollieForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2078,17 +1959,21 @@
                                                 @if (isset($company_payment_setting['is_skrill_enabled']) && $company_payment_setting['is_skrill_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="skrill-payment" role="tabpanel" aria-labelledby="skrill-payment">
                                                         @php
-                                                            $skrillRouteName       = ViewsConstants::CST . '.pay.with.skrill';
-                                                            $skrillActionUrl       = Route::has($skrillRouteName)
-                                                                ? route($skrillRouteName, $invoice->id)
-                                                                : '#';
-                                                            $skrillFormId          = 'skrillPaymentForm_' . $invoice->id;
-                                                            $skrillGuardMsg        = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_skrill_route_unavailable'
-                                                            ) ?? 'Payment with Skrill route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $skrillRouteName       = ViewsConstants::CST . '.pay.with.skrill';
+                                                                $skrillActionUrl       = Route::has($skrillRouteName)
+                                                                    ? route($skrillRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $skrillFormId          = 'skrillPaymentForm_' . $invoice->id;
+                                                                $skrillGuardMsg        = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_skrill_route_unavailable'
+                                                                ) ?? 'Payment with Skrill route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $skrillFormId }}"
@@ -2096,20 +1981,20 @@
                                                             method="post"
                                                             action="{{ $skrillActionUrl }}"
                                                             data-url="{{ $skrillActionUrl }}"
-                                                            data-guard-msg="{{ $skrillGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($skrillGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -2120,17 +2005,21 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             @php
-                                                                $skrill_data = [
-                                                                    'transaction_id' => md5(date('Y-m-d') . strtotime('Y-m-d H:i:s') . 'user_id'),
-                                                                    'user_id'        => 'user_id',
-                                                                    'amount'         => 'amount',
-                                                                    'currency'       => 'currency',
-                                                                ];
-                                                                session()->put('skrill_data', $skrill_data);
-                                                            @endphp
-                                                        
+                                                                try {
+                                                                    $skrill_data = [
+                                                                        'transaction_id' => md5(date('Y-m-d') . strtotime('Y-m-d H:i:s') . 'user_id'),
+                                                                        'user_id'        => 'user_id',
+                                                                        'amount'         => 'amount',
+                                                                        'currency'       => 'currency',
+                                                                    ];
+                                                                    session()->put('skrill_data', $skrill_data);
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_skrill_btn_{{ $invoice->id }}"
@@ -2151,29 +2040,8 @@
                                                                             const url = formEl.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = formEl.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bsLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = formEl.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             formEl.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2185,17 +2053,21 @@
                                                 @if (isset($company_payment_setting['is_coingate_enabled']) && $company_payment_setting['is_coingate_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="coingate-payment" role="tabpanel" aria-labelledby="coingate-payment">
                                                         @php
-                                                            $coingateRouteName        = ViewsConstants::CST . '.pay.with.coingate';
-                                                            $coingateActionUrl        = Route::has($coingateRouteName)
-                                                                ? route($coingateRouteName, $invoice->id)
-                                                                : '#';
-                                                            $coingateFormId           = 'coingatePaymentForm_' . $invoice->id;
-                                                            $coingateGuardMsg         = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_coingate_route_unavailable'
-                                                            ) ?? 'Payment with Coingate route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $coingateRouteName        = ViewsConstants::CST . '.pay.with.coingate';
+                                                                $coingateActionUrl        = Route::has($coingateRouteName)
+                                                                    ? route($coingateRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $coingateFormId           = 'coingatePaymentForm_' . $invoice->id;
+                                                                $coingateGuardMsg         = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_coingate_route_unavailable'
+                                                                ) ?? 'Payment with Coingate route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $coingateFormId }}"
@@ -2203,20 +2075,20 @@
                                                             method="post"
                                                             action="{{ $coingateActionUrl }}"
                                                             data-url="{{ $coingateActionUrl }}"
-                                                            data-guard-msg="{{ $coingateGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($coingateGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -2227,7 +2099,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_coingate"
@@ -2243,35 +2115,14 @@
                                                                     const coingateForm = document.getElementById('{{ $coingateFormId }}');
                                                                     if (!coingateForm || coingateForm.getAttribute('data-listener-active') === 'true') return;
                                                                     coingateForm.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     coingateForm.addEventListener('submit', event => {
                                                                         try {
                                                                             const url = coingateForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = coingateForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = coingateForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             coingateForm.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -2288,37 +2139,41 @@
                                                         !empty($company_payment_setting['paymentwall_private_key']))
                                                     <div class="tab-pane fade" id="paymentwall-payment" role="tabpanel" aria-labelledby="paypal-payment">
                                                         @php
-                                                            $paymentwallRouteName          = ViewsConstants::INV . '.paymentwallpayment';
-                                                            $paymentwallActionUrl          = Route::has($paymentwallRouteName)
-                                                                ? route($paymentwallRouteName, $invoice->id)
-                                                                : '#';
-                                                            $paymentwallFormId             = 'paymentwallPaymentForm_' . $invoice->id;
-                                                            $paymentwallGuardMsg           = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::INV,
-                                                                'payment_with_paymentwall_route_unavailable'
-                                                            ) ?? 'Payment with Paymentwall route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $paymentwallRouteName          = ViewsConstants::INV . '.paymentwallpayment';
+                                                                $paymentwallActionUrl          = Route::has($paymentwallRouteName)
+                                                                    ? route($paymentwallRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $paymentwallFormId             = 'paymentwallPaymentForm_' . $invoice->id;
+                                                                $paymentwallGuardMsg           = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::INV,
+                                                                    'payment_with_paymentwall_route_unavailable'
+                                                                ) ?? 'Payment with Paymentwall route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             id="{{ $paymentwallFormId }}"
                                                             class="w3-container w3-display-middle w3-card-4"
                                                             method="POST"
                                                             action="{{ $paymentwallActionUrl }}"
                                                             data-url="{{ $paymentwallActionUrl }}"
-                                                            data-guard-msg="{{ $paymentwallGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($paymentwallGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -2329,7 +2184,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_paymentwall_btn_{{ $invoice->id }}"
@@ -2345,35 +2200,14 @@
                                                                     const paymentwallForm = document.getElementById('{{ $paymentwallFormId }}');
                                                                     if (!paymentwallForm || paymentwallForm.getAttribute('data-listener-active') === 'true') return;
                                                                     paymentwallForm.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     paymentwallForm.addEventListener('submit', event => {
                                                                         try {
                                                                             const url = paymentwallForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = paymentwallForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = paymentwallForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             paymentwallForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2385,17 +2219,21 @@
                                                 @if (isset($company_payment_setting['is_toyyibpay_enabled']) && $company_payment_setting['is_toyyibpay_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="toyyibpay-payment" role="tabpanel" aria-labelledby="toyyibpay-payment">
                                                         @php
-                                                            $toyyibRouteName             = ViewsConstants::CST . '.pay.with.toyyibpay';
-                                                            $toyyibActionUrl             = Route::has($toyyibRouteName)
-                                                                ? route($toyyibRouteName, $invoice->id)
-                                                                : '#';
-                                                            $toyyibFormId                = 'toyyibpayPaymentForm_' . $invoice->id;
-                                                            $toyyibGuardMsg              = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_toyyibpay_route_unavailable'
-                                                            ) ?? 'Payment with ToyyibPay route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $toyyibRouteName             = ViewsConstants::CST . '.pay.with.toyyibpay';
+                                                                $toyyibActionUrl             = Route::has($toyyibRouteName)
+                                                                    ? route($toyyibRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $toyyibFormId                = 'toyyibpayPaymentForm_' . $invoice->id;
+                                                                $toyyibGuardMsg              = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_toyyibpay_route_unavailable'
+                                                                ) ?? 'Payment with ToyyibPay route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $toyyibFormId }}"
@@ -2403,20 +2241,20 @@
                                                             method="post"
                                                             action="{{ $toyyibActionUrl }}"
                                                             data-url="{{ $toyyibActionUrl }}"
-                                                            data-guard-msg="{{ $toyyibGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($toyyibGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -2427,7 +2265,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_toyyibpay_btn_{{ $invoice->id }}"
@@ -2443,38 +2281,14 @@
                                                                     const toyyibForm = document.getElementById('{{ $toyyibFormId }}');
                                                                     if (!toyyibForm || toyyibForm.getAttribute('data-listener-active') === 'true') return;
                                                                     toyyibForm.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     toyyibForm.addEventListener('submit', event => {
                                                                         try {
                                                                             const toyyibUrl = toyyibForm.getAttribute('data-url') ?? '#';
                                                                             if (toyyibUrl !== '#') return;
                                                                             event.preventDefault();
-                                                        
                                                                             const toyyibMsg = toyyibForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let toastContainer = document.getElementById('toast-container');
-                                                                            if (!toastContainer) {
-                                                                                toastContainer = document.createElement('div');
-                                                                                toastContainer.id = 'toast-container';
-                                                                                document.body.appendChild(toastContainer);
-                                                                            }
-                                                        
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = toyyibMsg;
-                                                                                toastEl.appendChild(body);
-                                                                                toastContainer.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(toyyibMsg);
-                                                                            }
-                                                        
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(toyyibMsg);
                                                                             toyyibForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2491,33 +2305,37 @@
                                                         !empty($company_payment_setting['is_payfast_enabled']))
                                                     <div class="tab-pane fade" id="payfast-payment" role="tabpanel" aria-labelledby="payfast-payment">
                                                         @php
-                                                            $pfHost = $company_payment_setting['payfast_mode'] == 'sandbox' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
-                                                            $payfastUrl                 = 'https://' . $pfHost . '/eng/process';
-                                                            $payfastFormId              = 'payfastPaymentForm_' . $invoice->id;
-                                                            $payfastGuardMsg            = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_payfast_route_unavailable'
-                                                            ) ?? 'Payment with Payfast route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $pfHost = $company_payment_setting['payfast_mode'] == 'sandbox' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+                                                                $payfastUrl                 = 'https://' . $pfHost . '/eng/process';
+                                                                $payfastFormId              = 'payfastPaymentForm_' . $invoice->id;
+                                                                $payfastGuardMsg            = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_payfast_route_unavailable'
+                                                                ) ?? 'Payment with Payfast route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $payfastFormId }}"
                                                             action="{{ $payfastUrl }}"
                                                             method="post"
                                                             data-url="{{ $payfastUrl }}"
-                                                            data-guard-msg="{{ $payfastGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($payfastGuardMsg) }}"
                                                             >
                                                             @csrf
-                                                            <div class="form-group col-md-12">
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="pay_fast_amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="pay_fast_amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -2555,29 +2373,8 @@
                                                                             const url = pfForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = pfForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                                                            let toastContainer  = document.getElementById('toast-container');
-                                                                            if (!toastContainer) {
-                                                                                toastContainer  = document.createElement('div');
-                                                                                toastContainer.id = 'toast-container';
-                                                                                document.body.appendChild(toastContainer);
-                                                                            }
-                                                                            if (bsLink && window.bootstrap) {
-                                                                                const toastEl    = document.createElement('div');
-                                                                                toastEl.className= 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body       = document.createElement('div');
-                                                                                body.className   = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                toastContainer.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = pfForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             pfForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2589,17 +2386,21 @@
                                                 @if (isset($company_payment_setting['is_iyzipay_enabled']) && $company_payment_setting['is_iyzipay_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="iyzipay-payment" role="tabpanel" aria-labelledby="iyzipay-payment">
                                                         @php
-                                                            $iyzipayRouteName         = ViewsConstants::CST . '.pay.with.iyzipay';
-                                                            $iyzipayActionUrl         = Route::has($iyzipayRouteName)
-                                                                ? route($iyzipayRouteName, $invoice->id)
-                                                                : '#';
-                                                            $iyzipayFormId            = 'iyzipayPaymentForm_' . $invoice->id;
-                                                            $iyzipayGuardMsg          = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_iyzipay_route_unavailable'
-                                                            ) ?? 'Payment with Iyzipay route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $iyzipayRouteName         = ViewsConstants::CST . '.pay.with.iyzipay';
+                                                                $iyzipayActionUrl         = Route::has($iyzipayRouteName)
+                                                                    ? route($iyzipayRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $iyzipayFormId            = 'iyzipayPaymentForm_' . $invoice->id;
+                                                                $iyzipayGuardMsg          = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_iyzipay_route_unavailable'
+                                                                ) ?? 'Payment with Iyzipay route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $iyzipayFormId }}"
@@ -2607,20 +2408,20 @@
                                                             method="post"
                                                             action="{{ $iyzipayActionUrl }}"
                                                             data-url="{{ $iyzipayActionUrl }}"
-                                                            data-guard-msg="{{ $iyzipayGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($iyzipayGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -2631,7 +2432,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_iyzipay_btn_{{ $invoice->id }}"
@@ -2652,30 +2453,8 @@
                                                                             const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                        
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -2687,17 +2466,21 @@
                                                 @if (isset($company_payment_setting['is_sspay_enabled']) && $company_payment_setting['is_sspay_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="sspay-payment" role="tabpanel" aria-labelledby="sspay-payment">
                                                         @php
-                                                            $sspayRouteName         = ViewsConstants::CST . '.pay.with.sspay';
-                                                            $sspayActionUrl         = Route::has($sspayRouteName)
-                                                                ? route($sspayRouteName, $invoice->id)
-                                                                : '#';
-                                                            $sspayFormId            = 'sspayPaymentForm_' . $invoice->id;
-                                                            $sspayGuardMsg          = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_sspay_route_unavailable'
-                                                            ) ?? 'Payment with SSPay route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $sspayRouteName         = ViewsConstants::CST . '.pay.with.sspay';
+                                                                $sspayActionUrl         = Route::has($sspayRouteName)
+                                                                    ? route($sspayRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $sspayFormId            = 'sspayPaymentForm_' . $invoice->id;
+                                                                $sspayGuardMsg          = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_sspay_route_unavailable'
+                                                                ) ?? 'Payment with SSPay route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $sspayFormId }}"
@@ -2705,20 +2488,20 @@
                                                             method="post"
                                                             action="{{ $sspayActionUrl }}"
                                                             data-url="{{ $sspayActionUrl }}"
-                                                            data-guard-msg="{{ $sspayGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sspayGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -2729,7 +2512,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_sspay_btn_{{ $invoice->id }}"
@@ -2745,35 +2528,14 @@
                                                                     const sspayForm = document.getElementById('{{ $sspayFormId }}');
                                                                     if (!sspayForm || sspayForm.getAttribute('data-listener-active') === 'true') return;
                                                                     sspayForm.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     sspayForm.addEventListener('submit', event => {
                                                                         try {
                                                                             const url = sspayForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = sspayForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = sspayForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             sspayForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2785,17 +2547,21 @@
                                                 @if (isset($company_payment_setting['is_paytab_enabled']) && $company_payment_setting['is_paytab_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="paytab-payment" role="tabpanel" aria-labelledby="paytab-payment">
                                                         @php
-                                                            $paytabRouteName        = ViewsConstants::CST . '.pay.with.paytab';
-                                                            $paytabActionUrl        = Route::has($paytabRouteName)
-                                                                ? route($paytabRouteName, $invoice->id)
-                                                                : '#';
-                                                            $paytabFormId           = 'paytabPaymentForm_' . $invoice->id;
-                                                            $paytabGuardMsg         = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_paytab_route_unavailable'
-                                                            ) ?? 'Payment with PayTab route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $paytabRouteName        = ViewsConstants::CST . '.pay.with.paytab';
+                                                                $paytabActionUrl        = Route::has($paytabRouteName)
+                                                                    ? route($paytabRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $paytabFormId           = 'paytabPaymentForm_' . $invoice->id;
+                                                                $paytabGuardMsg         = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_paytab_route_unavailable'
+                                                                ) ?? 'Payment with PayTab route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $paytabFormId }}"
@@ -2803,20 +2569,20 @@
                                                             method="post"
                                                             action="{{ $paytabActionUrl }}"
                                                             data-url="{{ $paytabActionUrl }}"
-                                                            data-guard-msg="{{ $paytabGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($paytabGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -2827,7 +2593,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_paytab_btn_{{ $invoice->id }}"
@@ -2843,35 +2609,14 @@
                                                                     const paytabForm = document.getElementById('{{ $paytabFormId }}');
                                                                     if (!paytabForm || paytabForm.getAttribute('data-listener-active') === 'true') return;
                                                                     paytabForm.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     paytabForm.addEventListener('submit', e => {
                                                                         try {
                                                                             const url = paytabForm.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
-                                                                            const msg           = paytabForm.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bsLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = paytabForm.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             paytabForm.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -2883,17 +2628,21 @@
                                                 @if (isset($company_payment_setting['is_benefit_enabled']) && $company_payment_setting['is_benefit_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="benefit-payment" role="tabpanel" aria-labelledby="benefit-payment">
                                                         @php
-                                                            $benefitRouteName             = ViewsConstants::INV . '.benefit.initiate';
-                                                            $benefitInitiateRoute         = Route::has($benefitRouteName)
-                                                                ? route($benefitRouteName)
-                                                                : '#';
-                                                            $benefitFormId                = 'benefit-payment-form';
-                                                            $benefitGuardMsg              = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::INV,
-                                                                'payment_with_benefit_route_unavailable'
-                                                            ) ?? 'Payment with Benefit route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $benefitRouteName             = ViewsConstants::INV . '.benefit.initiate';
+                                                                $benefitInitiateRoute         = Route::has($benefitRouteName)
+                                                                    ? route($benefitRouteName)
+                                                                    : '#';
+                                                                $benefitFormId                = 'benefit-payment-form';
+                                                                $benefitGuardMsg              = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::INV,
+                                                                    'payment_with_benefit_route_unavailable'
+                                                                ) ?? 'Payment with Benefit route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $benefitFormId }}"
@@ -2901,24 +2650,24 @@
                                                             method="post"
                                                             action="{{ $benefitInitiateRoute }}"
                                                             data-url="{{ $benefitInitiateRoute }}"
-                                                            data-guard-msg="{{ $benefitGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($benefitGuardMsg) }}"
                                                         >
                                                             @csrf
-                                                        
+
                                                             <input type="hidden"
                                                                 name="invoice_id"
                                                                 value="{{ Crypt::encrypt($invoice->id) }}"
                                                             >
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -2929,7 +2678,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     class="{{ VC::BT_PRM }}"
@@ -2950,29 +2699,8 @@
                                                                             const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route','true');
                                                                         } catch (e) {}
                                                                     });
@@ -2984,18 +2712,22 @@
                                                 @if (isset($company_payment_setting['is_cashfree_enabled']) && $company_payment_setting['is_cashfree_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="cashfree-payment" role="tabpanel" aria-labelledby="cashfree-payment">
                                                         @php
-                                                            $routeName              = ViewsConstants::CST . '.pay.with.cashfree';
-                                                            $cashfreeAction         = Route::has($routeName)
-                                                                ? route($routeName)
-                                                                : '#';
-                                                            $cfFormId                 = 'cashfree-payment-form';
-                                                            $cashfreeGuardKey       = 'payment_with_cashfree_route_unavailable';
-                                                            $cashfreeGuardMsg       = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                $cashfreeGuardKey
-                                                            ) ?? 'Payment with Cashfree route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $routeName              = ViewsConstants::CST . '.pay.with.cashfree';
+                                                                $cashfreeAction         = Route::has($routeName)
+                                                                    ? route($routeName)
+                                                                    : '#';
+                                                                $cfFormId                 = 'cashfree-payment-form';
+                                                                $cashfreeGuardKey       = 'payment_with_cashfree_route_unavailable';
+                                                                $cashfreeGuardMsg       = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    $cashfreeGuardKey
+                                                                ) ?? 'Payment with Cashfree route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $cfFormId }}"
@@ -3003,7 +2735,7 @@
                                                             method="post"
                                                             action="{{ $cashfreeAction }}"
                                                             data-url="{{ $cashfreeAction }}"
-                                                            data-guard-msg="{{ $cashfreeGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($cashfreeGuardMsg) }}"
                                                             data-listener-alias="cashfree-payment"
                                                         >
                                                             @csrf
@@ -3012,16 +2744,16 @@
                                                                 name="invoice_id"
                                                                 value="{{ Crypt::encrypt($invoice->id) }}"
                                                             >
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -3032,7 +2764,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     class="{{ VC::BT_PRM }}"
@@ -3048,38 +2780,14 @@
                                                                     const formCashfree = document.getElementById('{{ $cfFormId }}');
                                                                     if (!formCashfree || formCashfree.getAttribute('data-listener-active') === 'true') return;
                                                                     formCashfree.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     formCashfree.addEventListener('submit', event => {
                                                                         try {
                                                                             const urlCashfree = formCashfree.getAttribute('data-url') ?? '#';
                                                                             if (urlCashfree !== '#') return;
                                                                             event.preventDefault();
-                                                        
-                                                                            const msgCashfree    = formCashfree.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink  = document.querySelector('link[href*="bootstrap"]');
-                                                                            let containerToast   = document.getElementById('toast-container');
-                                                                            if (!containerToast) {
-                                                                                containerToast   = document.createElement('div');
-                                                                                containerToast.id = 'toast-container';
-                                                                                document.body.appendChild(containerToast);
-                                                                            }
-                                                        
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const bodyEl       = document.createElement('div');
-                                                                                bodyEl.className   = 'toast-body';
-                                                                                bodyEl.textContent = msgCashfree;
-                                                                                toastEl.appendChild(bodyEl);
-                                                                                containerToast.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msgCashfree);
-                                                                            }
-                                                        
+                                                                            const msgCashfree = formCashfree.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msgCashfree);
                                                                             formCashfree.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -3097,12 +2805,12 @@
                                                             @csrf
                                                             <input type="hidden" name="invoice_id"
                                                                 value="{{ Crypt::encrypt($invoice->id) }}">
-                                                            <div class="form-group col-md-12">
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend"><span
-                                                                            class="input-group-text">{{ $siteCurrency }}</span></span>
-                                                                    <input class="form-control" required="required"
+                                                                            class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span></span>
+                                                                    <input class="{{ VC::FM_CT }}" required="required"
                                                                         min="0" name="amount" type="number"
                                                                         value="{{ $due }}" min="0"
                                                                         step="0.01" max="{{ $due }}"
@@ -3121,20 +2829,24 @@
                                                 @if (isset($company_payment_setting['is_paytr_enabled']) && $company_payment_setting['is_paytr_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="paytr-payment" role="tabpanel" aria-labelledby="paytr-payment">
                                                         @php
-                                                            $aamarpayRouteName           = ViewsConstants::CST . '.pay.with.aamarpay';
-                                                            $aamarpayActionUrl           = Route::has($aamarpayRouteName)
-                                                                ? route($aamarpayRouteName, $invoice->id)
-                                                                : (Route::has(Str::kebab($aamarpayRouteName))
-                                                                    ? route(Str::kebab($aamarpayRouteName), $invoice->id)
-                                                                    : '#');
-                                                            $aamarpayFormId              = 'aamarpay-payment-form';
-                                                            $aamarpayGuardKey            = 'payment_with_aamarpay_route_unavailable';
-                                                            $aamarpayGuardMsg            = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                $aamarpayGuardKey
-                                                            ) ?? 'Payment with Aamarpay route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $aamarpayRouteName           = ViewsConstants::CST . '.pay.with.aamarpay';
+                                                                $aamarpayActionUrl           = Route::has($aamarpayRouteName)
+                                                                    ? route($aamarpayRouteName, $invoice->id)
+                                                                    : (Route::has(Str::kebab($aamarpayRouteName))
+                                                                        ? route(Str::kebab($aamarpayRouteName), $invoice->id)
+                                                                        : '#');
+                                                                $aamarpayFormId              = 'aamarpay-payment-form';
+                                                                $aamarpayGuardKey            = 'payment_with_aamarpay_route_unavailable';
+                                                                $aamarpayGuardMsg            = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    $aamarpayGuardKey
+                                                                ) ?? 'Payment with Aamarpay route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $aamarpayFormId }}"
@@ -3142,7 +2854,7 @@
                                                             method="post"
                                                             action="{{ $aamarpayActionUrl }}"
                                                             data-url="{{ $aamarpayActionUrl }}"
-                                                            data-guard-msg="{{ $aamarpayGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($aamarpayGuardMsg) }}"
                                                             data-listener-alias="{{ $aamarpayFormId }}"
                                                         >
                                                             @csrf
@@ -3150,16 +2862,16 @@
                                                                 name="invoice_id"
                                                                 value="{{ Crypt::encrypt($invoice->id) }}"
                                                             >
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required
                                                                         name="amount"
                                                                         type="number"
@@ -3170,7 +2882,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_aamarpay_btn_{{ $invoice->id }}"
@@ -3188,32 +2900,11 @@
                                                                     form.setAttribute('data-listener-active', 'true');
                                                                     form.addEventListener('submit', event => {
                                                                         try {
-                                                                            const url    = form.getAttribute('data-url') ?? '#';
+                                                                            const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                                            const msg         = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bsLink      = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container     = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container     = document.createElement('div');
-                                                                                container.id  = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bsLink && window.bootstrap) {
-                                                                                const toastEl    = document.createElement('div');
-                                                                                toastEl.className= 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body       = document.createElement('div');
-                                                                                body.className   = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch {}
                                                                     });
@@ -3225,19 +2916,23 @@
                                                 @if (isset($company_payment_setting['is_yookassa_enabled']) && $company_payment_setting['is_yookassa_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="yookassa-payment" role="tabpanel" aria-labelledby="yookassa-payment">
                                                         @php
-                                                            $yooRouteName             = ViewsConstants::CST . '.with.yookassa';
-                                                            $yooRouteUrl              = Route::has($yooRouteName)
-                                                                ? route($yooRouteName, $invoice->id)
-                                                                : (Route::has(Str::kebab($yooRouteName))
-                                                                    ? route(Str::kebab($yooRouteName), $invoice->id)
-                                                                    : '#');
-                                                            $yooGuardMsg              = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_yookassa_route_unavailable'
-                                                            ) ?? 'Payment with YooKassa route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $yooListenerAlias         = 'yookassa-payment-' . $invoice->id;
-                                                        @endphp
+                                                            try {
+                                                                $yooRouteName             = ViewsConstants::CST . '.with.yookassa';
+                                                                $yooRouteUrl              = Route::has($yooRouteName)
+                                                                    ? route($yooRouteName, $invoice->id)
+                                                                    : (Route::has(Str::kebab($yooRouteName))
+                                                                        ? route(Str::kebab($yooRouteName), $invoice->id)
+                                                                        : '#');
+                                                                $yooGuardMsg              = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_yookassa_route_unavailable'
+                                                                ) ?? 'Payment with YooKassa route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $yooListenerAlias         = 'yookassa-payment-' . $invoice->id;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="yookassa-payment-form"
@@ -3245,21 +2940,21 @@
                                                             method="post"
                                                             action="{{ $yooRouteUrl }}"
                                                             data-url="{{ $yooRouteUrl }}"
-                                                            data-guard-msg="{{ $yooGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($yooGuardMsg) }}"
                                                             data-listener-alias="{{ $yooListenerAlias }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -3270,7 +2965,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_yookassa"
@@ -3288,18 +2983,22 @@
                                                 @if (isset($company_payment_setting['is_midtrans_enabled']) && $company_payment_setting['is_midtrans_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="midtrans-payment" role="tabpanel" aria-labelledby="midtrans-payment">
                                                         @php
-                                                            $midtransRouteName         = ViewsConstants::CST . '.with.midtrans';
-                                                            $midtransActionUrl         = Route::has($midtransRouteName)
-                                                                ? route($midtransRouteName, $invoice->id)
-                                                                : '#';
-                                                            $midtransFormId            = 'midtrans-payment-form';
-                                                            $midtransGuardKey          = 'payment_with_midtrans_route_unavailable';
-                                                            $midtransGuardMsg          = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                $midtransGuardKey
-                                                            ) ?? 'Payment with Midtrans route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $midtransRouteName         = ViewsConstants::CST . '.with.midtrans';
+                                                                $midtransActionUrl         = Route::has($midtransRouteName)
+                                                                    ? route($midtransRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $midtransFormId            = 'midtrans-payment-form';
+                                                                $midtransGuardKey          = 'payment_with_midtrans_route_unavailable';
+                                                                $midtransGuardMsg          = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    $midtransGuardKey
+                                                                ) ?? 'Payment with Midtrans route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $midtransFormId }}"
@@ -3307,20 +3006,20 @@
                                                             method="post"
                                                             action="{{ $midtransActionUrl }}"
                                                             data-url="{{ $midtransActionUrl }}"
-                                                            data-guard-msg="{{ $midtransGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($midtransGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -3331,7 +3030,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_midtrans"
@@ -3347,36 +3046,14 @@
                                                                     const form = document.getElementById('{{ $midtransFormId }}');
                                                                     if (!form || form.getAttribute('data-listener-active') === 'true') return;
                                                                     form.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     form.addEventListener('submit', event => {
                                                                         try {
                                                                             const url = form.getAttribute('data-url') ?? '#';
                                                                             if (url !== '#') return;
                                                                             event.preventDefault();
-                                                        
-                                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             form.setAttribute('data-failed-route', 'true');
                                                                         } catch (e) {}
                                                                     });
@@ -3388,17 +3065,21 @@
                                                 @if (isset($company_payment_setting['is_xendit_enabled']) && $company_payment_setting['is_xendit_enabled'] == 'on')
                                                     <div class="tab-pane fade" id="xendit-payment" role="tabpanel" aria-labelledby="xendit-payment">
                                                         @php
-                                                            $xenditRouteName          = ViewsConstants::CST . '.with.xendit';
-                                                            $xenditRouteUrl           = Route::has($xenditRouteName)
-                                                                ? route($xenditRouteName, $invoice->id)
-                                                                : '#';
-                                                            $xenditFormId             = 'xendit-payment-form';
-                                                            $xenditGuardMsg           = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::CST,
-                                                                'payment_with_xendit_route_unavailable'
-                                                            ) ?? 'Payment with Xendit route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $xenditRouteName          = ViewsConstants::CST . '.with.xendit';
+                                                                $xenditRouteUrl           = Route::has($xenditRouteName)
+                                                                    ? route($xenditRouteName, $invoice->id)
+                                                                    : '#';
+                                                                $xenditFormId             = 'xendit-payment-form';
+                                                                $xenditGuardMsg           = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::CST,
+                                                                    'payment_with_xendit_route_unavailable'
+                                                                ) ?? 'Payment with Xendit route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/customer_invoice — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <form
                                                             role="form"
                                                             id="{{ $xenditFormId }}"
@@ -3406,20 +3087,20 @@
                                                             method="post"
                                                             action="{{ $xenditRouteUrl }}"
                                                             data-url="{{ $xenditRouteUrl }}"
-                                                            data-guard-msg="{{ $xenditGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($xenditGuardMsg) }}"
                                                         >
                                                             @csrf
                                                             <input type="hidden" name="invoice_id" value="{{ Crypt::encrypt($invoice->id) }}">
-                                                        
-                                                            <div class="form-group col-md-12">
+
+                                                            <div class="{{ VC::FM_GCB12 }}">
                                                                 <label for="amount">{{ __('Amount') }}</label>
                                                                 <div class="input-group">
                                                                     <span class="input-group-prepend">
-                                                                        <span class="input-group-text">{{ $siteCurrency }}</span>
+                                                                        <span class="{{ VC::INP_GP_TXT }}">{{ $siteCurrency }}</span>
                                                                     </span>
                                                                     <input
                                                                         id="amount"
-                                                                        class="form-control"
+                                                                        class="{{ VC::FM_CT }}"
                                                                         required="required"
                                                                         name="amount"
                                                                         type="number"
@@ -3430,7 +3111,7 @@
                                                                     >
                                                                 </div>
                                                             </div>
-                                                        
+
                                                             <div class="{{ VC::FM_GT3 }}">
                                                                 <button
                                                                     id="pay_with_xendit"
@@ -3463,9 +3144,9 @@
                     <div class="{{ VC::DFL }}">
                         <div class="toast-body"></div>
                         <button type="button"
-                                class="btn-close btn-close-white me-2 m-auto"
+                                class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                 data-bs-dismiss="toast"
-                                aria-label="{{ __('Close') }}">
+                                aria-label="Close">
                         </button>
                     </div>
                 </div>
@@ -3475,7 +3156,7 @@
                     <div class="{{ VC::CT }}">
                         <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }} {{ VC::PY2 }} {{ VC::MT4 }} delimiter-top">
                             <div class="{{ VC::C12 }} {{ VC::CM6 }}">
-                                <div class="text-sm font-weight-bold text-center text-md-left">
+                                <div class="{{ VC::TXSM }} font-weight-bold {{ VC::TXCT }} text-md-left">
                                     {{ !empty($companySettings[SettingsConstants::FT_TXT]) && !empty($companySettings[SettingsConstants::FT_TXT]->value) ? $companySettings[SettingsConstants::FT_TXT]->value : '' }}
                                 </div>
                             </div>
@@ -3523,12 +3204,12 @@
             <script defer src="{{ asset('js/jscolor.js') }}"></script>
             @if ($message = Session::get('success'))
                 <script>
-                    (() => {typeof show_toastr === 'function' &&  show_toastr('success', @json($message));})()
+                    (() => {typeof show_toastr === 'function' &&  show_toastr('success', '{!! $message !!}');})()
                 </script>
             @endif
             @if ($message = Session::get('error'))
                 <script>
-                    (() => {typeof show_toastr === 'function' && show_toastr('error', @json($message));})()
+                    (() => {typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');})()
                 </script>
             @endif
             <script async src="https://js.stripe.com/v3/"></script>
@@ -3593,12 +3274,12 @@
                                 toast.setAttribute('aria-live', 'assertive');
                                 toast.setAttribute('aria-atomic', 'true');
                                 toast.innerHTML = `
-                                    <div class="d-flex">
+                                    <div class="{{ VC::DFL }}">
                                         <div class="toast-body">${message}</div>
                                         <button type="button"
-                                                class="btn-close btn-close-white me-2 m-auto"
+                                                class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                                 data-bs-dismiss="toast"
-                                                aria-label="{{ __('Close') }}"></button>
+                                                aria-label="Close"></button>
                                     </div>`;
                                 document.body.appendChild(toast);
                             }
@@ -3795,7 +3476,7 @@
 
                         // PayFast
                         @if (
-                            !empty($company_payment_setting) && 
+                            !empty($company_payment_setting) &&
                             isset($company_payment_setting['is_payfast_enabled']) &&
                             $company_payment_setting['is_payfast_enabled'] === 'on'
                         )
@@ -3849,7 +3530,7 @@
                 @includeIf(ExtendingLayoutsConstants::CKC)
             @endif
         @else
-            <div class="alert alert-warning">{{ __('Invoice not found') }}</div>
+            <div class="{{ VC::ALT_WRN }}">{{ __('Invoice not found') }}</div>
         @endif
     </body>
 </html>

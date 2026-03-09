@@ -1,9 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log, Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LPC};
+
+
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
@@ -99,7 +96,7 @@
                                         <div class="form-group mb-0">
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" data-toggle="switchbutton" data-onstyle="primary" class="" name="joinus_status"
-                                                    id="joinus_status"  {{ $lpSettings[LPC::JU_STT_K] == 'on' ? 'checked="checked"' : '' }}>
+                                                    id="joinus_status"  {{ $lpSettings[LPSC::JU_STT_K] == 'on' ? 'checked="checked"' : '' }}>
                                                 <label class="custom-control-label" for="joinus_status"></label>
                                             </div>
                                         </div>
@@ -111,7 +108,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                            {{ Form::text(LPC::JU_HDG_K, $lpSettings[LPC::JU_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            {{ Form::text(LPSC::JU_HDG_K, $lpSettings[LPSC::JU_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -123,7 +120,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Form::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                            {{ Form::text(LPC::JU_DESC_K, $lpSettings[LPC::JU_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            {{ Form::text(LPSC::JU_DESC_K, $lpSettings[LPSC::JU_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -189,6 +186,3 @@
         </div>
     </div>
 @endsection
-
-
-

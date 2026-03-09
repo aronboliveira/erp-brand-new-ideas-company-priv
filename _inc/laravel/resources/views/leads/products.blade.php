@@ -1,28 +1,22 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
+    try {
+$lang    = Utility::fetchUserLang();
+        $hasLead = !empty($lead ?? null) && data_get($lead, 'id');
 
-    $lang    = Utility::fetchUserLang();
-    $hasLead = !empty($lead ?? null) && data_get($lead, 'id');
+        $updateBase     = VW::LD.'.products.update';
+        $updateKebab    = Str::kebab($updateBase);
+        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+        $updateUrl      = ($updateResolved && $hasLead) ? route($updateResolved, $lead->id) : '#';
+        $updateGuard    = Utility::fetchLinkMessage($lang, VW::LD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
 
-    $updateBase     = VW::LD.'.products.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasLead) ? route($updateResolved, $lead->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::LD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
-
-    $productsOptions = Utility::isFilled($products) ? $products : ['' => __('No product available' ?? [])];
+        $productsOptions = Utility::isFilled($products) ? $products : ['' => __('No product available' ?? [])];
+    } catch (\Throwable $e) {
+        \Log::error('leads/products — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if(!$hasLead)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested lead was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested lead was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($lead, [
         'url'               => $updateUrl,

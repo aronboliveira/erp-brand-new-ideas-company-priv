@@ -1,15 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{ProductServiceCategory, Utility};
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('product_service_categories/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -19,30 +13,34 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Category') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Category') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create constant category')
             @php
-                $routeKey = ViewsConstants::PRD_SV_CAT . '.create';
-                $kebabRouteKey = Str::kebab($routeKey);
-                $createRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
-                $createRouteUrl = $createRouteName ? route($createRouteName) : '#';
-                $createGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_create_route_unavailable') ?? 'Product category create route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $routeKey = ViewsConstants::PRD_SV_CAT . '.create';
+                    $kebabRouteKey = Str::kebab($routeKey);
+                    $createRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
+                    $createRouteUrl = $createRouteName ? route($createRouteName) : '#';
+                    $createGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_create_route_unavailable') ?? 'Product category create route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('product_service_categories/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
             id="product-category-create-btn"
             href="{{ $createRouteUrl }}"
             data-url="{{ $createRouteUrl }}"
-            data-guard-msg="{{ $createGuardMsg }}"
+            data-guard-msg="{{ base64_encode($createGuardMsg) }}"
             data-size="md"
             data-ajax-popup="true"
             data-bs-toggle="tooltip"
@@ -61,13 +59,13 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.account_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                                 <tr>
@@ -91,17 +89,21 @@
                                                     @can('edit constant category')
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             @php
-                                                                $routeKey = ViewsConstants::PRD_SV_CAT . '.edit';
-                                                                $kebabRouteKey = Str::kebab($routeKey);
-                                                                $editRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
-                                                                $editRouteUrl = $editRouteName ? route($editRouteName, $category->id) : '#';
-                                                                $editGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_edit_route_unavailable') ?? 'Product category edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $routeKey = ViewsConstants::PRD_SV_CAT . '.edit';
+                                                                    $kebabRouteKey = Str::kebab($routeKey);
+                                                                    $editRouteName = Route::has($routeKey) ? $routeKey : (Route::has($kebabRouteKey) ? $kebabRouteKey : null);
+                                                                    $editRouteUrl = $editRouteName ? route($editRouteName, $category->id) : '#';
+                                                                    $editGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV_CAT, 'product_category_edit_route_unavailable') ?? 'Product category edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('product_service_categories/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                             id="product-category-edit-btn-{{ $category->id }}"
                                                             href="{{ $editRouteUrl }}"
                                                             data-url="{{ $editRouteUrl }}"
-                                                            data-guard-msg="{{ $editGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Product Category') }}"
@@ -122,28 +124,8 @@
                                                                                 if (url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bs) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                const RG = window.RouteGuard || {};
+                                                                                (RG.showToast || (m => alert(m)))(msg);
                                                                                 btn.setAttribute('data-failed-route', 'true');
                                                                             } catch (error) {}
                                                                         });
@@ -154,25 +136,29 @@
                                                     @endcan
                                                     @can('delete constant category')
                                                         @php
-                                                            $productCategoryDestroyRouteName     = ViewsConstants::PRD_SV_CAT . '.destroy';
-                                                            $productCategoryDestroyKebabRoute    = Str::kebab($productCategoryDestroyRouteName);
-                                                            $productCategoryDestroyResolvedName  = Route::has($productCategoryDestroyRouteName)
-                                                                ? $productCategoryDestroyRouteName
-                                                                : (Route::has($productCategoryDestroyKebabRoute) ? $productCategoryDestroyKebabRoute : null);
-                                                            $productCategoryDestroyRouteArray    = $productCategoryDestroyResolvedName
-                                                                ? [$productCategoryDestroyResolvedName, $category->id]
-                                                                : ['#'];
-                                                            $productCategoryDestroyUrl           = $productCategoryDestroyResolvedName
-                                                                ? route($productCategoryDestroyResolvedName, $category->id)
-                                                                : '#';
-                                                            $productCategoryDestroyGuardMsg      = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::PRD_SV_CAT,
-                                                                'product_category_destroy_route_unavailable'
-                                                            ) ?? 'Product category destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $deleteFormId                        = 'delete-form-' . $category->id;
-                                                            $deleteBtnId                         = 'delete-product-category-btn-' . $category->id;
-                                                        @endphp
+                                                            try {
+                                                                $productCategoryDestroyRouteName     = ViewsConstants::PRD_SV_CAT . '.destroy';
+                                                                $productCategoryDestroyKebabRoute    = Str::kebab($productCategoryDestroyRouteName);
+                                                                $productCategoryDestroyResolvedName  = Route::has($productCategoryDestroyRouteName)
+                                                                    ? $productCategoryDestroyRouteName
+                                                                    : (Route::has($productCategoryDestroyKebabRoute) ? $productCategoryDestroyKebabRoute : null);
+                                                                $productCategoryDestroyRouteArray    = $productCategoryDestroyResolvedName
+                                                                    ? [$productCategoryDestroyResolvedName, $category->id]
+                                                                    : ['#'];
+                                                                $productCategoryDestroyUrl           = $productCategoryDestroyResolvedName
+                                                                    ? route($productCategoryDestroyResolvedName, $category->id)
+                                                                    : '#';
+                                                                $productCategoryDestroyGuardMsg      = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::PRD_SV_CAT,
+                                                                    'product_category_destroy_route_unavailable'
+                                                                ) ?? 'Product category destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $deleteFormId                        = 'delete-form-' . $category->id;
+                                                                $deleteBtnId                         = 'delete-product-category-btn-' . $category->id;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('product_service_categories/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Collective\Html\FormFacade::open([
                                                                 'method' => 'DELETE',
@@ -183,7 +169,7 @@
                                                                     id="{{ $deleteBtnId }}"
                                                                     href="{{ $productCategoryDestroyUrl }}"
                                                                     data-url="{{ $productCategoryDestroyUrl }}"
-                                                                    data-guard-msg="{{ $productCategoryDestroyGuardMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($productCategoryDestroyGuardMsg) }}"
                                                                     class="{{ VC::BT_SM_CT_PR }}"
                                                                     data-bs-toggle="tooltip"
                                                                     title="{{ __('Delete') }}"
@@ -206,28 +192,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             btn.setAttribute('data-failed-route', 'true');
                                                                         } catch (err) {}
                                                                     });
@@ -241,7 +206,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">{{ __('No categories found.') }}</td>
+                                        <td colspan="4" class="{{ VC::TXCT_MT }}">{{ __('No categories found.') }}</td>
                                     </tr>
                                 @endif
                             </tbody>

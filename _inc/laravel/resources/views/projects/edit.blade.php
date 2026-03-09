@@ -1,13 +1,40 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	$generateRouteName ??= null;
+	$generateUrl ??= '#';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+				$resolveProjectRoute = function($baseName) {
+			$kebab = Str::kebab($baseName);
+			return Route::has($baseName) ? $baseName : (Route::has($kebab) ? $kebab : null);
+		};
+				$safeProjectRoute = function($routeName, $params = []) {
+			return $routeName ? (route($routeName, $params) ?? '#') : '#';
+		};
+		$generateRouteName = $resolveProjectRoute('generate');
+		$generateUrl = $safeProjectRoute($generateRouteName, ['projects']);
+	} catch (\Error $e) {
+		Log::error('Error in projects/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in projects/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in projects/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($project, [
@@ -19,12 +46,12 @@
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
         @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
-                <a href="#"
+            <div class="{{ VC::TX_END }}">
+                <a href="{{ $generateUrl }}"
                    data-size="md"
-                   class="btn btn-primary btn-icon btn-sm"
+                   class="{{ VC::BT_PRM }} btn-icon btn-sm"
                    data-ajax-popup-over="true"
-                   data-url="{{ route('generate', ['projects']) }}"
+                   data-url="{{ $generateUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}">
                     <i class="{{ VC::FAS_RB }}"></i>
@@ -35,7 +62,7 @@
 
         <div class="row">
             <div class="{{ VC::FM_GCB12 }}">
-                {{ Form::label('project_name', __('Project Name'), ['class' => 'form-label']) }}<span class="text-danger">*</span>
+                {{ Form::label('project_name', __('Project Name'), ['class' => 'form-label']) }}<span class="{{ VC::TX_DNG }}">*</span>
                 {{ Form::text('project_name', null, ['class' => 'form-control']) }}
             </div>
         </div>
@@ -53,7 +80,7 @@
 
         <div class="row">
             <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('client', __('Client'), ['class' => 'form-label']) }}<span class="text-danger">*</span>
+                {{ Form::label('client', __('Client'), ['class' => 'form-label']) }}<span class="{{ VC::TX_DNG }}">*</span>
                 {{ Form::select('client', $clients, $project->client_id, ['class' => 'form-control select', 'id' => 'choices-multiple1', 'required' => 'required']) }}
             </div>
         </div>
@@ -86,7 +113,7 @@
         <div class="row">
             <div class="{{ VC::FM_GCB12 }}">
                 {{ Form::label('status', __('Status'), ['class' => 'form-label']) }}
-                <select name="status" id="status" class="form-control main-element select">
+                <select name="status" id="status" class="{{ VC::FM_CT }} main-element select">
                     @foreach(\App\Models\Project::$project_status as $k => $v)
                         <option value="{{ $k }}" {{ ($project->status == $k) ? 'selected' : '' }}>{{ __($v) }}</option>
                     @endforeach
@@ -96,9 +123,9 @@
 
         <div class="row">
             <div class="{{ VC::FM_GCB12 }}">
-                {{ Form::label('project_image', __('Project Image'), ['class' => 'form-label']) }}<span class="text-danger">*</span>
-                <div class="form-file mb-3">
-                    <input type="file" class="form-control" name="project_image">
+                {{ Form::label('project_image', __('Project Image'), ['class' => 'form-label']) }}<span class="{{ VC::TX_DNG }}">*</span>
+                <div class="form-file {{ VC::MB3 }}">
+                    <input type="file" class="{{ VC::FM_CT }}" name="project_image">
                 </div>
                 <img src="{{ $project->img_image }}" class="avatar avatar-xl" alt="">
             </div>
@@ -106,7 +133,7 @@
     </div>
 
     <div class="modal-footer">
-        <input type="button" value="{{ __('Cancel') }}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Update') }}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
 {!! Form::close() !!}

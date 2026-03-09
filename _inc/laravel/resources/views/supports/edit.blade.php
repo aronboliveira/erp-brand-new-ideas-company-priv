@@ -1,20 +1,5 @@
 @php
-	use App\Config\Constants\{
-		ActivitiesConstants,
-		PlansConstants,
-		ProjectsConstants,
-		StacksConstants,
-		SupportsConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Facades\Storage, Str};
-	use Illuminate\Support\Facades\Auth;
-	use InvalidArgumentException;
-
-	$user = Auth::user();
+$user = Auth::user();
 	$lang = Utility::fetchUserLang(user: $user);
 
 	$support ??= null;
@@ -141,7 +126,7 @@
 ]) }}
 	<div class="modal-body">
 		@if(data_get($plan, PlansConstants::COL_GPT) == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a id="{{ $generateId }}"
 				   href="{{ $generateUrl }}"
 				   data-size="md"
@@ -150,7 +135,7 @@
 				   data-url="{{ $generateUrl }}"
 				   data-bs-placement="top"
 				   data-title="{{ $genContentLabel }}"
-				   data-guard-msg="{{ $generateGuardMsg }}"
+				   data-guard-msg="{{ base64_encode($generateGuardMsg) }}"
 				   data-sv-localized="true">
 					<i class="{{ VC::FAS_RB }}"></i>
 					<span>{{ $genContentLabel }}</span>
@@ -200,7 +185,7 @@
 				<input type="file" class="{{ VC::FM_CT }}" name="attachment" id="attachment" data-filename="attachment_create">
 			</label>
 			@if(!empty($attachmentUrl))
-				<img id="image" class="mt-2" src="{{ $attachmentUrl }}" style="width:25%;" />
+				<img id="image" class="{{ VC::MT2 }}" src="{{ $attachmentUrl }}" style="width:25%;" />
 			@endif
 		</div>
 	</div>

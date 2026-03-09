@@ -1,35 +1,40 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Project, Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Log,Route};
-    use Illuminate\Support\{Carbon,Str};
-    $lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
+
+        if (!function_exists('resolveRoute')) {
+        function resolveRoute($base, $kebabFallback = true) {
+            if (Route::has($base)) return $base;
+            if ($kebabFallback) {
+                $kebab = Str::kebab($base);
+                if (Route::has($kebab)) return $kebab;
+            }
+            return null;
+        }
+    }
+
+        if (!function_exists('safeRoute')) {
+        function safeRoute($routeName, $params = []) {
+            $resolved = resolveRoute($routeName);
+            if (!$resolved || (is_array($params) && empty($params[0]))) return '#';
+            try {
+                return route($resolved, $params);
+            } catch (\Exception $e) {
+                return '#';
+            }
+        }
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @if(!empty($project))
     @php
-        $projectName = !empty($project->project_name) ? $project->project_name : __('No project name found.');
-        $projectIndexBaseName = ViewsConstants::PRJ . '.index';
-        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        $projectName = data_get($project, 'project_name') ?: data_get($project, 'name') ?: __('No project name found.');
+@endphp
     @section(YieldingConstants::ADM_PG_TTL)
         {{$projectName}}
     @endsection
     @push(StacksConstants::ADM_SCR_PG)
             <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -58,7 +63,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-         
+
           })();
     </script>
         <script defer>
@@ -71,11 +76,11 @@ Object.keys(t).forEach(
 
                 const getMsg=(el,msgKey)=>{let msg=errFb; if(el?.getAttribute("data-sv-localized")==="true"||el?.getAttribute(dataClientLocalized)==="true") msg=el.getAttribute(dataGuardMsg)||errFb; else {let lang=(window.sessionStorage.getItem("erp-np-lang")||document.documentElement.lang||"en").toLowerCase().replace(/_/g,"-"); lang=lang==="pt-br"?lang:lang.slice(0,2); msg=window.translations?.[lang]?.[msgKey]||el?.getAttribute(dataGuardMsg)||window.translations?.en?.[msgKey]||errFb; if(msg!==errFb){el?.setAttribute(dataGuardMsg,msg); el?.setAttribute(dataClientLocalized,"true");}} return msg;};
 
-                const showError=(el,key,ev="click")=>{const message=getMsg(el||document.body,key); const hasBs=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast; const id="error-toast"; if(hasBs){if(!document.querySelector("#"+id)){const t=document.createElement("div"); t.id=id; t.className="toast align-items-center text-bg-danger border-0"; t.setAttribute("role","alert"); t.setAttribute("aria-live","assertive"); t.setAttribute("aria-atomic","true"); t.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`; document.body.appendChild(t);} const toastEl=document.querySelector("#"+id); const onceHandler=()=>new bootstrap.Toast(toastEl).show(); if(!toastEl.getAttribute(DATA_LISTENER_ADDED)){ toastEl.setAttribute(DATA_LISTENER_ADDED,"true"); const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(toastEl)){ toastEl.removeEventListener(ev,onceHandler); o.disconnect(); }}); mo.observe(document.body,{childList:true,subtree:true}); } document.addEventListener(ev,onceHandler,{once:true}); } else { const onceHandler=()=>alert(message); document.addEventListener(ev,onceHandler,{once:true}); }};
+                const showError=(el,key,ev="click")=>{const message=getMsg(el||document.body,key); const hasBs=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast; const id="error-toast"; if(hasBs){if(!document.querySelector("#"+id)){const t=document.createElement("div"); t.id=id; t.className="toast align-items-center text-bg-danger border-0"; t.setAttribute("role","alert"); t.setAttribute("aria-live","assertive"); t.setAttribute("aria-atomic","true"); t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${message}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`; document.body.appendChild(t);} const toastEl=document.querySelector("#"+id); const onceHandler=()=>new bootstrap.Toast(toastEl).show(); if(!toastEl.getAttribute(DATA_LISTENER_ADDED)){ toastEl.setAttribute(DATA_LISTENER_ADDED,"true"); const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(toastEl)){ toastEl.removeEventListener(ev,onceHandler); o.disconnect(); }}); mo.observe(document.body,{childList:true,subtree:true}); } document.addEventListener(ev,onceHandler,{once:true}); } else { const onceHandler=()=>alert(message); document.addEventListener(ev,onceHandler,{once:true}); }};
 
                 const guardOnce=(el,key,ev="pointerup")=>{ if(!el||el.getAttribute(DATA_LISTENER_ADDED)==="true") return; const handler=()=>showError(el,key,ev); el.addEventListener(ev,handler,{once:true}); el.setAttribute(DATA_LISTENER_ADDED,"true"); const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener(ev,handler); o.disconnect(); }}); mo.observe(document.body,{childList:true,subtree:true}); };
 
-                const renderChart=(selector,options,key)=>{try{ if(typeof ApexCharts==="undefined"){ 
+                const renderChart=(selector,options,key)=>{try{ if(typeof ApexCharts==="undefined"){
                         if (
                             window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1"
@@ -83,15 +88,15 @@ Object.keys(t).forEach(
 
                 const routeGuard=(element)=>{ const url=element?.getAttribute?.("data-url"); const href=element?.getAttribute?.("action")||element?.getAttribute?.("href"); return (!url||url==="#") && (!href||href==="#"); };
 
-                const loadProjectUser=()=>{const $main=$("#project_users"); const el=$main.get(0); try{ if(routeGuard(el)){ guardOnce(el,"users_load_unavailable"); return; } $.ajax({ url:'{{ route(ViewsConstants::PRJ.'.user') }}', data:{ project_id:'{{$project->id}}' }, beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 text-center pt-5">{{__("Loading...")}}</th></tr>'); }, success:(data)=>{ $main.html(data?.html ?? ""); $('[id^=fire-modal]').remove(); }, error:()=>guardOnce(el,"users_load_unavailable") }); }catch{ guardOnce(el,"users_load_unavailable"); }};
+                const loadProjectUser=()=>{const $main=$("#project_users"); const el=$main.get(0); try{ if(routeGuard(el)){ guardOnce(el,"users_load_unavailable"); return; } $.ajax({ url:'{{ route(ViewsConstants::PRJ.'.user') }}', data:{ project_id:'{{$project->id}}' }, beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 {{ VC::TXCT }} pt-5">{{__("Loading...")}}</th></tr>'); }, success:(data)=>{ $main.html(data?.html ?? ""); $('[id^=fire-modal]').remove(); }, error:()=>guardOnce(el,"users_load_unavailable") }); }catch{ guardOnce(el,"users_load_unavailable"); }};
 
                 try{
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
                 // Charts (safe to defer; render after DOM parsed)
@@ -123,7 +128,7 @@ Object.keys(t).forEach(
 
                 // Clipboard helper (click-triggered)
                 window.copyToClipboard=(element)=>{try{ const text=element?.id ?? ""; if(!navigator?.clipboard){ throw new Error("Clipboard API unavailable"); } navigator.clipboard.writeText(text).then(()=>{ if(typeof show_toastr==="function") show_toastr("success","Url copied to clipboard","success"); }).catch(()=>{ guardOnce(element||document.body,"copy_unavailable","click"); }); }catch{ guardOnce(element||document.body,"copy_unavailable","click"); }};
-                }catch(e){ 
+                }catch(e){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -135,466 +140,176 @@ Object.keys(t).forEach(
         </script>
     @endpush
     @section(YieldingConstants::ADM_BDC)
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}
+            id="breadcrumb-dashboard-link"
+            data-route-guard>
                 {{ __('Dashboard') }}
             </a>
         </li>
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a
                 id="project-index-link"
-                href="{{ $projectIndexUrl }}"
-                data-url="{{ $projectIndexUrl }}"
-                data-guard-msg="{{ $projectIndexGuardMsg }}"
+                href="{{ safeRoute(ViewsConstants::PRJ . '.index') }}"
+                data-url="{{ safeRoute(ViewsConstants::PRJ . '.index') }}"
+                data-guard-msg="{{ base64_encode(Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? __('Project index route is unavailable. Please contact support.')) }}"
+                data-route-guard
             >
                 {{ __('Project') }}
             </a>
         </li>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const link = document.getElementById('project-index-link');
-                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                    link.setAttribute('data-listener-active', 'true');
-                    link.addEventListener('click', e => {
-                        try {
-                            const url = link.getAttribute('data-url') || '#';
-                            if (url !== '#') return;
-                            e.preventDefault();
-                            const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            link.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                })();
-            </script>
-        @endpush
-        <li class="breadcrumb-item">{{$projectName}}</li>
+        <li class="{{ VC::BCI }}">{{$projectName}}</li>
     @endsection
     @section(YieldingConstants::ADM_ACT_BTN)
         <div class="{{ VC::FEND }}">
             @can('share project')
                 @php
-                    $sharedProjectSettingsCreateBaseName     = ViewsConstants::PRJ.'.copy_link.setting.create';
-                    $sharedProjectSettingsCreateKebabName    = Str::kebab($sharedProjectSettingsCreateBaseName);
-                    $sharedProjectSettingsCreateResolvedName = Route::has($sharedProjectSettingsCreateBaseName)
-                        ? $sharedProjectSettingsCreateBaseName
-                        : (Route::has($sharedProjectSettingsCreateKebabName) ? $sharedProjectSettingsCreateKebabName : null);
-                    $projectId                               = isset($project) && !empty($project->id) ? $project->id : null;
-                    $sharedProjectSettingsCreateUrl          = ($sharedProjectSettingsCreateResolvedName && $projectId) ? route($sharedProjectSettingsCreateResolvedName, $projectId) : '#';
-                    $sharedProjectSettingsCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'create_shared_project_setting_unavailable') ?? 'Create shared project setting route is unavailable. Please contact technical support or your domain administrator.';
-                    $sharedProjectSettingsCreateLinkId       = 'shared-project-settings-create-link';
-                    $sharedProjectSettingsCreateTitle        = __('Shared Project Settings');
-                    $sharedProjectSettingsCreateTooltip      = __('Shared project settings');
-                @endphp
-                <a href="{{ $sharedProjectSettingsCreateUrl }}"
-                id="{{ $sharedProjectSettingsCreateLinkId }}"
+                    try {
+                        $projectId = data_get($project, 'id');
+                        $sharedProjUrl = safeRoute(ViewsConstants::PRJ.'.copy_link.setting.create', [$projectId]);
+                        $sharedProjMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'create_shared_project_setting_unavailable')
+                                      ?? __('Shared project settings route unavailable. Please contact support.');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $sharedProjUrl }}"
+                id="shared-project-settings-create-link"
                 class="{{ VC::BT_SM_PM }}"
                 data-ajax-popup="true"
                 data-size="md"
-                data-title="{{ $sharedProjectSettingsCreateTitle }}"
-                data-url="{{ $sharedProjectSettingsCreateUrl }}"
-                data-guard-msg="{{ $sharedProjectSettingsCreateGuardMsg }}"
+                data-title="{{ __('Shared Project Settings') }}"
+                data-url="{{ $sharedProjUrl }}"
+                data-guard-msg="{{ base64_encode($sharedProjMsg) }}"
                 data-bs-toggle="tooltip"
-                title="{{ $sharedProjectSettingsCreateTooltip }}">
+                title="{{ __('Shared project settings') }}"
+                data-route-guard>
                     <i class="{{ VC::TI }} {{ VC::TI }}-share {{ VC::TXT_WT }}"></i>
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $sharedProjectSettingsCreateLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'Create shared project setting route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
-                    {{-- Optional copy-link button (updated to constants + BS5)
-                    @php $projectID = Crypt::encrypt($project->id); @endphp
-                    <a href="#"
-                        id="{{ route(ViewsConstants::PRJ.'.link', $projectID) }}"
-                        class="{{ VC::BT_SM_PM }} btn-icon m-1"
-                        onclick="copyToClipboard(this)"
-                        data-bs-toggle="tooltip"
-                        title="{{ __('Click to copy link') }}">
-                        <i class="{{ VC::TI }} {{ VC::TI }}-link {{ VC::TXT_WT }}"></i>
-                    </a>
-                    --}}
             @endcan
             @can('view grant chart')
                 @php
-                    $projectGanttBaseName     = ViewsConstants::PRJ.'.gantt';
-                    $projectGanttKebabName    = Str::kebab($projectGanttBaseName);
-                    $projectGanttResolvedName = Route::has($projectGanttBaseName)
-                        ? $projectGanttBaseName
-                        : (Route::has($projectGanttKebabName) ? $projectGanttKebabName : null);
-                    $projectId                = isset($project) && !empty($project->id) ? $project->id : null;
-                    $projectGanttUrl          = ($projectGanttResolvedName && $projectId) ? route($projectGanttResolvedName, $projectId) : '#';
-                    $projectGanttGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'view_project_gantt_unavailable') ?? 'View project gantt route is unavailable. Please contact technical support or your domain administrator.';
-                    $projectGanttLinkId       = 'project-gantt-link';
-                @endphp
-                <a href="{{ $projectGanttUrl }}"
-                id="{{ $projectGanttLinkId }}"
+                    try {
+                        $projectId = data_get($project, 'id');
+                        $ganttUrl = safeRoute(ViewsConstants::PRJ.'.gantt', [$projectId]);
+                        $ganttMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'view_project_gantt_unavailable')
+                                 ?? __('Gantt chart route unavailable. Please contact support.');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $ganttUrl }}"
+                id="project-gantt-link"
                 class="{{ VC::BT_SM_PM }}"
-                data-url="{{ $projectGanttUrl }}"
-                data-guard-msg="{{ $projectGanttGuardMsg }}">
+                data-url="{{ $ganttUrl }}"
+                data-guard-msg="{{ base64_encode($ganttMsg) }}"
+                data-route-guard>
                     {{ __('Gantt Chart') }}
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $projectGanttLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'View project gantt route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
             @endcan
             @php
-                $projectTimeTrackerBaseName     = ViewsConstants::PRJ.'.time.tracker';
-                $projectTimeTrackerKebabName    = Str::kebab($projectTimeTrackerBaseName);
-                $projectTimeTrackerResolvedName = Route::has($projectTimeTrackerBaseName)
-                    ? $projectTimeTrackerBaseName
-                    : (Route::has($projectTimeTrackerKebabName) ? $projectTimeTrackerKebabName : null);
-                $projectId                      = isset($project) && !empty($project->id) ? $project->id : null;
-                $projectTimeTrackerUrl          = ($projectTimeTrackerResolvedName && $projectId) ? route($projectTimeTrackerResolvedName, $projectId) : '#';
-                $projectTimeTrackerGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'view_project_time_tracker_unavailable') ?? 'View project time tracker route is unavailable. Please contact technical support or your domain administrator.';
-                $projectTimeTrackerLinkId       = 'project-time-tracker-link';
-            @endphp
-            <a href="{{ $projectTimeTrackerUrl }}"
-            id="{{ $projectTimeTrackerLinkId }}"
+                try {
+                    $projectId = data_get($project, 'id');
+                    $trackerUrl = safeRoute(ViewsConstants::PRJ.'.time.tracker', [$projectId]);
+                    $trackerMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'view_project_time_tracker_unavailable')
+                               ?? __('Time tracker route unavailable. Please contact support.');
+                } catch (\Throwable $e) {
+                    \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <a href="{{ $trackerUrl }}"
+            id="project-time-tracker-link"
             class="{{ VC::BT_SM_PM }}"
-            data-url="{{ $projectTimeTrackerUrl }}"
-            data-guard-msg="{{ $projectTimeTrackerGuardMsg }}">
+            data-url="{{ $trackerUrl }}"
+            data-guard-msg="{{ base64_encode($trackerMsg) }}"
+            data-route-guard>
                 {{ __('Tracker') }}
             </a>
-            @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        try {
-                            const l = document.getElementById('{{ $projectTimeTrackerLinkId }}');
-                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                            l.setAttribute('data-listener-active', 'true');
-                            l.addEventListener('click', e => {
-                                try {
-                                    const href = l.getAttribute('href') || '#';
-                                    const url = l.getAttribute('data-url') || href || '#';
-                                    if (href !== '#' || url !== '#') return;
-                                    e.preventDefault();
-                                    const msg = l.getAttribute('data-guard-msg') || 'View project time tracker route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role', 'alert');
-                                        toast.setAttribute('aria-live', 'assertive');
-                                        toast.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    l.setAttribute('data-failed-route', 'true');
-                                } catch (err) {}
-                            });
-                        } catch (error) {}
-                    })();
-                </script>
-            @endpush
             @can('view expense')
                 @php
-                    $projectExpenseIndexBaseName     = ViewsConstants::PRJ_EXP.'.index';
-                    $projectExpenseIndexKebabName    = Str::kebab($projectExpenseIndexBaseName);
-                    $projectExpenseIndexResolvedName = Route::has($projectExpenseIndexBaseName)
-                        ? $projectExpenseIndexBaseName
-                        : (Route::has($projectExpenseIndexKebabName) ? $projectExpenseIndexKebabName : null);
-                    $projectId                       = isset($project) && !empty($project->id) ? $project->id : null;
-                    $projectExpenseIndexUrl          = ($projectExpenseIndexResolvedName && $projectId) ? route($projectExpenseIndexResolvedName, $projectId) : '#';
-                    $projectExpenseIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_EXP, 'view_project_expense_unavailable') ?? 'View project expense route is unavailable. Please contact technical support or your domain administrator.';
-                    $projectExpenseIndexLinkId       = 'project-expense-index-link';
-                @endphp
-                <a href="{{ $projectExpenseIndexUrl }}"
-                id="{{ $projectExpenseIndexLinkId }}"
+                    try {
+                        $projectId = data_get($project, 'id');
+                        $expenseUrl = safeRoute(ViewsConstants::PRJ_EXP.'.index', [$projectId]);
+                        $expenseMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_EXP, 'view_project_expense_unavailable')
+                                   ?? __('Expense route unavailable. Please contact support.');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $expenseUrl }}"
+                id="project-expense-index-link"
                 class="{{ VC::BT_SM_PM }}"
-                data-url="{{ $projectExpenseIndexUrl }}"
-                data-guard-msg="{{ $projectExpenseIndexGuardMsg }}">
+                data-url="{{ $expenseUrl }}"
+                data-guard-msg="{{ base64_encode($expenseMsg) }}"
+                data-route-guard>
                     {{ __('Expense') }}
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $projectExpenseIndexLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'View project expense route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
             @endcan
             @if ($user?->{UsersConstants::COL_TP} !== PermissionsConstants::CL)
                 @can('view timesheet')
                     @php
-                        $timesheetIndexBaseName     = ViewsConstants::TMS.'.index';
-                        $timesheetIndexKebabName    = Str::kebab($timesheetIndexBaseName);
-                        $timesheetIndexResolvedName = Route::has($timesheetIndexBaseName)
-                            ? $timesheetIndexBaseName
-                            : (Route::has($timesheetIndexKebabName) ? $timesheetIndexKebabName : null);
-                        $projectId                  = isset($project) && !empty($project->id) ? $project->id : null;
-                        $timesheetIndexUrl          = ($timesheetIndexResolvedName && $projectId) ? route($timesheetIndexResolvedName, $projectId) : '#';
-                        $timesheetIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'open_timesheet_route_unavailable') ?? 'Open timesheet route is unavailable. Please contact technical support or your domain administrator.';
-                        $timesheetIndexLinkId       = 'timesheet-index-link';
-                    @endphp
-                    <a href="{{ $timesheetIndexUrl }}"
-                    id="{{ $timesheetIndexLinkId }}"
+                        try {
+                            $projectId = data_get($project, 'id');
+                            $timesheetUrl = safeRoute(ViewsConstants::TMS.'.index', [$projectId]);
+                            $timesheetMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'open_timesheet_route_unavailable')
+                                         ?? __('Timesheet route unavailable. Please contact support.');
+                        } catch (\Throwable $e) {
+                            \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <a href="{{ $timesheetUrl }}"
+                    id="timesheet-index-link"
                     class="{{ VC::BT_SM_PM }}"
-                    data-url="{{ $timesheetIndexUrl }}"
-                    data-guard-msg="{{ $timesheetIndexGuardMsg }}">
+                    data-url="{{ $timesheetUrl }}"
+                    data-guard-msg="{{ base64_encode($timesheetMsg) }}"
+                    data-route-guard>
                         {{ __('Timesheet') }}
                     </a>
-                    @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                try {
-                                    const l = document.getElementById('{{ $timesheetIndexLinkId }}');
-                                    if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                    l.setAttribute('data-listener-active', 'true');
-                                    l.addEventListener('click', e => {
-                                        try {
-                                            const href = l.getAttribute('href') || '#';
-                                            const url = l.getAttribute('data-url') || href || '#';
-                                            if (href !== '#' || url !== '#') return;
-                                            e.preventDefault();
-                                            const msg = l.getAttribute('data-guard-msg') || 'Open timesheet route is unavailable. Please contact technical support or your domain administrator.';
-                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                            let container = document.getElementById('toast-container');
-                                            if (!container) {
-                                                container = document.createElement('div');
-                                                container.id = 'toast-container';
-                                                document.body.appendChild(container);
-                                            }
-                                            if (hasBootstrap) {
-                                                const toast = document.createElement('div');
-                                                toast.className = 'toast';
-                                                toast.setAttribute('role', 'alert');
-                                                toast.setAttribute('aria-live', 'assertive');
-                                                toast.setAttribute('aria-atomic', 'true');
-                                                const body = document.createElement('div');
-                                                body.className = 'toast-body';
-                                                body.textContent = msg;
-                                                toast.appendChild(body);
-                                                container.appendChild(toast);
-                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                            } else {
-                                                alert(msg);
-                                            }
-                                            l.setAttribute('data-failed-route', 'true');
-                                        } catch (err) {}
-                                    });
-                                } catch (error) {}
-                            })();
-                        </script>
-                    @endpush
                 @endcan
             @endif
             @can('manage bug report')
                 @php
-                    $projectBugReportIndexBaseName     = ViewsConstants::PRJ_TSK_BUG.'.index';
-                    $projectBugReportIndexKebabName    = Str::kebab($projectBugReportIndexBaseName);
-                    $projectBugReportIndexResolvedName = Route::has($projectBugReportIndexBaseName)
-                        ? $projectBugReportIndexBaseName
-                        : (Route::has($projectBugReportIndexKebabName) ? $projectBugReportIndexKebabName : null);
-                    $projectId                         = isset($project) && !empty($project->id) ? $project->id : null;
-                    $projectBugReportIndexUrl          = ($projectBugReportIndexResolvedName && $projectId) ? route($projectBugReportIndexResolvedName, $projectId) : '#';
-                    $projectBugReportIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'open_bug_report_route_unavailable') ?? 'Open bug report route is unavailable. Please contact technical support or your domain administrator.';
-                    $projectBugReportIndexLinkId       = 'project-bug-report-index-link';
-                @endphp
-                <a href="{{ $projectBugReportIndexUrl }}"
-                id="{{ $projectBugReportIndexLinkId }}"
+                    try {
+                        $projectId = data_get($project, 'id');
+                        $bugReportUrl = safeRoute(ViewsConstants::PRJ_TSK_BUG.'.index', [$projectId]);
+                        $bugReportMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'open_bug_report_route_unavailable')
+                                     ?? __('Bug report route unavailable. Please contact support.');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $bugReportUrl }}"
+                id="project-bug-report-index-link"
                 class="{{ VC::BT_SM_PM }}"
-                data-url="{{ $projectBugReportIndexUrl }}"
-                data-guard-msg="{{ $projectBugReportIndexGuardMsg }}">
+                data-url="{{ $bugReportUrl }}"
+                data-guard-msg="{{ base64_encode($bugReportMsg) }}"
+                data-route-guard>
                     {{ __('Bug Report') }}
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $projectBugReportIndexLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'Open bug report route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
             @endcan
             @can('create project task')
                 @php
-                    $projectTaskIndexBaseName     = ViewsConstants::PRJ_TSK_C.'.index';
-                    $projectTaskIndexKebabName    = Str::kebab($projectTaskIndexBaseName);
+                    try {
+                        $projectId = data_get($project, 'id');
+                        $taskUrl = safeRoute(ViewsConstants::PRJ_TSK_C.'.index', [$projectId]);
+                        $taskMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_C, 'open_task_route_unavailable')
+                                ?? __('Task route unavailable. Please contact support.');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $taskUrl }}"
+                id="project-task-index-link"
+                class="{{ VC::BT_SM_PM }}"
+                data-url="{{ $taskUrl }}"
+                data-guard-msg="{{ base64_encode($taskMsg) }}"
+                data-route-guard>
+                    {{ __('Task') }}
+                </a>
+            @endcan
+        </div>
+    @endsection
                     $projectTaskIndexResolvedName = Route::has($projectTaskIndexBaseName)
                         ? $projectTaskIndexBaseName
                         : (Route::has($projectTaskIndexKebabName) ? $projectTaskIndexKebabName : null);
@@ -607,7 +322,7 @@ Object.keys(t).forEach(
                 id="{{ $projectTaskIndexLinkId }}"
                 class="{{ VC::BT_SM_PM }}"
                 data-url="{{ $projectTaskIndexUrl }}"
-                data-guard-msg="{{ $projectTaskIndexGuardMsg }}">
+                data-guard-msg="{{ base64_encode($projectTaskIndexGuardMsg) }}">
                     {{ __('Task') }}
                 </a>
                 @push(StacksConstants::ADM_SCR_PG)
@@ -624,28 +339,7 @@ Object.keys(t).forEach(
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Open task route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         l.setAttribute('data-failed-route', 'true');
                                     } catch (err) {}
                                 });
@@ -656,17 +350,21 @@ Object.keys(t).forEach(
             @endcan
             @can('edit project')
                 @php
-                    $projectEditBaseName     = ViewsConstants::PRJ.'.edit';
-                    $projectEditKebabName    = Str::kebab($projectEditBaseName);
-                    $projectEditResolvedName = Route::has($projectEditBaseName)
-                        ? $projectEditBaseName
-                        : (Route::has($projectEditKebabName) ? $projectEditKebabName : null);
-                    $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
-                    $projectEditUrl          = ($projectEditResolvedName && $projectId) ? route($projectEditResolvedName, $projectId) : '#';
-                    $projectEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_edit_route_unavailable') ?? 'Edit project route is unavailable. Please contact technical support or your domain administrator.';
-                    $projectEditLinkId       = 'project-edit-link';
-                    $projectEditTitle        = __('Edit Project');
-                @endphp
+                    try {
+                        $projectEditBaseName     = ViewsConstants::PRJ.'.edit';
+                        $projectEditKebabName    = Str::kebab($projectEditBaseName);
+                        $projectEditResolvedName = Route::has($projectEditBaseName)
+                            ? $projectEditBaseName
+                            : (Route::has($projectEditKebabName) ? $projectEditKebabName : null);
+                        $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
+                        $projectEditUrl          = ($projectEditResolvedName && $projectId) ? route($projectEditResolvedName, $projectId) : '#';
+                        $projectEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_edit_route_unavailable') ?? 'Edit project route is unavailable. Please contact technical support or your domain administrator.';
+                        $projectEditLinkId       = 'project-edit-link';
+                        $projectEditTitle        = __('Edit Project');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <a href="{{ $projectEditUrl }}"
                 id="{{ $projectEditLinkId }}"
                 class="{{ VC::BT_SM_PM }}"
@@ -674,7 +372,7 @@ Object.keys(t).forEach(
                 data-size="lg"
                 data-title="{{ $projectEditTitle }}"
                 data-url="{{ $projectEditUrl }}"
-                data-guard-msg="{{ $projectEditGuardMsg }}"
+                data-guard-msg="{{ base64_encode($projectEditGuardMsg) }}"
                 data-bs-toggle="tooltip"
                 title="{{ $projectEditTitle }}">
                     <i class="{{ VC::TI_PC }}"></i>
@@ -692,29 +390,7 @@ Object.keys(t).forEach(
                                         const url = l.getAttribute('data-url') || href || '#';
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'Edit project route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        const msg = l.getAttribute('data-guard-msg') || 'Edit project route is unavailable. Please contact technical support or your domain administrator.';\n                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         l.setAttribute('data-failed-route', 'true');
                                     } catch (err) {}
                                 });
@@ -729,7 +405,7 @@ Object.keys(t).forEach(
         <div class="row">
             <div class="col-lg-4 {{ VC::CM6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::R_ALC }} {{ VC::JCB }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                                 <div class="{{ VC::DFL_AIC }}">
@@ -750,14 +426,14 @@ Object.keys(t).forEach(
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-12">
+            <div class="{{ VC::CL4 }} {{ VC::CM12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::R_ALC }} {{ VC::JCB }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                                 <div class="{{ VC::DFL_AIC }}">
                                     <div class="theme-avatar bg-danger">
-                                        <i class="ti ti-report-money"></i>
+                                        <i class="{{ VC::TI_RPT_MN }}"></i>
                                     </div>
                                     <div class="ms-3">
                                         <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
@@ -775,7 +451,7 @@ Object.keys(t).forEach(
             @if ($user?->{UsersConstants::COL_TP} !== PermissionsConstants::CL)
                 <div class="col-lg-4 {{ VC::CM6 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
                                 <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
                                     <div class="{{ VC::DFL_AIC }}">
@@ -800,7 +476,7 @@ Object.keys(t).forEach(
             @endif
             <div class="{{ VC::CLM4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::DFL_AIC }}">
                             <div class="{{ VC::AV }} {{ VC::ME3 }}">
                                 <img {!! !empty($project->img_image) ? $project->img_image : '' !!} alt="" class="img-user wid-45 rounded-circle">
@@ -809,7 +485,7 @@ Object.keys(t).forEach(
                                 <div class="{{ VC::MB3 }} mb-sm-0">
                                     <h5 class="{{ VC::MB1 }}">{{ $project->project_name }}</h5>
                                     @php
-                                        $projectProgress = 0;
+                                        $projectProgress ??= 0;
                                         try {
                                             if (isset($project, $last_task) && method_exists($project, 'projectProgress')) {
                                                 $progressData = $project->projectProgress($project, $last_task->id);
@@ -818,7 +494,7 @@ Object.keys(t).forEach(
                                         } catch (Exception $e) {
                                             Log::error("Progress calculation failed: " . $e->getMessage());
                                         }
-                                    @endphp
+@endphp
                                     <div class="progress-wrapper">
                                         <span class="{{ VC::PG_SM_BL }}">
                                             <small class="font-weight-bold">{{ __('Completed:') }} :</small>
@@ -845,7 +521,7 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                         <div class="{{ VC::CD }} {{ VC::BG_P }} {{ VC::MB0 }}">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="d-block d-sm-flex {{ VC::ALC }} {{ VC::JCB }}">
                                     <div class="{{ VC::RW }} {{ VC::ALC }}">
                                         <span class="{{ VC::TXT_WT }} {{ VC::TXSM }}">{{ __('Start Date') }}</span>
@@ -867,8 +543,8 @@ Object.keys(t).forEach(
             </div>
             <div class="{{ VC::CLM4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
+                    <div class="{{ VC::CD_BD }}">
+                        <div class="{{ VC::DFL }} align-items-start">
                             <div class="theme-avatar {{ VC::BG_P }}">
                                 <i class="{{ VC::TI }} {{ VC::TI }}-clipboard-list"></i>
                             </div>
@@ -879,7 +555,7 @@ Object.keys(t).forEach(
                         </div>
                         <div id="task_chart"></div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB1 }}">
                             <div class="{{ VC::DFL_AIC }}">
                                 <span class="{{ VC::TXT_MT }}">{{ __('Day Left') }}</span>
@@ -912,8 +588,8 @@ Object.keys(t).forEach(
             </div>
             <div class="{{ VC::CLM4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
+                    <div class="{{ VC::CD_BD }}">
+                        <div class="{{ VC::DFL }} align-items-start">
                             <div class="theme-avatar {{ VC::BG_P }}">
                                 <i class="{{ VC::TI }} {{ VC::TI }}-clipboard-list"></i>
                             </div>
@@ -924,7 +600,7 @@ Object.keys(t).forEach(
                         </div>
                         <div id="timesheet_chart"></div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB1 }}">
                             <div class="{{ VC::DFL_AIC }}">
                                 <span class="{{ VC::TXT_MT }}">{{ __('Total project time spent') }}</span>
@@ -957,7 +633,7 @@ Object.keys(t).forEach(
             </div>
             <div class="{{ VC::CLM6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <h5>{{ __('Members') }}</h5>
                             @can('edit project')
@@ -975,30 +651,34 @@ Object.keys(t).forEach(
                             @endcan
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <ul class="{{ VC::LG_FLSH }} list" id="project_users"></ul>
                     </div>
                 </div>
             </div>
             <div class="{{ VC::CLM6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VC::DFL_AIC_JCB }}">
                             <h5>{{ __('Milestones') }} ({{ count($project->milestones) }})</h5>
                             @can('create milestone')
                                 <div class="{{ VC::FEND }}">
                                     @php
-                                        $milestoneCreateBaseName     = ViewsConstants::ML.'.create';
-                                        $milestoneCreateKebabName    = Str::kebab($milestoneCreateBaseName);
-                                        $milestoneCreateResolvedName = Route::has($milestoneCreateBaseName)
-                                            ? $milestoneCreateBaseName
-                                            : (Route::has($milestoneCreateKebabName) ? $milestoneCreateKebabName : null);
-                                        $projectId                   = isset($project) && !empty($project->id) ? $project->id : null;
-                                        $milestoneCreateUrl          = ($milestoneCreateResolvedName && $projectId) ? route($milestoneCreateResolvedName, $projectId) : '#';
-                                        $milestoneCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_create_route_unavailable') ?? 'Create milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                        $milestoneCreateLinkId       = 'milestone-create-link';
-                                        $milestoneCreateTitle        = __('Create Milestone');
-                                    @endphp
+                                        try {
+                                            $milestoneCreateBaseName     = ViewsConstants::ML.'.create';
+                                            $milestoneCreateKebabName    = Str::kebab($milestoneCreateBaseName);
+                                            $milestoneCreateResolvedName = Route::has($milestoneCreateBaseName)
+                                                ? $milestoneCreateBaseName
+                                                : (Route::has($milestoneCreateKebabName) ? $milestoneCreateKebabName : null);
+                                            $projectId                   = isset($project) && !empty($project->id) ? $project->id : null;
+                                            $milestoneCreateUrl          = ($milestoneCreateResolvedName && $projectId) ? route($milestoneCreateResolvedName, $projectId) : '#';
+                                            $milestoneCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_create_route_unavailable') ?? 'Create milestone route is unavailable. Please contact technical support or your domain administrator.';
+                                            $milestoneCreateLinkId       = 'milestone-create-link';
+                                            $milestoneCreateTitle        = __('Create Milestone');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <a href="{{ $milestoneCreateUrl }}"
                                     id="{{ $milestoneCreateLinkId }}"
                                     class="{{ VC::BT_SM_PM }}"
@@ -1006,7 +686,7 @@ Object.keys(t).forEach(
                                     data-size="md"
                                     data-title="{{ $milestoneCreateTitle }}"
                                     data-url="{{ $milestoneCreateUrl }}"
-                                    data-guard-msg="{{ $milestoneCreateGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($milestoneCreateGuardMsg) }}"
                                     data-bs-toggle="tooltip"
                                     title="{{ $milestoneCreateTitle }}">
                                         <i class="{{ VC::TI_PLS }}"></i>
@@ -1024,29 +704,7 @@ Object.keys(t).forEach(
                                                             const url = l.getAttribute('data-url') || href || '#';
                                                             if (href !== '#' || url !== '#') return;
                                                             e.preventDefault();
-                                                            const msg = l.getAttribute('data-guard-msg') || 'Create milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (hasBootstrap) {
-                                                                const toast = document.createElement('div');
-                                                                toast.className = 'toast';
-                                                                toast.setAttribute('role', 'alert');
-                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toast.appendChild(body);
-                                                                container.appendChild(toast);
-                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
+                                                            const msg = l.getAttribute('data-guard-msg') || 'Create milestone route is unavailable. Please contact technical support or your domain administrator.';\n                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                             l.setAttribute('data-failed-route', 'true');
                                                         } catch (err) {}
                                                     });
@@ -1058,7 +716,7 @@ Object.keys(t).forEach(
                             @endcan
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <ul class="{{ VC::LG_FLSH }}">
                             @if ($project->milestones->count() > 0)
                                 @foreach ($project->milestones as $milestone)
@@ -1069,7 +727,7 @@ Object.keys(t).forEach(
                                                 <div>
                                                     <h6 class="{{ VC::MB0 }}">
                                                         {{ !empty($milestone->title) ? $milestone->title : __('No Title') }}
-                                                        @if(isset($milestone->status) && 
+                                                        @if(isset($milestone->status) &&
                                                         array_key_exists($milestone->status, Project::status_color) &&
                                                         array_key_exists($milestone->status, Project::$project_status))
                                                             <span class="{{ VC::BDG_XS }} p-2 px-3 rounded bg-{{ Project::status_color[$milestone->status] }}">
@@ -1088,17 +746,21 @@ Object.keys(t).forEach(
                                                 @can('view milestone')
                                                     <div class="{{ VC::ACT_BTN_WRN }}">
                                                         @php
-                                                            $milestoneShowBaseName     = ViewsConstants::ML.'.show';
-                                                            $milestoneShowKebabName    = Str::kebab($milestoneShowBaseName);
-                                                            $milestoneShowResolvedName = Route::has($milestoneShowBaseName)
-                                                                ? $milestoneShowBaseName
-                                                                : (Route::has($milestoneShowKebabName) ? $milestoneShowKebabName : null);
-                                                            $milestoneId               = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
-                                                            $milestoneShowUrl          = ($milestoneShowResolvedName && $milestoneId) ? route($milestoneShowResolvedName, $milestoneId) : '#';
-                                                            $milestoneShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_show_route_unavailable') ?? 'Open milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $milestoneShowLinkId       = 'milestone-show-link-'.($milestoneId ?? 'x');
-                                                            $milestoneShowTitle        = __('View');
-                                                        @endphp
+                                                            try {
+                                                                $milestoneShowBaseName     = ViewsConstants::ML.'.show';
+                                                                $milestoneShowKebabName    = Str::kebab($milestoneShowBaseName);
+                                                                $milestoneShowResolvedName = Route::has($milestoneShowBaseName)
+                                                                    ? $milestoneShowBaseName
+                                                                    : (Route::has($milestoneShowKebabName) ? $milestoneShowKebabName : null);
+                                                                $milestoneId               = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
+                                                                $milestoneShowUrl          = ($milestoneShowResolvedName && $milestoneId) ? route($milestoneShowResolvedName, $milestoneId) : '#';
+                                                                $milestoneShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_show_route_unavailable') ?? 'Open milestone route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $milestoneShowLinkId       = 'milestone-show-link-'.($milestoneId ?? 'x');
+                                                                $milestoneShowTitle        = __('View');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <a href="{{ $milestoneShowUrl }}"
                                                         id="{{ $milestoneShowLinkId }}"
                                                         class="{{ VC::BT_SM }}"
@@ -1106,7 +768,7 @@ Object.keys(t).forEach(
                                                         data-size="lg"
                                                         data-title="{{ $milestoneShowTitle }}"
                                                         data-url="{{ $milestoneShowUrl }}"
-                                                        data-guard-msg="{{ $milestoneShowGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($milestoneShowGuardMsg) }}"
                                                         data-bs-toggle="tooltip"
                                                         title="{{ $milestoneShowTitle }}">
                                                             <i class="{{ VC::TI_EYE_WT }}"></i>
@@ -1125,28 +787,7 @@ Object.keys(t).forEach(
                                                                                 if (href !== '#' || url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Open milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 l.setAttribute('data-failed-route', 'true');
                                                                             } catch (err) {}
                                                                         });
@@ -1159,18 +800,22 @@ Object.keys(t).forEach(
                                                 @can('edit milestone')
                                                     <div class="{{ VC::ACT_BTN_INF }}">
                                                         @php
-                                                            $milestoneEditBaseName     = ViewsConstants::ML.'.edit';
-                                                            $milestoneEditKebabName    = Str::kebab($milestoneEditBaseName);
-                                                            $milestoneEditResolvedName = Route::has($milestoneEditBaseName)
-                                                                ? $milestoneEditBaseName
-                                                                : (Route::has($milestoneEditKebabName) ? $milestoneEditKebabName : null);
-                                                            $milestoneId               = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
-                                                            $milestoneEditUrl          = ($milestoneEditResolvedName && $milestoneId) ? route($milestoneEditResolvedName, $milestoneId) : '#';
-                                                            $milestoneEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_edit_route_unavailable') ?? 'Edit milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $milestoneEditLinkId       = 'milestone-edit-link-'.($milestoneId ?? 'x');
-                                                            $milestoneEditTitle        = __('Edit');
-                                                            $milestoneEditDataTitle    = __('Edit Milestone');
-                                                        @endphp
+                                                            try {
+                                                                $milestoneEditBaseName     = ViewsConstants::ML.'.edit';
+                                                                $milestoneEditKebabName    = Str::kebab($milestoneEditBaseName);
+                                                                $milestoneEditResolvedName = Route::has($milestoneEditBaseName)
+                                                                    ? $milestoneEditBaseName
+                                                                    : (Route::has($milestoneEditKebabName) ? $milestoneEditKebabName : null);
+                                                                $milestoneId               = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
+                                                                $milestoneEditUrl          = ($milestoneEditResolvedName && $milestoneId) ? route($milestoneEditResolvedName, $milestoneId) : '#';
+                                                                $milestoneEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_edit_route_unavailable') ?? 'Edit milestone route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $milestoneEditLinkId       = 'milestone-edit-link-'.($milestoneId ?? 'x');
+                                                                $milestoneEditTitle        = __('Edit');
+                                                                $milestoneEditDataTitle    = __('Edit Milestone');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <a href="{{ $milestoneEditUrl }}"
                                                         id="{{ $milestoneEditLinkId }}"
                                                         class="{{ VC::BT_SM }}"
@@ -1178,7 +823,7 @@ Object.keys(t).forEach(
                                                         data-size="md"
                                                         data-title="{{ $milestoneEditDataTitle }}"
                                                         data-url="{{ $milestoneEditUrl }}"
-                                                        data-guard-msg="{{ $milestoneEditGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($milestoneEditGuardMsg) }}"
                                                         data-bs-toggle="tooltip"
                                                         title="{{ $milestoneEditTitle }}">
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
@@ -1197,28 +842,7 @@ Object.keys(t).forEach(
                                                                                 if (href !== '#' || url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Edit milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 l.setAttribute('data-failed-route', 'true');
                                                                             } catch (err) {}
                                                                         });
@@ -1231,19 +855,23 @@ Object.keys(t).forEach(
                                                 @can('delete milestone')
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         @php
-                                                            $milestoneDestroyBaseName     = ViewsConstants::ML.'.destroy';
-                                                            $milestoneDestroyKebabName    = Str::kebab($milestoneDestroyBaseName);
-                                                            $milestoneDestroyResolvedName = Route::has($milestoneDestroyBaseName)
-                                                                ? $milestoneDestroyBaseName
-                                                                : (Route::has($milestoneDestroyKebabName) ? $milestoneDestroyKebabName : null);
-                                                            $milestoneId                  = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
-                                                            $milestoneDestroyRouteArray   = ($milestoneDestroyResolvedName && $milestoneId) ? [$milestoneDestroyResolvedName, $milestoneId] : ['#'];
-                                                            $milestoneDestroyUrl          = ($milestoneDestroyResolvedName && $milestoneId) ? route($milestoneDestroyResolvedName, $milestoneId) : '#';
-                                                            $milestoneDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_delete_route_unavailable') ?? 'Delete milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $milestoneDestroyFormId       = 'milestone-destroy-form-'.($milestoneId ?? 'x');
-                                                            $milestoneDestroyLinkId       = 'milestone-destroy-link-'.($milestoneId ?? 'x');
-                                                            $milestoneDestroyTitle        = __('Delete');
-                                                        @endphp
+                                                            try {
+                                                                $milestoneDestroyBaseName     = ViewsConstants::ML.'.destroy';
+                                                                $milestoneDestroyKebabName    = Str::kebab($milestoneDestroyBaseName);
+                                                                $milestoneDestroyResolvedName = Route::has($milestoneDestroyBaseName)
+                                                                    ? $milestoneDestroyBaseName
+                                                                    : (Route::has($milestoneDestroyKebabName) ? $milestoneDestroyKebabName : null);
+                                                                $milestoneId                  = isset($milestone) && !empty($milestone->id) ? $milestone->id : null;
+                                                                $milestoneDestroyRouteArray   = ($milestoneDestroyResolvedName && $milestoneId) ? [$milestoneDestroyResolvedName, $milestoneId] : ['#'];
+                                                                $milestoneDestroyUrl          = ($milestoneDestroyResolvedName && $milestoneId) ? route($milestoneDestroyResolvedName, $milestoneId) : '#';
+                                                                $milestoneDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::ML, 'project_milestone_delete_route_unavailable') ?? 'Delete milestone route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $milestoneDestroyFormId       = 'milestone-destroy-form-'.($milestoneId ?? 'x');
+                                                                $milestoneDestroyLinkId       = 'milestone-destroy-link-'.($milestoneId ?? 'x');
+                                                                $milestoneDestroyTitle        = __('Delete');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Form::open([
                                                             'method'         => 'DELETE',
                                                             'route'          => $milestoneDestroyRouteArray,
@@ -1257,7 +885,7 @@ Object.keys(t).forEach(
                                                             class="{{ VC::BT_SM_CT_PR }}"
                                                             data-form-id="{{ $milestoneDestroyFormId }}"
                                                             data-url="{{ $milestoneDestroyUrl }}"
-                                                            data-guard-msg="{{ $milestoneDestroyGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($milestoneDestroyGuardMsg) }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ $milestoneDestroyTitle }}">
                                                                 <i class="{{ VC::TI_TRS_WT }}"></i>
@@ -1280,28 +908,7 @@ Object.keys(t).forEach(
                                                                                 const action = f.getAttribute('action') || '#';
                                                                                 if (url === '#' && action === '#') {
                                                                                     const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                    let container = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (hasBootstrap) {
-                                                                                        const toast = document.createElement('div');
-                                                                                        toast.className = 'toast';
-                                                                                        toast.setAttribute('role', 'alert');
-                                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toast.appendChild(body);
-                                                                                        container.appendChild(toast);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     l.setAttribute('data-failed-route', 'true');
                                                                                     f.setAttribute('data-failed-route', 'true');
                                                                                     return;
@@ -1331,11 +938,11 @@ Object.keys(t).forEach(
             @can('view activity')
                 <div class="col-xl-6">
                     <div class="{{ VC::CD }} activity-scroll">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <h5>{{ __('Activity Log') }}</h5>
                             <small>{{ __('Activity Log of this project') }}</small>
                         </div>
-                        <div class="card-body vertical-scroll-cards">
+                        <div class="{{ VC::CD_BD }} vertical-scroll-cards">
                             @if (!empty($project->activities) and $project->activities->count() > 0)
                                 @foreach ($project->activities as $activity)
                                     <div class="{{ VC::CD }} {{ VC::P4 }} {{ VC::MB3 }}">
@@ -1343,13 +950,17 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::DFL_AIC }}">
                                                 <div class="theme-avatar {{ VC::BG_P }}">
                                                     @php
-                                                        $iconClasses = VC::TI;
-                                                        if (isset($activity->log_type)) {
-                                                            $iconClasses .= ' ' . (method_exists($activity, 'logIcon') 
-                                                                ? $activity->logIcon($activity->log_type) 
-                                                                : '');
+                                                        try {
+                                                            $iconClasses = VC::TI;
+                                                            if (isset($activity->log_type)) {
+                                                                $iconClasses .= ' ' . (method_exists($activity, 'logIcon')
+                                                                    ? $activity->logIcon($activity->log_type)
+                                                                    : '');
+                                                            }
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                         }
-                                                    @endphp
+@endphp
                                                     <i class="{{ $iconClasses }}"></i>
                                                 </div>
                                                 <div class="ms-3">
@@ -1358,20 +969,24 @@ Object.keys(t).forEach(
                                                     </h6>
 
                                                     @php
-                                                        $remark = method_exists($activity, 'getRemark') 
-                                                            ? $activity->getRemark() 
-                                                            : null;
-                                                    @endphp
+                                                        try {
+                                                            $remark = method_exists($activity, 'getRemark')
+                                                                ? $activity->getRemark()
+                                                                : null;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
 
                                                     <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">
-                                                        {!! !empty(trim(strip_tags($remark ?? ''))) 
-                                                            ? $remark 
+                                                        {!! !empty(trim(strip_tags($remark ?? '')))
+                                                            ? $remark
                                                             : __('No activity details available') !!}
                                                     </p>
                                                 </div>
                                             </div>
                                             @php
-                                                $timestamp = '';
+                                                $timestamp ??= '';
                                                 if (isset($activity) && isset($activity->created_at) && method_exists($activity->created_at, 'diffForHumans')) {
                                                     if ($activity->created_at instanceof Carbon)
                                                         $timestamp = $activity->created_at->diffForHumans();
@@ -1383,7 +998,7 @@ Object.keys(t).forEach(
                                                         }
                                                     }
                                                 }
-                                            @endphp
+@endphp
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">
                                                 {{ !empty($timestamp) ? $timestamp : __('No activity timestamp available') }}
                                             </p>
@@ -1401,20 +1016,24 @@ Object.keys(t).forEach(
             @endcan
             <div class="{{ VC::CLM6 }}">
                 <div class="{{ VC::CD }} activity-scroll">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h5>{{ __('Attachments') }}</h5>
                         <small>{{ __('Attachment that uploaded in this project') }}</small>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <ul class="{{ VC::LG_FLSH }}">
                             @php
-                                $attachments = [];
-                                $attachmentsCount = 0;
-                                if (method_exists($project, 'projectAttachments')) {
-                                    $attachments = $project->projectAttachments();
-                                    $attachmentsCount = is_countable($attachments) ? count($attachments) : 0;
+                                $attachments ??= [];
+                                $attachmentsCount ??= 0;
+                                try {
+                                    if (method_exists($project, 'projectAttachments')) {
+                                        $attachments = $project->projectAttachments();
+                                        $attachmentsCount = is_countable($attachments) ? count($attachments) : 0;
+                                    }
+                                } catch (\Throwable $e) {
+                                    \Log::error('projects/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                 }
-                            @endphp
+@endphp
                             @if ($attachmentsCount > 0)
                                 @foreach ($attachments as $attachment)
                                     <li class="{{ VC::LGI }} px-0">
@@ -1453,6 +1072,145 @@ Object.keys(t).forEach(
             </div>
         </div>
     @endsection
+    @push(StacksConstants::ADM_SCR_PG)
+    <script defer>
+        (() => {
+            'use strict';
+
+            const RouteGuardHandler = {
+                initialized: false,
+                debounceMap: new Map(),
+
+                // DRY: Centralized toast notification
+                showToast(message) {
+                    try {
+                        const container = this.getOrCreateToastContainer();
+                        if (!container) return alert(message);
+
+                        const hasBootstrap = window.bootstrap?.Toast;
+                        if (hasBootstrap) {
+                            const toast = this.createBootstrapToast(message);
+                            container.appendChild(toast);
+                            const instance = window.bootstrap.Toast.getOrCreateInstance(toast);
+                            toast.addEventListener('hidden.bs.toast', () => {
+                                try { toast.remove(); } catch (err) {}
+                            });
+                            instance.show();
+                        } else {
+                            alert(message);
+                        }
+                    } catch (err) {
+                        console.error('[RouteGuard] Toast error:', err);
+                        alert(message);
+                    }
+                },
+
+                getOrCreateToastContainer() {
+                    return document.getElementById('toast-container') ||
+                           (() => { const c = document.createElement('div'); c.id = 'toast-container'; c.className = 'position-fixed top-0 end-0 p-3'; c.style.zIndex = '9999'; document.body.appendChild(c); return c; })();
+                },
+
+                createBootstrapToast(message) {
+                    const toast = document.createElement('div');
+                    toast.className = 'toast align-items-center text-white bg-warning border-0';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    toast.innerHTML = `
+                        <div class="{{ VC::DFL }}">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+                    return toast;
+                },
+
+                // Route guard with debouncing
+                guardRoute(el) {
+                    try {
+                        if (!el) return true;
+                        const href = el.getAttribute('href') || '#';
+                        const url = el.getAttribute('data-url') || href || '#';
+
+                        if (href !== '#' && url !== '#') return false;
+
+                        const msg = el.getAttribute('data-guard-msg') ||
+                                  '{{ __('Route is unavailable. Please contact support.') }}';
+                        this.showToast(msg);
+                        el.setAttribute('data-failed-route', 'true');
+                        return true;
+                    } catch (err) {
+                        console.error('[RouteGuard] Guard error:', err);
+                        return true;
+                    }
+                },
+
+                // Attach click handler with debouncing
+                attachClickHandler(el) {
+                    try {
+                        if (!el) return;
+                        const flagName = 'data-route-listener';
+                        if (el.getAttribute(flagName) === 'true') return;
+
+                        el.setAttribute(flagName, 'true');
+
+                        el.addEventListener('click', (e) => {
+                            try {
+                                const elId = el.id || el.textContent.trim();
+
+                                // Debounce multiple clicks
+                                if (this.debounceMap.has(elId)) {
+                                    e.preventDefault();
+                                    return;
+                                }
+
+                                if (this.guardRoute(el)) {
+                                    e.preventDefault();
+                                    return;
+                                }
+
+                                // Set debounce timeout
+                                this.debounceMap.set(elId, true);
+                                setTimeout(() => this.debounceMap.delete(elId), 800);
+
+                                console.log('[RouteGuard] Allowed action for:', elId);
+                            } catch (err) {
+                                console.error('[RouteGuard] Click handler error:', err);
+                            }
+                        }, { passive: false });
+                    } catch (err) {
+                        console.error('[RouteGuard] Attach handler error:', err);
+                    }
+                },
+
+                // Initialize all route guard links
+                init() {
+                    if (this.initialized) return;
+
+                    try {
+                        const guardLinks = document.querySelectorAll('[data-route-guard]');
+                        guardLinks.forEach(el => this.attachClickHandler(el));
+
+                        this.initialized = true;
+                        console.log('[RouteGuard] Initialized:', guardLinks.length + ' links');
+                    } catch (err) {
+                        console.error('[RouteGuard] Initialization error:', err);
+                    }
+                }
+            };
+
+            // Initialize on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => RouteGuardHandler.init());
+            } else {
+                RouteGuardHandler.init();
+            }
+
+            // Expose for potential dynamic content
+            window.RouteGuardHandler = RouteGuardHandler;
+        })();
+    </script>
+    @endpush
 @else
     <div>
         {{ __('No project selected.') }}

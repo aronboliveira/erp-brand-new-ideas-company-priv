@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 class CreditNoteSeeder extends Seeder
 {
 	// --- Parâmetros fixos (sem env) ---
-	private const COUNT            = 128;
+	private const COUNT            = 2; // was 128
 	private const OPTIONALITY      = 0.92; // prob. de preencher opcionais
 	private const INVOICE_RATIO    = 0.75; // viés para invoice (crédito)
 	private const CARD_RATIO       = 0.97; // prob. de haver cartão
@@ -211,8 +211,8 @@ class CreditNoteSeeder extends Seeder
 						BC::COL_PRD_SV_UNT   => $unit,
 						'payslip'            => $payslip,
 					];
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Nota de Crédito para Cliente {$customerId} com conta {$accountId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Nota de Crédito para Cliente {$customerId} com conta {$accountId}");
 					$note = CreditNote::create($payload);
 					if ($card) {
 						$note->{BC::COL_CD_FLG} = $card['flag'];

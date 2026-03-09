@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@public/*": ["../../../public/assets/js/*"],
+      "@core/*": ["../../../public/assets/js/core/*"],
+      "@generic/*": ["../../../public/assets/js/generic/*"],
+      "@pages/*": ["../../../public/assets/js/pages/*"],
+      "@routes/*": ["../../../public/assets/js/pages/routes/*"]
+    },
+    "types": ["jest", "node"],
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": ["./**/*.ts", "./**/*.test.ts", "./types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "coverage"]
+}

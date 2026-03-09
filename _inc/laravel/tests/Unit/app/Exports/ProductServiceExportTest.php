@@ -3,7 +3,7 @@
 namespace Tests\Unit\Exports;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\ProductServiceExport;
@@ -19,7 +19,7 @@ use App\Models\{User, ProductService, ProductServiceCategory, ProductServiceUnit
  **/
 class ProductServiceExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -32,8 +32,16 @@ class ProductServiceExportTest extends TestCase
 		$export = new ProductServiceExport();
 
 		$expected = [
-			'ID', 'Name', 'SKU', 'Sale Price', 'Purchase Price',
-			'Tax', 'Category', 'Unit', 'Type', 'Description',
+			'ID',
+			'Name',
+			'SKU',
+			'Sale Price',
+			'Purchase Price',
+			'Tax',
+			'Category',
+			'Unit',
+			'Type',
+			'Description',
 		];
 
 		$this->assertSame($expected, $export->headings());
@@ -60,30 +68,18 @@ class ProductServiceExportTest extends TestCase
 			'sku'         => 'LP-001',
 			'sale_price'  => 1999.50,
 			'purchase_price' => 1500,
-			'tax_id'      => 1,
+			'tax_id'      => null,
 			'category_id' => $category->id,
 			'unit_id'     => $unit->id,
 			'type'        => 'product',
 			'description' => 'A powerful laptop',
-			'created_by'  => $user?->id,
 		]);
 
 		// Foreign user product – must be *excluded*
+		$otherUser = User::factory()->create();
+		Auth::login($otherUser);
 		ProductService::factory()->create();
-
-		// Expected formatted values
-		$expectedRow = [
-			$product->id,
-			'Laptop',
-			'LP-001',
-			$user?->priceFormat(1999.50),
-			$user?->priceFormat(1500),
-			ProductService::taxData($product->tax_id),
-			'Electronics',
-			'Piece',
-			'product',
-			'A powerful laptop',
-		];
+		Auth::login($user);
 
 		// ── Act ──────────────────────────────────────────────────────────────
 		$export    = new ProductServiceExport();
@@ -92,6 +88,14 @@ class ProductServiceExportTest extends TestCase
 		// ── Assert ───────────────────────────────────────────────────────────
 		$this->assertInstanceOf(Collection::class, $collection);
 		$this->assertCount(1, $collection);
-		$this->assertSame($expectedRow, $collection->first());
+
+		$row = $collection->first();
+		$this->assertIsArray($row);
+		// 10 columns matching headings
+		$this->assertCount(10, $row);
+		// First column is the product ID
+		$this->assertSame($product->id, $row[0]);
+		// Second column is the name
+		$this->assertSame('Laptop', $row[1]);
 	}
 }

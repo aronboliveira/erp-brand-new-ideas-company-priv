@@ -50,8 +50,10 @@ final class OtherPaymentSeeder extends Seeder
 
 			$created = 0;
 			$tz = 'America/Sao_Paulo';
+			$HARD_CAP = 2; // HARD CAP guard
 
 			foreach ($employeeIds as $empId) {
+				if ($created >= $HARD_CAP) break; // HARD CAP guard
 				// 0 a 3 lançamentos por colaborador
 				$count = random_int(0, 32);
 				if ($count === 0) {
@@ -63,9 +65,9 @@ final class OtherPaymentSeeder extends Seeder
 
 				foreach ($picked as $title) {
 					try {
-						$ref = Employee::query()->where('id', $empId)->value('name') ?? $empId;
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Outro Pagamento para Funcionário {$ref}");
+						// $ref = Employee::query()->where('id', $empId)->value('name') ?? $empId;
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Outro Pagamento para Funcionário {$ref}");
 						$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
 
 						// Valor compatível com o tipo

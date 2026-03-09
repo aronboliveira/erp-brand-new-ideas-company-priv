@@ -1,16 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $settings = Utility::settings();
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $settings = Utility::settings();
+    } catch (\Throwable $e) {
+        \Log::error('events/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -18,33 +13,37 @@
     {{__('Event')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Event')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Event')}}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create event')
             @php
-                $eventsCreateBaseRouteName    = ViewsConstants::EVT.'.create';
-                $eventsCreateKebabRouteName   = Str::kebab($eventsCreateBaseRouteName);
-                $eventsCreateResolvedName     = Route::has($eventsCreateBaseRouteName)
-                    ? $eventsCreateBaseRouteName
-                    : (Route::has($eventsCreateKebabRouteName) ? $eventsCreateKebabRouteName : null);
-                $eventsCreateUrl              = $eventsCreateResolvedName ? route($eventsCreateResolvedName) : '#';
-                $eventsCreateGuardMessage     = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_create_route_unavailable')
-                    ?? 'Create Event route is unavailable. Please contact technical support or your domain administrator.';
-                $eventsCreateLinkId           = 'events-create-link';
-            @endphp
+                try {
+                    $eventsCreateBaseRouteName    = ViewsConstants::EVT.'.create';
+                    $eventsCreateKebabRouteName   = Str::kebab($eventsCreateBaseRouteName);
+                    $eventsCreateResolvedName     = Route::has($eventsCreateBaseRouteName)
+                        ? $eventsCreateBaseRouteName
+                        : (Route::has($eventsCreateKebabRouteName) ? $eventsCreateKebabRouteName : null);
+                    $eventsCreateUrl              = $eventsCreateResolvedName ? route($eventsCreateResolvedName) : '#';
+                    $eventsCreateGuardMessage     = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_create_route_unavailable')
+                        ?? 'Create Event route is unavailable. Please contact technical support or your domain administrator.';
+                    $eventsCreateLinkId           = 'events-create-link';
+                } catch (\Throwable $e) {
+                    \Log::error('events/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a  id="{{ $eventsCreateLinkId }}"
                 href="{{ $eventsCreateUrl }}"
                 data-url="{{ $eventsCreateUrl }}"
-                data-guard-msg="{{ $eventsCreateGuardMessage }}"
+                data-guard-msg="{{ base64_encode($eventsCreateGuardMessage) }}"
                 data-sv-localized="true"
                 data-size="lg"
                 data-ajax-popup="true"
@@ -60,16 +59,16 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-lg-8">
+        <div class="{{ VC::CL8 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="{{ VC::CL6 }}">
                             <h5>{{ __('Calendar') }}</h5>
                         </div>
-                        <div class="col-lg-6">
+                        <div class="{{ VC::CL6 }}">
                             @if (!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
-                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;">
+                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;" onchange="get_data()">
                                     <option value="google_calendar">{{ __('Google calendar') }}</option>
                                     <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                 </select>
@@ -78,15 +77,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div id="calendar" class="calendar"></div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="{{ VC::CL4 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <h6 class="{{ VC::MB4 }}">{{ __('Upcoming Events') }}</h6>
                     <ul class="{{ VC::LG_FLSH_W }}">
                         <li class="{{ VC::LGI }} {{ VC::CD }} {{ VC::MB3 }}">
@@ -95,29 +94,33 @@
                                     @if(!$events->isEmpty())
                                         @forelse ($events as $event)
                                             @php
-                                                $eventIdValue                       = (string) ($event->id ?? '');
-                                                $eventsEditBaseRouteName            = ViewsConstants::EVT.'.edit';
-                                                $eventsEditKebabRouteName           = Str::kebab($eventsEditBaseRouteName);
-                                                $eventsEditResolvedName             = Route::has($eventsEditBaseRouteName)
-                                                    ? $eventsEditBaseRouteName
-                                                    : (Route::has($eventsEditKebabRouteName) ? $eventsEditKebabRouteName : null);
-                                                $eventsEditUrl                      = ($eventsEditResolvedName && $eventIdValue !== '') ? route($eventsEditResolvedName, $eventIdValue) : '#';
-                                                $eventsEditGuardMessage             = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_edit_route_unavailable')
-                                                    ?? 'Edit Event route is unavailable. Please contact technical support or your domain administrator.';
-                                                $eventsEditTitleLinkId              = 'events-edit-title-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
-                                                $eventsEditIconLinkId               = 'events-edit-icon-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                try {
+                                                    $eventIdValue                       = (string) ($event->id ?? '');
+                                                    $eventsEditBaseRouteName            = ViewsConstants::EVT.'.edit';
+                                                    $eventsEditKebabRouteName           = Str::kebab($eventsEditBaseRouteName);
+                                                    $eventsEditResolvedName             = Route::has($eventsEditBaseRouteName)
+                                                        ? $eventsEditBaseRouteName
+                                                        : (Route::has($eventsEditKebabRouteName) ? $eventsEditKebabRouteName : null);
+                                                    $eventsEditUrl                      = ($eventsEditResolvedName && $eventIdValue !== '') ? route($eventsEditResolvedName, $eventIdValue) : '#';
+                                                    $eventsEditGuardMessage             = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_edit_route_unavailable')
+                                                        ?? 'Edit Event route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $eventsEditTitleLinkId              = 'events-edit-title-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                    $eventsEditIconLinkId               = 'events-edit-icon-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
 
-                                                $eventsDestroyBaseRouteName         = ViewsConstants::EVT.'.destroy';
-                                                $eventsDestroyKebabRouteName        = Str::kebab($eventsDestroyBaseRouteName);
-                                                $eventsDestroyResolvedName          = Route::has($eventsDestroyBaseRouteName)
-                                                    ? $eventsDestroyBaseRouteName
-                                                    : (Route::has($eventsDestroyKebabRouteName) ? $eventsDestroyKebabRouteName : null);
-                                                $eventsDestroyUrl                   = ($eventsDestroyResolvedName && $eventIdValue !== '') ? route($eventsDestroyResolvedName, $eventIdValue) : '#';
-                                                $eventsDeleteFormId                 = 'events-delete-form-'.($eventIdValue === '' ? 'x' : $eventIdValue);
-                                                $eventsDeleteLinkId                 = 'events-delete-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
-                                                $eventsDestroyGuardMessage          = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_destroy_route_unavailable')
-                                                    ?? 'Delete Event route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
+                                                    $eventsDestroyBaseRouteName         = ViewsConstants::EVT.'.destroy';
+                                                    $eventsDestroyKebabRouteName        = Str::kebab($eventsDestroyBaseRouteName);
+                                                    $eventsDestroyResolvedName          = Route::has($eventsDestroyBaseRouteName)
+                                                        ? $eventsDestroyBaseRouteName
+                                                        : (Route::has($eventsDestroyKebabRouteName) ? $eventsDestroyKebabRouteName : null);
+                                                    $eventsDestroyUrl                   = ($eventsDestroyResolvedName && $eventIdValue !== '') ? route($eventsDestroyResolvedName, $eventIdValue) : '#';
+                                                    $eventsDeleteFormId                 = 'events-delete-form-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                    $eventsDeleteLinkId                 = 'events-delete-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                    $eventsDestroyGuardMessage          = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_destroy_route_unavailable')
+                                                        ?? 'Delete Event route is unavailable. Please contact technical support or your domain administrator.';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('events/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
 
                                             <div class="{{ VC::CD }} {{ VC::MB3 }} {{ VC::SNN }} {{ VC::BD }}">
                                                 <div class="{{ VC::PX3 }}">
@@ -128,16 +131,16 @@
                                                                     href="{{ $eventsEditUrl }}"
                                                                     data-size="lg"
                                                                     data-url="{{ $eventsEditUrl }}"
-                                                                    data-guard-msg="{{ $eventsEditGuardMessage }}"
+                                                                    data-guard-msg="{{ base64_encode($eventsEditGuardMessage) }}"
                                                                     data-sv-localized="true"
                                                                     data-ajax-popup="true"
                                                                     data-title="{{ __('Edit Event') }}"
-                                                                    class="fc-event-title text-primary">
+                                                                    class="fc-event-title {{ VC::TX_PM }}">
                                                                     {{ $event->title }}
                                                                 </a>
                                                             </h5>
                                                             <br>
-                                                            <p class="card-text small text-dark mt-0">
+                                                            <p class="card-text small {{ VC::TX_DK }} mt-0">
                                                                 {{ __('Start Date : ') }} {{ $user?->dateFormat($event->start_date) }}<br>
                                                                 {{ __('End Date : ') }} {{ $user?->dateFormat($event->end_date) }}
                                                             </p>
@@ -148,7 +151,7 @@
                                                                 <a  id="{{ $eventsEditIconLinkId }}"
                                                                     href="{{ $eventsEditUrl }}"
                                                                     data-url="{{ $eventsEditUrl }}"
-                                                                    data-guard-msg="{{ $eventsEditGuardMessage }}"
+                                                                    data-guard-msg="{{ base64_encode($eventsEditGuardMessage) }}"
                                                                     data-sv-localized="true"
                                                                     data-title="{{ __('Edit Event') }}"
                                                                     data-ajax-popup="true"
@@ -186,12 +189,12 @@
                                                 </div>
                                             </div>
                                         @empty
-                                            <div class="text-center">
+                                            <div class="{{ VC::TXCT }}">
                                                 <h6>{{ __('There is no event in this month') }}</h6>
                                             </div>
                                         @endforelse
                                     @else
-                                        <div class="text-center"></div>
+                                        <div class="{{ VC::TXCT }}"></div>
                                     @endif
                                 </div>
                             </div>
@@ -209,10 +212,9 @@
   <script defer>
         (() => {
           const langKey      = 'erp-np-lang';
-          const toastBoxId   = 'toast-box';
           const csrfToken    = '{{ csrf_token() }}';
           let   queuedError  = '';
-        
+
           const getTr = key => {
             let lang = (sessionStorage.getItem(langKey) || document.documentElement.lang || 'en')
               .toLowerCase()
@@ -222,36 +224,16 @@
               || window.translations.en[key]
               || '# ERROR';
           };
-        
-          const showToast = message => {
-            const hasBs = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-              .some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
-            if (hasBs) {
-              let box = document.getElementById(toastBoxId);
-              if (!box) {
-                box = document.createElement('div');
-                box.id = toastBoxId;
-                box.setAttribute('aria-live', 'polite');
-                box.setAttribute('aria-atomic', 'true');
-                document.body.appendChild(box);
-              }
-              const t = document.createElement('div');
-              t.className = 'toast';
-              t.innerHTML = `<div class="toast-body">${message}</div>`;
-              box.appendChild(t);
-              bootstrap.Toast.getOrCreateInstance(t).show();
-            } else {
-              alert(message);
-            }
-          };
-        
+
+          const showToast = message => (window.RouteGuard?.showToast || (m => alert(m)))(message);
+
           document.addEventListener('pointerup', () => {
             if (queuedError) {
               showToast(queuedError);
               queuedError = '';
             }
           });
-        
+
           new MutationObserver((records, obs) => {
             for (const r of records) {
               for (const n of r.removedNodes) {
@@ -261,7 +243,7 @@
               }
             }
           }).observe(document.body, { childList: true, subtree: true });
-        
+
           const getData = () => {
             try {
               const base = $('#path_admin').val();
@@ -315,9 +297,7 @@
               queuedError = getTr('calendar_data_unavailable');
             }
           };
-          window.get_data = getData;
-          document.getElementById('calendar_type')?.addEventListener('change', getData);
-        
+
           const getDepartment = bid => {
             try {
               const url = '{{ route(VW::EVT .".getdepartment") }}';
@@ -330,7 +310,7 @@
                   try {
                     $('.department_id').remove();
                     $('.department_div').html(`
-                      <select class="form-control department_id" id="choices-dept" placeholder="{{__("Select Department")}}" multiple></select>
+                      <select class="{{ VC::FM_CT }} department_id" id="choices-dept" placeholder="{{__("Select Department")}}" multiple></select>
                     `);
                     const sel = $('#choices-dept');
                     sel.append('<option value="0">{{ __("All") }}</option>');
@@ -350,7 +330,7 @@
               queuedError = getTr('department_fetch_unavailable');
             }
           };
-        
+
           const getEmployee = did => {
             try {
               const url = '{{ route(VW::EVT .".getemployee") }}';
@@ -363,7 +343,7 @@
                   try {
                     $('.employee_id').remove();
                     $('.employee_div').html(`
-                      <select class="form-control employee_id" id="choices-emp" placeholder="{{__("Select Employee")}}" multiple></select>
+                      <select class="{{ VC::FM_CT }} employee_id" id="choices-emp" placeholder="{{__("Select Employee")}}" multiple></select>
                     `);
                     const sel = $('#choices-emp');
                     sel.append('<option value="0">{{ __("All") }}</option>');
@@ -383,17 +363,17 @@
               queuedError = getTr('employee_fetch_unavailable');
             }
           };
-        
+
           $(document).ready(() => {
             getData();
             const b = $('#branch_id').val();
             if (b != null) getDepartment(b);
           });
-        
+
           $(document).on('change', 'select[name=branch_id]', e => {
             getDepartment(e.target.value);
           });
-        
+
           $(document).on('change', '.department_id', e => {
             getEmployee($(e.target).val());
           });

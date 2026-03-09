@@ -1,10 +1,5 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants};
-	use App\Models\Utility;
-	use Illuminate\Routing\Exceptions\UrlGenerationException;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use Symfony\Component\Routing\Exception\RouteNotFoundException;
-	$lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
 	$stage = null;
 	$pipelines = [];
 	$updateFormId = 'update-stage-form';

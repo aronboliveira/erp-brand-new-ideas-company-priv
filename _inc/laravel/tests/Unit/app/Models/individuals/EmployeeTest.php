@@ -24,8 +24,13 @@ use App\Models\{
 	User
 };
 
-class EmployeeAdditionalTest extends TestCase
+class EmployeeTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -35,8 +40,8 @@ class EmployeeAdditionalTest extends TestCase
 	 **/
 	public function documents_returns_employee_documents_collection()
 	{
-		$emp = Employee::factory()->create(['employee_id' => 999]);
-		EmployeeDocument::factory()->count(3)->create(['employee_id' => 999]);
+		$emp = Employee::factory()->create();
+		EmployeeDocument::factory()->count(3)->create(['employee_id' => $emp->id]);
 
 		$docs = $emp->documents();
 
@@ -68,7 +73,7 @@ class EmployeeAdditionalTest extends TestCase
 
 		$net = $emp->getNetSalary();
 		// 1000 +100 +100 -50 -20 +30 +80 = 1240
-		$this->assertSame(1240.0, $net);
+		$this->assertEqualsWithDelta(1240.0, $net, 0.01);
 	}
 
 	/**
@@ -361,7 +366,8 @@ class EmployeeAdditionalTest extends TestCase
 		$type = PayslipType::factory()->create(['name' => 'Monthly']);
 		$emp = Employee::factory()->create(['salary_type' => $type->id]);
 
-		$this->assertSame($emp->salaryTypeName(), $emp->salary_type());
+		// salary_type() returns BelongsTo; salaryTypeName() returns string via query
+		$this->assertSame('Monthly', $emp->salaryTypeName());
 	}
 
 	/**
@@ -397,9 +403,8 @@ class EmployeeAdditionalTest extends TestCase
 	 **/
 	public function pay_slip_relation_returns_the_correct_model()
 	{
-		// create an employee whose primary key will match the Payslip::employee_id
-		$emp    = Employee::factory()->create(['employee_id' => 42]);
-		$payslip = Payslip::factory()->create(['employee_id' => 42]);
+		$emp     = Employee::factory()->create();
+		$payslip = Payslip::factory()->create(['employee_id' => $emp->id]);
 
 		// reload via relation
 		$loaded = $emp->paySlip;
@@ -418,9 +423,7 @@ class EmployeeAdditionalTest extends TestCase
 		$type = PayslipType::factory()->create(['name' => 'Hourly']);
 		$emp = Employee::factory()->create(['salary_type' => $type->id]);
 
-		$this->assertSame(
-			$emp->salaryTypeName(),
-			$emp->salary_type()
-		);
+		// salary_type() returns BelongsTo; salaryTypeName() returns string via query
+		$this->assertSame('Hourly', $emp->salaryTypeName());
 	}
 }

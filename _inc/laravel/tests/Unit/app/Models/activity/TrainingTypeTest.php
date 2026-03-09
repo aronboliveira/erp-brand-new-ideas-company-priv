@@ -9,6 +9,11 @@ use App\Models\TrainingType;
 
 class TrainingTypeTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -19,33 +24,34 @@ class TrainingTypeTest extends TestCase
 	public function training_type_is_fillable()
 	{
 		$data = [
-			'name'       => 'Orientation',
-			'created_by' => 42,
+			'name' => 'Orientation',
 		];
 
 		$type = TrainingType::create($data);
 
-		$this->assertEquals('Orientation', $type->name);
-		$this->assertEquals(42,            $type->created_by);
+		$this->assertEquals('Orientation', $type->getAttributes()['name']);
 	}
 
 	/**
 	 ** @test
 	 **
-	 ** TrainingType uses auto-incrementing integer primary key
+	 ** TrainingType uses UUID primary key: string, non-incrementing
 	 **/
 	public function training_type_primary_key_is_incrementing_int()
 	{
 		$type = TrainingType::create([
-			'name'       => 'Skill Development',
-			'created_by' => 99,
+			'name' => 'Skill Development',
 		]);
 
 		$key = $type->getKey();
 
-		$this->assertIsInt($key);
-		$this->assertTrue($type->getIncrementing());
-		$this->assertSame('int', $type->getKeyType());
+		$this->assertIsString($key);
+		$this->assertFalse($type->getIncrementing());
+		$this->assertSame('string', $type->getKeyType());
+		$this->assertMatchesRegularExpression(
+			'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+			$key
+		);
 	}
 
 	/**
@@ -56,8 +62,7 @@ class TrainingTypeTest extends TestCase
 	public function training_type_has_timestamps()
 	{
 		$type = TrainingType::create([
-			'name'       => 'Safety Training',
-			'created_by' => 7,
+			'name' => 'Safety Training',
 		]);
 
 		$this->assertNotNull($type->created_at);

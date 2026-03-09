@@ -1,18 +1,42 @@
 @php
-	use App\Config\Constants\{PlansConstants, StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\Route;
-	use Illuminate\Support\Str;
-
-	$lang = Utility::fetchUserLang();
-	$transferStoreBaseName  = VW::TRF;
-	$transferStoreKebabName = Str::kebab($transferStoreBaseName);
-	$transferStoreResolved  = Route::has($transferStoreBaseName)
-		? $transferStoreBaseName
-		: (Route::has($transferStoreKebabName) ? $transferStoreKebabName : null);
-	$transferStoreActionUrl = $transferStoreResolved ? route($transferStoreResolved) : '#';
-	$transferStoreGuardMsg  = Utility::fetchLinkMessage($lang, VW::TRF, 'store_transfer_route_unavailable') ?? 'Store transfer route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$transferStoreBaseName ??= '';
+	$transferStoreKebabName ??= '';
+	$transferStoreResolved ??= null;
+	$transferStoreActionUrl ??= '#';
+	$transferStoreGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$transferStoreBaseName = VW::TRF;
+		$transferStoreKebabName = Str::kebab($transferStoreBaseName);
+		$transferStoreResolved = Route::has($transferStoreBaseName)
+			? $transferStoreBaseName
+			: (Route::has($transferStoreKebabName) ? $transferStoreKebabName : null);
+		$transferStoreActionUrl = $transferStoreResolved ? (route($transferStoreResolved) ?? '#') : '#';
+		$transferStoreGuardMsg = Utility::fetchLinkMessage($lang, VW::TRF, 'store_transfer_route_unavailable')
+			?? 'Store transfer route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in transfers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in transfers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in transfers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -24,19 +48,25 @@
 	'data-sv-localized'    => 'true',
 ]) !!}
 	<div class="modal-body">
-		@php($plan = Utility::getChatGPTSettings())
-		@if($plan?->{PlansConstants::COL_GPT} == 1)
-			<div class="text-end">
-					@php
-						$genBase = 'generate';
-						$genKebab = Str::kebab($genBase);
-						$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
-						$genParam = 'transfer';
-						$genUrl = $genResolved ? route($genResolved, [$genParam]) : '#';
-						$langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-						$genGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_TRF, 'generate_ai_bank_transfer_route_unavailable') ?? 'Generate AI bank transfer route is unavailable. Please contact technical support or your domain administrator.';
-						$genAnchorId = 'ai-generate-'.$genParam;
-					@endphp
+		@php
+			$plan = Utility::getChatGPTSettings();
+		@endphp
+			@if($plan?->{PlansConstants::COL_GPT} == 1)
+				<div class="{{ VC::TX_END }}">
+						@php
+							try {
+								$genBase = 'generate';
+								$genKebab = Str::kebab($genBase);
+								$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+								$genParam = 'transfer';
+								$genUrl = $genResolved ? route($genResolved, [$genParam]) : '#';
+								$langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+								$genGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_TRF, 'generate_ai_bank_transfer_route_unavailable') ?? 'Generate AI bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+								$genAnchorId = 'ai-generate-'.$genParam;
+							} catch (\Throwable $e) {
+								\Log::error('transfers/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+							}
+						@endphp
 					<a href="{{ $genUrl }}"
 						id="{{ $genAnchorId }}"
 						data-size="md"
@@ -45,7 +75,7 @@
 						data-url="{{ $genUrl }}"
 						data-bs-placement="top"
 						data-title="{{ __('Generate content with AI') }}"
-						data-guard-msg="{{ $genGuardMsg }}"
+						data-guard-msg="{{ base64_encode($genGuardMsg) }}"
 						data-sv-localized="true">
 							<i class="{{ VC::FAS_RB }}"></i>
 							<span>{{ __('Generate with AI') }}</span>
@@ -88,4 +118,3 @@
 	</div>
 	<script defer src="{{ asset('assets/js/routes/transfers/store.js') }}"></script>
 {!! Form::close() !!}
-

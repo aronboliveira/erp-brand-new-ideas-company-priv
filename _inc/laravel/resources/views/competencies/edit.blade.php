@@ -1,27 +1,46 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $lang         = Utility::fetchUserLang();
-    $routeName    = ViewsConstants::CPT . '.update';
-    $updateRoute  = Route::has($routeName)
-        ? route($routeName, $competencies->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $competencies->id)
-            : '#');
-    $formId       = 'competencyUpdateForm_' . $competencies->id;
-    $guardMsg     = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPT,
-        'competency_update_route_unavailable'
-    ) ?? 'Competency update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'competencyUpdateForm';
+	$guardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$routeName = ViewsConstants::CPT . '.update';
+		$competencyId = data_get($competencies ?? null, 'id');
+		$updateRoute = $competencyId && Route::has($routeName)
+			? (route($routeName, $competencyId) ?? '#')
+			: ($competencyId && Route::has(Str::kebab($routeName))
+				? (route(Str::kebab($routeName), $competencyId) ?? '#')
+				: '#');
+		$formId = 'competencyUpdateForm_' . ($competencyId ?: 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CPT,
+			'competency_update_route_unavailable'
+		) ?? 'Competency update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in competencies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in competencies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in competencies/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($competencies) && ((is_array($competencies) && count($competencies)) || ($competencies instanceof Collection && $competencies->isNotEmpty())))
@@ -61,46 +80,8 @@
                 class="{{ VC::BT_PRM }}"
             >
         </div>
-        <script defer>
-            (() => {
-                const form = document.getElementById('{{ $formId }}');
-                if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                form.setAttribute('data-listener-active', 'true');
-                form.addEventListener('submit', event => {
-                    try {
-                        const action = form.getAttribute('action');
-                        const url    = form.getAttribute('data-url');
-                        if ((action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            })();
-        </script>
+        <script defer>window.RouteGuard?.guardFormSubmit?.('{{ $formId }}');</script>
     {{ Form::close() }}
 @else
-    <div class="text-muted">{{ __('No competencies found') }}</div>
+    <div class="{{ VC::TXT_MT }}">{{ __('No competencies found') }}</div>
 @endif

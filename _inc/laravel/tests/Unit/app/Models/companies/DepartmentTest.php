@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{Department, Branch};
 
 class DepartmentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -22,15 +27,12 @@ class DepartmentTest extends TestCase
 
 		$data = [
 			'branch_id'  => $branch->id,
-			'created_by' => 'admin_user',
 			'name'       => 'HR',
 		];
 
 		$dept = Department::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $dept->$field);
-		}
+		$this->assertFillableMatches($data, $dept);
 	}
 
 	/**
@@ -61,9 +63,9 @@ class DepartmentTest extends TestCase
 	{
 		$relation = (new Department)->branch();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Branch::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('branch_id',         $relation->getLocalKeyName());
+		$this->assertSame('branch_id',                $relation->getForeignKeyName());
+		$this->assertSame('id',         $relation->getOwnerKeyName());
 	}
 }

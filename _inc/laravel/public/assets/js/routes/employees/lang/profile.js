@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -12,9 +13,6 @@
     es: { employee_fetch_unavailable: "Error al obtener designaciones." },
     fr: {
       employee_fetch_unavailable: "Échec de la récupération des intitulés.",
-    },
-    he: {
-      employee_fetch_unavailable: "לא ניתן לאחזר תפקידים.",
     },
     it: { employee_fetch_unavailable: "Impossibile recuperare le mansioni." },
     ja: { employee_fetch_unavailable: "役職を取得できませんでした。" },
@@ -31,6 +29,6 @@
       (window.translations[k] = {
         ...(window.translations[k] || {}),
         ...t[k],
-      })
+      }),
   );
 })();

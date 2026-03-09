@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Gate, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,134 +12,58 @@
 @endsection
 @if(isset($project) && !empty($project))
     @php
-        $projectIndexBaseName = ViewsConstants::PRJ . '.index';
-        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        try {
+            $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+            $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+            $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+            $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+            $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     @section(YieldingConstants::ADM_BDC)
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
             {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
                 {{ __('Dashboard') }}
             </a>
         </li>
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a
-                id="project-index-link"
                 href="{{ $projectIndexUrl }}"
                 data-url="{{ $projectIndexUrl }}"
-                data-guard-msg="{{ $projectIndexGuardMsg }}"
+                data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
+                data-route-guard
             >
                 {{ __('Project') }}
             </a>
         </li>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const link = document.getElementById('project-index-link');
-                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                    link.setAttribute('data-listener-active', 'true');
-                    link.addEventListener('click', e => {
-                        try {
-                            const url = link.getAttribute('data-url') || '#';
-                            if (url !== '#') return;
-                            e.preventDefault();
-                            const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            link.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                })();
-            </script>
-        @endpush
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             @php
-                $projectShowBaseName     = ViewsConstants::PRJ.'.show';
-                $projectShowKebabName    = Str::kebab($projectShowBaseName);
-                $projectShowResolvedName = Route::has($projectShowBaseName)
-                    ? $projectShowBaseName
-                    : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
-                $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
-                $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
-                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                $projectShowLinkId       = 'project-show-link';
-                $projectNameText         = ($project->project_name ?? null) ? ucwords($project->project_name) : __('No name found for project');
-            @endphp
+                try {
+                    $projectShowBaseName     = ViewsConstants::PRJ.'.show';
+                    $projectShowKebabName    = Str::kebab($projectShowBaseName);
+                    $projectShowResolvedName = Route::has($projectShowBaseName)
+                        ? $projectShowBaseName
+                        : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
+                    $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
+                    $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
+                    $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+                    $projectShowLinkId       = 'project-show-link';
+                    $projectNameText         = ($project->project_name ?? null) ? ucwords($project->project_name) : __('No name found for project');
+                } catch (\Throwable $e) {
+                    \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $projectShowUrl }}"
-            id="{{ $projectShowLinkId }}"
             data-url="{{ $projectShowUrl }}"
-            data-guard-msg="{{ $projectShowGuardMsg }}">
+            data-guard-msg="{{ base64_encode($projectShowGuardMsg) }}"
+            data-route-guard>
                 {{ $projectNameText }}
             </a>
-            @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        try {
-                            const l = document.getElementById('{{ $projectShowLinkId }}');
-                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                            l.setAttribute('data-listener-active', 'true');
-                            l.addEventListener('click', e => {
-                                try {
-                                    const href = l.getAttribute('href') || '#';
-                                    const url = l.getAttribute('data-url') || href || '#';
-                                    if (href !== '#' || url !== '#') return;
-                                    e.preventDefault();
-                                    const msg = l.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role', 'alert');
-                                        toast.setAttribute('aria-live', 'assertive');
-                                        toast.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    l.setAttribute('data-failed-route', 'true');
-                                } catch (err) {}
-                            });
-                        } catch (error) {}
-                    })();
-                </script>
-            @endpush
         </li>
-        <li class="breadcrumb-item">{{__('Bug Report')}}</li>
+        <li class="{{ VC::BCI }}">{{__('Bug Report')}}</li>
     @endsection
     @push(StacksConstants::ADM_CSS)
         <link rel="stylesheet" href="{{ asset('assets/css/plugins/dragula.min.css') }}" id="main-style-link">
@@ -205,7 +122,7 @@
                     toast.setAttribute("role","alert");
                     toast.setAttribute("aria-live","assertive");
                     toast.setAttribute("aria-atomic","true");
-                    toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                    toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                     document.body.appendChild(toast);
                     }
                     const once=()=>new bootstrap.Toast(toast).show();
@@ -221,18 +138,18 @@
                 const guardRoute=(url)=>!url||url==="#"||url==="";
 
                 try{
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
                 const token=$('meta[name="csrf-token"]').attr('content') ?? "";
 
                 const initDragula=()=>{
-                    if(typeof dragula!=="function"){ 
+                    if(typeof dragula!=="function"){
                         if (
                             window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1"
@@ -287,14 +204,14 @@
                         const html=
                             `<li class="media mb-20">
                             <div class="media-body">
-                                <div class="d-flex justify-content-between align-items-end">
+                                <div class="{{ VC::DFL_JCB }} align-items-end">
                                 <div>
                                     <h5 class="mt-0">${name}</h5>
-                                    <p class="mb-0 text-xs">${cmt}</p>
+                                    <p class="{{ VC::MB0 }} {{ VC::TXS }}">${cmt}</p>
                                 </div>
                                 <div class="comment-trash" style="float:right">
-                                    <a href="#" class="btn btn-sm red btn-danger delete-comment" data-url="${del}">
-                                    <i class="ti ti-trash"></i>
+                                    <a href="#" class="{{ VC::BT_SM }} red btn-danger delete-comment" data-url="${del}">
+                                    <i class="{{ VC::TI_TRS }}"></i>
                                     </a>
                                 </div>
                                 </div>
@@ -352,15 +269,15 @@
                         const delUrl=data?.deleteUrl ?? "";
                         const dlHref=`{{asset(Storage::url('bugs'))}}/${file}`;
                         const html=
-                            `<div class="col-8 mb-2 file-${id}">
-                            <h5 class="mt-0 mb-1 font-weight-bold text-sm">${name}</h5>
-                            <p class="m-0 text-xs">${size}</p>
+                            `<div class="col-8 {{ VC::MB2 }} file-${id}">
+                            <h5 class="mt-0 {{ VC::MB1 }} font-weight-bold {{ VC::TXSM }}">${name}</h5>
+                            <p class="m-0 {{ VC::TXS }}">${size}</p>
                             </div>
-                            <div class="col-4 mb-2 file-${id}">
+                            <div class="col-4 {{ VC::MB2 }} file-${id}">
                             <div class="comment-trash" style="float:right">
-                                <a download href="${dlHref}" class="btn btn-sm btn-primary"><i class="ti ti-download"></i></a>
-                                <a href="#" class="btn btn-sm red btn-danger delete-comment-file m-0 px-2" data-id="${id}" data-url="${delUrl}">
-                                <i class="ti ti-trash"></i>
+                                <a download href="${dlHref}" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_DWN }}"></i></a>
+                                <a href="#" class="{{ VC::BT_SM }} red btn-danger delete-comment-file m-0 px-2" data-id="${id}" data-url="${delUrl}">
+                                <i class="{{ VC::TI_TRS }}"></i>
                                 </a>
                             </div>
                             </div>`;
@@ -407,25 +324,29 @@
         </script>
     @endpush
     @section(YieldingConstants::ADM_ACT_BTN)
-        <div class="float-end">
+        <div class="{{ VC::FEND }}">
             @can('manage bug report')
                 @php
-                    $bugListBaseName     = ViewsConstants::PRJ_TSK_BUG;
-                    $bugListKebabName    = Str::kebab($bugListBaseName);
-                    $bugListResolvedName = Route::has($bugListBaseName)
-                        ? $bugListBaseName
-                        : (Route::has($bugListKebabName) ? $bugListKebabName : null);
-                    $projectId           = isset($project) && !empty($project->id) ? $project->id : null;
-                    $bugListUrl          = ($bugListResolvedName && $projectId) ? route($bugListResolvedName, $projectId) : '#';
-                    $bugListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'list_bug_route_unavailable') ?? 'List bug route is unavailable. Please contact technical support or your domain administrator.';
-                    $bugListLinkId       = 'bug-list-link-'.($projectId ?? 'x');
-                    $bugListTitle        = __('List');
-                @endphp
+                    try {
+                        $bugListBaseName     = ViewsConstants::PRJ_TSK_BUG;
+                        $bugListKebabName    = Str::kebab($bugListBaseName);
+                        $bugListResolvedName = Route::has($bugListBaseName)
+                            ? $bugListBaseName
+                            : (Route::has($bugListKebabName) ? $bugListKebabName : null);
+                        $projectId           = isset($project) && !empty($project->id) ? $project->id : null;
+                        $bugListUrl          = ($bugListResolvedName && $projectId) ? route($bugListResolvedName, $projectId) : '#';
+                        $bugListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'list_bug_route_unavailable') ?? 'List bug route is unavailable. Please contact technical support or your domain administrator.';
+                        $bugListLinkId       = 'bug-list-link-'.($projectId ?? 'x');
+                        $bugListTitle        = __('List');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <a href="{{ $bugListUrl }}"
                 id="{{ $bugListLinkId }}"
                 class="{{ VC::BT_SM_PM }}"
                 data-url="{{ $bugListUrl }}"
-                data-guard-msg="{{ $bugListGuardMsg }}"
+                data-guard-msg="{{ base64_encode($bugListGuardMsg) }}"
                 data-bs-toggle="tooltip"
                 title="{{ $bugListTitle }}">
                     <i class="{{ VC::TI_LT }}"></i>
@@ -444,28 +365,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'List bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         l.setAttribute('data-failed-route', 'true');
                                     } catch (err) {}
                                 });
@@ -476,23 +376,27 @@
             @endcan
             @can('create bug report')
                 @php
-                    $bugCreateBaseName     = ViewsConstants::PRJ_TSK_BUG.'.create';
-                    $bugCreateKebabName    = Str::kebab($bugCreateBaseName);
-                    $bugCreateResolvedName = Route::has($bugCreateBaseName)
-                        ? $bugCreateBaseName
-                        : (Route::has($bugCreateKebabName) ? $bugCreateKebabName : null);
-                    $projectId             = isset($project) && !empty($project->id) ? $project->id : null;
-                    $bugCreateUrl          = ($bugCreateResolvedName && $projectId) ? route($bugCreateResolvedName, $projectId) : '#';
-                    $bugCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                    $bugCreateLinkId       = 'bug-create-link-'.($projectId ?? 'x');
-                    $bugCreateTitle        = __('Create New Bug');
-                @endphp
+                    try {
+                        $bugCreateBaseName     = ViewsConstants::PRJ_TSK_BUG.'.create';
+                        $bugCreateKebabName    = Str::kebab($bugCreateBaseName);
+                        $bugCreateResolvedName = Route::has($bugCreateBaseName)
+                            ? $bugCreateBaseName
+                            : (Route::has($bugCreateKebabName) ? $bugCreateKebabName : null);
+                        $projectId             = isset($project) && !empty($project->id) ? $project->id : null;
+                        $bugCreateUrl          = ($bugCreateResolvedName && $projectId) ? route($bugCreateResolvedName, $projectId) : '#';
+                        $bugCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
+                        $bugCreateLinkId       = 'bug-create-link-'.($projectId ?? 'x');
+                        $bugCreateTitle        = __('Create New Bug');
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <a href="{{ $bugCreateUrl }}"
                 id="{{ $bugCreateLinkId }}"
                 data-size="lg"
                 data-url="{{ $bugCreateUrl }}"
                 data-ajax-popup="true"
-                data-guard-msg="{{ $bugCreateGuardMsg }}"
+                data-guard-msg="{{ base64_encode($bugCreateGuardMsg) }}"
                 data-bs-toggle="tooltip"
                 data-title="{{ $bugCreateTitle }}"
                 title="{{ $bugCreateTitle }}"
@@ -513,28 +417,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         l.setAttribute('data-failed-route', 'true');
                                     } catch (err) {}
                                 });
@@ -547,24 +430,29 @@
     @endsection
     @section(YieldingConstants::ADM_CTT)
         @php
-            $json = [];
-            foreach ($bug_status as $status){
-                $json[] = 'task-list-'.$status->id;
+            $json ??= [];
+            try {
+                foreach ($bug_status as $status){
+                    $json[] = 'task-list-'.$status->id;
+                }
+            } catch (\Throwable $e) {
+                \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             }
-        @endphp
+@endphp
         <div class="{{ VC::RW }}">
             <div class="{{ VC::CS12 }}">
                 @php
                     $jsonData = isset($json) && (is_array($json) || is_object($json)) ? json_encode($json) : '[]';
-                @endphp
-                <div class="{{ VC::RW }} kanban-wrapper horizontal-scroll-cards" 
-                     data-containers='{{ $jsonData }}' 
+@endphp
+                <div class="{{ VC::RW }} kanban-wrapper horizontal-scroll-cards"
+                     data-containers='{{ $jsonData }}'
                      data-plugin="dragula">
                     @if(isset($bug_status) && is_countable($bug_status) && count($bug_status) > 0)
                         @foreach($bug_status as $status)
                             @if(isset($status) && is_object($status))
-                                @php 
-                                    $bugs = [];
+                                @php
+
+                                    $bugs ??= [];
                                     $projectId = data_get($project, 'id');
                                     if (!empty($projectId) && method_exists($status, 'bugs')) {
                                         try {
@@ -577,10 +465,10 @@
                                     $statusId = data_get($status, 'id', 'status-' . uniqid());
                                     $statusTitle = data_get($status, 'title', __('Untitled Status'));
                                     $bugsCount = is_countable($bugs) ? count($bugs) : 0;
-                                @endphp
+@endphp
                                 <div class="col">
                                     <div class="{{ VC::CD }}">
-                                        <div class="card-header">
+                                        <div class="{{ VC::CD_HD }}">
                                             <div class="{{ VC::FEND }}">
                                                 <span class="{{ VC::BT_SM_PM }} btn-icon count">
                                                     {{ $bugsCount }}
@@ -588,56 +476,64 @@
                                             </div>
                                             <h4 class="{{ VC::MB0 }}">{{ e($statusTitle) }}</h4>
                                         </div>
-                                        <div class="card-body kanban-box" 
-                                             id="task-list-{{ $statusId }}" 
+                                        <div class="{{ VC::CD_BD }} kanban-box"
+                                             id="task-list-{{ $statusId }}"
                                              data-id="{{ $statusId }}">
                                             @if(!empty($bugs) && is_countable($bugs) && count($bugs) > 0)
                                                 @foreach($bugs as $bug)
                                                     @if(isset($bug) && is_object($bug))
                                                         @php
-                                                            $bugId = data_get($bug, 'id', 'bug-' . uniqid());
-                                                            $bugTitle = data_get($bug, 'title', __('Untitled Bug'));
-                                                            $bugPriority = data_get($bug, 'priority', '');
-                                                            $bugStartDate = data_get($bug, 'start_date', '');
-                                                            $bugDueDate = data_get($bug, 'due_date', '');
-                                                            $priorityConfig = [
-                                                                'low' => 'bg-success',
-                                                                'medium' => 'bg-warning',
-                                                                'high' => 'bg-danger'
-                                                            ];
-                                                            $priorityClass = data_get($priorityConfig, $bugPriority, 'bg-secondary');
-                                                        @endphp
+                                                            try {
+                                                                $bugId = data_get($bug, 'id', 'bug-' . uniqid());
+                                                                $bugTitle = data_get($bug, 'title', __('Untitled Bug'));
+                                                                $bugPriority = data_get($bug, 'priority', '');
+                                                                $bugStartDate = data_get($bug, 'start_date', '');
+                                                                $bugDueDate = data_get($bug, 'due_date', '');
+                                                                $priorityConfig = [
+                                                                    'low' => 'bg-success',
+                                                                    'medium' => 'bg-warning',
+                                                                    'high' => 'bg-danger'
+                                                                ];
+                                                                $priorityClass = data_get($priorityConfig, $bugPriority, 'bg-secondary');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::CD }} draggable-item" id="{{ $bugId }}">
-                                                            <div class="pt-3 ps-3">
+                                                            <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
                                                                 @if(!empty($bugPriority) && in_array($bugPriority, ['low', 'medium', 'high']))
                                                                     <span class="p-2 px-3 rounded badge badge-pill {{ VC::BDG }}-xs {{ $priorityClass }}">
                                                                         {{ ucfirst(e($bugPriority)) }}
                                                                     </span>
                                                                 @endif
                                                             </div>
-                                                            <div class="card-header border-0 pb-0 position-relative">
+                                                            <div class="{{ VC::CD_HD }} border-0 pb-0 position-relative">
                                                                 <h5>
                                                                     @if(!empty($projectId) && !empty($bugId))
                                                                         @php
-                                                                            $bugShowBaseName     = ViewsConstants::PRJ_TSK_BUG.'.show';
-                                                                            $bugShowKebabName    = Str::kebab($bugShowBaseName);
-                                                                            $bugShowResolvedName = Route::has($bugShowBaseName)
-                                                                                ? $bugShowBaseName
-                                                                                : (Route::has($bugShowKebabName) ? $bugShowKebabName : null);
-                                                                            $projectId           = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
-                                                                            $bugId               = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
-                                                                            $bugTitle            = e(data_get($bug ?? null, 'title', __('Untitled Bug')));
-                                                                            $bugShowUrl          = ($bugShowResolvedName && $projectId && $bugId) ? route($bugShowResolvedName, [$projectId, $bugId]) : '#';
-                                                                            $bugShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'show_bug_route_unavailable') ?? 'Show bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            $bugShowLinkId       = 'bug-show-link-'.($bugId ?? 'x');
-                                                                        @endphp
+                                                                            try {
+                                                                                $bugShowBaseName     = ViewsConstants::PRJ_TSK_BUG.'.show';
+                                                                                $bugShowKebabName    = Str::kebab($bugShowBaseName);
+                                                                                $bugShowResolvedName = Route::has($bugShowBaseName)
+                                                                                    ? $bugShowBaseName
+                                                                                    : (Route::has($bugShowKebabName) ? $bugShowKebabName : null);
+                                                                                $projectId           = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
+                                                                                $bugId               = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
+                                                                                $bugTitle            = e(data_get($bug ?? null, 'title', __('Untitled Bug')));
+                                                                                $bugShowUrl          = ($bugShowResolvedName && $projectId && $bugId) ? route($bugShowResolvedName, [$projectId, $bugId]) : '#';
+                                                                                $bugShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'show_bug_route_unavailable') ?? 'Show bug route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                $bugShowLinkId       = 'bug-show-link-'.($bugId ?? 'x');
+                                                                            } catch (\Throwable $e) {
+                                                                                \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                            }
+@endphp
                                                                         <a href="{{ $bugShowUrl }}"
                                                                         id="{{ $bugShowLinkId }}"
                                                                         data-url="{{ $bugShowUrl }}"
                                                                         data-ajax-popup="true"
                                                                         data-size="lg"
                                                                         data-bs-original-title="{{ $bugTitle }}"
-                                                                        data-guard-msg="{{ $bugShowGuardMsg }}">
+                                                                        data-guard-msg="{{ base64_encode($bugShowGuardMsg) }}">
                                                                             {{ $bugTitle }}
                                                                         </a>
                                                                         @push(StacksConstants::ADM_SCR_PG)
@@ -654,28 +550,7 @@
                                                                                                 if (href !== '#' || url !== '#') return;
                                                                                                 e.preventDefault();
                                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Show bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                                let container = document.getElementById('toast-container');
-                                                                                                if (!container) {
-                                                                                                    container = document.createElement('div');
-                                                                                                    container.id = 'toast-container';
-                                                                                                    document.body.appendChild(container);
-                                                                                                }
-                                                                                                if (hasBootstrap) {
-                                                                                                    const toast = document.createElement('div');
-                                                                                                    toast.className = 'toast';
-                                                                                                    toast.setAttribute('role', 'alert');
-                                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                                    const body = document.createElement('div');
-                                                                                                    body.className = 'toast-body';
-                                                                                                    body.textContent = msg;
-                                                                                                    toast.appendChild(body);
-                                                                                                    container.appendChild(toast);
-                                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                } else {
-                                                                                                    alert(msg);
-                                                                                                }
+                                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                 l.setAttribute('data-failed-route', 'true');
                                                                                             } catch (err) {}
                                                                                         });
@@ -698,27 +573,31 @@
                                                                             <div class="{{ ViewClassNamesConstants::DRP_MN_EM }}">
                                                                                 @can('edit project task')
                                                                                     @php
-                                                                                        $bugEditBaseName     = ViewsConstants::PRJ_TSK_BUG.'.edit';
-                                                                                        $bugEditKebabName    = Str::kebab($bugEditBaseName);
-                                                                                        $bugEditResolvedName = Route::has($bugEditBaseName)
-                                                                                            ? $bugEditBaseName
-                                                                                            : (Route::has($bugEditKebabName) ? $bugEditKebabName : null);
-                                                                                        $projectIdValue      = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
-                                                                                        $bugIdValue          = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
-                                                                                        $bugNameText         = e(data_get($bug ?? null, 'name', $bugTitle ?? __('Untitled Bug')));
-                                                                                        $bugEditUrl          = ($bugEditResolvedName && $projectIdValue && $bugIdValue) ? route($bugEditResolvedName, [$projectIdValue, $bugIdValue]) : '#';
-                                                                                        $bugEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'edit_bug_route_unavailable') ?? 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        $bugEditLinkId       = 'bug-edit-link-'.($bugIdValue ?? 'x');
-                                                                                        $bugEditTitle        = __('Edit ').$bugNameText;
-                                                                                    @endphp
+                                                                                        try {
+                                                                                            $bugEditBaseName     = ViewsConstants::PRJ_TSK_BUG.'.edit';
+                                                                                            $bugEditKebabName    = Str::kebab($bugEditBaseName);
+                                                                                            $bugEditResolvedName = Route::has($bugEditBaseName)
+                                                                                                ? $bugEditBaseName
+                                                                                                : (Route::has($bugEditKebabName) ? $bugEditKebabName : null);
+                                                                                            $projectIdValue      = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
+                                                                                            $bugIdValue          = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
+                                                                                            $bugNameText         = e(data_get($bug ?? null, 'name', $bugTitle ?? __('Untitled Bug')));
+                                                                                            $bugEditUrl          = ($bugEditResolvedName && $projectIdValue && $bugIdValue) ? route($bugEditResolvedName, [$projectIdValue, $bugIdValue]) : '#';
+                                                                                            $bugEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'edit_bug_route_unavailable') ?? 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            $bugEditLinkId       = 'bug-edit-link-'.($bugIdValue ?? 'x');
+                                                                                            $bugEditTitle        = __('Edit ').$bugNameText;
+                                                                                        } catch (\Throwable $e) {
+                                                                                            \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                        }
+@endphp
                                                                                     <a href="{{ $bugEditUrl }}"
                                                                                     id="{{ $bugEditLinkId }}"
                                                                                     data-size="lg"
                                                                                     data-url="{{ $bugEditUrl }}"
                                                                                     data-ajax-popup="true"
-                                                                                    class="dropdown-item"
+                                                                                    class="{{ VC::DRP_IT }}"
                                                                                     data-bs-original-title="{{ $bugEditTitle }}"
-                                                                                    data-guard-msg="{{ $bugEditGuardMsg }}">
+                                                                                    data-guard-msg="{{ base64_encode($bugEditGuardMsg) }}">
                                                                                         <i class="{{ VC::TI_PC }}"></i>
                                                                                         <span>{{ __('Edit') }}</span>
                                                                                     </a>
@@ -736,28 +615,7 @@
                                                                                                             if (href !== '#' || url !== '#') return;
                                                                                                             e.preventDefault();
                                                                                                             const msg = l.getAttribute('data-guard-msg') || 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                                            let container = document.getElementById('toast-container');
-                                                                                                            if (!container) {
-                                                                                                                container = document.createElement('div');
-                                                                                                                container.id = 'toast-container';
-                                                                                                                document.body.appendChild(container);
-                                                                                                            }
-                                                                                                            if (hasBootstrap) {
-                                                                                                                const toast = document.createElement('div');
-                                                                                                                toast.className = 'toast';
-                                                                                                                toast.setAttribute('role', 'alert');
-                                                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                                                const body = document.createElement('div');
-                                                                                                                body.className = 'toast-body';
-                                                                                                                body.textContent = msg;
-                                                                                                                toast.appendChild(body);
-                                                                                                                container.appendChild(toast);
-                                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                            } else {
-                                                                                                                alert(msg);
-                                                                                                            }
+                                                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                             l.setAttribute('data-failed-route', 'true');
                                                                                                         } catch (err) {}
                                                                                                     });
@@ -769,19 +627,23 @@
                                                                                 @can('delete project task')
                                                                                     @if(class_exists(Form::class) && !empty($projectId) && !empty($bugId))
                                                                                         @php
-                                                                                            $bugDestroyBaseName     = ViewsConstants::PRJ_TSK_BUG.'.destroy';
-                                                                                            $bugDestroyKebabName    = Str::kebab($bugDestroyBaseName);
-                                                                                            $bugDestroyResolvedName = Route::has($bugDestroyBaseName)
-                                                                                                ? $bugDestroyBaseName
-                                                                                                : (Route::has($bugDestroyKebabName) ? $bugDestroyKebabName : null);
-                                                                                            $projectIdValue         = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
-                                                                                            $bugIdValue             = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
-                                                                                            $bugDestroyRouteArray   = ($bugDestroyResolvedName && $projectIdValue && $bugIdValue) ? [$bugDestroyResolvedName, [$projectIdValue, $bugIdValue]] : ['#'];
-                                                                                            $bugDestroyUrl          = ($bugDestroyResolvedName && $projectIdValue && $bugIdValue) ? route($bugDestroyResolvedName, [$projectIdValue, $bugIdValue]) : '#';
-                                                                                            $bugDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'delete_bug_route_unavailable') ?? 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            $bugDestroyFormId       = 'bug-destroy-form-'.($bugIdValue ?? 'x');
-                                                                                            $bugDestroyLinkId       = 'bug-destroy-link-'.($bugIdValue ?? 'x');
-                                                                                        @endphp
+                                                                                            try {
+                                                                                                $bugDestroyBaseName     = ViewsConstants::PRJ_TSK_BUG.'.destroy';
+                                                                                                $bugDestroyKebabName    = Str::kebab($bugDestroyBaseName);
+                                                                                                $bugDestroyResolvedName = Route::has($bugDestroyBaseName)
+                                                                                                    ? $bugDestroyBaseName
+                                                                                                    : (Route::has($bugDestroyKebabName) ? $bugDestroyKebabName : null);
+                                                                                                $projectIdValue         = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
+                                                                                                $bugIdValue             = isset($bugId) && !empty($bugId) ? $bugId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
+                                                                                                $bugDestroyRouteArray   = ($bugDestroyResolvedName && $projectIdValue && $bugIdValue) ? [$bugDestroyResolvedName, [$projectIdValue, $bugIdValue]] : ['#'];
+                                                                                                $bugDestroyUrl          = ($bugDestroyResolvedName && $projectIdValue && $bugIdValue) ? route($bugDestroyResolvedName, [$projectIdValue, $bugIdValue]) : '#';
+                                                                                                $bugDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'delete_bug_route_unavailable') ?? 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                                $bugDestroyFormId       = 'bug-destroy-form-'.($bugIdValue ?? 'x');
+                                                                                                $bugDestroyLinkId       = 'bug-destroy-link-'.($bugIdValue ?? 'x');
+                                                                                            } catch (\Throwable $e) {
+                                                                                                \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                            }
+@endphp
                                                                                         {!! Form::open([
                                                                                             'method'         => 'DELETE',
                                                                                             'route'          => $bugDestroyRouteArray,
@@ -792,10 +654,10 @@
                                                                                             @csrf
                                                                                             <a href="#!"
                                                                                             id="{{ $bugDestroyLinkId }}"
-                                                                                            class="dropdown-item bs-pass-para"
+                                                                                            class="{{ VC::DRP_IT }} bs-pass-para"
                                                                                             data-form-id="{{ $bugDestroyFormId }}"
                                                                                             data-url="{{ $bugDestroyUrl }}"
-                                                                                            data-guard-msg="{{ $bugDestroyGuardMsg }}">
+                                                                                            data-guard-msg="{{ base64_encode($bugDestroyGuardMsg) }}">
                                                                                                 <i class="{{ VC::TI_ARC }}"></i>
                                                                                                 <span>{{ __('Delete') }}</span>
                                                                                             </a>
@@ -817,28 +679,7 @@
                                                                                                                 const action = f.getAttribute('action') || '#';
                                                                                                                 if (url === '#' && action === '#') {
                                                                                                                     const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                                                    let container = document.getElementById('toast-container');
-                                                                                                                    if (!container) {
-                                                                                                                        container = document.createElement('div');
-                                                                                                                        container.id = 'toast-container';
-                                                                                                                        document.body.appendChild(container);
-                                                                                                                    }
-                                                                                                                    if (hasBootstrap) {
-                                                                                                                        const toast = document.createElement('div');
-                                                                                                                        toast.className = 'toast';
-                                                                                                                        toast.setAttribute('role', 'alert');
-                                                                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                                                                        const body = document.createElement('div');
-                                                                                                                        body.className = 'toast-body';
-                                                                                                                        body.textContent = msg;
-                                                                                                                        toast.appendChild(body);
-                                                                                                                        container.appendChild(toast);
-                                                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                                    } else {
-                                                                                                                        alert(msg);
-                                                                                                                    }
+                                                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                                     l.setAttribute('data-failed-route', 'true');
                                                                                                                     f.setAttribute('data-failed-route', 'true');
                                                                                                                     return;
@@ -857,11 +698,11 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="card-body">
+                                                            <div class="{{ VC::CD_BD }}">
                                                                 <div class="{{ VC::DFL_AIC_JCB }} mb-2">
                                                                     <ul class="list-inline {{ VC::MB0 }}">
-                                                                        <li class="list-inline-item d-inline-flex align-items-center" 
-                                                                            data-bs-toggle="tooltip" 
+                                                                        <li class="list-inline-item {{ VC::DFL_IL_VC }}"
+                                                                            data-bs-toggle="tooltip"
                                                                             title="{{ __('Start Date') }}">
                                                                             @if(isset($user) && is_object($user) && method_exists($user, 'dateFormat') && !empty($bugStartDate))
                                                                                 @php
@@ -870,7 +711,7 @@
                                                                                     } catch (Exception $e) {
                                                                                         $formattedStartDate = e($bugStartDate);
                                                                                     }
-                                                                                @endphp
+@endphp
                                                                                 {{ $formattedStartDate }}
                                                                             @elseif(!empty($bugStartDate))
                                                                                 {{ e($bugStartDate) }}
@@ -879,7 +720,7 @@
                                                                             @endif
                                                                         </li>
                                                                     </ul>
-                                                                    
+
                                                                     <div class="user-group">
                                                                         <span data-bs-toggle="tooltip" title="{{ __('End Date') }}">
                                                                             @if(isset($user) && is_object($user) && method_exists($user, 'dateFormat') && !empty($bugDueDate))
@@ -889,7 +730,7 @@
                                                                                     } catch (Exception $e) {
                                                                                         $formattedDueDate = e($bugDueDate);
                                                                                     }
-                                                                                @endphp
+@endphp
                                                                                 {{ $formattedDueDate }}
                                                                             @elseif(!empty($bugDueDate))
                                                                                 {{ e($bugDueDate) }}
@@ -900,8 +741,9 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="{{ VC::DFL_AIC_JCB }}">
-                                                                    @php 
-                                                                        $bugUsers = [];
+                                                                    @php
+
+                                                                        $bugUsers ??= [];
                                                                         if (method_exists($bug, 'users')) {
                                                                             try {
                                                                                 $bugUsers = $bug->users();
@@ -918,25 +760,29 @@
                                                                                 $firstUser = $bugUsers->first();
                                                                             }
                                                                         }
-                                                                    @endphp
+@endphp
                                                                     <div class="user-group">
                                                                         @if(isset($firstUser) && is_object($firstUser))
                                                                             @php
-                                                                                $avatar = data_get($firstUser, 'avatar', '');
-                                                                                $userName = data_get($firstUser, 'name', __('Unknown User'));
-                                                                                $avatarPath = !empty($avatar) 
-                                                                                    ? asset('/storage/uploads/avatar/' . $avatar)
-                                                                                    : asset('/storage/uploads/avatar/avatar.png');
-                                                                            @endphp
-                                                                            <img src="{{ $avatarPath }}" 
-                                                                                 alt="{{ e($userName) }}" 
-                                                                                 data-bs-toggle="tooltip" 
+                                                                                try {
+                                                                                    $avatar = data_get($firstUser, 'avatar', '');
+                                                                                    $userName = data_get($firstUser, 'name', __('Unknown User'));
+                                                                                    $avatarPath = !empty($avatar)
+                                                                                        ? asset('/storage/uploads/avatar/' . $avatar)
+                                                                                        : asset('/storage/uploads/avatar/avatar.png');
+                                                                                } catch (\Throwable $e) {
+                                                                                    \Log::error('projects/bug_kanban — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                                }
+@endphp
+                                                                            <img src="{{ $avatarPath }}"
+                                                                                 alt="{{ e($userName) }}"
+                                                                                 data-bs-toggle="tooltip"
                                                                                  title="{{ e($userName) }}"
                                                                                  onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
                                                                         @else
-                                                                            <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}" 
-                                                                                 alt="{{ __('No User') }}" 
-                                                                                 data-bs-toggle="tooltip" 
+                                                                            <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}"
+                                                                                 alt="{{ __('No User') }}"
+                                                                                 data-bs-toggle="tooltip"
                                                                                  title="{{ __('No User Assigned') }}">
                                                                         @endif
                                                                     </div>
@@ -952,8 +798,8 @@
                             @endif
                         @endforeach
                     @else
-                        <div class="col-12">
-                            <div class="alert alert-info text-center">
+                        <div class="{{ VC::C12 }}">
+                            <div class="{{ VC::ALT_INF }} {{ VC::TXCT }}">
                                 {{ __('No bug statuses available') }}
                             </div>
                         </div>

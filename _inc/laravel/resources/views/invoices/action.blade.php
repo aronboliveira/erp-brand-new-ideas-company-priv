@@ -1,29 +1,29 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    $user        = Auth::user();
-    $lang        = Utility::fetchUserLang(user:$user);
-    $path        = Utility::getFile('uploads/order');
+    try {
+$user        = Auth::user();
+        $lang        = Utility::fetchUserLang(user:$user);
+        $path        = Utility::getFile('uploads/order');
+    } catch (\Throwable $e) {
+        \Log::error('invoices/action — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(!empty($invoiceBankTransfer) && isset($invoiceBankTransfer->id))
     @php
-        $routeName   = ViewsConstants::INV . '.change.status';
-        $changeRoute = Route::has($routeName)
-            ? route($routeName, $invoiceBankTransfer->id)
-            : '#';
-        $formId      = 'changeStatusForm_' . $invoiceBankTransfer->id;
-        $guardMsg    = Utility::fetchLinkMessage(
-            $lang,
-            ViewsConstants::INV,
-            'change_status_route_unavailable'
-        ) ?? 'Change status route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        try {
+            $routeName   = ViewsConstants::INV . '.change.status';
+            $changeRoute = Route::has($routeName)
+                ? route($routeName, $invoiceBankTransfer->id)
+                : '#';
+            $formId      = 'changeStatusForm_' . $invoiceBankTransfer->id;
+            $guardMsg    = Utility::fetchLinkMessage(
+                $lang,
+                ViewsConstants::INV,
+                'change_status_route_unavailable'
+            ) ?? 'Change status route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('invoices/action — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     {{ Form::open([
         'route'          => [$changeRoute],
         'method'         => 'post',
@@ -64,19 +64,23 @@
                                 <th>{{ __('Payment Receipt') }}</th>
                                 <td>
                                 @php
-                                    $transferId      = (string) data_get($invoiceBankTransfer ?? null, 'id', 'x');
-                                    $receiptName     = (string) data_get($invoiceBankTransfer ?? null, 'receipt', '');
-                                    $basePath        = isset($path) ? (string) $path : '';
-                                    $receiptUrl      = ($basePath !== '' && $receiptName !== '') ? ($basePath.'/'.$receiptName) : '#';
-                                    $linkId          = 'ibt-download-receipt-'.$transferId;
-                                    $guardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'bank_transfer_receipt_download_unavailable')
-                                                        ?? 'Bank transfer receipt download is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
+                                    try {
+                                        $transferId      = (string) data_get($invoiceBankTransfer ?? null, 'id', 'x');
+                                        $receiptName     = (string) data_get($invoiceBankTransfer ?? null, 'receipt', '');
+                                        $basePath        = isset($path) ? (string) $path : '';
+                                        $receiptUrl      = ($basePath !== '' && $receiptName !== '') ? ($basePath.'/'.$receiptName) : '#';
+                                        $linkId          = 'ibt-download-receipt-'.$transferId;
+                                        $guardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'bank_transfer_receipt_download_unavailable')
+                                                            ?? 'Bank transfer receipt download is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('invoices/action — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <a
                                     id="{{ $linkId }}"
                                     href="{{ $receiptUrl }}"
                                     data-url="{{ $receiptUrl }}"
-                                    data-guard-msg="{{ $guardMsg }}"
+                                    data-guard-msg="{{ base64_encode($guardMsg) }}"
                                     data-sv-localized="true"
                                     download
                                     target="_blank"
@@ -125,29 +129,8 @@
                         const url = form.getAttribute('data-url') ?? '#';
                         if (url !== '#') return;
                         event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
+                        const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                         form.setAttribute('data-failed-route', 'true');
                     } catch (e) {}
                 });

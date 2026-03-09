@@ -1,104 +1,140 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants,
-        StacksConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-    $lang = Utility::fetchUserLang();
-    $storeRoute = Route::has(ViewsConstants::ANC)
-        ? route(ViewsConstants::ANC)
-        : '#';
-    $formId = 'announcement-store-form';
-    $storeMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::ANC,
-        'announcement_store_route_unavailable'
-    ) ?? 'Announcement create route is unavailable. Please contact technical support or your domain administrator.';
-    $aiGenerateRoute = Route::has('generate')
-        ? route('generate', ['announcement'])
-        : '#';
-    $aiGenerateId = 'announcement-ai-generate-link';
-    $aiGenerateMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::ANC,
-        'announcement_generate_route_unavailable'
-    ) ?? 'Generate with AI route is unavailable. Please contact technical support or your domain administrator.';
+$branch ??= [];
+	$lang ??= '';
+	$storeRoute ??= '#';
+	$formId ??= 'announcement-store-form';
+	$storeMsg ??= '';
+	$aiGenerateRoute ??= '#';
+	$aiGenerateId ??= 'announcement-ai-generate-link';
+	$aiGenerateMsg ??= '';
+	$plan ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? '';
+		$storeRoute = Route::has(VW::ANC)
+			? (route(VW::ANC) ?? '#')
+			: '#';
+		$storeMsg = Utility::fetchLinkMessage(
+			$lang,
+			VW::ANC,
+			'announcement_store_route_unavailable'
+		) ?? 'Announcement create route is unavailable. Please contact technical support or your domain administrator.';
+		$aiGenerateRoute = Route::has('generate')
+			? (route('generate', ['announcement']) ?? '#')
+			: '#';
+		$aiGenerateMsg = Utility::fetchLinkMessage(
+			$lang,
+			VW::ANC,
+			'announcement_generate_route_unavailable'
+		) ?? 'Generate with AI route is unavailable. Please contact technical support or your domain administrator.';
+		$plan = Utility::getChatGPTSettings();
+	} catch (\Error $e) {
+		Log::error('Error in announcements/create.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in announcements/create.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in announcements/create.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
-
 {{ Form::open([
-    'url'              => $storeRoute,
-    'method'           => 'post',
-    'id'               => $formId,
-    'data-url'         => $storeRoute,
-    'data-sv-localized'=> 'true',
-    'data-guard-msg'   => $storeMsg,
+	'url'              => $storeRoute,
+	'method'           => 'post',
+	'id'               => $formId,
+	'data-url'         => $storeRoute,
+	'data-sv-localized'=> 'true',
+	'data-guard-msg'   => $storeMsg,
 ]) }}
-    <div class="modal-body">
-        @php $plan = Utility::getChatGPTSettings(); @endphp
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="{{ VC::DFL_JCE }}">
-                <a
-                    id="{{ $aiGenerateId }}"
-                    href="#"
-                    data-url="{{ $aiGenerateRoute }}"
-                    data-sv-localized="true"
-                    data-guard-msg="{{ $aiGenerateMsg }}"
-                    data-size="md"
-                    class="{{ VC::BT_SM_PM }} btn-icon btn-sm"
-                    data-ajax-popup-over="true"
-                    data-bs-placement="top"
-                    title="{{ __('Generate content with AI') }}"
-                >
-                    <i class="{{ VC::FAS_RB }}"></i><span>{{ __('Generate with AI') }}</span>
-                </a>
-            </div>
-        @endif
-        <div class="{{ VC::RW }}">
-            <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::FM_G }}">
-                    {{ Form::label('title', __('Announcement Title'), ['class'=>VC::FM_LB]) }}
-                    {{ Form::text('title', null, ['class'=>VC::FM_CT, 'placeholder'=>__('Enter Announcement Title')]) }}
-                </div>
-            </div>
-            <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::FM_G }}">
-                    {{ Form::label('branch_id', __('Branch'), ['class'=>VC::FM_LB]) }}
-                    <select name="branch_id" id="branch_id" class="{{ VC::FM_CT }} select">
-                        <option value="">{{ __('Select Branch') }}</option>
-                        <option value="0">{{ __('All Branch') }}</option>
-                        @foreach($branch as $b)
-                            <option value="{{ $b->id }}">{{ $b->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::FM_G }}">
-                    {{ Form::label('department_id', __('Department'), ['class'=>VC::FM_LB]) }}
-                    <select name="department_id[]" id="department_id" class="{{ VC::FM_CT }} select">
-                        <option value="">{{ __('Select Department') }}</option>
-                    </select>
-                </div>
-            </div>
-            <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::FM_G }}">
-                    {{ Form::label('employee_id', __('Employee'), ['class'=>VC::FM_LB]) }}
-                    <select name="employee_id[]" id="employee_id" class="{{ VC::FM_CT }} select">
-                        <option value="">{{ __('Select Employee') }}</option>
-                    </select>
-                </div>
-            </div>
-            <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::FM_G }}">
-                    {{ Form::label('start_date', __('Announcement Start Date'), ['class'=>VC::FM_LB]) }}
-                    {{ Form::date('start_date', null, ['class'=>VC::FM_CT]) }}
-                </div>
-            </div>
+	<div class="modal-body">
+		@if(!empty($plan) && ($plan?->{PLC::COL_GPT} ?? 0) == 1)
+			<div class="{{ VC::DFL_JCE }}">
+				<a
+					id="{{ $aiGenerateId }}"
+					href="#"
+					data-url="{{ $aiGenerateRoute }}"
+					data-sv-localized="true"
+					data-guard-msg="{{ base64_encode($aiGenerateMsg) }}"
+					data-size="md"
+					class="{{ VC::BT_SM_PM }} btn-icon btn-sm"
+					data-ajax-popup-over="true"
+					data-bs-placement="top"
+					title="{{ __('Generate content with AI') }}"
+				>
+					<i class="{{ VC::FAS_RB }}"></i><span>{{ __('Generate with AI') }}</span>
+				</a>
+			</div>
+		@endif
+		<div class="{{ VC::RW }}">
+			<div class="{{ VC::CM6 }}">
+				<div class="{{ VC::FM_G }}">
+					{{ Form::label('title', __('Announcement Title'), ['class'=>VC::FM_LB]) }}
+					{{ Form::text('title', null, ['class'=>VC::FM_CT, 'placeholder'=>__('Enter Announcement Title')]) }}
+				</div>
+			</div>
+			<div class="{{ VC::CM6 }}">
+				<div class="{{ VC::FM_G }}">
+					{{ Form::label('branch_id', __('Branch'), ['class'=>VC::FM_LB]) }}
+					<select name="branch_id" id="branch_id" class="{{ VC::FM_CT }} select">
+						<option value="">{{ __('Select Branch') }}</option>
+						<option value="0">{{ __('All Branch') }}</option>
+						@foreach($branch as $b)
+							@php
+								$bId ??= '';
+								$bName ??= __('No name');
+								try {
+									$bId = is_object($b) ? ($b->id ?? '') : (is_array($b) ? ($b['id'] ?? '') : '');
+									$bName = is_object($b)
+										? (is_string($b->name ?? null) ? $b->name : __('No name'))
+										: (is_array($b) ? (is_string($b['name'] ?? null) ? $b['name'] : __('No name')) : __('No name'));
+								} catch (\Throwable $e) {
+									Log::error('Error processing branch in announcements/create.blade.php', [
+										'exception_class' => get_class($e),
+										'message' => $e->getMessage(),
+										'file' => $e->getFile(),
+										'line' => $e->getLine(),
+									]);
+								}
+@endphp
+							<option value="{{ $bId }}">{{ $bName }}</option>
+						@endforeach
+					</select>
+				</div>
+			</div>
+			<div class="{{ VC::CM6 }}">
+				<div class="{{ VC::FM_G }}">
+					{{ Form::label('department_id', __('Department'), ['class'=>VC::FM_LB]) }}
+					<select name="department_id[]" id="department_id" class="{{ VC::FM_CT }} select">
+						<option value="">{{ __('Select Department') }}</option>
+					</select>
+				</div>
+			</div>
+			<div class="{{ VC::CM6 }}">
+				<div class="{{ VC::FM_G }}">
+					{{ Form::label('employee_id', __('Employee'), ['class'=>VC::FM_LB]) }}
+					<select name="employee_id[]" id="employee_id" class="{{ VC::FM_CT }} select">
+						<option value="">{{ __('Select Employee') }}</option>
+					</select>
+				</div>
+			</div>
+			<div class="{{ VC::CM6 }}">
+				<div class="{{ VC::FM_G }}">
+					{{ Form::label('start_date', __('Announcement Start Date'), ['class'=>VC::FM_LB]) }}
+					{{ Form::date('start_date', null, ['class'=>VC::FM_CT]) }}
+				</div>
+			</div>
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label('end_date', __('Announcement End Date'), ['class'=>VC::FM_LB]) }}
@@ -125,7 +161,7 @@
           const dataClientLocalized = 'data-client-localized';
           const dataGuardMsg = 'data-guard-msg';
           const langSessionKey = 'erp-np-lang';
-        
+
           const getLocalizedMessage = (msgKey, el) => {
             let msg = errFb;
             if (
@@ -154,7 +190,7 @@
             }
             return msg;
           };
-        
+
           const showError = message => {
             try {
               let container = document.querySelector('#bootstrap-toast-container');
@@ -197,7 +233,7 @@
               alert(message);
             }
           };
-        
+
           let errorMessage = '';
           const onErrorPointerUp = () => {
             if (errorMessage) {
@@ -205,7 +241,7 @@
               errorMessage = '';
             }
           };
-        
+
           document.addEventListener('pointerup', onErrorPointerUp);
           new MutationObserver((muts, obs) => {
             for (const m of muts) {
@@ -217,7 +253,7 @@
               }
             }
           }).observe(document.body, { childList: true, subtree: true });
-        
+
           document.addEventListener('DOMContentLoaded', () => {
             const branchEl = document.getElementById('branch_id');
             if (branchEl) {
@@ -232,12 +268,12 @@
                 }
               });
               obsB.observe(document.body, { childList: true, subtree: true });
-        
+
               branchEl.addEventListener('change', onBranchChange);
               branchEl.addEventListener('pointerup', onErrorPointerUp);
               getDepartment(branchEl.value ?? '');
             }
-        
+
             const deptEl = document.getElementById('department_id');
             if (deptEl) {
               const obsD = new MutationObserver((muts, obs) => {
@@ -251,20 +287,20 @@
                 }
               });
               obsD.observe(document.body, { childList: true, subtree: true });
-        
+
               deptEl.addEventListener('change', onDeptChange);
               deptEl.addEventListener('pointerup', onErrorPointerUp);
             }
           });
-        
+
           function onBranchChange() {
             getDepartment(this.value ?? '');
           }
-        
+
           function onDeptChange() {
             getEmployee(this.value ?? '');
           }
-        
+
           function getDepartment(bid) {
             try {
               $.ajax({
@@ -302,7 +338,7 @@
               errorMessage = getLocalizedMessage('announcement_department_fetch_failed', document.getElementById('branch_id') || document.body);
             }
           }
-        
+
           function getEmployee(did) {
             try {
               $.ajax({
@@ -343,5 +379,3 @@
         })();
     </script>
 {{ Form::close() }}
-
-    

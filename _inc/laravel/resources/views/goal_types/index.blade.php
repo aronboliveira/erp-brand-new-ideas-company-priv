@@ -1,20 +1,14 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-
-    $user = Auth::user();
-    $hasUser = (bool) $user;
-    $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
+    $goaltypes ??= [];
+    try {
+$user = Auth::user();
+        $hasUser = (bool) $user;
+        $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+        $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+        $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
+    } catch (\Throwable $e) {
+        \Log::error('goal_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 
@@ -22,16 +16,17 @@
     {{ __('Manage Goal Type') }}
 @endsection
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Goal Type') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Goal Type') }}</li>
 @endsection
 
 @push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/goals/types/index.js') }}"></script>
 @endpush
 
@@ -39,12 +34,16 @@
     <div class="{{ VC::FEND }}">
         @can('create goal type')
             @php
-                $createBase     = VW::GL_TP . '.create';
-                $createKebab    = Str::kebab($createBase);
-                $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
-                $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'create_goal_type_route_unavailable') : 'Create Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Type route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $createBase     = VW::GL_TP . '.create';
+                    $createKebab    = Str::kebab($createBase);
+                    $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
+                    $createUrl      = $createResolved ? route($createResolved) : '#';
+                    $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'create_goal_type_route_unavailable') : 'Create Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('goal_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="#"
                data-url="{{ $createUrl }}"
                data-ajax-popup="true"
@@ -52,7 +51,7 @@
                data-bs-toggle="tooltip"
                title="{{ __('Create') }}"
                class="{{ VC::BT_SM_PM }}"
-               data-guard-msg="{{ $createGuardMsg }}"
+               data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -62,20 +61,20 @@
 
 @section(YW::ADM_CTT)
     <div class="row">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.hrm_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                             <tr>
                                 <th>{{ __('Goal Type') }}</th>
                                 @php
                                     $hasActions = $hasUser && ($user->can('edit goal type') || $user->can('delete goal type'));
-                                @endphp
+@endphp
                                 @if($hasActions)
                                     <th width="200px">{{ __('Action') }}</th>
                                 @endif
@@ -86,19 +85,23 @@
                                 @php
                                     $gtId = (string) ($goaltype->id ?? '');
                                     $gtName = $goaltype->name ?? __('No goal type available');
-                                @endphp
+@endphp
                                 <tr>
                                     <td>{{ $gtName }}</td>
                                     @if($hasActions)
                                         <td>
                                             @can('edit goal type')
                                                 @php
-                                                    $editBase     = VW::GL_TP . '.edit';
-                                                    $editKebab    = Str::kebab($editBase);
-                                                    $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
-                                                    $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
-                                                    $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'edit_goal_type_route_unavailable') : 'Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.');
-                                                @endphp
+                                                    try {
+                                                        $editBase     = VW::GL_TP . '.edit';
+                                                        $editKebab    = Str::kebab($editBase);
+                                                        $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
+                                                        $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
+                                                        $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'edit_goal_type_route_unavailable') : 'Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('goal_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                     <a href="#"
                                                        class="{{ VC::BT_SM_FL_CT }}"
@@ -107,7 +110,7 @@
                                                        data-title="{{ __('Edit Goal Type') }}"
                                                        data-bs-toggle="tooltip"
                                                        title="{{ __('Edit') }}"
-                                                       data-guard-msg="{{ $editGuardMsg }}"
+                                                       data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                        data-sv-localized="true">
                                                         <i class="{{ VC::TI_PC_WT }}"></i>
                                                     </a>
@@ -115,15 +118,19 @@
                                             @endcan
                                             @can('delete goal type')
                                                 @php
-                                                    $destroyBase     = VW::GL_TP . '.destroy';
-                                                    $destroyKebab    = Str::kebab($destroyBase);
-                                                    $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
-                                                    $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
-                                                    $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'destroy_goal_type_route_unavailable') : 'Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.');
-                                                    $deleteFormId    = 'goal-type-delete-form-' . ($gtId === '' ? 'x' : $gtId);
-                                                    $confirmTitle    = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
-                                                    $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
-                                                @endphp
+                                                    try {
+                                                        $destroyBase     = VW::GL_TP . '.destroy';
+                                                        $destroyKebab    = Str::kebab($destroyBase);
+                                                        $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
+                                                        $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
+                                                        $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'destroy_goal_type_route_unavailable') : 'Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $deleteFormId    = 'goal-type-delete-form-' . ($gtId === '' ? 'x' : $gtId);
+                                                        $confirmTitle    = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                        $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('goal_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method'            => 'DELETE',

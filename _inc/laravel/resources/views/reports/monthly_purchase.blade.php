@@ -1,16 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-
-    $lang = Utility::fetchUserLang();
+    $data ??= [];
+    $warehouse ??= $warehouses ?? [];
+    $vendor ??= $vendors ?? [];
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('reports/monthly_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -18,23 +14,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Daily Purchase Report') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Daily Purchase Report') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('download report')
             @php
-                $funcName = 'saveAsPDF';
+                $funcName ??= 'saveAsPDF';
                 $guardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_monthly_purchase_unavailable') ?? 'Download function for monthly purchases is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <a href="#" id="download-monthly-pos-link" class="{{ VC::BT_SM_PM }} download-monthly-pos-link" data-sv-localized="true" data-func-name="{{ $funcName }}" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
+@endphp
+            <a href="#" id="download-monthly-pos-link" class="{{ VC::BT_SM_PM }} download-monthly-pos-link" data-sv-localized="true" data-func-name="{{ $funcName }}" data-guard-msg="{{ base64_encode($guardMsg) }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
                 <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
             </a>
         @endcan
@@ -43,18 +39,22 @@
 
 @section(YieldingConstants::ADM_CTT)
     @php
-        $dailyPurchaseUrl = Route::has(VW::RPT.'.daily.purchase')
-            ? route(VW::RPT.'.daily.purchase')
-            : '#';
-        $dailyPurchaseNavMsg = Utility::fetchLinkMessage(
-            $lang,
-            VW::RPT, 'daily_purchase_nav_unavailable'
-        ) ?? 'Daily purchase navigation is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        try {
+            $dailyPurchaseUrl = Route::has(VW::RPT.'.daily.purchase')
+                ? route(VW::RPT.'.daily.purchase')
+                : '#';
+            $dailyPurchaseNavMsg = Utility::fetchLinkMessage(
+                $lang,
+                VW::RPT, 'daily_purchase_nav_unavailable'
+            ) ?? 'Daily purchase navigation is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('reports/monthly_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
-        <li class="nav-item">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link"
+                class="{{ VC::NV_LK }}"
                 id="pills-home-tab"
                 data-bs-toggle="pill"
                 href="{{ $dailyPurchaseUrl }}"
@@ -67,9 +67,9 @@
                 {{ __('Daily') }}
             </a>
         </li>
-        <li class="nav-item">
+        <li class="{{ VC::NV_IT }}">
             <a
-                class="nav-link active"
+                class="{{ VC::NV_LK }} active"
                 id="pills-profile-tab"
                 data-bs-toggle="pill"
                 href="#monthly-chart"
@@ -82,19 +82,23 @@
         </li>
     </ul>
     <div class="row">
-        <div class="col-sm-12">
-            <div class="mt-2" >
+        <div class="{{ VC::CS12 }}">
+            <div class="{{ VC::MT2 }}" >
                 <div class="card">
                     @php
-                        $monthlyPurchaseUrl = Route::has(VW::RPT.'.monthly.purchase')
-                            ? route(VW::RPT.'.monthly.purchase')
-                            : '#';
-                        $filterUnavailableMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            VW::RPT, 'filter_report_unavailable'
-                        ) ?? 'Filter report route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
-                    <div class="card-body">
+                        try {
+                            $monthlyPurchaseUrl = Route::has(VW::RPT.'.monthly.purchase')
+                                ? route(VW::RPT.'.monthly.purchase')
+                                : '#';
+                            $filterUnavailableMsg = Utility::fetchLinkMessage(
+                                $lang,
+                                VW::RPT, 'filter_report_unavailable'
+                            ) ?? 'Filter report route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('reports/monthly_purchase — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <div class="{{ VC::CD_BD }}">
                         {{ Form::open([
                             'route' => [VW::RPT . '.monthly.purchase'],
                             'method' => 'GET',
@@ -156,7 +160,7 @@
                                     data-original-title="{{ __('apply') }}"
                                 >
                                     <span class="btn-inner--icon">
-                                        <i class="ti ti-search"></i>
+                                        <i class="{{ VC::TI_SRC }}"></i>
                                     </span>
                                 </a>
                                 <a
@@ -174,7 +178,7 @@
                             </div>
                         </div>
                         {{ Form::close() }}
-                    </div>              
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,20 +216,20 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="{{ VC::C12 }}">
                 <div class="card">
                     <div class="setting-tab">
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="monthly-chart" role="tabpanel">
-                                <div class="col-lg-12">
-                                    <div class="card-header">
+                            <div class="{{ VC::TAB_FD_SH }} active" id="monthly-chart" role="tabpanel">
+                                <div class="{{ VC::CL12 }}">
+                                    <div class="{{ VC::CD_HD }}">
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <h6>{{ __('Monthly Report') }}</h6>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <div id="monthly-purchase"></div>
                                     </div>
                                 </div>
@@ -260,7 +264,7 @@
             }
             return toastContainer;
           };
-        
+
           const showError = (key) => {
             const errFb = "# ERROR";
             const dataClientLocalized = "data-client-localized";
@@ -285,7 +289,7 @@
               }
             }
             const hasBootstrap = document.querySelector(BS_LINK) && window.bootstrap?.Toast;
-            
+
             if (hasBootstrap) {
               const container = getToastContainer();
               const toast = document.createElement('div');
@@ -293,14 +297,14 @@
               toast.setAttribute('role', 'alert');
               toast.setAttribute('aria-live', 'assertive');
               toast.setAttribute('aria-atomic', 'true');
-              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
               container.append(toast);
               new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
             } else {
               alert(msg);
             }
           };
-        
+
           const saveAsPDF = () => {
             try {
               const printable = document.getElementById(PRINTABLE_AREA);
@@ -308,7 +312,7 @@
                 showError('no_area');
                 return;
               }
-        
+
               let filename = 'document.pdf';
               if (typeof $ === 'function') {
                 filename = $(FILENAME_INPUT).val() || filename;
@@ -316,12 +320,12 @@
                 const input = document.querySelector(FILENAME_INPUT);
                 if (input) filename = input.value || filename;
               }
-        
+
               if (typeof html2pdf !== 'object' || typeof html2pdf().set !== 'function') {
                 showError('pdf_fail');
                 return;
               }
-        
+
               html2pdf().set({
                 margin: 0.3,
                 filename,
@@ -333,13 +337,13 @@
               showError('pdf_fail');
             }
           };
-        
+
           window.saveAsPDF = saveAsPDF;
         })();
         (() => {
           const BS_LINK = 'link[href*="bootstrap"]';
           const CHART_ID = '#monthly-purchase';
-        
+
           let toastContainer = null;
           const getToastContainer = () => {
             if (!toastContainer) {
@@ -349,7 +353,7 @@
             }
             return toastContainer;
           };
-        
+
           const showError = (key) => {
             const errFb = "# ERROR";
             const dataClientLocalized = "data-client-localized";
@@ -374,7 +378,7 @@
               }
             }
             const hasBootstrap = document.querySelector(BS_LINK) && window.bootstrap?.Toast;
-            
+
             if (hasBootstrap) {
               const container = getToastContainer();
               const toast = document.createElement('div');
@@ -382,32 +386,32 @@
               toast.setAttribute('role', 'alert');
               toast.setAttribute('aria-live', 'assertive');
               toast.setAttribute('aria-atomic', 'true');
-              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
               container.append(toast);
               new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
             } else {
               alert(msg);
             }
           };
-        
+
           const renderChart = () => {
             try {
               const chartEl = document.querySelector(CHART_ID);
               if (!chartEl) return;
-              
+
               const data = JSON.parse(JSON.stringify({!! json_encode($data) !!})) ?? [];
               const categories = JSON.parse(JSON.stringify({!! json_encode($monthList) !!})) ?? [];
-              
+
               if (!data.length || !categories.length) {
                 showError('chart_fail');
                 return;
               }
-        
+
               if (typeof ApexCharts === 'undefined') {
                 showError('chart_fail');
                 return;
               }
-        
+
               const chartOptions = {
                 series: [{ name: '{{ __("Purchase") }}', data }],
                 chart: {
@@ -437,16 +441,16 @@
                 legend: { show: false },
                 yaxis: { title: { text: '{{ __("Amount") }}' } }
               };
-        
+
               if (chartEl.chart) chartEl.chart.destroy();
-              
+
               chartEl.chart = new ApexCharts(chartEl, chartOptions);
               chartEl.chart.render();
             } catch (e) {
               showError('chart_fail');
             }
           };
-        
+
           const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
               mutation.removedNodes.forEach(node => {
@@ -459,9 +463,9 @@
               });
             });
           });
-        
+
           observer.observe(document.body, { childList: true, subtree: true });
-        
+
           if (document.readyState !== 'loading') {
             renderChart();
           } else {
@@ -474,7 +478,7 @@
           const APPLY_ATTR = 'data-apply-listener';
           const RESET_ATTR = 'data-reset-listener';
           const FORM_ID = 'monthly_purchase_report_submit';
-        
+
           const showPermissionError = (message) => {
             if (window.bootstrap?.Toast) {
               const toastEl = document.querySelector('.toast');
@@ -491,16 +495,16 @@
               alert(message);
             }
           };
-        
+
           const handleButtonClick = (btn, isApply) => {
-            const url = btn.getAttribute('data-url') 
+            const url = btn.getAttribute('data-url')
             const href = btn.getAttribute('href');
             if ((!url || url === '#') && (!href || href === '#')) {
               showPermissionError("{{ $filterUnavailableMsg }}");
               btn.setAttribute('data-failed-route', 'true');
               return;
             }
-            
+
             if (isApply) {
               const form = document.getElementById(FORM_ID);
               if (form) form.submit();
@@ -508,7 +512,7 @@
               window.location.href = url;
             }
           };
-        
+
           const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
               mutation.removedNodes.forEach(node => {
@@ -525,10 +529,10 @@
               });
             });
           });
-        
+
           try {
             observer.observe(document.body, { childList: true, subtree: true });
-        
+
             const applyBtn = document.querySelector(`a.${APPLY_CLASS}`);
             if (applyBtn && !applyBtn.getAttribute(APPLY_ATTR)) {
               applyBtn.setAttribute(APPLY_ATTR, 'true');
@@ -539,7 +543,7 @@
               applyBtn.applyHandler = handler;
               applyBtn.addEventListener('click', handler);
             }
-        
+
             const resetBtn = document.querySelector(`a.${RESET_CLASS}`);
             if (resetBtn && !resetBtn.getAttribute(RESET_ATTR)) {
               resetBtn.setAttribute(RESET_ATTR, 'true');

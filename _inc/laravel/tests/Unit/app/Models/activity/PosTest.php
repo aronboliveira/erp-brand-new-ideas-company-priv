@@ -9,11 +9,17 @@ use App\Models\Pos;
 use App\Models\Customer;
 use App\Models\Warehouse;
 use App\Models\PosProduct;
+use App\Models\Product;
 use App\Models\PosPayment;
 use App\Models\Tax;
 
 class PosTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -40,9 +46,7 @@ class PosTest extends TestCase
 
 		$pos = Pos::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $pos->$field);
-		}
+		$this->assertFillableMatches($data, $pos);
 	}
 
 	/**
@@ -90,9 +94,9 @@ class PosTest extends TestCase
 		$relation = (new Pos)->items();
 
 		$this->assertInstanceOf(HasMany::class,   $relation);
-		$this->assertSame(PosProduct::class,      get_class($relation->getRelated()));
+		$this->assertSame(Product::class,         get_class($relation->getRelated()));
 		$this->assertSame('pos_id',               $relation->getForeignKeyName());
-		$this->assertSame('id',                   $relation->getLocalKeyName());
+		$this->assertSame('pos_id',               $relation->getLocalKeyName());
 	}
 
 	/**
@@ -107,7 +111,7 @@ class PosTest extends TestCase
 		$this->assertInstanceOf(HasOne::class,    $relation);
 		$this->assertSame(PosPayment::class,      get_class($relation->getRelated()));
 		$this->assertSame('pos_id',               $relation->getForeignKeyName());
-		$this->assertSame('id',                   $relation->getLocalKeyName());
+		$this->assertSame('pos_id',               $relation->getLocalKeyName());
 	}
 
 	/**
@@ -119,10 +123,10 @@ class PosTest extends TestCase
 	{
 		$relation = (new Pos)->taxes();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(Tax::class,             get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('tax',                  $relation->getLocalKeyName());
+		$this->assertSame('tax',                   $relation->getForeignKeyName());
+		$this->assertSame('id',                  $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -160,20 +164,21 @@ class PosTest extends TestCase
 	{
 		$pos = Pos::factory()->create();
 		PosProduct::factory()->create([
-			'pos_id'   => $pos->id,
+			'pos_id'   => $pos->pos_id,
 			'price'    => 10.00,
 			'quantity' => 3,
 			'discount' => 0,
 			'tax'      => 0,
 		]);
 		PosProduct::factory()->create([
-			'pos_id'   => $pos->id,
+			'pos_id'   => $pos->pos_id,
 			'price'    => 5.00,
 			'quantity' => 2,
 			'discount' => 0,
 			'tax'      => 0,
 		]);
 
+		$pos->load('items');
 		$this->assertEquals(10 * 3 + 5 * 2, $pos->getSubTotal());
 	}
 
@@ -197,20 +202,21 @@ class PosTest extends TestCase
 	{
 		$pos = Pos::factory()->create();
 		PosProduct::factory()->create([
-			'pos_id'   => $pos->id,
+			'pos_id'   => $pos->pos_id,
 			'price'    => 0,
 			'quantity' => 1,
 			'discount' => 4.50,
 			'tax'      => 0,
 		]);
 		PosProduct::factory()->create([
-			'pos_id'   => $pos->id,
+			'pos_id'   => $pos->pos_id,
 			'price'    => 0,
 			'quantity' => 1,
 			'discount' => 2.25,
 			'tax'      => 0,
 		]);
 
+		$pos->load('items');
 		$this->assertEquals(4.50 + 2.25, $pos->getTotalDiscount());
 	}
 
@@ -243,13 +249,14 @@ class PosTest extends TestCase
 		$pos = Pos::factory()->create();
 		// Subtotal = 10×2 = 20; discount = 3; tax = 0
 		PosProduct::factory()->create([
-			'pos_id'   => $pos->id,
+			'pos_id'   => $pos->pos_id,
 			'price'    => 10.00,
 			'quantity' => 2,
 			'discount' => 3.00,
 			'tax'      => 0,
 		]);
 
+		$pos->load('items');
 		$this->assertEquals(20 - 3 + 0, $pos->getTotal());
 	}
 }

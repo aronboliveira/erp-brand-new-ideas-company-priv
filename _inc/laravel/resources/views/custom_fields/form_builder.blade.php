@@ -1,18 +1,20 @@
 @php
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use Collective\Html\FormFacade as Form;
 @endphp
 @php
     $list = ((is_array($customFields ?? null) && count($customFields ?? [])) || (($customFields ?? null) instanceof Collection && ($customFields)->isNotEmpty())) ? $customFields : [];
 @endphp
 @forelse($list as $field)
     @php
-        $fid = isset($field->id) ? (string)$field->id : '0';
-        $fname = isset($field->name) && $field->name !== '' ? $field->name : __('No field name available');
-        $ftype = isset($field->type) && $field->type !== '' ? $field->type : 'text';
-        $inputName = "customField[{$fid}]";
-        $forId = "customField-{$fid}";
-    @endphp
+        try {
+            $fid = isset($field->id) ? (string)$field->id : '0';
+            $fname = isset($field->name) && $field->name !== '' ? $field->name : __('No field name available');
+            $ftype = isset($field->type) && $field->type !== '' ? $field->type : 'text';
+            $inputName = "customField[{$fid}]";
+            $forId = "customField-{$fid}";
+        } catch (\Throwable $e) {
+            \Log::error('custom_fields/form_builder — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::FM_G }}">
         {{ Form::label($forId, __($fname), ['class' => VC::FM_LB]) }}
         <div class="input-group">
@@ -36,7 +38,7 @@
         </div>
     </div>
 @empty
-    <div class="alert alert-info">
+    <div class="{{ VC::ALT_INF }}">
         {{ __('No custom fields available.') }}
     </div>
 @endforelse

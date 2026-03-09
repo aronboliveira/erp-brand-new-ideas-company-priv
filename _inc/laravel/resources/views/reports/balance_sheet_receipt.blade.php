@@ -1,18 +1,15 @@
 {{-- @extends(ExtendingLayoutsConstants::ADM) --}}
 @php
-    use App\Config\Constants\{
-        DatabaseConstants, 
-        SettingsConstants,
-        ViewsConstants,
-    };
-    use App\Models\{User, Utility};
-    use Illuminate\Support\Facades\{Auth,Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $authUser = $user?->creatorId() ?? null;
-    $creatorUser = $authUser ? User::find($authUser) : null;
-    $settings = Utility::settings();
-    $color = (!empty($settings[SettingsConstants::THM_CLR])) ? $settings[SettingsConstants::THM_CLR] : 'theme-3';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $authUser = $user?->creatorId() ?? null;
+        $creatorUser = $authUser ? User::find($authUser) : null;
+        $settings = Utility::settings();
+        $color = (!empty($settings[SettingsConstants::THM_CLR])) ? $settings[SettingsConstants::THM_CLR] : 'theme-3';
+    } catch (\Throwable $e) {
+        \Log::error('reports/balance_sheet_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$settings[SettingsConstants::RTL] == 'on'?'rtl':''}}">
     <head>
@@ -34,20 +31,24 @@
         <script defer src="{{ asset('assets/js/routes/reports/balances/receipts/pdf.js') }}"></script>
     </head>
     @php
-        $bodyClass = is_string($color ?? null) ? $color : '';
-        $creatorName = data_get($creatorUser ?? null,'name') ?? __('Could not find user name');
-        $startDate = data_get($filter ?? [],'startDateRange') ?? __('No start date available');
-        $endDate = data_get($filter ?? [],'endDateRange') ?? __('No end date available');
-        $charts = is_iterable($chartAccounts ?? null) ? $chartAccounts : [];
-        $fmtNum = function($v){ return is_numeric($v) ? number_format((float)$v,2,'.',',') : ($v ?? '0'); };
-    @endphp
+        try {
+            $bodyClass = is_string($color ?? null) ? $color : '';
+            $creatorName = data_get($creatorUser ?? null,'name') ?? __('Could not find user name');
+            $startDate = data_get($filter ?? [],'startDateRange') ?? __('No start date available');
+            $endDate = data_get($filter ?? [],'endDateRange') ?? __('No end date available');
+            $charts = is_iterable($chartAccounts ?? null) ? $chartAccounts : [];
+            $fmtNum = function($v){ return is_numeric($v) ? number_format((float)$v,2,'.',',') : ($v ?? '0'); };
+        } catch (\Throwable $e) {
+            \Log::error('reports/balance_sheet_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <body class="{{ $bodyClass }}">
         <div class="{{ VC::MT4 }}">
             <div class="{{ VC::RW }} justify-content-center" id="printableArea">
-                <div class="col-md-8">
+                <div class="{{ VC::CM8 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body">
-                            <div class="account-main-title mb-5">
+                        <div class="{{ VC::CD_BD }}">
+                            <div class="account-main-title {{ VC::MB5 }}">
                                 <h5>{{ __('Balance Sheet of') . ' ' . $creatorName . ' ' . __('as of') . ' ' . $startDate . ' ' . __('to') . ' ' . $endDate }}</h5>
                             </div>
                             <div class="aacount-title {{ VC::DFL_AIC_JCB }} border-top border-bottom {{ VC::PY2 }}">
@@ -55,49 +56,63 @@
                                 <h6 class="{{ VC::MB0 }} text-center">{{ __('Account Code') }}</h6>
                                 <h6 class="{{ VC::MB0 }} text-end">{{ __('Total') }}</h6>
                             </div>
-                            @php $liabEqTotal = 0; @endphp
+                            @php
+ $liabEqTotal ??= 0;
+@endphp
                             @foreach ($charts as $type => $accounts)
                                 @if (!empty($accounts))
                                     <div class="account-main-inner {{ VC::PY2 }}">
                                         @if ($type === 'Liabilities')
-                                            <p class="fw-bold mb-3">{{ __('Liabilities & Equity') }}</p>
+                                            <p class="fw-bold {{ VC::MB3 }}">{{ __('Liabilities & Equity') }}</p>
                                         @endif
-                                        <p class="fw-bold ps-2 mb-2">{{ $type }}</p>
-                                        @php $sectionTotal = 0; @endphp
+                                        <p class="fw-bold ps-2 {{ VC::MB2 }}">{{ $type }}</p>
+                                        @php
+ $sectionTotal ??= 0;
+@endphp
                                         @foreach ($accounts as $account)
                                             @php
-                                                $subType = data_get($account,'subType') ?: '';
-                                                $accListRaw = data_get($account,'account',[]);
-                                                $accList = is_array($accListRaw) ? $accListRaw : (is_iterable($accListRaw) ? iterator_to_array($accListRaw) : []);
-                                                $accCopy = $accList;
-                                                $last = !empty($accCopy) ? end($accCopy) : null;
-                                                $lastName = data_get($last,'account_name') ?? 0;
-                                                $lastNet = (float)(data_get($last,'netAmount',0));
-                                            @endphp
+                                                try {
+                                                    $subType = data_get($account,'subType') ?: '';
+                                                    $accListRaw = data_get($account,'account',[]);
+                                                    $accList = is_array($accListRaw) ? $accListRaw : (is_iterable($accListRaw) ? iterator_to_array($accListRaw) : []);
+                                                    $accCopy = $accList;
+                                                    $last = !empty($accCopy) ? end($accCopy) : null;
+                                                    $lastName = data_get($last,'account_name') ?? 0;
+                                                    $lastNet = (float)(data_get($last,'netAmount',0));
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('reports/balance_sheet_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <div class="border-bottom {{ VC::PY2 }}">
-                                                <p class="fw-bold ps-4 mb-2">{{ $subType }}</p>
+                                                <p class="fw-bold ps-4 {{ VC::MB2 }}">{{ $subType }}</p>
                                                 @foreach ($accList as $k => $record)
-                                                    @php $name = (string)(data_get($record,'account_name') ?? ''); $isTotal = preg_match('/\btotal\b/i',$name) === 1; @endphp
+                                                    @php
+ $name = (string)(data_get($record,'account_name') ?? ''); $isTotal = preg_match('/\btotal\b/i',$name) === 1;
+@endphp
                                                     @if ($k < max(count($accList) - 1,0))
                                                         @if (!$isTotal)
                                                             @php
-                                                                $accountId       = data_get($record, 'account_id');
-                                                                $ledgerBase      = VW::RPT.'.ledger';
-                                                                $ledgerKebab     = Str::kebab($ledgerBase);
-                                                                $ledgerResolved  = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                                                $ledgerParams    = $accountId ? [$accountId] : ['#'];
-                                                                $ledgerUrl       = ($ledgerResolved && $accountId) ? route($ledgerResolved, $ledgerParams) : '#';
-                                                                $ledgerHref      = ($ledgerUrl !== '#' && $accountId) ? ($ledgerUrl.'?account='.$accountId) : '#';
-                                                                $ledgerGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'view_ledger_unavailable') ?? 'View ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $ledgerLinkId    = 'ledger-view-'.($accountId ?? 'x');
-                                                            @endphp
+                                                                try {
+                                                                    $accountId       = data_get($record, 'account_id');
+                                                                    $ledgerBase      = VW::RPT.'.ledger';
+                                                                    $ledgerKebab     = Str::kebab($ledgerBase);
+                                                                    $ledgerResolved  = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                                                    $ledgerParams    = $accountId ? [$accountId] : ['#'];
+                                                                    $ledgerUrl       = ($ledgerResolved && $accountId) ? route($ledgerResolved, $ledgerParams) : '#';
+                                                                    $ledgerHref      = ($ledgerUrl !== '#' && $accountId) ? ($ledgerUrl.'?account='.$accountId) : '#';
+                                                                    $ledgerGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'view_ledger_unavailable') ?? 'View ledger route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $ledgerLinkId    = 'ledger-view-'.($accountId ?? 'x');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('reports/balance_sheet_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="account-inner {{ VC::DFL_AIC_JCB }} ps-5">
-                                                                <p class="mb-2">
-                                                                    <a href="{{ $ledgerHref }}" id="{{ $ledgerLinkId }}" class="text-primary ledger-view" data-url="{{ $ledgerHref }}" data-guard-msg="{{ $ledgerGuardMsg }}" data-sv-localized="true">
+                                                                <p class="{{ VC::MB2 }}">
+                                                                    <a href="{{ $ledgerHref }}" id="{{ $ledgerLinkId }}" class="{{ VC::TX_PM }} ledger-view" data-url="{{ $ledgerHref }}" data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}" data-sv-localized="true">
                                                                         {{ $name ?: __('No account name available') }}
                                                                     </a>
                                                                 </p>
-                                                                <p class="mb-2 text-center">{{ data_get($record,'account_code') ?? '-' }}</p>
+                                                                <p class="{{ VC::MB2 }} {{ VC::TXCT }}">{{ data_get($record,'account_code') ?? '-' }}</p>
                                                                 <p class="text-primary mb-2 {{ VC::FEND }} text-end">{{ $fmtNum(data_get($record,'netAmount',0)) }}</p>
                                                             </div>
                                                             <script>
@@ -115,32 +130,7 @@
                                                                                 if (href !== '#' || url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = l.getAttribute('data-guard-msg') || 'View ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const linkEl = document.querySelector('link[href*="bootstrap"]');
-                                                                                const hasBootstrapToast = (typeof window !== 'undefined' && window.bootstrap && typeof window.bootstrap.Toast === 'function');
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    container.className = 'position-fixed top-0 end-0 p-3';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (linkEl && hasBootstrapToast) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                                                                                    toast.addEventListener('hidden.bs.toast', function() { try { toast.remove(); } catch (_) {} });
-                                                                                    inst.show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 l.setAttribute('data-failed-route', 'true');
                                                                             } catch (_) {}
                                                                         }, { passive: false });
@@ -151,17 +141,21 @@
                                                     @endif
                                                 @endforeach
                                                 <div class="account-inner {{ VC::DFL_AIC_JCB }} ps-4">
-                                                    <p class="fw-bold mb-2">{{ $lastName }}</p>
-                                                    <p class="fw-bold mb-2 text-end">{{ $fmtNum($lastNet) }}</p>
+                                                    <p class="fw-bold {{ VC::MB2 }}">{{ $lastName }}</p>
+                                                    <p class="fw-bold {{ VC::MB2 }} {{ VC::TX_END }}">{{ $fmtNum($lastNet) }}</p>
                                                 </div>
                                             </div>
-                                            @php $sectionTotal += $lastNet; @endphp
+                                            @php
+ $sectionTotal += $lastNet;
+@endphp
                                         @endforeach
                                         <div class="aacount-title {{ VC::DFL_AIC_JCB }} border-top border-bottom {{ VC::PY2 }} px-2 pe-0">
                                             <h6 class="fw-bold {{ VC::MB0 }}">{{ __('Total for') . ' ' . $type }}</h6>
                                             <h6 class="fw-bold {{ VC::MB0 }} text-end">{{ $fmtNum($sectionTotal) }}</h6>
                                         </div>
-                                        @php if ($type !== 'Assets') { $liabEqTotal += $sectionTotal; } @endphp
+                                        @php
+ if ($type !== 'Assets') { $liabEqTotal += $sectionTotal; }
+@endphp
                                     </div>
                                 @endif
                             @endforeach
@@ -178,4 +172,3 @@
         </div>
     </body>
 </html>
-

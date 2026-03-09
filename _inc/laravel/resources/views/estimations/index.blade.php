@@ -1,24 +1,15 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants as PC,
-        StacksConstants as ST,
-        UsersConstants as UC,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\{Estimation, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $cntTotal      = data_get($cnt_estimation ?? [], 'total', __('No total available'));
-    $cntThisMonth  = data_get($cnt_estimation ?? [], 'this_month', __('No monthly total available'));
-    $cntThisWeek   = data_get($cnt_estimation ?? [], 'this_week', __('No weekly total available'));
-    $cntLast30     = data_get($cnt_estimation ?? [], 'last_30days', __('No 30-day total available'));
+        $cntTotal      = data_get($cnt_estimation ?? [], 'total', __('No total available'));
+        $cntThisMonth  = data_get($cnt_estimation ?? [], 'this_month', __('No monthly total available'));
+        $cntThisWeek   = data_get($cnt_estimation ?? [], 'this_week', __('No weekly total available'));
+        $cntLast30     = data_get($cnt_estimation ?? [], 'last_30days', __('No 30-day total available'));
+    } catch (\Throwable $e) {
+        \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 
@@ -30,14 +21,18 @@
     <div class="all-button-box {{ VC::R_FLX_ALC_JCE }}">
         @can('create estimation')
             @php
-                $createBase     = VW::EST . '.create';
-                $createKebab    = Str::kebab($createBase);
-                $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-                $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createLinkId   = 'est-create-btn';
-                $createGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'create_estimate_route_unavailable') ?? 'Create estimate route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
+                try {
+                    $createBase     = VW::EST . '.create';
+                    $createKebab    = Str::kebab($createBase);
+                    $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+                    $createUrl      = $createResolved ? route($createResolved) : '#';
+                    $createLinkId   = 'est-create-btn';
+                    $createGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'create_estimate_route_unavailable') ?? 'Create estimate route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <div class="{{ VC::CXL2 }} {{ VC::CL2 }} {{ VC::CM4 }} {{ VC::CS6 }} {{ VC::C6 }}">
                 <a
                     id="{{ $createLinkId }}"
                     href="{{ $createUrl }}"
@@ -45,10 +40,10 @@
                     data-size="sm"
                     data-ajax-popup="true"
                     data-title="{{ __('Create Estimate') }}"
-                    data-guard-msg="{{ $createGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                     class="{{ VC::BT_XS }} btn-white btn-icon-only width-auto"
                 >
-                    <i class="ti ti-plus"></i> {{ __('Create') }}
+                    <i class="{{ VC::TI_PLS }}"></i> {{ __('Create') }}
                 </a>
             </div>
         @endcan
@@ -86,8 +81,8 @@
 
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} table-striped dataTable">
                             <thead>
                             <tr>
@@ -104,34 +99,46 @@
                             <tbody>
                                 @if(Utility::isFilled($estimations) ?? [])
                                     @php
-                                        $isPriceFormatAvailable = method_exists($user, 'priceFormat');
-                                        $isDateFormatAvailable  = method_exists($user, 'dateFormat');
-                                        $isEsimateNumberFormatAvailable = method_exists($user, 'estimateNumberFormat');
-                                        $isGetTotalAvailable   = method_exists($estimate, 'getTotal');
-                                    @endphp
+                                        try {
+                                            $isPriceFormatAvailable = method_exists($user, 'priceFormat');
+                                            $isDateFormatAvailable  = method_exists($user, 'dateFormat');
+                                            $isEsimateNumberFormatAvailable = method_exists($user, 'estimateNumberFormat');
+                                            $isGetTotalAvailable   = method_exists($estimate, 'getTotal');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     @foreach ($estimations as $estimate)
                                         @php
-                                            $estId      = data_get($estimate, 'id');
-                                            $clientName = data_get($estimate, 'client.name', __('Could not find client name'));
-                                            $issueDate  = $isDateFormatAvailable ? ($user?->dateFormat(data_get($estimate, 'issue_date')) ?? __('Failed to get issue date')) : (__('Failed to format date'));
-                                            $totalValue = $isPriceFormatAvailable && $isGetTotalAvailable ? ($user?->priceFormat($estimate?->getTotal()) ?? __('Failed to get value')) : (__('Failed to format price'));
-                                            $statusIdx  = (int) data_get($estimate, 'status', -1);
-                                            $statusLbl  = data_get(Estimation::$statuses ?? [], $statusIdx, __('No status available'));
-                                        @endphp
+                                            try {
+                                                $estId      = data_get($estimate, 'id');
+                                                $clientName = data_get($estimate, 'client.name', __('Could not find client name'));
+                                                $issueDate  = $isDateFormatAvailable ? ($user?->dateFormat(data_get($estimate, 'issue_date')) ?? __('Failed to get issue date')) : (__('Failed to format date'));
+                                                $totalValue = $isPriceFormatAvailable && $isGetTotalAvailable ? ($user?->priceFormat($estimate?->getTotal()) ?? __('Failed to get value')) : (__('Failed to format price'));
+                                                $statusIdx  = (int) data_get($estimate, 'status', -1);
+                                                $statusLbl  = data_get(Estimation::$statuses ?? [], $statusIdx, __('No status available'));
+                                            } catch (\Throwable $e) {
+                                                \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td class="Id">
                                                 @can('View Estimation')
                                                     @php
-                                                        $showBase     = VW::EST . '.show';
-                                                        $showKebab    = Str::kebab($showBase);
-                                                        $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-                                                        $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
-                                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $showBase     = VW::EST . '.show';
+                                                            $showKebab    = Str::kebab($showBase);
+                                                            $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
+                                                            $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
+                                                            $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a
                                                         href="{{ $showUrl }}"
                                                         data-url="{{ $showUrl }}"
-                                                        data-guard-msg="{{ $showGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($showGuardMsg) }}"
                                                         class="est-show-link"
                                                     >
                                                         <i class="ti ti-file-estimate"></i>
@@ -164,37 +171,45 @@
                                                     <span>
                                                         @can('view estimation')
                                                             @php
-                                                                $showBase     = VW::EST . '.show';
-                                                                $showKebab    = Str::kebab($showBase);
-                                                                $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
-                                                                $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
-                                                                $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $showBase     = VW::EST . '.show';
+                                                                    $showKebab    = Str::kebab($showBase);
+                                                                    $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
+                                                                    $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
+                                                                    $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 href="{{ $showUrl }}"
                                                                 data-url="{{ $showUrl }}"
-                                                                data-guard-msg="{{ $showGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($showGuardMsg) }}"
                                                                 class="edit-icon bg-warning"
                                                                 data-toggle="tooltip"
                                                             >
-                                                                <i class="ti ti-eye"></i>
+                                                                <i class="{{ VC::TI_EYE }}"></i>
                                                             </a>
                                                         @endcan
 
                                                         @can('edit estimation')
                                                             @php
-                                                                $editBase     = VW::EST . '.edit';
-                                                                $editKebab    = Str::kebab($editBase);
-                                                                $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                                                                $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
-                                                                $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $editBase     = VW::EST . '.edit';
+                                                                    $editKebab    = Str::kebab($editBase);
+                                                                    $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                                                                    $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
+                                                                    $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 href="#"
                                                                 data-url="{{ $editUrl }}"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Edit Estimation') }}"
-                                                                data-guard-msg="{{ $editGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                 class="edit-icon"
                                                                 data-toggle="tooltip"
                                                                 data-original-title="{{ __('Edit') }}"
@@ -205,29 +220,34 @@
 
                                                         @can('delete estimation')
                                                             @php
-                                                                $destroyBase     = VW::EST . '.destroy';
-                                                                $destroyKebab    = Str::kebab($destroyBase);
-                                                                $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                                                                $destroyUrl      = ($destroyResolved && $estId) ? route($destroyResolved, $estId) : '#';
-                                                                $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_destroy_route_unavailable') ?? 'Delete estimate route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $destroyBase     = VW::EST . '.destroy';
+                                                                    $destroyKebab    = Str::kebab($destroyBase);
+                                                                    $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                                    $destroyUrl      = ($destroyResolved && $estId) ? route($destroyResolved, $estId) : '#';
+                                                                    $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_destroy_route_unavailable') ?? 'Delete estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 href="#"
                                                                 class="delete-icon"
                                                                 data-toggle="tooltip"
                                                                 data-original-title="{{ __('Delete') }}"
-                                                                data-guard-msg="{{ $destroyGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($destroyGuardMsg) }}"
                                                                 data-url="{{ $destroyUrl }}"
                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                 data-confirm-yes="document.getElementById('delete-form-{{$estId}}').submit();"
                                                             >
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Collective\Html\FormFacade::open([
                                                                 'method' => 'DELETE',
                                                                 'url'    => $destroyUrl,
                                                                 'id'     => 'delete-form-'.$estId
                                                             ]) !!}
+                                                            @csrf
                                                             {!! Collective\Html\FormFacade::close() !!}
                                                         @endcan
                                                     </span>
@@ -237,7 +257,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="5" class="text-center">{{ __('No estimations found.') }}</td>
+                                        <td colspan="5" class="{{ VC::TXCT }}">{{ __('No estimations found.') }}</td>
                                     </tr>
                                 @endif
                             </tbody>

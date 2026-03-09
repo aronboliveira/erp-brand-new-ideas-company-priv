@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use Tests\TestCase;
 use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Facades\Auth};
 use App\Models\{User, UserEmailTemplate};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserEmailTemplateTest extends TestCase
 {
@@ -13,10 +14,10 @@ class UserEmailTemplateTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// authenticate a user for the relation scope (though relation does not filter here)
 		Auth::login(User::factory()->create());
 	}
-
 	/**
 	 ** @test
 	 **
@@ -24,7 +25,15 @@ class UserEmailTemplateTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['template_id', 'user_id', 'is_active'];
+		$expected = [
+			'template_id',
+			'user_id',
+			'is_active',
+			'counter',
+			'is_favorite',
+			'is_default',
+			'clients',
+		];
 		$this->assertEquals($expected, (new UserEmailTemplate())->getFillable());
 	}
 
@@ -37,11 +46,11 @@ class UserEmailTemplateTest extends TestCase
 	{
 		$model = new UserEmailTemplate();
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$model->template()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$model->user()
 		);
 	}

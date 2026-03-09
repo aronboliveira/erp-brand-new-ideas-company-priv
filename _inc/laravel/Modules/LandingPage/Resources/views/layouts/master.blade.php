@@ -1,8 +1,9 @@
 @php
-    use Modules\LandingPage\Config\Constants\{
-        DatabaseConstants,
-        YieldingConstants
-    };
+    try {
+
+    } catch (\Throwable $e) {
+        \Log::error('Modules/LandingPage/Resources/views/layouts/master — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">

@@ -5,7 +5,7 @@ namespace Tests\Unit\Exports;
 use App\Exports\ProductStockExport;
 use App\Models\StockReport;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 class ProductStockExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/** Local copy of the expected column headers */
 	private const EXPECTED_HEADINGS = [
@@ -29,7 +29,7 @@ class ProductStockExportTest extends TestCase
 	 ** @test
 	 **
 	 ** If **no** user is logged-in the exporter must short-circuit and
-	 ** return a `RedirectResponse` produced by `_checkLogin()`.
+	 ** return an **empty** `Collection`.
 	 **/
 	public function collection_returns_redirect_when_user_not_authenticated(): void
 	{
@@ -37,10 +37,11 @@ class ProductStockExportTest extends TestCase
 		$result = $export->collection();
 
 		$this->assertInstanceOf(
-			RedirectResponse::class,
+			Collection::class,
 			$result,
-			'Unauthenticated requests should be redirected.'
+			'Unauthenticated requests should return an empty Collection.'
 		);
+		$this->assertTrue($result->isEmpty(), 'Collection should be empty when unauthenticated.');
 	}
 
 	/**
@@ -63,11 +64,8 @@ class ProductStockExportTest extends TestCase
 		$this->actingAs($user);
 
 		StockReport::factory()->count(2)->create([
-			'created_by' => $user?->id,
-			'product_id' => 1,           // arbitrary
 			'quantity'   => 5,
-			'type'       => 'in',
-			'date'       => now(),
+			'type'       => 'inventory',
 		]);
 
 		$export    = new ProductStockExport();

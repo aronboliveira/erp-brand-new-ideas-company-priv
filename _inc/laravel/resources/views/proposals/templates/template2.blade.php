@@ -1,7 +1,6 @@
 <?php
 # Template 2
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
-use App\Helpers\TemplateHelper;
 use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
@@ -294,11 +293,11 @@ if (isset($proposal) && !empty($proposal)) {
     <body>
         <div class="proposal-preview-main" id="boxes">
             <div class="proposal-header">
-                <table class="vertical-align-top">
+                <table class="{{ VC::VA_TOP }}">
                     <tbody>
                         <tr>
                             <td><img class="proposal-logo" src="<?= e($img) ?>" alt=""></td>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <p>
                                     <?php if (!empty($settings['company_name'])) {
                                         echo e($settings['company_name']);
@@ -345,20 +344,20 @@ if (isset($proposal) && !empty($proposal)) {
                         </tr>
                     </tbody>
                 </table>
-                <table class="vertical-align-top">
+                <table class="{{ VC::VA_TOP }}">
                     <tbody>
                         <tr>
                             <td>
                                 <h3 style="text-transform:uppercase;font-size:25px;font-weight:bold;margin-bottom:15px;"><?= e(__('PROPOSAL')) ?></h3>
-                                <table class="no-space">
+                                <table class="{{ VC::NO_SPC }}">
                                     <tbody>
                                         <tr>
                                             <td><?= e(__('Number')) ?>:</td>
-                                            <td class="text-right"><?= e($proposalNumber) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($proposalNumber) ?></td>
                                         </tr>
                                         <tr>
                                             <td><?= e(__('Issue Date')) ?>:</td>
-                                            <td class="text-right"><?= e($issueDate) ?></td>
+                                            <td class="{{ VC::TX_RT }}"><?= e($issueDate) ?></td>
                                         </tr>
                                         <?php if (!empty($customFields) && count(data_get($proposal, 'customField', [])) > 0): ?>
                                             <?php foreach ($customFields as $field): ?>
@@ -372,10 +371,10 @@ if (isset($proposal) && !empty($proposal)) {
                                 </table>
                             </td>
                             <td>
-                                <div class="view-qrcode">
+                                <div class="{{ VC::VW_QR }}">
                                     <?php
                                     try {
-                                        $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
                                         echo $qrHtml;
                                     } catch (\Throwable $e) {
                                         Log::error('QR HTML Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);
@@ -409,7 +408,7 @@ if (isset($proposal) && !empty($proposal)) {
                                 <?php endif; ?>
                             </td>
                             <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                                <td class="text-right">
+                                <td class="{{ VC::TX_RT }}">
                                     <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                     <?php if (!empty(data_get($customer, 'shipping_name'))): ?>
                                         <p>
@@ -429,7 +428,7 @@ if (isset($proposal) && !empty($proposal)) {
                         </tr>
                     </tbody>
                 </table>
-                <table class="add-border proposal-summary" style="margin-top:30px;">
+                <table class="{{ VC::BDR_PPS_SM }}" style="margin-top:30px;">
                     <thead style="background: <?= e($color) ?>;color:<?= e($font_color) ?>">
                         <tr>
                             <th><?= e(__('Item')) ?></th>
@@ -493,7 +492,7 @@ if (isset($proposal) && !empty($proposal)) {
                                     </td>
                                 </tr>
                                 <?php if (!empty(data_get($item, 'description'))): ?>
-                                    <tr class="border-0 itm-description">
+                                    <tr class="{{ VC::BD0_ITM_DSC }}">
                                         <td colspan="6"><?= e(data_get($item, 'description')) ?></td>
                                     </tr>
                                 <?php endif; ?>
@@ -511,8 +510,8 @@ if (isset($proposal) && !empty($proposal)) {
                         </tr>
                         <tr>
                             <td colspan="4"></td>
-                            <td colspan="2" class="sub-total">
-                                <table class="total-table">
+                            <td colspan="2" class="{{ VC::SUB_TTL }}">
+                                <table class="{{ VC::TTL_TB }}">
                                     <tr>
                                         <td><?= e(__('Subtotal')) ?>:</td>
                                         <td><?= e($proposalSubTotal) ?></td>
@@ -574,5 +573,14 @@ if (isset($proposal) && !empty($proposal)) {
     </html>
 <?php
 } else {
-    echo TemplateHelper::getNoDataHtml('proposal');
+    echo '<!DOCTYPE html>
+<html lang="' . htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8') . '">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+	<div class="{{ VC::ALT_WRN }}">No proposal data available.</div>
+</body>
+</html>';
 }

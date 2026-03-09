@@ -22,7 +22,7 @@ enum PriorityLevel: string
 		if ($value === null)
 			return self::Medium; // Default to Medium priority
 
-		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// None variations
 			'none', 'na', 'notapplicable', 'unassigned', 'unprioritized', 'undefined' => self::None,

@@ -1,29 +1,23 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Debit Notes')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Debit Note')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Debit Note')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('assets/js/routes/debitNotes/lang/index.js') }}"></script>
@@ -32,35 +26,35 @@
             const selBill  = document.getElementById('bill');
             const inpAmt   = document.getElementById('amount');
             const routeURL = "{{ route(ViewsConstants::BIL . '.get') }}";
-            
+
             if (!selBill || !inpAmt) return;
-            
+
             if (selBill.dataset.listenerAttached === 'true') return;
             selBill.dataset.listenerAttached = 'true';
-            
+
             const langKey = () =>
                 (sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')
                 .toLowerCase().replace(/_/g, '-')
                 .replace(/^([a-z]{2}).*/,'$1');
-            
+
             const t = k =>
                 window.translations?.[langKey()]?.[k] ||
                 window.translations?.en?.[k]          ||
                 '# ERROR';
-            
+
             const showErr = () =>
                 window.show_toastr ? window.show_toastr('error', t('bill_fetch_failed'), 'error')
                                 : alert(t('bill_fetch_failed'));
-            
+
             const obs = new MutationObserver((ms, o) => {
                 ms.forEach(m => m.removedNodes.forEach(n => {
                 if (n === selBill) { selBill.removeEventListener('change', handler); o.disconnect(); }
                 }));
             });
             obs.observe(document.body, { childList:true, subtree:true });
-            
+
             selBill.addEventListener('change', handler);
-            
+
             function handler() {
                 const id = this.value || '';
                 if (!id) { inpAmt.value = ''; return; }
@@ -76,24 +70,28 @@
     </script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create debit note')
             @php
-                $billsCustomDebitNoteCreateBaseRouteName  = ViewsConstants::BIL.'.custom.debit.note';
-                $billsCustomDebitNoteCreateKebabRouteName = Str::kebab($billsCustomDebitNoteCreateBaseRouteName);
-                $billsCustomDebitNoteCreateResolvedName   = Route::has($billsCustomDebitNoteCreateBaseRouteName)
-                    ? $billsCustomDebitNoteCreateBaseRouteName
-                    : (Route::has($billsCustomDebitNoteCreateKebabRouteName) ? $billsCustomDebitNoteCreateKebabRouteName : null);
-                $billsCustomDebitNoteCreateUrl            = $billsCustomDebitNoteCreateResolvedName ? route($billsCustomDebitNoteCreateResolvedName) : '#';
-                $billsLangValue                           = isset($lang) ? $lang : Utility::fetchUserLang();
-                $billsCustomDebitNoteCreateGuardMessage   = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'create_custom_debit_note_route_unavailable')
-                    ?? 'Create custom debit note route is unavailable. Please contact technical support or your domain administrator.';
-                $billsCustomDebitNoteCreateLinkId         = 'bills-custom-debit-note-create-link';
-            @endphp
+                try {
+                    $billsCustomDebitNoteCreateBaseRouteName  = ViewsConstants::BIL.'.custom.debit.note';
+                    $billsCustomDebitNoteCreateKebabRouteName = Str::kebab($billsCustomDebitNoteCreateBaseRouteName);
+                    $billsCustomDebitNoteCreateResolvedName   = Route::has($billsCustomDebitNoteCreateBaseRouteName)
+                        ? $billsCustomDebitNoteCreateBaseRouteName
+                        : (Route::has($billsCustomDebitNoteCreateKebabRouteName) ? $billsCustomDebitNoteCreateKebabRouteName : null);
+                    $billsCustomDebitNoteCreateUrl            = $billsCustomDebitNoteCreateResolvedName ? route($billsCustomDebitNoteCreateResolvedName) : '#';
+                    $billsLangValue                           = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $billsCustomDebitNoteCreateGuardMessage   = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'create_custom_debit_note_route_unavailable')
+                        ?? 'Create custom debit note route is unavailable. Please contact technical support or your domain administrator.';
+                    $billsCustomDebitNoteCreateLinkId         = 'bills-custom-debit-note-create-link';
+                } catch (\Throwable $e) {
+                    \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $billsCustomDebitNoteCreateUrl }}"
             id="{{ $billsCustomDebitNoteCreateLinkId }}"
             data-url="{{ $billsCustomDebitNoteCreateUrl }}"
-            data-guard-msg="{{ $billsCustomDebitNoteCreateGuardMessage }}"
+            data-guard-msg="{{ base64_encode($billsCustomDebitNoteCreateGuardMessage) }}"
             data-ajax-popup="true"
             data-title="{{ __('Create New Debit Note') }}"
             data-bs-toggle="tooltip"
@@ -110,10 +108,10 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -127,44 +125,62 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $hasBills  = Utility::isFilled($bills ?? []);
-                                    $__shown   = false;
+                                    try {
+                                        $hasBills  = Utility::isFilled($bills ?? []);
+                                        $__shown   = false;
 
-                                    $hasBillNumberFormat = is_object($user ?? null) && method_exists($user, 'billNumberFormat');
-                                    $hasDateFormat       = is_object($user ?? null) && method_exists($user, 'dateFormat');
-                                    $hasPriceFormat      = is_object($user ?? null) && method_exists($user, 'priceFormat');
-                                @endphp
+                                        $hasBillNumberFormat = is_object($user ?? null) && method_exists($user, 'billNumberFormat');
+                                        $hasDateFormat       = is_object($user ?? null) && method_exists($user, 'dateFormat');
+                                        $hasPriceFormat      = is_object($user ?? null) && method_exists($user, 'priceFormat');
+                                    } catch (\Throwable $e) {
+                                        \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
 
                                 @if($hasBills)
                                     @foreach ($bills as $bill)
                                         @php
-                                            $notes    = $bill->debitNote ?? [];
-                                            $hasNotes = Utility::isFilled($notes ?? []);
-                                            $vname    = (isset($bill->vendor) && isset($bill->vendor->name)) ? $bill->vendor->name : __('No name available for vendor');
-                                        @endphp
+                                            try {
+                                                $notes    = $bill->debitNotes ?? [];
+                                                $hasNotes = Utility::isFilled($notes ?? []);
+                                                $vname    = (isset($bill->vendor) && isset($bill->vendor->name)) ? $bill->vendor->name : __('No name available for vendor');
+                                            } catch (\Throwable $e) {
+                                                \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         @if($hasNotes)
                                             @foreach ($notes as $debitNote)
-                                                @php($__shown = true)
                                                 @php
-                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                    $debitNoteIdValue = (string) ($debitNote->id ?? '');
-                                                    $billIdValue = (string) ($debitNote->bill ?? '');
+                                                    $__shown = true;
+                                                    $langValue = '';
+                                                    $debitNoteIdValue = '';
+                                                    $billIdValue = '';
+                                                    $billShowUrl = '#';
+                                                    $billShowGuardMsg = '';
+                                                    $billShowLinkId = 'bill-show-link-x';
+                                                    try {
+                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                        $debitNoteIdValue = (string) ($debitNote->id ?? '');
+                                                        $billIdValue = (string) ($debitNote->bill ?? '');
 
-                                                    $billShowBase = ViewsConstants::BIL.'.show';
-                                                    $billShowKebab = Str::kebab($billShowBase);
-                                                    $billShowResolved = Route::has($billShowBase) ? $billShowBase : (Route::has($billShowKebab) ? $billShowKebab : null);
-                                                    $encryptedBillId = $billIdValue !== '' ? Crypt::encrypt($billIdValue) : null;
-                                                    $billShowUrl = ($billShowResolved && $encryptedBillId) ? route($billShowResolved, $encryptedBillId) : '#';
-                                                    $billShowGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'show_bill_route_unavailable') ?? 'Show bill route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $billShowLinkId = 'bill-show-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
+                                                        $billShowBase = ViewsConstants::BIL.'.show';
+                                                        $billShowKebab = Str::kebab($billShowBase);
+                                                        $billShowResolved = Route::has($billShowBase) ? $billShowBase : (Route::has($billShowKebab) ? $billShowKebab : null);
+                                                        $encryptedBillId = $billIdValue !== '' ? Crypt::encrypt($billIdValue) : null;
+                                                        $billShowUrl = ($billShowResolved && $encryptedBillId) ? route($billShowResolved, $encryptedBillId) : '#';
+                                                        $billShowGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'show_bill_route_unavailable') ?? 'Show bill route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $billShowLinkId = 'bill-show-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
                                                 @endphp
                                                 <tr class="font-style">
                                                     <td class="Id">
                                                         <a id="{{ $billShowLinkId }}"
                                                         href="{{ $billShowUrl }}"
-                                                        class="btn btn-outline-primary"
+                                                        class="{{ VC::BT_OUTPM }}"
                                                         data-url="{{ $billShowUrl }}"
-                                                        data-guard-msg="{{ $billShowGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($billShowGuardMsg) }}"
                                                         data-sv-localized="true">
                                                             {{ $hasBillNumberFormat ? ($user?->billNumberFormat($bill->bill_id) ?? '-') : ($bill->bill_id ?? '-') }}
                                                         </a>
@@ -177,22 +193,29 @@
                                                         <span>
                                                             @can('edit debit note')
                                                                 @php
-                                                                    $editDebitBase = ViewsConstants::BIL.'.edit.debit.note';
-                                                                    $editDebitKebab = Str::kebab($editDebitBase);
-                                                                    $editDebitResolved = Route::has($editDebitBase) ? $editDebitBase : (Route::has($editDebitKebab) ? $editDebitKebab : null);
-                                                                    $editDebitUrl = ($editDebitResolved && $billIdValue !== '' && $debitNoteIdValue !== '') ? route($editDebitResolved, [$billIdValue, $debitNoteIdValue]) : '#';
-                                                                    $editDebitGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'edit_debit_note_route_unavailable') ?? 'Edit debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $editDebitLinkId = 'debit-note-edit-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
-                                                                @endphp
-                                                                <div class="action-btn bg-primary ms-2">
+                                                                    $editDebitUrl = '#';
+                                                                    $editDebitGuardMsg = '';
+                                                                    $editDebitLinkId = 'debit-note-edit-link-x';
+                                                                    try {
+                                                                        $editDebitBase = ViewsConstants::BIL.'.edit.debit.note';
+                                                                        $editDebitKebab = Str::kebab($editDebitBase);
+                                                                        $editDebitResolved = Route::has($editDebitBase) ? $editDebitBase : (Route::has($editDebitKebab) ? $editDebitKebab : null);
+                                                                        $editDebitUrl = ($editDebitResolved && $billIdValue !== '' && $debitNoteIdValue !== '') ? route($editDebitResolved, [$billIdValue, $debitNoteIdValue]) : '#';
+                                                                        $editDebitGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'edit_debit_note_route_unavailable') ?? 'Edit debit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $editDebitLinkId = 'debit-note-edit-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
+                                                                <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a id="{{ $editDebitLinkId }}"
                                                                     href="{{ $editDebitUrl }}"
                                                                     data-url="{{ $editDebitUrl }}"
-                                                                    data-guard-msg="{{ $editDebitGuardMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($editDebitGuardMsg) }}"
                                                                     data-ajax-popup="true"
                                                                     data-title="{{ __('Edit Debit Note') }}"
                                                                     data-sv-localized="true"
-                                                                    class="mx-3 btn btn-sm align-items-center"
+                                                                    class="{{ VC::BT_SM_CT }}"
                                                                     data-bs-toggle="tooltip"
                                                                     title="{{ __('Edit') }}">
                                                                         <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
@@ -202,14 +225,22 @@
 
                                                             @can('delete debit note')
                                                                 @php
-                                                                    $deleteDebitBase = ViewsConstants::BIL.'.delete.debit.note';
-                                                                    $deleteDebitKebab = Str::kebab($deleteDebitBase);
-                                                                    $deleteDebitResolved = Route::has($deleteDebitBase) ? $deleteDebitBase : (Route::has($deleteDebitKebab) ? $deleteDebitKebab : null);
-                                                                    $deleteDebitUrl = ($deleteDebitResolved && $billIdValue !== '' && $debitNoteIdValue !== '') ? route($deleteDebitResolved, [$billIdValue, $debitNoteIdValue]) : '#';
-                                                                    $deleteDebitGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'delete_debit_note_route_unavailable') ?? 'Delete debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $deleteDebitFormId = 'debit-note-delete-form-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
-                                                                    $deleteDebitLinkId = 'debit-note-delete-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
-                                                                @endphp
+                                                                    $deleteDebitUrl = '#';
+                                                                    $deleteDebitGuardMsg = '';
+                                                                    $deleteDebitFormId = 'debit-note-delete-form-x';
+                                                                    $deleteDebitLinkId = 'debit-note-delete-link-x';
+                                                                    try {
+                                                                        $deleteDebitBase = ViewsConstants::BIL.'.delete.debit.note';
+                                                                        $deleteDebitKebab = Str::kebab($deleteDebitBase);
+                                                                        $deleteDebitResolved = Route::has($deleteDebitBase) ? $deleteDebitBase : (Route::has($deleteDebitKebab) ? $deleteDebitKebab : null);
+                                                                        $deleteDebitUrl = ($deleteDebitResolved && $billIdValue !== '' && $debitNoteIdValue !== '') ? route($deleteDebitResolved, [$billIdValue, $debitNoteIdValue]) : '#';
+                                                                        $deleteDebitGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BIL, 'delete_debit_note_route_unavailable') ?? 'Delete debit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $deleteDebitFormId = 'debit-note-delete-form-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
+                                                                        $deleteDebitLinkId = 'debit-note-delete-link-'.($debitNoteIdValue === '' ? 'x' : $debitNoteIdValue);
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('debit_notes/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'method'            => 'DELETE',
@@ -226,7 +257,7 @@
                                                                         title="{{ __('Delete') }}"
                                                                         data-confirm="{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                         data-confirm-yes="document.getElementById('{{ $deleteDebitFormId }}').submit();">
-                                                                            <i class="ti ti-trash text-white"></i>
+                                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                         </a>
                                                                     {!! Collective\Html\FormFacade::close() !!}
                                                                 </div>
@@ -237,125 +268,27 @@
 
                                                 @push(StacksConstants::ADM_SCR_PG)
                                                     <script defer>
-                                                        (() => {
-                                                            try {
-                                                                const bindGuardClick = (el, fallbackMsg) => {
-                                                                    try {
-                                                                        if (!el) { return; }
-                                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
-                                                                        el.setAttribute('data-listener-active','true');
-                                                                        el.addEventListener('click',(e) => {
-                                                                            try {
-                                                                                const href = el.getAttribute('href') ?? '#';
-                                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
-                                                                                if (url !== '#' && href !== '#') { return; }
-                                                                                e.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? fallbackMsg;
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route','true');
-                                                                            } catch (err) {}
-                                                                        });
-                                                                    } catch (err) {}
-                                                                };
-
-                                                                const bindGuardForm = (fm, fallbackMsg) => {
-                                                                    try {
-                                                                        if (!fm) { return; }
-                                                                        if (fm.getAttribute('data-submit-guarded') === 'true') { return; }
-                                                                        fm.setAttribute('data-submit-guarded','true');
-                                                                        fm.addEventListener('submit',(e) => {
-                                                                            try {
-                                                                                const action = fm.getAttribute('action') ?? '#';
-                                                                                const url = fm.getAttribute('data-url') ?? action ?? '#';
-                                                                                if (url !== '#' && action !== '#') { return; }
-                                                                                e.preventDefault();
-                                                                                const msg = fm.getAttribute('data-guard-msg') ?? fallbackMsg;
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                fm.setAttribute('data-failed-route','true');
-                                                                            } catch (err) {}
-                                                                        });
-                                                                    } catch (err) {}
-                                                                };
-
-                                                                bindGuardClick(
-                                                                    document.getElementById('{{ $billShowLinkId }}'),
-                                                                    'Show bill route is unavailable. Please contact technical support or your domain administrator.'
-                                                                );
-
-                                                                @can('edit debit note')
-                                                                    bindGuardClick(
-                                                                        document.getElementById('{{ $editDebitLinkId }}'),
-                                                                        'Edit debit note route is unavailable. Please contact technical support or your domain administrator.'
-                                                                    );
-                                                                @endcan
-
-                                                                @can('delete debit note')
-                                                                    bindGuardClick(
-                                                                        document.getElementById('{{ $deleteDebitLinkId }}'),
-                                                                        'Delete debit note route is unavailable. Please contact technical support or your domain administrator.'
-                                                                    );
-                                                                    bindGuardForm(
-                                                                        document.getElementById('{{ $deleteDebitFormId }}'),
-                                                                        'Delete debit note route is unavailable. Please contact technical support or your domain administrator.'
-                                                                    );
-                                                                @endcan
-                                                            } catch (err) {}
-                                                        })();
+                                                        window.RouteGuard?.guardById?.('{{ $billShowLinkId }}');
+                                                        @can('edit debit note')
+                                                            window.RouteGuard?.guardById?.('{{ $editDebitLinkId }}');
+                                                        @endcan
+                                                        @can('delete debit note')
+                                                            window.RouteGuard?.guardById?.('{{ $deleteDebitLinkId }}');
+                                                            window.RouteGuard?.guardFormSubmit?.('{{ $deleteDebitFormId }}');
+                                                        @endcan
                                                     </script>
                                                 @endpush
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="6" class="text-center">{{ __('No debit notes found for this bill.') }}</td>
+                                                <td colspan="6" class="{{ VC::TXCT }}">{{ __('No debit notes found for this bill.') }}</td>
                                             </tr>
                                         @endif
                                     @endforeach
                                 @endif
                                 @unless($__shown)
                                     <tr>
-                                        <td colspan="6" class="text-center">{{ __('No debit notes found.') }}</td>
+                                        <td colspan="6" class="{{ VC::TXCT }}">{{ __('No debit notes found.') }}</td>
                                     </tr>
                                 @endunless
                             </tbody>

@@ -1,20 +1,37 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $updateRoute = Route::has(VW::APR.'.update')
-        ? route(VW::APR.'.update', $appraisal->id)
-        : '#';
-    $formId = 'appraisal-update-form';
-    $updateMsg = Utility::fetchLinkMessage(
-        $lang,
-        VW::APR,
-        'appraisal_update_route_unavailable'
-    ) ?? 'Appraisal update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$updateRoute ??= '#';
+	$formId ??= 'appraisal-update-form';
+	$updateMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$updateRoute = (Route::has(VW::APR . '.update') && isset($appraisal?->id))
+			? (route(VW::APR . '.update', $appraisal->id) ?? '#')
+			: '#';
+		$updateMsg = Utility::fetchLinkMessage($lang, VW::APR, 'appraisal_update_route_unavailable')
+			?? 'Appraisal update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in appraisals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in appraisals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in appraisals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($appraisal) && isset($appraisal?->id))
@@ -73,7 +90,7 @@
             const dataClientLocalized = 'data-client-localized';
             const dataGuardMsg = 'data-guard-msg';
             const langSessionKey = 'erp-np-lang';
-          
+
             const getLocalizedMessage = (msgKey, el) => {
               let msg = errFb;
               if (
@@ -102,7 +119,7 @@
               }
               return msg;
             };
-          
+
             const showError = message => {
               try {
                 let container = document.querySelector('#bootstrap-toast-container');
@@ -145,7 +162,7 @@
                 alert(message);
               }
             };
-          
+
             let errorMessage = '';
             const onErrorPointerUp = () => {
               if (errorMessage) {
@@ -164,7 +181,7 @@
                 }
               }
             }).observe(document.body, { childList: true, subtree: true });
-          
+
             document.addEventListener('DOMContentLoaded', () => {
               const branchEl = document.getElementById('branch');
               const empEl    = document.getElementById('employee');
@@ -172,7 +189,7 @@
               const branchIds   = '{{ $appraisal->branch }}';
               const employeeId  = '{{ $appraisal->employee }}';
               const appraisalId = '{{ $appraisal->id }}';
-          
+
               if (branchEl && branchEl.dataset.listenerAttached !== 'true') {
                 branchEl.dataset.listenerAttached = 'true';
                 branchEl.addEventListener('change', onBranchChange);
@@ -185,7 +202,7 @@
                   }));
                 }).observe(document.body, { childList: true, subtree: true });
               }
-          
+
               if (empEl && empEl.dataset.listenerAttached !== 'true') {
                 empEl.dataset.listenerAttached = 'true';
                 empEl.addEventListener('change', onEmployeeChange);
@@ -198,12 +215,12 @@
                   }));
                 }).observe(document.body, { childList: true, subtree: true });
               }
-          
+
               // initial load
               onBranchChange.call({ value: branchIds });
               loadStars(employeeId, appraisalId);
             });
-          
+
             function onBranchChange() {
               const branchId = this.value ?? '';
               try {
@@ -236,12 +253,12 @@
                 errorMessage = getLocalizedMessage('employee_fetch_unavailable', document.getElementById('branch') || document.body);
               }
             }
-          
+
             function onEmployeeChange() {
               const empId = this.value ?? '';
               loadStars(empId);
             }
-          
+
             function loadStars(empId, appId = null) {
               try {
                 const routeName = appId ? '{{ route(VW::APR . '.' . VW::EMP . ".star1") }}' : '{{ route(VW::APR . '.' . VW::EMP . ".star") }}';
@@ -270,9 +287,9 @@
 @else
     <div class="modal-body">
         <div class="row">
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ C::ALERT }} {{ C::ALERT_DANGER }}">
-                    <h4 class="text-danger">{{ __('No Appraisal found') }}</h4>
+                    <h4 class="{{ VC::TX_DNG }}">{{ __('No Appraisal found') }}</h4>
                     <p>{{ __('The appraisal data is invalid or not found. Please refresh the page and try again.') }}</p>
                 </div>
             </div>

@@ -1,46 +1,43 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants as PM,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route, Storage};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user() ?? null;
-    $canFetchLang = is_callable([Utility::class,'fetchUserLang']);
-    $lang = $canFetchLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-    $canGetFile = is_callable([Utility::class,'getFile']);
-    $canUserDate = $user && is_callable([$user,'dateFormat']);
-    $logo = $canGetFile ? Utility::getFile('uploads/avatar/') : '';
-    $profiles = $canGetFile ? Utility::getFile('uploads/job/profile/') : '';
-    $areYouSure = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','are_you_sure') : 'Are You Sure?') ?? __('Are You Sure?');
-    $irreversible = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','irreversible_action') : 'This action can not be undone. Do you want to continue?') ?? __('This action can not be undone. Do you want to continue?');
+    try {
+$user = Auth::user() ?? null;
+        $canFetchLang = is_callable([Utility::class,'fetchUserLang']);
+        $lang = $canFetchLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        $canGetFile = is_callable([Utility::class,'getFile']);
+        $canUserDate = $user && is_callable([$user,'dateFormat']);
+        $logo = $canGetFile ? Utility::getFile('uploads/avatar/') : '';
+        $profiles = $canGetFile ? Utility::getFile('uploads/job/profile/') : '';
+        $areYouSure = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','are_you_sure') : 'Are You Sure?') ?? __('Are You Sure?');
+        $irreversible = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','irreversible_action') : 'This action can not be undone. Do you want to continue?') ?? __('This action can not be undone. Do you want to continue?');
+    } catch (\Throwable $e) {
+        \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(EL::ADM)
 @section(YD::ADM_PG_TTL)
     {{ __('Job Application Details') }}
 @endsection
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item"><a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}">{{ __('Dashboard') }}</a></li>
+    <li class="{{ VC::BCI }}"><a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}">{{ __('Dashboard') }}</a></li>
     @php
-        $jbIndexBase        = VW::JB_APL.'.index';
-        $jbIndexKebab       = Str::kebab($jbIndexBase);
-        $jbIndexResolved    = Route::has($jbIndexBase) ? $jbIndexBase : (Route::has($jbIndexKebab) ? $jbIndexKebab : null);
-        $jbIndexUrl         = $jbIndexResolved ? route($jbIndexResolved) : '#';
-        $jbIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::JB_APL, 'index_job_application_route_unavailable')
-                                ?? 'Job application index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
+        try {
+            $jbIndexBase        = VW::JB_APL.'.index';
+            $jbIndexKebab       = Str::kebab($jbIndexBase);
+            $jbIndexResolved    = Route::has($jbIndexBase) ? $jbIndexBase : (Route::has($jbIndexKebab) ? $jbIndexKebab : null);
+            $jbIndexUrl         = $jbIndexResolved ? route($jbIndexResolved) : '#';
+            $jbIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::JB_APL, 'index_job_application_route_unavailable')
+                                    ?? 'Job application index route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
         <a
             id="bc-job-application-index-link"
             href="{{ $jbIndexUrl }}"
             data-url="{{ $jbIndexUrl }}"
-            data-guard-msg="{{ $jbIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($jbIndexGuardMsg) }}"
             data-sv-localized="true"
         >
             {{ __('Job Application') }}
@@ -49,32 +46,36 @@
     @push(ST::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/jobs/applications/indexShow.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{ __('Job Application Details') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Job Application Details') }}</li>
 @endsection
 @push(ST::ADM_CSS)
     <style>@import url({{ asset('css/font-awesome.css') }});</style>
 @endpush
 @section(YD::ADM_CTT)
     <div class="row">
-        <div class="col-md-6">
+        <div class="{{ VC::CM6 }}">
             <div class="card job-create">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="row">
-                        <div class="col-auto"><h6 class="text-muted">{{ __('Basic Details') }}</h6></div>
-                        <div class="col float-end">
-                            <ul class="list-inline mb-0">
+                        <div class="{{ VC::C_AT }}"><h6 class="{{ VC::TXT_MT }}">{{ __('Basic Details') }}</h6></div>
+                        <div class="col {{ VC::FEND }}">
+                            <ul class="list-inline {{ VC::MB0 }}">
                                 @can('delete job application')
-                                    <li class="list-inline-item float-end">
+                                    <li class="list-inline-item {{ VC::FEND }}">
                                         @php
-                                            $applicationIdStr          = (string) data_get($jobApplication ?? null, 'id', '');
-                                            $archiveBase               = VW::JB.'.application.archive';
-                                            $archiveKebab              = Str::kebab($archiveBase);
-                                            $archiveResolved           = Route::has($archiveBase) ? $archiveBase : (Route::has($archiveKebab) ? $archiveKebab : null);
-                                            $archiveUrl                = ($archiveResolved && $applicationIdStr !== '') ? route($archiveResolved, $applicationIdStr) : '#';
-                                            $archiveFormId             = 'archive-form-'.($applicationIdStr !== '' ? $applicationIdStr : 'x');
-                                            $archiveLinkId             = 'archive-link-'.($applicationIdStr !== '' ? $applicationIdStr : 'x');
-                                            $archiveGuard              = Utility::fetchLinkMessage($lang, VW::JB, 'application_archive_route_unavailable') ?? 'Archive job application route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $applicationIdStr          = (string) data_get($jobApplication ?? null, 'id', '');
+                                                $archiveBase               = VW::JB.'.application.archive';
+                                                $archiveKebab              = Str::kebab($archiveBase);
+                                                $archiveResolved           = Route::has($archiveBase) ? $archiveBase : (Route::has($archiveKebab) ? $archiveKebab : null);
+                                                $archiveUrl                = ($archiveResolved && $applicationIdStr !== '') ? route($archiveResolved, $applicationIdStr) : '#';
+                                                $archiveFormId             = 'archive-form-'.($applicationIdStr !== '' ? $applicationIdStr : 'x');
+                                                $archiveLinkId             = 'archive-link-'.($applicationIdStr !== '' ? $applicationIdStr : 'x');
+                                                $archiveGuard              = Utility::fetchLinkMessage($lang, VW::JB, 'application_archive_route_unavailable') ?? 'Archive job application route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         {!! Form::open([
                                             'method'            => 'DELETE',
                                             'url'               => $archiveUrl,
@@ -91,14 +92,14 @@
                                                 data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                 data-confirm-yes="document.getElementById('{{ $archiveFormId }}').submit();"
                                                 data-url="{{ $archiveUrl }}"
-                                                data-guard-msg="{{ $archiveGuard }}"
+                                                data-guard-msg="{{ base64_encode($archiveGuard) }}"
                                                 data-sv-localized="true"
                                                 {{ $archiveUrl === '#' ? 'aria-disabled=true' : '' }}
                                             >
                                                 @if((int)($jobApplication->is_archive ?? 0)===0)
-                                                    <span class="badge bg-info p-2 px-3 rounded">{{ __('Archive') }}</span>
+                                                    <span class="badge bg-info p-2 {{ VC::PX3 }} rounded">{{ __('Archive') }}</span>
                                                 @else
-                                                    <span class="badge bg-warning p-2 px-3 rounded">{{ __('UnArchive') }}</span>
+                                                    <span class="badge bg-warning p-2 {{ VC::PX3 }} rounded">{{ __('UnArchive') }}</span>
                                                 @endif
                                             </a>
                                             <script defer src="{{ asset('assets/js/routes/jobs/applications/archive.js') }}"></script>
@@ -106,15 +107,19 @@
                                     </li>
                                     @if((int)($jobApplication->is_archive ?? 0)===0)
                                         @php
-                                            $appIdStr             = (string) data_get($jobApplication ?? null, 'id', '');
-                                            $destroyBase          = VW::JB_APL.'.destroy';
-                                            $destroyKebab         = Str::kebab($destroyBase);
-                                            $destroyResolved      = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                                            $destroyUrl           = ($destroyResolved && $appIdStr !== '') ? route($destroyResolved, $appIdStr) : '#';
-                                            $formId               = 'delete-form-'.($appIdStr !== '' ? $appIdStr : 'x');
-                                            $linkId               = 'delete-link-'.($appIdStr !== '' ? $appIdStr : 'x');
-                                            $guardDestroy         = Utility::fetchLinkMessage($lang, VW::JB_APL, 'delete_job_application_unavailable') ?? 'Delete job application route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $appIdStr             = (string) data_get($jobApplication ?? null, 'id', '');
+                                                $destroyBase          = VW::JB_APL.'.destroy';
+                                                $destroyKebab         = Str::kebab($destroyBase);
+                                                $destroyResolved      = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                $destroyUrl           = ($destroyResolved && $appIdStr !== '') ? route($destroyResolved, $appIdStr) : '#';
+                                                $formId               = 'delete-form-'.($appIdStr !== '' ? $appIdStr : 'x');
+                                                $linkId               = 'delete-link-'.($appIdStr !== '' ? $appIdStr : 'x');
+                                                $guardDestroy         = Utility::fetchLinkMessage($lang, VW::JB_APL, 'delete_job_application_unavailable') ?? 'Delete job application route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <li class="list-inline-item">
                                             {{ Form::open([
                                                 'method'            => 'DELETE',
@@ -132,7 +137,7 @@
                                                     data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                     data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                     data-url="{{ $destroyUrl }}"
-                                                    data-guard-msg="{{ $guardDestroy }}"
+                                                    data-guard-msg="{{ base64_encode($guardDestroy) }}"
                                                     data-sv-localized="true"
                                                     {{ $destroyUrl === '#' ? 'aria-disabled=true' : '' }}
                                                 >
@@ -149,25 +154,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <h5 class="h4">
-                        <div class="d-flex align-items-center">
+                        <div class="{{ VC::DFL_AIC }}">
                             <div>
                                 @php
                                     $profileSrc = !empty($jobApplication->profile) ? ($profiles.$jobApplication->profile) : ($logo.'avatar.png');
-                                @endphp
-                                <a href="{{ $profileSrc }}" class="avatar rounded-circle avatar-sm">
+@endphp
+                                <a href="{{ $profileSrc }}" class="{{ VC::AV_CC_SM }}">
                                     <img src="{{ $profileSrc }}" class="hweb h-100">
                                 </a>
                             </div>
                             <div class="flex-fill ms-3">
-                                <div class="h6 text-sm mb-0">{{ $jobApplication->name ?? __('No applicant name available') }}</div>
-                                <p class="text-sm lh-140 mb-0">{{ $jobApplication->email ?? __('No email available') }}</p>
+                                <div class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ $jobApplication->name ?? __('No applicant name available') }}</div>
+                                <p class="{{ VC::TXSM }} lh-140 {{ VC::MB0 }}">{{ $jobApplication->email ?? __('No email available') }}</p>
                             </div>
                         </div>
                     </h5>
-                    <div class="py-2 mt-3 border-top">
-                        <div class="row align-items-center ms-2">
+                    <div class="{{ VC::PY2 }} {{ VC::MT3 }} border-top">
+                        <div class="{{ VC::R_ALC }} {{ VC::MS2 }}">
                             @if(Utility::isFilled($stages) ?? [])
                                 @foreach($stages as $stage)
                                     <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
@@ -182,8 +187,8 @@
                                     </div>
                                 @endforeach
                             @else
-                                <div class="col-auto">
-                                    <span class="text-muted">{{ __('No stages available') }}</span>
+                                <div class="{{ VC::C_AT }}">
+                                    <span class="{{ VC::TXT_MT }}">{{ __('No stages available') }}</span>
                                 </div>
                             @endif
                         </div>
@@ -191,29 +196,33 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="{{ VC::CM6 }}">
             <div class="card">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <div class="row">
-                        <div class="col-auto"><h6 class="text-muted">{{ __('Basic Information') }}</h6></div>
-                        <div class="col text-end">
+                        <div class="{{ VC::C_AT }}"><h6 class="{{ VC::TXT_MT }}">{{ __('Basic Information') }}</h6></div>
+                        <div class="col {{ VC::TX_END }}">
                             @php
-                                $appIdStr               = (string) data_get($jobApplication ?? null, 'id', '');
-                                $onBoardCreateBase      = VW::JB.'.on.board.create';
-                                $onBoardCreateKebab     = Str::kebab($onBoardCreateBase);
-                                $onBoardCreateResolved  = Route::has($onBoardCreateBase) ? $onBoardCreateBase : (Route::has($onBoardCreateKebab) ? $onBoardCreateKebab : null);
-                                $onBoardCreateUrl       = ($onBoardCreateResolved && $appIdStr !== '') ? route($onBoardCreateResolved, $appIdStr) : '#';
-                                $onBoardCreateGuardMsg  = Utility::fetchLinkMessage($lang, VW::JB, 'on_board_create_route_unavailable') ?? 'Add to Job OnBoard route is unavailable. Please contact technical support or your domain administrator.';
-                                $onBoardCreateLinkId    = 'job-onboard-create-btn-'.($appIdStr !== '' ? $appIdStr : 'x');
-                            @endphp
-                            <div class="col-12 text-end">
+                                try {
+                                    $appIdStr               = (string) data_get($jobApplication ?? null, 'id', '');
+                                    $onBoardCreateBase      = VW::JB.'.on.board.create';
+                                    $onBoardCreateKebab     = Str::kebab($onBoardCreateBase);
+                                    $onBoardCreateResolved  = Route::has($onBoardCreateBase) ? $onBoardCreateBase : (Route::has($onBoardCreateKebab) ? $onBoardCreateKebab : null);
+                                    $onBoardCreateUrl       = ($onBoardCreateResolved && $appIdStr !== '') ? route($onBoardCreateResolved, $appIdStr) : '#';
+                                    $onBoardCreateGuardMsg  = Utility::fetchLinkMessage($lang, VW::JB, 'on_board_create_route_unavailable') ?? 'Add to Job OnBoard route is unavailable. Please contact technical support or your domain administrator.';
+                                    $onBoardCreateLinkId    = 'job-onboard-create-btn-'.($appIdStr !== '' ? $appIdStr : 'x');
+                                } catch (\Throwable $e) {
+                                    \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
+                            <div class="{{ VC::C12 }} {{ VC::TX_END }}">
                                 <a
                                     id="{{ $onBoardCreateLinkId }}"
                                     href="{{ $onBoardCreateUrl }}"
                                     data-url="{{ $onBoardCreateUrl }}"
                                     data-title="{{ __('Add to Job OnBoard') }}"
                                     data-ajax-popup="true"
-                                    data-guard-msg="{{ $onBoardCreateGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($onBoardCreateGuardMsg) }}"
                                     data-sv-localized="true"
                                     class="{{ VC::BT_SM_PM }}"
                                     {{ $onBoardCreateUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -227,55 +236,57 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <dl class="row">
-                        <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Phone') }}</span></dt>
-                        <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->phone ?? __('No phone available') }}</span></dd>
+                        <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Phone') }}</span></dt>
+                        <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->phone ?? __('No phone available') }}</span></dd>
                         @if(!empty($jobApplication->dob))
-                            <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('DOB') }}</span></dt>
-                            <dd class="col-sm-9"><span class="text-sm">{{ $canUserDate ? $user->dateFormat($jobApplication->dob) : ($jobApplication->dob ?? __('No date available')) }}</span></dd>
+                            <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('DOB') }}</span></dt>
+                            <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $canUserDate ? $user->dateFormat($jobApplication->dob) : ($jobApplication->dob ?? __('No date available')) }}</span></dd>
                         @endif
                         @if(!empty($jobApplication->gender))
-                            <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Gender') }}</span></dt>
-                            <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->gender ?? __('No gender available') }}</span></dd>
+                            <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Gender') }}</span></dt>
+                            <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->gender ?? __('No gender available') }}</span></dd>
                         @endif
                         @if(!empty($jobApplication->country))
-                            <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Country') }}</span></dt>
-                            <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->country ?? __('No country available') }}</span></dd>
+                            <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Country') }}</span></dt>
+                            <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->country ?? __('No country available') }}</span></dd>
                         @endif
                         @if(!empty($jobApplication->state))
-                            <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('State') }}</span></dt>
-                            <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->state ?? __('No state available') }}</span></dd>
+                            <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('State') }}</span></dt>
+                            <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->state ?? __('No state available') }}</span></dd>
                         @endif
                         @if(!empty($jobApplication->city))
-                            <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('City') }}</span></dt>
-                            <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->city ?? __('No city available') }}</span></dd>
+                            <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('City') }}</span></dt>
+                            <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->city ?? __('No city available') }}</span></dd>
                         @endif
-                        <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Applied For') }}</span></dt>
-                        <dd class="col-sm-9"><span class="text-sm">{{ data_get($jobApplication,'jobs.title',__('No job title available')) }}</span></dd>
-                        <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Applied at') }}</span></dt>
-                        <dd class="col-sm-9"><span class="text-sm">{{ $canUserDate ? $user->dateFormat($jobApplication->created_at) : ((string)($jobApplication->created_at ?? __('No date available'))) }}</span></dd>
-                        <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('CV / Resume') }}</span></dt>
-                        <dd class="col-sm-9">
+                        <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Applied For') }}</span></dt>
+                        <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ data_get($jobApplication,'jobs.title',__('No job title available')) }}</span></dd>
+                        <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Applied at') }}</span></dt>
+                        <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $canUserDate ? $user->dateFormat($jobApplication->created_at) : ((string)($jobApplication->created_at ?? __('No date available'))) }}</span></dd>
+                        <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('CV / Resume') }}</span></dt>
+                        <dd class="{{ VC::CS9 }}">
                             @if(!empty($jobApplication->resume))
-                                <span class="text-sm action-btn bg-primary ms-2">
-                                    <a href="{{ asset(Storage::url('uploads/job/resume')).'/'.$jobApplication->resume }}" download target="_blank"><i class="ti ti-download text-white"></i></a>
+                                <span class="{{ VC::TXSM }} {{ VC::ACT_BTN_PRIM }}">
+                                    <a href="{{ asset(Storage::url('uploads/job/resume')).'/'.$jobApplication->resume }}" download target="_blank"><i class="{{ VC::TI_DWN }} {{ VC::TXT_WT }}"></i></a>
                                 </span>
                             @else
                                 -
                             @endif
                         </dd>
-                        <dt class="col-sm-3"><span class="h6 text-sm mb-0">{{ __('Cover Letter') }}</span></dt>
-                        <dd class="col-sm-9"><span class="text-sm">{{ $jobApplication->cover_letter ?? __('No cover letter available') }}</span></dd>
+                        <dt class="{{ VC::CS3 }}"><span class="h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Cover Letter') }}</span></dt>
+                        <dd class="{{ VC::CS9 }}"><span class="{{ VC::TXSM }}">{{ $jobApplication->cover_letter ?? __('No cover letter available') }}</span></dd>
                     </dl>
-                    <div class="rating-stars text-right">
-                        @php $r = (int)($jobApplication->rating ?? 0); @endphp
+                    <div class="rating-stars {{ VC::TX_RT }}">
+                        @php
+ $r = (int)($jobApplication->rating ?? 0);
+@endphp
                         <ul id="stars">
-                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Poor') }}" data-value="1"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Fair') }}" data-value="2"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Good') }}" data-value="3"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Excellent') }}" data-value="4"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('WOW!!!') }}" data-value="5"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Poor" data-value="1"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Fair" data-value="2"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Good" data-value="3"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Excellent" data-value="4"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="WOW!!!" data-value="5"><i class="fas fa-star fa-fw"></i></li>
                         </ul>
                     </div>
                 </div>
@@ -283,24 +294,28 @@
         </div>
     </div>
     <div class="card">
-        <div class="card-header">
+        <div class="{{ VC::CD_HD }}">
             <div class="row">
-                <div class="col"><h6 class="text-muted">{{ __('Additional Details') }}</h6></div>
-                <div class="col text-end">
+                <div class="col"><h6 class="{{ VC::TXT_MT }}">{{ __('Additional Details') }}</h6></div>
+                <div class="col {{ VC::TX_END }}">
                     @can(PM::CR_ITV_SCHD)
                         @php
-                            $jobAppIdStr             = (string) data_get($jobApplication ?? null, 'id', '');
+                            try {
+                                $jobAppIdStr             = (string) data_get($jobApplication ?? null, 'id', '');
 
-                            $itvCreateBase           = VW::ITV_SCD.'.create';
-                            $itvCreateKebab          = Str::kebab($itvCreateBase);
-                            $itvCreateResolved       = Route::has($itvCreateBase) ? $itvCreateBase : (Route::has($itvCreateKebab) ? $itvCreateKebab : null);
-                            $itvCreateUrl            = ($itvCreateResolved && $jobAppIdStr !== '') ? route($itvCreateResolved, $jobAppIdStr) : '#';
+                                $itvCreateBase           = VW::ITV_SCD.'.create';
+                                $itvCreateKebab          = Str::kebab($itvCreateBase);
+                                $itvCreateResolved       = Route::has($itvCreateBase) ? $itvCreateBase : (Route::has($itvCreateKebab) ? $itvCreateKebab : null);
+                                $itvCreateUrl            = ($itvCreateResolved && $jobAppIdStr !== '') ? route($itvCreateResolved, $jobAppIdStr) : '#';
 
-                            $itvCreateGuardMsg       = Utility::fetchLinkMessage($lang, VW::ITV_SCHD, 'create_interview_schedule_route_unavailable')
-                                                        ?? 'Create interview schedule route is unavailable. Please contact technical support or your domain administrator.';
+                                $itvCreateGuardMsg       = Utility::fetchLinkMessage($lang, VW::ITV_SCHD, 'create_interview_schedule_route_unavailable')
+                                                            ?? 'Create interview schedule route is unavailable. Please contact technical support or your domain administrator.';
 
-                            $itvCreateLinkId         = 'interview-schedule-create-btn-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
-                        @endphp
+                                $itvCreateLinkId         = 'interview-schedule-create-btn-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
+                            } catch (\Throwable $e) {
+                                \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         <a
                             id="{{ $itvCreateLinkId }}"
                             href="{{ $itvCreateUrl }}"
@@ -309,7 +324,7 @@
                             class="{{ VC::BT_SM_PM }}"
                             data-ajax-popup="true"
                             data-title="{{ __('Create New Interview Schedule') }}"
-                            data-guard-msg="{{ $itvCreateGuardMsg }}"
+                            data-guard-msg="{{ base64_encode($itvCreateGuardMsg) }}"
                             data-sv-localized="true"
                             {{ $itvCreateUrl === '#' ? 'aria-disabled=true' : '' }}
                         >
@@ -322,17 +337,19 @@
                 </div>
             </div>
         </div>
-        <div class="card-body">
-            @php $cq = json_decode($jobApplication->custom_question ?? '[]', true) ?: []; @endphp
+        <div class="{{ VC::CD_BD }}">
+            @php
+ $cq = json_decode($jobApplication->custom_question ?? '[]', true) ?: [];
+@endphp
             @if(!empty($cq))
                 <div class="{{ ViewClassNamesConstants::LG_FLSH_MB4 }}">
                     @foreach($cq as $que => $ans)
                         @if(!empty($ans))
-                            <div class="list-group-item px-0">
-                                <div class="row align-items-center">
+                            <div class="{{ VC::LG_IT }} px-0">
+                                <div class="{{ VC::R_ALC }}">
                                     <div class="col">
-                                        <a href="#!" class="d-block h6 text-sm mb-0">{{ $que }}</a>
-                                        <p class="card-text text-sm text-muted mb-0">{{ $ans }}</p>
+                                        <a href="#!" class="{{ VC::DBL }} h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ $que }}</a>
+                                        <p class="card-text {{ VC::TXSM }} {{ VC::TXT_MT }} {{ VC::MB0 }}">{{ $ans }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -341,20 +358,24 @@
                 </div>
             @endif
             @php
-                $jobAppIdStr         = (string) data_get($jobApplication ?? null, 'id', '');
-                $skillStoreBase      = VW::JB.'.application.skill.store';
-                $skillStoreKebab     = Str::kebab($skillStoreBase);
-                $skillStoreResolved  = Route::has($skillStoreBase) ? $skillStoreBase : (Route::has($skillStoreKebab) ? $skillStoreKebab : null);
-                $skillStoreUrl       = ($skillStoreResolved && $jobAppIdStr !== '') ? route($skillStoreResolved, $jobAppIdStr) : '#';
-                $skillFormId         = 'job-application-skill-store-form-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
-                $skillGuardMsg       = Utility::fetchLinkMessage($lang, VW::JB, 'application_skill_store_route_unavailable') ?? 'Store job application skill route is unavailable. Please contact technical support or your domain administrator.';
-                $noteStoreBase       = VW::JB.'.application.note.store';
-                $noteStoreKebab      = Str::kebab($noteStoreBase);
-                $noteStoreResolved   = Route::has($noteStoreBase) ? $noteStoreBase : (Route::has($noteStoreKebab) ? $noteStoreKebab : null);
-                $noteStoreUrl        = ($noteStoreResolved && $jobAppIdStr !== '') ? route($noteStoreResolved, $jobAppIdStr) : '#';
-                $noteFormId          = 'job-application-note-store-form-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
-                $noteGuardMsg        = Utility::fetchLinkMessage($lang, VW::JB, 'application_note_store_route_unavailable') ?? 'Store job application note route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $jobAppIdStr         = (string) data_get($jobApplication ?? null, 'id', '');
+                    $skillStoreBase      = VW::JB.'.application.skill.store';
+                    $skillStoreKebab     = Str::kebab($skillStoreBase);
+                    $skillStoreResolved  = Route::has($skillStoreBase) ? $skillStoreBase : (Route::has($skillStoreKebab) ? $skillStoreKebab : null);
+                    $skillStoreUrl       = ($skillStoreResolved && $jobAppIdStr !== '') ? route($skillStoreResolved, $jobAppIdStr) : '#';
+                    $skillFormId         = 'job-application-skill-store-form-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
+                    $skillGuardMsg       = Utility::fetchLinkMessage($lang, VW::JB, 'application_skill_store_route_unavailable') ?? 'Store job application skill route is unavailable. Please contact technical support or your domain administrator.';
+                    $noteStoreBase       = VW::JB.'.application.note.store';
+                    $noteStoreKebab      = Str::kebab($noteStoreBase);
+                    $noteStoreResolved   = Route::has($noteStoreBase) ? $noteStoreBase : (Route::has($noteStoreKebab) ? $noteStoreKebab : null);
+                    $noteStoreUrl        = ($noteStoreResolved && $jobAppIdStr !== '') ? route($noteStoreResolved, $jobAppIdStr) : '#';
+                    $noteFormId          = 'job-application-note-store-form-'.($jobAppIdStr !== '' ? $jobAppIdStr : 'x');
+                    $noteGuardMsg        = Utility::fetchLinkMessage($lang, VW::JB, 'application_note_store_route_unavailable') ?? 'Store job application note route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             {{ Form::open([
                 'url'               => $skillStoreUrl,
                 'method'            => 'POST',
@@ -364,11 +385,11 @@
                 'data-sv-localized' => 'true',
             ]) }}
                 @csrf
-                <div class="form-group">
-                    <label class="form-label">{{ __('Skills') }}</label>
+                <div class="{{ VC::FM_G }}">
+                    <label class="{{ VC::FM_LB }}">{{ __('Skills') }}</label>
                     <input
                         type="text"
-                        class="form-control"
+                        class="{{ VC::FM_CT }}"
                         value="{{ $jobApplication->skill ?? '' }}"
                         data-toggle="tags"
                         name="skill"
@@ -377,8 +398,8 @@
                     />
                 </div>
                 @can('add job application skill')
-                    <div class="form-group">
-                        <input type="submit" value="{{ __('Add Skills') }}" class="btn-sm btn btn-primary">
+                    <div class="{{ VC::FM_G }}">
+                        <input type="submit" value="{{ __('Add Skills') }}" class="btn-sm {{ VC::BT_PRM }}">
                     </div>
                 @endcan
                 <script defer src="{{ asset('assets/js/routes/jobs/applications/skillStore.js') }}"></script>
@@ -392,13 +413,13 @@
                 'data-sv-localized' => 'true',
             ]) }}
                 @csrf
-                <div class="form-group">
-                    <label class="form-label">{{ __('Applicant Notes') }}</label>
-                    <textarea name="note" class="form-control" rows="3" placeholder="{{ __('Type here....') }}"></textarea>
+                <div class="{{ VC::FM_G }}">
+                    <label class="{{ VC::FM_LB }}">{{ __('Applicant Notes') }}</label>
+                    <textarea name="note" class="{{ VC::FM_CT }}" rows="3" placeholder="{{ __('Type here....') }}"></textarea>
                 </div>
                 @can('add job application note')
-                    <div class="form-group">
-                        <input type="submit" value="{{ __('Add Notes') }}" class="btn-sm btn btn-primary">
+                    <div class="{{ VC::FM_G }}">
+                        <input type="submit" value="{{ __('Add Notes') }}" class="btn-sm {{ VC::BT_PRM }}">
                     </div>
                 @endcan
                 <script defer src="{{ asset('assets/js/routes/jobs/applications/noteStore.js') }}"></script>
@@ -406,30 +427,34 @@
             <div class="{{ ViewClassNamesConstants::LG_FLSH_MB4 }}">
                 @if(Utility::isFilled($notes) ?? [])
                     @foreach($notes as $note)
-                        <div class="list-group-item px-0">
-                            <div class="row align-items-center">
+                        <div class="{{ VC::LG_IT }} px-0">
+                            <div class="{{ VC::R_ALC }}">
                                 <div class="col">
-                                    <a href="#!" class="d-block h6 text-sm mb-0">{{ data_get($note,'noteCreated.name',__('No author available')) }}</a>
-                                    <p class="card-text text-sm text-muted mb-0">{{ $note->note ?? __('No note content available') }}</p>
+                                    <a href="#!" class="{{ VC::DBL }} h6 {{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($note,'noteCreated.name',__('No author available')) }}</a>
+                                    <p class="card-text {{ VC::TXSM }} {{ VC::TXT_MT }} {{ VC::MB0 }}">{{ $note->note ?? __('No note content available') }}</p>
                                 </div>
-                                <div class="col-auto">
+                                <div class="{{ VC::C_AT }}">
                                     <a href="#" class="">{{ $canUserDate ? $user->dateFormat($note->created_at) : ((string)($note->created_at ?? __('No date available'))) }}</a>
                                 </div>
                                 @can('delete job application note')
                                     @if((int) data_get($note,'note_created') === (int) data_get($user,'id'))
-                                        <div class="action-btn bg-danger ms-2">
+                                        <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                             @php
-                                                $noteIdStr       = (string) data_get($note ?? null, 'id', '');
-                                                $destroyBase     = VW::JB.'.application.note.destroy';
-                                                $destroyKebab    = Str::kebab($destroyBase);
-                                                $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
-                                                $destroyUrl      = ($destroyResolved && $noteIdStr !== '') ? route($destroyResolved, $noteIdStr) : '#';
+                                                try {
+                                                    $noteIdStr       = (string) data_get($note ?? null, 'id', '');
+                                                    $destroyBase     = VW::JB.'.application.note.destroy';
+                                                    $destroyKebab    = Str::kebab($destroyBase);
+                                                    $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                    $destroyUrl      = ($destroyResolved && $noteIdStr !== '') ? route($destroyResolved, $noteIdStr) : '#';
 
-                                                $formId          = 'delete-form-'.($noteIdStr !== '' ? $noteIdStr : 'x');
-                                                $linkId          = 'delete-note-link-'.($noteIdStr !== '' ? $noteIdStr : 'x');
+                                                    $formId          = 'delete-form-'.($noteIdStr !== '' ? $noteIdStr : 'x');
+                                                    $linkId          = 'delete-note-link-'.($noteIdStr !== '' ? $noteIdStr : 'x');
 
-                                                $guardDestroy    = isset($guardDestroy) ? $guardDestroy : (Utility::fetchLinkMessage($lang, VW::JB, 'application_note_destroy_route_unavailable') ?? 'Delete job application note route is unavailable. Please contact technical support or your domain administrator.');
-                                            @endphp
+                                                    $guardDestroy    = isset($guardDestroy) ? $guardDestroy : (Utility::fetchLinkMessage($lang, VW::JB, 'application_note_destroy_route_unavailable') ?? 'Delete job application note route is unavailable. Please contact technical support or your domain administrator.');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('job_applications/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             {{ Form::open([
                                                     'method'            => 'DELETE',
                                                     'url'               => $destroyUrl,
@@ -447,11 +472,11 @@
                                                         data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
                                                         data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                         data-url="{{ $destroyUrl }}"
-                                                        data-guard-msg="{{ $guardDestroy }}"
+                                                        data-guard-msg="{{ base64_encode($guardDestroy) }}"
                                                         data-sv-localized="true"
                                                         {{ $destroyUrl === '#' ? 'aria-disabled=true' : '' }}
                                                     >
-                                                        <i class="ti ti-trash text-white"></i>
+                                                        <i class="{{ VC::TI_TRS_WT }}"></i>
                                                     </a>
                                                 @push(ST::ADM_SCR_PG)
                                                     <script defer src="{{ asset('assets/js/routes/jobs/applications/noteDestroy.js') }}"></script>
@@ -464,7 +489,7 @@
                         </div>
                     @endforeach
                 @else
-                    <div class="text-center text-muted">{{ __('No notes available') }}</div>
+                    <div class="{{ VC::TXCT_MT }}">{{ __('No notes available') }}</div>
                 @endif
             </div>
         </div>
@@ -520,12 +545,12 @@
                         toast.setAttribute('aria-live', 'assertive');
                         toast.setAttribute('aria-atomic', 'true');
                         toast.innerHTML = `
-                            <div class="d-flex">
+                            <div class="{{ VC::DFL }}">
                                 <div class="toast-body">${message}</div>
                                 <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
+                                        class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }
@@ -537,7 +562,7 @@
 
             try {
                 if (typeof $ === 'undefined') throw new Error();
-                
+
                 // TagsInput initialization
                 const $tags = $('[data-bs-toggle="tags"]');
                 $tags.each(function() {

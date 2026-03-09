@@ -4,12 +4,19 @@ namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{ExtendsProductServiceTable, HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Database\Factories\{ProductFactory};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 
 class Product extends Model
 {
-    use UsesUuids, HasAuditFields, ExtendsProductServiceTable;
+    use UsesUuids, HasAuditFields, ExtendsProductServiceTable, HasFactory;
+
+    protected static function newFactory(): ProductFactory
+    {
+        return ProductFactory::new();
+    }
 
     protected $table = DC::TABLE_PRD;
 

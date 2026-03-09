@@ -1,19 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        SettingsConstants as SC,
-        StacksConstants,
-        UsersConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW,
-        YieldingConstants,
-    };
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\Collection;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -34,7 +26,7 @@
             const FL_GUARD  = 'data-guard-msg';
             const LANG_KEY  = 'erp-np-lang';
             let errorMessage = '';
-            
+
             const getMsg = (key, el) => {
                 let msg = ERR_FB;
                 if (el.getAttribute(FL_CLIENT) === 'true') {
@@ -54,36 +46,11 @@
                 }
                 return msg;
             };
-            
+
             const showError = message => {
-                try {
-                let c = document.getElementById('toast-container');
-                if (!c) {
-                    c = document.createElement('div');
-                    c.id = 'toast-container';
-                    document.body.appendChild(c);
-                }
-                const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-                if (bs) {
-                    const t = document.createElement('div');
-                    t.className = 'toast';
-                    t.setAttribute('role','alert');
-                    t.setAttribute('aria-live','assertive');
-                    t.setAttribute('aria-atomic','true');
-                    const b = document.createElement('div');
-                    b.className = 'toast-body';
-                    b.textContent = message;
-                    t.appendChild(b);
-                    c.appendChild(t);
-                    bootstrap.Toast.getOrCreateInstance(t).show();
-                } else {
-                    alert(message);
-                }
-                } catch {
-                alert(message);
-                }
+                (window.RouteGuard?.showToast || (m => alert(m)))(message);
             };
-            
+
             const onUp = () => {
                 if (errorMessage) {
                 showError(errorMessage);
@@ -99,7 +66,7 @@
                 }
                 }));
             }).observe(document.body,{ childList:true, subtree:true });
-            
+
             document.addEventListener('DOMContentLoaded', () => {
                 try {
                 $('[data-plugin="dragula"]').each(function() {
@@ -152,40 +119,44 @@
     </script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Deal')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Deal')}}</li>
 @endsection
 @php
-    $ns = VW::DL;
-    $changeName = "{$ns}.change.pipeline";
-    $hasChange = Route::has($changeName);
-    $changeGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        $ns,
-        'change_pipeline_deal_route_unavailable'
-    ) ?? 'Deal change pipeline route is unavailable. Please contact technical support or your domain administrator.';
-    $listName = "{$ns}.list";
-    $hasList = Route::has($listName);
-    $listGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        $ns,
-        'deals_list_route_unavailable'
-    ) ?? 'Deal list route is unavailable. Please contact technical support or your domain administrator.';
-    $createName = "{$ns}.create";
-    $hasCreate = Route::has($createName);
-    $createGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        $ns,
-        'deals_create_route_unavailable'
-    ) ?? 'Deal create route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+        $ns = VW::DL;
+        $changeName = "{$ns}.change.pipeline";
+        $hasChange = Route::has($changeName);
+        $changeGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            $ns,
+            'change_pipeline_deal_route_unavailable'
+        ) ?? 'Deal change pipeline route is unavailable. Please contact technical support or your domain administrator.';
+        $listName = "{$ns}.list";
+        $hasList = Route::has($listName);
+        $listGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            $ns,
+            'deals_list_route_unavailable'
+        ) ?? 'Deal list route is unavailable. Please contact technical support or your domain administrator.';
+        $createName = "{$ns}.create";
+        $hasCreate = Route::has($createName);
+        $createGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            $ns,
+            'deals_create_route_unavailable'
+        ) ?? 'Deal create route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @if($hasChange)
             {{ Form::open([
                 'route'          => $changeName,
@@ -215,7 +186,7 @@
             id="deal-list-btn"
             href="{{ $hasList ? route($listName) : '#' }}"
             data-url="{{ $hasList ? route($listName) : '#' }}"
-            data-guard-msg="{{ $listGuardMsg }}"
+            data-guard-msg="{{ base64_encode($listGuardMsg) }}"
             data-size="lg"
             data-bs-toggle="tooltip"
             title="{{ __('List View') }}"
@@ -227,7 +198,7 @@
             id="deal-create-btn"
             href="{{ $hasCreate ? route($createName) : '#' }}"
             data-url="{{ $hasCreate ? route($createName) : '#' }}"
-            data-guard-msg="{{ $createGuardMsg }}"
+            data-guard-msg="{{ base64_encode($createGuardMsg) }}"
             data-size="lg"
             data-ajax-popup="true"
             data-bs-toggle="tooltip"
@@ -246,28 +217,34 @@
 @endpush
 @section(YieldingConstants::ADM_CTT)
     @php
-        if (is_array($cntDeal ?? null)) {
-            if (isset($cntDeal['total']))
-                $totals = $cntDeal;
-            else
-                $totals = ['total' => $cntDeal[0] . ' (' . ($cntDeal[1] ?? '') . ')'];
-        } else {
-            $currencySymbol = $settings[SC::CR_SB] ?? '';
-            $position = $settings[SC::CR_SB_P] ?? '';
-            $amount = '99999999999999999999999';
-            if ($position === 'pre')
-                $total = $currencySymbol . $amount;
-            elseif ($position === 'pos')
-                $total = $amount . ' ' . $currencySymbol;
-            else
-                $total = $amount;
-            $totals = [...$totals, 'total' => $total];
+        try {
+            if (is_array($cntDeal ?? null)) {
+                if (isset($cntDeal['total']))
+                    $totals = $cntDeal;
+                else
+                    $totals = ['total' => $cntDeal[0] . ' (' . ($cntDeal[1] ?? '') . ')'];
+            } else {
+                $currencySymbol = $settings[SC::CR_SB] ?? '';
+                $position = $settings[SC::CR_SB_P] ?? '';
+                $amount = '99999999999999999999999';
+                if ($position === 'pre')
+                    $total = $currencySymbol . $amount;
+                elseif ($position === 'pos')
+                    $total = $amount . ' ' . $currencySymbol;
+                else
+                    $total = $amount;
+                $totals = [...$totals, 'total' => $total];
+            }
+            $isPriceFormatAvailable = method_exists($user, 'priceFormat');
+            $stages = ($pipeline->stages ?? collect());
+            $containers = [];
+            foreach ($stages as $s) { $containers[] = 'task-list-'.$s->id; }
+        } catch (\Throwable $e) {
+            \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
-        $isPriceFormatAvailable = method_exists($user, 'priceFormat');
-        $stages = ($pipeline->stages ?? collect());
-        $containers = [];
-        foreach ($stages as $s) { $containers[] = 'task-list-'.$s->id; }
-    @endphp
+        $stages ??= collect();
+        $containers ??= [];
+@endphp
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS3 }}">
             <div class="{{ VC::CD }}">
@@ -296,7 +273,7 @@
                             <h4 class="{{ VC::MB0 }}">{{ !empty($totals['this_month']) ? $totals['this_month'] : "#NULL" }}</h4>
                         </div>
                         <div class="{{ VC::C_AT }}">
-                            <div class="theme-avatar bg-primary">
+                            <div class="theme-avatar {{ VC::BG_P }}">
                                 <i class="ti ti-layers-difference"></i>
                             </div>
                         </div>
@@ -349,16 +326,20 @@
             @if (Utility::isFilled($stages) ?? [])
                 @php
                     $isPriceFormatAvailable = method_exists($user ?? null, 'priceFormat');
-                @endphp
+@endphp
                 @foreach($stages as $stage)
                     @php
-                        $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
-                        $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
-                        $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
-                        $deals    = Utility::isFilled($dealsRaw ?? [])
-                                    ? $dealsRaw
-                                    : [];
-                    @endphp
+                        try {
+                            $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
+                            $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
+                            $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
+                            $deals    = Utility::isFilled($dealsRaw ?? [])
+                                        ? $dealsRaw
+                                        : [];
+                        } catch (\Throwable $e) {
+                            \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::C_AT }}">
                         <div class="{{ VC::CD }}">
                             <div class="{{ VC::CD }}-header">
@@ -371,28 +352,32 @@
                                 @if(!empty($deals))
                                     @foreach($deals as $deal)
                                         @php
-                                            $dealId      = $deal->id ?? uniqid('deal_');
-                                            $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
-                                            $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
-                                            $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
-                                            $labels   = Utility::isFilled($labelsRaw ?? [])  ? $labelsRaw   : [];
-                                            $productsRaw = method_exists($deal, 'products') ? ($deal->products() ?? []) : ($deal->products ?? []);
-                                            $products = Utility::isFilled($productsRaw ?? []) ? $productsRaw : [];
-                                            $sourcesRaw  = method_exists($deal, 'sources')  ? ($deal->sources()  ?? []) : ($deal->sources  ?? []);
-                                            $sources  = Utility::isFilled($sourcesRaw ?? [])  ? $sourcesRaw  : [];
-                                            $dealUsers   = is_array($deal->users ?? null) || ($deal->users ?? null) instanceof \Countable
-                                                            ? ($deal->users ?? [])
-                                                            : [];
-                                            $tasks        = $deal->tasks         ?? [];
-                                            $complete     = $deal->completeTasks ?? [];
-                                            $tasksCount   = is_countable($tasks)   ? count($tasks)   : 0;
-                                            $completeCount= is_countable($complete)? count($complete): 0;
-                                            $namespace   = VW::DL;
-                                            $showRoute   = (!empty($deal->is_active) && !empty($dealId)) ? route("{$namespace}.show", $dealId) : '#';
-                                            $showGuardMsg    = Utility::fetchLinkMessage($lang, $namespace, 'deal_show_route_unavailable')    ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
-                                            $labelsRoute = !empty($dealId) ? route("{$namespace}.labels", $dealId) : '#';
-                                            $labelsGuard     = Utility::fetchLinkMessage($lang, $namespace, 'deals_labels_route_unavailable') ?? 'Deal labels route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $dealId      = $deal->id ?? uniqid('deal_');
+                                                $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
+                                                $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
+                                                $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
+                                                $labels   = Utility::isFilled($labelsRaw ?? [])  ? $labelsRaw   : [];
+                                                $productsRaw = method_exists($deal, 'products') ? ($deal->products() ?? []) : ($deal->products ?? []);
+                                                $products = Utility::isFilled($productsRaw ?? []) ? $productsRaw : [];
+                                                $sourcesRaw  = method_exists($deal, 'sources')  ? ($deal->sources()  ?? []) : ($deal->sources  ?? []);
+                                                $sources  = Utility::isFilled($sourcesRaw ?? [])  ? $sourcesRaw  : [];
+                                                $dealUsers   = is_array($deal->users ?? null) || ($deal->users ?? null) instanceof \Countable
+                                                                ? ($deal->users ?? [])
+                                                                : [];
+                                                $tasks        = $deal->tasks         ?? [];
+                                                $complete     = $deal->completeTasks ?? [];
+                                                $tasksCount   = is_countable($tasks)   ? count($tasks)   : 0;
+                                                $completeCount= is_countable($complete)? count($complete): 0;
+                                                $namespace   = VW::DL;
+                                                $showRoute   = (!empty($deal->is_active) && !empty($dealId)) ? route("{$namespace}.show", $dealId) : '#';
+                                                $showGuardMsg    = Utility::fetchLinkMessage($lang, $namespace, 'deal_show_route_unavailable')    ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
+                                                $labelsRoute = !empty($dealId) ? route("{$namespace}.labels", $dealId) : '#';
+                                                $labelsGuard     = Utility::fetchLinkMessage($lang, $namespace, 'deals_labels_route_unavailable') ?? 'Deal labels route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="{{ VC::CD }}" data-id="{{ $dealId }}">
                                             <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
                                                 @if(!empty($labels))
@@ -400,7 +385,7 @@
                                                         @php
                                                             $lblColor = $label->color ?? 'secondary';
                                                             $lblName  = $label->name  ?? __('Label');
-                                                        @endphp
+@endphp
                                                         <div class="badge-xs badge bg-{{ $lblColor }} {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ $lblName }}</div>
                                                     @endforeach
                                                 @else
@@ -413,7 +398,7 @@
                                                         id="deal-show-btn-{{ $dealId }}"
                                                         href="{{ $showRoute }}"
                                                         data-url="{{ $showRoute }}"
-                                                        data-guard-msg="{{ $showGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($showGuardMsg) }}"
                                                         class="{{ VC::BT_OUTPM }}"
                                                     >
                                                         {{ $dealName }}
@@ -430,26 +415,7 @@
                                                                         if (url !== '#') return;
                                                                         e.preventDefault();
                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bs) {
-                                                                            const toast = document.createElement('div');
-                                                                            toast.className = 'toast';
-                                                                            toast.setAttribute('role','alert');
-                                                                            toast.setAttribute('aria-live','assertive');
-                                                                            toast.setAttribute('aria-atomic','true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toast.appendChild(body);
-                                                                            container.appendChild(toast);
-                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                        } else { alert(msg); }
+                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                     } catch {}
                                                                 });
@@ -468,15 +434,15 @@
                                                                     @php
                                                                         $editRoute   = !empty($dealId) ? route("{$namespace}.edit",   $dealId) : '#';
                                                                         $editGuard       = Utility::fetchLinkMessage($lang, $namespace, 'deals_edit_route_unavailable')   ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    @endphp
+@endphp
                                                                     <a
                                                                         id="deal-labels-btn-{{ $dealId }}"
                                                                         href="{{ $labelsRoute }}"
                                                                         data-url="{{ $labelsRoute }}"
-                                                                        data-guard-msg="{{ $labelsGuard }}"
+                                                                        data-guard-msg="{{ base64_encode($labelsGuard) }}"
                                                                         data-size="md"
                                                                         data-ajax-popup="true"
-                                                                        class="dropdown-item"
+                                                                        class="{{ VC::DRP_IT }}"
                                                                     >
                                                                         <i class="ti ti-bookmark"></i> <span>{{ __('Labels') }}</span>
                                                                     </a>
@@ -484,10 +450,10 @@
                                                                         id="deal-edit-btn-{{ $dealId }}"
                                                                         href="{{ $editRoute }}"
                                                                         data-url="{{ $editRoute }}"
-                                                                        data-guard-msg="{{ $editGuard }}"
+                                                                        data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
-                                                                        class="dropdown-item"
+                                                                        class="{{ VC::DRP_IT }}"
                                                                     >
                                                                         <i class="{{ VC::TI_PC }}"></i> <span>{{ __('Edit') }}</span>
                                                                     </a>
@@ -503,26 +469,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bs) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role','alert');
-                                                                                            toast.setAttribute('aria-live','assertive');
-                                                                                            toast.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else { alert(msg); }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         btn.setAttribute('data-failed-route','true');
                                                                                     } catch {}
                                                                                 });
@@ -539,26 +486,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bs) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role','alert');
-                                                                                            toast.setAttribute('aria-live','assertive');
-                                                                                            toast.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else { alert(msg); }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         btn.setAttribute('data-failed-route','true');
                                                                                     } catch {}
                                                                                 });
@@ -568,10 +496,14 @@
                                                                 @endcan
                                                                 @can('delete deal')
                                                                     @php
-                                                                        $destroyRouteName = VW::DL . '.destroy';
-                                                                        $destroyUrl  = !empty($dealId) ? route($destroyRouteName, $dealId) : '#';
-                                                                        $destroyGuard    = Utility::fetchLinkMessage($lang, $namespace, 'deal_destroy_route_unavailable') ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    @endphp
+                                                                        try {
+                                                                            $destroyRouteName = VW::DL . '.destroy';
+                                                                            $destroyUrl  = !empty($dealId) ? route($destroyRouteName, $dealId) : '#';
+                                                                            $destroyGuard    = Utility::fetchLinkMessage($lang, $namespace, 'deal_destroy_route_unavailable') ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     {!! Form::open([
                                                                         'route'  => [$destroyRouteName, $dealId],
                                                                         'method' => 'DELETE',
@@ -581,12 +513,12 @@
                                                                             id="delete-deal-btn-{{ $dealId }}"
                                                                             href="{{ $destroyUrl }}"
                                                                             data-url="{{ $destroyUrl }}"
-                                                                            data-guard-msg="{{ $destroyGuard }}"
-                                                                            class="dropdown-item bs-pass-para"
+                                                                            data-guard-msg="{{ base64_encode($destroyGuard) }}"
+                                                                            class="{{ VC::DRP_IT }} bs-pass-para"
                                                                             data-bs-toggle="tooltip"
                                                                             title="{{ __('Delete') }}"
                                                                         >
-                                                                            <i class="ti ti-archive"></i>
+                                                                            <i class="{{ VC::TI_ARC }}"></i>
                                                                             <span>{{ __('Delete') }}</span>
                                                                         </a>
                                                                     {!! Form::close() !!}
@@ -602,26 +534,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bs) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role','alert');
-                                                                                            toast.setAttribute('aria-live','assertive');
-                                                                                            toast.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else { alert(msg); }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                                     } catch {}
                                                                                 });
@@ -639,12 +552,12 @@
                                                 <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
                                                     <ul class="list-inline {{ VC::MB0 }}">
                                                         <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Tasks') }}">
-                                                            <i class="f-16 text-primary ti ti-list"></i>
+                                                            <i class="f-16 {{ VC::TX_PM }} {{ VC::TI_LT }}"></i>
                                                             {{ $tasksCount }}/{{ $completeCount }}
                                                         </li>
                                                     </ul>
                                                     <div class="user-group">
-                                                        <i class="text-primary ti ti-report-money"></i>
+                                                        <i class="{{ VC::TX_PM }} {{ VC::TI_RPT_MN }}"></i>
                                                         {{ $priceRaw !== null ? ($isPriceFormatAvailable ? ($user?->priceFormat($priceRaw)) : $priceRaw) : '-' }}
                                                     </div>
                                                 </div>
@@ -652,21 +565,25 @@
                                                 <div class="{{ VC::DFL_AIC_JCB }}">
                                                     <ul class="list-inline {{ VC::MB0 }}">
                                                         <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Product') }}">
-                                                            <i class="f-16 text-primary ti ti-shopping-cart"></i> {{ is_countable($products) ? count($products) : 0 }}
+                                                            <i class="f-16 {{ VC::TX_PM }} ti ti-shopping-cart"></i> {{ is_countable($products) ? count($products) : 0 }}
                                                         </li>
                                                         <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Source') }}">
-                                                            <i class="f-16 text-primary ti ti-social"></i> {{ is_countable($sources) ? count($sources) : 0 }}
+                                                            <i class="f-16 {{ VC::TX_PM }} ti ti-social"></i> {{ is_countable($sources) ? count($sources) : 0 }}
                                                         </li>
                                                     </ul>
                                                     <div class="user-group">
                                                         @if(Utility::isFilled($dealUsers))
                                                             @foreach($dealUsers as $assignee)
                                                                 @php
-                                                                    $avatar = !empty($assignee->avatar)
-                                                                        ? asset('storage/uploads/avatar/'.$assignee->avatar)
-                                                                        : asset('storage/uploads/avatar/avatar.png');
-                                                                    $assigneeName = $assignee->name ?? '';
-                                                                @endphp
+                                                                    try {
+                                                                        $avatar = !empty($assignee->avatar)
+                                                                            ? asset('storage/uploads/avatar/'.$assignee->avatar)
+                                                                            : asset('storage/uploads/avatar/avatar.png');
+                                                                        $assigneeName = $assignee->name ?? '';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('deals/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <img src="{{ $avatar }}" data-bs-toggle="tooltip" title="{{ $assigneeName }}">
                                                             @endforeach
                                                         @else

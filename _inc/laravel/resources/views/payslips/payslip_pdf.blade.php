@@ -1,62 +1,56 @@
 @php
-#payslip_pdf
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        YieldingConstants,
-        SettingsConstants,
-        StacksConstants
-    };
-    use Illuminate\Support\Facades\Auth;
+    try {
+$user = Auth::user();
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        $canGetFile = is_callable([Utility::class,'getFile']);
+        $canGetValByName = is_callable([Utility::class,'getValByName']);
+        $canPriceFormat = is_callable([$user,'priceFormat']);
+        $canDateFormat = is_callable([$user,'dateFormat']);
 
-    $user = Auth::user();
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-    $canGetFile = is_callable([Utility::class,'getFile']);
-    $canGetValByName = is_callable([Utility::class,'getValByName']);
-    $canPriceFormat = is_callable([$user,'priceFormat']);
-    $canDateFormat = is_callable([$user,'dateFormat']);
+        $logo = $canGetFile ? Utility::getFile('uploads/logo') : '';
+        $company_logo = $canGetValByName ? Utility::getValByName(SettingsConstants::CPN_LG) : '';
 
-    $logo = $canGetFile ? Utility::getFile('uploads/logo') : '';
-    $company_logo = $canGetValByName ? Utility::getValByName(SettingsConstants::CPN_LG) : '';
+        $savePdfGuard = ($canFetchMsg ? Utility::fetchLinkMessage(app()->getLocale(), 'generics', 'savepdf_unavailable') : 'Save as PDF is unavailable. Please contact technical support or your domain administrator.') ?? __('Save as PDF is unavailable. Please contact technical support or your domain administrator.');
 
-    $savePdfGuard = ($canFetchMsg ? Utility::fetchLinkMessage(app()->getLocale(), 'generics', 'savepdf_unavailable') : 'Save as PDF is unavailable. Please contact technical support or your domain administrator.') ?? __('Save as PDF is unavailable. Please contact technical support or your domain administrator.');
+        $empName = data_get($employee,'name',__('No employee name available'));
+        $empCreatedAt = data_get($employee,'created_at');
+        $salaryMonth = data_get($payslip,'salary_month');
+        $basicSalary = data_get($payslip,'gross_salary',0);
+        $netPayable = data_get($payslip,'net_payable',0);
 
-    $empName = data_get($employee,'name',__('No employee name available'));
-    $empCreatedAt = data_get($employee,'created_at');
-    $salaryMonth = data_get($payslip,'salary_month');
-    $basicSalary = data_get($payslip,'gross_salary',0);
-    $netPayable = data_get($payslip,'net_payable',0);
+        $allowances = (array) data_get($payslipDetail,'earning.allowance',[]);
+        $commissions = (array) data_get($payslipDetail,'earning.commission',[]);
+        $otherPayments = (array) data_get($payslipDetail,'earning.otherPayment',[]);
+        $overTimes = (array) data_get($payslipDetail,'earning.overTime',[]);
+        $loans = (array) data_get($payslipDetail,'deduction.loan',[]);
+        $deductions = (array) data_get($payslipDetail,'deduction.deduction',[]);
 
-    $allowances = (array) data_get($payslipDetail,'earning.allowance',[]);
-    $commissions = (array) data_get($payslipDetail,'earning.commission',[]);
-    $otherPayments = (array) data_get($payslipDetail,'earning.otherPayment',[]);
-    $overTimes = (array) data_get($payslipDetail,'earning.overTime',[]);
-    $loans = (array) data_get($payslipDetail,'deduction.loan',[]);
-    $deductions = (array) data_get($payslipDetail,'deduction.deduction',[]);
+        $totalEarning = (float) data_get($payslipDetail,'totalEarning',0);
+        $totalDeduction = (float) data_get($payslipDetail,'totalDeduction',0);
 
-    $totalEarning = (float) data_get($payslipDetail,'totalEarning',0);
-    $totalDeduction = (float) data_get($payslipDetail,'totalDeduction',0);
-
-    $companyName = $canGetValByName ? (Utility::getValByName('company_name') ?? '') : '';
-    $companyAddr = $canGetValByName ? (Utility::getValByName('company_address') ?? '') : '';
-    $companyCity = $canGetValByName ? (Utility::getValByName('company_city') ?? '') : '';
-    $companyState = $canGetValByName ? (Utility::getValByName('company_state') ?? '') : '';
-    $companyZip = $canGetValByName ? (Utility::getValByName('company_zipcode') ?? '') : '';
+        $companyName = $canGetValByName ? (Utility::getValByName('company_name') ?? '') : '';
+        $companyAddr = $canGetValByName ? (Utility::getValByName('company_address') ?? '') : '';
+        $companyCity = $canGetValByName ? (Utility::getValByName('company_city') ?? '') : '';
+        $companyState = $canGetValByName ? (Utility::getValByName('company_state') ?? '') : '';
+        $companyZip = $canGetValByName ? (Utility::getValByName('company_zipcode') ?? '') : '';
+    } catch (\Throwable $e) {
+        \Log::error('payslips/payslip_pdf — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Payslip') }}
 @endsection
 @section(YieldingConstants::ADM_CTT)
-    <div class="main-content">
-        <div class="text-md-right mb-2">
-            <a href="#" class="btn btn-warning" data-action="save-pdf" data-guard-msg="{{ $savePdfGuard }}" data-sv-localized="true"><span class="fa fa-download"></span></a>
+    <div class="{{ VC::MCTT }}">
+        <div class="text-md-right {{ VC::MB2 }}">
+            <a href="#" class="btn btn-warning" data-action="save-pdf" data-guard-msg="{{ base64_encode($savePdfGuard) }}" data-sv-localized="true"><span class="fa fa-download"></span></a>
         </div>
         <div class="col-8">
             <div class="invoice" id="printableArea">
                 <div class="invoice-print">
                     <div class="row">
-                        <div class="col-lg-12">
+                        <div class="{{ VC::CL12 }}">
                             <div class="invoice-title">
                                 <h4>{{ __('Payslip') }}</h4>
                                 <div class="invoice-number">
@@ -65,14 +59,14 @@
                             </div>
                             <hr>
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="{{ VC::CM6 }}">
                                     <address>
                                         <strong>{{ __('Name') }} :</strong> {{ $empName }}<br>
                                         <strong>{{ __('Position') }} :</strong> {{ __('Employee') }}<br>
                                         <strong>{{ __('Salary Date') }} :</strong> {{ $canDateFormat ? $user?->dateFormat($empCreatedAt) : ($empCreatedAt ?? __('No date available')) }}<br>
                                     </address>
                                 </div>
-                                <div class="col-md-6 text-md-right">
+                                <div class="{{ VC::CM6 }} text-md-right">
                                     <address>
                                         <strong>{{ $companyName !== '' ? $companyName : __('No company name available') }}</strong><br>
                                         {{ $companyAddr !== '' ? $companyAddr : __('No address available') }}{{ $companyCity !== '' ? ' , '.$companyCity : '' }},<br>
@@ -83,104 +77,104 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-4">
-                        <div class="col-md-12">
-                            <div class="table-responsive">
+                    <div class="row {{ VC::MT4 }}">
+                        <div class="{{ VC::CM12 }}">
+                            <div class="{{ VC::TB_RSP }}">
                                 <table class="table table-striped table-hover table-md">
                                     <tbody>
                                     <tr>
                                         <th>{{ __('Earning') }}</th>
                                         <th>{{ __('Title') }}</th>
-                                        <th class="text-end">{{ __('Amount') }}</th>
+                                        <th class="{{ VC::TX_END }}">{{ __('Amount') }}</th>
                                     </tr>
                                     <tr>
                                         <td>{{ __('Basic Salary') }}</td>
                                         <td>-</td>
-                                        <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat($basicSalary) : $basicSalary }}</td>
+                                        <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat($basicSalary) : $basicSalary }}</td>
                                     </tr>
                                     @if(Utility::isFilled($allowances) ?? [])
                                         @foreach($allowances as $allowance)
                                             <tr>
                                                 <td>{{ __('Allowance') }}</td>
                                                 <td>{{ data_get($allowance,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($allowance,'amount',0)) : (float) data_get($allowance,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($allowance,'amount',0)) : (float) data_get($allowance,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('Allowance') }}</td><td colspan="2" class="text-end">{{ __('No allowance available') }}</td></tr>
+                                        <tr><td>{{ __('Allowance') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No allowance available') }}</td></tr>
                                     @endif
                                     @if(Utility::isFilled($commissions) ?? [])
                                         @foreach($commissions as $commission)
                                             <tr>
                                                 <td>{{ __('Commission') }}</td>
                                                 <td>{{ data_get($commission,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($commission,'amount',0)) : (float) data_get($commission,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($commission,'amount',0)) : (float) data_get($commission,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('Commission') }}</td><td colspan="2" class="text-end">{{ __('No commission available') }}</td></tr>
+                                        <tr><td>{{ __('Commission') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No commission available') }}</td></tr>
                                     @endif
                                     @if(Utility::isFilled($otherPayments) ?? [])
                                         @foreach($otherPayments as $otherPayment)
                                             <tr>
                                                 <td>{{ __('Other Payment') }}</td>
                                                 <td>{{ data_get($otherPayment,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($otherPayment,'amount',0)) : (float) data_get($otherPayment,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($otherPayment,'amount',0)) : (float) data_get($otherPayment,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('Other Payment') }}</td><td colspan="2" class="text-end">{{ __('No other payment available') }}</td></tr>
+                                        <tr><td>{{ __('Other Payment') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No other payment available') }}</td></tr>
                                     @endif
                                     @if(Utility::isFilled($overTimes) ?? [])
                                         @foreach($overTimes as $overTime)
                                             <tr>
                                                 <td>{{ __('OverTime') }}</td>
                                                 <td>{{ data_get($overTime,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($overTime,'amount',0)) : (float) data_get($overTime,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($overTime,'amount',0)) : (float) data_get($overTime,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('OverTime') }}</td><td colspan="2" class="text-end">{{ __('No overtime available') }}</td></tr>
+                                        <tr><td>{{ __('OverTime') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No overtime available') }}</td></tr>
                                     @endif
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="table-responsive">
+                            <div class="{{ VC::TB_RSP }}">
                                 <table class="table table-striped table-hover table-md">
                                     <tbody>
                                     <tr>
                                         <th>{{ __('Deduction') }}</th>
                                         <th>{{ __('Title') }}</th>
-                                        <th class="text-end">{{ __('Amount') }}</th>
+                                        <th class="{{ VC::TX_END }}">{{ __('Amount') }}</th>
                                     </tr>
                                     @if(Utility::isFilled($loans) ?? [])
                                         @foreach($loans as $loan)
                                             <tr>
                                                 <td>{{ __('Loan') }}</td>
                                                 <td>{{ data_get($loan,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($loan,'amount',0)) : (float) data_get($loan,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($loan,'amount',0)) : (float) data_get($loan,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('Loan') }}</td><td colspan="2" class="text-end">{{ __('No loan deduction available') }}</td></tr>
+                                        <tr><td>{{ __('Loan') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No loan deduction available') }}</td></tr>
                                     @endif
                                     @if(Utility::isFilled($deductions) ?? [])
                                         @foreach($deductions as $deduction)
                                             <tr>
                                                 <td>{{ __('Saturation Deduction') }}</td>
                                                 <td>{{ data_get($deduction,'title',__('No title available')) }}</td>
-                                                <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($deduction,'amount',0)) : (float) data_get($deduction,'amount',0) }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $canPriceFormat ? $user?->priceFormat((float) data_get($deduction,'amount',0)) : (float) data_get($deduction,'amount',0) }}</td>
                                             </tr>
                                         @endforeach
                                     @else
-                                        <tr><td>{{ __('Saturation Deduction') }}</td><td colspan="2" class="text-end">{{ __('No saturation deduction available') }}</td></tr>
+                                        <tr><td>{{ __('Saturation Deduction') }}</td><td colspan="2" class="{{ VC::TX_END }}">{{ __('No saturation deduction available') }}</td></tr>
                                     @endif
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="row mt-4">
-                                <div class="col-lg-8"></div>
-                                <div class="col-lg-4 text-end">
+                            <div class="row {{ VC::MT4 }}">
+                                <div class="{{ VC::CL8 }}"></div>
+                                <div class="{{ VC::CL4 }} {{ VC::TX_END }}">
                                     <div class="invoice-detail-item">
                                         <div class="invoice-detail-name">{{ __('Total Earning') }}</div>
                                         <div class="invoice-detail-value">{{ $canPriceFormat ? $user?->priceFormat($totalEarning) : $totalEarning }}</div>
@@ -189,7 +183,7 @@
                                         <div class="invoice-detail-name">{{ __('Total Deduction') }}</div>
                                         <div class="invoice-detail-value">{{ $canPriceFormat ? $user?->priceFormat($totalDeduction) : $totalDeduction }}</div>
                                     </div>
-                                    <hr class="mt-2 mb-2">
+                                    <hr class="{{ VC::MT2 }} {{ VC::MB2 }}">
                                     <div class="invoice-detail-item">
                                         <div class="invoice-detail-name">{{ __('Net Salary') }}</div>
                                         <div class="invoice-detail-value invoice-detail-value-lg">{{ $canPriceFormat ? $user?->priceFormat($netPayable) : $netPayable }}</div>
@@ -201,10 +195,10 @@
                 </div>
                 <hr>
                 <div class="text-md-right">
-                    <div class="float-lg-left mb-lg-0 mb-3">
-                        <p class="mt-2">{{ __('Employee Signature') }}</p>
+                    <div class="float-lg-left mb-lg-0 {{ VC::MB3 }}">
+                        <p class="{{ VC::MT2 }}">{{ __('Employee Signature') }}</p>
                     </div>
-                    <p class="mt-2">{{ __('Paid By') }}</p>
+                    <p class="{{ VC::MT2 }}">{{ __('Paid By') }}</p>
                 </div>
             </div>
         </div>
@@ -263,9 +257,9 @@
                 node.setAttribute("aria-live", "assertive");
                 node.setAttribute("aria-atomic", "true");
                 node.innerHTML = `
-                    <div class="d-flex">
+                    <div class="{{ VC::DFL }}">
                     <div class="toast-body">${msg}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
                 `;
                 container.appendChild(node);
@@ -292,7 +286,7 @@
             } catch {
                 showErrorUI(el);
                 if (typeof html2pdf === "undefined") {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"

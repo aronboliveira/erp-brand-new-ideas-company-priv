@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use App\Traits\UsesUuids;
+use App\Traits\{UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,Model};
 
 class Location extends Model
 {
+    use HasFactory;
 	use UsesUuids;
 
 	protected $fillable = [

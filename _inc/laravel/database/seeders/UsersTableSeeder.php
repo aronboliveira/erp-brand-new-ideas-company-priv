@@ -251,7 +251,7 @@ class UsersTableSeeder extends Seeder
         $company = null;
         $pipeline = null;
         $faker = fake('pt_BR');
-        $uuids = [];
+        $uuids = [DC::DEFAULT_UUID]; // Reserve the system UUID for the SA user
         $output->writeln('');
         $output->writeln('<question>------------- ### Users Seeding ### ------------- </question>');
         try {
@@ -306,20 +306,41 @@ class UsersTableSeeder extends Seeder
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
-            $superAdmin = User::create(
-                [
+            // Ensure SA gets DC::DEFAULT_UUID so all seeded data (created_by) is visible to SA
+            $existingGhost = User::find(DC::DEFAULT_UUID);
+            if ($existingGhost) {
+                // Ghost user already exists from EnsuresSystemUser; upgrade it to SA
+                $existingGhost->forceFill([
                     UC::COL_NM => $faker->name,
-                    UC::COL_EM => 'suporte@prestech.com.br', // TODO CHANGE AFTER TESTING
-                    UC::COL_PW => Hash::make('123456789qwe.*'), // TODO CHANGE AFTER TESTING
+                    UC::COL_EM => 'suporte@prestech.com.br',
+                    UC::COL_PW => Hash::make('123456789qwe.*'),
                     UC::COL_TP => UserType::SuperAdmin->value,
                     UC::COL_LG => DC::DEFAULT_LANG,
-                    UC::COL_AV =>  $faker->imageUrl(200, 200, 'people'),
+                    UC::COL_AV => $faker->imageUrl(200, 200, 'people'),
                     UC::COL_EM_V_AT => now()->toDateTimeString(),
                     UC::COL_DPL => DC::DEFAULT_PIPELINE,
                     UC::COL_PL => DC::DEFAULT_PLAN,
                     DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
-                ]
-            );
+                ])->save();
+                $superAdmin = $existingGhost;
+            } else {
+                $superAdmin = new User(
+                    [
+                        UC::COL_NM => $faker->name,
+                        UC::COL_EM => 'suporte@prestech.com.br',
+                        UC::COL_PW => Hash::make('123456789qwe.*'),
+                        UC::COL_TP => UserType::SuperAdmin->value,
+                        UC::COL_LG => DC::DEFAULT_LANG,
+                        UC::COL_AV => $faker->imageUrl(200, 200, 'people'),
+                        UC::COL_EM_V_AT => now()->toDateTimeString(),
+                        UC::COL_DPL => DC::DEFAULT_PIPELINE,
+                        UC::COL_PL => DC::DEFAULT_PLAN,
+                        DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+                    ]
+                );
+                $superAdmin->id = DC::DEFAULT_UUID;
+                $superAdmin->save();
+            }
             $superAdmin->assignRole($superAdminRole);
             foreach (array_column(SDT::SA_PERMS, 'name') as $saPerm)
                 $superAdminRole->givePermissionTo($saPerm);
@@ -793,6 +814,43 @@ class UsersTableSeeder extends Seeder
             $output->writeln("<error>$msg</error>");
         } catch (\Throwable $e) {
             $msg = 'Unexpected error while creating Vendor role: ' . $e->getMessage();
+            Log::critical($msg, ['exception' => $e]);
+            $output->writeln("<error>$msg</error>");
+        }
+        // ── Employee Role ──────────────────────────────────────
+        try {
+            $output->writeln('<info>Creating Employee role…</info>');
+            $employeeId  = (string) Str::uuid();
+            $empIdAcc    = 0;
+            do {
+                if ($empIdAcc > 0) {
+                    $employeeId = (string) Str::uuid();
+                    $empIdAcc += 1;
+                }
+            } while (in_array($employeeId, $uuids, true));
+            $uuids[] = $employeeId;
+            $employeeRole = Role::create(
+                [
+                    'id'   => $employeeId,
+                    'name' => UserType::Employee->value,
+                    DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+                ]
+            );
+            foreach (array_column(SDT::EMP_PERMS, 'name') as $empPerm)
+                $employeeRole->givePermissionTo($empPerm);
+            $doneTime = now()->toDateTimeString();
+            $output->writeln('<info>                             Done creating employee role at '
+                . $doneTime . ' !</info>');
+        } catch (PermissionDoesNotExist $e) {
+            $msg = 'Tried to assign a nonexistent permission to Employee role: ' . $e->getMessage();
+            Log::warning($msg, ['exception' => $e]);
+            $output->writeln("<error>$msg</error>");
+        } catch (QueryException $e) {
+            $msg = 'Database error while creating Employee role: ' . $e->getMessage();
+            Log::error($msg, ['exception' => $e]);
+            $output->writeln("<error>$msg</error>");
+        } catch (\Throwable $e) {
+            $msg = 'Unexpected error while creating Employee role: ' . $e->getMessage();
             Log::critical($msg, ['exception' => $e]);
             $output->writeln("<error>$msg</error>");
         }

@@ -65,6 +65,7 @@ class TaskSeeder extends Seeder
 			}
 
 			$cap = $this->resolveCap();
+			$HARD_CAP = 4; // Hard cap to prevent excessive record creation
 			$created = 0;
 
 			$moduleCases = AppModuleType::cases();
@@ -77,7 +78,8 @@ class TaskSeeder extends Seeder
 				$projectPool = $this->sampleArray($projects, $projectPickCount);
 
 				for ($i = 0; $i < $moduleTaskCount; $i++) {
-					if ($cap > 0 && $created >= $cap) break 2;
+					if ($created >= $HARD_CAP) break 2; // Hard cap guard
+					// if ($cap > 0 && $created >= $cap) break 2;
 
 					$projectId = $projectPool !== [] ? $projectPool[array_rand($projectPool)] : null;
 					$milestoneId = $this->pickMilestoneForProject($projectId);
@@ -125,7 +127,7 @@ class TaskSeeder extends Seeder
 						DC::COL_TABLE_UPDATER => $creatorId,
 					];
 
-					$this->writelnCreate($moduleEnum, $projectId, $milestoneId, $assigneeId, $aomName, $date, $time);
+					// $this->writelnCreate($moduleEnum, $projectId, $milestoneId, $assigneeId, $aomName, $date, $time);
 
 					try {
 						Model::unguarded(function () use ($attrs): void {

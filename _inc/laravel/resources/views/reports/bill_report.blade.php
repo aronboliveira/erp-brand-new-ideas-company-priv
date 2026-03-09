@@ -1,29 +1,23 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        StacksConstants,
-        YieldingConstants,
-    };
-    use App\Models\{Bill,Invoice, Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Crypt,Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/bill_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Bill Summary')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Bill Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Bill Summary')}}</li>
 @endsection
 @push('theme-script')
     <script src="{{ asset('assets/libs/apexcharts/dist/apexcharts.min.js') }}"></script>
@@ -42,7 +36,7 @@
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
             const dataInitGuard = "data-analytics-init-bound";
-            if (!$) { try { 
+            if (!$) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -75,7 +69,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -107,7 +101,7 @@
             const initChart = () => {
             const container = qs("#chart-sales");
             if (!container) { return; }
-            if (typeof window.ApexCharts !== "function") { try { 
+            if (typeof window.ApexCharts !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -136,7 +130,7 @@
             const name = ($("#filename").val() ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { 
+                if (typeof window.html2pdf !== "function") { try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -149,7 +143,7 @@
             const initDataTable = () => {
             const table = $("#report-dataTable");
             if (!table.length) { return; }
-            if (!$.fn.DataTable) { try { 
+            if (!$.fn.DataTable) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -157,7 +151,7 @@
             } catch (_) {} scheduleInteractiveError(getMsg(table.get(0), "plugin_unavailable")); return; }
             const filename = ($("#filename").val() ?? "").toString().trim() || "export";
             let useButtons = true;
-            if (!$.fn.dataTable || !$.fn.DataTable.Buttons) { useButtons = false; try { 
+            if (!$.fn.dataTable || !$.fn.DataTable.Buttons) { useButtons = false; try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -182,7 +176,7 @@
         })();
     </script>
 @endpush
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -193,18 +187,23 @@
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $billSummaryBase       = VW::RPT.'.bill.summary';
-                            $billSummaryKebab      = Str::kebab($billSummaryBase);
-                            $billSummaryResolved   = Route::has($billSummaryBase) ? $billSummaryBase : (Route::has($billSummaryKebab) ? $billSummaryKebab : null);
-                            $billSummaryUrl        = $billSummaryResolved ? route($billSummaryResolved) : '#';
-                            $billSummaryGuardMsg   = Utility::fetchLinkMessage($lang, VW::RPT, 'bill_summary_report_unavailable') ?? 'Bill summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $billSummaryBase       = VW::RPT.'.bill.summary';
+                                $billSummaryKebab      = Str::kebab($billSummaryBase);
+                                $billSummaryResolved   = Route::has($billSummaryBase) ? $billSummaryBase : (Route::has($billSummaryKebab) ? $billSummaryKebab : null);
+                                $billSummaryUrl        = $billSummaryResolved ? route($billSummaryResolved) : '#';
+                                $billSummaryGuardMsg   = Utility::fetchLinkMessage($lang, VW::RPT, 'bill_summary_report_unavailable') ?? 'Bill summary report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/bill_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $billSummaryUrl,
@@ -214,7 +213,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
                                             <div class="btn-box">
@@ -256,14 +255,14 @@
                                             @php
                                                 $resetUrl = $billSummaryUrl;
                                                 $resetGuardMsg = $billSummaryGuardMsg;
-                                            @endphp
+@endphp
                                             <a href="{{ $resetUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-bill-summary"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
                                             data-original-title="{{ __('Reset') }}"
                                             data-url="{{ $resetUrl }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                             data-sv-localized="true"
                                             ><span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span></a>
                                         </div>
@@ -311,29 +310,16 @@
             </div>
         </div>
         <div class="{{ VC::RW }}">
-            <div class="{{ VC::CLMS4_12 }}">
-                <div class="{{ VC::CD_POS }}">
-                    <h7 class="{{ VC::RPT_TX_GR }}">{{ __('Total Bill') }}</h7>
-                    <h6 class="{{ VC::RPT_TX_DEF }}">{{ $user?->priceFormat($totalBill ?? 0) ?? number_format((float)($totalBill ?? 0),2) }}</h6>
-                </div>
-            </div>
-            <div class="{{ VC::CLMS4_12 }}">
-                <div class="{{ VC::CD_POS }}">
-                    <h7 class="{{ VC::RPT_TX_GR }}">{{ __('Total Paid') }}</h7>
-                    <h6 class="{{ VC::RPT_TX_DEF }}">{{ $user?->priceFormat($totalPaidBill ?? 0) ?? number_format((float)($totalPaidBill ?? 0),2) }}</h6>
-                </div>
-            </div>
-            <div class="{{ VC::CLMS4_12 }}">
-                <div class="{{ VC::CD_POS }}">
-                    <h7 class="{{ VC::RPT_TX_GR }}">{{ __('Total Due') }}</h7>
-                    <h6 class="{{ VC::RPT_TX_DEF }}">{{ $user?->priceFormat($totalDueBill ?? 0) ?? number_format((float)($totalDueBill ?? 0),2) }}</h6>
-                </div>
-            </div>
+            @include('reports.partials._kpi_cards', ['kpiHeading' => __('Bill Overview'), 'kpis' => [
+                ['label' => __('Total Bill'), 'value' => $user?->priceFormat($totalBill ?? 0) ?? number_format((float)($totalBill ?? 0),2), 'tone' => 'neutral'],
+                ['label' => __('Total Paid'), 'value' => $user?->priceFormat($totalPaidBill ?? 0) ?? number_format((float)($totalPaidBill ?? 0),2), 'tone' => 'positive'],
+                ['label' => __('Total Due'),  'value' => $user?->priceFormat($totalDueBill ?? 0) ?? number_format((float)($totalDueBill ?? 0),2), 'tone' => 'negative'],
+            ]])
         </div>
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}" id="bill-container">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VC::DFL_JCB }} w-100">
                             <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
                                 <li class="{{ VC::NV_IT }}"><a class="{{ VC::NV_LK }} active" id="profile-tab3" data-bs-toggle="pill" href="#summary" role="tab" aria-controls="pills-summary" aria-selected="true">{{ __('Summary') }}</a></li>
@@ -341,23 +327,24 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CS12 }}">
                                 <div class="tab-content" id="myTabContent2">
                                     <div class="tab-pane fade fade" id="bills" role="tabpanel" aria-labelledby="profile-tab3">
-                                        <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                        <table class="{{ VC::TB }} table-flush rpt-table" id="report-dataTable" role="table" aria-label="{{ __('Bills Detail') }}">
+                                            <caption class="sr-only">{{ __('Detailed list of bills with amounts, status, and payment information') }}</caption>
                                             <thead>
                                                 <tr>
-                                                    <th>{{ __('Bill') }}</th>
-                                                    <th>{{ __('Date') }}</th>
-                                                    <th>{{ __('Customer') }}</th>
-                                                    <th>{{ __('Category') }}</th>
-                                                    <th>{{ __('Status') }}</th>
-                                                    <th>{{ __('Paid Amount') }}</th>
-                                                    <th>{{ __('Due Amount') }}</th>
-                                                    <th>{{ __('Payment Date') }}</th>
-                                                    <th>{{ __('Amount') }}</th>
+                                                    <th scope="col">{{ __('Bill') }}</th>
+                                                    <th scope="col">{{ __('Date') }}</th>
+                                                    <th scope="col">{{ __('Customer') }}</th>
+                                                    <th scope="col">{{ __('Category') }}</th>
+                                                    <th scope="col">{{ __('Status') }}</th>
+                                                    <th scope="col">{{ __('Paid Amount') }}</th>
+                                                    <th scope="col">{{ __('Due Amount') }}</th>
+                                                    <th scope="col">{{ __('Payment Date') }}</th>
+                                                    <th scope="col">{{ __('Amount') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -365,23 +352,27 @@
                                                     @php
                                                         $bid = data_get($bill,'id');
                                                         $bstatus = (int) data_get($bill,'status',-1);
-                                                    @endphp
+@endphp
                                                     <tr>
                                                         @php
-                                                            $bidVal               = isset($bid) ? $bid : null;
-                                                            $encId                = $bidVal ? Crypt::encrypt($bidVal) : null;
-                                                            $billShowBase         = VW::BIL.'.show';
-                                                            $billShowKebab        = Str::kebab($billShowBase);
-                                                            $billShowResolved     = Route::has($billShowBase) ? $billShowBase : (Route::has($billShowKebab) ? $billShowKebab : null);
-                                                            $billShowParams       = $encId ? [$encId] : ['#'];
-                                                            $billShowUrl          = ($billShowResolved && $encId) ? route($billShowResolved, $billShowParams) : '#';
-                                                            $billShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::BIL, 'show_route_unavailable') ?? 'Show bill route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $bidVal               = isset($bid) ? $bid : null;
+                                                                $encId                = $bidVal ? Crypt::encrypt($bidVal) : null;
+                                                                $billShowBase         = VW::BIL.'.show';
+                                                                $billShowKebab        = Str::kebab($billShowBase);
+                                                                $billShowResolved     = Route::has($billShowBase) ? $billShowBase : (Route::has($billShowKebab) ? $billShowKebab : null);
+                                                                $billShowParams       = $encId ? [$encId] : ['#'];
+                                                                $billShowUrl          = ($billShowResolved && $encId) ? route($billShowResolved, $billShowParams) : '#';
+                                                                $billShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::BIL, 'show_route_unavailable') ?? 'Show bill route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('reports/bill_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <td class="Id">
                                                             <a href="{{ $billShowUrl }}"
                                                             class="{{ VC::BT_OUTPM }} bill-show"
                                                             data-url="{{ $billShowUrl }}"
-                                                            data-guard-msg="{{ $billShowGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($billShowGuardMsg) }}"
                                                             data-sv-localized="true">
                                                                 {{ $user?->billNumberFormat(data_get($bill,'bill_id')) ?? __('Failed to get Bill Identifier') }}
                                                             </a>
@@ -391,7 +382,7 @@
                                                         <td>{{ data_get($bill,'category.name') ?? __('No category available') }}</td>
                                                         @php
                                                             $statusClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-success'];
-                                                        @endphp
+@endphp
                                                         <td><span class="{{ VC::BDG }} {{ $statusClasses[$bstatus] ?? 'bg-secondary' }} p-2 {{ VC::PX3 }} rounded">{{ __(Bill::$statuses[$bstatus] ?? __('Unknown status')) }}</span></td>
                                                         <td>{{ $user?->priceFormat((data_get($bill,'getTotal') ? $bill->getTotal() : 0) - (data_get($bill,'getDue') ? $bill->getDue() : 0)) ?? __('Failed to get paid amount') }}</td>
                                                         <td>{{ $user?->priceFormat(data_get($bill,'getDue') ? $bill->getDue() : 0) ?? __('Failed to get due amount') }}</td>
@@ -417,4 +408,3 @@
         </div>
     </div>
 @endsection
-

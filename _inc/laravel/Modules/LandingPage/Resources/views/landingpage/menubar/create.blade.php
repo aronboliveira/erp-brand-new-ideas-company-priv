@@ -1,16 +1,18 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{ViewClassNamesConstants, ViewsConstants};
-    use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
-    $radioOptions = [
-        ['id'=>'page_content', 'value'=>'page_content', 'label'=>__('Page Content')],
-        ['id'=>'page_url',     'value'=>'page_url',     'label'=>__('Page URL')],
-    ];
-    $toggles = [
-        ['id'=>'header', 'label'=>__('Header')],
-        ['id'=>'footer', 'label'=>__('Footer')],
-        ['id'=>'login',  'label'=>__('Login')],
-    ];
+    try {
+
+        $radioOptions = [
+            ['id'=>'page_content', 'value'=>'page_content', 'label'=>__('Page Content')],
+            ['id'=>'page_url',     'value'=>'page_url',     'label'=>__('Page URL')],
+        ];
+        $toggles = [
+            ['id'=>'header', 'label'=>__('Header')],
+            ['id'=>'footer', 'label'=>__('Footer')],
+            ['id'=>'login',  'label'=>__('Login')],
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('Modules/LandingPage/Resources/views/landingpage/menubar/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {{ Form::open([
     'route'     => ViewsConstants::CST_PG . '.store',
@@ -21,8 +23,8 @@
     @csrf
     <div class="row">
         <div class="form-group col-md-12">
-            {{ Form::label(LandingPageSettingsConstants::MB_PG_NM, __('Page Name'), ['class'=>'form-label']) }}
-            {{ Form::text(LandingPageSettingsConstants::MB_PG_NM, null, ['class'=>'form-control font-style','placeholder'=>__('Enter Plan Name'),'required'=>'required']) }}
+            {{ Form::label(LPSC::MB_PG_NM, __('Page Name'), ['class'=>'form-label']) }}
+            {{ Form::text(LPSC::MB_PG_NM, null, ['class'=>'form-control font-style','placeholder'=>__('Enter Plan Name'),'required'=>'required']) }}
         </div>
         <div class="form-group col-md-12">
             @foreach($radioOptions as $opt)
@@ -46,8 +48,8 @@
             {{ Form::text('page_url', null, ['class'=>'form-control font-style','placeholder'=>__('Enter Page URL')]) }}
         </div>
         <div class="form-group col-md-12 page_content">
-            {{ Form::label(LandingPageSettingsConstants::MB_PG_CT, __('Page Content'), ['class'=>'form-label']) }}
-            {{ Form::textarea(LandingPageSettingsConstants::MB_PG_CT, null, ['class'=>'form-control summernote-simple','rows'=>5]) }}
+            {{ Form::label(LPSC::MB_PG_CT, __('Page Content'), ['class'=>'form-label']) }}
+            {{ Form::textarea(LPSC::MB_PG_CT, null, ['class'=>'form-control summernote-simple','rows'=>5]) }}
         </div>
         @foreach($toggles as $t)
             <div class="col-lg-2 col-xl-2 col-md-2">

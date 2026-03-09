@@ -1,13 +1,12 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants, StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW, YieldingConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
+	try {
+$lang = Utility::fetchUserLang();
 
-	$lang = Utility::fetchUserLang();
-
-	$dashboardResolved = Route::has('dashboard') ? 'dashboard' : (Route::has(Str::kebab('dashboard')) ? Str::kebab('dashboard') : null);
-	$dashboardUrl = $dashboardResolved ? route($dashboardResolved) : '#';
+		$dashboardResolved = Route::has('dashboard') ? 'dashboard' : (Route::has(Str::kebab('dashboard')) ? Str::kebab('dashboard') : null);
+		$dashboardUrl = $dashboardResolved ? route($dashboardResolved) : '#';
+	} catch (\Throwable $e) {
+		\Log::error('termination_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -16,22 +15,26 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-	<li class="breadcrumb-item">
+	<li class="{{ VC::BCI }}">
 		<a href="{{ $dashboardUrl }}" {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}>
 			{{ __('Dashboard') }}
 		</a>
 	</li>
-	<li class="breadcrumb-item">{{ __('Termination Type') }}</li>
+	<li class="{{ VC::BCI }}">{{ __('Termination Type') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
 	<div class="{{ VC::FEND }}">
 		@can('create termination type')
 			@php
-				$createResolved = Route::has(VW::TMN_TP . '.create') ? VW::TMN_TP . '.create' : (Route::has(Str::kebab(VW::TMN_TP . '.create')) ? Str::kebab(VW::TMN_TP . '.create') : null);
-				$createUrl = $createResolved ? route($createResolved) : '#';
-				$createGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'create_termination_type_unavailable') ?? 'Create termination type route is unavailable. Please contact technical support or your domain administrator.';
-			@endphp
+				try {
+				    $createResolved = Route::has(VW::TMN_TP . '.create') ? VW::TMN_TP . '.create' : (Route::has(Str::kebab(VW::TMN_TP . '.create')) ? Str::kebab(VW::TMN_TP . '.create') : null);
+				    $createUrl = $createResolved ? route($createResolved) : '#';
+				    $createGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'create_termination_type_unavailable') ?? 'Create termination type route is unavailable. Please contact technical support or your domain administrator.';
+				} catch (\Throwable $e) {
+				    \Log::error('termination_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+				}
+@endphp
 			<a id="terminationtype-create-link"
 			   href="{{ $createUrl }}"
 			   data-url="{{ $createUrl }}"
@@ -39,7 +42,7 @@
 			   data-title="{{ __('Create New Termination Type') }}"
 			   data-bs-toggle="tooltip"
 			   title="{{ __('Create') }}"
-			   data-guard-msg="{{ $createGuardMsg }}"
+			   data-guard-msg="{{ base64_encode($createGuardMsg) }}"
 			   data-sv-localized="true"
 			   class="{{ VC::BT_SM_PM }}">
 				<i class="{{ VC::TI_PLS }}"></i>
@@ -50,11 +53,11 @@
 
 @section(YieldingConstants::ADM_CTT)
 	<div class="row">
-		<div class="col-3">@include('layouts.hrm_setup')</div>
-		<div class="col-9">
+		<div class="{{ VC::C3 }}">@include('layouts.hrm_setup')</div>
+		<div class="{{ VC::C9 }}">
 			<div class="card">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="table datatable">
 							<thead>
 								<tr>
@@ -63,18 +66,24 @@
 								</tr>
 							</thead>
 							<tbody class="font-style">
-								@foreach(($terminationtypes ?? []) as $terminationtype)
-									@php($rowId = $terminationtype?->id)
-									<tr>
-										<td>{{ $terminationtype?->name ?? __('No termination type available') }}</td>
-										<td>
-											@can('edit termination type')
-												@php
-													$editResolved = Route::has(VW::TMN_TP . '.edit') ? VW::TMN_TP . '.edit' : (Route::has(Str::kebab(VW::TMN_TP . '.edit')) ? Str::kebab(VW::TMN_TP . '.edit') : null);
-													$editUrl = ($editResolved && $rowId) ? route($editResolved, $rowId) : '#';
-													$editGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'edit_termination_type_unavailable') ?? 'Edit termination type route is unavailable. Please contact technical support or your domain administrator.';
-													$editId = 'terminationtype-edit-link-' . $rowId;
-												@endphp
+									@foreach(($terminationtypes ?? []) as $terminationtype)
+										@php
+											$rowId = $terminationtype?->id;
+										@endphp
+										<tr>
+											<td>{{ $terminationtype?->name ?? __('No termination type available') }}</td>
+											<td>
+												@can('edit termination type')
+													@php
+														try {
+															$editResolved = Route::has(VW::TMN_TP . '.edit') ? VW::TMN_TP . '.edit' : (Route::has(Str::kebab(VW::TMN_TP . '.edit')) ? Str::kebab(VW::TMN_TP . '.edit') : null);
+															$editUrl = ($editResolved && $rowId) ? route($editResolved, $rowId) : '#';
+															$editGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'edit_termination_type_unavailable') ?? 'Edit termination type route is unavailable. Please contact technical support or your domain administrator.';
+															$editId = 'terminationtype-edit-link-' . $rowId;
+														} catch (\Throwable $e) {
+															\Log::error('termination_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+														}
+													@endphp
 												<div class="{{ VC::ACT_BTN_PRIM }}">
 													<a id="{{ $editId }}"
 													   href="{{ $editUrl }}"
@@ -83,7 +92,7 @@
 													   data-title="{{ __('Edit Termination Type') }}"
 													   data-bs-toggle="tooltip"
 													   title="{{ __('Edit') }}"
-													   data-guard-msg="{{ $editGuardMsg }}"
+													   data-guard-msg="{{ base64_encode($editGuardMsg) }}"
 													   data-sv-localized="true"
 													   class="{{ VC::BT_SM_CT }}">
 														<i class="{{ VC::TI_PC_WT }}"></i>
@@ -108,30 +117,9 @@
 																		const href = a.getAttribute('href') ?? '#';
 																		if (href !== '#') return;
 																		e.preventDefault();
-
 																		const msg = a.getAttribute('data-guard-msg') ?? 'Edit termination type route is unavailable. Please contact technical support or your domain administrator.';
-																		let container = document.getElementById('toast-container');
-																		if (!container) {
-																			container = document.createElement('div');
-																			container.id = 'toast-container';
-																			document.body.appendChild(container);
-																		}
-																		const bsLink = document.querySelector('link[href*="bootstrap"]');
-																		if (bsLink && typeof window.bootstrap !== 'undefined') {
-																			const toast = document.createElement('div');
-																			toast.className = 'toast';
-																			toast.setAttribute('role', 'alert');
-																			toast.setAttribute('aria-live', 'assertive');
-																			toast.setAttribute('aria-atomic', 'true');
-																			const body = document.createElement('div');
-																			body.className = 'toast-body';
-																			body.textContent = msg;
-																			toast.appendChild(body);
-																			container.appendChild(toast);
-																			try { window.bootstrap.Toast.getOrCreateInstance(toast).show(); } catch { alert(msg); }
-																		} else {
-																			alert(msg);
-																		}
+																		const RG = window.RouteGuard || {};
+																		(RG.showToast || (m => alert(m)))(msg);
 																		a.setAttribute('data-failed-route', 'true');
 																	} catch {}
 																});
@@ -142,12 +130,16 @@
 											@endcan
 											@can('delete termination type')
 												@php
-													$destroyResolved = Route::has(VW::TMN_TP . '.destroy') ? VW::TMN_TP . '.destroy' : (Route::has(Str::kebab(VW::TMN_TP . '.destroy')) ? Str::kebab(VW::TMN_TP . '.destroy') : null);
-													$destroyUrl = ($destroyResolved && $rowId) ? route($destroyResolved, $rowId) : '#';
-													$destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'delete_termination_type_unavailable') ?? 'Delete termination type route is unavailable. Please contact technical support or your domain administrator.';
-													$formId = 'delete-form-' . $rowId;
-													$btnId = 'delete-trigger-' . $rowId;
-												@endphp
+													try {
+													    $destroyResolved = Route::has(VW::TMN_TP . '.destroy') ? VW::TMN_TP . '.destroy' : (Route::has(Str::kebab(VW::TMN_TP . '.destroy')) ? Str::kebab(VW::TMN_TP . '.destroy') : null);
+													    $destroyUrl = ($destroyResolved && $rowId) ? route($destroyResolved, $rowId) : '#';
+													    $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TMN_TP, 'delete_termination_type_unavailable') ?? 'Delete termination type route is unavailable. Please contact technical support or your domain administrator.';
+													    $formId = 'delete-form-' . $rowId;
+													    $btnId = 'delete-trigger-' . $rowId;
+													} catch (\Throwable $e) {
+													    \Log::error('termination_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+													}
+@endphp
 												<div class="{{ VC::ACT_BTN_DNG_2 }}">
 													{!! Form::open([
 														'method'               => 'DELETE',
@@ -157,7 +149,7 @@
 														'data-guard-msg'       => $destroyGuardMsg,
 														'data-sv-localized'    => 'true',
 													]) !!}
-														<a id="{{ $btnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" 
+														<a id="{{ $btnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip"
 														 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
 														 data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
 														title="{{ __('Delete') }}">
@@ -191,28 +183,7 @@
 																		e.preventDefault();
 
 																		const msg = f.getAttribute('data-guard-msg') ?? 'Delete termination type route is unavailable. Please contact technical support or your domain administrator.';
-																		let container = document.getElementById('toast-container');
-																		if (!container) {
-																			container = document.createElement('div');
-																			container.id = 'toast-container';
-																			document.body.appendChild(container);
-																		}
-																		const bsLink = document.querySelector('link[href*="bootstrap"]');
-																		if (bsLink && typeof window.bootstrap !== 'undefined') {
-																			const toast = document.createElement('div');
-																			toast.className = 'toast';
-																			toast.setAttribute('role', 'alert');
-																			toast.setAttribute('aria-live', 'assertive');
-																			toast.setAttribute('aria-atomic', 'true');
-																			const body = document.createElement('div');
-																			body.className = 'toast-body';
-																			body.textContent = msg;
-																			toast.appendChild(body);
-																			container.appendChild(toast);
-																			try { window.bootstrap.Toast.getOrCreateInstance(toast).show(); } catch { alert(msg); }
-																		} else {
-																			alert(msg);
-																		}
+																		(window.RouteGuard?.showToast || (m => alert(m)))(msg);
 																		f.setAttribute('data-failed-route', 'true');
 																	} catch {}
 																});

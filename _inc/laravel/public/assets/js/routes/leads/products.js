@@ -1,43 +1,18 @@
 (function () {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    return;
+  }
+
   const L = "data-guard-listener";
   const DCL = "data-client-localized";
   const DGM = "data-guard-msg";
   const DSL = "data-sv-localized";
   const ERR = "# ERROR";
-  function hasBootstrapCss() {
-    try {
-      return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]',
-      );
-    } catch (_) {
-      return false;
-    }
-  }
-  function toast(msg) {
-    try {
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        let c = document.getElementById("toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const t = document.createElement("div");
-        t.className = "toast";
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = msg;
-        t.appendChild(b);
-        c.appendChild(t);
-        window.bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(msg);
-      }
-    } catch (_) {
-      alert(msg);
-    }
-  }
-  function getMsg(el, key) {
+
+  function getMsgLocal(el, key) {
     try {
       let msg = ERR;
       if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
@@ -99,7 +74,7 @@
             toast(getMsg(form, "action_unavailable"));
           }
         });
-      const obs = new MutationObserver(function () {
+      let obs = new MutationObserver(function () {
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.leadsProductsUpdate");

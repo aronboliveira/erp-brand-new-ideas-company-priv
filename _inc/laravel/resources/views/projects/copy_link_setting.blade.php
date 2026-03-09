@@ -1,16 +1,21 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Project;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Crypt,Gate,Route};
+    try {
+} catch (\Throwable $e) {
+        \Log::error('projects/copy_link_setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(isset($project) && is_object($project))
     @php
-        $projectPassword = '';
+        $projectPassword ??= '';
+        $rawPassword = data_get($project, 'password', '');
+        if (!empty($rawPassword)) {
+            try {
+                $projectPassword = base64_decode($rawPassword);
+                if (!$projectPassword) $projectPassword = '';
+            } catch (Exception $e) {
+                $projectPassword = '';
+            }
+        }
         $projectId = data_get($project, 'id');
         $encryptedProjectId = '';
         if (!empty($projectId)) {
@@ -32,22 +37,26 @@
             'expense' => __('Expense'),
             'activity' => __('Activity')
         ];
-    @endphp
+@endphp
     <div class="modal-body">
-        <div class="table-responsive">
+        <div class="{{ VC::TB_RSP }}">
             @if(isset($projectID) && !empty($projectID))
                 @php
-                    $projectCopyLinkBaseName     = ViewsConstants::PRJ.'.copy.link';
-                    $projectCopyLinkKebabName    = Str::kebab($projectCopyLinkBaseName);
-                    $projectCopyLinkResolvedName = Route::has($projectCopyLinkBaseName)
-                        ? $projectCopyLinkBaseName
-                        : (Route::has($projectCopyLinkKebabName) ? $projectCopyLinkKebabName : null);
-                    $projectIdValue              = isset($projectID) && !empty($projectID) ? $projectID : null;
-                    $projectCopyLinkRouteArray   = ($projectCopyLinkResolvedName && $projectIdValue) ? [$projectCopyLinkResolvedName, $projectIdValue] : ['#'];
-                    $projectCopyLinkUrl          = ($projectCopyLinkResolvedName && $projectIdValue) ? route($projectCopyLinkResolvedName, $projectIdValue) : '#';
-                    $projectCopyLinkGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'copy_project_link_route_unavailable') ?? 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                    $projectCopyLinkFormId       = 'project-copy-link-form';
-                @endphp
+                    try {
+                        $projectCopyLinkBaseName     = ViewsConstants::PRJ.'.copy.link';
+                        $projectCopyLinkKebabName    = Str::kebab($projectCopyLinkBaseName);
+                        $projectCopyLinkResolvedName = Route::has($projectCopyLinkBaseName)
+                            ? $projectCopyLinkBaseName
+                            : (Route::has($projectCopyLinkKebabName) ? $projectCopyLinkKebabName : null);
+                        $projectIdValue              = isset($projectID) && !empty($projectID) ? $projectID : null;
+                        $projectCopyLinkRouteArray   = ($projectCopyLinkResolvedName && $projectIdValue) ? [$projectCopyLinkResolvedName, $projectIdValue] : ['#'];
+                        $projectCopyLinkUrl          = ($projectCopyLinkResolvedName && $projectIdValue) ? route($projectCopyLinkResolvedName, $projectIdValue) : '#';
+                        $projectCopyLinkGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'copy_project_link_route_unavailable') ?? 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
+                        $projectCopyLinkFormId       = 'project-copy-link-form';
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/copy_link_setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 {!! Form::open([
                     'route'          => $projectCopyLinkRouteArray,
                     'method'         => 'post',
@@ -62,22 +71,26 @@
                 <thead class="thead-light">
                     <tr>
                         <th>{{ __('Module') }}</th>
-                        <th class="text-right">{{ __('On/Off') }}</th>
+                        <th class="{{ VC::TX_RT }}">{{ __('On/Off') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($modules as $moduleKey => $moduleLabel)
                         @php
-                            $isChecked = false;
-                            if (isset($result) && is_object($result)) {
-                                $moduleValue = data_get($result, $moduleKey, '');
-                                $isChecked = ($moduleValue === 'on');
+                            $isChecked ??= false;
+                            try {
+                                if (isset($result) && is_object($result)) {
+                                    $moduleValue = data_get($result, $moduleKey, '');
+                                    $isChecked = ($moduleValue === 'on');
+                                }
+                                $inputId = 'copy_link_' . str_replace('_', '', $moduleKey);
+                            } catch (\Throwable $e) {
+                                \Log::error('projects/copy_link_setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                             }
-                            $inputId = 'copy_link_' . str_replace('_', '', $moduleKey);
-                        @endphp
+@endphp
                         <tr>
                             <td>{{ $moduleLabel }}</td>
-                            <td class="action text-right">
+                            <td class="action {{ VC::TX_RT }}">
                                 <div class="{{ VC::FM_CHK }} form-switch">
                                     <input type="checkbox"
                                            name="{{ e($moduleKey) }}"
@@ -85,21 +98,25 @@
                                            id="{{ $inputId }}"
                                            value="on"
                                            {{ $isChecked ? 'checked="checked"' : '' }}>
-                                    <label class="custom-control-label" for="{{ $inputId }}"></label>
+                                    <label class="{{ VC::CST_LB }}" for="{{ $inputId }}"></label>
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                     <tr>
                         <td>{{ __('Password Protected') }}</td>
-                        <td class="action text-right">
+                        <td class="action {{ VC::TX_RT }}">
                             @php
-                                $isPasswordProtected = false;
-                                if (isset($result) && is_object($result)) {
-                                    $passwordProtectedValue = data_get($result, 'password_protected', '');
-                                    $isPasswordProtected = ($passwordProtectedValue === 'on');
+                                $isPasswordProtected ??= false;
+                                try {
+                                    if (isset($result) && is_object($result)) {
+                                        $passwordProtectedValue = data_get($result, 'password_protected', '');
+                                        $isPasswordProtected = ($passwordProtectedValue === 'on');
+                                    }
+                                } catch (\Throwable $e) {
+                                    \Log::error('projects/copy_link_setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                 }
-                            @endphp
+@endphp
                             <div class="{{ VC::FM_CHK }} form-switch">
                                 <input type="checkbox"
                                        name="password_protected"
@@ -107,7 +124,7 @@
                                        id="password_protected"
                                        value="on"
                                        {{ $isPasswordProtected ? 'checked="checked"' : '' }}>
-                                <label class="custom-control-label" for="password_protected"></label>
+                                <label class="{{ VC::CST_LB }}" for="password_protected"></label>
                             </div>
                         </td>
                     </tr>
@@ -137,23 +154,27 @@
                 @can('share project')
                     @if(!empty($encryptedProjectId))
                         @php
-                            $projectCopyLinkBaseName     = ViewsConstants::PRJ.'.link';
-                            $projectCopyLinkKebabName    = Str::kebab($projectCopyLinkBaseName);
-                            $projectCopyLinkResolvedName = Route::has($projectCopyLinkBaseName)
-                                ? $projectCopyLinkBaseName
-                                : (Route::has($projectCopyLinkKebabName) ? $projectCopyLinkKebabName : null);
-                            $projectIdValue              = isset($projectId) && !empty($projectId) ? $projectId : null;
-                            $encryptedProjectId          = $projectIdValue ? Crypt::encrypt($projectIdValue) : null;
-                            $projectCopyLinkUrl          = ($projectCopyLinkResolvedName && $encryptedProjectId) ? route($projectCopyLinkResolvedName, $encryptedProjectId) : '#';
-                            $projectCopyLinkGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'link_project_route_unavailable') ?? 'Link project route is unavailable. Please contact technical support or your domain administrator.';
-                            $projectCopyLinkSuccessMsg   = __('Project link copied to clipboard.');
-                            $projectCopyLinkId           = 'project-copy-link-'.($projectIdValue ?? 'x');
-                        @endphp
+                            try {
+                                $projectCopyLinkBaseName     = ViewsConstants::PRJ.'.link';
+                                $projectCopyLinkKebabName    = Str::kebab($projectCopyLinkBaseName);
+                                $projectCopyLinkResolvedName = Route::has($projectCopyLinkBaseName)
+                                    ? $projectCopyLinkBaseName
+                                    : (Route::has($projectCopyLinkKebabName) ? $projectCopyLinkKebabName : null);
+                                $projectIdValue              = isset($projectId) && !empty($projectId) ? $projectId : null;
+                                $encryptedProjectId          = $projectIdValue ? Crypt::encrypt($projectIdValue) : null;
+                                $projectCopyLinkUrl          = ($projectCopyLinkResolvedName && $encryptedProjectId) ? route($projectCopyLinkResolvedName, $encryptedProjectId) : '#';
+                                $projectCopyLinkGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'link_project_route_unavailable') ?? 'Link project route is unavailable. Please contact technical support or your domain administrator.';
+                                $projectCopyLinkSuccessMsg   = __('Project link copied to clipboard.');
+                                $projectCopyLinkId           = 'project-copy-link-'.($projectIdValue ?? 'x');
+                            } catch (\Throwable $e) {
+                                \Log::error('projects/copy_link_setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         <a href="{{ $projectCopyLinkUrl }}"
                         id="{{ $projectCopyLinkId }}"
                         class="{{ VC::BT_PRM }}"
                         data-url="{{ $projectCopyLinkUrl }}"
-                        data-guard-msg="{{ $projectCopyLinkGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($projectCopyLinkGuardMsg) }}"
                         data-success-msg="{{ $projectCopyLinkSuccessMsg }}">
                             {{ __('Copy Project') }}
                         </a>
@@ -170,28 +191,7 @@
                                             const url = l.getAttribute('data-url') || href || '#';
                                             if (href === '#' && url === '#') {
                                                 const msg = l.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role', 'alert');
-                                                    toast.setAttribute('aria-live', 'assertive');
-                                                    toast.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
+                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                 l.setAttribute('data-failed-route', 'true');
                                                 return;
                                             }
@@ -217,29 +217,8 @@
                                                     copied = true;
                                                 } catch (_) {}
                                             }
-                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             if (copied) {
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role', 'alert');
-                                                    toast.setAttribute('aria-live', 'assertive');
-                                                    toast.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = successMsg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(successMsg);
-                                                }
+                                                (window.RouteGuard?.showToast || (m => alert(m)))(successMsg);
                                             }
                                         } catch (err) {}
                                     });
@@ -256,7 +235,7 @@
         </div>
     </div>
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -285,7 +264,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
@@ -320,7 +299,7 @@ Object.keys(t).forEach(
                 toast.setAttribute("role","alert");
                 toast.setAttribute("aria-live","assertive");
                 toast.setAttribute("aria-atomic","true");
-                toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(toast);
                 }
                 const once=()=>new bootstrap.Toast(toast).show();
@@ -334,12 +313,12 @@ Object.keys(t).forEach(
             };
 
             try {
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
             const $chk = $("#password_protected");
@@ -422,28 +401,7 @@ Object.keys(t).forEach(
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                         f.setAttribute('data-failed-route', 'true');
                     } catch (err) {}
                 });
@@ -452,7 +410,7 @@ Object.keys(t).forEach(
     </script>
 @else
     <div class="modal-body">
-        <div class="alert alert-danger text-center">
+        <div class="{{ VC::ALT_DNG }} {{ VC::TXCT }}">
             {{ __('Project data is not available') }}
         </div>
     </div>

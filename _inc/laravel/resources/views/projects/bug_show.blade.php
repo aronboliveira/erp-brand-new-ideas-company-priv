@@ -1,100 +1,105 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route,Storage};
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(isset($bug) && is_object($bug))
     <div class="modal-body">
         <div class="row">
-            <div class="col-6">
-                <div class="form-group">
+            <div class="{{ VC::C6 }}">
+                <div class="{{ VC::FM_G }}">
                     <b class="{{ VC::TXSM }}">{{ __('Title') }} :</b>
                     <p class="{{ VC::MB0 }} p-0 {{ VC::TXSM }}">{{ e(data_get($bug, 'title', __('No Title'))) }}</p>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="form-group">
+            <div class="{{ VC::C6 }}">
+                <div class="{{ VC::FM_G }}">
                     <b class="{{ VC::TXSM }}">{{ __('Priority') }} :</b>
                     @php
                         $priority = data_get($bug, 'priority', '');
                         $displayPriority = !empty($priority) ? ucfirst(e($priority)) : __('No Priority');
-                    @endphp
+@endphp
                     <p class="{{ VC::MB0 }} p-0 {{ VC::TXSM }}">{{ $displayPriority }}</p>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="form-group">
+            <div class="{{ VC::C6 }}">
+                <div class="{{ VC::FM_G }}">
                     <b class="{{ VC::TXSM }}">{{ __('Created Date') }} :</b>
                     @php
                         $createdAt = data_get($bug, 'created_at', '');
                         $displayCreatedAt = !empty($createdAt) ? e($createdAt) : __('No Date');
-                    @endphp
+@endphp
                     <p class="{{ VC::MB0 }} p-0 {{ VC::TXSM }}">{{ $displayCreatedAt }}</p>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="form-group">
+            <div class="{{ VC::C6 }}">
+                <div class="{{ VC::FM_G }}">
                     <b class="{{ VC::TXSM }}">{{ __('Assign to') }} :</b>
                     @php
-                        $assignTo = data_get($bug, 'assignTo');
-                        $assigneeName = '';
-                        if (isset($assignTo) && is_object($assignTo)) {
-                            $assigneeName = data_get($assignTo, 'name', '');
+                        try {
+                            $assignTo = data_get($bug, 'assignTo');
+                            $assigneeName = '';
+                            if (isset($assignTo) && is_object($assignTo)) {
+                                $assigneeName = data_get($assignTo, 'name', '');
+                            }
+                            $displayAssignee = !empty($assigneeName) ? e($assigneeName) : __('Not Assigned');
+                        } catch (\Throwable $e) {
+                            \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                         }
-                        $displayAssignee = !empty($assigneeName) ? e($assigneeName) : __('Not Assigned');
-                    @endphp
+@endphp
                     <p class="{{ VC::MB0 }} p-0 {{ VC::TXSM }}">{{ $displayAssignee }}</p>
                 </div>
             </div>
-            <div class="col-12">
-                <div class="form-group">
+            <div class="{{ VC::C12 }}">
+                <div class="{{ VC::FM_G }}">
                     <b class="{{ VC::TXSM }}">{{ __('Description') }} :</b>
                     @php
                         $description = data_get($bug, 'description', '');
                         $displayDescription = !empty($description) ? e($description) : __('No Description');
-                    @endphp
+@endphp
                     <p class="{{ VC::MB0 }} p-0 {{ VC::TXSM }}">{{ $displayDescription }}</p>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <div class="{{ VC::C12 }}">
+                <ul class="{{ VC::NAV_TB }}" id="myTab" role="tablist">
                     <li class="nav-item {{ VC::MB3 }}">
                         <a class="{{ VC::BT_OUTPM_SM }} ms-2 active show" data-bs-toggle="tab"
                            href="#profile" role="tab" aria-selected="false">{{ __('Comments') }}</a>
                     </li>
                     <li class="nav-item {{ VC::MB3 }}">
-                        <a class="{{ VC::BT_OUTPM_SM }} ms-2" id="contact-tab" data-bs-toggle="tab" 
+                        <a class="{{ VC::BT_OUTPM_SM }} ms-2" id="contact-tab" data-bs-toggle="tab"
                            href="#contact" role="tab" aria-controls="contact" aria-selected="false">{{ __('Files') }}</a>
                     </li>
                 </ul>
                 <div class="tab-content pt-4" id="myTabContent">
                     <div class="tab-pane fade active show" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                        <div class="form-group m-0">
+                        <div class="{{ VC::FM_G }} m-0">
                             @php
-                                $commentStoreBaseName     = ViewsConstants::PRJ_BUG_CM;
-                                $commentStoreKebabName    = Str::kebab($commentStoreBaseName);
-                                $commentStoreResolvedName = Route::has($commentStoreBaseName)
-                                    ? $commentStoreBaseName
-                                    : (Route::has($commentStoreKebabName) ? $commentStoreKebabName : null);
-                                $projectIdValue           = isset($projectId) && !empty($projectId) ? $projectId : data_get($bug ?? null, 'project_id');
-                                $bugIdValue               = isset($bugId) && !empty($bugId) ? $bugId : data_get($bug ?? null, 'id');
-                                $commentStoreUrl          = ($commentStoreResolvedName && $projectIdValue && $bugIdValue) ? route($commentStoreResolvedName, [$projectIdValue, $bugIdValue]) : '#';
-                                $commentStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'store_bug_comment_route_unavailable') ?? 'Store bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                                $commentStoreFormId       = 'form-comment';
-                                $commentStoreBtnId        = 'form-comment-submit-btn';
-                            @endphp
+                                try {
+                                    $commentStoreBaseName     = ViewsConstants::PRJ_BUG_CM;
+                                    $commentStoreKebabName    = Str::kebab($commentStoreBaseName);
+                                    $commentStoreResolvedName = Route::has($commentStoreBaseName)
+                                        ? $commentStoreBaseName
+                                        : (Route::has($commentStoreKebabName) ? $commentStoreKebabName : null);
+                                    $projectIdValue           = isset($projectId) && !empty($projectId) ? $projectId : data_get($bug ?? null, 'project_id');
+                                    $bugIdValue               = isset($bugId) && !empty($bugId) ? $bugId : data_get($bug ?? null, 'id');
+                                    $commentStoreUrl          = ($commentStoreResolvedName && $projectIdValue && $bugIdValue) ? route($commentStoreResolvedName, [$projectIdValue, $bugIdValue]) : '#';
+                                    $commentStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'store_bug_comment_route_unavailable') ?? 'Store bug comment route is unavailable. Please contact technical support or your domain administrator.';
+                                    $commentStoreFormId       = 'form-comment';
+                                    $commentStoreBtnId        = 'form-comment-submit-btn';
+                                } catch (\Throwable $e) {
+                                    \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <form method="post"
                                 id="{{ $commentStoreFormId }}"
                                 action="{{ $commentStoreUrl }}"
                                 data-url="{{ $commentStoreUrl }}"
-                                data-guard-msg="{{ $commentStoreGuardMsg }}">
+                                data-guard-msg="{{ base64_encode($commentStoreGuardMsg) }}">
                                 @csrf
                                 <textarea class="{{ VC::FM_CT }}"
                                         name="comment"
@@ -102,8 +107,8 @@
                                         id="example-textarea"
                                         rows="3"
                                         required></textarea>
-                                <div class="text-end mt-1">
-                                    <div class="btn-group mb-2 ms-2 d-none d-sm-inline-block">
+                                <div class="{{ VC::TX_END }} {{ VC::MT1 }}">
+                                    <div class="btn-group {{ VC::MB2 }} {{ VC::MS2 }} d-none d-sm-inline-block">
                                         <button type="button" id="{{ $commentStoreBtnId }}" class="{{ VC::BT_SM_PM }} ms-2 {{ VC::TXT_WT }}">
                                             {{ __('Submit') }}
                                         </button>
@@ -114,22 +119,26 @@
                                 @php
                                     $comments = data_get($bug, 'comments', []);
                                     $comments = is_countable($comments) ? $comments : [];
-                                @endphp
+@endphp
                                 @if(!empty($comments) && count($comments) > 0)
                                     @foreach($comments as $comment)
                                         @if(isset($comment) && is_object($comment))
                                             @php
-                                                $commentId                 = data_get($comment ?? null, 'id');
-                                                $commentUser               = data_get($comment ?? null, 'user');
-                                                $userNameText              = isset($commentUser) && is_object($commentUser) ? e(data_get($commentUser, 'name', __('Anonymous User'))) : __('Anonymous User');
-                                                $commentText               = e(data_get($comment ?? null, 'comment', __('Could not find comment content.')));
-                                                $commentDestroyBaseName    = ViewsConstants::PRJ_BUG_CM.'.destroy';
-                                                $commentDestroyKebabName   = Str::kebab($commentDestroyBaseName);
-                                                $commentDestroyResolved    = Route::has($commentDestroyBaseName) ? $commentDestroyBaseName : (Route::has($commentDestroyKebabName) ? $commentDestroyKebabName : null);
-                                                $commentDestroyUrl         = ($commentDestroyResolved && !empty($commentId)) ? route($commentDestroyResolved, $commentId) : '#';
-                                                $commentDestroyGuardMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'delete_bug_comment_route_unavailable') ?? 'Delete bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                                                $commentDestroyLinkId      = 'comment-destroy-link-'.($commentId ?? 'x');
-                                            @endphp
+                                                try {
+                                                    $commentId                 = data_get($comment ?? null, 'id');
+                                                    $commentUser               = data_get($comment ?? null, 'user');
+                                                    $userNameText              = isset($commentUser) && is_object($commentUser) ? e(data_get($commentUser, 'name', __('Anonymous User'))) : __('Anonymous User');
+                                                    $commentText               = e(data_get($comment ?? null, 'comment', __('Could not find comment content.')));
+                                                    $commentDestroyBaseName    = ViewsConstants::PRJ_BUG_CM.'.destroy';
+                                                    $commentDestroyKebabName   = Str::kebab($commentDestroyBaseName);
+                                                    $commentDestroyResolved    = Route::has($commentDestroyBaseName) ? $commentDestroyBaseName : (Route::has($commentDestroyKebabName) ? $commentDestroyKebabName : null);
+                                                    $commentDestroyUrl         = ($commentDestroyResolved && !empty($commentId)) ? route($commentDestroyResolved, $commentId) : '#';
+                                                    $commentDestroyGuardMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'delete_bug_comment_route_unavailable') ?? 'Delete bug comment route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $commentDestroyLinkId      = 'comment-destroy-link-'.($commentId ?? 'x');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <div class="media">
                                                 <div class="media-body">
                                                     <div class="{{ VC::DFL_AIC_JCB }} align-items-end">
@@ -145,7 +154,7 @@
                                                         id="{{ $commentDestroyLinkId }}"
                                                         class="{{ VC::BT_SM_DG }} delete-comment"
                                                         data-url="{{ $commentDestroyUrl }}"
-                                                        data-guard-msg="{{ $commentDestroyGuardMsg }}">
+                                                        data-guard-msg="{{ base64_encode($commentDestroyGuardMsg) }}">
                                                             <i class="{{ VC::TI_TRS }}"></i>
                                                         </a>
                                                     </div>
@@ -164,28 +173,7 @@
                                                                 if (href !== '#' || url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = l.getAttribute('data-guard-msg') || 'Delete bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (hasBootstrap) {
-                                                                    const toast = document.createElement('div');
-                                                                    toast.className = 'toast';
-                                                                    toast.setAttribute('role', 'alert');
-                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toast.appendChild(body);
-                                                                    container.appendChild(toast);
-                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
+                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                 l.setAttribute('data-failed-route', 'true');
                                                             } catch (err) {}
                                                         });
@@ -203,38 +191,42 @@
                         </div>
                     </div>
                     <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                        <div class="form-group m-0">
+                        <div class="{{ VC::FM_G }} m-0">
                             @php
-                                $commentFileStoreBaseName     = ViewsConstants::PRJ_BUG_CM.'.file.store';
-                                $commentFileStoreKebabName    = Str::kebab($commentFileStoreBaseName);
-                                $commentFileStoreResolvedName = Route::has($commentFileStoreBaseName)
-                                    ? $commentFileStoreBaseName
-                                    : (Route::has($commentFileStoreKebabName) ? $commentFileStoreKebabName : null);
-                                $bugIdValue                   = isset($bugId) && !empty($bugId) ? $bugId : data_get($bug ?? null, 'id');
-                                $commentFileStoreUrl          = ($commentFileStoreResolvedName && $bugIdValue) ? route($commentFileStoreResolvedName, $bugIdValue) : '#';
-                                $commentFileStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'store_bug_comment_file_route_unavailable') ?? 'Store bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                                $commentFileStoreFormId       = 'form-file';
-                            @endphp
+                                try {
+                                    $commentFileStoreBaseName     = ViewsConstants::PRJ_BUG_CM.'.file.store';
+                                    $commentFileStoreKebabName    = Str::kebab($commentFileStoreBaseName);
+                                    $commentFileStoreResolvedName = Route::has($commentFileStoreBaseName)
+                                        ? $commentFileStoreBaseName
+                                        : (Route::has($commentFileStoreKebabName) ? $commentFileStoreKebabName : null);
+                                    $bugIdValue                   = isset($bugId) && !empty($bugId) ? $bugId : data_get($bug ?? null, 'id');
+                                    $commentFileStoreUrl          = ($commentFileStoreResolvedName && $bugIdValue) ? route($commentFileStoreResolvedName, $bugIdValue) : '#';
+                                    $commentFileStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'store_bug_comment_file_route_unavailable') ?? 'Store bug comment file route is unavailable. Please contact technical support or your domain administrator.';
+                                    $commentFileStoreFormId       = 'form-file';
+                                } catch (\Throwable $e) {
+                                    \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <form method="post"
                                 id="{{ $commentFileStoreFormId }}"
                                 enctype="multipart/form-data"
                                 action="{{ $commentFileStoreUrl }}"
                                 data-url="{{ $commentFileStoreUrl }}"
-                                data-guard-msg="{{ $commentFileStoreGuardMsg }}">
+                                data-guard-msg="{{ base64_encode($commentFileStoreGuardMsg) }}">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-6">
-                                        <div class="choose-file form-group">
+                                    <div class="{{ VC::C6 }}">
+                                        <div class="choose-file {{ VC::FM_G }}">
                                             <label for="file" class="{{ VC::FM_LB }}">
                                                 <div>{{ __('file here') }}</div>
                                                 <input type="file" class="{{ VC::FM_CT }}" name="file" id="file" data-filename="file_update">
                                             </label>
                                             <p class="file_update"></p>
                                         </div>
-                                        <span class="invalid-feedback" id="file-error" role="alert"></span>
+                                        <span class="{{ VC::INV_FB }}" id="file-error" role="alert"></span>
                                     </div>
                                     <div class="col-4">
-                                        <div class="btn-group ms-2 mt-4 d-none d-sm-inline-block">
+                                        <div class="btn-group {{ VC::MS2 }} {{ VC::MT4 }} d-none d-sm-inline-block">
                                             <button type="submit" class="{{ VC::BT_SM_PM }} ms-2 {{ VC::TXT_WT }}">
                                                 {{ __('Upload') }}
                                             </button>
@@ -242,32 +234,36 @@
                                     </div>
                                 </div>
                             </form>
-                            <div class="row mt-3" id="comments-file">
+                            <div class="row {{ VC::MT3 }}" id="comments-file">
                                 @php
                                     $bugFiles = data_get($bug, 'bugFiles', []);
                                     $bugFiles = is_countable($bugFiles) ? $bugFiles : [];
-                                @endphp
+@endphp
                                 @if(!empty($bugFiles) && count($bugFiles) > 0)
                                     @foreach($bugFiles as $file)
                                         @if(isset($file) && is_object($file))
                                             @php
-                                                $fileId                          = data_get($file ?? null, 'id');
-                                                $fileNameText                    = e(data_get($file ?? null, 'name', __('Unknown File')));
-                                                $fileSizeText                    = e(data_get($file ?? null, 'file_size', __('Unknown Size')));
-                                                $filePathValue                   = data_get($file ?? null, 'file', __('Unknown Path'));
-                                                $downloadUrl                     = (!empty($filePathValue) && Storage::exists('bugs/'.$filePathValue)) ? asset(Storage::url('bugs/'.$filePathValue)) : '';
-                                                $commentFileDestroyBaseName      = ViewsConstants::PRJ_BUG_CM.'.file.destroy';
-                                                $commentFileDestroyKebabName     = Str::kebab($commentFileDestroyBaseName);
-                                                $commentFileDestroyResolvedName  = Route::has($commentFileDestroyBaseName) ? $commentFileDestroyBaseName : (Route::has($commentFileDestroyKebabName) ? $commentFileDestroyKebabName : null);
-                                                $commentFileDestroyUrl           = ($commentFileDestroyResolvedName && !empty($fileId)) ? route($commentFileDestroyResolvedName, [$fileId]) : '#';
-                                                $commentFileDestroyGuardMsg      = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'delete_bug_comment_file_route_unavailable') ?? 'Delete bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                                                $commentFileDestroyLinkId        = 'comment-file-destroy-link-'.($fileId ?? 'x');
-                                            @endphp
-                                            <div class="col-8 mb-2 file-{{ $fileId }}">
+                                                try {
+                                                    $fileId                          = data_get($file ?? null, 'id');
+                                                    $fileNameText                    = e(data_get($file ?? null, 'name', __('Unknown File')));
+                                                    $fileSizeText                    = e(data_get($file ?? null, 'file_size', __('Unknown Size')));
+                                                    $filePathValue                   = data_get($file ?? null, 'file', __('Unknown Path'));
+                                                    $downloadUrl                     = (!empty($filePathValue) && Storage::exists('bugs/'.$filePathValue)) ? asset(Storage::url('bugs/'.$filePathValue)) : '';
+                                                    $commentFileDestroyBaseName      = ViewsConstants::PRJ_BUG_CM.'.file.destroy';
+                                                    $commentFileDestroyKebabName     = Str::kebab($commentFileDestroyBaseName);
+                                                    $commentFileDestroyResolvedName  = Route::has($commentFileDestroyBaseName) ? $commentFileDestroyBaseName : (Route::has($commentFileDestroyKebabName) ? $commentFileDestroyKebabName : null);
+                                                    $commentFileDestroyUrl           = ($commentFileDestroyResolvedName && !empty($fileId)) ? route($commentFileDestroyResolvedName, [$fileId]) : '#';
+                                                    $commentFileDestroyGuardMsg      = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG_CM, 'delete_bug_comment_file_route_unavailable') ?? 'Delete bug comment file route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $commentFileDestroyLinkId        = 'comment-file-destroy-link-'.($fileId ?? 'x');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('projects/bug_show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
+                                            <div class="col-8 {{ VC::MB2 }} file-{{ $fileId }}">
                                                 <h5 class="{{ VC::MT3 }} {{ VC::MB1 }} font-weight-bold {{ VC::TXSM }}">{{ $fileNameText }}</h5>
                                                 <p class="{{ VC::MB0 }} {{ VC::TXS }}">{{ $fileSizeText }}</p>
                                             </div>
-                                            <div class="col-4 mb-2 file-{{ $fileId }}">
+                                            <div class="col-4 {{ VC::MB2 }} file-{{ $fileId }}">
                                                 <div class="comment-trash" style="float: right">
                                                     @if(!empty($downloadUrl))
                                                         <a download href="{{ $downloadUrl }}" class="{{ VC::BT_SM_PM }}">
@@ -279,7 +275,7 @@
                                                     class="{{ VC::BT_SM_DG }} m-0 px-2 delete-comment-file"
                                                     data-id="{{ $fileId }}"
                                                     data-url="{{ $commentFileDestroyUrl }}"
-                                                    data-guard-msg="{{ $commentFileDestroyGuardMsg }}">
+                                                    data-guard-msg="{{ base64_encode($commentFileDestroyGuardMsg) }}">
                                                         <i class="{{ VC::TI_TRS }}"></i>
                                                     </a>
                                                 </div>
@@ -297,28 +293,7 @@
                                                                 if (href !== '#' || url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = l.getAttribute('data-guard-msg') || 'Delete bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (hasBootstrap) {
-                                                                    const toast = document.createElement('div');
-                                                                    toast.className = 'toast';
-                                                                    toast.setAttribute('role', 'alert');
-                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toast.appendChild(body);
-                                                                    container.appendChild(toast);
-                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
+                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                 l.setAttribute('data-failed-route', 'true');
                                                             } catch (err) {}
                                                         });
@@ -352,28 +327,7 @@
                             if (url !== '#' || action !== '#') return;
                             e.preventDefault();
                             const msg = f.getAttribute('data-guard-msg') || 'Store bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role', 'alert');
-                                toast.setAttribute('aria-live', 'assertive');
-                                toast.setAttribute('aria-atomic', 'true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             f.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     });
@@ -408,28 +362,7 @@
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Store bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                         f.setAttribute('data-failed-route', 'true');
                     } catch (err) {}
                 });
@@ -438,12 +371,12 @@
     </script>
 @else
     <div class="modal-body">
-        <div class="alert alert-danger text-center">
+        <div class="{{ VC::ALT_DNG }} {{ VC::TXCT }}">
             {{ __('Bug data is not available') }}
         </div>
     </div>
 @endif
 
 {{--<div class="modal-footer">--}}
-{{--    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">--}}
+{{--    <input type="button" value="{{__('Cancel')}}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">--}}
 {{--</div>--}}

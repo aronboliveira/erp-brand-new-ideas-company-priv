@@ -12,6 +12,11 @@ use App\Models\{InvoiceBankTransfer, Invoice, Order, User};
 
 class InvoiceBankTransferTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -37,9 +42,7 @@ class InvoiceBankTransferTest extends TestCase
 
 		$ibt = InvoiceBankTransfer::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $ibt->$field);
-		}
+		$this->assertFillableMatches($data, $ibt);
 	}
 
 	/**
@@ -51,9 +54,9 @@ class InvoiceBankTransferTest extends TestCase
 	{
 		$ibt = InvoiceBankTransfer::factory()->create();
 
-		$this->assertTrue($ibt->getIncrementing());
-		$this->assertSame('int', $ibt->getKeyType());
-		$this->assertIsInt($ibt->getKey());
+		$this->assertFalse($ibt->getIncrementing());
+		$this->assertSame('string', $ibt->getKeyType());
+		$this->assertIsString($ibt->getKey());
 	}
 
 	/**

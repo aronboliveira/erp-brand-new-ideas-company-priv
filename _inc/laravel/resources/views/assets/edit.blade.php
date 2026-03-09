@@ -1,28 +1,62 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $chatEnabled = Utility::getChatGPTSettings()?->{PlansConstants::COL_GPT} ?? 0;
-    $row = VC::RW;
-    $colMd6 = VC::CM6;
-    $col12 = VC::C12;
-    $formGroup = VC::FM_G;
-    $formControl = VC::FM_CT;
-    $formLabel = VC::FM_LB;
-    $formId = 'edit-account-asset-form';
-    $genLinkId = 'account-asset-generate-link';
-    $updateBase = ViewsConstants::ACC_AST . '.update';
-    $updateKebab = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl = ($updateResolved && isset($asset) && !empty($asset->id)) ? route($updateResolved, [$asset->id]) : '#';
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'update_account_asset_unavailable') ?? 'Update account asset route is unavailable. Please contact technical support or your domain administrator.';
-    $genBase = 'generate';
-    $genKebab = Str::kebab($genBase);
-    $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
-    $genUrl = $genResolved ? route($genResolved, ['account asset']) : '#';
-    $genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'generate_account_asset_unavailable') ?? 'Generate account asset route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$chatEnabled ??= 0;
+	$row ??= VC::RW;
+	$colMd6 ??= VC::CM6;
+	$col12 ??= VC::C12;
+	$formGroup ??= VC::FM_G;
+	$formControl ??= VC::FM_CT;
+	$formLabel ??= VC::FM_LB;
+	$formId ??= 'edit-account-asset-form';
+	$genLinkId ??= 'account-asset-generate-link';
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuardMsg ??= '';
+	$genBase ??= 'generate';
+	$genKebab ??= '';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$chatEnabled = Utility::getChatGPTSettings()?->{PlansConstants::COL_GPT} ?? 0;
+		$updateBase = ViewsConstants::ACC_AST . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && isset($asset) && !empty($asset->id))
+			? (route($updateResolved, [$asset->id]) ?? '#')
+			: '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'update_account_asset_unavailable')
+			?? 'Update account asset route is unavailable. Please contact technical support or your domain administrator.';
+		$genKebab = Str::kebab($genBase);
+		$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+		$genUrl = $genResolved ? (route($genResolved, ['account asset']) ?? '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'generate_account_asset_unavailable')
+			?? 'Generate account asset route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in assets/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in assets/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in assets/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($asset) && isset($asset->id))
@@ -36,7 +70,7 @@
     ]) }}
         <div class="modal-body">
             @if($chatEnabled)
-                <div class="text-end">
+                <div class="{{ VC::TX_END }}">
                     <a href="{{ $genUrl }}"
                     id="{{ $genLinkId }}"
                     class="{{ VC::BT_SM_PM }} btn-icon"
@@ -45,7 +79,7 @@
                     data-url="{{ $genUrl }}"
                     data-bs-placement="top"
                     title="{{ __('Generate with AI') }}"
-                    data-guard-msg="{{ $genGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($genGuardMsg) }}"
                     data-sv-localized="true">
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                     </a>
@@ -92,9 +126,9 @@
 @else
     <div class="modal-body">
         <div class="row">
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::ALERT }} {{ VC::ALERT_DANGER }}">
-                    <h4 class="text-danger">{{ __('No Asset found') }}</h4>
+                    <h4 class="{{ VC::TX_DNG }}">{{ __('No Asset found') }}</h4>
                     <p>{{ __('The asset data is invalid or not found. Please refresh the page and try again.') }}</p>
                 </div>
             </div>

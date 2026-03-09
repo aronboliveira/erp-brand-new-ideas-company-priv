@@ -12,6 +12,11 @@ use App\Models\{JobCategory, User};
 
 class JobCategoryTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -30,9 +35,7 @@ class JobCategoryTest extends TestCase
 
 		$category = JobCategory::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $category->$field);
-		}
+		$this->assertFillableMatches($data, $category);
 	}
 
 	/**

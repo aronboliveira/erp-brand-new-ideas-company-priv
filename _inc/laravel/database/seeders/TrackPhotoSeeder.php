@@ -45,7 +45,8 @@ class TrackPhotoSeeder extends Seeder
 			}
 
 			// Cap at 8000 total rows
-			$cap = 8000;
+			// $cap = 8000;
+			$cap = 2;
 			if ($rawTotal > $cap) {
 				$scale = $cap / $rawTotal;
 				$newTotal = 0;
@@ -118,7 +119,7 @@ class TrackPhotoSeeder extends Seeder
 						? $faker->randomElement(['new', 'queued', 'processed', 'approved', 'rejected', 'archived'])
 						: null;
 
-					$this->out->writeln("TRK_PHT create: user={$userId} track={$trackId} vis={$visibility->value} img=" . ($imgPath ? '1' : '0') . " url=" . ($url ? '1' : '0'));
+					// $this->out->writeln("TRK_PHT create: user={$userId} track={$trackId} vis={$visibility->value} img=" . ($imgPath ? '1' : '0') . " url=" . ($url ? '1' : '0'));
 
 					$m = new TrackPhoto();
 					$m->setAttribute(PJC::COL_TRK_ID, $trackId);

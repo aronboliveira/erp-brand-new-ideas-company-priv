@@ -14,11 +14,13 @@ class WarehouseProductSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const CAP = 4096;
+	// private const CAP = 4096;
+	private const CAP = 2;
 	private const LIMIT_IDS = 50000;
 	private const UNIQUE_ATTEMPTS = 24;
 	private const WRITE_EVERY = 1;
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{
@@ -59,8 +61,8 @@ class WarehouseProductSeeder extends Seeder
 				$m->setAttribute(BC::COL_PRD_ID, $productId);
 				$m->setAttribute('quantity', $qty);
 
-				if (self::WRITE_EVERY === 1)
-					$this->out->writeln("<comment>[WarehouseProductSeeder] creating wh={$warehouseId} prd={$productId} qty={$qty}</comment>");
+				// if (self::WRITE_EVERY === 1)
+				// 	$this->out->writeln("<comment>[WarehouseProductSeeder] creating wh={$warehouseId} prd={$productId} qty={$qty}</comment>");
 
 				$m->save();
 				$created++;

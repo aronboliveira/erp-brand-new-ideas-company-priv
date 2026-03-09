@@ -110,7 +110,8 @@ class AssetsSeeder extends Seeder
 		}
 
 		// Regra global do projeto: mínimo 4 * n registros (n = base entities)
-		$targetTotal = 4 * $employeeCount * $multiplier;
+		// $targetTotal = 4 * $employeeCount * $multiplier; // ORIGINAL — unbounded
+		$targetTotal = min(2, 4 * $employeeCount * $multiplier); // HARD CAP
 
 		// Amostra de 10% dos employees (no mínimo 1), considerando o multiplicador
 		$sampleSize = (int) floor($employeeCount * 0.1);
@@ -363,15 +364,15 @@ class AssetsSeeder extends Seeder
 					$purpose = fake()->sentence(8);
 
 					// Console output antes de criar
-					$output->writeln(sprintf(
-						'Criando Asset "%s" (tipo: %s, dono: %s, categoria: %s, valor: %.2f, signer: %s)',
-						$name,
-						$typeEnum->value,
-						substr($employeeId, 0, 8),
-						$categoryId ?: 'nenhuma',
-						$amount,
-						$signBy !== null ? substr($signBy, 0, 8) : 'não exigido'
-					));
+					// $output->writeln(sprintf(
+					// 	'Criando Asset "%s" (tipo: %s, dono: %s, categoria: %s, valor: %.2f, signer: %s)',
+					// 	$name,
+					// 	$typeEnum->value,
+					// 	substr($employeeId, 0, 8),
+					// 	$categoryId ?: 'nenhuma',
+					// 	$amount,
+					// 	$signBy !== null ? substr($signBy, 0, 8) : 'não exigido'
+					// ));
 
 					Asset::query()->create([
 						'serial'               => $serial,
@@ -497,15 +498,15 @@ class AssetsSeeder extends Seeder
 			$name    = ucfirst(str_replace('_', ' ', $typeEnum->value)) . ' - extra';
 			$purpose = fake()->sentence(6);
 
-			$output->writeln(sprintf(
-				'Criando Asset extra "%s" (tipo: %s, dono: %s, categoria: %s, valor: %.2f, signer: %s)',
-				$name,
-				$typeEnum->value,
-				substr($employeeId, 0, 8),
-				$categoryId ?: 'nenhuma',
-				$amount,
-				$signBy !== null ? substr($signBy, 0, 8) : 'não exigido'
-			));
+			// $output->writeln(sprintf(
+			// 	'Criando Asset extra "%s" (tipo: %s, dono: %s, categoria: %s, valor: %.2f, signer: %s)',
+			// 	$name,
+			// 	$typeEnum->value,
+			// 	substr($employeeId, 0, 8),
+			// 	$categoryId ?: 'nenhuma',
+			// 	$amount,
+			// 	$signBy !== null ? substr($signBy, 0, 8) : 'não exigido'
+			// ));
 
 			Asset::query()->create([
 				'serial'               => $serial,

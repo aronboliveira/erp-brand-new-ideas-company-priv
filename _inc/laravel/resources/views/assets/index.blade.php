@@ -1,25 +1,40 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user        = Auth::user();
-    $lang        = Utility::fetchUserLang(user: $user);
-    $profilePath = Utility::getFile('uploads/avatar/');
-    $row         = VC::RW;
-    $card        = VC::CD;
-    $btnPrimary  = VC::BT_SM_PM;
-    $btnDanger   = VC::ACT_BTN_DNG_2;
-    $flexBetween = VC::DFL_JCB;
-    $avatarSm    = VC::AV_CC_SM;
-    $tableCls    = VC::TB;
+$user ??= null;
+	$lang ??= 'en';
+	$profilePath ??= '';
+	$row ??= VC::RW;
+	$card ??= VC::CD;
+	$btnPrimary ??= VC::BT_SM_PM;
+	$btnDanger ??= VC::ACT_BTN_DNG_2;
+	$flexBetween ??= VC::DFL_JCB;
+	$avatarSm ??= VC::AV_CC_SM;
+	$tableCls ??= VC::TB;
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$profilePath = Utility::getFile('uploads/avatar/') ?? '';
+	} catch (\Error $e) {
+		Log::error('Error in assets/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in assets/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in assets/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -29,26 +44,30 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Assets') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Assets') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can(PermissionsConstants::CRT_AST)
             @php
-                $accAstCreateBase = ViewsConstants::ACC_AST.'.create';
-                $accAstCreateKebab = Str::kebab($accAstCreateBase);
-                $accAstCreateResolved = Route::has($accAstCreateBase) ? $accAstCreateBase : (Route::has($accAstCreateKebab) ? $accAstCreateKebab : null);
-                $accAstCreateUrl = $accAstCreateResolved ? route($accAstCreateResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $accAstCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'create_account_asset_route_unavailable') ?? 'Create account asset route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $accAstCreateBase = ViewsConstants::ACC_AST.'.create';
+                    $accAstCreateKebab = Str::kebab($accAstCreateBase);
+                    $accAstCreateResolved = Route::has($accAstCreateBase) ? $accAstCreateBase : (Route::has($accAstCreateKebab) ? $accAstCreateKebab : null);
+                    $accAstCreateUrl = $accAstCreateResolved ? route($accAstCreateResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $accAstCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'create_account_asset_route_unavailable') ?? 'Create account asset route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('assets/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 href="{{ $accAstCreateUrl }}"
                 data-url="{{ $accAstCreateUrl }}"
@@ -58,13 +77,14 @@
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
                 class="{{ $btnPrimary }} account-asset-create"
-                data-guard-msg="{{ $accAstCreateGuardMsg }}"
+                data-guard-msg="{{ base64_encode($accAstCreateGuardMsg) }}"
                 data-sv-localized="true"
             >
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
-                <script src="{{ asset('assets/js/routes/accountAssets/create.js') }}" defer></script>
+                <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
+                <script defer src="{{ asset('assets/js/routes/accountAssets/create.js') }}"></script>
             @endpush
         @endcan
     </div>
@@ -72,10 +92,10 @@
 
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ $row }}">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="{{ $card }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ $tableCls }} datatable">
                             <thead>
                                 <tr>
@@ -96,7 +116,7 @@
                                             <div class="avatar-group">
                                                 @php
                                                     $__users = (is_object($asset) && method_exists($asset,'users')) ? ($asset->users(data_get($asset,'employee_id')) ?? collect()) : collect();
-                                                @endphp
+@endphp
                                                 @forelse($__users as $usr)
                                                     <a href="#" class="avatar {{ $avatarSm ?? '' }}">
                                                         <img alt="{{ data_get($usr,'name') ?: __('No user name available') }}"
@@ -105,7 +125,7 @@
                                                             title="{{ data_get($usr,'name') ?: __('No user name available') }}">
                                                     </a>
                                                 @empty
-                                                    <span class="text-muted">{{ __('No users available') }}</span>
+                                                    <span class="{{ VC::TXT_MT }}">{{ __('No users available') }}</span>
                                                 @endforelse
                                             </div>
                                         </td>
@@ -117,16 +137,20 @@
                                             <div class="{{ $flexBetween ?? '' }}">
                                                 @can(PermissionsConstants::ED_AST)
                                                     @php
-                                                        $accAstEditBase = ViewsConstants::ACC_AST.'.edit';
-                                                        $accAstEditKebab = Str::kebab($accAstEditBase);
-                                                        $accAstEditResolved = Route::has($accAstEditBase) ? $accAstEditBase : (Route::has($accAstEditKebab) ? $accAstEditKebab : null);
-                                                        $assetIdValue = data_get($asset,'id','0');
-                                                        $accAstEncryptedId = $assetIdValue ? Crypt::encrypt($assetIdValue) : null;
-                                                        $accAstEditUrl = ($accAstEditResolved && $accAstEncryptedId) ? route($accAstEditResolved, $accAstEncryptedId) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $accAstEditGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'edit_account_asset_route_unavailable') ?? 'Edit account asset route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $accAstEditAnchorId = 'account-asset-edit-'.$assetIdValue;
-                                                    @endphp
+                                                        try {
+                                                            $accAstEditBase = ViewsConstants::ACC_AST.'.edit';
+                                                            $accAstEditKebab = Str::kebab($accAstEditBase);
+                                                            $accAstEditResolved = Route::has($accAstEditBase) ? $accAstEditBase : (Route::has($accAstEditKebab) ? $accAstEditKebab : null);
+                                                            $assetIdValue = data_get($asset,'id','0');
+                                                            $accAstEncryptedId = $assetIdValue ? Crypt::encrypt($assetIdValue) : null;
+                                                            $accAstEditUrl = ($accAstEditResolved && $accAstEncryptedId) ? route($accAstEditResolved, $accAstEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $accAstEditGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'edit_account_asset_route_unavailable') ?? 'Edit account asset route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $accAstEditAnchorId = 'account-asset-edit-'.$assetIdValue;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('assets/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a
                                                         id="{{ $accAstEditAnchorId }}"
                                                         href="{{ $accAstEditUrl }}"
@@ -137,7 +161,7 @@
                                                         data-bs-toggle="tooltip"
                                                         title="{{ __('Edit') }}"
                                                         class="{{ $btnPrimary ?? '' }}"
-                                                        data-guard-msg="{{ $accAstEditGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($accAstEditGuardMsg) }}"
                                                         data-sv-localized="true"
                                                     >
                                                         <i class="{{ VC::TI_PC_WT }}"></i>
@@ -157,28 +181,7 @@
                                                                             if (url !== '#' && href !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Edit account asset route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route', 'true');
                                                                         } catch (err) {}
                                                                     });
@@ -189,19 +192,23 @@
                                                 @endcan
                                                 @can(PermissionsConstants::DEL_AST)
                                                     @php
-                                                        $accAstDestroyBase = ViewsConstants::ACC_AST.'.destroy';
-                                                        $accAstDestroyKebab = Str::kebab($accAstDestroyBase);
-                                                        $accAstDestroyResolved = Route::has($accAstDestroyBase) ? $accAstDestroyBase : (Route::has($accAstDestroyKebab) ? $accAstDestroyKebab : null);
-                                                        $assetIdValue = data_get($asset,'id','0');
-                                                        $accAstEncryptedId = $assetIdValue ? Crypt::encrypt($assetIdValue) : null;
-                                                        $accAstDestroyUrl = ($accAstDestroyResolved && $accAstEncryptedId) ? route($accAstDestroyResolved, $accAstEncryptedId) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $accAstDeleteGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'delete_account_asset_route_unavailable') ?? 'Delete account asset route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                        $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                        $accAstFormId = 'delete-account-asset-form-'.$assetIdValue;
-                                                        $accAstAnchorId = 'account-asset-delete-btn-'.$assetIdValue;
-                                                    @endphp
+                                                        try {
+                                                            $accAstDestroyBase = ViewsConstants::ACC_AST.'.destroy';
+                                                            $accAstDestroyKebab = Str::kebab($accAstDestroyBase);
+                                                            $accAstDestroyResolved = Route::has($accAstDestroyBase) ? $accAstDestroyBase : (Route::has($accAstDestroyKebab) ? $accAstDestroyKebab : null);
+                                                            $assetIdValue = data_get($asset,'id','0');
+                                                            $accAstEncryptedId = $assetIdValue ? Crypt::encrypt($assetIdValue) : null;
+                                                            $accAstDestroyUrl = ($accAstDestroyResolved && $accAstEncryptedId) ? route($accAstDestroyResolved, $accAstEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $accAstDeleteGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::ACC_AST, 'delete_account_asset_route_unavailable') ?? 'Delete account asset route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                            $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                            $accAstFormId = 'delete-account-asset-form-'.$assetIdValue;
+                                                            $accAstAnchorId = 'account-asset-delete-btn-'.$assetIdValue;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('assets/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     {!! Collective\Html\FormFacade::open(['method'=>'DELETE', 'url'=>$accAstDestroyUrl, 'id'=>$accAstFormId]) !!}
                                                         <a
                                                             id="{{ $accAstAnchorId }}"
@@ -212,7 +219,7 @@
                                                             data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
                                                             data-confirm-yes="document.getElementById('{{ $accAstFormId }}').submit();"
                                                             data-url="{{ $accAstDestroyUrl }}"
-                                                            data-guard-msg="{{ $accAstDeleteGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($accAstDeleteGuardMsg) }}"
                                                             data-sv-localized="true"
                                                         >
                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
@@ -235,28 +242,7 @@
                                                                             if (url !== '#' && href !== '#' && action !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Delete account asset route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route', 'true');
                                                                             if (form) { form.setAttribute('data-failed-route', 'true'); }
                                                                         } catch (err) {}
@@ -271,7 +257,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">{{ __('No assets available') }}</td>
+                                        <td colspan="7" class="{{ VC::TXCT_MT }}">{{ __('No assets available') }}</td>
                                     </tr>
                                 @endforelse
 

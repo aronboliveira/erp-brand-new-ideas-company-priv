@@ -79,11 +79,13 @@ final class UserCouponSeeder extends Seeder
 
 		$this->command?->info('Distributing coupons to users...');
 
+		$HARD_CAP = 2;
 		$created = 0;
 		$skipped = 0;
 		$now = Carbon::now();
 
 		foreach ($userIds as $userId) {
+			if ($created >= $HARD_CAP) break;
 			// Calculate how many coupons this user gets using quadratic distribution
 			$couponsForUser = $this->calculateCouponsForUser();
 
@@ -131,7 +133,7 @@ final class UserCouponSeeder extends Seeder
 
 				try {
 					$createdAt = $now->copy()->subDays(fake()->numberBetween(0, 30));
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Creating UserCoupon: user={$userId}, coupon={$couponId}, order={$orderId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Creating UserCoupon: user={$userId}, coupon={$couponId}, order={$orderId}");
 					UserCoupon::create([
 						'user' => $userId,
 						'coupon' => $couponId,
@@ -149,9 +151,9 @@ final class UserCouponSeeder extends Seeder
 					$assignedToUser++;
 					$created++;
 
-					if ($created % 500 === 0) {
-						$this->command?->info("Created {$created} user-coupon links...");
-					}
+					// if ($created % 500 === 0) {
+					// 	$this->command?->info("Created {$created} user-coupon links...");
+					// }
 				} catch (\Exception $e) {
 					Log::warning('UserCouponSeeder failed: ' . $e->getMessage());
 					$skipped++;

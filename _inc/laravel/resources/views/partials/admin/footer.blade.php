@@ -1,20 +1,21 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants as SC
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Log, Session};
-    Log::debug('Loading admin footer data...');
-    $settings = Utility::settings();
-    Log::debug('Loading admin footer template...');
+    try {
+        $settings = Utility::settings();
+    } catch (\Throwable $e) {
+        \Log::error('partials/admin/footer — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <footer class="dash-footer">
     <div class="footer-wrapper">
-        <div class="py-1">
-            <p class="mb-0 text-muted"> &copy;
+        <div class="py-1 {{ VC::DFL }} flex-wrap {{ VC::ALC }} {{ VC::JCB }}">
+            <p class="{{ VC::MB0 }} {{ VC::TXT_MT }}"> &copy;
                 {{ date('Y') }} {{ $settings[SC::FT_TXT] ? $settings[SC::FT_TXT] : config('app.name', 'ERPNovaPrestech') }}
             </p>
+            <nav class="{{ VC::MB0 }}">
+                <a href="{{ route('terms_and_conditions') }}" class="{{ VC::TXT_MT }} small {{ VC::ME3 }}">{{ __('Terms and Conditions') }}</a>
+                <a href="{{ route('privacy_policy') }}" class="{{ VC::TXT_MT }} small {{ VC::ME3 }}">{{ __('Privacy Policy') }}</a>
+                <a href="{{ route('about_us') }}" class="{{ VC::TXT_MT }} small">{{ __('About Us') }}</a>
+            </nav>
         </div>
     </div>
 </footer>

@@ -21,6 +21,8 @@ class BillPaymentSeeder extends Seeder
 	private const PER_BILL_MAX = 2;        // máx. de pagamentos por bill
 	private const MAX_AMOUNT   = 5000.00;  // teto para amount
 
+	private const HARD_CAP = 2;
+
 	/**
 	 * Opções CLI:
 	 *  --count=INT   Limite aproximado de pagamentos totais (opcional).
@@ -69,6 +71,7 @@ class BillPaymentSeeder extends Seeder
 			? $this->command->option('count')
 			: 64
 		);
+		$target = min(self::HARD_CAP, $target); /* original default: 64 */
 
 		$maybe = function (callable $fn) use ($opt) {
 			return fake()->boolean((int) round($opt * 100)) ? $fn() : null;
@@ -285,8 +288,8 @@ class BillPaymentSeeder extends Seeder
 							'updated_at'           => $updatedAt->toDateTimeString(),
 						];
 
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Pagamento de Conta relacionada a Conta a Pagar {$bill->id} e Pedido {$orderId} com método {$methodLabel} no valor de {$amount}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Pagamento de Conta relacionada a Conta a Pagar {$bill->id} e Pedido {$orderId} com método {$methodLabel} no valor de {$amount}");
 
 						DB::table(DC::TABLE_BL_PAY)->insert($row);
 						$inserted++;

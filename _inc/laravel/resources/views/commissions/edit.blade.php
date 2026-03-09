@@ -1,39 +1,57 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $lang         = Utility::fetchUserLang();
-    $routeName    = ViewsConstants::COM . '.update';
-    $updateRoute  = Route::has($routeName)
-        ? route($routeName, $commission->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $commission->id)
-            : '#');
-    $formId       = 'commission_update_form_' . $commission->id;
-    $guardMsg     = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COM,
-        'commission_update_route_unavailable'
-    ) ?? 'Commission update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'commission_update_form';
+	$guardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$routeName = ViewsConstants::COM . '.update';
+		$updateRoute = Route::has($routeName) && !empty($commission ?? null) && isset($commission->id)
+			? (route($routeName, $commission->id) ?? '#')
+			: (Route::has(Str::kebab($routeName)) && !empty($commission ?? null) && isset($commission->id)
+				? (route(Str::kebab($routeName), $commission->id) ?? '#')
+				: '#');
+		$formId = 'commission_update_form_' . (data_get($commission ?? null, 'id', '') ?: 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::COM,
+			'commission_update_route_unavailable'
+		) ?? 'Commission update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in commissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in commissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in commissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($commission) && isset($commission->id))
     {{ Form::model($commission, [
-        'route'          => [$updateRoute],
+        'url'            => $updateRoute,
         'method'         => 'PUT',
         'id'             => $formId,
         'data-url'       => $updateRoute,
         'data-guard-msg' => $guardMsg,
     ]) }}
         <div class="modal-body">
-            <div class="card-body p-0">
+            <div class="{{ VC::CD_BD }} p-0">
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                         {{ Form::label('title', __('Title'), ['class' => VC::FM_LB]) }}
@@ -69,48 +87,10 @@
                 class="{{ VC::BT_PRM }}"
             >
         </div>
-        <script defer>
-            (() => {
-                const form = document.getElementById('{{ $formId }}');
-                if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                form.setAttribute('data-listener-active', 'true');
-                form.addEventListener('submit', event => {
-                    try {
-                        const action = form.getAttribute('action');
-                        const url    = form.getAttribute('data-url');
-                        if ((action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            })();
-        </script>
+        <script defer>window.RouteGuard?.guardFormSubmit?.('{{ $formId }}');</script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-danger">
+    <div class="{{ VC::ALT_DNG }}">
         {{ __('No commission data available. Please contact technical support or your domain administrator.') }}
     </div>
 @endif

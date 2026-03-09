@@ -4,7 +4,6 @@ use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
 use App\Models\Utility;
 use Illuminate\Support\Facades\{Crypt, Log, Route};
 use Milon\Barcode\DNS2D;
-use App\Helpers\TemplateHelper;
 
 if (!function_exists('e')) {
     function e($v)
@@ -42,7 +41,7 @@ try {
 }
 
 if (empty($bill)) {
-    echo TemplateHelper::getNoDataHtml('bill', $docLang);
+    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bill</title></head><body><div class="{{ VC::ALT_WRN }}">No bill data available.</div></body></html>';
     return;
 }
 
@@ -82,7 +81,7 @@ try {
     $enc = $rid ? Crypt::encrypt($rid) : null;
     $routeName = ViewsConstants::BIL . '.link.copy';
     $url = ($enc && Route::has($routeName)) ? route($routeName, $enc) : '#';
-    $qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($url, 'QRCODE', 2, 2);
+    $qrHtml = DNS2D::getBarcodeHTML($url, 'QRCODE', 2, 2);
 } catch (\Throwable $e) {
     $qrHtml = '<div></div>';
 }
@@ -260,17 +259,17 @@ try {
 <body>
     <div class="bill-preview-main" id="boxes">
         <div class="bill-header">
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
                             <h3 style="text-transform:uppercase;font-size:20px;font-weight:bold;color:<?= e($color) ?>"><?= e(__('BILL')) ?></h3>
                         </td>
-                        <td class="text-right"><img class="bill-logo" src="<?= e($img) ?>" alt=""></td>
+                        <td class="{{ VC::TX_RT }}"><img class="bill-logo" src="<?= e($img) ?>" alt=""></td>
                     </tr>
                 </tbody>
             </table>
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
@@ -297,19 +296,19 @@ try {
                             </p>
                         </td>
                         <td>
-                            <table class="no-space">
+                            <table class="{{ VC::NO_SPC }}">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="text-right"><?= e($billNumber) ?></td>
+                                        <td class="{{ VC::TX_RT }}"><?= e($billNumber) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Bill Date')) ?>:</td>
-                                        <td class="text-right"><?= e($billDate) ?></td>
+                                        <td class="{{ VC::TX_RT }}"><?= e($billDate) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Due Date')) ?>:</td>
-                                        <td class="text-right"><?= e($dueDate) ?></td>
+                                        <td class="{{ VC::TX_RT }}"><?= e($dueDate) ?></td>
                                     </tr>
                                     <?php if (!empty($customFields) && count(data_get($bill, 'customField', [])) > 0): ?>
                                         <?php foreach ($customFields as $field): ?>
@@ -321,7 +320,7 @@ try {
                                     <?php endif; ?>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="view-qrcode"><?= $qrHtml ?></div>
+                                            <div class="{{ VC::VW_QR }}"><?= $qrHtml ?></div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -350,7 +349,7 @@ try {
                                 <?php else: ?>-<?php endif; ?>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <?php if (!empty(data_get($vendor, 'shipping_name'))): ?>
                                     <p>
@@ -460,8 +459,8 @@ try {
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
+                        <td colspan="2" class="{{ VC::SUB_TTL }}">
+                            <table class="{{ VC::TTL_TB }}">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
                                     <td><?php try {

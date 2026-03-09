@@ -1,14 +1,5 @@
 @php
-	use App\Config\Constants\{
-        DatabaseConstants,
-        ExtendingLayoutsConstants,SettingsConstants,
-        StacksConstants, UsersConstants, ViewsConstants,
-        ViewClassNamesConstants as VC,YieldingConstants};
-	use App\Models\Utility;
-    use Illuminate\Support\Facades\{Log, Route};
-	use Illuminate\Support\Str;
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$settings??=[];
+$settings??=[];
 	$colorSettings??=[];
     $lang = Utility::fetchUserLang();
 	$languages??=[$lang];
@@ -17,21 +8,14 @@
         $user=auth()->user()?:null;
 		$settings=Utility::settings()?:[];
 		$colorSettings=$settings[SettingsConstants::CLR_STG]??[];
-		$languages=Utility::languages()?:[DatabaseConstants::DEFAULT_LANG];
+		$langResult=Utility::languages();
+		$languages=($langResult instanceof \Illuminate\Support\Collection)?$langResult->all():(is_array($langResult)?$langResult:[DatabaseConstants::DEFAULT_LANG => __(DatabaseConstants::DEFAULT_LANG)]);
+		if (!array_key_exists($lang, $languages)) $lang = array_key_first($languages) ?? DatabaseConstants::DEFAULT_LANG;
         $lang = isset($user[UsersConstants::COL_LG])?$user[UsersConstants::COL_LG]:DatabaseConstants::DEFAULT_LANG;
         if (empty($lang)) $lang = DatabaseConstants::DEFAULT_LANG;
 		$filePath=collect(
 			array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),'file')
 		)->first(fn($p)=>str_ends_with($p,'.blade.php'))??'';
-		Log::debug(
-			"Rendering Forgot Password Blade ({$filePath})",
-			['route'=>request()?->getRequestUri()??'Undefined URI','user'=>optional(auth()->user())->id??'Unidentified User']
-		);
-		(new ConsoleOutput)
-			->writeln(
-				"Rendering Forgot Password Blade ({$filePath}) for "
-				.(request()?->getRequestUri()??'Undefined URI')
-			);
 	} catch (\Error $e) {
 		Log::error(
 			'Error fetching data for Forgot Password Blade',
@@ -75,6 +59,7 @@
     {{ __('Reset Password') }}
 @endsection
 @push(StacksConstants::AUTH_CST_SCR)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
 @if (!empty($settings[SettingsConstants::RCPT_MDL]) && $settings[SettingsConstants::RCPT_MDL] == 'on')
     {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::renderJs() !!}
 @endif
@@ -83,31 +68,35 @@
     <div class="{{ VC::LNG_DD_DSK }}">
         <li class="{{ VC::LNG_DD_IT }}">
             <a class="{{ VC::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="drp-text"> {{ $languages[$lang] }}
+                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DatabaseConstants::DEFAULT_LANG) }}
                 </span>
             </a>
             <div class="{{ VC::DRP_MN_DSH_END }}">
                 @foreach($languages as $code => $language)
                     @php
-                        $passwordRequestRoute         = Route::has('password.request')
-                            ? route('password.request', $code)
-                            : (Route::has(Str::kebab('password.request'))
-                                ? route(Str::kebab('password.request'), $code)
-                                : '#');
-                        $passwordRequestLinkId        = 'password-request-link-' . $code;
-                        $passwordRequestRouteMsg      = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::AUT,
-                            'password_request_route_unavailable'
-                        ) ?? 'Password request route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $passwordRequestRoute         = Route::has('password.request')
+                                ? route('password.request', $code)
+                                : (Route::has(Str::kebab('password.request'))
+                                    ? route(Str::kebab('password.request'), $code)
+                                    : '#');
+                            $passwordRequestLinkId        = 'password-request-link-' . $code;
+                            $passwordRequestRouteMsg      = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::AUT,
+                                'password_request_route_unavailable'
+                            ) ?? 'Password request route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('auth/forgot_password — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <a
                         id="{{ $passwordRequestLinkId }}"
                         href="{{ $passwordRequestRoute }}"
                         tabindex="0"
-                        class="dropdown-item"
+                        class="{{ VC::DRP_IT }}"
                         data-url="{{ $passwordRequestRoute }}"
-                        data-guard-msg="{{ $passwordRequestRouteMsg }}"
+                        data-guard-msg="{{ base64_encode($passwordRequestRouteMsg) }}"
                     >
                         <span>{{ Str::ucfirst($language) }}</span>
                     </a>
@@ -124,28 +113,7 @@
                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                         event.preventDefault();
                                         const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                        let container       = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container       = document.createElement('div');
-                                            container.id    = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (bootstrapLink && window.bootstrap) {
-                                            const toastEl      = document.createElement('div');
-                                            toastEl.className  = 'toast';
-                                            toastEl.setAttribute('role', 'alert');
-                                            toastEl.setAttribute('aria-live', 'assertive');
-                                            toastEl.setAttribute('aria-atomic', 'true');
-                                            const body         = document.createElement('div');
-                                            body.className     = 'toast-body';
-                                            body.textContent   = msg;
-                                            toastEl.appendChild(body);
-                                            container.appendChild(toastEl);
-                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                        } else {
-                                            alert(msg);
-                                        }
+                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                         el.setAttribute('data-failed-route', 'true');
                                     } catch (e) {}
                                 });
@@ -158,71 +126,79 @@
     </div>
 @endsection
 @section(YieldingConstants::AUTH_CTT)
-    <div class="card-body">
+    <div class="{{ VC::CD_BD }}">
         <div>
-            <h2 class="{{ VC::MB3_FW600 }}><span class="text-primary">{{ __('Reset Password') }}"</span></h2>
+            <h2 class="{{ VC::MB3_FW600 }}"><span class="{{ VC::TX_PM }}">{{ __('Reset Password') }}</span></h2>
             {{-- <p>{{ __('Sign in by entering the information below?') }} </p> --}}
         </div>
         @php
-            $lang                   = Utility::fetchUserLang();
-            $passwordEmailRoute     = Route::has('password.email')
-                ? route('password.email')
-                : '#';
-            $passwordEmailFormId    = 'password-email-form';
-            $passwordEmailMsg       = Utility::fetchLinkMessage(
-                $lang,
-                ViewsConstants::AUT,
-                'password_email_route_unavailable'
-            ) ?? 'Password reset email route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $lang                   = Utility::fetchUserLang();
+                $passwordEmailRoute     = Route::has('password.email')
+                    ? route('password.email')
+                    : '#';
+                $passwordEmailFormId    = 'password-email-form';
+                $passwordEmailMsg       = Utility::fetchLinkMessage(
+                    $lang,
+                    ViewsConstants::AUT,
+                    'password_email_route_unavailable'
+                ) ?? 'Password reset email route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('auth/forgot_password — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <form
             method="POST"
             action="{{ $passwordEmailRoute }}"
             id="{{ $passwordEmailFormId }}"
             data-url="{{ $passwordEmailRoute }}"
-            data-guard-msg="{{ $passwordEmailMsg }}"
+            data-guard-msg="{{ base64_encode($passwordEmailMsg) }}"
             >
             @csrf
             <div class="">
                 <div class="{{ VC::FM_GB3 }}">
-                    <label for="email" class="form-label">{{ __('E-Mail') }}</label>
-                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                    <label for="email" class="{{ VC::FM_LB }}">{{ __('E-Mail') }}</label>
+                    <input id="email" type="email" class="{{ VC::FM_CT }} @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                     @error('email')
-                    <span class="invalid-feedback" role="alert">
+                    <span class="{{ VC::INV_FB }}" role="alert">
                         <small>{{ $message }}</small>
                     </span>
                     @enderror
                 </div>
                 @if (!empty($settings[SettingsConstants::RCPT_MDL]) && $settings[SettingsConstants::RCPT_MDL] == 'on')
                     <div class="{{ VC::FM_GB3 }}">
-                     {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display($colorSettings[SettingsConstants::CST_DRK]=='on' ? ['data-theme' => 'dark'] : []) !!}                        
+                     {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display($colorSettings[SettingsConstants::CST_DRK]=='on' ? ['data-theme' => 'dark'] : []) !!}
                         @error(SettingsConstants::G_RCPT_RES)
-                        <span class="small text-danger" role="alert">
+                        <span class="{{ VC::SM_TX_DNG }}" role="alert">
                                 <strong>{{ $message }}</strong>
                             </span>
                         @enderror
                     </div>
                 @endif
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-block mt-2">{{ __('Send Password Reset Link') }}</button>
+                <div class="{{ VC::D_GR }}">
+                    <button type="submit" class="{{ VC::BT_PRM_BLK_MT2 }}">{{ __('Send Password Reset Link') }}</button>
                 </div>
                 @php
-                    $loginRoute        = Route::has('login') ? route('login') : '#';
-                    $backLoginLinkId   = 'back-to-login-link';
-                    $loginUnavailable  = Utility::fetchLinkMessage(
-                        $lang,
-                        ViewsConstants::AUT,
-                        'login_unavailable'
-                    ) ?? 'Login route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
-                <p class="my-4 text-center">
+                    try {
+                        $loginRoute        = Route::has('login') ? route('login') : '#';
+                        $backLoginLinkId   = 'back-to-login-link';
+                        $loginUnavailable  = Utility::fetchLinkMessage(
+                            $lang,
+                            ViewsConstants::AUT,
+                            'login_unavailable'
+                        ) ?? 'Login route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Throwable $e) {
+                        \Log::error('auth/forgot_password — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <p class="{{ VC::MY4_TXCT }}">
                     {{ __('Back to') }}
                     <a
                         id="{{ $backLoginLinkId }}"
                         href="{{ $loginRoute }}"
-                        class="text-primary"
+                        class="{{ VC::TX_PM }}"
                         data-url="{{ $loginRoute }}"
-                        data-guard-msg="{{ $loginUnavailable }}"
+                        data-guard-msg="{{ base64_encode($loginUnavailable) }}"
                         data-event-alias="false"
                     >
                         {{ __('Login') }}
@@ -237,28 +213,7 @@
                             const url = el.getAttribute('data-url');
                             const msg = el.getAttribute('data-guard-msg');
                             if (!url || url === '#') {
-                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (bootstrapLink && window.bootstrap) {
-                                    const toastEl = document.createElement('div');
-                                    toastEl.className = 'toast';
-                                    toastEl.setAttribute('role', 'alert');
-                                    toastEl.setAttribute('aria-live', 'assertive');
-                                    toastEl.setAttribute('aria-atomic', 'true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toastEl.appendChild(body);
-                                    container.appendChild(toastEl);
-                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                } else {
-                                    alert(msg);
-                                }
+                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                 el.setAttribute('data-failed-route', 'true');
                                 return;
                             }
@@ -293,10 +248,10 @@
         @csrf
         <div class="">
             <div class="{{ VC::FM_GB3 }}">
-                <label for="email" class="form-label">{{ __('E-Mail') }}</label>
-                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                <label for="email" class="{{ VC::FM_LB }}">{{ __('E-Mail') }}</label>
+                <input id="email" type="email" class="{{ VC::FM_CT }} @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                 @error('email')
-                <span class="invalid-feedback" role="alert">
+                <span class="{{ VC::INV_FB }}" role="alert">
                     <small>{{ $message }}</small>
                 </span>
                 @enderror
@@ -306,19 +261,18 @@
                 <div class="{{ VC::FM_GB3 }}">
                     {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display() !!}
                     @error(SettingsConstants::G_RCPT_RES)
-                    <span class="small text-danger" role="alert">
+                    <span class="{{ VC::SM_TX_DNG }}" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
             @endif
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-block mt-2">{{ __('Send Password Reset Link') }}</button>
+            <div class="{{ VC::D_GR }}">
+                <button type="submit" class="{{ VC::BT_PRM_BLK_MT2 }}">{{ __('Send Password Reset Link') }}</button>
             </div>
-            <p class="my-4 text-center">{{__("Back to")}} <a href="{{ route('login') }}" class="text-primary">{{__('Sign In')}}</a></p>
+            <p class="{{ VC::MY4_TXCT }}">{{__("Back to")}} <a href="{{ route('login') }}" class="{{ VC::TX_PM }}">{{__('Sign In')}}</a></p>
 
         </div>
     </form>
 @endsection --}}
-

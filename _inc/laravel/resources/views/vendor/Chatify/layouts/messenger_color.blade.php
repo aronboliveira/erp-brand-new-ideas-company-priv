@@ -1,7 +1,10 @@
 @php
-    use Illuminate\Support\Collection;
-    $raw = $messengerColor ?? '';
-    $mc = (is_string($raw) && preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $raw)) ? $raw : '#9ca3af';
+    try {
+$raw = $messengerColor ?? '';
+        $mc = (is_string($raw) && preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $raw)) ? $raw : '#9ca3af';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/messenger_color — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <style>
     #nprogress .bar{background: {{ $mc }};}

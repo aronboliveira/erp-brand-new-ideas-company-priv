@@ -16,6 +16,7 @@ class EmailTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
 		// create and authenticate a user for the CREATED_BY_FIELD
 		$this->user = User::factory()->create();
 		Auth::login($this->user);
@@ -29,9 +30,43 @@ class EmailTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'id', 'title', 'description', 'notes',
-			'email_created_by', 'document_url',
-			'attachments', 'email', 'module_type', 'module_id'
+			'title',
+			'provider',
+			'description',
+			'body',
+			'html',
+			'notes',
+			'from',
+			'from_id',
+			'to',
+			'to_id',
+			'is_reply',
+			'thread',
+			'cc',
+			'bcc',
+			'is_favorite',
+			'is_draft',
+			'is_trashed',
+			'is_archived',
+			'is_spam',
+			'is_malware_free',
+			'sent_at',
+			'is_read',
+			'read_at',
+			'document_url',
+			'document_id',
+			'email_key',
+			'module_type',
+			'module_id',
+			'counter',
+			'headers',
+			'attachments',
+			'templates',
+			'variables',
+			'settings',
+			'malware_scan',
+			'metadata',
+			'updated_by',
 		];
 		$this->assertEquals($expected, (new Email())->getFillable());
 	}
@@ -59,7 +94,7 @@ class EmailTest extends TestCase
 		// primary key is a UUID
 		$this->assertTrue(Str::isUuid($email->id));
 		// created_by was set to authenticated user
-		$this->assertEquals($this->user->id, $email->email_created_by);
+		$this->assertEquals($this->user->id, $email->created_by);
 	}
 
 	/**
@@ -72,7 +107,7 @@ class EmailTest extends TestCase
 		$model = new Email();
 		$this->assertFalse($model->incrementing);
 		$this->assertSame('string', $model->getKeyType());
-		$this->assertSame('email', $model->getTable());
+		$this->assertSame('emails', $model->getTable());
 	}
 
 	/**
@@ -83,9 +118,9 @@ class EmailTest extends TestCase
 	public function it_has_expected_default_attributes()
 	{
 		$model = new Email();
-		$this->assertSame('NO GIVEN TITLE', $model->title);
-		$this->assertSame('NO GIVEN DESCRIPTION', $model->description);
-		$this->assertSame('No notes taken', $model->notes);
+		$this->assertNull($model->title);
+		$this->assertNull($model->description);
+		$this->assertNull($model->notes);
 	}
 
 	/**
@@ -97,13 +132,27 @@ class EmailTest extends TestCase
 	{
 		// create two records a moment apart
 		$first = Email::create([
-			'title' => 'First', 'description' => '', 'notes' => '',
-			'document_url' => null, 'attachments' => null, 'email' => 'a@a.com', 'module_type' => '', 'module_id' => 0
+			'title' => 'First',
+			'description' => '',
+			'notes' => '',
+			'document_url' => null,
+			'attachments' => null,
+			'email' => 'a@a.com',
+			'module_type' => '',
+			'module_id' => 0,
+			'email_key' => 'test_email_key_' . uniqid('first_'),
 		]);
 		sleep(1);
 		$second = Email::create([
-			'title' => 'Second', 'description' => '', 'notes' => '',
-			'document_url' => null, 'attachments' => null, 'email' => 'b@b.com', 'module_type' => '', 'module_id' => 0
+			'title' => 'Second',
+			'description' => '',
+			'notes' => '',
+			'document_url' => null,
+			'attachments' => null,
+			'email' => 'b@b.com',
+			'module_type' => '',
+			'module_id' => 0,
+			'email_key' => 'test_email_key_' . uniqid('second_'),
 		]);
 
 		$ids = Email::all()->pluck('id')->all();

@@ -1,22 +1,17 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang      = Utility::fetchUserLang();
+        $hasModel  = !empty($jobOnBoard ?? null) && data_get($jobOnBoard, 'id');
 
-    $lang      = Utility::fetchUserLang();
-    $hasModel  = !empty($jobOnBoard ?? null) && data_get($jobOnBoard, 'id');
-
-    $updateBase     = VW::JB . '.on.board.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $jobOnBoard->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'on_board_update_route_unavailable')
-                        ?? __('Update Job On Board route is unavailable. Please contact technical support or your domain administrator.');
+        $updateBase     = VW::JB . '.on.board.update';
+        $updateKebab    = Str::kebab($updateBase);
+        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+        $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $jobOnBoard->id) : '#';
+        $updateGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'on_board_update_route_unavailable')
+                            ?? __('Update Job On Board route is unavailable. Please contact technical support or your domain administrator.');
+    } catch (\Throwable $e) {
+        \Log::error('job_applications/onboard_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if($hasModel)

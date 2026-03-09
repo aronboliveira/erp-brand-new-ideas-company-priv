@@ -3,15 +3,15 @@
 namespace Modules\LandingPage\Entities;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    LandingPageConstants,
-    SettingsConstants
+    DatabaseConstants as DC,
+    LandingPageConstants as LPGC,
+    SettingsConstants as SC
 };
-use App\Models\Utility;
-use App\Traits\UsesUuids;
+use App\Models\{Utility};
+use App\Traits\{UsesUuids};
 use Modules\LandingPage\Config\Constants\{
     RoutesResourcesConstants as RRC,
-    SettingsConstants as LPC
+    SettingsConstants as LPSC
 };
 use Database\Factories\LandingPageSettingFactory;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
@@ -23,11 +23,22 @@ class LandingPageSetting extends Model
     use HasFactory, UsesUuids;
 
     private static $settings = null;
-    protected $table = DatabaseConstants::TABLE_LPS;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->query_key)) {
+                $model->query_key = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+    protected $table = DC::TABLE_LPS;
     protected $fillable = [
         "query_key",
-        LandingPageConstants::COL_LPS_NM,
-        LandingPageConstants::COL_LPS_V
+        LPGC::COL_LPS_NM,
+        LPGC::COL_LPS_V,
+        DC::COL_TABLE_CREATOR
     ];
 
     protected static function newFactory(): LandingPageSettingFactory
@@ -37,40 +48,47 @@ class LandingPageSetting extends Model
 
     public static function settings(): array
     {
-        Log::debug('[LandingPageSetting Model] Loading landing page settings', ['method' => __METHOD__]);
-        $defaults = LPC::LANDING_PAGE_SETTINGS;
-        $uuidSettings = [
-            LPC::FT_OF_FTS_K,
-            LPC::OT_FTS_K,
-            LPC::MB_PG_K,
-            LPC::SC_SHTS_K,
-            LPC::FAQ_FQS_K,
-            LPC::TM_TMS_K,
-            LPC::DC_OF_FTS_K
-        ];
-        $overrides = self::whereNotIn(LandingPageConstants::COL_LPS_NM, $uuidSettings)
-            ->pluck(
-                LandingPageConstants::COL_LPS_V,
-                LandingPageConstants::COL_LPS_NM
-            )->toArray();
-        foreach ($uuidSettings as $key) {
-            $items = self::where(LandingPageConstants::COL_LPS_NM, $key)
-                ->whereNotNull('query_key')
-                ->get();
-            if ($items->isNotEmpty())
-                $overrides[$key] = json_encode($items->mapWithKeys(function ($item) {
-                    return [$item->query_key => json_decode($item->value, true)];
-                })->toArray());
+        try {
+            $defaults = LPSC::LANDING_PAGE_SETTINGS;
+            $uuidSettings = [
+                LPSC::FT_OF_FTS_K,
+                LPSC::OT_FTS_K,
+                LPSC::MB_PG_K,
+                LPSC::SC_SHTS_K,
+                LPSC::FAQ_FQS_K,
+                LPSC::TM_TMS_K,
+                LPSC::DC_OF_FTS_K
+            ];
+            $overrides = self::whereNotIn(LPGC::COL_LPS_NM, $uuidSettings)
+                ->pluck(
+                    LPGC::COL_LPS_V,
+                    LPGC::COL_LPS_NM
+                )->toArray();
+            foreach ($uuidSettings as $key) {
+                $items = self::where(LPGC::COL_LPS_NM, $key)
+                    ->whereNotNull('query_key')
+                    ->get();
+                if ($items->isNotEmpty())
+                    $overrides[$key] = json_encode($items->mapWithKeys(function ($item) {
+                        return [$item->query_key => json_decode($item->value, true)];
+                    })->toArray());
+            }
+            return array_merge($defaults, $overrides);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::settings — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-        return array_merge($defaults, $overrides);
     }
 
     public static function landingPageSetting(): array
     {
-        Log::debug('[LandingPageSetting Model] Fetching landing page settings', ['method' => __METHOD__]);
-        if (self::$settings === null) self::$settings = self::settings();
-        Log::debug(self::$settings);
-        return self::$settings;
+        try {
+            if (self::$settings === null) self::$settings = self::settings();
+            return self::$settings;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::landingPageSetting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     public static function uploadFile(
@@ -82,10 +100,10 @@ class LandingPageSetting extends Model
     ): array {
         try {
             $cfg   = Utility::getStorageSetting();
-            $disk  = $cfg[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
+            $disk  = $cfg[SC::STR_STT] ?? SC::LC;
             $maxKey = $disk . '_max_upload_size';
             $mimeKey = $disk . '_storage_validation';
-            $max   = $cfg[$maxKey]   ?? SettingsConstants::MAX_U_SIZE_DEF;
+            $max   = $cfg[$maxKey]   ?? SC::MAX_U_SIZE_DEF;
             $mimes = $cfg[$mimeKey]  ?? '';
             $file  = $request->$keyName;
             $rules = $customValidation ?: ["mimes:$mimes", "max:$max"];
@@ -95,7 +113,6 @@ class LandingPageSetting extends Model
                 $request->$keyName->move(storage_path($path), $name);
                 $url = $path . $name;
             } else {
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $drv */
                 $drv = Storage::disk($disk);
                 $url = $drv->putFileAs($path, $file, $name);
             }
@@ -115,10 +132,10 @@ class LandingPageSetting extends Model
     ): array {
         try {
             $cfg   = Utility::getStorageSetting();
-            $disk  = $cfg[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
+            $disk  = $cfg[SC::STR_STT] ?? SC::LC;
             $maxKey = $disk . '_max_upload_size';
             $mimeKey = $disk . '_storage_validation';
-            $max   = $cfg[$maxKey]   ?? SettingsConstants::MAX_U_SIZE_DEF;
+            $max   = $cfg[$maxKey]   ?? SC::MAX_U_SIZE_DEF;
             $mimes = $cfg[$mimeKey]  ?? '';
             $file  = $request->file($keyName)[$dataKey][$keyName] ?? null;
             $multi = [$keyName => $file];
@@ -129,7 +146,6 @@ class LandingPageSetting extends Model
                 Storage::putFileAs($path, $file, $name);
                 $url = $name;
             } else {
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $drv */
                 $drv = Storage::disk($disk);
                 $url = $drv->putFileAs($path, $file, $name);
             }

@@ -1,35 +1,37 @@
 @php
-    use App\Config\Constants\ViewClassNamesConstants;
-    use Illuminate\Support\Facades\Auth;
 @endphp
 {{Collective\Html\FormFacade::open(array('url'=>'roles','method'=>'post'))}}
 <div class="modal-body">
     <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12">
-            <div class="form-group">
+        <div class="{{ VC::CL12 }} {{ VC::CM12 }} {{ VC::CS12 }}">
+            <div class="{{ VC::FM_G }}">
                 {{Collective\Html\FormFacade::label('name',__('Name'),['class'=>'form-label'])}}
                 {{Collective\Html\FormFacade::text('name',null,array('class'=>'form-control','placeholder'=>__('Enter Role Name')))}}
                 @error('name')
                 <small class="invalid-name" role="alert">
-                    <strong class="text-danger">{{ $message }}</strong>
+                    <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                 </small>
                 @enderror
             </div>
             @php
-                $tabs = [
-                    ['key' => 'staff',        'label' => __('Staff')],
-                    ['key' => 'crm',          'label' => __('CRM')],
-                    ['key' => 'project',      'label' => __('Project')],
-                    ['key' => 'hrmpermission','label' => __('HRM')],
-                    ['key' => 'account',      'label' => __('Account')],
-                    ['key' => 'pos',          'label' => __('POS')],
-                ];
-            @endphp
-            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                try {
+                    $tabs = [
+                        ['key' => 'staff',        'label' => __('Staff')],
+                        ['key' => 'crm',          'label' => __('CRM')],
+                        ['key' => 'project',      'label' => __('Project')],
+                        ['key' => 'hrmpermission','label' => __('HRM')],
+                        ['key' => 'account',      'label' => __('Account')],
+                        ['key' => 'pos',          'label' => __('POS')],
+                    ];
+                } catch (\Throwable $e) {
+                    \Log::error('roles/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
                 @foreach($tabs as $tab)
-                    <li class="nav-item">
+                    <li class="{{ VC::NV_IT }}">
                         <a
-                            class="nav-link @if($loop->first) active @endif"
+                            class="{{ VC::NV_LK }} @if($loop->first) active @endif"
                             id="pills-{{ $tab['key'] }}-tab"
                             data-bs-toggle="pill"
                             href="#{{ $tab['key'] }}"
@@ -43,18 +45,22 @@
                 @endforeach
             </ul>
             <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active" id="staff" role="tabpanel" aria-labelledby="pills-home-tab">
+                <div class="{{ VC::TAB_FD_SH }} active" id="staff" role="tabpanel" aria-labelledby="pills-home-tab">
                     @php
-                        $modules=['user','role','client','product & service','constant unit','constant tax','constant category','company settings'];
-                       if( Auth::user()->type == 'company'){
-                           $modules[] = 'permission';
-                       }
-                    @endphp
-                    <div class="col-md-12">
-                        <div class="form-group">
+                        try {
+                            $modules=['user','role','client','product & service','constant unit','constant tax','constant category','company settings'];
+                                                   if( Auth::user()->type == 'company'){
+                               $modules[] = 'permission';
+                                                   }
+                        } catch (\Throwable $e) {
+                            \Log::error('roles/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign General Permission to Roles')}}</h6>
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign General Permission to Roles')}}</h6>
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -138,7 +144,6 @@
                                                             </div>
                                                         @endif
                                                     @endif
-
 
                                                     @if(in_array('send '.$module,(array) $permissions))
                                                         @if($key = array_search('send '.$module,$permissions))
@@ -267,12 +272,12 @@
                 <div class="tab-pane fade" id="crm" role="tabpanel" aria-labelledby="pills-profile-tab">
                     @php
                         $modules=['crm dashboard','lead','pipeline','lead stage','source','label','deal','stage','task','form builder','form response','contract','contract type'];
-                    @endphp
-                    <div class="col-md-12">
-                        <div class="form-group">
+@endphp
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign CRM related Permission to Roles')}}</h6>
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign CRM related Permission to Roles')}}</h6>
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -485,12 +490,12 @@
                 <div class="tab-pane fade" id="project" role="tabpanel" aria-labelledby="pills-contact-tab">
                     @php
                         $modules=['project dashboard','project','milestone','grant chart','project stage','timesheet','expense','project task','activity','CRM activity','project task stage','bug report','bug status'];
-                    @endphp
-                    <div class="col-md-12">
-                        <div class="form-group">
+@endphp
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign Project related Permission to Roles')}}</h6>
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign Project related Permission to Roles')}}</h6>
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -575,7 +580,6 @@
                                                             </div>
                                                         @endif
                                                     @endif
-
 
                                                     @if(in_array('send '.$module,(array) $permissions))
                                                         @if($key = array_search('send '.$module,$permissions))
@@ -704,15 +708,15 @@
                 <div class="tab-pane fade" id="hrmpermission" role="tabpanel" aria-labelledby="pills-contact-tab">
                     @php
                         $modules=['hrm dashboard','employee','employee profile','department','designation','branch','document type','document','payslip type','allowance','commission','allowance option','loan option','deduction option','loan','saturation deduction','other payment','overtime','set salary','pay slip','company policy','appraisal','goal tracking','goal type','indicator','event','meeting','training','trainer','training type','award','award type','resignation','travel','promotion','complaint','warning','termination','termination type','job application','job application note','job onBoard','job category','job','job stage','custom question','interview schedule','estimation','holiday','transfer','announcement','leave','leave type','attendance'];
-                    @endphp
+@endphp
 
-                    <div class="col-md-12">
-                        <div class="form-group">
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign HRM related Permission to Roles')}}
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign HRM related Permission to Roles')}}
                                 </h6>
 
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -797,7 +801,6 @@
                                                             </div>
                                                         @endif
                                                     @endif
-
 
                                                     @if(in_array('send '.$module,(array) $permissions))
                                                         @if($key = array_search('send '.$module,$permissions))
@@ -926,12 +929,12 @@
                 <div class="tab-pane fade" id="account" role="tabpanel" aria-labelledby="pills-contact-tab">
                     @php
                         $modules=['account dashboard','proposal','invoice','bill','revenue','payment','proposal product','invoice product','bill product','goal','credit note','debit note','bank account','bank transfer','transaction','customer','vendor','constant custom field','assets','chart of account','journal entry','report'];
-                    @endphp
-                    <div class="col-md-12">
-                        <div class="form-group">
+@endphp
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign Account related Permission to Roles')}}</h6>
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign Account related Permission to Roles')}}</h6>
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -1016,7 +1019,6 @@
                                                             </div>
                                                         @endif
                                                     @endif
-
 
                                                     @if(in_array('send '.$module,(array) $permissions))
                                                         @if($key = array_search('send '.$module,$permissions))
@@ -1146,12 +1148,12 @@
                 <div class="tab-pane fade" id="pos" role="tabpanel" aria-labelledby="pills-contact-tab">
                     @php
                         $modules=['warehouse','purchase','pos','barcode'];
-                    @endphp
-                    <div class="col-md-12">
-                        <div class="form-group">
+@endphp
+                    <div class="{{ VC::CM12 }}">
+                        <div class="{{ VC::FM_G }}">
                             @if(!empty($permissions))
-                                <h6 class="my-3">{{__('Assign POS related Permission to Roles')}}</h6>
-                                <table class="table table-striped mb-0" id="dataTable-1">
+                                <h6 class="{{ VC::MY3 }}">{{__('Assign POS related Permission to Roles')}}</h6>
+                                <table class="table table-striped {{ VC::MB0 }}" id="dataTable-1">
                                     <thead>
                                     <tr>
                                         <th>
@@ -1228,7 +1230,6 @@
                                                         @endif
                                                     @endif
 
-
                                                     @if(in_array('send '.$module,(array) $permissions))
                                                         @if($key = array_search('send '.$module,$permissions))
                                                             <div class="{{ ViewClassNamesConstants::CST_CT_CB_MD3 }}">
@@ -1272,8 +1273,8 @@
 </div>
 
 <div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+    <input type="button" value="{{__('Cancel')}}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+    <input type="submit" value="{{__('Create')}}" class="{{ VC::BT_PRM }}">
 </div>
 
 {{Collective\Html\FormFacade::close()}}

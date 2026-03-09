@@ -1,9 +1,17 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
   try {
     const qtyWrap = document.querySelector(".quantity");
     const qtyInput = document.getElementById("quantity");
     const radios = Array.from(
-      document.querySelectorAll('input.type[name="type"]')
+      document.querySelectorAll('input.type[name="type"]'),
     );
     if (!qtyWrap || !qtyInput || !radios.length) return;
 

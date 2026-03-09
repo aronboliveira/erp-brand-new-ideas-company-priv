@@ -251,23 +251,28 @@ class Order extends Model
         ?PaymentStatus $current,
         PaymentStatus $next
     ): PaymentStatus {
-        if ($current === null || $current === PaymentStatus::Undefined)
-            return $next;
+        try {
+            if ($current === null || $current === PaymentStatus::Undefined)
+                return $next;
 
-        $currentKey = $current->value;
-        $nextKey    = $next->value;
+            $currentKey = $current->value;
+            $nextKey    = $next->value;
 
-        $allowed = self::STATUS_TRANSITIONS[$currentKey] ?? [];
+            $allowed = self::STATUS_TRANSITIONS[$currentKey] ?? [];
 
-        if ($currentKey === $nextKey || in_array($nextKey, $allowed, true))
-            return $next;
+            if ($currentKey === $nextKey || in_array($nextKey, $allowed, true))
+                return $next;
 
-        Log::warning(self::class . ' invalid payment status transition', [
-            'from' => $currentKey,
-            'to'   => $nextKey,
-        ]);
+            Log::warning(self::class . ' invalid payment status transition', [
+                'from' => $currentKey,
+                'to'   => $nextKey,
+            ]);
 
-        return $current;
+            return $current;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::assertValidStatusTransition — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     /**
@@ -275,48 +280,68 @@ class Order extends Model
      */
     protected static function normalizePaymentMethod(null|string|PaymentMethod $v): PaymentMethod
     {
-        if ($v instanceof PaymentMethod)
-            return $v;
+        try {
+            if ($v instanceof PaymentMethod)
+                return $v;
 
-        $raw = strtolower(trim((string) $v));
+            $raw = strtolower(trim((string) $v));
 
-        foreach (PaymentMethod::cases() as $case)
-            if ($case->value === $raw)
-                return $case;
+            foreach (PaymentMethod::cases() as $case)
+                if ($case->value === $raw)
+                    return $case;
 
-        return PaymentMethod::Other;
+            return PaymentMethod::Other;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizePaymentMethod — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     protected static function sanitizeCardNumber(?string $number): ?string
     {
-        if ($number === null)
-            return null;
+        try {
+            if ($number === null)
+                return null;
 
-        $digits = preg_replace('/\D+/', '', $number) ?? '';
+            $digits = preg_replace('/\D+/', '', $number) ?? '';
 
-        // Se não tiver tamanho minimamente plausível, zera
-        if ($digits === '' || strlen($digits) < 12 || strlen($digits) > 19)
-            return null;
+            // Se não tiver tamanho minimamente plausível, zera
+            if ($digits === '' || strlen($digits) < 12 || strlen($digits) > 19)
+                return null;
 
-        return $digits;
+            return $digits;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeCardNumber — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     protected static function sanitizeCardDigits(?string $digits, ?string $cardNumber): ?string
     {
-        $digits = $digits !== null
-            ? preg_replace('/\D+/', '', $digits) ?? ''
-            : '';
-        if ($digits === '' && $cardNumber)
-            $digits = substr($cardNumber, -4);
-        return $digits !== '' ? $digits : null;
+        try {
+            $digits = $digits !== null
+                ? preg_replace('/\D+/', '', $digits) ?? ''
+                : '';
+            if ($digits === '' && $cardNumber)
+                $digits = substr($cardNumber, -4);
+            return $digits !== '' ? $digits : null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeCardDigits — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     protected static function sanitizeCardHolder(?string $name): ?string
     {
-        if ($name === null)
-            return null;
-        $name = trim($name);
-        return $name !== '' ? $name : null;
+        try {
+            if ($name === null)
+                return null;
+            $name = trim($name);
+            return $name !== '' ? $name : null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeCardHolder — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     /**
@@ -325,24 +350,28 @@ class Order extends Model
      */
     protected static function normalizeCardExpiration(self $m): void
     {
-        $rawMonth = $m->getAttribute(BC::COL_CD_EX_M) ?? null;
-        $rawYear  = $m->getAttribute(BC::COL_CD_EX_Y) ?? null;
-        if ($rawMonth === null && $rawYear === null)
-            return;
-        $monthEnum = MonthName::normalize($rawMonth);
-        $yearStr   = trim((string) $rawYear);
-        $year      = ctype_digit($yearStr) ? (int) $yearStr : null;
-        $now         = now();
-        $currentYear = (int) $now->format('Y');
-        $currentMon  = (int) $now->format('n');
-        if ($year === null || $year < $currentYear)
-            $year = $currentYear;
-        if ($year === $currentYear && $monthEnum->isoIndex() < $currentMon) {
-            // força para o mês atual se estiver no passado
-            $monthEnum = MonthName::normalize((string) $currentMon);
+        try {
+            $rawMonth = $m->getAttribute(BC::COL_CD_EX_M) ?? null;
+            $rawYear  = $m->getAttribute(BC::COL_CD_EX_Y) ?? null;
+            if ($rawMonth === null && $rawYear === null)
+                return;
+            $monthEnum = MonthName::normalize($rawMonth);
+            $yearStr   = trim((string) $rawYear);
+            $year      = ctype_digit($yearStr) ? (int) $yearStr : null;
+            $now         = now();
+            $currentYear = (int) $now->format('Y');
+            $currentMon  = (int) $now->format('n');
+            if ($year === null || $year < $currentYear)
+                $year = $currentYear;
+            if ($year === $currentYear && $monthEnum->isoIndex() < $currentMon) {
+                // força para o mês atual se estiver no passado
+                $monthEnum = MonthName::normalize((string) $currentMon);
+            }
+            $m->setAttribute(BC::COL_CD_EX_M, $monthEnum);
+            $m->setAttribute(BC::COL_CD_EX_Y, (string) $year);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeCardExpiration — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
-        $m->setAttribute(BC::COL_CD_EX_M, $monthEnum);
-        $m->setAttribute(BC::COL_CD_EX_Y, (string) $year);
     }
 
     /**
@@ -350,21 +379,26 @@ class Order extends Model
      */
     protected static function normalizeOtherTaxes(mixed $raw): array
     {
-        $items = self::normalizeArrayField($raw);
-        if (!$items)
+        try {
+            $items = self::normalizeArrayField($raw);
+            if (!$items)
+                return [];
+            $ids = array_values(array_filter(
+                $items,
+                fn($v): bool => is_string($v) && trim($v) !== ''
+            ));
+            if (!$ids)
+                return [];
+            $exists = Tax::query()
+                ->whereIn('id', $ids)
+                ->pluck('id')
+                ->all();
+            $exists = array_map('strval', $exists);
+            return array_values(array_intersect($ids, $exists));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeOtherTaxes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return [];
-        $ids = array_values(array_filter(
-            $items,
-            fn($v): bool => is_string($v) && trim($v) !== ''
-        ));
-        if (!$ids)
-            return [];
-        $exists = Tax::query()
-            ->whereIn('id', $ids)
-            ->pluck('id')
-            ->all();
-        $exists = array_map('strval', $exists);
-        return array_values(array_intersect($ids, $exists));
+        }
     }
 
     /**
@@ -376,30 +410,35 @@ class Order extends Model
      */
     protected static function normalizePixKey(?string $key): ?string
     {
-        if ($key === null)
-            return null;
-        $key = trim($key);
-        if ($key === '')
-            return null;
-        // E-mail
-        if (str_contains($key, '@')) {
-            $email = self::normalizeEmail($key, 'Pix key', null);
-            return $email ?: null;
+        try {
+            if ($key === null)
+                return null;
+            $key = trim($key);
+            if ($key === '')
+                return null;
+            // E-mail
+            if (str_contains($key, '@')) {
+                $email = self::normalizeEmail($key, 'Pix key', null);
+                return $email ?: null;
+            }
+            $digits = preg_replace('/\D+/', '', $key) ?? '';
+            // CPF/CNPJ
+            if ($digits !== '' && (strlen($digits) === 11 || strlen($digits) === 14))
+                return $digits;
+            // Telefone
+            $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
+            if ($digits !== '' && strlen($digits) >= 8 && strlen($digits) <= 15 && $isNormalizePhoneCallable)
+                return self::normalizePhone($digits, 'Pix key', null) ?? $digits;
+            // Chave aleatória (máx. 36 caracteres)
+            if (strlen($key) > 36)
+                return null;
+            if (!preg_match('/^[A-Za-z0-9\-]+$/', $key))
+                return null;
+            return $key;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizePixKey — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
         }
-        $digits = preg_replace('/\D+/', '', $key) ?? '';
-        // CPF/CNPJ
-        if ($digits !== '' && (strlen($digits) === 11 || strlen($digits) === 14))
-            return $digits;
-        // Telefone
-        $isNormalizePhoneCallable = is_callable([self::class, 'normalizePhone']);
-        if ($digits !== '' && strlen($digits) >= 8 && strlen($digits) <= 15 && $isNormalizePhoneCallable)
-            return self::normalizePhone($digits, 'Pix key', null) ?? $digits;
-        // Chave aleatória (máx. 36 caracteres)
-        if (strlen($key) > 36)
-            return null;
-        if (!preg_match('/^[A-Za-z0-9\-]+$/', $key))
-            return null;
-        return $key;
     }
 
     /**
@@ -408,45 +447,49 @@ class Order extends Model
      */
     protected static function validatePaymentInstrument(self $m): void
     {
-        /** @var PaymentMethod $method */
-        $method = $m->getAttribute(BC::COL_PAY_TP) instanceof PaymentMethod
-            ? $m->getAttribute(BC::COL_PAY_TP)
-            : self::normalizePaymentMethod($m->getAttribute(BC::COL_PAY_TP));
+        try {
+            /** @var PaymentMethod $method */
+            $method = $m->getAttribute(BC::COL_PAY_TP) instanceof PaymentMethod
+                ? $m->getAttribute(BC::COL_PAY_TP)
+                : self::normalizePaymentMethod($m->getAttribute(BC::COL_PAY_TP));
 
-        $hasCard    = !empty($m->getAttribute(BC::COL_CD_NB)) || !empty($m->getAttribute(BC::COL_CD_DG)) || !empty($m->getAttribute(BC::COL_CD_HNM));
-        $hasPix     = !empty($m->getAttribute(BC::COL_PIX_KEY));
-        $hasPayslip = !empty($m->getAttribute(BC::COL_PSLP_ID));
-        if (!$hasCard && !$hasPix && !$hasPayslip) {
-            Log::error(self::class . ' missing payment instruments for order', [
-                'order_id' => $m->id ?? null,
-                'method'   => $method->value ?? null,
-            ]);
-            throw new \InvalidArgumentException('At least one payment instrument (card, Pix or payslip) must be provided.');
-        }
-        switch ($method) {
-            case PaymentMethod::CardCredit:
-            case PaymentMethod::CardDebit:
-                if (!$hasCard) {
-                    Log::error(self::class . ' card data required for card payment', [
-                        'order_id' => $m->id ?? null,
-                    ]);
-                    throw new \InvalidArgumentException('Card data is required for card payments.');
-                }
-                break;
+            $hasCard    = !empty($m->getAttribute(BC::COL_CD_NB)) || !empty($m->getAttribute(BC::COL_CD_DG)) || !empty($m->getAttribute(BC::COL_CD_HNM));
+            $hasPix     = !empty($m->getAttribute(BC::COL_PIX_KEY));
+            $hasPayslip = !empty($m->getAttribute(BC::COL_PSLP_ID));
+            if (!$hasCard && !$hasPix && !$hasPayslip) {
+                Log::error(self::class . ' missing payment instruments for order', [
+                    'order_id' => $m->id ?? null,
+                    'method'   => $method->value ?? null,
+                ]);
+                throw new \InvalidArgumentException('At least one payment instrument (card, Pix or payslip) must be provided.');
+            }
+            switch ($method) {
+                case PaymentMethod::CardCredit:
+                case PaymentMethod::CardDebit:
+                    if (!$hasCard) {
+                        Log::error(self::class . ' card data required for card payment', [
+                            'order_id' => $m->id ?? null,
+                        ]);
+                        throw new \InvalidArgumentException('Card data is required for card payments.');
+                    }
+                    break;
 
-            case PaymentMethod::Pix:
-                if (!$hasPix) {
-                    Log::error(self::class . ' Pix key required for Pix payment', [
-                        'order_id' => $m->id ?? null,
-                    ]);
-                    throw new \InvalidArgumentException('Pix key is required for Pix payments.');
-                }
-                break;
+                case PaymentMethod::Pix:
+                    if (!$hasPix) {
+                        Log::error(self::class . ' Pix key required for Pix payment', [
+                            'order_id' => $m->id ?? null,
+                        ]);
+                        throw new \InvalidArgumentException('Pix key is required for Pix payments.');
+                    }
+                    break;
 
-            default:
-                // Para outros métodos (cash, bank_transfer etc.) não exigimos nada aqui,
-                // apenas o requisito mínimo de ter ao menos um instrumento válido.
-                break;
+                default:
+                    // Para outros métodos (cash, bank_transfer etc.) não exigimos nada aqui,
+                    // apenas o requisito mínimo de ter ao menos um instrumento válido.
+                    break;
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::validatePaymentInstrument — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 

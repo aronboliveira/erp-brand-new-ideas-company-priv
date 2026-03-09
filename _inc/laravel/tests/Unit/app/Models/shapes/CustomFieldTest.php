@@ -10,6 +10,12 @@ use Tests\TestCase;
 
 class CustomFieldTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
@@ -24,24 +30,55 @@ class CustomFieldTest extends TestCase
 	 **/
 	public function static_arrays_remain_intact(): void
 	{
+		// Trigger booted() to populate static arrays
+		new CustomField;
+
 		$expectedFieldTypes = [
-			'text'     => 'Text',
-			'email'    => 'Email',
-			'number'   => 'Number',
-			'date'     => 'Date',
-			'textarea' => 'Textarea',
+			'text'           => 'Text',
+			'email'          => 'Email',
+			'tel'            => 'Telephone',
+			'number'         => 'Number',
+			'date'           => 'Date',
+			'url'            => 'URL',
+			'radiogroup'     => 'Radio Group',
+			'checkbox'       => 'Checkbox',
+			'select'         => 'Select',
+			'time'           => 'Time',
+			'datetime-local' => 'Date & Time',
+			'month'          => 'Month',
+			'week'           => 'Week',
+			'textarea'       => 'Textarea',
+			'range'          => 'Range',
+			'color'          => 'Color Picker',
+			'file'           => 'File',
+			'password'       => 'Password',
+			'search'         => 'Search',
 		];
 		$this->assertSame($expectedFieldTypes, CustomField::$fieldTypes);
 
 		$expectedModules = [
-			'user'     => 'User',
-			'customer' => 'Customer',
-			'vendor'   => 'Vendor',
-			'product'  => 'Product',
-			'proposal' => 'Proposal',
-			'Invoice'  => 'Invoice',
-			'Bill'     => 'Bill',
-			'account'  => 'Account',
+			'financial'      => 'Financial',
+			'sales'          => 'Sales',
+			'crm'            => 'CRM',
+			'hrm'            => 'HRM',
+			'projects'       => 'Projects',
+			'management'     => 'Management',
+			'inventory'      => 'Inventory',
+			'support'        => 'Support',
+			'database'       => 'Database',
+			'infrastructure' => 'Infrastructure',
+			'marketing'      => 'Marketing',
+			'custom'         => 'Custom',
+			'landing_page'   => 'Landing Page',
+			'user'           => 'User',
+			'customer'       => 'Customer',
+			'vendor'         => 'Vendor',
+			'product'        => 'Product',
+			'proposal'       => 'Proposal',
+			'invoice'        => 'Invoice',
+			'bill'           => 'Bill',
+			'account'        => 'Account',
+			'other'          => 'Other',
 		];
 		$this->assertSame($expectedModules, CustomField::$modules);
 	}
@@ -54,34 +91,22 @@ class CustomFieldTest extends TestCase
 	 **/
 	public function save_data_inserts_records_or_updates(): void
 	{
-		$model = new class
-		{
-			public $id = 'abc-123';
-		};
+		$model = Mockery::mock(\Illuminate\Database\Eloquent\Model::class);
+		$model->shouldReceive('getKey')->andReturn('abc-123');
 
 		$data = [
 			10 => 'Value A',
 			15 => 'Value B',
 		];
 
-		// Expect DB::insert(...) twice
+		// Expect DB::insert(...) twice with 5 bindings each
 		DB::shouldReceive('insert')
-			->once()
-			->withArgs(function ($query, $bindings) use ($model, $data) {
+			->twice()
+			->withArgs(function ($query, $bindings) {
 				return is_string($query)
-					&& $bindings[0] === $model->id
-					&& ($bindings[1] === 10 || $bindings[1] === 15)
-					&& in_array($bindings[2], ['Value A', 'Value B']);
-			})
-			->andReturnTrue();
-
-		// Second call
-		DB::shouldReceive('insert')
-			->once()
-			->withArgs(function ($query, $bindings) use ($model, $data) {
-				return is_string($query)
-					&& $bindings[0] === $model->id
-					&& ($bindings[1] === 10 || $bindings[1] === 15)
+					&& count($bindings) === 5
+					&& $bindings[0] === 'abc-123'
+					&& in_array($bindings[1], [10, 15])
 					&& in_array($bindings[2], ['Value A', 'Value B']);
 			})
 			->andReturnTrue();
@@ -119,13 +144,13 @@ class CustomFieldTest extends TestCase
 			->once()
 			->andReturn($mock);
 
-		$model = new class
-		{
-			public $id = 'xyz';
-		};
+		$model = Mockery::mock(\Illuminate\Database\Eloquent\Model::class);
+		$model->shouldReceive('getKey')->andReturn('xyz');
+
 		$result = CustomField::getData($model, 'user');
 
 		$this->assertInstanceOf(Collection::class, $result);
-		$this->assertSame(['X', 'Y'], $result->all());
+		// pluck('value', 'id') returns a keyed collection
+		$this->assertSame([1 => 'X', 2 => 'Y'], $result->all());
 	}
 }

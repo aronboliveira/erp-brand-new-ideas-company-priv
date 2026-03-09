@@ -1,27 +1,20 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-
-    $lang = Utility::fetchUserLang();
-    $createRoute = Route::has(VW::AWD_TP.'.create')
-        ? route(VW::AWD_TP.'.create')
-        : Route::has(Str::kebab(VW::AWD_TP.'.create'))
-            ? route(Str::kebab(VW::AWD_TP.'.create'))
-            : '#';
-    $createId = 'awardtype-create-link';
-    $createMsg = Utility::fetchLinkMessage(
-        $lang,
-        VW::AWD_TP,
-        'award_type_create_route_unavailable'
-    ) ?? 'Create Award Type route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $createRoute = Route::has(VW::AWD_TP.'.create')
+            ? route(VW::AWD_TP.'.create')
+            : (Route::has(Str::kebab(VW::AWD_TP.'.create'))
+                ? route(Str::kebab(VW::AWD_TP.'.create'))
+                : '#');
+        $createId = 'awardtype-create-link';
+        $createMsg = Utility::fetchLinkMessage(
+            $lang,
+            VW::AWD_TP,
+            'award_type_create_route_unavailable'
+        ) ?? 'Create Award Type route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('award_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -29,12 +22,12 @@
 @section(YieldingConstants::ADM_PG_TTL, __('Manage Award Type'))
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Award Type') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Award Type') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -45,7 +38,7 @@
                 href="#"
                 data-url="{{ $createRoute }}"
                 data-sv-localized="true"
-                data-guard-msg="{{ $createMsg }}"
+                data-guard-msg="{{ base64_encode($createMsg) }}"
                 data-ajax-popup="true"
                 data-title="{{ __('Create New Award Type') }}"
                 data-bs-toggle="tooltip"
@@ -65,8 +58,8 @@
         </div>
         <div class="{{ VC::CL9 }}">
             <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -77,30 +70,34 @@
                             <tbody class="font-style">
                                 @foreach($awardTypes as $at)
                                     @php
-                                        $editRoute = Route::has(VW::AWD_TP.'.edit')
-                                            ? route(VW::AWD_TP.'.edit', $at->id)
-                                            : Route::has(Str::kebab(VW::AWD_TP.'.edit'))
-                                                ? route(Str::kebab(VW::AWD_TP.'.edit'), $at->id)
-                                                : '#';
-                                        $editId = 'awardtype-edit-' . $at->id . '-link';
-                                        $editMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            VW::AWD_TP,
-                                            'award_type_edit_route_unavailable'
-                                        ) ?? 'award_type_edit_route_unavailable';
+                                        try {
+                                            $editRoute = Route::has(VW::AWD_TP.'.edit')
+                                                ? route(VW::AWD_TP.'.edit', $at->id)
+                                                : (Route::has(Str::kebab(VW::AWD_TP.'.edit'))
+                                                    ? route(Str::kebab(VW::AWD_TP.'.edit'), $at->id)
+                                                    : '#');
+                                            $editId = 'awardtype-edit-' . $at->id . '-link';
+                                            $editMsg = Utility::fetchLinkMessage(
+                                                $lang,
+                                                VW::AWD_TP,
+                                                'award_type_edit_route_unavailable'
+                                            ) ?? 'award_type_edit_route_unavailable';
 
-                                        $deleteRoute = Route::has(VW::AWD_TP.'.destroy')
-                                            ? route(VW::AWD_TP.'.destroy', $at->id)
-                                            : Route::has(Str::kebab(VW::AWD_TP.'.destroy'))
-                                                ? route(Str::kebab(VW::AWD_TP.'.destroy'), $at->id)
-                                                : '#';
-                                        $deleteId = 'awardtype-delete-' . $at->id . '-link';
-                                        $deleteMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            VW::AWD_TP,
-                                            'award_type_destroy_route_unavailable'
-                                        ) ?? 'Delete Award Type route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                            $deleteRoute = Route::has(VW::AWD_TP.'.destroy')
+                                                ? route(VW::AWD_TP.'.destroy', $at->id)
+                                                : (Route::has(Str::kebab(VW::AWD_TP.'.destroy'))
+                                                    ? route(Str::kebab(VW::AWD_TP.'.destroy'), $at->id)
+                                                    : '#');
+                                            $deleteId = 'awardtype-delete-' . $at->id . '-link';
+                                            $deleteMsg = Utility::fetchLinkMessage(
+                                                $lang,
+                                                VW::AWD_TP,
+                                                'award_type_destroy_route_unavailable'
+                                            ) ?? 'Delete Award Type route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('award_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ $at->name ?? __('Could not retrieve name for award type') }}</td>
                                         <td>
@@ -111,7 +108,7 @@
                                                         href="#"
                                                         data-url="{{ $editRoute }}"
                                                         data-sv-localized="true"
-                                                        data-guard-msg="{{ $editMsg }}"
+                                                        data-guard-msg="{{ base64_encode($editMsg) }}"
                                                         data-ajax-popup="true"
                                                         data-title="{{ __('Edit Award Type') }}"
                                                         data-bs-toggle="tooltip"
@@ -135,7 +132,7 @@
                                                             class="{{ VC::BT_SM_CT_PR }}"
                                                             data-url="{{ $deleteRoute }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ $deleteMsg }}"
+                                                            data-guard-msg="{{ base64_encode($deleteMsg) }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
@@ -159,6 +156,7 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer>
         (() => {
             const ids = [
@@ -180,28 +178,7 @@
                         if ((!url || url === '#') && (!href || href === '#')) {
                             event.preventDefault();
                             const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl = document.createElement('div');
-                                toastEl.className = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             el.setAttribute('data-failed-route', 'true');
                         }
                     } catch {}

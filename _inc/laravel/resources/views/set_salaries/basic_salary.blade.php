@@ -1,25 +1,20 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang                 = Utility::fetchUserLang();
-    $salaryUpdateRoute    = Route::has(ViewsConstants::EMP . '.salary.update')
-        ? route(ViewsConstants::EMP . '.salary.update', $employee->id)
-        : (Route::has(Str::kebab(ViewsConstants::EMP . '.salary.update'))
-            ? route(Str::kebab(ViewsConstants::EMP . '.salary.update'), $employee->id)
-            : '#');
-    $formId               = 'employee-salary-update-form';
-    $updateMsg            = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::EMP,
-        'salary_update_route_unavailable'
-    ) ?? 'Salary update route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang                 = Utility::fetchUserLang();
+        $salaryUpdateRoute    = Route::has(ViewsConstants::EMP . '.salary.update')
+            ? route(ViewsConstants::EMP . '.salary.update', $employee->id)
+            : (Route::has(Str::kebab(ViewsConstants::EMP . '.salary.update'))
+                ? route(Str::kebab(ViewsConstants::EMP . '.salary.update'), $employee->id)
+                : '#');
+        $formId               = 'employee-salary-update-form';
+        $updateMsg            = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::EMP,
+            'salary_update_route_unavailable'
+        ) ?? 'Salary update route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('set_salaries/basic_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::model($employee, [
@@ -31,11 +26,11 @@
 ]) }}
     <div class="{{ VC::RW }}">
         <div class="{{ VC::FM_G }} col-md-12">
-            {{ Form::label('salary_type', __('Payslip Type'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+            {{ Form::label('salary_type', __('Payslip Type'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
             {{ Form::select('salary_type', $payslip_type, null, ['required' => 'required', 'class' => VC::FM_CT_SL]) }}
         </div>
         <div class="{{ VC::FM_G }} col-md-12">
-            {{ Form::label('salary', __('Salary'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+            {{ Form::label('salary', __('Salary'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
             {{ Form::number('salary', null, ['required' => 'required', 'class' => VC::FM_CT]) }}
         </div>
     </div>

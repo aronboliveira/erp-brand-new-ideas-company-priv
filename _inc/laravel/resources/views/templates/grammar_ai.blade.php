@@ -1,23 +1,23 @@
 @php
-use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC};
-use App\Models\Utility;
-use Collective\Html\FormFacade as Form;
-
+	try {
 $lang = Utility::fetchUserLang();
 
-$formId = 'ai-grammar-form';
-$srcId = 'grammar-source';
-$outId = 'ai-description';
-$regenBtnId = 'grammar-regenerate-btn';
-$copyBtnId = 'grammar-copy-btn';
+		$formId = 'ai-grammar-form';
+		$srcId = 'grammar-source';
+		$outId = 'ai-description';
+		$regenBtnId = 'grammar-regenerate-btn';
+		$copyBtnId = 'grammar-copy-btn';
 
-$descPh = __('Description') ?: __('No description available');
-$regenLabel = __('Re Generate') ?: __('Re Generate');
-$copyLabel = __('Copy Text') ?: __('Copy Text');
+		$descPh = __('Description') ?: __('No description available');
+		$regenLabel = __('Re Generate') ?: __('Re Generate');
+		$copyLabel = __('Copy Text') ?: __('Copy Text');
 
-$copyOkMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'copied_to_clipboard') ?? 'Text copied to clipboard.';
-$copyErrMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'copy_failed') ?? 'Copy failed. Please try again.';
-$noSrcMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'no_source_provided') ?? 'Please type or paste text above first.';
+		$copyOkMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'copied_to_clipboard') ?? 'Text copied to clipboard.';
+		$copyErrMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'copy_failed') ?? 'Copy failed. Please try again.';
+		$noSrcMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'no_source_provided') ?? 'Please type or paste text above first.';
+	} catch (\Throwable $e) {
+		\Log::error('templates/grammar_ai — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 
 {{ Form::open(['url' => '#', 'method' => 'post', 'id' => $formId]) }}
@@ -92,7 +92,7 @@ $noSrcMsg = Utility::fetchLinkMessage($lang, 'ai_grammar', 'no_source_provided')
                     t.setAttribute("aria-live", "assertive");
                     t.setAttribute("aria-atomic", "true");
                     t.innerHTML =
-                        '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                        '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                     container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);

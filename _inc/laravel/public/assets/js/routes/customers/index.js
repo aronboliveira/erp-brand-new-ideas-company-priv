@@ -1,68 +1,18 @@
 (() => {
-  const ERR_FB = "# ERROR";
-  const CLIENT_FLAG = "data-client-localized";
-  const GUARD_MSG = "data-guard-msg";
-  const LANG_KEY = "erp-np-lang";
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  const $ = window.jQuery;
+  if (!guard || !utils || !$) return;
+
   let errorMessage = "";
 
-  function getLocalizedMessage(key, el) {
-    let msg = ERR_FB;
-    if (el.getAttribute(CLIENT_FLAG) === "true") {
-      msg = el.getAttribute(GUARD_MSG) || msg;
-    } else {
-      let lang = (
-        sessionStorage.getItem(LANG_KEY) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        translations?.[lang]?.[key] ||
-        el.getAttribute(GUARD_MSG) ||
-        translations?.["en"]?.[key] ||
-        msg;
-      if (msg !== ERR_FB) {
-        el.setAttribute(GUARD_MSG, msg);
-        el.setAttribute(CLIENT_FLAG, "true");
-      }
-    }
-    return msg;
-  }
+  const getLocalizedMessage = (key, el) => {
+    return utils.getTranslation(key) || "# ERROR";
+  };
 
-  function showError(message) {
-    try {
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      const hasBs =
-        !!document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
-      if (hasBs) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = message;
-        toast.appendChild(body);
-        container.appendChild(toast);
-        bootstrap.Toast.getOrCreateInstance(toast).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
-  }
+  const showError = message => {
+    guard.showToast(message);
+  };
 
   const onPointerUp = () => {
     if (errorMessage) {
@@ -70,7 +20,9 @@
       errorMessage = "";
     }
   };
+
   document.addEventListener("pointerup", onPointerUp);
+
   new MutationObserver((muts, obs) => {
     muts.forEach(m =>
       Array.from(m.removedNodes).forEach(n => {
@@ -78,7 +30,7 @@
           document.removeEventListener("pointerup", onPointerUp);
           obs.disconnect();
         }
-      })
+      }),
     );
   }).observe(document.body, { childList: true, subtree: true });
 
@@ -119,7 +71,7 @@
             btn.removeEventListener("click", handler);
             obs.disconnect();
           }
-        })
+        }),
       );
     }).observe(document.body, { childList: true, subtree: true });
   });

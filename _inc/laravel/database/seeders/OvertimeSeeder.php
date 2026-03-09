@@ -51,8 +51,10 @@ final class OvertimeSeeder extends Seeder
 			$tz   = 'America/Sao_Paulo';
 			$base = now($tz);
 			$created = 0;
+			$HARD_CAP = 2; // HARD CAP guard
 
 			foreach ($employeeIds as $empId) {
+				if ($created >= $HARD_CAP) break; // HARD CAP guard
 				$qtd = random_int(0, 16);
 				if ($qtd === 0) {
 					continue;
@@ -61,9 +63,9 @@ final class OvertimeSeeder extends Seeder
 				$picked = $this->pickUnique($titles, $qtd);
 
 				foreach ($picked as $title) {
-					$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Hora Extra para funcionário: {$ref}");
+					// $ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Hora Extra para funcionário: {$ref}");
 					try {
 						$type = random_int(0, 1) === 1 ? PaymentPatternType::Percentage : PaymentPatternType::Fixed;
 

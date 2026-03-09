@@ -9,6 +9,11 @@ use App\Models\{BillProduct, Bill, ProductService, ChartOfAccount};
 
 class BillProductTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -35,9 +40,7 @@ class BillProductTest extends TestCase
 
 		$line = BillProduct::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $line->$field);
-		}
+		$this->assertFillableMatches($data, $line);
 	}
 
 	/**

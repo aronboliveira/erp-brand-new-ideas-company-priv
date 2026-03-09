@@ -1,47 +1,45 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
-    $plan               = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
-    $aiEnabled          = $plan?->{PlansConstants::COL_GPT} == 1;
-    $rolesIsList        = Utility::isFilled($roles ?? []);
-    $roleOptions        = $roles instanceof Collection ? $roles->toArray() : (is_array($roles) ? $roles : []);
-    $roleHasError       = $errors->has('role');
-    $roleAttrs          = [
-        'id'               => 'role',
-        'class'            => trim(VC::FM_CT_SL.' '.($roleHasError ? 'is-invalid' : '')),
-        'placeholder'      => __('Select Role'),
-        'aria-invalid'     => $roleHasError ? 'true' : 'false',
-        'aria-describedby' => $roleHasError ? 'role-error' : null,
-    ];
-    if (!$rolesIsList) { $roleAttrs['disabled'] = 'disabled'; }
-    $lang                       = Utility::fetchUserLang();
-    $docStoreBase               = VW::DOC_UP;
-    $docStoreKebab              = Str::kebab($docStoreBase);
-    $docStoreResolved           = Route::has($docStoreBase) ? $docStoreBase : (Route::has($docStoreKebab) ? $docStoreKebab : null);
-    $docStoreUrl                = $docStoreResolved ? route($docStoreResolved) : '#';
-    $docStoreFormId             = 'document-upload-store-form';
-    $docStoreGuardMsg           = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'store_document_route_unavailable') ?? 'Store document route is unavailable. Please contact technical support or your domain administrator.';
-    $nameHasError               = $errors->has('name');
-    $nameAttrs                  = [
-        'id'               => 'name',
-        'class'            => trim(VC::FM_CT.' '.($nameHasError ? 'is-invalid' : '')),
-        'required'         => 'required',
-        'aria-invalid'     => $nameHasError ? 'true' : 'false',
-        'aria-describedby' => $nameHasError ? 'name-error' : null,
-        'autocomplete'     => 'off',
-    ];
-    $genUrl        = '#';
-    $genGuardMsg   = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'generate_document_route_unavailable') ?? 'Generate document route is unavailable. Please contact technical support or your domain administrator.';
-    if ($aiEnabled) {
-        $genBase     = 'generate';
-        $genKebab    = Str::kebab($genBase);
-        $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
-        $genUrl      = $genResolved ? route($genResolved, ['document']) : '#';
+    try {
+$hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
+        $plan               = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
+        $aiEnabled          = $plan?->{PlansConstants::COL_GPT} == 1;
+        $rolesIsList        = Utility::isFilled($roles ?? []);
+        $roleOptions        = $roles instanceof Collection ? $roles->toArray() : (is_array($roles) ? $roles : []);
+        $roleHasError       = $errors->has('role');
+        $roleAttrs          = [
+            'id'               => 'role',
+            'class'            => trim(VC::FM_CT_SL.' '.($roleHasError ? 'is-invalid' : '')),
+            'placeholder'      => __('Select Role'),
+            'aria-invalid'     => $roleHasError ? 'true' : 'false',
+            'aria-describedby' => $roleHasError ? 'role-error' : null,
+        ];
+        if (!$rolesIsList) { $roleAttrs['disabled'] = 'disabled'; }
+        $lang                       = Utility::fetchUserLang();
+        $docStoreBase               = VW::DOC_UP;
+        $docStoreKebab              = Str::kebab($docStoreBase);
+        $docStoreResolved           = Route::has($docStoreBase) ? $docStoreBase : (Route::has($docStoreKebab) ? $docStoreKebab : null);
+        $docStoreUrl                = $docStoreResolved ? route($docStoreResolved) : '#';
+        $docStoreFormId             = 'document-upload-store-form';
+        $docStoreGuardMsg           = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'store_document_route_unavailable') ?? 'Store document route is unavailable. Please contact technical support or your domain administrator.';
+        $nameHasError               = $errors->has('name');
+        $nameAttrs                  = [
+            'id'               => 'name',
+            'class'            => trim(VC::FM_CT.' '.($nameHasError ? 'is-invalid' : '')),
+            'required'         => 'required',
+            'aria-invalid'     => $nameHasError ? 'true' : 'false',
+            'aria-describedby' => $nameHasError ? 'name-error' : null,
+            'autocomplete'     => 'off',
+        ];
+        $genUrl        = '#';
+        $genGuardMsg   = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'generate_document_route_unavailable') ?? 'Generate document route is unavailable. Please contact technical support or your domain administrator.';
+        if ($aiEnabled) {
+            $genBase     = 'generate';
+            $genKebab    = Str::kebab($genBase);
+            $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+            $genUrl      = $genResolved ? route($genResolved, ['document']) : '#';
+        }
+    } catch (\Throwable $e) {
+        \Log::error('document_uploads/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
 @endphp
 
@@ -60,7 +58,7 @@
                 <a id="document-generate-btn"
                    href="{{ $genUrl }}"
                    data-url="{{ $genUrl }}"
-                   data-guard-msg="{{ $genGuardMsg }}"
+                   data-guard-msg="{{ base64_encode($genGuardMsg) }}"
                    data-sv-localized="true"
                    data-size="md"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -78,7 +76,7 @@
                     {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                     {{ Form::text('name', null, $nameAttrs) }}
                     @error('name')
-                        <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                        <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                     @enderror
                 </div>
             </div>
@@ -88,7 +86,7 @@
                     {{ Form::label('role', __('Role'), ['class' => VC::FM_LB]) }}
                     {{ Form::select('role', $roleOptions, null, $roleAttrs) }}
                     @error('role')
-                        <span id="role-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                        <span id="role-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                     @enderror
                 </div>
             </div>

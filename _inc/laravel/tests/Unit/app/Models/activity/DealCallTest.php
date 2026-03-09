@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{DealCall, User};
 
 class DealCallTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -27,13 +32,14 @@ class DealCallTest extends TestCase
 			'user_id'     => $user?->id,
 			'description' => 'Called client for update',
 			'call_result' => 'Connected',
+			'from'        => '+5511999990001',
+			'to'          => '+5511999990002',
+			'phone'       => '+5511999990001',
 		];
 
 		$dealCall = DealCall::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $dealCall->$field);
-		}
+		$this->assertFillableMatches($data, $dealCall);
 	}
 
 	/**
@@ -52,6 +58,9 @@ class DealCallTest extends TestCase
 			'user_id'     => $user?->id,
 			'description' => 'Introductory call',
 			'call_result' => 'Voicemail',
+			'from'        => '+5511999990003',
+			'to'          => '+5511999990004',
+			'phone'       => '+5511999990003',
 		]);
 
 		$key = $dealCall->getKey();
@@ -74,9 +83,9 @@ class DealCallTest extends TestCase
 	{
 		$relation = (new DealCall)->getDealCallUser();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,          get_class($relation->getRelated()));
-		$this->assertSame('id',                 $relation->getForeignKeyName());
-		$this->assertSame('user_id',            $relation->getLocalKeyName());
+		$this->assertSame('user_id',                 $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 }

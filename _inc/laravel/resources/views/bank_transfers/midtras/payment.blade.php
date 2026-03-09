@@ -1,20 +1,20 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{StacksConstants, ViewsConstants};
-    $lang               = Utility::fetchUserLang();
-    $fallbackRoute      = Route::has($data['fallback_url'])
-        ? route($data['fallback_url'], $data)
-        : (Route::has(Str::kebab($data['fallback_url']))
-            ? route(Str::kebab($data['fallback_url']), $data)
-            : '#');
-    $formId             = 'submit_form';
-    $fallbackGuardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BNK_TRF,
-        'fallback_route_unavailable'
-    ) ?? 'Fallback route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang               = Utility::fetchUserLang();
+        $fallbackRoute      = Route::has($data['fallback_url'])
+            ? route($data['fallback_url'], $data)
+            : (Route::has(Str::kebab($data['fallback_url']))
+                ? route(Str::kebab($data['fallback_url']), $data)
+                : '#');
+        $formId             = 'submit_form';
+        $fallbackGuardMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::BNK_TRF,
+            'fallback_route_unavailable'
+        ) ?? 'Fallback route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('bank_transfers/midtras/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <html>
   <head>
@@ -37,7 +37,7 @@
         id="{{ $formId }}"
         method="POST"
         data-url="{{ $fallbackRoute }}"
-        data-guard-msg="{{ $fallbackGuardMsg }}"
+        data-guard-msg="{{ base64_encode($fallbackGuardMsg) }}"
     >
         @csrf
         <input type="hidden" name="json" id="json_callback">

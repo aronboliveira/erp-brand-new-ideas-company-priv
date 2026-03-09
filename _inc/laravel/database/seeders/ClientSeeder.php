@@ -25,7 +25,8 @@ class ClientSeeder extends Seeder
 		DB::transaction(function () use ($faker) {
 			$creatorId = DC::DEFAULT_UUID;
 			$clientsAsUsers = User::where('type', 'client')->pluck('id')->all();
-			$quantity = max(self::MIN_CLIENTS, count($clientsAsUsers));
+			// $quantity = max(self::MIN_CLIENTS, count($clientsAsUsers)); // ORIGINAL — unbounded
+			$quantity = min(2, max(self::MIN_CLIENTS, count($clientsAsUsers))); // HARD CAP
 			Log::warning(get_class($this) . ' seeding ' . $quantity . ' clients (' . count($clientsAsUsers) . ' linked to users).');
 			for ($i = 0; $i < $quantity; $i++) {
 				try {
@@ -38,8 +39,8 @@ class ClientSeeder extends Seeder
 
 					if ($attempts >= $maxAttempts)
 						$clientName = $faker->name() . " #" . Str::uuid();
-					$output = new \Symfony\Component\Console\Output\ConsoleOutput();
-					$output->writeln("Creating client: {$clientName}");
+					// $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+					// $output->writeln("Creating client: {$clientName}");
 
 					$attempts = 0;
 					do {

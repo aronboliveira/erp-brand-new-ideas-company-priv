@@ -9,16 +9,14 @@ def to_pascal_case(s: str) -> str:
 def to_camel_case(s: str) -> str:
     p = to_pascal_case(s)
     return p[0].lower() + p[1:] if p else p
-def main() -> None:
+def main():
     init(autoreset=True)
-    reference_input = input("Enter reference (Python models) path: ").strip()
-    reference: Path
-    if re.match(r'^[A-Z]:\\', reference_input): reference = Path(reference_input)
-    else: reference = Path.cwd() / reference_input
-    working_input = input("Enter working (PHP models root) path: ").strip()
-    working: Path
-    if re.match(r'^[A-Z]:\\', working_input): working = Path(working_input)
-    else: working = (Path.cwd() / working_input) if not working_input == '.' else Path.cwd()
+    reference = input("Enter reference (Python models) path: ").strip()
+    if re.match(r'^[A-Z]:\\', reference): reference = Path(reference)
+    else: reference = Path.cwd() / reference
+    working = input("Enter working (PHP models root) path: ").strip()
+    if re.match(r'^[A-Z]:\\', working): working = Path(working)
+    else: working = (Path.cwd() / working) if not working == '.' else Path.cwd()
     if not reference.is_dir():
         print(Fore.RED + f"Reference path not found or not a directory: {reference}")
         return
@@ -30,9 +28,9 @@ def main() -> None:
             if not fname.endswith(".py"):
                 continue
             py_path = Path(dirpath) / fname
-            rel = py_path.relative_to(reference)
+            rel     = py_path.relative_to(reference)
             rel_dir = rel.parent
-            base = py_path.stem
+            base    = py_path.stem
             variants = [
                 f"{base}.php",
                 f"{to_pascal_case(base)}.php",
@@ -49,7 +47,7 @@ def main() -> None:
                 continue
 
             dest_dir = working / rel_dir
-            dest = dest_dir / found.name
+            dest     = dest_dir / found.name
             try:
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.move(str(found), str(dest))
@@ -67,7 +65,6 @@ def main() -> None:
                         print(Fore.CYAN + f"ℹ Renamed: {dest.name} → {new_dest.name}")
                     except Exception as e:
                         print(Fore.RED + f"✖ Failed to rename {dest.name}: {e}")
-
 
 if __name__ == "__main__":
     main()

@@ -14,7 +14,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class MilestoneSeeder extends Seeder
 {
-	private const MAX_TOTAL_CREATED = 512; // break-out de segurança (não é multiplicador)
+	// private const MAX_TOTAL_CREATED = 512; // break-out de segurança (não é multiplicador)
+	private const MAX_TOTAL_CREATED = 2; // break-out de segurança (não é multiplicador)
 
 	private const MAX_VERBOSE_ROWS = 80;
 
@@ -97,7 +98,7 @@ class MilestoneSeeder extends Seeder
 								'requested_status'   => $requestedStatus,
 								'involved_count'     => count($involved),
 							]);
-							$output->writeln('Creating Milestone for project ' . $projectId . ' with priority ' . $requestedPriority . ' and status ' . $requestedStatus);
+							// $output->writeln('Creating Milestone for project ' . $projectId . ' with priority ' . $requestedPriority . ' and status ' . $requestedStatus);
 							$m->save();
 							$made++;
 
@@ -191,7 +192,7 @@ class MilestoneSeeder extends Seeder
 								'requested_status'   => $requestedStatus,
 								'involved_count'     => count($involved),
 							]);
-							$output->writeln('<info>[MilestoneSeeder]</info> creating milestone for project_id=' . (string) $projectId . ' priority=' . $requestedPriority . ' status=' . $requestedStatus . ' start=' . $startDate->toDateString() . ' due=' . $dueDate->toDateString());
+							// $output->writeln('<info>[MilestoneSeeder]</info> creating milestone for project_id=' . (string) $projectId . ' priority=' . $requestedPriority . ' status=' . $requestedStatus . ' start=' . $startDate->toDateString() . ' due=' . $dueDate->toDateString());
 							$m->save();
 							$made++;
 

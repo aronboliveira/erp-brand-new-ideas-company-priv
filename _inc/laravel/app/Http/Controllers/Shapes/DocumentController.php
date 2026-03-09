@@ -1,24 +1,37 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shapes;
 
-use App\Config\Constants\{DatabaseConstants, MiddlewaresConstants, ViewsConstants};
-use App\Http\Controllers\Controller;
+use App\Config\Constants\{
+    DatabaseConstants as DC,
+    MiddlewaresConstants as MWC,
+    ViewsConstants as VW
+};
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\Document;
 use App\Traits\ChecksLogin;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
-use Illuminate\Auth\Access\AuthorizationException;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 final class DocumentController extends Controller
 {
     use ChecksLogin;
 
-    private const INDEX_ROUTE = ViewsConstants::DOC . '.index';
+    private const INDEX_ROUTE = VW::DOC . '.index';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+        $this->middleware([MWC::AUTH, MWC::XSS]);
     }
 
     public function index(Request $req): Response|RedirectResponse|JsonResponse
@@ -26,7 +39,7 @@ final class DocumentController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = ViewsConstants::DOC . '.' . $action;
+        $viewPath = VW::DOC . '.' . $action;
 
         return $this->measureProfile($action, function () use ($req, $sig, $viewPath) {
             Log::info("$sig start", ['user' => Auth::id()]);
@@ -34,11 +47,11 @@ final class DocumentController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            if ($r = self::guard($req, 'manage document type')) return $r;
+            if ($c = self::guard($req, 'manage document type')) return $c;
 
             try {
                 $t = microtime(true);
-                $docs = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $docs = Document::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($t, "$sig::fetchDocuments", 'completed');
                 Log::info("$sig fetched", ['count' => $docs->count()]);
 
@@ -49,7 +62,7 @@ final class DocumentController extends Controller
                 }
                 $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
 
-                return response()->view($viewPath, compact('docs'));
+                return response()->view($viewPath, ['documents' => $docs]);
             } catch (\Throwable $e) {
                 Log::error("$sig failed", ['err' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $sig);
@@ -62,13 +75,13 @@ final class DocumentController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = ViewsConstants::DOC . '.' . $action;
+        $viewPath = VW::DOC . '.' . $action;
 
         return $this->measureProfile($action, function () use ($req, $sig, $viewPath) {
             Log::info("$sig start", ['user' => Auth::id()]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'create document type')) return $r;
+            if ($c = self::guard($req, 'create document type')) return $c;
 
             $t = microtime(true);
             if (!ViewFacade::exists($viewPath)) {
@@ -92,7 +105,7 @@ final class DocumentController extends Controller
 
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($req, 'create document type')) return $r;
+            if ($c = self::guard($req, 'create document type')) return $c;
 
             $t = microtime(true);
             $v = Validator::make($req->all(), ['name' => 'required|string|max:20']);
@@ -105,8 +118,8 @@ final class DocumentController extends Controller
             DB::beginTransaction();
             try {
                 $t = microtime(true);
-                $data = $req->only(['name', 'is_required']);
-                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
+                $data = $req->only(['name', DC::COL_IR]);
+                $data[DC::COL_TABLE_CREATOR] = $user?->creatorId();
                 Document::create($data);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::transaction", 'completed');
@@ -133,13 +146,13 @@ final class DocumentController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = ViewsConstants::DOC . '.edit';
+        $viewPath = VW::DOC . '.edit';
 
         return $this->measureProfile($action, function () use ($req, $document, $sig, $viewPath) {
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'edit document type')) return $r;
+            if ($c = self::guard($req, 'edit document type')) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }
@@ -165,7 +178,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'edit document type')) return $r;
+            if ($c = self::guard($req, 'edit document type')) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }
@@ -207,7 +220,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'delete document type')) return $r;
+            if ($c = self::guard($req, 'delete document type')) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }
@@ -235,6 +248,10 @@ final class DocumentController extends Controller
         $user = $req->user();
         Log::info(__METHOD__ . ' checking', ['user_id' => $user?->id, 'perm' => $perm]);
         if ($user?->can($perm)) return null;
+        if (strtolower((string)($user?->type ?? '')) === \App\Config\Constants\PermissionsConstants::SA) {
+            Log::notice(__METHOD__ . ' SA bypass', ['user_id' => $user?->id, 'perm' => $perm]);
+            return null;
+        }
 
         Log::warning(__METHOD__ . ' denied', ['user_id' => $user?->id, 'perm' => $perm]);
         return defaultPermissionDenial(

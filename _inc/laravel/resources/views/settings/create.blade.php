@@ -1,10 +1,29 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in settings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in settings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in settings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends('layouts.main')
 @section('content')
@@ -15,19 +34,48 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::CM6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h4>{{ __('Create Role') }}</h4>
                     </div>
                     @php
-                        $roleStoreBaseName                 = ViewsConstants::RL;
-                        $roleStoreKebabName                = Str::kebab($roleStoreBaseName);
-                        $roleStoreResolvedName             = Route::has($roleStoreBaseName)
-                            ? $roleStoreBaseName
-                            : (Route::has($roleStoreKebabName) ? $roleStoreKebabName : null);
-                        $roleStoreUrl                      = $roleStoreResolvedName ? route($roleStoreResolvedName) : '#';
-                        $roleStoreGuardMsg                 = Utility::fetchLinkMessage($lang, ViewsConstants::RL, 'role_store_route_unavailable') ?? 'Role store route is unavailable. Please contact technical support or your domain administrator.';
-                        $roleStoreFormId                   = 'role-store-form';
-                    @endphp
+						$roleStoreBaseName ??= '';
+						$roleStoreKebabName ??= '';
+						$roleStoreResolvedName ??= null;
+						$roleStoreUrl ??= '#';
+						$roleStoreGuardMsg ??= '';
+						$roleStoreFormId ??= 'role-store-form';
+						try {
+							$roleStoreBaseName = ViewsConstants::RL;
+							$roleStoreKebabName = Str::kebab($roleStoreBaseName);
+							$roleStoreResolvedName = Route::has($roleStoreBaseName)
+								? $roleStoreBaseName
+								: (Route::has($roleStoreKebabName) ? $roleStoreKebabName : null);
+							$roleStoreUrl = $roleStoreResolvedName ? (route($roleStoreResolvedName) ?? '#') : '#';
+							$roleStoreGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RL, 'role_store_route_unavailable')
+								?? 'Role store route is unavailable. Please contact technical support or your domain administrator.';
+						} catch (\Error $e) {
+							Log::error('Error in settings/create.blade.php role store @php block', [
+								'exception_class' => get_class($e),
+								'message' => $e->getMessage(),
+								'file' => $e->getFile(),
+								'line' => $e->getLine(),
+							]);
+						} catch (\Exception $e) {
+							Log::error('Exception in settings/create.blade.php role store @php block', [
+								'exception_class' => get_class($e),
+								'message' => $e->getMessage(),
+								'file' => $e->getFile(),
+								'line' => $e->getLine(),
+							]);
+						} catch (\Throwable $e) {
+							Log::error('Throwable in settings/create.blade.php role store @php block', [
+								'exception_class' => get_class($e),
+								'message' => $e->getMessage(),
+								'file' => $e->getFile(),
+								'line' => $e->getLine(),
+							]);
+						}
+@endphp
                     {!! Form::open([
                         'url'            => $roleStoreUrl,
                         'method'         => 'post',
@@ -38,7 +86,7 @@
                         @push(StacksConstants::ADM_SCR_PG)
                             <script defer src="{{ asset('assets/js/routes/settings/store.js') }}"></script>
                         @endpush
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::FM_G }}">
                                 {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                                 {{ Form::text('name', old('name'), [
@@ -47,7 +95,7 @@
                                 ]) }}
                                 @error('name')
                                     <span class="invalid-name" role="alert">
-                                        <strong class="text-danger">{{ $message }}</strong>
+                                        <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                                     </span>
                                 @enderror
                             </div>
@@ -63,25 +111,33 @@
                                         </thead>
                                         <tbody>
                                             @php
-                                                $modules = ['user', 'language', 'account'];
-                                                $actions = [
-                                                    'manage' => __('Manage'),
-                                                    'create' => __('Create'),
-                                                    'edit'   => __('Edit'),
-                                                    'delete' => __('Delete'),
-                                                ];
-                                            @endphp
+                                                try {
+                                                    $modules = ['user', 'language', 'account'];
+                                                    $actions = [
+                                                        'manage' => __('Manage'),
+                                                        'create' => __('Create'),
+                                                        'edit'   => __('Edit'),
+                                                        'delete' => __('Delete'),
+                                                    ];
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('settings/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             @foreach ($modules as $module)
                                                 <tr>
                                                     <td>{{ ucfirst($module) }}</td>
                                                     <td>
                                                         @foreach ($actions as $actionKey => $actionLabel)
                                                             @php
-                                                                $needle = $actionKey . ' ' . $module;
-                                                                $key = in_array($needle, (array) $permissions, true)
-                                                                    ? array_search($needle, $permissions, true)
-                                                                    : false;
-                                                            @endphp
+                                                                try {
+                                                                    $needle = $actionKey . ' ' . $module;
+                                                                    $key = in_array($needle, (array) $permissions, true)
+                                                                        ? array_search($needle, $permissions, true)
+                                                                        : false;
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('settings/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
 
                                                             @if ($key !== false)
                                                                 <div class="{{ VC::FM_CHK_IL }}">
@@ -101,18 +157,22 @@
                         <div class="card-footer">
                             {{ Form::submit(__('Create'), ['class' => VC::BT_PRM]) }}
                             @php
-                                $roleIndexBaseName        = ViewsConstants::RL . '.index';
-                                $roleIndexKebabName       = Str::kebab($roleIndexBaseName);
-                                $roleIndexResolvedName    = Route::has($roleIndexBaseName) ? $roleIndexBaseName : (Route::has($roleIndexKebabName) ? $roleIndexKebabName : null);
-                                $roleIndexUrl             = $roleIndexResolvedName ? route($roleIndexResolvedName) : '#';
-                                $roleIndexGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::RL, 'role_index_route_unavailable') ?? 'Role index route is unavailable. Please contact technical support or your domain administrator.';
-                                $roleIndexLinkId          = 'role-index-cancel-link';
-                            @endphp
+                                try {
+                                    $roleIndexBaseName        = ViewsConstants::RL . '.index';
+                                    $roleIndexKebabName       = Str::kebab($roleIndexBaseName);
+                                    $roleIndexResolvedName    = Route::has($roleIndexBaseName) ? $roleIndexBaseName : (Route::has($roleIndexKebabName) ? $roleIndexKebabName : null);
+                                    $roleIndexUrl             = $roleIndexResolvedName ? route($roleIndexResolvedName) : '#';
+                                    $roleIndexGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::RL, 'role_index_route_unavailable') ?? 'Role index route is unavailable. Please contact technical support or your domain administrator.';
+                                    $roleIndexLinkId          = 'role-index-cancel-link';
+                                } catch (\Throwable $e) {
+                                    \Log::error('settings/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <a
                                 id="{{ $roleIndexLinkId }}"
                                 href="{{ $roleIndexUrl }}"
                                 data-url="{{ $roleIndexUrl }}"
-                                data-guard-msg="{{ $roleIndexGuardMsg }}"
+                                data-guard-msg="{{ base64_encode($roleIndexGuardMsg) }}"
                                 class="{{ VC::BT . ' ' . VC::BT . '-danger' }}"
                             >
                                 {{ __('Cancel') }}

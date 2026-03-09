@@ -37,172 +37,172 @@ final class Handler extends ExceptionHandler
         'password_confirmation'
     ];
 
+    /**
+     * Recently-logged exception signatures with timestamps.
+     * Prevents the same exception from being logged repeatedly
+     * within DEDUP_TTL_SECONDS.
+     *
+     * @var array<string, float>  hash => microtime(true)
+     */
+    private static array $recentExceptions = [];
+
+    /** Seconds before the same exception signature can be logged again. */
+    private const DEDUP_TTL_SECONDS = 30;
+
+    /** Maximum entries kept in the dedup cache before pruning. */
+    private const DEDUP_MAX_ENTRIES = 64;
+
+    /**
+     * Build a short hash that identifies an exception by class + message + origin.
+     */
+    private static function exceptionSignature(Throwable $e): string
+    {
+        return md5(get_class($e) . '|' . $e->getMessage() . '|' . $e->getFile() . ':' . $e->getLine());
+    }
+
+    /**
+     * Returns true when this exact exception was already logged within the TTL window.
+     * Automatically prunes stale entries when the cache exceeds DEDUP_MAX_ENTRIES.
+     */
+    private static function isDuplicate(Throwable $e): bool
+    {
+        $now  = microtime(true);
+        $hash = self::exceptionSignature($e);
+
+        // Prune stale entries
+        if (count(self::$recentExceptions) > self::DEDUP_MAX_ENTRIES) {
+            self::$recentExceptions = array_filter(
+                self::$recentExceptions,
+                fn(float $ts) => ($now - $ts) < self::DEDUP_TTL_SECONDS
+            );
+        }
+
+        if (isset(self::$recentExceptions[$hash]) && ($now - self::$recentExceptions[$hash]) < self::DEDUP_TTL_SECONDS) {
+            return true;
+        }
+
+        self::$recentExceptions[$hash] = $now;
+        return false;
+    }
+
+    /**
+     * Determine whether an exception is noise that should be silenced.
+     */
+    private static function isNoise(Throwable $e): bool
+    {
+        $msg = $e->getMessage();
+        return str_contains($msg, '.js.map could not be found.')
+            || str_contains($msg, '.well-known/appspecific/com.chrome.devtools.json');
+    }
+
+    /**
+     * Resolve the current request instance safely.
+     */
+    private static function resolveRequest(): ?HttpRequest
+    {
+        try {
+            if (function_exists('request')) return request();
+            if (class_exists(RequestFacade::class)) return RequestFacade::instance();
+            return app('request');
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Build a compact context array for logging an exception.
+     */
+    private static function buildExceptionLogContext(Throwable $e, ?HttpRequest $request): array
+    {
+        $ctx = [
+            'exception_class' => get_class($e),
+            'message'         => $e->getMessage(),
+            'file'            => $e->getFile(),
+            'line'            => $e->getLine(),
+            'code'            => $e->getCode(),
+        ];
+
+        if ($request) {
+            $ctx['request'] = [
+                'url'        => $request->fullUrl(),
+                'method'     => $request->method(),
+                'ip'         => $request->ip(),
+                'route_name' => optional($request->route())->getName(),
+                'action'     => optional($request->route())->getActionName(),
+                'user_id'    => $request->user()?->getAuthIdentifier(),
+            ];
+        }
+
+        return $ctx;
+    }
+
     public function register(): void
     {
-        $function = __FUNCTION__;
-        $class = __CLASS__;
-        $this->reportable(function (Throwable $e) use ($function, $class) {
-            try {
-                if (str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')) {
-                    Log::debug('min.js.map error redirected to debug channel');
-                    Log::debug(
-                        'min.js.map not found',
-                        [
-                            'exception_class' => get_class($e),
-                            'message'         => $e->getMessage(),
-                            'file'            => $e->getFile(),
-                            'line'            => $e->getLine(),
-                        ]
-                    );
-                    return true;
-                }
-                if (function_exists('request'))
-                    $request = request();
-                elseif (class_exists(RequestFacade::class))
-                    $request = RequestFacade::instance();
-                else
-                    $request = app('request');
-            } catch (Throwable $fetchEx) {
-                Log::debug($class . '::' . $function . ' failed to fetch request', [
-                    'exception' => $fetchEx::class,
-                    'message' => $fetchEx->getMessage(),
-                    'file' => $fetchEx->getFile(),
-                    'line' => $fetchEx->getLine(),
-                ]);
-                $request = null;
+        // ── Reportable: log each exception ONCE with dedup ──────────
+        $this->reportable(function (Throwable $e) {
+            if (self::isNoise($e)) return false;
+            if (self::isDuplicate($e)) return false;
+
+            $request = self::resolveRequest();
+            $ctx     = self::buildExceptionLogContext($e, $request);
+
+            $logMessage = $e->getMessage() ?: sprintf(
+                'HTTP %d: %s %s',
+                $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException ? $e->getStatusCode() : 500,
+                $request?->method() ?? 'GET',
+                $request?->fullUrl() ?? 'unknown URL'
+            );
+
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() < 500) {
+                Log::notice($logMessage, $ctx);
+            } else {
+                Log::critical($logMessage, $ctx);
             }
-            $exceptionContext = [
-                'exception_class' => get_class($e),
-                'message'         => $e->getMessage(),
-                'file'            => $e->getFile(),
-                'line'            => $e->getLine(),
-                'code'            => $e->getCode(),
-                'previous'        => $e->getPrevious()?->getMessage(),
-            ];
-            $requestContext = $request
-                ? [
-                    'url'           => $request->fullUrl(),
-                    'method'        => $request->method(),
-                    'ip'            => $request->ip(),
-                    'user_agent'    => $request->userAgent(),
-                    'route_name'    => optional($request->route())->getName(),
-                    'action'        => optional($request->route())->getActionName(),
-                    'headers' => collect($request->headers->all())->except(['authorization', 'cookie', 'php-auth-pw'])->toArray(),
-                    'query_params'  => $request->query(),
-                    'payload'       => $request->except(['password', 'password_confirmation']),
-                    'user'          => optional($request->user()) ? [
-                        'id'    => $request->user()?->getAuthIdentifier(),
-                        'email' => $request->user()?->email,
-                    ] : null,
-                ]
-                : null;
-            $mergedCtx = array_merge(
-                $exceptionContext,
-                ['request' => $requestContext]
-            );
-            if (!(str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')))
-                Log::critical(
-                    sprintf('%s::%s reportable triggered', $class, $function),
-                    $mergedCtx
-                );
-            Log::channel(SettingsConstants::CRT_TRACE)->debug(
-                sprintf('%s::%s reportable triggered', $class, $function),
-                array_merge($mergedCtx, [
-                    'trace' => $e->getTraceAsString()
-                ])
-            );
+
+            Log::channel(SettingsConstants::CRT_TRACE)->debug('Exception trace', array_merge($ctx, [
+                'trace' => $e->getTraceAsString(),
+            ]));
+
             $status = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException
                 ? $e->getStatusCode()
                 : 500;
-            if (!empty($status) && $status >= 500)
+
+            if ($status >= 500) {
                 return response('<!DOCTYPE html><html><body><h1>Server error</h1><p>' . $status . '</p></body></html>', 500);
-        });
-        $this->renderable(function (Throwable $e, HttpRequest $request) use ($function, $class) {
-            if (!($request instanceof HttpRequest)) {
-                try {
-                    if (str_contains($e->getMessage(), '.js.map could not be found.')) {
-                        Log::debug('min.js.map error redirected to debug channel');
-                        Log::debug(
-                            'min.js.map exception outside HTTP request context',
-                            [
-                                'exception_class' => get_class($e),
-                                'message'         => $e->getMessage(),
-                                'file'            => $e->getFile(),
-                                'line'            => $e->getLine(),
-                            ]
-                        );
-                        return response('', 404);
-                    }
-                    if (function_exists('request'))
-                        $request = request();
-                    elseif (class_exists(RequestFacade::class))
-                        $request = RequestFacade::instance();
-                    else
-                        $request = app('request');
-                } catch (Throwable $fetchEx) {
-                    Log::debug($class . '::' . $function . ' failed to fetch request', [
-                        'exception' => $fetchEx::class,
-                        'message' => $fetchEx->getMessage(),
-                        'file' => $fetchEx->getFile(),
-                        'line' => $fetchEx->getLine(),
-                    ]);
-                    $request = null;
-                }
             }
-            $exceptionContext = [
-                'exception_class' => get_class($e),
-                'message'         => $e->getMessage(),
-                'file'            => $e->getFile(),
-                'line'            => $e->getLine(),
-                'code'            => $e->getCode(),
-                'previous'        => $e->getPrevious()?->getMessage(),
-            ];
-            $requestContext = $request
-                ? [
-                    'url'           => $request->fullUrl(),
-                    'method'        => $request->method(),
-                    'ip'            => $request->ip(),
-                    'user_agent'    => $request->userAgent(),
-                    'route_name'    => optional($request->route())->getName(),
-                    'action'        => optional($request->route())->getActionName(),
-                    'headers' => collect($request->headers->all())->except(['authorization', 'cookie', 'php-auth-pw'])->toArray(),
-                    'query_params'  => $request->query(),
-                    'payload'       => $request->except(['password', 'password_confirmation']),
-                    'user'          => optional($request->user()) ? [
-                        'id'    => $request->user()?->getAuthIdentifier(),
-                        'email' => $request->user()?->email,
-                    ] : null,
-                ]
-                : null;
-            $mergedCtx = array_merge(
-                $exceptionContext,
-                ['request' => $requestContext]
-            );
-            if (!(str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')))
-                Log::critical(
-                    sprintf('%s::%s reportable triggered', $class, $function),
-                    $mergedCtx
-                );
-            Log::channel(SettingsConstants::CRT_TRACE)->debug(
-                sprintf('%s::%s reportable triggered', $class, $function),
-                array_merge($mergedCtx, [
-                    'trace' => $e->getTraceAsString()
-                ])
-            );
+        });
+
+        // ── Renderable: produce error responses (no duplicate logging) ──
+        $this->renderable(function (Throwable $e, HttpRequest $request) {
+            if (self::isNoise($e)) return response('', 404);
+
+            // Let Laravel handle ValidationException natively (302 redirect / 422 JSON)
+            if ($e instanceof \Illuminate\Validation\ValidationException) return null;
+
+            // Let Laravel handle AuthenticationException natively (redirect to login / 401 JSON)
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) return null;
+
             $status = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException
                 ? $e->getStatusCode()
                 : 500;
-            if (
-                $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface
-                && !empty($status)
-            ) {
-                if ($e->getStatusCode() >= 500)
-                    return response($this->getGenericServerErrorHtml($request), $status);
-                else if ($e->getStatusCode() === 404)
-                    return response($this->get404ErrorHtml($request), $status);
-                else if ($e->getStatusCode() >= 400)
-                    return response($this->getAuthErrorHtml($request), $status);
+
+            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                $status = 404;
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'error'   => 'Resource not found',
+                        'message' => $e->getMessage(),
+                    ], 404);
+                }
+                return response($this->get404ErrorHtml($request), 404);
             }
+
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface && !empty($status)) {
+                if ($status >= 500)  return response($this->getGenericServerErrorHtml($request), $status);
+                if ($status === 404) return response($this->get404ErrorHtml($request), $status);
+                if ($status >= 400)  return response($this->getAuthErrorHtml($request), $status);
+            }
+
             return response($this->getGenericServerErrorHtml($request), $status);
         });
     }

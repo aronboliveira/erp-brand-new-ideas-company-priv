@@ -1,18 +1,17 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang                 = Utility::fetchUserLang();
-    $sourceStoreBaseName  = ViewsConstants::SRC;
-    $sourceStoreKebabName = Str::kebab($sourceStoreBaseName);
-    $sourceStoreResolved  = Route::has($sourceStoreBaseName)
-        ? $sourceStoreBaseName
-        : (Route::has($sourceStoreKebabName) ? $sourceStoreKebabName : null);
-    $sourceStoreUrl       = $sourceStoreResolved ? route($sourceStoreResolved) : '#';
-    $sourceStoreGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_store_route_unavailable') ?? 'Source store route is unavailable. Please contact technical support or your domain administrator.';
-    $sourceStoreFormId    = 'source-store-form';
+    try {
+$lang                 = Utility::fetchUserLang();
+        $sourceStoreBaseName  = ViewsConstants::SRC;
+        $sourceStoreKebabName = Str::kebab($sourceStoreBaseName);
+        $sourceStoreResolved  = Route::has($sourceStoreBaseName)
+            ? $sourceStoreBaseName
+            : (Route::has($sourceStoreKebabName) ? $sourceStoreKebabName : null);
+        $sourceStoreUrl       = $sourceStoreResolved ? route($sourceStoreResolved) : '#';
+        $sourceStoreGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::SRC, 'source_store_route_unavailable') ?? 'Source store route is unavailable. Please contact technical support or your domain administrator.';
+        $sourceStoreFormId    = 'source-store-form';
+    } catch (\Throwable $e) {
+        \Log::error('sources/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'url'            => $sourceStoreUrl,
@@ -47,28 +46,7 @@
                     if (dataUrl !== '#' || action !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (err) {}
             });

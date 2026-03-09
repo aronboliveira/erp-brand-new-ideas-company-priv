@@ -1,7 +1,5 @@
 @php
-	use App\Config\Constants\{ViewClassNamesConstants,ViewsConstants};
-	use Illuminate\Support\Facades\Log;
-	$navItems??=[];
+$navItems??=[];
 	try {
 		$navItems=[
 			['view'=>ViewsConstants::PPL,'label'=>__('Pipeline')],
@@ -82,13 +80,13 @@
           ]
         );
       }
-    @endphp
+@endphp
       <a
         href="{{ Route::has($routeName) ? route($routeName) : '#' }}"
         class="{{ ViewClassNamesConstants::LGI_ACT_NBD }} {{ Route::has($routeName) && request()->routeIs($routeName) ? 'active' : '' }}"
       >
         {{ $item['label'] }}
-        <div class="float-end">
+        <div class="{{ VC::FEND }}">
           <i class="{{ ViewClassNamesConstants::TI_CHV_RT }}"></i>
         </div>
       </a>

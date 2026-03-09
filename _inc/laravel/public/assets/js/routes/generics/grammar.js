@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const l = document.getElementById("grammarCheck");
     if (!l) return;
@@ -15,47 +23,12 @@
           e.preventDefault();
           const msg =
             l.getAttribute("data-guard-msg") ||
-            "Grammar check with AI route is unavailable. Please contact technical support or your domain administrator.";
-          const linkEl = document.querySelector('link[href*="bootstrap"]');
-          const hasBootstrapToast =
-            typeof window !== "undefined" &&
-            window.bootstrap &&
-            typeof window.bootstrap.Toast === "function";
-          let container = document.getElementById("toast-container");
-          if (!container) {
-            container = document.createElement("div");
-            container.id = "toast-container";
-            container.className =
-              "toast-container position-fixed top-0 end-0 p-3";
-            container.style.zIndex = "1080";
-            container.className = "position-fixed top-0 end-0 p-3";
-            document.body.appendChild(container);
-          }
-          if (linkEl && hasBootstrapToast) {
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.setAttribute("role", "alert");
-            toast.setAttribute("aria-live", "assertive");
-            toast.setAttribute("aria-atomic", "true");
-            const body = document.createElement("div");
-            body.className = "toast-body";
-            body.textContent = msg;
-            toast.appendChild(body);
-            container.appendChild(toast);
-            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-            toast.addEventListener("hidden.bs.toast", function () {
-              try {
-                toast.remove();
-              } catch (_) {}
-            });
-            inst.show();
-          } else {
-            alert(msg);
-          }
+            getMsg("grammar_check_unavailable");
+          scheduleError(msg, "click");
           l.setAttribute("data-failed-route", "true");
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();

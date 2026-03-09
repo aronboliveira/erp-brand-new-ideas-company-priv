@@ -2,7 +2,7 @@
 
 namespace App\Config\Constants;
 
-use App\Config\Constants\PermissionsConstants as PC;
+use App\Config\Constants\PermissionsConstants as PMC;
 
 /**
  * * This is the list of the permissions registered via             
@@ -14,36 +14,36 @@ class SeedersTemplating
 {
 	public const SCAPE_MSG = 'There was an excessive number of attempts to generate the id. Breaking Loop.';
 	public const PERM_PERMS = [
-		['name' => PC::MNG_PERM], // * SA, CP
-		['name' => PC::CR_PERM], // * SA, CP
-		['name' => PC::ED_PERM], // * SA, CP
-		['name' => PC::DEL_PERM], // * SA, CP
+		['name' => PMC::MNG_PERM], // * SA, CP
+		['name' => PMC::CR_PERM], // * SA, CP
+		['name' => PMC::ED_PERM], // * SA, CP
+		['name' => PMC::DEL_PERM], // * SA, CP
 	];
 	public const USER_PERMS = [
-		['name' => PC::CR_USER], // * SA, CP
-		['name' => PC::ED_USER], // * SA, CP
-		['name' => PC::DEL_USER], // * SA, CP
-		['name' => PC::MNG_USER], // * SA, CP
+		['name' => PMC::CR_USER], // * SA, CP
+		['name' => PMC::ED_USER], // * SA, CP
+		['name' => PMC::DEL_USER], // * SA, CP
+		['name' => PMC::MNG_USER], // * SA, CP
 	];
 	public const ROLE_PERMS = [
-		['name' => PC::MNG_ROLE], // * SA, CP
-		['name' => PC::CR_ROLE], // * SA, CP
-		['name' => PC::ED_ROLE], // * SA, CP
-		['name' => PC::DEL_ROLE], // * SA, CP
+		['name' => PMC::MNG_ROLE], // * SA, CP
+		['name' => PMC::CR_ROLE], // * SA, CP
+		['name' => PMC::ED_ROLE], // * SA, CP
+		['name' => PMC::DEL_ROLE], // * SA, CP
 	];
 	public const PL_PERMS = [
-		['name' => PC::MNG_PL], // * SA, CP
-		['name' => PC::CR_PL], // * SA, CP
-		['name' => PC::ED_PL], // * SA, CP
-		['name' => PC::VW_PL_RQ],
-		['name' => PC::VW_PL_DT],
-		['name' => PC::AC_PL_RQ],
-		['name' => PC::RQ_PL],
-		['name' => PC::VW_PL_DT],
+		['name' => PMC::MNG_PL], // * SA, CP
+		['name' => PMC::CR_PL], // * SA, CP
+		['name' => PMC::ED_PL], // * SA, CP
+		['name' => PMC::VW_PL_RQ],
+		['name' => PMC::VW_PL_DT],
+		['name' => PMC::AC_PL_RQ],
+		['name' => PMC::RQ_PL],
+		['name' => PMC::VW_PL_DT],
 	];
 	public const CLT_PERMS = [
-		['name' => PC::MNG_CLT],
-		['name' => PC::CR_CLT],
+		['name' => PMC::MNG_CLT],
+		['name' => PMC::CR_CLT],
 		['name' => 'edit client'],
 		['name' => 'delete client'],
 	];
@@ -57,7 +57,7 @@ class SeedersTemplating
 		['name' => 'delete allowance option'],
 	];
 	public const COUPON_PERMS = [
-		['name' => PC::MNG_CPN], // * SA
+		['name' => PMC::MNG_CPN], // * SA
 		['name' => 'create coupon'], // * SA
 		['name' => 'edit coupon'], // * SA
 		['name' => 'delete coupon'], // * SA
@@ -69,32 +69,32 @@ class SeedersTemplating
 		...self::PL_PERMS,
 	];
 	public const SHOW_DSB_PERMS = [
-		['name' => PC::SHW_POS_DSB], // * CP
-		['name' => PC::SHW_CRM_DSB], // * CP
-		['name' => PC::SHW_HRM_DSB], // * CP
-		['name' => PC::SHW_PRJ_DSB], // * CP
+		['name' => PMC::SHW_POS_DSB], // * CP
+		['name' => PMC::SHW_CRM_DSB], // * CP
+		['name' => PMC::SHW_HRM_DSB], // * CP
+		['name' => PMC::SHW_PRJ_DSB], // * CP
 	];
 	public const ANC_PERMS = [
-		['name' => PC::MNG_ANC],
+		['name' => PMC::MNG_ANC],
 		['name' => 'create announcement'],
 		['name' => 'edit announcement'],
 		['name' => 'delete announcement'],
 	];
 	public const APR_PERMS = [
-		['name' => PC::MNG_APR],
+		['name' => PMC::MNG_APR],
 		['name' => 'create appraisal'],
 		['name' => 'edit appraisal'],
 		['name' => 'show appraisal'],
 		['name' => 'delete appraisal'],
 	];
 	public const ATD_PERMS = [
-		['name' => PC::MNG_ATD],
-		['name' => PC::CR_ATD],
+		['name' => PMC::MNG_ATD],
+		['name' => PMC::CR_ATD],
 		['name' => 'edit attendance'],
 		['name' => 'delete attendance'],
 	];
 	public const AWD_PERMS = [
-		['name' => PC::MNG_AWD],
+		['name' => PMC::MNG_AWD],
 		['name' => 'create award'],
 		['name' => 'edit award'],
 		['name' => 'delete award'],
@@ -103,7 +103,7 @@ class SeedersTemplating
 		['name' => 'edit award type'],
 	];
 	public const BA_PERMS = [
-		['name' => PC::MNG_BACC],
+		['name' => PMC::MNG_BACC],
 		['name' => 'create bank account'],
 		['name' => 'edit bank account'],
 		['name' => 'delete bank account'],
@@ -122,13 +122,13 @@ class SeedersTemplating
 		['name' => 'delete branch'],
 	];
 	public const BT_PERMS = [
-		['name' => PC::MNG_BTF],
+		['name' => PMC::MNG_BTF],
 		['name' => 'create bank transfer'],
 		['name' => 'edit bank transfer'],
 		['name' => 'delete bank transfer'],
 	];
 	public const BILL_PERMS = [
-		['name' => PC::MNG_BIL],
+		['name' => PMC::MNG_BIL],
 		['name' => 'create bill'],
 		['name' => 'edit bill'],
 		['name' => 'delete bill'],
@@ -138,14 +138,14 @@ class SeedersTemplating
 		['name' => 'delete payment bill'],
 	];
 	public const BUG_RPT_PERMS = [
-		['name' => PC::MNG_BUG_RPT],
+		['name' => PMC::MNG_BUG_RPT],
 		['name' => 'create bug report'],
 		['name' => 'edit bug report'],
 		['name' => 'delete bug report'],
 		['name' => 'move bug report'],
 	];
 	public const BUG_STT_PERMS = [
-		['name' => PC::MNG_BUG_STT],
+		['name' => PMC::MNG_BUG_STT],
 		['name' => 'create bug status'],
 		['name' => 'edit bug status'],
 		['name' => 'delete bug status'],
@@ -157,12 +157,12 @@ class SeedersTemplating
 		['name' => 'delete commission'],
 	];
 	public const CPN_PL_PERMS = [
-		['name' => PC::MNG_CPN_PL],
+		['name' => PMC::MNG_CPN_PL],
 		['name' => 'create company policy'],
 		['name' => 'edit company policy'],
 	];
 	public const CPT_PERMS = [
-		['name' => PC::MNG_CPT],
+		['name' => PMC::MNG_CPT],
 		['name' => 'create complaint'],
 		['name' => 'edit complaint'],
 		['name' => 'delete complaint'],
@@ -174,25 +174,25 @@ class SeedersTemplating
 		['name' => 'Delete Competencies'],
 	];
 	public const CRD_PERMS = [
-		['name' => PC::MNG_CRD],
+		['name' => PMC::MNG_CRD],
 		['name' => 'create credit note'],
 		['name' => 'edit credit note'],
 		['name' => 'delete credit note'],
 	];
 	public const CST_QT_PERMS = [
-		['name' => PC::MNG_CST_QT],
+		['name' => PMC::MNG_CST_QT],
 		['name' => 'create custom question'],
 		['name' => 'edit custom question'],
 		['name' => 'delete custom question'],
 	];
 	public const CT_CST_FD_PERMS = [
-		['name' => PC::MNG_CT_CST_FD],
+		['name' => PMC::MNG_CT_CST_FD],
 		['name' => 'create constant custom field'],
 		['name' => 'edit constant custom field'],
 		['name' => 'delete constant custom field'],
 	];
 	public const CTC_PERMS = [
-		['name' => PC::MNG_CTC],
+		['name' => PMC::MNG_CTC],
 		['name' => 'create contract'],
 		['name' => 'edit contract'],
 		['name' => 'delete contract'],
@@ -203,28 +203,28 @@ class SeedersTemplating
 		['name' => 'delete contract type'],
 	];
 	public const CTM_PERMS = [
-		['name' => PC::MNG_CST],
+		['name' => PMC::MNG_CST],
 		['name' => 'create customer'],
 		['name' => 'edit customer'],
 		['name' => 'delete customer'],
 		['name' => 'show customer'],
 	];
 	public const CAT_CONST_PERMS = [
-		['name' => PC::MNG_CT_CAT],
+		['name' => PMC::MNG_CT_CAT],
 		['name' => 'create constant category'],
 		['name' => 'edit constant category'],
 		['name' => 'delete constant category'],
 	];
 	public const COA_PERMS = [
-		['name' => PC::MNG_COA],
-		['name' => PC::CR_COA],
-		['name' => PC::ED_COA],
-		['name' => PC::DEL_COA],
-		['name' => PC::MNG_COA_TYPE],
-		['name' => PC::CR_COA_TYPE],
+		['name' => PMC::MNG_COA],
+		['name' => PMC::CR_COA],
+		['name' => PMC::ED_COA],
+		['name' => PMC::DEL_COA],
+		['name' => PMC::MNG_COA_TYPE],
+		['name' => PMC::CR_COA_TYPE],
 	];
 	public const DBT_PERMS = [
-		['name' => PC::MNG_DBT],
+		['name' => PMC::MNG_DBT],
 		['name' => 'create debit note'],
 		['name' => 'edit debit note'],
 		['name' => 'delete debit note'],
@@ -236,7 +236,7 @@ class SeedersTemplating
 		['name' => 'delete deduction option'],
 	];
 	public const DL_PERMS = [
-		['name' => PC::MNG_DL],
+		['name' => PMC::MNG_DL],
 		['name' => 'create deal'],
 		['name' => 'edit deal'],
 		['name' => 'view deal'],
@@ -266,13 +266,13 @@ class SeedersTemplating
 		['name' => 'create document type'],
 		['name' => 'edit document type'],
 		['name' => 'delete document type'],
-		['name' => PC::MNG_DOC],
+		['name' => PMC::MNG_DOC],
 		['name' => 'create document'],
 		['name' => 'edit document'],
 		['name' => 'delete document'],
 	];
 	public const EMP_PERMS = [
-		['name' => PC::MNG_EMP],
+		['name' => PMC::MNG_EMP],
 		['name' => 'create employee'],
 		['name' => 'view employee'],
 		['name' => 'edit employee'],
@@ -288,7 +288,7 @@ class SeedersTemplating
 		['name' => 'delete estimation'],
 	];
 	public const EVT_PERMS = [
-		['name' => PC::MNG_EVT],
+		['name' => PMC::MNG_EVT],
 		['name' => 'create event'],
 		['name' => 'edit event'],
 		['name' => 'delete event'],
@@ -306,7 +306,7 @@ class SeedersTemplating
 		['name' => 'delete faq'],
 	];
 	public const FM_BD_PERMS = [
-		['name' => PC::MNG_FM_BD],
+		['name' => PMC::MNG_FM_BD],
 		['name' => 'create form builder'],
 		['name' => 'edit form builder'],
 		['name' => 'delete form builder'],
@@ -319,13 +319,13 @@ class SeedersTemplating
 		['name' => 'view form response'],
 	];
 	public const GOAL_PERMS = [
-		['name' => PC::MNG_GL],
+		['name' => PMC::MNG_GL],
 		['name' => 'create goal'],
 		['name' => 'edit goal'],
 		['name' => 'delete goal'],
 	];
 	public const GL_PERMS = [
-		['name' => PC::MNG_GTR],
+		['name' => PMC::MNG_GTR],
 		['name' => 'create goal tracking'],
 		['name' => 'edit goal tracking'],
 		['name' => 'delete goal tracking'],
@@ -334,20 +334,20 @@ class SeedersTemplating
 		['name' => 'edit goal type'],
 	];
 	public const HLD_PERMS = [
-		['name' => PC::MNG_HLD],
+		['name' => PMC::MNG_HLD],
 		['name' => 'edit holiday'],
 		['name' => 'create holiday'],
 		['name' => 'delete holiday'],
 	];
 	public const IND_PERMS = [
-		['name' => PC::MNG_IND],
+		['name' => PMC::MNG_IND],
 		['name' => 'create indicator'],
 		['name' => 'edit indicator'],
 		['name' => 'show indicator'],
 		['name' => 'delete indicator'],
 	];
 	public const INV_PERMS = [
-		['name' => PC::MNG_INV],
+		['name' => PMC::MNG_INV],
 		['name' => 'create invoice'],
 		['name' => 'edit invoice'],
 		['name' => 'delete invoice'],
@@ -359,14 +359,15 @@ class SeedersTemplating
 		['name' => 'delete payment invoice'],
 	];
 	public const ITV_PERMS = [
-		['name' => PC::CR_ITV_SCHD],
+		['name' => PMC::CR_ITV_SCHD],
 		['name' => 'edit interview schedule'],
 		['name' => 'delete interview schedule'],
-		['name' => PC::SHW_ITV_SCHD],
+		['name' => PMC::SHW_ITV_SCHD],
 	];
 	public const JB_PERMS = [
-		['name' => PC::MNG_JB_APL],
+		['name' => PMC::MNG_JB_APL],
 		['name' => 'create job application'],
+		['name' => PMC::ED_JB_APL],
 		['name' => 'show job application'],
 		['name' => 'delete job application'],
 		['name' => 'move job application'],
@@ -378,39 +379,39 @@ class SeedersTemplating
 		['name' => 'create job category'],
 		['name' => 'edit job category'],
 		['name' => 'delete job category'],
-		['name' => PC::MNG_JB],
-		['name' => PC::CR_JB],
+		['name' => PMC::MNG_JB],
+		['name' => PMC::CR_JB],
 		['name' => 'edit job'],
 		['name' => 'show job'],
 		['name' => 'delete job'],
 	];
 	public const JNL_PERMS = [
-		['name' => PC::MNG_JNL],
-		['name' => PC::CR_JNL],
-		['name' => PC::ED_JNL],
-		['name' => PC::DEL_JNL],
-		['name' => PC::SHW_JNL],
+		['name' => PMC::MNG_JNL],
+		['name' => PMC::CR_JNL],
+		['name' => PMC::ED_JNL],
+		['name' => PMC::DEL_JNL],
+		['name' => PMC::SHW_JNL],
 	];
 	public const JST_PERMS = [
-		['name' => PC::MNG_JST],
-		['name' => PC::CR_JST],
-		['name' => PC::ED_JST],
-		['name' => PC::DEL_JST],
+		['name' => PMC::MNG_JST],
+		['name' => PMC::CR_JST],
+		['name' => PMC::ED_JST],
+		['name' => PMC::DEL_JST],
 	];
 	public const LB_PERMS = [
-		['name' => PC::MNG_LB],
+		['name' => PMC::MNG_LB],
 		['name' => 'create label'],
 		['name' => 'edit label'],
 		['name' => 'delete label'],
 	];
 	public const LD_PERMS = [
-		['name' => PC::MNG_LD],
+		['name' => PMC::MNG_LD],
 		['name' => 'create lead'],
 		['name' => 'view lead'],
 		['name' => 'edit lead'],
 		['name' => 'delete lead'],
 		['name' => 'move lead'],
-		['name' => PC::MNG_LD_ST],
+		['name' => PMC::MNG_LD_ST],
 		['name' => 'create lead stage'],
 		['name' => 'edit lead stage'],
 		['name' => 'delete lead stage'],
@@ -421,6 +422,7 @@ class SeedersTemplating
 		['name' => 'create lead email'],
 	];
 	public const LN_PERMS = [
+		['name' => 'manage loan'],
 		['name' => 'create loan'],
 		['name' => 'edit loan'],
 		['name' => 'delete loan'],
@@ -430,7 +432,7 @@ class SeedersTemplating
 		['name' => 'delete loan option'],
 	];
 	public const LV_PERMS = [
-		['name' => PC::MNG_LV],
+		['name' => PMC::MNG_LV],
 		['name' => 'create leave'],
 		['name' => 'edit leave'],
 		['name' => 'delete leave'],
@@ -446,7 +448,7 @@ class SeedersTemplating
 		['name' => 'view milestone'],
 	];
 	public const MT_PERMS = [
-		['name' => PC::MNG_MT],
+		['name' => PMC::MNG_MT],
 		['name' => 'create meeting'],
 		['name' => 'edit meeting'],
 		['name' => 'delete meeting'],
@@ -464,6 +466,7 @@ class SeedersTemplating
 	public const OT_PAY_PERMS = [
 		['name' => 'manage other payment'],
 		['name' => 'create other payment'],
+		['name' => PMC::SHW_OT_PAY],
 		['name' => 'edit other payment'],
 		['name' => 'delete other payment'],
 	];
@@ -474,7 +477,7 @@ class SeedersTemplating
 		['name' => 'delete overtime'],
 	];
 	public const PAY_PERMS = [
-		['name' => PC::MNG_PMT],
+		['name' => PMC::MNG_PMT],
 		['name' => 'create payment'],
 		['name' => 'edit payment'],
 		['name' => 'delete payment'],
@@ -486,13 +489,13 @@ class SeedersTemplating
 		['name' => 'delete payslip type'],
 	];
 	public const PPL_PERMS = [
-		['name' => PC::MNG_PPL],
+		['name' => PMC::MNG_PPL],
 		['name' => 'create pipeline'],
 		['name' => 'edit pipeline'],
 		['name' => 'delete pipeline'],
 	];
 	public const PPS_PERMS = [
-		['name' => PC::MNG_PPS],
+		['name' => PMC::MNG_PPS],
 		['name' => 'create proposal'],
 		['name' => 'edit proposal'],
 		['name' => 'delete proposal'],
@@ -508,7 +511,7 @@ class SeedersTemplating
 		['name' => 'delete pricing plan'],
 	];
 	public const PRC_PERMS = [
-		['name' => PC::MNG_PRC],
+		['name' => PMC::MNG_PRC],
 		['name' => 'view purchase'],
 		['name' => 'create purchase'],
 		['name' => 'edit purchase'],
@@ -519,7 +522,7 @@ class SeedersTemplating
 		['name' => 'delete payment purchase'],
 	];
 	public const PRJ_PERMS = [
-		['name' => PC::MNG_PRJ],
+		['name' => PMC::MNG_PRJ],
 		['name' => 'create project'],
 		['name' => 'view project'],
 		['name' => 'edit project'],
@@ -533,7 +536,7 @@ class SeedersTemplating
 		['name' => 'delete project stage'],
 	];
 	public const PRJ_TSK_PERMS = [
-		['name' => PC::MNG_PRJ_TSK],
+		['name' => PMC::MNG_PRJ_TSK],
 		['name' => 'create project task'],
 		['name' => 'edit project task'],
 		['name' => 'view project task'],
@@ -547,50 +550,52 @@ class SeedersTemplating
 		['name' => 'delete project report'],
 	];
 	public const PRJ_TSK_STG_PERMS = [
-		['name' => PC::MNG_PRJ_TSK_STG],
+		['name' => PMC::MNG_PRJ_TSK_STG],
 		['name' => 'create project task stage'],
 		['name' => 'edit project task stage'],
 		['name' => 'delete project task stage'],
 	];
 	public const PRM_PERMS = [
-		['name' => PC::MNG_PRM],
+		['name' => PMC::MNG_PRM],
 		['name' => 'create promotion'],
 		['name' => 'edit promotion'],
 		['name' => 'delete promotion'],
 	];
 	public const PSL_PERMS = [
-		['name' => PC::MNG_PSL],
-		['name' => PC::CR_PSL],
+		['name' => PMC::MNG_PSL],
+		['name' => PMC::CR_PSL],
 	];
 	public const PROD_SERV_PERMS = [
-		['name' => PC::MNG_PRD_SV],
+		['name' => PMC::MNG_PRD_SV],
 		['name' => 'create product & service'],
 		['name' => 'delete product & service'],
 		['name' => 'edit product & service'],
 	];
 	public const REPORT_PERMS = [
-		['name' => PC::BIL_RPT],
-		['name' => PC::EXP_RPT],
-		['name' => PC::INC_RPT],
-		['name' => PC::IE_RPT],
-		['name' => PC::INV_RPT],
-		['name' => PC::LP_RPT],
-		['name' => PC::STK_RPT],
-		['name' => PC::TAX_RPT],
+		['name' => PMC::BIL_RPT],
+		['name' => PMC::EXP_RPT],
+		['name' => PMC::INC_RPT],
+		['name' => PMC::IE_RPT],
+		['name' => PMC::INV_RPT],
+		['name' => PMC::LP_RPT],
+		['name' => PMC::STK_RPT],
+		['name' => PMC::TAX_RPT],
+		['name' => PMC::DL_RPT],
+		['name' => PMC::LD_RPT],
 	];
 	public const REPORT_FIN_PERMS = [
-		['name' => PC::BLC_RPT],
-		['name' => PC::LDG_RPT],
-		['name' => PC::TRL_RPT],
+		['name' => PMC::BLC_RPT],
+		['name' => PMC::LDG_RPT],
+		['name' => PMC::TRL_RPT],
 	];
 	public const RSG_PERMS = [
-		['name' => PC::MNG_RSG],
+		['name' => PMC::MNG_RSG],
 		['name' => 'create resignation'],
 		['name' => 'edit resignation'],
 		['name' => 'delete resignation'],
 	];
 	public const RVN_PERMS = [
-		['name' => PC::MNG_RVN],
+		['name' => PMC::MNG_RVN],
 		['name' => 'create revenue'],
 		['name' => 'edit revenue'],
 		['name' => 'delete revenue'],
@@ -604,18 +609,18 @@ class SeedersTemplating
 		['name' => 'reply support'],
 	];
 	public const SRC_PERMS = [
-		['name' => PC::MNG_SRC],
+		['name' => PMC::MNG_SRC],
 		['name' => 'create source'],
 		['name' => 'edit source'],
 		['name' => 'delete source'],
 	];
 	public const SSL_PERMS = [
-		['name' => PC::MNG_SSL],
+		['name' => PMC::MNG_SSL],
 		['name' => 'edit set salary'],
 		['name' => 'create set salary'],
 	];
 	public const ST_PERMS = [
-		['name' => PC::MNG_ST],
+		['name' => PMC::MNG_ST],
 		['name' => 'create stage'],
 		['name' => 'edit stage'],
 		['name' => 'delete stage'],
@@ -627,18 +632,18 @@ class SeedersTemplating
 		['name' => 'delete saturation deduction'],
 	];
 	public const TAX_CONST_PERMS = [
-		['name' => PC::MNG_CT_TX],
+		['name' => PMC::MNG_CT_TX],
 		['name' => 'create constant tax'],
 		['name' => 'edit constant tax'],
 		['name' => 'delete constant tax'],
 	];
 	public const TR_PERMS = [
-		['name' => PC::MNG_TNG],
+		['name' => PMC::MNG_TNG],
 		['name' => 'create training'],
 		['name' => 'edit training'],
 		['name' => 'delete training'],
-		['name' => PC::SHW_TNG],
-		['name' => PC::MNG_TNR],
+		['name' => PMC::SHW_TNG],
+		['name' => PMC::MNG_TNR],
 		['name' => 'create trainer'],
 		['name' => 'edit trainer'],
 		['name' => 'delete trainer'],
@@ -648,13 +653,13 @@ class SeedersTemplating
 		['name' => 'delete training type'],
 	];
 	public const TRF_PERMS = [
-		['name' => PC::MNG_TRF],
+		['name' => PMC::MNG_TRF],
 		['name' => 'create transfer'],
 		['name' => 'edit transfer'],
 		['name' => 'delete transfer'],
 	];
 	public const TRM_PERMS = [
-		['name' => PC::MNG_TRM],
+		['name' => PMC::MNG_TRM],
 		['name' => 'create termination'],
 		['name' => 'edit termination'],
 		['name' => 'delete termination'],
@@ -664,13 +669,13 @@ class SeedersTemplating
 		['name' => 'delete termination type'],
 	];
 	public const TRV_PERMS = [
-		['name' => PC::MNG_TRV],
+		['name' => PMC::MNG_TRV],
 		['name' => 'create travel'],
 		['name' => 'edit travel'],
 		['name' => 'delete travel'],
 	];
 	public const TS_PERMS = [
-		['name' => PC::MNG_TS],
+		['name' => PMC::MNG_TS],
 		['name' => 'create timesheet'],
 		['name' => 'edit timesheet'],
 		['name' => 'delete timesheet'],
@@ -682,13 +687,13 @@ class SeedersTemplating
 		['name' => 'delete task'],
 	];
 	public const UNIT_CONST_PERMS = [
-		['name' => PC::MNG_CT_UNT],
+		['name' => PMC::MNG_CT_UNT],
 		['name' => 'create constant unit'],
 		['name' => 'edit constant unit'],
 		['name' => 'delete constant unit'],
 	];
 	public const VD_PERMS = [
-		['name' => PC::MNG_VD],
+		['name' => PMC::MNG_VD],
 		['name' => 'create vendor'],
 		['name' => 'edit vendor'],
 		['name' => 'delete vendor'],
@@ -696,18 +701,18 @@ class SeedersTemplating
 	];
 	public const WHK_PERMS = [
 		['name' => 'create webhook'],
-		['name' => PC::ED_WHK],
-		['name' => PC::DEL_WHK],
+		['name' => PMC::ED_WHK],
+		['name' => PMC::DEL_WHK],
 	];
 	public const WRH_PERMS = [
-		['name' => PC::MNG_WRH],
+		['name' => PMC::MNG_WRH],
 		['name' => 'create warehouse'],
 		['name' => 'edit warehouse'],
 		['name' => 'show warehouse'],
 		['name' => 'delete warehouse'],
 	];
 	public const WRN_PERMS = [
-		['name' => PC::MNG_WRN],
+		['name' => PMC::MNG_WRN],
 		['name' => 'create warning'],
 		['name' => 'edit warning'],
 		['name' => 'delete warning'],
@@ -716,19 +721,19 @@ class SeedersTemplating
 		...self::SUPER_PERMS,
 		...self::COUPON_PERMS,
 		...self::SPT_PERMS,
-		['name' => PC::MNG_SA_DSB],
-		['name' => PC::MNG_USER],
+		['name' => PMC::MNG_SA_DSB],
+		['name' => PMC::MNG_USER],
 		['name' => 'create language'],
-		['name' => PC::MNG_SYS_ST],
+		['name' => PMC::MNG_SYS_ST],
 		['name' => 'manage stripe settings'],
-		['name' => PC::MNG_OD],
+		['name' => PMC::MNG_OD],
 	];
 	public const COMPANY_PERMS = [
 		...self::SUPER_PERMS,
-		['name' => PC::MNG_CPN_SET],
+		['name' => PMC::MNG_CPN_SET],
 		['name' => 'manage business settings'],
 		...self::SHOW_DSB_PERMS,
-		['name' => PC::SHW_ACC_DSB],
+		['name' => PMC::SHW_ACC_DSB],
 		...self::EXP_PERMS,
 		...self::FAQ_PERMS,
 		...self::INV_PERMS,
@@ -744,16 +749,16 @@ class SeedersTemplating
 		['name' => 'delete invoice product'],
 		['name' => 'delete bill product'],
 		...self::REPORT_PERMS,
-		['name' => PC::TAX_RPT],
-		['name' => PC::MNG_TRT],
-		['name' => PC::MNG_OD],
+		['name' => PMC::TAX_RPT],
+		['name' => PMC::MNG_TRT],
+		['name' => PMC::MNG_OD],
 		...self::CRD_PERMS,
 		...self::DBT_PERMS,
 		['name' => 'duplicate bill'],
 		...self::PPS_PERMS,
 		['name' => 'delete proposal product'],
 		...self::AST_PERMS,
-		['name' => PC::STT_RPT],
+		['name' => PMC::STT_RPT],
 		...self::CT_CST_FD_PERMS,
 		...self::COA_PERMS,
 		...self::JST_PERMS,
@@ -805,12 +810,12 @@ class SeedersTemplating
 		...self::EST_PERMS,
 		...self::HLD_PERMS,
 		...self::OVT_PERMS,
-		['name' => PC::SHW_CRR],
+		['name' => PMC::SHW_CRR],
 		...self::TRF_PERMS,
 		...self::ANC_PERMS,
 		...self::LV_PERMS,
 		...self::ATD_PERMS,
-		['name' => PC::MNG_RPT],
+		['name' => PMC::MNG_RPT],
 		...self::PRJ_PERMS,
 		...self::ML_PERMS,
 		['name' => 'view grant chart'],
@@ -821,28 +826,28 @@ class SeedersTemplating
 		...self::PRJ_RPT_PERMS,
 		...self::PRJ_TSK_STG_PERMS,
 		['name' => 'view activity'],
-		['name' => PC::VW_CRM],
+		['name' => PMC::VW_CRM],
 		...self::TS_PERMS,
 		...self::BUG_RPT_PERMS,
 		...self::BUG_STT_PERMS,
-		['name' => PC::MNG_PRT],
-		['name' => PC::MNG_CP_PL],
+		['name' => PMC::MNG_PRT],
+		['name' => PMC::MNG_CP_PL],
 		['name' => 'buy plan'],
-		['name' => PC::MNG_PL],
+		['name' => PMC::MNG_PL],
 		...self::FM_BD_PERMS,
-		['name' => PC::MNG_PRF_TP],
-		['name' => PC::CRT_PRF_TP],
-		['name' => PC::ED_PRF_TP],
-		['name' => PC::DEL_PRF_TP],
+		['name' => PMC::MNG_PRF_TP],
+		['name' => PMC::CRT_PRF_TP],
+		['name' => PMC::ED_PRF_TP],
+		['name' => PMC::DEL_PRF_TP],
 		...self::FM_FD_PERMS,
 		...self::BDG_PERMS,
 		...self::WRH_PERMS,
 		...self::PRC_PERMS,
 		...self::PRC_PLN_PERMS,
 		...self::SPT_PERMS,
-		['name' => PC::MNG_POS],
+		['name' => PMC::MNG_POS],
 		...self::CTC_PERMS,
-		['name' => PC::CR_BC],
+		['name' => PMC::CR_BC],
 		...self::WHK_PERMS
 	];
 	public const VENDOR_EXCLUSIVE_PERMS = [
@@ -858,15 +863,15 @@ class SeedersTemplating
 		['name' => 'manage customer proposal'],
 	];
 	public const AST_PERMS = [
-		['name' => PC::MNG_AST],
-		['name' => PC::CRT_AST],
-		['name' => PC::ED_AST],
-		['name' => PC::DEL_AST],
-		['name' => PC::VIW_AST],
+		['name' => PMC::MNG_AST],
+		['name' => PMC::CRT_AST],
+		['name' => PMC::ED_AST],
+		['name' => PMC::DEL_AST],
+		['name' => PMC::VIW_AST],
 	];
 	public const LP_PERMS = [
-		['name' => PC::MNG_LP],
-		['name' => PC::MNG_TT],
+		['name' => PMC::MNG_LP],
+		['name' => PMC::MNG_TT],
 	];
 	public const CUSTOMER_PERMS =  [
 		...self::CUSTOMER_EXCLUSIVE_PERMS,
@@ -882,7 +887,7 @@ class SeedersTemplating
 	public const ACCOUNTANT_PERMS = [
 		...self::AST_PERMS,
 		...self::BA_PERMS,
-		['name' => PC::CR_BC],
+		['name' => PMC::CR_BC],
 		['name' => 'delete bill product'],
 		...self::BILL_PERMS,
 		...self::BT_PERMS,
@@ -903,39 +908,39 @@ class SeedersTemplating
 		...self::JNL_PERMS,
 		...self::PAY_PERMS,
 		...self::PPS_PERMS,
-		['name' => PC::MNG_PRT],
+		['name' => PMC::MNG_PRT],
 		...self::PROD_SERV_PERMS,
 		...self::REPORT_PERMS,
 		...self::REPORT_FIN_PERMS,
 		...self::RVN_PERMS,
-		['name' => PC::SHW_ACC_DSB],
-		['name' => PC::STT_RPT],
+		['name' => PMC::SHW_ACC_DSB],
+		['name' => PMC::STT_RPT],
 		...self::TAX_CONST_PERMS,
-		['name' => PC::TAX_RPT],
-		['name' => PC::MNG_TRT],
+		['name' => PMC::TAX_RPT],
+		['name' => PMC::MNG_TRT],
 		...self::UNIT_CONST_PERMS,
 		...self::VD_PERMS,
 	];
 	public const CLIENT_PERMS = [
-		['name' => PC::MNG_CLT_DSB],
+		['name' => PMC::MNG_CLT_DSB],
 		...self::BUG_RPT_PERMS,
 		['name' => 'view deal'],
-		['name' => PC::MNG_DL],
-		['name' => PC::MNG_PRJ],
+		['name' => PMC::MNG_DL],
+		['name' => PMC::MNG_PRJ],
 		['name' => 'view project'],
 		['name' => 'view grant chart'],
 		['name' => 'view timesheet'],
-		['name' => PC::MNG_TS],
+		['name' => PMC::MNG_TS],
 		...self::PRJ_TSK_PERMS,
 		['name' => 'view project report'],
 		['name' => 'view activity'],
 		['name' => 'view task'],
-		['name' => PC::MNG_PPL],
-		['name' => PC::MNG_LD_ST],
-		['name' => PC::MNG_LB],
-		['name' => PC::MNG_SRC],
-		['name' => PC::MNG_ST],
-		['name' => PC::MNG_CTC],
+		['name' => PMC::MNG_PPL],
+		['name' => PMC::MNG_LD_ST],
+		['name' => PMC::MNG_LB],
+		['name' => PMC::MNG_SRC],
+		['name' => PMC::MNG_ST],
+		['name' => PMC::MNG_CTC],
 		['name' => 'move deal'],
 		['name' => 'show contract'],
 	];
@@ -951,15 +956,15 @@ class SeedersTemplating
 		...self::CUSTOMER_EXCLUSIVE_PERMS,
 		['name' => 'create language'],
 		['name' => 'change language'],
-		['name' => PC::MNG_CPN_SET],
-		['name' => PC::MNG_PRT],
+		['name' => PMC::MNG_CPN_SET],
+		['name' => PMC::MNG_PRT],
 		['name' => 'manage business settings'],
 		['name' => 'manage stripe settings'],
 		['name' => 'delete invoice product'],
 		...self::SUPER_PERMS,
 		...self::COUPON_PERMS,
 		...self::SHOW_DSB_PERMS,
-		['name' => PC::SHW_ACC_DSB], // * ACC, CP
+		['name' => PMC::SHW_ACC_DSB], // * ACC, CP
 		...self::EXP_PERMS,
 		...self::FAQ_PERMS,
 		...self::INV_PERMS,
@@ -972,11 +977,11 @@ class SeedersTemplating
 		...self::BA_PERMS,
 		...self::BT_PERMS,
 		...self::BILL_PERMS,
-		['name' => PC::MNG_TRT],
+		['name' => PMC::MNG_TRT],
 		...self::RVN_PERMS,
 		...self::PAY_PERMS,
 		...self::REPORT_PERMS,
-		['name' => PC::MNG_OD],
+		['name' => PMC::MNG_OD],
 		['name' => 'delete bill product'],
 		['name' => 'manage customer payment'],
 		['name' => 'manage customer transaction'],
@@ -990,7 +995,7 @@ class SeedersTemplating
 		...self::PPS_PERMS,
 		...self::AST_PERMS,
 		...self::NTF_PERMS,
-		['name' => PC::STT_RPT],
+		['name' => PMC::STT_RPT],
 		...self::CT_CST_FD_PERMS,
 		...self::COA_PERMS,
 		...self::JNL_PERMS,
@@ -1038,14 +1043,14 @@ class SeedersTemplating
 		...self::ITV_PERMS,
 		...self::EST_PERMS,
 		...self::HLD_PERMS,
-		['name' => PC::SHW_CRR],
+		['name' => PMC::SHW_CRR],
 		...self::MT_PERMS,
 		...self::EVT_PERMS,
 		...self::TRF_PERMS,
 		...self::ANC_PERMS,
 		...self::LV_PERMS,
 		...self::ATD_PERMS,
-		['name' => PC::MNG_RPT],
+		['name' => PMC::MNG_RPT],
 		...self::PRJ_PERMS,
 		...self::PRJ_RPT_PERMS,
 		...self::ML_PERMS,
@@ -1055,32 +1060,39 @@ class SeedersTemplating
 		['name' => 'view expense'],
 		...self::PRJ_TSK_PERMS,
 		['name' => 'view activity'],
-		['name' => PC::VW_CRM],
+		['name' => PMC::VW_CRM],
 		...self::PRJ_TSK_STG_PERMS,
 		...self::TS_PERMS,
 		...self::BUG_RPT_PERMS,
 		...self::BUG_STT_PERMS,
-		['name' => PC::MNG_CLT_DSB],
-		['name' => PC::MNG_SA_DSB], // * SA
-		['name' => PC::MNG_SYS_ST],
-		['name' => PC::MNG_CP_PL],
+		['name' => PMC::MNG_CLT_DSB],
+		['name' => PMC::MNG_SA_DSB], // * SA
+		['name' => PMC::MNG_SYS_ST],
+		['name' => PMC::MNG_CP_PL],
 		['name' => 'buy plan'],
 		...self::FM_BD_PERMS,
-		['name' => PC::MNG_PRF_TP],
-		['name' => PC::CRT_PRF_TP],
-		['name' => PC::ED_PRF_TP],
-		['name' => PC::DEL_PRF_TP],
+		['name' => PMC::MNG_PRF_TP],
+		['name' => PMC::CRT_PRF_TP],
+		['name' => PMC::ED_PRF_TP],
+		['name' => PMC::DEL_PRF_TP],
 		...self::FM_FD_PERMS,
 		...self::BDG_PERMS,
 		...self::WRH_PERMS,
 		...self::PRC_PERMS,
 		...self::PRC_PLN_PERMS,
-		['name' => PC::MNG_POS],
+		['name' => PMC::MNG_POS],
 		...self::CTC_PERMS,
-		['name' => PC::CR_BC],
+		['name' => PMC::CR_BC],
 		...self::SPT_PERMS,
 		...self::WHK_PERMS,
-		['name' => PC::MNG_CT_PAY]
+		['name' => PMC::MNG_CT_PAY],
+		['name' => PMC::MNG_LNG],
+		['name' => PMC::MNG_TTR],
+		['name' => PMC::VW_SSL],
+		['name' => PMC::VW_TNG],
+		['name' => PMC::CRT_ZM],
+		['name' => PMC::VW_ZM],
+		['name' => PMC::DEL_ZM],
 	];
 	public const SA_PERMS = [
 		...self::ACCOUNTANT_PERMS,

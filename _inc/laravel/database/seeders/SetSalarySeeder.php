@@ -66,13 +66,15 @@ final class SetSalarySeeder extends Seeder
 
 			$created = 0;
 			$updated = 0;
+			$HARD_CAP = 2; // HARD CAP guard
 
 			foreach ($employees as $emp) {
+				if ($created >= $HARD_CAP) break; // HARD CAP guard
 				try {
 					$empId = $emp->id;
-					$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Tipo de Salário para {$ref}");
+					// $ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Tipo de Salário para {$ref}");
 					// Escolhe uma frequência randômica dentre as válidas
 					$freq = $frequencies[array_rand($frequencies)];
 

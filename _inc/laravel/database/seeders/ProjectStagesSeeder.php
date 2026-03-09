@@ -18,6 +18,8 @@ class ProjectStagesSeeder extends Seeder
 
 	private const ATTEMPT_LIMIT = 128;
 
+	private const HARD_CAP = 4;
+
 	public function __construct()
 	{
 		$this->out = new ConsoleOutput();
@@ -35,8 +37,10 @@ class ProjectStagesSeeder extends Seeder
 			$this->out->writeln('[ProjectStagesSeeder] names=' . count($names) . ' (logEven=' . ($this->logEven(count($names)) ? 'yes' : 'no') . ')');
 
 			$order = 0;
+			$created = 0;
 
 			foreach ($names as $nm) {
+				if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 				$nm = trim((string) $nm);
 				if ($nm === '') continue;
 
@@ -77,16 +81,16 @@ class ProjectStagesSeeder extends Seeder
 					]
 					: null;
 
-				$this->out->writeln(sprintf(
-					'[ProjectStage] name="%s" order=%d color=%s notes=%s involved=%d meta=%s pos=%s',
-					$nm,
-					$order,
-					$color,
-					$notes === null ? 'NULL' : 'JSON',
-					is_array($involved) ? count($involved) : 0,
-					$metadata === null ? 'NULL' : 'JSON',
-					$positioning === null ? 'NULL' : 'JSON'
-				));
+				// $this->out->writeln(sprintf(
+				// 	'[ProjectStage] name="%s" order=%d color=%s notes=%s involved=%d meta=%s pos=%s',
+				// 	$nm,
+				// 	$order,
+				// 	$color,
+				// 	$notes === null ? 'NULL' : 'JSON',
+				// 	 is_array($involved) ? count($involved) : 0,
+				// 	$metadata === null ? 'NULL' : 'JSON',
+				// 	$positioning === null ? 'NULL' : 'JSON'
+				// ));
 
 				try {
 					$m = Pst::query()->firstOrNew(['name' => $nm]);
@@ -105,6 +109,7 @@ class ProjectStagesSeeder extends Seeder
 					$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 					$m->save();
+					$created++;
 				} catch (\Throwable $e) {
 					Log::warning(self::class . ' failed saving ProjectStage', [
 						'file' => $e->getFile(),

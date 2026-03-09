@@ -112,8 +112,14 @@ class UserEmailTemplatesSeeder extends Seeder
 	{
 		$totalCreated = 0;
 		$offset = 0;
+		$HARD_CAP = 2; // was unbounded (while true)
+		$startTime = microtime(true);
+		$SECONDS_LIMIT = 32;
 
 		while (true) {
+			if ($totalCreated >= $HARD_CAP || (microtime(true) - $startTime) > $SECONDS_LIMIT) {
+				break;
+			}
 			try {
 				$users = $this->getUserBatch($offset);
 
@@ -224,7 +230,7 @@ class UserEmailTemplatesSeeder extends Seeder
 				}
 
 				$clients = $this->generateClientsList();
-				$output->writeln(static::class . ": preparing to link template {$templateId} to user {$userId} (favorite: " . ($isFavorite ? 'yes' : 'no') . ", default: " . ($isDefault ? 'yes' : 'no') . ")");
+				// $output->writeln(static::class . ": preparing to link template {$templateId} to user {$userId} (favorite: " . ($isFavorite ? 'yes' : 'no') . ", default: " . ($isDefault ? 'yes' : 'no') . ")");
 				// Use DB insert instead of Eloquent to avoid model overhead
 				$recordsToInsert[] = [
 					'id' => (string) \Illuminate\Support\Str::uuid(),

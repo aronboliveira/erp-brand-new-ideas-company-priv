@@ -13,7 +13,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class CompetencySeeder extends Seeder
 {
 	private ConsoleOutput $out;
-	private const SECONDS_LIMIT = 2 * 10 ** 2; // 10 minutes
+	// private const SECONDS_LIMIT = 2 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	private $clock = 0.0;
 	public function run(): void
 	{
@@ -51,6 +52,7 @@ class CompetencySeeder extends Seeder
 			$total = array_sum($perModule);
 			$this->out->writeln("CompetencySeeder: modules=" . count($moduleCases) . " raw_total={$rawTotal} final_total={$total} (multiple of 64)");
 
+			$HARD_CAP = 2; // was unbounded
 			$created = [];
 			$visibilityPool = [
 				Visibility::Public,
@@ -66,12 +68,14 @@ class CompetencySeeder extends Seeder
 			$levelsPool = ['None', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
 			foreach ($moduleCases as $module) {
+				if (count($created) >= $HARD_CAP) break;
 				if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
 					Log::warning(self::class . ' seeding time limit reached, stopping early');
 					return;
 				}
 				$count = (int) ($perModule[$module->value] ?? 0);
 				for ($i = 0; $i < $count; $i++) {
+					if (count($created) >= $HARD_CAP) break;
 
 					if ((microtime(true) - $this->clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
 						Log::warning(self::class . ' seeding time limit reached, stopping early');
@@ -161,7 +165,7 @@ class CompetencySeeder extends Seeder
 						'tags'           => $tags,
 					];
 
-					$this->out->writeln("CMPT create: module={$module->value} visibility={$payload['visibility']} name=\"{$name}\" code={$code}");
+					// $this->out->writeln("CMPT create: module={$module->value} visibility={$payload['visibility']} name=\"{$name}\" code={$code}");
 
 					$m = new Competency();
 					foreach ($payload as $k => $v)
@@ -309,7 +313,7 @@ class CompetencySeeder extends Seeder
 			$arr[] = $id;
 			$arr = array_values(array_unique(array_filter($arr, fn($v) => is_scalar($v) && trim((string) $v) !== '')));
 
-			$this->out->writeln("CMPT update: id={$m->getAttribute('id')} {$field}+=1");
+			// $this->out->writeln("CMPT update: id={$m->getAttribute('id')} {$field}+=1");
 			$m->setAttribute($field, $arr);
 			$m->save();
 		} catch (\Throwable $e) {
@@ -334,7 +338,7 @@ class CompetencySeeder extends Seeder
 
 			$arr = array_values(array_unique(array_filter($arr, fn($v) => is_scalar($v) && trim((string) $v) !== '')));
 
-			$this->out->writeln("CMPT update: id={$m->getAttribute('id')} {$field}+=" . count($ids));
+			// $this->out->writeln("CMPT update: id={$m->getAttribute('id')} {$field}+=" . count($ids));
 			$m->setAttribute($field, $arr ?: null);
 			$m->save();
 		} catch (\Throwable $e) {

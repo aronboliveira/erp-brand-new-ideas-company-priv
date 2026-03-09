@@ -1,8 +1,12 @@
 @php
-    $invoice = !empty($data) && isset($data['invoice_id']) ? $data['invoice_id'] : null;
-    $invoice_id = \Illuminate\Support\Facades\Crypt::decrypt($invoice);
-    $price = !empty($data) && isset($data['amount']) ? $data['amount'] : 999999999999999;
-    $user = \Illuminate\Support\Facades\Auth::user();
+    try {
+        $invoice = !empty($data) && isset($data['invoice_id']) ? $data['invoice_id'] : null;
+        $invoice_id = \Illuminate\Support\Facades\Crypt::decrypt($invoice);
+        $price = !empty($data) && isset($data['amount']) ? $data['amount'] : 999999999999999;
+        $user = \Illuminate\Support\Facades\Auth::user();
+    } catch (\Throwable $e) {
+        \Log::error('invoices/paymentwall — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -57,12 +61,12 @@
                   toast.setAttribute('aria-live', 'assertive');
                   toast.setAttribute('aria-atomic', 'true');
                   toast.innerHTML = `
-                      <div class="d-flex">
+                      <div class="{{ VC::DFL }}">
                           <div class="toast-body">${message}</div>
                           <button type="button"
-                                  class="btn-close btn-close-white me-2 m-auto"
+                                  class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                   data-bs-dismiss="toast"
-                                  aria-label="{{ __('Close') }}"></button>
+                                  aria-label="Close"></button>
                       </div>`;
                   document.body.appendChild(toast);
               }
@@ -89,7 +93,7 @@
           if (typeof Brick === 'undefined') {
               throw new Error('Brick library missing');
           }
-            
+
           const brick = new Brick({
               public_key: '{{ !empty($company_payment_setting['paymentwall_public_key']) ? $company_payment_setting['paymentwall_public_key'] : '' }}',
               amount:     '{{ $price }}',

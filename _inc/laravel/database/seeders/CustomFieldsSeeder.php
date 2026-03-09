@@ -48,7 +48,9 @@ class CustomFieldsSeeder extends Seeder
 			}
 		}
 
-		$targetTotal = 2 * $moduleCount * $multiplier;
+		// original: $targetTotal = 2 * $moduleCount * $multiplier;
+		$HARD_CAP = 2;
+		$targetTotal = min($HARD_CAP, 2 * $moduleCount * $multiplier);
 
 		$output  = new ConsoleOutput();
 		$created = 0;
@@ -59,6 +61,7 @@ class CustomFieldsSeeder extends Seeder
 				$iterations     = $baseIterations * $multiplier;
 
 				for ($i = 1; $i <= $iterations; $i++) {
+					if ($created >= $HARD_CAP) break 3; // HARD_CAP guard
 					$nameLabel  = $fieldLabels[$fieldType->value] ?? Str::headline($fieldType->value);
 					$moduleName = $moduleEnum->label();
 
@@ -317,13 +320,13 @@ class CustomFieldsSeeder extends Seeder
 						$defaultValue = 'Sample ' . $nameLabel;
 					}
 
-					$output->writeln(sprintf(
-						'Criando CustomField "%s" [type=%s, module=%s, required=%s]',
-						$name,
-						$fieldType->value,
-						$moduleEnum->value,
-						$required ? 'sim' : 'não'
-					));
+					// $output->writeln(sprintf(
+					// 	'Criando CustomField "%s" [type=%s, module=%s, required=%s]',
+					// 	$name,
+					// 	$fieldType->value,
+					// 	$moduleEnum->value,
+					// 	$required ? 'sim' : 'não'
+					// ));
 
 					CustomField::query()->create([
 						'name'          => $name,
@@ -418,12 +421,12 @@ class CustomFieldsSeeder extends Seeder
 					'width' => '100%',
 				];
 
-				$output->writeln(sprintf(
-					'Criando CustomField extra "%s" [type=%s, module=%s]',
-					$name,
-					$fieldType->value,
-					$moduleEnum->value
-				));
+				// $output->writeln(sprintf(
+				// 	'Criando CustomField extra "%s" [type=%s, module=%s]',
+				// 	$name,
+				// 	$fieldType->value,
+				// 	$moduleEnum->value
+				// ));
 
 				CustomField::query()->create([
 					'name'          => $name,

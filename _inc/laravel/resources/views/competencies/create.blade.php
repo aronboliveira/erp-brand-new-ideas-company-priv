@@ -1,28 +1,45 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $lang = Utility::fetchUserLang();
-    $storeName     = ViewsConstants::CPT;
-    $storeRoute    = Route::has($storeName)
-        ? route($storeName)
-        : '#';
-    $storeFormId   = 'competencyStoreForm';
-    $storeGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPT,
-        'competency_store_route_unavailable'
-    ) ?? 'Competency store route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$storeName ??= '';
+	$storeRoute ??= '#';
+	$storeFormId ??= 'competencyStoreForm';
+	$storeGuardMsg ??= '';
+	$createFormId ??= 'competency-create-form';
+	$updateFormId ??= 'competency-update-form';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeName = ViewsConstants::CPT;
+		$storeRoute = Route::has($storeName) ? (route($storeName) ?? '#') : '#';
+		$storeGuardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CPT,
+			'competency_store_route_unavailable'
+		) ?? 'Competency store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in competencies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in competencies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in competencies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {{ Form::open([
-    'route'          => [$storeRoute],
+    'url'            => $storeRoute,
     'method'         => 'post',
     'id'             => $storeFormId,
     'data-url'       => $storeRoute,
@@ -55,17 +72,42 @@
 {{ Form::close() }}
 @if(!empty($competencies) && ((is_array($competencies) && count($competencies)) || ($competencies instanceof Collection && $competencies->isNotEmpty())))
     @php
-        $updateName     = ViewsConstants::CPT . '.update';
-        $updateRoute    = Route::has($updateName)
-            ? route($updateName, $competencies->id)
-            : '#';
-        $updateFormId   = 'competencyUpdateForm_' . $competencies->id;
-        $updateGuardMsg = Utility::fetchLinkMessage(
-            $lang,
-            ViewsConstants::CPT,
-            'competency_update_route_unavailable'
-        ) ?? 'Competency update route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+		$updateName ??= '';
+		$updateRoute ??= '#';
+		$updateFormId ??= 'competencyUpdateForm';
+		$updateGuardMsg ??= '';
+		try {
+			$updateName = ViewsConstants::CPT . '.update';
+			$updateRoute = Route::has($updateName) ? (route($updateName, $competencies->id) ?? '#') : '#';
+			$updateFormId = 'competencyUpdateForm_' . $competencies->id;
+			$updateGuardMsg = Utility::fetchLinkMessage(
+				$lang,
+				ViewsConstants::CPT,
+				'competency_update_route_unavailable'
+			) ?? 'Competency update route is unavailable. Please contact technical support or your domain administrator.';
+		} catch (\Error $e) {
+			Log::error('Error in competencies/create.blade.php update @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Exception $e) {
+			Log::error('Exception in competencies/create.blade.php update @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Throwable $e) {
+			Log::error('Throwable in competencies/create.blade.php update @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		}
+@endphp
     {{ Form::model($competencies, [
         'route'          => [$updateRoute],
         'method'         => 'PUT',
@@ -99,48 +141,9 @@
         </div>
     {{ Form::close() }}
 @else
-    <div class="text-muted">{{ __('No competencies list found') }}</div>
+    <div class="{{ VC::TXT_MT }}">{{ __('No competencies list found') }}</div>
 @endif
 <script defer>
-    (() => {
-        const bindGuard = (el, event, urlAttr = 'data-url', msgAttr = 'data-guard-msg') => {
-            if (!el || el.getAttribute('data-listener-active') === 'true') return;
-            el.setAttribute('data-listener-active', 'true');
-            el.addEventListener(event, e => {
-                try {
-                    const url = el.getAttribute(urlAttr) ?? '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    el.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        };
-
-        bindGuard(document.getElementById('{{ $createFormId }}'), 'submit');
-        bindGuard(document.getElementById('{{ $updateFormId }}'), 'submit');
-    })();
+    window.RouteGuard?.guardFormSubmit?.('{{ $createFormId }}');
+    window.RouteGuard?.guardFormSubmit?.('{{ $updateFormId }}');
 </script>
-

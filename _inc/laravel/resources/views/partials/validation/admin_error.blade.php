@@ -1,9 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants,YieldingConstants};
-	use Illuminate\Support\Facades\Log;
-	use Illuminate\Support\Facades\Route;
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LandingPageSettingsConstants};
-	$lpSettings ??= [];
+$lpSettings ??= [];
 	$logo ??= '';
 	try {
 		$lpSettings=\Modules\LandingPage\Entities\LandingPageSetting::settings()?:[];
@@ -45,13 +41,13 @@
     {{ __('Landing Page') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         {{ __('Landing Page') }}
     </li>
 @endsection
@@ -61,22 +57,22 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         {{ __('Landing Page') }}
     </li>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-sm-12">
+        <div class="{{ VC::CS12 }}">
             <div class="row">
-                <div class="col-xl-3">
+                <div class="{{ VC::CXL3 }}">
                     <div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
                         <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="useradd-sidenav">
                             @include(R::LP.'::'.E::LOS.'.tab')
@@ -85,9 +81,9 @@
                 </div>
                 <div class="col-xl-9">
 									@if ($errors->any())
-										<div class="alert alert-danger">
+										<div class="{{ VC::ALT_DNG }}">
 												<h4 class="alert-heading">{{ __('Whoops! Something went wrong.') }}</h4>
-												<ul class="mb-0">
+												<ul class="{{ VC::MB0 }}">
 													@if ($errors->any())
 														@foreach ($errors->all() as $error)
 																<li>{{ $error }}</li>
@@ -103,5 +99,3 @@
         </div>
     </div>
 @endsection
-
-

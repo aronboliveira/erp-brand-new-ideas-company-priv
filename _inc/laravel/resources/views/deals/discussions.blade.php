@@ -1,21 +1,17 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
-    $namespace       = ViewsConstants::DL;
-    $routeName       = "{$namespace}.discussion.store";
-    $hasStoreRoute   = Route::has($routeName);
-    $storeGuardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        $namespace,
-        'discussion_store_route_unavailable'
-    ) ?? 'Discussion store route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $namespace       = ViewsConstants::DL;
+        $routeName       = "{$namespace}.discussion.store";
+        $hasStoreRoute   = Route::has($routeName);
+        $storeGuardMsg   = Utility::fetchLinkMessage(
+            $lang,
+            $namespace,
+            'discussion_store_route_unavailable'
+        ) ?? 'Discussion store route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deals/discussions — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(!empty($deal) && isset($deal->id))
     @if($hasStoreRoute)
@@ -48,7 +44,7 @@
         <script defer src="{{ asset('assets/js/routes/deals/discussionStore.js') }}"></script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-warning">
+    <div class="{{ VC::ALT_WRN }}">
         {{ __('Failed to fetch deal data.') }}
     </div>
 @endif

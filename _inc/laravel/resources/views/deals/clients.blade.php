@@ -1,25 +1,24 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
-    $routeKey       = ViewsConstants::DL . '.clients.update';
-    $kebabRouteKey  = Str::kebab($routeKey);
-    $hasRoute       = Route::has($routeKey);
-    $hasKebab       = Route::has($kebabRouteKey);
-    $updateRouteName = $hasRoute
-        ? $routeKey
-        : ($hasKebab ? $kebabRouteKey : null);
-    $updateRouteUrl = $updateRouteName
-        ? route($updateRouteName, $deal->id)
-        : '#';
-    $updateGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::DL,
-        'clients_update_route_unavailable'
-    ) ?? 'Update deals with clients route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $routeKey       = ViewsConstants::DL . '.clients.update';
+        $kebabRouteKey  = Str::kebab($routeKey);
+        $hasRoute       = Route::has($routeKey);
+        $hasKebab       = Route::has($kebabRouteKey);
+        $updateRouteName = $hasRoute
+            ? $routeKey
+            : ($hasKebab ? $kebabRouteKey : null);
+        $updateRouteUrl = $updateRouteName
+            ? route($updateRouteName, $deal->id)
+            : '#';
+        $updateGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::DL,
+            'clients_update_route_unavailable'
+        ) ?? 'Update deals with clients route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deals/clients — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::model($deal, [
     'route'  => $updateRouteName
@@ -35,8 +34,8 @@
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('clients', __('Clients'), ['class' => VC::FM_LB]) }}
                     {{ Form::select(
-                        'clients[' . $client->id . ']',
-                        Utility::isFilled($clients) ? $clients : [__('No clients available.' ?? [])],
+                        'clients[]',
+                        Utility::isFilled($clients) ? $clients : [__('No clients available.')],
                         false,
                         [
                             'class'    => VC::FM_CT . ' select2',
@@ -45,7 +44,6 @@
                             'required' => 'required'
                         ]
                     ) }}
-                @else
             </div>
         </div>
     </div>
@@ -68,28 +66,7 @@
                     if (url !== '#') return;
                     e.preventDefault();
                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
+                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     form.setAttribute('data-failed-route', 'true');
                 } catch (error) {}
             });

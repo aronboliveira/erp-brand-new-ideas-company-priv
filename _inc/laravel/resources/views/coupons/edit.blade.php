@@ -1,33 +1,63 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\StacksConstants;
-
-    $lang                 = Utility::fetchUserLang();
-    $generateAiRoute      = Route::has('generate')
-        ? route('generate', ['coupon'])
-        : '#';
-    $generateAiBtnId      = 'coupon-generate-ai-btn';
-    $generateAiGuardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        'generics',
-        'coupon_generate_ai_route_unavailable'
-    ) ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
-    $settings = Utility::settings();
-    $couponUpdateBaseRouteName   = ViewsConstants::CPN.'.update';
-    $couponUpdateKebabRouteName  = Str::kebab($couponUpdateBaseRouteName);
-    $couponUpdateResolvedName    = Route::has($couponUpdateBaseRouteName)
-        ? $couponUpdateBaseRouteName
-        : (Route::has($couponUpdateKebabRouteName) ? $couponUpdateKebabRouteName : null);
-
-    $couponIdValue               = (string) data_get($coupon, 'id', '');
-    $couponUpdateUrl             = ($couponUpdateResolvedName && $couponIdValue !== '')
-        ? route($couponUpdateResolvedName, $couponIdValue)
-        : '#';
-    $couponUpdateFormId          = 'coupon-update-form-'.($couponIdValue === '' ? 'x' : $couponIdValue);
-    $userLang                    = isset($lang) ? $lang : Utility::fetchUserLang();
-    $couponUpdateGuardMessage    = Utility::fetchLinkMessage($userLang, ViewsConstants::CPN, 'update_coupon_route_unavailable')
-        ?? 'Update coupon route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$generateAiRoute ??= '#';
+	$generateAiBtnId ??= 'coupon-generate-ai-btn';
+	$generateAiGuardMsg ??= '';
+	$settings ??= [];
+	$couponUpdateBaseRouteName ??= '';
+	$couponUpdateKebabRouteName ??= '';
+	$couponUpdateResolvedName ??= null;
+	$couponIdValue ??= '';
+	$couponUpdateUrl ??= '#';
+	$couponUpdateFormId ??= 'coupon-update-form-x';
+	$userLang ??= 'en';
+	$couponUpdateGuardMessage ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$generateAiRoute = Route::has('generate')
+			? (route('generate', ['coupon']) ?? '#')
+			: '#';
+		$generateAiGuardMsg = Utility::fetchLinkMessage(
+			$lang,
+			'generics',
+			'coupon_generate_ai_route_unavailable'
+		) ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
+		$settings = Utility::settings() ?? [];
+		$couponUpdateBaseRouteName = ViewsConstants::CPN . '.update';
+		$couponUpdateKebabRouteName = Str::kebab($couponUpdateBaseRouteName);
+		$couponUpdateResolvedName = Route::has($couponUpdateBaseRouteName)
+			? $couponUpdateBaseRouteName
+			: (Route::has($couponUpdateKebabRouteName) ? $couponUpdateKebabRouteName : null);
+		$couponIdValue = (string) data_get($coupon ?? null, 'id', '');
+		$couponUpdateUrl = ($couponUpdateResolvedName && $couponIdValue !== '')
+			? (route($couponUpdateResolvedName, $couponIdValue) ?? '#')
+			: '#';
+		$couponUpdateFormId = 'coupon-update-form-' . ($couponIdValue === '' ? 'x' : $couponIdValue);
+		$userLang = isset($lang) ? $lang : (Utility::fetchUserLang() ?? 'en');
+		$couponUpdateGuardMessage = Utility::fetchLinkMessage($userLang, ViewsConstants::CPN, 'update_coupon_route_unavailable')
+			?? 'Update coupon route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\\Error $e) {
+		Log::error('Error in coupons/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\\Exception $e) {
+		Log::error('Exception in coupons/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\\Throwable $e) {
+		Log::error('Throwable in coupons/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($coupon) && isset($coupon->id))
     {{ Form::model($coupon, [
@@ -45,7 +75,7 @@
                         id="{{ $generateAiBtnId }}"
                         href="#"
                         data-url="{{ $generateAiRoute }}"
-                        data-guard-msg="{{ $generateAiGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($generateAiGuardMsg) }}"
                         data-ajax-popup-over="true"
                         data-size="md"
                         class="{{ VC::BT_SM_PM }} btn-icon"
@@ -101,31 +131,7 @@
                             const msg = formEl.getAttribute('data-guard-msg')
                                 ?? 'Update coupon route is unavailable. Please contact technical support or your domain administrator.';
 
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role', 'alert');
-                                toast.setAttribute('aria-live', 'assertive');
-                                toast.setAttribute('aria-atomic', 'true');
-
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
 
                             formEl.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
@@ -135,5 +141,5 @@
         </script>
     {{ Form::close() }}
 @else
-    <div class="text-muted">{{ __('No coupon found') }}</div>
+    <div class="{{ VC::TXT_MT }}">{{ __('No coupon found') }}</div>
 @endif

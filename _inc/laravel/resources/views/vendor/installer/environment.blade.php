@@ -11,14 +11,16 @@
 
 @section('container')
     @php
-        use Illuminate\Support\Facades\Route;
+        try {
+$wizardRoute  = Route::has('LaravelInstaller::environmentWizard')  ? route('LaravelInstaller::environmentWizard')  : '#';
+            $classicRoute = Route::has('LaravelInstaller::environmentClassic') ? route('LaravelInstaller::environmentClassic') : '#';
 
-        $wizardRoute  = Route::has('LaravelInstaller::environmentWizard')  ? route('LaravelInstaller::environmentWizard')  : '#';
-        $classicRoute = Route::has('LaravelInstaller::environmentClassic') ? route('LaravelInstaller::environmentClassic') : '#';
-
-        $wizardDisabled  = $wizardRoute  === '#';
-        $classicDisabled = $classicRoute === '#';
-    @endphp
+            $wizardDisabled  = $wizardRoute  === '#';
+            $classicDisabled = $classicRoute === '#';
+        } catch (\Throwable $e) {
+            \Log::error('vendor/installer/environment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
 
     <p class="text-center">
         {!! trans('installer_messages.environment.menu.desc') !!}

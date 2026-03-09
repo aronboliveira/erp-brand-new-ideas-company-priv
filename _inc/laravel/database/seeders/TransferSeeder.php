@@ -16,7 +16,8 @@ use Symfony\Component\Console\Output\{ConsoleOutput};
 final class TransferSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-	private const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutes
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	private const MAX_PICK_ATTEMPTS = 24;
 	private const MAX_DATE_SHIFT_ATTEMPTS = 7;
 
@@ -92,7 +93,7 @@ final class TransferSeeder extends Seeder
 			$employeeArr = $employees->all();
 			$seenEmpDate = [];
 
-			$hardCap = 3200;
+			$hardCap = 2; /* original: 3200 */
 			for ($i = 1; $i <= $total; $i++) {
 
 				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
@@ -172,17 +173,17 @@ final class TransferSeeder extends Seeder
 					$emp->setAttribute(CPC::COL_BRC_ID, $destBranchId);
 					$emp->setAttribute(CPC::COL_DEP_ID, $destDeptId);
 
-					$out->writeln(sprintf(
-						'[%d/%d] emp=%s | %s/%s -> %s/%s | %s',
-						$i,
-						$total,
-						$empId,
-						$srcBranchId !== '' ? $srcBranchId : '-',
-						$srcDeptId !== '' ? $srcDeptId : '-',
-						$destBranchId !== '' ? $destBranchId : '-',
-						is_string($destDeptId) && $destDeptId !== '' ? $destDeptId : '-',
-						$dt
-					));
+					// $out->writeln(sprintf(
+					// 	'[%d/%d] emp=%s | %s/%s -> %s/%s | %s',
+					// 	$i,
+					// 	$total,
+					// 	$empId,
+					// 	$srcBranchId !== '' ? $srcBranchId : '-',
+					// 	$srcDeptId !== '' ? $srcDeptId : '-',
+					// 	$destBranchId !== '' ? $destBranchId : '-',
+					// 	is_string($destDeptId) && $destDeptId !== '' ? $destDeptId : '-',
+					// 	$dt
+					// ));
 				} catch (\Throwable $e) {
 					Log::warning('TransferSeeder: failed record', [
 						'i' => $i,

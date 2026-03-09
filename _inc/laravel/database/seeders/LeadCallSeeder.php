@@ -17,6 +17,8 @@ class LeadCallSeeder extends Seeder
 	private const PER_LEAD_MIN = 1;
 	private const PER_LEAD_MAX = 3;
 
+	private const HARD_CAP = 2;
+
 	public function run(): void
 	{
 		foreach ([DC::TABLE_LD_CALLS, DC::TABLE_LEADS, DC::TABLE_USERS] as $tbl) {
@@ -56,6 +58,7 @@ class LeadCallSeeder extends Seeder
 			$opt = (int) $this->command->option('count');
 			if ($opt > 0) $target = $opt;
 		}
+		$target = min(self::HARD_CAP, $target); /* original: 8 × leads */
 
 		$now      = Carbon::now();
 		$rows     = [];
@@ -151,7 +154,7 @@ class LeadCallSeeder extends Seeder
 					if (Schema::hasColumn(DC::TABLE_LD_CALLS, DC::COL_TABLE_UPDATER)) {
 						$row[DC::COL_TABLE_UPDATER] = $toUser['id'] ?? null;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Lead {$lead->id} de {$fromEndpoint} para {$toEndpoint} sobre o assunto '{$subject}'");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Lead {$lead->id} de {$fromEndpoint} para {$toEndpoint} sobre o assunto '{$subject}'");
 					$rows[] = $row;
 					$inserted++;
 				} catch (\Exception $e) {

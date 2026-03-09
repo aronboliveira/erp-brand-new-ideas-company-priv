@@ -32,8 +32,8 @@
                 @endif
             </div>
         </div>
-        <div class="col-md-2">
-            <a href="#" id="remove" class="text-sm">{{__(' Remove')}}</a>
+        <div class="{{ VC::CM2 }}">
+            <a href="#" id="remove" class="{{ VC::TXSM }}">{{__(' Remove')}}</a>
         </div>
     </div>
 @endif

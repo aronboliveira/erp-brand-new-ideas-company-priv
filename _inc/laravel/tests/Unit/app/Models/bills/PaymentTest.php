@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{Payment, ProductServiceCategory, Vendor, BankAccount, ChartOfAcc
 
 class PaymentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -41,9 +47,7 @@ class PaymentTest extends TestCase
 
 		$payment = Payment::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $payment->$field);
-		}
+		$this->assertFillableMatches($data, $payment);
 	}
 
 	/**
@@ -75,10 +79,10 @@ class PaymentTest extends TestCase
 	{
 		$relation = (new Payment)->category();
 
-		$this->assertInstanceOf(HasOne::class,                          $relation);
+		$this->assertInstanceOf(BelongsTo::class,                          $relation);
 		$this->assertSame(ProductServiceCategory::class,                get_class($relation->getRelated()));
-		$this->assertSame('id',                                         $relation->getForeignKeyName());
-		$this->assertSame('category_id',                                $relation->getLocalKeyName());
+		$this->assertSame('category_id',                                         $relation->getForeignKeyName());
+		$this->assertSame('id',                                $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -90,10 +94,10 @@ class PaymentTest extends TestCase
 	{
 		$relation = (new Payment)->vendor();
 
-		$this->assertInstanceOf(HasOne::class,                          $relation);
+		$this->assertInstanceOf(BelongsTo::class,                          $relation);
 		$this->assertSame(Vendor::class,                                get_class($relation->getRelated()));
-		$this->assertSame('id',                                         $relation->getForeignKeyName());
-		$this->assertSame('vendor_id',                                  $relation->getLocalKeyName());
+		$this->assertSame('vendor_id',                                         $relation->getForeignKeyName());
+		$this->assertSame('id',                                  $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -105,10 +109,10 @@ class PaymentTest extends TestCase
 	{
 		$relation = (new Payment)->bankAccount();
 
-		$this->assertInstanceOf(HasOne::class,                          $relation);
+		$this->assertInstanceOf(BelongsTo::class,                          $relation);
 		$this->assertSame(BankAccount::class,                           get_class($relation->getRelated()));
-		$this->assertSame('id',                                         $relation->getForeignKeyName());
-		$this->assertSame('account_id',                                 $relation->getLocalKeyName());
+		$this->assertSame('account_id',                                         $relation->getForeignKeyName());
+		$this->assertSame('id',                                 $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -120,9 +124,9 @@ class PaymentTest extends TestCase
 	{
 		$relation = (new Payment)->chartAccount();
 
-		$this->assertInstanceOf(HasOne::class,                          $relation);
+		$this->assertInstanceOf(BelongsTo::class,                          $relation);
 		$this->assertSame(ChartOfAccount::class,                        get_class($relation->getRelated()));
-		$this->assertSame('id',                                         $relation->getForeignKeyName());
-		$this->assertSame('chart_account_id',                           $relation->getLocalKeyName());
+		$this->assertSame('chart_account_id',                                         $relation->getForeignKeyName());
+		$this->assertSame('id',                           $relation->getOwnerKeyName());
 	}
 }

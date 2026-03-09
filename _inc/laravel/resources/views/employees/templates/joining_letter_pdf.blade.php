@@ -1,11 +1,9 @@
 
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        YieldingConstants,
-        StacksConstants,
-        ViewClassNamesConstants
-    };
+    try {
+} catch (\Throwable $e) {
+        \Log::error('employees/templates/joining_letter_pdf — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::CTC)
 @section(YieldingConstants::CTC_PG_TTL)
@@ -13,13 +11,13 @@
 @endsection
 @section(YieldingConstants::CTC_CTT)
     <div class="row" >
-        <div class="col-lg-10">
+        <div class="{{ VC::CL10 }}">
             <div class="{{ ViewClassNamesConstants::CT }}">
                 <div>
                     <div class="card mt-5" id="printTable" style="margin-left: 180px;margin-right: -57px;">
-                        <div class="card-body" id="boxes">
-                            <div class="row invoice-title mt-2">
-                                <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12 ">
+                        <div class="{{ VC::CD_BD }}" id="boxes">
+                            <div class="row invoice-title {{ VC::MT2 }}">
+                                <div class="{{ VC::CXS12 }} {{ VC::CS12 }} col-nd-6 {{ VC::CL6 }} {{ VC::C12 }}">
                                     {{-- <img  src="{{$img}}" style="max-width: 150px;"/> --}}
                                 </div>
                                 <p data-v-f2a183a6="">
@@ -82,7 +80,7 @@
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
                 t.innerHTML =
-                '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
             }
             const body = t.querySelector(".toast-body");

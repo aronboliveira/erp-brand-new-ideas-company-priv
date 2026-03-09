@@ -1,13 +1,13 @@
 @php
-    use App\Models\Utility;
-    use App\Config\Constants\{DatabaseConstants, SettingsConstants};
-    use Illuminate\Support\Collection;
-
-    $settings = Utility::settings();
-    $colorSettings = $settings[SettingsConstants::CLR_STG] ?? [];
-    $lang = Utility::fetchUserLang();
-    $rtl = (($settings[SettingsConstants::RTL] ?? '') === 'on') ? 'rtl' : '';
-    $qty = (is_numeric($quantity ?? null) && (int)$quantity > 0) ? (int)$quantity : 1;
+    try {
+$settings = Utility::settings();
+        $colorSettings = $settings[SettingsConstants::CLR_STG] ?? [];
+        $lang = Utility::fetchUserLang();
+        $rtl = (($settings[SettingsConstants::RTL] ?? '') === 'on') ? 'rtl' : '';
+        $qty = (is_numeric($quantity ?? null) && (int)$quantity > 0) ? (int)$quantity : 1;
+    } catch (\Throwable $e) {
+        \Log::error('pos/receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang ? (str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) : DatabaseConstants::DEFAULT_LANG }}" dir="{{ $rtl }}">
@@ -29,19 +29,19 @@
                 @if( (is_array($productServices ?? null) && count($productServices)) || (($productServices ?? null) instanceof Collection && $productServices->isNotEmpty()) )
                     @foreach($productServices as $product)
                         @for($i = 1; $i <= $qty; $i++)
-                            <div class="col-auto mb-2">
+                            <div class="{{ VC::C_AT }} {{ VC::MB2 }}">
                                 <small>{{ data_get($product, 'name', 'Unavailable') }}</small>
                                 <div
                                     data-id="{{ data_get($product, 'id', '0') }}"
-                                    class="product_barcode product_barcode_hight_de product_barcode_{{ data_get($product, 'id', '0') }} mt-2"
+                                    class="product_barcode product_barcode_hight_de product_barcode_{{ data_get($product, 'id', '0') }} {{ VC::MT2 }}"
                                     data-skucode="{{ data_get($product, 'sku', 'Unavailable') }}">
                                 </div>
                             </div>
                         @endfor
                     @endforeach
                 @else
-                    <div class="col-12 text-center text-dark">
-                        <p>{{ __('No product barcodes available.') }}</p>
+                    <div class="{{ VC::C12 }} {{ VC::TXCT_DK }}">
+                        <p>No product barcodes available.</p>
                     </div>
                 @endif
             </div>

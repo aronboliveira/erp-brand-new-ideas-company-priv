@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const a = document.getElementById("gen-ai-termination");
     if (!a) return;
@@ -22,37 +30,8 @@
 
         const msg =
           a.getAttribute("data-guard-msg") ||
-          "Generate content route is unavailable. Please contact technical support or your domain administrator.";
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          typeof window.bootstrap !== "undefined" &&
-          window.bootstrap?.Toast
-        ) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          window.bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-
+          getMsg("generate_content_unavailable");
+        scheduleError(msg, "click");
         a.setAttribute("data-failed-route", "true");
       } catch (err) {
         if (
@@ -62,7 +41,7 @@
           console.error(
             "[assets/js/routes/terminations/generateAi.js] Click handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -74,7 +53,7 @@
       console.error(
         "[assets/js/routes/terminations/generateAi.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

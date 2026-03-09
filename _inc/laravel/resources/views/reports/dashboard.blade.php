@@ -1,19 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -26,7 +17,7 @@
 
 @section('content')
     @if (session('status'))
-        <div class="alert alert-success" role="alert">
+        <div class="{{ VC::ALT_SUC }}" role="alert">
             {{ session('status') }}
         </div>
     @endif
@@ -34,14 +25,14 @@
         <div class="{{ VC::RW }} mt-5">
             <div class="{{ VC::CL6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h4>{{ __('Event View') }}</h4>
                     </div>
-                    <div class="card-body dash-card-body">
+                    <div class="{{ VC::CD_BD }} dash-card-body">
                         <div class="page-title">
                             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }} full-calendar">
                                 <div class="col {{ VC::DFL_AIC }}">
-                                    <div class="btn-group" role="group" aria-label="{{ __('Calendar navigation') }}">
+                                    <div class="btn-group" role="group" aria-label="Calendar navigation">
                                         <a href="#" class="fullcalendar-btn-prev {{ VC::BT_SM }} btn-neutral" title="{{ __('Previous') }}">
                                             <i class="ti ti-angle-left"></i>
                                         </a>
@@ -49,10 +40,10 @@
                                             <i class="ti ti-angle-right"></i>
                                         </a>
                                     </div>
-                                    <h5 class="fullcalendar-title h4 d-inline-block font-weight-400 mb-0"></h5>
+                                    <h5 class="fullcalendar-title h4 d-inline-block font-weight-400 {{ VC::MB0 }}"></h5>
                                 </div>
-                                <div class="col-lg-6 mt-3 mt-lg-0 text-lg-right">
-                                    <div class="btn-group" role="group" aria-label="{{ __('Calendar view') }}">
+                                <div class="{{ VC::CL6 }} {{ VC::MT3 }} mt-lg-0 text-lg-right">
+                                    <div class="btn-group" role="group" aria-label="Calendar view">
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="month">{{ __('Month') }}</a>
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="basicWeek">{{ __('Week') }}</a>
                                         <a href="#" class="{{ VC::BT_SM }} btn-neutral" data-calendar-view="basicDay">{{ __('Day') }}</a>
@@ -72,14 +63,14 @@
             </div>
             <div class="{{ VC::CL6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h4>{{ __('Mark Attendance') }}</h4>
                     </div>
-                    <div class="card-body dash-card-body">
+                    <div class="{{ VC::CD_BD }} dash-card-body">
                         @php
                             $startTime = data_get($officeTime ?? [], 'startTime');
                             $endTime   = data_get($officeTime ?? [], 'endTime');
-                        @endphp
+@endphp
                         <p class="{{ VC::TXT_MT }} pb-0-5">
                             {{ __('My Office Time: :start to :end', ['start' => $startTime ?: __('N/A'), 'end' => $endTime ?: __('N/A')]) }}
                         </p>
@@ -87,13 +78,17 @@
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::CM6 }} float-right border-right">
                                     @php
-                                        $clockInBase          = VW::EMP_ATD.'.attendance';
-                                        $clockInKebab         = Str::kebab($clockInBase);
-                                        $clockInResolved      = Route::has($clockInBase) ? $clockInBase : (Route::has($clockInKebab) ? $clockInKebab : null);
-                                        $clockInUrl           = $clockInResolved ? route($clockInResolved) : '#';
-                                        $clockInFormId        = 'clock-in-form';
-                                        $clockInGuardMsg      = Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'clock_in_employee_attendance_unavailable') ?? 'Clock in route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $clockInBase          = VW::EMP_ATD.'.attendance';
+                                            $clockInKebab         = Str::kebab($clockInBase);
+                                            $clockInResolved      = Route::has($clockInBase) ? $clockInBase : (Route::has($clockInKebab) ? $clockInKebab : null);
+                                            $clockInUrl           = $clockInResolved ? route($clockInResolved) : '#';
+                                            $clockInFormId        = 'clock-in-form';
+                                            $clockInGuardMsg      = Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'clock_in_employee_attendance_unavailable') ?? 'Clock in route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('reports/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     {{ Form::open([
                                         'method'            => 'POST',
                                         'url'               => $clockInUrl,
@@ -115,15 +110,19 @@
                                 <div class="{{ VC::CM6 }} float-left">
                                     @if(!empty($employeeAttendance) && $employeeAttendance->clock_out == '00:00:00')
                                         @php
-                                            $empAttId            = data_get($employeeAttendance, 'id');
-                                            $clockOutBase        = VW::EMP_ATD.'.update';
-                                            $clockOutKebab       = Str::kebab($clockOutBase);
-                                            $clockOutResolved    = Route::has($clockOutBase) ? $clockOutBase : (Route::has($clockOutKebab) ? $clockOutKebab : null);
-                                            $clockOutParams      = $empAttId ? [$empAttId] : ['#'];
-                                            $clockOutUrl         = ($clockOutResolved && $empAttId) ? route($clockOutResolved, $clockOutParams) : '#';
-                                            $clockOutFormId      = 'clock-out-form';
-                                            $clockOutGuardMsg    = Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'clock_out_employee_attendance_unavailable') ?? 'Clock out route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $empAttId            = data_get($employeeAttendance, 'id');
+                                                $clockOutBase        = VW::EMP_ATD.'.update';
+                                                $clockOutKebab       = Str::kebab($clockOutBase);
+                                                $clockOutResolved    = Route::has($clockOutBase) ? $clockOutBase : (Route::has($clockOutKebab) ? $clockOutKebab : null);
+                                                $clockOutParams      = $empAttId ? [$empAttId] : ['#'];
+                                                $clockOutUrl         = ($clockOutResolved && $empAttId) ? route($clockOutResolved, $clockOutParams) : '#';
+                                                $clockOutFormId      = 'clock-out-form';
+                                                $clockOutGuardMsg    = Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'clock_out_employee_attendance_unavailable') ?? 'Clock out route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('reports/dashboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         {{ Form::model($employeeAttendance, [
                                             'method'            => 'PUT',
                                             'url'               => $clockOutUrl,
@@ -150,11 +149,11 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::CL6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h4>{{ __('Announcement List') }}</h4>
                     </div>
-                    <div class="card-body dash-card-body">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD }} dash-card-body">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                 <thead>
                                     <tr>
@@ -174,7 +173,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center">{{ __('No announcements found') }}</td>
+                                            <td colspan="4" class="{{ VC::TXCT }}">{{ __('No announcements found') }}</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -186,12 +185,12 @@
 
             <div class="{{ VC::CL6 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h4>{{ __('Meeting List') }}</h4>
                     </div>
-                    <div class="card-body dash-card-body">
+                    <div class="{{ VC::CD_BD }} dash-card-body">
                         @if(count($meetings ?? []) > 0)
-                            <div class="table-responsive">
+                            <div class="{{ VC::TB_RSP }}">
                                 <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                     <thead>
                                         <tr>
@@ -220,7 +219,7 @@
         </div>
     @else
         <div class="{{ VW::RW }}">
-            <div class="col-xl-4 {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
+            <div class="{{ VC::CXL4 }} {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
                 <div class="{{ VW::CD }} card-box">
                     <div class="left-card">
                         <div class="icon-box"><i class="{{ VW::TI_USRS }}"></i></div>
@@ -235,7 +234,7 @@
                 <img src="{{ asset('assets/img/dot-icon.png') }}" alt="{{ __('Decorative dots') }}" class="dotted-icon"/>
             </div>
 
-            <div class="col-xl-4 {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
+            <div class="{{ VC::CXL4 }} {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
                 <div class="{{ VW::CD }} card-box">
                     <div class="left-card">
                         <div class="icon-box yellow-bg"><i class="ti ti-graduation-cap"></i></div>
@@ -252,7 +251,7 @@
             </div>
 
             @if($user?->{UsersConstants::COL_TP} == 'company')
-                <div class="col-xl-4 {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
+                <div class="{{ VC::CXL4 }} {{ VW::CL4 }} {{ VW::CM6 }} {{ VW::CS12 }}">
                     <div class="{{ VW::CD }} card-box">
                         <div class="left-card">
                             <div class="icon-box green-bg"><i class="ti ti-user-md"></i></div>
@@ -269,10 +268,10 @@
             @endif
         </div>
         <div class="{{ VW::RW }}">
-            <div class="col-xl-3 {{ VW::CL4 }} col-md-5">
+            <div class="{{ VC::CXL3 }} {{ VW::CL4 }} col-md-5">
                 <h4 class="h4 font-weight-400">{{ __("Today's Not Clock In") }}</h4>
                 <div class="{{ VW::CD_FL }} bg-none min-height-443">
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VW::TB_AL }}">
                             <thead>
                                 <tr>
@@ -288,7 +287,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="2" class="text-center">{{ __('No employees to display') }}</td>
+                                        <td colspan="2" class="{{ VC::TXCT }}">{{ __('No employees to display') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -300,7 +299,7 @@
             <div class="col-xl-9 {{ VW::CL8 }} col-md-7">
                 <div><h4 class="h4 font-weight-400 float-left">{{ __('Announcement List') }}</h4></div>
                 <div class="{{ VW::CD_FL }} bg-none min-height-443">
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         @if(count($announcements ?? []) > 0)
                             <table class="{{ VW::TB_AL }}">
                                 <thead>
@@ -333,10 +332,10 @@
             <div class="{{ VW::CM6 }}">
                 <h4 class="h4 font-weight-400 float-left">{{ __('Event View') }}</h4>
                 <div class="{{ VW::CD_FL }} widget-calendar min-height-940">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VW::RW }}">
-                            <div class="col-xl-2 {{ VW::CL3 }} col-md-2 col-sm-2">
-                                <div class="btn-group" role="group" aria-label="{{ __('Calendar navigation') }}">
+                            <div class="{{ VC::CXL2 }} {{ VW::CL3 }} {{ VC::CM2 }} col-sm-2">
+                                <div class="btn-group" role="group" aria-label="Calendar navigation">
                                     <a href="#" class="fullcalendar-btn-prev {{ VW::BT_SM }} btn-neutral" title="{{ __('Previous') }}">
                                         <i class="ti ti-angle-left"></i>
                                     </a>
@@ -345,11 +344,11 @@
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-xl-5 {{ VW::CL4 }} col-md-5 col-sm-6 text-center">
-                                <h5 class="fullcalendar-title h4 d-inline-block font-weight-600 mb-0">{{ __('Calendar') }}</h5>
+                            <div class="col-xl-5 {{ VW::CL4 }} col-md-5 {{ VC::CS6 }} {{ VC::TXCT }}">
+                                <h5 class="fullcalendar-title h4 d-inline-block font-weight-600 {{ VC::MB0 }}">{{ __('Calendar') }}</h5>
                             </div>
-                            <div class="col-xl-5 {{ VW::CL5 }} col-md-5 col-sm-4 text-lg-right">
-                                <div class="btn-group" role="group" aria-label="{{ __('Calendar view') }}">
+                            <div class="col-xl-5 {{ VW::CL5 }} col-md-5 {{ VC::CS4 }} text-lg-right">
+                                <div class="btn-group" role="group" aria-label="Calendar view">
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="month">{{ __('Month') }}</a>
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="basicWeek">{{ __('Week') }}</a>
                                     <a href="#" class="{{ VW::BT_SM }} btn-neutral" data-calendar-view="basicDay">{{ __('Day') }}</a>
@@ -364,7 +363,7 @@
             <div class="{{ VW::CM6 }}">
                 <div><h4 class="h4 font-weight-400 float-left">{{ __('Meeting schedule') }}</h4></div>
                 <div class="{{ VW::CD_FL }} bg-none min-height-940">
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         @if(count($meetings ?? []) > 0)
                             <table class="{{ VW::TB_AL }}">
                                 <thead>
@@ -394,7 +393,6 @@
     @endif
 @endsection
 
-
 @push('theme-script')
     <script src="{{ asset('assets/libs/fullcalendar/dist/fullcalendar.min.js') }}"></script>
 @endpush
@@ -410,7 +408,7 @@
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
             const dataListenerGuard = "data-cal-listener";
-            if (!$) { try { 
+            if (!$) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -443,7 +441,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -486,7 +484,7 @@
             const initCalendar = () => {
             const $cal = $('[data-toggle="event_calendar"]');
             if (!$cal.length) { return; }
-            if (typeof $.fn.fullCalendar !== "function" || typeof window.moment !== "function") { try { 
+            if (typeof $.fn.fullCalendar !== "function" || typeof window.moment !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"

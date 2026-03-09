@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   const t = {
     ar: { leads_sources_update_route_unavailable: "الإجراء غير متاح." },

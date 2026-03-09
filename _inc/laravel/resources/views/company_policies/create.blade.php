@@ -1,32 +1,48 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        PlansConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-
-    $lang        = Utility::fetchUserLang();
-    $routeName   = ViewsConstants::CPN_PL;
-    $storeRoute  = Route::has($routeName)
-        ? route($routeName)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName))
-            : '#');
-    $formId      = 'company_policy_store_form';
-    $guardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CPN_PL,
-        'company_policy_store_route_unavailable'
-    ) ?? 'Company Policy store route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$storeRoute ??= '#';
+	$formId ??= 'company_policy_store_form';
+	$guardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$routeName = ViewsConstants::CPN_PL;
+		$storeRoute = Route::has($routeName)
+			? (route($routeName) ?? '#')
+			: (Route::has(Str::kebab($routeName))
+				? (route(Str::kebab($routeName)) ?? '#')
+				: '#');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::CPN_PL,
+			'company_policy_store_route_unavailable'
+		) ?? 'Company Policy store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in company_policies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in company_policies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in company_policies/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::open([
-    'route'          => [$storeRoute],
+    'url'            => $storeRoute,
     'method'         => 'post',
     'enctype'        => 'multipart/form-data',
     'id'             => $formId,
@@ -34,18 +50,49 @@
     'data-guard-msg' => $guardMsg,
 ]) }}
     <div class="modal-body">
-        @php $plan = Utility::getChatGPTSettings(); @endphp
+        @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
           @php
-              $aiGenerateRouteBase           = 'generate';
-              $aiGenerateRouteKebab          = Str::kebab($aiGenerateRouteBase);
-              $aiGenerateResolvedName        = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
-              $aiGenerateTopic               = 'company policy';
-              $aiGenerateUrl                 = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
-              $aiGenerateLang                = isset($lang) ? $lang : Utility::fetchUserLang();
-              $aiGenerateGuardMsg            = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPN_PL, 'generate_ai_company_policy_route_unavailable') ?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
-              $aiGenerateCompanyPolicyLinkId = 'ai-generate-company-policy-link';
-          @endphp
+				$aiGenerateRouteBase ??= 'generate';
+				$aiGenerateRouteKebab ??= '';
+				$aiGenerateResolvedName ??= null;
+				$aiGenerateTopic ??= 'company policy';
+				$aiGenerateUrl ??= '#';
+				$aiGenerateLang ??= 'en';
+				$aiGenerateGuardMsg ??= '';
+				$aiGenerateCompanyPolicyLinkId ??= 'ai-generate-company-policy-link';
+				try {
+					$aiGenerateRouteKebab = Str::kebab($aiGenerateRouteBase);
+					$aiGenerateResolvedName = Route::has($aiGenerateRouteBase) ? $aiGenerateRouteBase : (Route::has($aiGenerateRouteKebab) ? $aiGenerateRouteKebab : null);
+					$aiGenerateUrl = $aiGenerateResolvedName ? (route($aiGenerateResolvedName, [$aiGenerateTopic]) ?? '#') : '#';
+					$aiGenerateLang = isset($lang) ? $lang : Utility::fetchUserLang();
+					$aiGenerateGuardMsg = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPN_PL, 'generate_ai_company_policy_route_unavailable')
+						?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
+				} catch (\Error $e) {
+					Log::error('Error in company_policies/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Exception $e) {
+					Log::error('Exception in company_policies/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Throwable $e) {
+					Log::error('Throwable in company_policies/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				}
+@endphp
           <div class="{{ VC::FEND }}">
               <a
                   id="{{ $aiGenerateCompanyPolicyLinkId }}"
@@ -56,7 +103,7 @@
                   data-url="{{ $aiGenerateUrl }}"
                   data-bs-placement="top"
                   data-title="{{ __('Generate content with AI') }}"
-                  data-guard-msg="{{ $aiGenerateGuardMsg }}"
+                  data-guard-msg="{{ base64_encode($aiGenerateGuardMsg) }}"
                   data-sv-localized="true"
               >
                   <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
@@ -92,7 +139,7 @@
                             id="attachment"
                             data-filename="attachment_create"
                         >
-                        <img id="image" class="mt-3" style="width:25%;" />
+                        <img id="image" class="{{ VC::MT3 }}" style="width:25%;" />
                     </label>
                 </div>
             </div>
@@ -112,7 +159,7 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-    <script async src="{{ asset('assets/js/routes/companyPolicies/lang/store.js') }}"></script>  
+    <script async src="{{ asset('assets/js/routes/companyPolicies/lang/store.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/companyPolicies/store.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/companyPolicies/attachment.js') }}"></script>
 {{ Form::close() }}

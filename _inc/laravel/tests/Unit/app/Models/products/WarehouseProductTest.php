@@ -8,9 +8,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\WarehouseProduct;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WarehouseProductTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -18,7 +24,11 @@ class WarehouseProductTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['warehouse_id', 'product_id', 'quantity', 'created_by'];
+		$expected = [
+			'warehouse_id',
+			'product_id',
+			'quantity',
+		];
 
 		$this->assertSame($expected, (new WarehouseProduct)->getFillable());
 	}
@@ -33,11 +43,11 @@ class WarehouseProductTest extends TestCase
 		$wp = new WarehouseProduct;
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$wp->product()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$wp->warehouse()
 		);
 	}

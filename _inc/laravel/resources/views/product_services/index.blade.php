@@ -1,38 +1,30 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$user        = Auth::user();
+        $lang        = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        $canPriceFormat = is_callable([$user,'priceFormat']);
 
-    $user        = Auth::user();
-    $lang        = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-    $canPriceFormat = is_callable([$user,'priceFormat']);
+        $dashUrl   = Route::has('dashboard') ? route('dashboard') : '#';
+        $dashGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-    $dashUrl   = Route::has('dashboard') ? route('dashboard') : '#';
-    $dashGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+        $importUrl   = Route::has(VW::PRD_SV.'.file.import') ? route(VW::PRD_SV.'.file.import') : '#';
+        $importGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'import_product_services_unavailable') : 'Import Product & Services route is unavailable. Please contact technical support or your domain administrator.') ?? __('Import Product & Services route is unavailable. Please contact technical support or your domain administrator.');
 
-    $importUrl   = Route::has(VW::PRD_SV.'.file.import') ? route(VW::PRD_SV.'.file.import') : '#';
-    $importGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'import_product_services_unavailable') : 'Import Product & Services route is unavailable. Please contact technical support or your domain administrator.') ?? __('Import Product & Services route is unavailable. Please contact technical support or your domain administrator.');
+        $exportUrl   = Route::has(VW::PRD_SV.'.export') ? route(VW::PRD_SV.'.export') : '#';
+        $exportGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'export_product_services_unavailable') : 'Export Product & Services route is unavailable. Please contact technical support or your domain administrator.') ?? __('Export Product & Services route is unavailable. Please contact technical support or your domain administrator.');
 
-    $exportUrl   = Route::has(VW::PRD_SV.'.export') ? route(VW::PRD_SV.'.export') : '#';
-    $exportGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'export_product_services_unavailable') : 'Export Product & Services route is unavailable. Please contact technical support or your domain administrator.') ?? __('Export Product & Services route is unavailable. Please contact technical support or your domain administrator.');
+        $createUrl   = Route::has(VW::PRD_SV.'.create') ? route(VW::PRD_SV.'.create') : '#';
+        $createGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'create_product_service_unavailable') : 'Create Product Service route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Product Service route is unavailable. Please contact technical support or your domain administrator.');
 
-    $createUrl   = Route::has(VW::PRD_SV.'.create') ? route(VW::PRD_SV.'.create') : '#';
-    $createGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'create_product_service_unavailable') : 'Create Product Service route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Product Service route is unavailable. Please contact technical support or your domain administrator.');
-
-    $items = [];
-    if (is_array($productServices ?? null) && count($productServices)) {
-        $items = $productServices;
-    } elseif (($productServices ?? null) instanceof Collection && $productServices->isNotEmpty()) {
-        $items = $productServices;
+        $items = [];
+        if (is_array($productServices ?? null) && count($productServices)) {
+            $items = $productServices;
+        } elseif (($productServices ?? null) instanceof Collection && $productServices->isNotEmpty()) {
+            $items = $productServices;
+        }
+    } catch (\Throwable $e) {
+        \Log::error('product_services/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
 @endphp
 
@@ -46,16 +38,16 @@
 @endpush
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Product & Services') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Product & Services') }}</li>
 @endsection
 
 @section(YD::ADM_ACT_BTN)
@@ -68,7 +60,7 @@
            data-ajax-popup="true"
            data-title="{{ __('Import product CSV file') }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $importGuard }}"
+           data-guard-msg="{{ base64_encode($importGuard) }}"
            class="{{ VC::BT_SM_PM }}">
             <i class="{{ VC::TI_IMP }}"></i>
         </a>
@@ -78,7 +70,7 @@
            title="{{ __('Export') }}"
            data-url="{{ $exportUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $exportGuard }}"
+           data-guard-msg="{{ base64_encode($exportGuard) }}"
            class="{{ VC::BT_SM_PM }}">
             <i class="{{ VC::TI_EXP }}"></i>
         </a>
@@ -91,7 +83,7 @@
            title="{{ __('Create New Product') }}"
            data-title="{{ __('Create New Product') }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $createGuard }}"
+           data-guard-msg="{{ base64_encode($createGuard) }}"
            class="{{ VC::BT_SM_PM }}">
             <i class="{{ VC::TI_PLS }}"></i>
         </a>
@@ -102,20 +94,24 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     @php
-                        $psIndexBase             = VW::PRD_SV.'.index';
-                        $psIndexKebab            = Str::kebab($psIndexBase);
-                        $psIndexResolved         = Route::has($psIndexBase) ? $psIndexBase : (Route::has($psIndexKebab) ? $psIndexKebab : null);
-                        $psIndexUrl              = $psIndexResolved ? route($psIndexResolved) : '#';
-                        $psFormId                = 'product-service-filter-form';
-                        $psIndexGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'product_services_index_route_unavailable') ?? 'Product & Service index route is unavailable. Please contact technical support or your domain administrator.';
-                        $categoryIsList          = (is_array($category ?? null) && count($category ?? []) > 0) || (($category ?? null) instanceof Collection && $category->isNotEmpty());
-                        $categoryOptions         = $categoryIsList ? (is_array($category) ? $category : $category->toArray()) : [];
-                        $selectedCategory        = request('category');
-                        $applyBtnId              = 'product-service-apply-btn';
-                        $resetLinkId             = 'product-service-reset-link';
-                    @endphp
+                        try {
+                            $psIndexBase             = VW::PRD_SV.'.index';
+                            $psIndexKebab            = Str::kebab($psIndexBase);
+                            $psIndexResolved         = Route::has($psIndexBase) ? $psIndexBase : (Route::has($psIndexKebab) ? $psIndexKebab : null);
+                            $psIndexUrl              = $psIndexResolved ? route($psIndexResolved) : '#';
+                            $psFormId                = 'product-service-filter-form';
+                            $psIndexGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'product_services_index_route_unavailable') ?? 'Product & Service index route is unavailable. Please contact technical support or your domain administrator.';
+                            $categoryIsList          = (is_array($category ?? null) && count($category ?? []) > 0) || (($category ?? null) instanceof Collection && $category->isNotEmpty());
+                            $categoryOptions         = $categoryIsList ? (is_array($category) ? $category : $category->toArray()) : [];
+                            $selectedCategory        = request('category');
+                            $applyBtnId              = 'product-service-apply-btn';
+                            $resetLinkId             = 'product-service-reset-link';
+                        } catch (\Throwable $e) {
+                            \Log::error('product_services/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     {{ Form::open([
                         'url'               => $psIndexUrl,
                         'method'            => 'GET',
@@ -125,7 +121,7 @@
                         'data-sv-localized' => 'true',
                     ]) }}
                         <div class="{{ VC::R_FLX_ALC_JCE }}">
-                            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                            <div class="{{ VC::CL_XL3 }}">
                                 <div class="btn-box">
                                     {{ Form::label('category', __('Category'), ['class'=> VC::FM_LB]) }}
                                     {{ Form::select('category', $categoryOptions, $selectedCategory, array_merge([
@@ -141,7 +137,7 @@
                                     id="{{ $applyBtnId }}"
                                     href="{{ $psIndexUrl }}"
                                     data-url="{{ $psIndexUrl }}"
-                                    data-guard-msg="{{ $psIndexGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($psIndexGuardMsg) }}"
                                     data-sv-localized="true"
                                     class="{{ VC::BT_SM_PM }}"
                                     data-bs-toggle="tooltip"
@@ -153,7 +149,7 @@
                                     id="{{ $resetLinkId }}"
                                     href="{{ $psIndexUrl }}"
                                     data-url="{{ $psIndexUrl }}"
-                                    data-guard-msg="{{ $psIndexGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($psIndexGuardMsg) }}"
                                     data-sv-localized="true"
                                     class="{{ VC::BT_SM_DG }}"
                                     data-bs-toggle="tooltip"
@@ -173,8 +169,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -193,38 +189,42 @@
                             <tbody>
                                 @forelse($items as $productService)
                                     @php
-                                        $psId      = data_get($productService,'id');
-                                        $name      = data_get($productService,'name', __('(no name)'));
-                                        $sku       = data_get($productService,'sku', __('(no sku)'));
-                                        $sale      = data_get($productService,'sale_price');
-                                        $purchase  = data_get($productService,'purchase_price');
-                                        $typeRaw   = strtolower((string) data_get($productService,'type',''));
-                                        $typeTxt   = $typeRaw ? ucwords($typeRaw) : __('Unknown');
-                                        $categoryN = data_get($productService,'category.name', __('(no category)'));
-                                        $unitN     = data_get($productService,'unit.name', __('(no unit)'));
-                                        $qty       = $typeRaw === 'product' ? (data_get($productService,'quantity') ?? 0) : '-';
-                                        $detailUrl   = Route::has(VW::PRD_SV.'.detail') ? route(VW::PRD_SV.'.detail', $psId) : '#';
-                                        $detailGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'warehouse_details_unavailable') : 'Warehouse Details route is unavailable. Please contact technical support or your domain administrator.') ?? __('Warehouse Details route is unavailable. Please contact technical support or your domain administrator.');
-                                        $taxHtml = '-';
-                                        $taxId   = data_get($productService,'tax_id');
-                                        if (!empty($taxId)) {
-                                            $taxes = Utility::tax($taxId);
-                                            $titems = [];
-                                            if (Utility::isFilled($taxes) ?? [])
-                                                $titems = $taxes;
-                                            if (!empty($titems)) {
-                                                $parts = [];
-                                                foreach ($titems as $tx) {
-                                                    $tn = data_get($tx,'name');
-                                                    $tr = data_get($tx,'rate');
-                                                    if ($tn !== null && $tr !== null) {
-                                                        $parts[] = e($tn).' ('.e($tr).'%)';
+                                        try {
+                                            $psId      = data_get($productService,'id');
+                                            $name      = data_get($productService,'name', __('(no name)'));
+                                            $sku       = data_get($productService,'sku', __('(no sku)'));
+                                            $sale      = data_get($productService,'sale_price');
+                                            $purchase  = data_get($productService,'purchase_price');
+                                            $typeRaw   = strtolower((string) data_get($productService,'type',''));
+                                            $typeTxt   = $typeRaw ? ucwords($typeRaw) : __('Unknown');
+                                            $categoryN = data_get($productService,'category.name', __('(no category)'));
+                                            $unitN     = data_get($productService,'unit.name', __('(no unit)'));
+                                            $qty       = $typeRaw === 'product' ? (data_get($productService,'quantity') ?? 0) : '-';
+                                            $detailUrl   = Route::has(VW::PRD_SV.'.detail') ? route(VW::PRD_SV.'.detail', $psId) : '#';
+                                            $detailGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'warehouse_details_unavailable') : 'Warehouse Details route is unavailable. Please contact technical support or your domain administrator.') ?? __('Warehouse Details route is unavailable. Please contact technical support or your domain administrator.');
+                                            $taxHtml = '-';
+                                            $taxId   = data_get($productService,'tax_id');
+                                            if (!empty($taxId)) {
+                                                $taxes = Utility::tax($taxId);
+                                                $titems = [];
+                                                if (Utility::isFilled($taxes) ?? [])
+                                                    $titems = $taxes;
+                                                if (!empty($titems)) {
+                                                    $parts = [];
+                                                    foreach ($titems as $tx) {
+                                                        $tn = data_get($tx,'name');
+                                                        $tr = data_get($tx,'rate');
+                                                        if ($tn !== null && $tr !== null) {
+                                                            $parts[] = e($tn).' ('.e($tr).'%)';
+                                                        }
                                                     }
+                                                    $taxHtml = !empty($parts) ? implode('<br>', $parts) : '-';
                                                 }
-                                                $taxHtml = !empty($parts) ? implode('<br>', $parts) : '-';
                                             }
+                                        } catch (\Throwable $e) {
+                                            \Log::error('product_services/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                         }
-                                    @endphp
+@endphp
                                     <tr class="font-style">
                                         <td>{{ $name }}</td>
                                         <td>{{ $sku }}</td>
@@ -245,7 +245,7 @@
                                                    title="{{ __('Warehouse Details') }}"
                                                    data-title="{{ __('Warehouse Details') }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ $detailGuard }}">
+                                                   data-guard-msg="{{ base64_encode($detailGuard) }}">
                                                     <i class="{{ VC::TI_EYE_WT }}"></i>
                                                 </a>
                                             </div>
@@ -254,7 +254,7 @@
                                             @php
                                                 $editUrl   = Route::has(VW::PRD_SV.'.edit') ? route(VW::PRD_SV.'.edit', $psId) : '#';
                                                 $editGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'edit_product_service_unavailable') : 'Edit Product Service route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Product Service route is unavailable. Please contact technical support or your domain administrator.');
-                                            @endphp
+@endphp
                                                 <div class="{{ VC::ACT_BTN_INF }}">
                                                     <a href="{{ $editUrl }}"
                                                        class="{{ VC::BT_SM_CT }}"
@@ -265,7 +265,7 @@
                                                        title="{{ __('Edit') }}"
                                                        data-title="{{ __('Edit Product') }}"
                                                        data-sv-localized="true"
-                                                       data-guard-msg="{{ $editGuard }}">
+                                                       data-guard-msg="{{ base64_encode($editGuard) }}">
                                                         <i class="{{ VC::TI_PC_WT }}"></i>
                                                     </a>
                                                 </div>
@@ -273,17 +273,21 @@
 
                                             @can('delete product & service')
                                                 @php
-                                                    $delUrl    = Route::has(VW::PRD_SV.'.destroy') ? route(VW::PRD_SV.'.destroy', $psId) : '#';
-                                                    $delGuard  = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'delete_product_service_unavailable') : 'Delete Product Service route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Product Service route is unavailable. Please contact technical support or your domain administrator.');
-                                                    $formId    = 'delete-form-'.$psId;
-                                                @endphp
+                                                    try {
+                                                        $delUrl    = Route::has(VW::PRD_SV.'.destroy') ? route(VW::PRD_SV.'.destroy', $psId) : '#';
+                                                        $delGuard  = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRD_SV, 'delete_product_service_unavailable') : 'Delete Product Service route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Product Service route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $formId    = 'delete-form-'.$psId;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('product_services/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open(['method' => 'DELETE', 'url' => $delUrl, 'id' => $formId, 'data-url'=>$delUrl, 'data-sv-localized'=>'true', 'data-guard-msg'=>$delGuard]) !!}
                                                         <a href="{{ $delUrl }}"
                                                            class="{{ VC::BT_SM_CT_PR }}"
                                                            data-url="{{ $delUrl }}"
                                                            data-sv-localized="true"
-                                                           data-guard-msg="{{ $delGuard }}"
+                                                           data-guard-msg="{{ base64_encode($delGuard) }}"
                                                            data-bs-toggle="tooltip"
                                                            title="{{ __('Delete') }}"
                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
@@ -297,7 +301,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="10" class="text-center text-muted">{{ __('No products or services found.') }}</td>
+                                        <td colspan="10" class="{{ VC::TXCT_MT }}">{{ __('No products or services found.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

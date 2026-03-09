@@ -1,27 +1,21 @@
 @php
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang                   = Utility::fetchUserLang();
-    $routeName              = ViewsConstants::BUG_STT;
-    $bugstatusStoreRoute    = Route::has($routeName)
-        ? route($routeName)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName))
-            : '#');
-    $formId                 = 'bugstatus-store-form';
-    $guardMsg               = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BUG_STT,
-        'bug_status_store_route_unavailable'
-    ) ?? 'Bug Status store route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang                   = Utility::fetchUserLang();
+        $routeName              = ViewsConstants::BUG_STT;
+        $bugstatusStoreRoute    = Route::has($routeName)
+            ? route($routeName)
+            : (Route::has(Str::kebab($routeName))
+                ? route(Str::kebab($routeName))
+                : '#');
+        $formId                 = 'bugstatus-store-form';
+        $guardMsg               = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::BUG_STT,
+            'bug_status_store_route_unavailable'
+        ) ?? 'Bug Status store route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('bug_status/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

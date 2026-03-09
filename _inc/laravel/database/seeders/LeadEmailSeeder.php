@@ -51,12 +51,13 @@ class LeadEmailSeeder extends Seeder
 		$perLeadMin = self::PER_LEAD_MIN;
 		$perLeadMax = self::PER_LEAD_MAX;
 
-		$defaultTarget = 64 * max(1, $leads->count());
+		// $defaultTarget = 64 * max(1, $leads->count()); /* original */
+		$defaultTarget = 2; /* HARD_CAP: original was 64 × leads */
 		$target = $defaultTarget;
 		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
 			$opt = (int) $this->command->option('count');
 			if ($opt > 0) {
-				$target = $opt;
+				$target = min(2, $opt); /* clamp to HARD_CAP */
 			}
 		}
 
@@ -169,7 +170,7 @@ class LeadEmailSeeder extends Seeder
 					if (Schema::hasColumn(DC::TABLE_LD_EMAILS, DC::COL_TABLE_UPDATER)) {
 						$row[DC::COL_TABLE_UPDATER] = $updater;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando E-mail sobre Lead {$lead->id} de {$from} para {$to} sobre o assunto '{$subject}'");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando E-mail sobre Lead {$lead->id} de {$from} para {$to} sobre o assunto '{$subject}'");
 					// Remove apenas nulls; manter 0/false
 					$rows[] = $row;
 					$inserted++;

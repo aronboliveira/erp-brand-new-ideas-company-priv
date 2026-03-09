@@ -29,6 +29,7 @@ class DatabaseConstants
 	public const TABLE_COA_TYPES = self::COA . '_types';
 	public const TABLE_COA_SUBTYPES = self::COA . '_sub_types';
 	public const TABLE_BILLS = 'bills';
+	public const TABLE_BL = self::TABLE_BILLS;
 	public const TABLE_PROD_SERVS = 'product_services';
 	public const TABLE_PROD_SERV_CATS = 'product_service_categories';
 	public const TABLE_PROD_SERV_UNITS = 'product_service_units';
@@ -58,9 +59,7 @@ class DatabaseConstants
 	public const TABLE_TSK_STGS = 'task_stages';
 	public const TABLE_PROJ_TSKS = 'project_tasks';
 	public const TABLE_FORM_BUILD = 'form_builders';
-	public const TABLE_FORM_FIELDS = 'form_fields';
 	public const TABLE_SUPPORTS = 'supports';
-	public const TABLE_WHS = 'warehouses';
 	public const TABLE_CONTRACTS = 'contracts';
 	public const TABLE_CTC_CMT = 'contract_comments';
 	public const TABLE_PURCHASES = 'purchases';
@@ -75,7 +74,6 @@ class DatabaseConstants
 	public const TABLE_EVENTS = 'events';
 	public const TABLE_LEAD_STAGES = 'lead_stages';
 	public const TABLE_PROPOSALS = 'proposals';
-	public const TABLE_PRODUCTS = 'products';
 	public const TABLE_GOAL_TYPES = 'goal_types';
 	public const TABLE_CUSTOM_QUESTIONS = 'custom_questions';
 	public const TABLE_JOBS = 'jobs';
@@ -86,7 +84,6 @@ class DatabaseConstants
 	public const TABLE_LPS = 'landing_page_settings';
 	public const TABLE_PERMISSIONS = 'permissions';
 	public const TABLE_ROLES = 'roles';
-	public const TABLE_TEMPLATES = 'templates';
 	public const TABLE_ACTIVITIES = 'activities';
 	public const TABLE_NOTES = 'notes';
 	public const TABLE_EMAILS = 'emails';
@@ -115,10 +112,10 @@ class DatabaseConstants
 	public const TABLE_OT_PYMTS = 'other_payments';
 	public const TABLE_OVT = 'overtimes';
 	public const TABLE_PRF_TP = 'performance_types';
-	public const TABLE_PSLP = 'payslips';
 	public const TABLE_ANC = 'announcements';
 	public const TABLE_BL_PRD = 'bill_products';
 	public const TABLE_WRH = 'warehouses';
+	public const TABLE_WHS = self::TABLE_WRH;
 	public const TABLE_PAY = 'payments';
 	public const TABLE_POS_PAY = 'pos_payments';
 	public const TABLE_MET_EMP = 'meeting_employees';
@@ -189,6 +186,7 @@ class DatabaseConstants
 	public const TABLE_BL_ACC = 'bill_accounts';
 	public const TABLE_PRD_CAT = 'product_categories';
 	public const TABLE_PRD = 'products';
+	public const TABLE_PRODUCTS = self::TABLE_PRD;
 	public const TABLE_PLN_SCHD = 'planning_schedules';
 	public const TABLE_WRH_TRF = 'warehouse_transfers';
 	public const TABLE_PPS_PRD = 'proposal_products';
@@ -201,6 +199,7 @@ class DatabaseConstants
 	public const TABLE_LG_DTLS = 'login_details';
 	public const TABLE_JU = 'join_us';
 	public const TABLE_TMP = 'templates';
+	public const TABLE_TEMPLATES = self::TABLE_TMP;
 	public const TABLE_CLT_PRM = 'client_permissions';
 	public const TABLE_BSC_FV = 'basic_favorites';
 	public const TABLE_CHTF_FV = 'chatify_favorites';
@@ -209,6 +208,11 @@ class DatabaseConstants
 	public const TABLE_PW_RST = 'password_resets';
 	public const TABLE_CLT_DLS = 'client_deals';
 	public const TABLE_USR_DLS = 'user_deals';
+	public const TABLE_SOURCES = 'sources';
+	public const TABLE_DL_DSC = 'deal_discussions';
+	public const TABLE_MSG = 'messages';
+	public const TABLE_WEBHOOK_STG = 'webhook_settings';
+	public const TABLE_GEN_PSL_OPT = 'generate_payslip_options';
 	#endregion
 	// * ==== FIELD NAMES =====
 	#region

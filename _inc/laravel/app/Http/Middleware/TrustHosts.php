@@ -7,7 +7,7 @@ use App\Config\Constants\SettingsConstants;
 use Illuminate\Http\{Request, Response, Middleware\TrustHosts as Middleware};
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
-use App\Helpers\SafeConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 final class TrustHosts extends Middleware
 {
@@ -24,7 +24,7 @@ final class TrustHosts extends Middleware
         $method = __FUNCTION__;
         return $this->measure($request, function ($request) use ($next, $method) {
             $class  = class_basename(static::class);
-            $output = SafeConsoleOutput::make();
+            $output = new ConsoleOutput();
             $ctx    = [
                 'ip'        => $request->ip(),
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
@@ -33,7 +33,7 @@ final class TrustHosts extends Middleware
                 'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
                 'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
                 'params'    => $request->route()?->parameters() ?? [],
-                'bearer_present' => (bool)$request->bearerToken(),
+                'bearer'    => $request->bearerToken() ?? '# NO TOKEN',
             ];
             Log::debug("{$class}::{$method} start", $ctx);
             $output->writeln("[{$class}] Configuring trusted hosts for {$request->getRequestUri()}");
@@ -89,14 +89,14 @@ final class TrustHosts extends Middleware
      */
     public function hosts(): array
     {
-        $patterns = [
+        $patterns = array_values(array_filter([
             $this->allSubdomainsOfApplicationUrl(),
             '127.0.0.1',
             'localhost',
             'prestech.com.br',
             'sistema.prestech.com.br',
             'prestek.inf.br',
-        ];
+        ], fn($h) => $h !== null && $h !== ''));
         Log::debug('TrustHosts hosts()', ['hosts' => $patterns]);
         return $patterns;
     }

@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\{DB, Log};
 final class LoanSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-	private const SECONDS_LIMIT = 2 * 10 ** 2; // 10 minutes
+	// private const SECONDS_LIMIT = 2 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		DB::transaction(function () {
@@ -40,10 +41,12 @@ final class LoanSeeder extends Seeder
 				'Linha Interna de Crédito',
 			];
 
+			$HARD_CAP = 2;
 			$created = 0;
 			$updated = 0;
 
 			foreach ($employees as $emp) {
+				if ($created >= $HARD_CAP) break;
 				// 0..2 empréstimos por empregado
 				$qty = random_int(0, 16);
 				if ($qty === 0) {
@@ -60,8 +63,8 @@ final class LoanSeeder extends Seeder
 					}
 					try {
 						$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Empréstimo para funcionário: {$ref}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Empréstimo para funcionário: {$ref}");
 						// Alterna entre tipos aceitos pelo enum PaymentPatternType
 						$type = (random_int(0, 1) === 1) ? 'percentage' : 'fixed';
 

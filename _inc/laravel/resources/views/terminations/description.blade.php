@@ -1,7 +1,10 @@
 @php
-	use App\Config\Constants\ViewClassNamesConstants as VC;
-	$desc = data_get($termination ?? null, 'description');
-	$desc = isset($desc) && !empty($desc) ? $desc : __('No description available');
+	try {
+$desc = data_get($termination ?? null, 'description');
+		$desc = isset($desc) && !empty($desc) ? $desc : __('No description available');
+	} catch (\Throwable $e) {
+		\Log::error('terminations/description — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 <div class="modal-body">
 	<div class="{{ VC::FM_G }}">

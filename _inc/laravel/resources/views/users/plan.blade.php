@@ -1,20 +1,20 @@
 @php
-    use App\Config\Constants\{PlansConstants, UsersConstants, ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$currency = $admin_payment_setting['currency'] ?? '$';
 
-    $currency = $admin_payment_setting['currency'] ?? '$';
-
-    $quotaFields = [
-        PlansConstants::COL_MAX_U  => __('Users'),
-        PlansConstants::COL_MAX_CR => __('Customers'),
-        PlansConstants::COL_MAX_V  => __('Vendors'),
-    ];
+        $quotaFields = [
+            PlansConstants::COL_MAX_U  => __('Users'),
+            PlansConstants::COL_MAX_CR => __('Customers'),
+            PlansConstants::COL_MAX_V  => __('Vendors'),
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('users/plan — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <div class="modal-body">
   <div class="{{ VC::CD }}">
-    <div class="card-body table-border-style">
-      <div class="table-responsive">
+    <div class="{{ VC::CD_BD_TB_BD }}">
+      <div class="{{ VC::TB_RSP }}">
         <table class="{{ VC::TB }} datatable">
           @forelse((($plans ?? null) instanceof Collection || is_array($plans ?? null)) ? $plans : [] as $plan)
             <tr>
@@ -42,22 +42,26 @@
                   </span>
                 @else
                   @php
-                      $plnActiveBase = ViewsConstants::PLN.'.active';
-                      $plnActiveKebab = Str::kebab($plnActiveBase);
-                      $userIdValue = (string) ($user?->id ?? '');
-                      $planIdValue = (string) data_get($plan,'id','');
-                      $plnActiveResolved = Route::has($plnActiveBase) ? $plnActiveBase : (Route::has($plnActiveKebab) ? $plnActiveKebab : null);
-                      $plnActiveUrl = ($plnActiveResolved && $userIdValue !== '' && $planIdValue !== '') ? route($plnActiveResolved, [$userIdValue, $planIdValue]) : '#';
-                      $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                      $plnActiveGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PLN, 'activate_plan_route_unavailable') ?? 'Activate plan route is unavailable. Please contact technical support or your domain administrator.';
-                      $plnActiveAnchorId = 'plan-activate-'.($userIdValue === '' ? 'x' : $userIdValue).'-'.($planIdValue === '' ? 'y' : $planIdValue);
-                  @endphp
+                      try {
+                          $plnActiveBase = ViewsConstants::PLN.'.active';
+                          $plnActiveKebab = Str::kebab($plnActiveBase);
+                          $userIdValue = (string) ($user?->id ?? '');
+                          $planIdValue = (string) data_get($plan,'id','');
+                          $plnActiveResolved = Route::has($plnActiveBase) ? $plnActiveBase : (Route::has($plnActiveKebab) ? $plnActiveKebab : null);
+                          $plnActiveUrl = ($plnActiveResolved && $userIdValue !== '' && $planIdValue !== '') ? route($plnActiveResolved, [$userIdValue, $planIdValue]) : '#';
+                          $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                          $plnActiveGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PLN, 'activate_plan_route_unavailable') ?? 'Activate plan route is unavailable. Please contact technical support or your domain administrator.';
+                          $plnActiveAnchorId = 'plan-activate-'.($userIdValue === '' ? 'x' : $userIdValue).'-'.($planIdValue === '' ? 'y' : $planIdValue);
+                      } catch (\Throwable $e) {
+                          \Log::error('users/plan — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                      }
+@endphp
                   <a href="{{ $plnActiveUrl }}"
                     id="{{ $plnActiveAnchorId }}"
                     class="{{ VC::BT_SM }} btn-warning my-auto"
                     title="{{ __('Click to Upgrade Plan') }}"
                     data-url="{{ $plnActiveUrl }}"
-                    data-guard-msg="{{ $plnActiveGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($plnActiveGuardMsg) }}"
                     data-sv-localized="true"
                     data-bs-toggle="tooltip">
                       <i class="ti ti-shopping-cart-plus"></i>
@@ -77,28 +81,7 @@
                                           if (url !== '#' && href !== '#') { return; }
                                           e.preventDefault();
                                           const msg = el.getAttribute('data-guard-msg') ?? 'Activate plan route is unavailable. Please contact technical support or your domain administrator.';
-                                          const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                          let container = document.getElementById('toast-container');
-                                          if (!container) {
-                                              container = document.createElement('div');
-                                              container.id = 'toast-container';
-                                              document.body.appendChild(container);
-                                          }
-                                          if (hasBootstrap) {
-                                              const toast = document.createElement('div');
-                                              toast.className = 'toast';
-                                              toast.setAttribute('role','alert');
-                                              toast.setAttribute('aria-live','assertive');
-                                              toast.setAttribute('aria-atomic','true');
-                                              const body = document.createElement('div');
-                                              body.className = 'toast-body';
-                                              body.textContent = msg;
-                                              toast.appendChild(body);
-                                              container.appendChild(toast);
-                                              bootstrap.Toast.getOrCreateInstance(toast).show();
-                                          } else {
-                                              alert(msg);
-                                          }
+                                          (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                           el.setAttribute('data-failed-route','true');
                                       } catch (err) {}
                                   });
@@ -111,7 +94,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="{{ 2 + count($quotaFields) }}" class="text-center text-muted">{{ __('No plans available') }}</td>
+              <td colspan="{{ 2 + count($quotaFields) }}" class="{{ VC::TXCT_MT }}">{{ __('No plans available') }}</td>
             </tr>
           @endforelse
         </table>

@@ -1,15 +1,24 @@
 <?php
 
-namespace Tests\Unit\Models;
+namespace Tests\Unit\app\Models\planning;
 
 use App\Models\TaskStage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
-class TaskStageTest extends TestCase
+class TaskStagesTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -43,12 +52,12 @@ class TaskStageTest extends TestCase
 			(object)['id' => 10, 'name' => 'Todo', 'color' => '#f00'],
 			(object)['id' => 11, 'name' => 'Done', 'color' => '#0f0'],
 		]);
-		Mockery::mock('alias:' . TaskStage::class)
+		$this->aliasMock(TaskStage::class)
 			->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('get')->andReturn($fakeStages);
 
 		// Simplify ProjectTask::where* chain to 0 counts.
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('whereDate')->andReturnSelf()
 			->getMock()->shouldReceive('join')->andReturnSelf()
@@ -64,6 +73,6 @@ class TaskStageTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

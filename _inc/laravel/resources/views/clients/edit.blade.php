@@ -1,27 +1,49 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-
-    $lang = Utility::fetchUserLang();
-    $updateRouteName = VW::CLT . '.update';
-    $updateGuard = Utility::fetchLinkMessage($lang, VW::CLT, 'update_client_route_unavailable')
-        ?? __('Update client route is unavailable. Please contact technical support or your domain administrator.');
-
-    $formParams = [
-        'method'            => 'PUT',
-        'id'                => 'edit_client',
-        'data-sv-localized' => 'true',
-        'data-guard-msg'    => $updateGuard,
-        'data-action-href'  => Route::has($updateRouteName) ? route($updateRouteName, $client->id) : '#',
-    ];
-
-    if (Route::has($updateRouteName)) {
-        $formParams['route'] = [$updateRouteName, $client->id];
-    } else {
-        $formParams['url'] = '#';
-    }
+$lang ??= 'en';
+	$updateRouteName ??= '';
+	$updateGuard ??= '';
+	$clientId ??= null;
+	$formParams ??= [];
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$updateRouteName = VW::CLT . '.update';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::CLT, 'update_client_route_unavailable')
+			?? __('Update client route is unavailable. Please contact technical support or your domain administrator.');
+		$clientId = data_get($client ?? null, 'id');
+		$formParams = [
+			'method'            => 'PUT',
+			'id'                => 'edit_client',
+			'data-sv-localized' => 'true',
+			'data-guard-msg'    => $updateGuard,
+			'data-action-href'  => ($clientId && Route::has($updateRouteName)) ? (route($updateRouteName, $clientId) ?? '#') : '#',
+		];
+		if ($clientId && Route::has($updateRouteName)) {
+			$formParams['route'] = [$updateRouteName, $clientId];
+		} else {
+			$formParams['url'] = '#';
+		}
+	} catch (\Error $e) {
+		Log::error('Error in clients/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in clients/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in clients/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::model($client, $formParams) }}

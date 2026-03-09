@@ -1,61 +1,59 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId    = 'pln-store-form';
+        $base      = VW::PLN;
+        $baseKebab = Str::kebab($base);
+        $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
+        $actionUrl = $routeRes ? route($routeRes) : '#';
+        $guardMsg  = Utility::fetchLinkMessage($lang, VW::PLN, 'store_route_unavailable') ?? __('Plan store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId    = 'pln-store-form';
-    $base      = VW::PLN;
-    $baseKebab = Str::kebab($base);
-    $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
-    $actionUrl = $routeRes ? route($routeRes) : '#';
-    $guardMsg  = Utility::fetchLinkMessage($lang, VW::PLN, 'store_route_unavailable') ?? __('Plan store route is unavailable. Please contact technical support or your domain administrator.');
+        $arrDurationIsList = (is_array($arrDuration ?? null) && count($arrDuration ?? []) > 0) || (($arrDuration ?? null) instanceof Collection && $arrDuration->isNotEmpty());
+        $arrDurationOpts   = $arrDurationIsList ? (is_array($arrDuration) ? $arrDuration : $arrDuration->toArray()) : ['' => __('No durations available')];
+        $durationErr       = $errors->has('duration');
+        $durationAttrs     = [
+            'id'               => 'duration',
+            'class'            => trim(VC::FM_CT . ' select' . ($durationErr ? ' is-invalid' : '')),
+            'required'         => 'required',
+            'aria-invalid'     => $durationErr ? 'true' : 'false',
+            'aria-describedby' => $durationErr ? 'duration-error' : null,
+        ];
+        if (!$arrDurationIsList) { $durationAttrs['disabled'] = 'disabled'; }
 
-    $arrDurationIsList = (is_array($arrDuration ?? null) && count($arrDuration ?? []) > 0) || (($arrDuration ?? null) instanceof Collection && $arrDuration->isNotEmpty());
-    $arrDurationOpts   = $arrDurationIsList ? (is_array($arrDuration) ? $arrDuration : $arrDuration->toArray()) : ['' => __('No durations available')];
-    $durationErr       = $errors->has('duration');
-    $durationAttrs     = [
-        'id'               => 'duration',
-        'class'            => trim(VC::FM_CT . ' select' . ($durationErr ? ' is-invalid' : '')),
-        'required'         => 'required',
-        'aria-invalid'     => $durationErr ? 'true' : 'false',
-        'aria-describedby' => $durationErr ? 'duration-error' : null,
-    ];
-    if (!$arrDurationIsList) { $durationAttrs['disabled'] = 'disabled'; }
+        $nameErr = $errors->has('name');
+        $nameAttrs = [
+            'id'               => 'name',
+            'class'            => trim(VC::FM_CT . ' font-style' . ($nameErr ? ' is-invalid' : '')),
+            'placeholder'      => __('Enter Plan Name'),
+            'required'         => 'required',
+            'aria-invalid'     => $nameErr ? 'true' : 'false',
+            'aria-describedby' => $nameErr ? 'name-error' : null,
+            'autocomplete'     => 'off',
+        ];
 
-    $nameErr = $errors->has('name');
-    $nameAttrs = [
-        'id'               => 'name',
-        'class'            => trim(VC::FM_CT . ' font-style' . ($nameErr ? ' is-invalid' : '')),
-        'placeholder'      => __('Enter Plan Name'),
-        'required'         => 'required',
-        'aria-invalid'     => $nameErr ? 'true' : 'false',
-        'aria-describedby' => $nameErr ? 'name-error' : null,
-        'autocomplete'     => 'off',
-    ];
+        $priceErr = $errors->has('price');
+        $priceAttrs = [
+            'id'               => 'price',
+            'class'            => trim(VC::FM_CT . ($priceErr ? ' is-invalid' : '')),
+            'placeholder'      => __('Enter Plan Price'),
+            'aria-invalid'     => $priceErr ? 'true' : 'false',
+            'aria-describedby' => $priceErr ? 'price-error' : null,
+            'step'             => '0.01',
+            'inputmode'        => 'decimal',
+        ];
 
-    $priceErr = $errors->has('price');
-    $priceAttrs = [
-        'id'               => 'price',
-        'class'            => trim(VC::FM_CT . ($priceErr ? ' is-invalid' : '')),
-        'placeholder'      => __('Enter Plan Price'),
-        'aria-invalid'     => $priceErr ? 'true' : 'false',
-        'aria-describedby' => $priceErr ? 'price-error' : null,
-        'step'             => '0.01',
-        'inputmode'        => 'decimal',
-    ];
+        $qtyAttrs = fn(string $id) => [
+            'id'               => $id,
+            'class'            => VC::FM_CT,
+            'required'         => 'required',
+            'inputmode'        => 'numeric',
+        ];
 
-    $qtyAttrs = fn(string $id) => [
-        'id'               => $id,
-        'class'            => VC::FM_CT,
-        'required'         => 'required',
-        'inputmode'        => 'numeric',
-    ];
-
-    $aiGuardMsg = Utility::fetchLinkMessage($lang, VW::PLN, 'generate_route_unavailable') ?? __('AI generate route for Plans is unavailable. Please contact technical support or your domain administrator.');
+        $aiGuardMsg = Utility::fetchLinkMessage($lang, VW::PLN, 'generate_route_unavailable') ?? __('AI generate route for Plans is unavailable. Please contact technical support or your domain administrator.');
+    } catch (\Throwable $e) {
+        \Log::error('plans/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -67,15 +65,17 @@
     'data-sv-localized' => 'true',
 ]) }}
     <div class="modal-body">
-        @php $settings = Utility::settings(); @endphp
+        @php
+ $settings = Utility::settings();
+@endphp
         @if(!empty($settings['chat_gpt_key']))
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="#"
                 class="{{ VC::BT_SM }} {{ VC::BT_PRM }} ai-btn"
                 data-size="md"
                 data-ajax-popup-over="true"
                 data-url="{{ route('generate', ['plan']) }}"
-                data-guard-msg="{{ $aiGuardMsg }}"
+                data-guard-msg="{{ base64_encode($aiGuardMsg) }}"
                 data-bs-placement="top"
                 data-title="{{ __('Generate content with AI') }}">
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
@@ -88,7 +88,7 @@
                 {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                 {{ Form::text('name', null, $nameAttrs) }}
                 @error('name')
-                    <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -96,7 +96,7 @@
                 {{ Form::label('price', __('Price'), ['class' => VC::FM_LB]) }}
                 {{ Form::number('price', null, $priceAttrs) }}
                 @error('price')
-                    <span id="price-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="price-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
             </div>
 
@@ -104,7 +104,7 @@
                 {{ Form::label('duration', __('Duration'), ['class' => VC::FM_LB]) }}
                 {{ Form::select('duration', $arrDurationOpts, null, $durationAttrs) }}
                 @error('duration')
-                    <span id="duration-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    <span id="duration-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                 @enderror
                 @unless($arrDurationIsList)
                     <span class="{{ VC::TXT_MT }} d-block mt-1">{{ __('No durations available') }}</span>
@@ -150,39 +150,39 @@
             </div>
 
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_crm" id="enable_crm">
-                    <label class="custom-control-label form-label" for="enable_crm">{{ __('CRM') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_crm">{{ __('CRM') }}</label>
                 </div>
             </div>
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_project" id="enable_project">
-                    <label class="custom-control-label form-label" for="enable_project">{{ __('Project') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_project">{{ __('Project') }}</label>
                 </div>
             </div>
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_hrm" id="enable_hrm">
-                    <label class="custom-control-label form-label" for="enable_hrm">{{ __('HRM') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_hrm">{{ __('HRM') }}</label>
                 </div>
             </div>
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_account" id="enable_account">
-                    <label class="custom-control-label form-label" for="enable_account">{{ __('Account') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_account">{{ __('Account') }}</label>
                 </div>
             </div>
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_pos" id="enable_pos">
-                    <label class="custom-control-label form-label" for="enable_pos">{{ __('POS') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_pos">{{ __('POS') }}</label>
                 </div>
             </div>
             <div class="{{ VC::FM_GCB3 }}">
-                <div class="form-check form-switch">
+                <div class="{{ VC::FM_CHK }} form-switch">
                     <input type="checkbox" class="form-check-input" name="enable_chatgpt" id="enable_chatgpt">
-                    <label class="custom-control-label form-label" for="enable_chatgpt">{{ __('Chat GPT') }}</label>
+                    <label class="{{ VC::CST_LB }} {{ VC::FM_LB }}" for="enable_chatgpt">{{ __('Chat GPT') }}</label>
                 </div>
             </div>
         </div>

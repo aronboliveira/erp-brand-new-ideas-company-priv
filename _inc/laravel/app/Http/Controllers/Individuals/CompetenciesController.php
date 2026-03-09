@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Models\{Competencies, PerformanceType};
 use Illuminate\Auth\Access\AuthorizationException;
-use App\Config\Constants\{DatabaseConstants, ViewsConstants as VW};
+use App\Config\Constants\{DatabaseConstants as DC, ViewsConstants as VW};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View as ViewFacade;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class CompetenciesController extends Controller
 {
@@ -17,6 +20,14 @@ class CompetenciesController extends Controller
     private const PERM_DELETE = 'Delete Competencies';
 
     /** @return \Illuminate\View\View|RedirectResponse */
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function index(Request $req)
     {
         $action = 'CompetenciesController@index';
@@ -25,7 +36,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $competencies = Competencies::where(
-                DatabaseConstants::COL_TABLE_CREATOR,
+                DC::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->get();
             $this->logExecutionTime($t, $action . '::query', 'completed');
@@ -46,7 +57,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $performanceTypes = PerformanceType::where(
-                DatabaseConstants::COL_TABLE_CREATOR,
+                DC::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->pluck('name', 'id')->prepend('Select Type', '');
             $this->logExecutionTime($t, $action . '::loadPerformanceTypes', 'completed');
@@ -75,7 +86,7 @@ class CompetenciesController extends Controller
                 Competencies::create([
                     'name'       => $req->name,
                     'type'       => $req->type,
-                    DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId(),
+                    DC::COL_TABLE_CREATOR => $req->user()->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
@@ -113,7 +124,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $performanceTypes = PerformanceType::where(
-                DatabaseConstants::COL_TABLE_CREATOR,
+                DC::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->pluck('name', 'id')->prepend('Select Type', '');
             $this->logExecutionTime($t, $action . '::loadPerformanceTypes', 'completed');

@@ -1,18 +1,43 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $ipEditBaseName     = VW::SYS . '.ip.edit';
-    $ipEditKebabName    = Str::kebab($ipEditBaseName);
-    $ipEditResolvedName = Route::has($ipEditBaseName)
-        ? $ipEditBaseName
-        : (Route::has($ipEditKebabName) ? $ipEditKebabName : null);
-    $ipIdValue          = isset($ip) && !empty($ip->id) ? $ip->id : null;
-    $ipEditUrl          = ($ipEditResolvedName && $ipIdValue) ? route($ipEditResolvedName, [$ipIdValue]) : '#';
-    $ipEditGuardMsg     = Utility::fetchLinkMessage($lang, 'ip', 'edit_ip_route_unavailable') ?? 'Edit IP route is unavailable. Please contact technical support or your domain administrator.';
-    $ipEditFormId       = 'ip-edit-form';
+$lang ??= 'en';
+	$ipEditBaseName ??= '';
+	$ipEditKebabName ??= '';
+	$ipEditResolvedName ??= null;
+	$ipIdValue ??= null;
+	$ipEditUrl ??= '#';
+	$ipEditGuardMsg ??= '';
+	$ipEditFormId ??= 'ip-edit-form';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$ipEditBaseName = VW::SYS . '.ip.edit';
+		$ipEditKebabName = Str::kebab($ipEditBaseName);
+		$ipEditResolvedName = Route::has($ipEditBaseName) ? $ipEditBaseName : (Route::has($ipEditKebabName) ? $ipEditKebabName : null);
+		$ipIdValue = isset($ip) && !empty(data_get($ip ?? null, 'id')) ? data_get($ip, 'id') : null;
+		$ipEditUrl = ($ipEditResolvedName && $ipIdValue) ? (route($ipEditResolvedName, [$ipIdValue]) ?? '#') : '#';
+		$ipEditGuardMsg = Utility::fetchLinkMessage($lang, 'ip', 'edit_ip_route_unavailable') ?? 'Edit IP route is unavailable. Please contact technical support or your domain administrator.';
+		$ipEditFormId = 'ip-edit-form';
+	} catch (\Error $e) {
+		Log::error('Error in restrict_ip/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in restrict_ip/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in restrict_ip/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($ip, [

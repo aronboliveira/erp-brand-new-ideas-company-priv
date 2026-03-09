@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Indicator;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IndicatorTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -46,11 +52,11 @@ class IndicatorTest extends TestCase
 		$rel = (new Indicator)->branches();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',     $rel->getForeignKeyName());
-		$this->assertSame('branch', $rel->getLocalKeyName());
+		$this->assertSame('branch',     $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 
 	/**

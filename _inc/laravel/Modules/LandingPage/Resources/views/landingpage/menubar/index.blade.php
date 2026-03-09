@@ -1,10 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,ViewsConstants,YieldingConstants};
-	use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{File,Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LPC};
-    use Nwidart\Modules\Facades\Module;
+
+
     Log::debug('Loaded settings for Menubar blade...');
 	$lpSettings ??= [];
 	$logo ??= '';
@@ -139,7 +135,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Form::label('Site Description', __('Site Description'), ['class' => 'form-label']) }}
-                                            {{ Form::text(LPC::SD_K, $lpSettings[LPC::SD_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            {{ Form::text(LPSC::SD_K, $lpSettings[LPSC::SD_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                             @error('mail_port')
                                             <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -162,14 +158,18 @@
                                     </div>
                                     <div class="{{ VC::CLMS_JCE3 }}">
                                         @php
-                                            Log::debug('Loading creation route for custom pages...');
-                                            $createRoute     = R::CT_PG . '.create';
-                                            $canCreate       = Route::has($createRoute);
-                                            Log::debug('Successfully loaded creation route for custom pages',
-                                                [
-                                                    'create_route' => $createRoute,
-                                                ]);
-                                        @endphp
+                                            try {
+                                                Log::debug('Loading creation route for custom pages...');
+                                                $createRoute     = R::CT_PG . '.create';
+                                                $canCreate       = Route::has($createRoute);
+                                                Log::debug('Successfully loaded creation route for custom pages',
+                                                    [
+                                                        'create_route' => $createRoute,
+                                                    ]);
+                                            } catch (\Throwable $e) {
+                                                \Log::error('Modules/LandingPage/Resources/views/landingpage/menubar/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ $canCreate ? route($createRoute) : '#' }}"
@@ -198,26 +198,30 @@
                                             @if (is_array($pages) || is_object($pages))
                                                 @php
                                                   $no = 1
-                                                @endphp
+@endphp
                                                 @foreach ($pages as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ !empty($value[LPC::MB_PG_NM]) ? $value[LPC::MB_PG_NM] : __('Name not available for page') }}</td>
+                                                        <td>{{ !empty($value[LPSC::MB_PG_NM]) ? $value[LPSC::MB_PG_NM] : __('Name not available for page') }}</td>
                                                         <td>
                                                             @php
-                                                                Log::debug('Loading routes for stateful routes for custom pages...');
-                                                                $editRoute     = R::CT_PG . '.edit';
-                                                                $destroyRoute  = R::CT_PG . '.destroy';
-                                                                $slug          = $value[LPC::PG_SLG] ?? '';
-                                                                $canEdit       = Route::has($editRoute);
-                                                                $canDestroy    = Route::has($destroyRoute)
-                                                                                && ! in_array($slug, ['terms_and_conditions','about_us','privacy_policy']);
-                                                                Log::debug('Successfully loaded stateful routes for custom pages',
-                                                                    [
-                                                                        'edit_route' => $editRoute,
-                                                                        'destroy_route' => $destroyRoute,
-                                                                    ]);
-                                                            @endphp
+                                                                try {
+                                                                    Log::debug('Loading routes for stateful routes for custom pages...');
+                                                                    $editRoute     = R::CT_PG . '.edit';
+                                                                    $destroyRoute  = R::CT_PG . '.destroy';
+                                                                    $slug          = $value[LPSC::PG_SLG] ?? '';
+                                                                    $canEdit       = Route::has($editRoute);
+                                                                    $canDestroy    = Route::has($destroyRoute)
+                                                                                    && ! in_array($slug, ['terms_and_conditions','about_us','privacy_policy']);
+                                                                    Log::debug('Successfully loaded stateful routes for custom pages',
+                                                                        [
+                                                                            'edit_route' => $editRoute,
+                                                                            'destroy_route' => $destroyRoute,
+                                                                        ]);
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('Modules/LandingPage/Resources/views/landingpage/menubar/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <span>
                                                                 <div class="action-btn {{ VC::BG_P }} ms-2">
                                                                     @if($canEdit)
@@ -329,4 +333,3 @@
         </div>
     </div>
 @endsection
-

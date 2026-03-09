@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Abstracts\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\{
   JsonResponse,
@@ -10,10 +10,12 @@ use Illuminate\Http\{
   Request
 };
 use Illuminate\Support\Facades\Log;
-use function App\Http\Controllers\defaultUndefinedException;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class EmailVerificationNotificationController extends Controller
 {
+    public const STR = 'store';
+
   public function store(Request $req): RedirectResponse|JsonResponse|null
   {
     $method = __METHOD__;
@@ -29,8 +31,13 @@ class EmailVerificationNotificationController extends Controller
         $this->logExecutionTime($stepStart, 'sendEmailVerificationNotification', 'completed');
         return back()->with('status', 'verification-link-sent');
       } catch (\Throwable $e) {
-        Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
-        Log::error($method . ' - error sending verification link', ['user_id' => $req->user()?->id]);
+        Log::error($method . ' - error sending verification link', [
+            'file' => __FILE__,
+            'class' => __CLASS__,
+            'error_class' => get_class($e),
+            'message' => $e->getMessage(),
+            'user_id' => $req->user()?->id
+        ]);
         return self::_catch($req, $e);
       }
     }, ['user_id' => $req->user()?->id]);

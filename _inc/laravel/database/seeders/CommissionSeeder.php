@@ -31,6 +31,7 @@ final class CommissionSeeder extends Seeder
 				'Comissão de Renovação',
 			];
 
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
 			$created = 0;
 			$updated = 0;
 
@@ -45,6 +46,7 @@ final class CommissionSeeder extends Seeder
 				$picked = collect($titles)->shuffle()->take($qty);
 
 				foreach ($picked as $title) {
+					if ($created >= $HARD_CAP) break 2; // Hard cap guard
 					try {
 						// Escolhe tipo (fixed|percentage)
 						$type = (random_int(0, 1) === 1) ? 'percentage' : 'fixed';

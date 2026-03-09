@@ -1,22 +1,18 @@
 @php
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants,
-        StacksConstants
-    };
-    $lang = Utility::fetchUserLang();
-    $createLangRoute = Route::has(VW::LNG.'.store')
-        ? route(VW::LNG.'.store')
-        : '#';
-    $formId = 'language-create-form';
-    $createLangMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::LNG,
-        'language_store_route_unavailable'
-    ) ?? 'Language create route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $createLangRoute = Route::has(VW::LNG.'.store')
+            ? route(VW::LNG.'.store')
+            : '#';
+        $formId = 'language-create-form';
+        $createLangMsg = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::LNG,
+            'language_store_route_unavailable'
+        ) ?? 'Language create route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('languages/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'route'    => $createLangRoute,
@@ -27,23 +23,23 @@
 ]) !!}
     <div class="modal-body">
         <div class="row">
-            <div class="form-group col-md-12">
+            <div class="{{ VC::FM_GCB12 }}">
                 {{ Form::label('code', __('Language Code'), ['class' => 'form-label']) }}
                 {{ Form::text('code', '', ['class' => 'form-control', 'required' => 'required']) }}
                 @error('code')
                     <span class="invalid-code" role="alert">
-                        <strong class="text-danger">{{ $message }}</strong>
+                        <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                     </span>
                 @enderror
             </div>
         </div>
         <div class="row">
-            <div class="form-group col-md-12">
+            <div class="{{ VC::FM_GCB12 }}">
                 {{ Form::label('full_name', __('Language Name'), ['class' => 'form-label']) }}
                 {{ Form::text('full_name', '', ['class' => 'form-control', 'required' => 'required']) }}
                 @error('full_name')
                     <span class="invalid-full_name" role="alert">
-                        <strong class="text-danger">{{ $message }}</strong>
+                        <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                     </span>
                 @enderror
             </div>

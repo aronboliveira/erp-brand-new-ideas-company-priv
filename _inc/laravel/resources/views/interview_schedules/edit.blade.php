@@ -1,22 +1,47 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $hasInterviewSchedule = !empty($interviewSchedule ?? null) && data_get($interviewSchedule, 'id');
-
-    $updateBase     = VW::ITV_SCHD . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasInterviewSchedule) ? route($updateResolved, $interviewSchedule->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::ITV_SCHD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasInterviewSchedule ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$interviewScheduleId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$interviewScheduleId = data_get($interviewSchedule ?? null, 'id');
+		$hasInterviewSchedule = !empty($interviewSchedule ?? null) && $interviewScheduleId;
+		$updateBase = VW::ITV_SCHD . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $interviewScheduleId) ? (route($updateResolved, $interviewScheduleId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::ITV_SCHD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in interview_schedules/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in interview_schedules/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in interview_schedules/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!$hasInterviewSchedule)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested interview schedule was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested interview schedule was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($interviewSchedule, [
         'url'               => $updateUrl,

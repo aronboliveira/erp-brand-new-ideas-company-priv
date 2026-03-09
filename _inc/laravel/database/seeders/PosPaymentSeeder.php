@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class PosPaymentSeeder extends Seeder
 {
-	public const HARD_CAP = 1024;
+	// public const HARD_CAP = 1024;
+	public const HARD_CAP = 2;
 	public const SECONDS_LIMIT = 3 * 10 ** 2; // 5 minutos
 	/**
 	 * Gera registros em pos_payments, vinculando a POS e, na maioria dos casos,
@@ -53,8 +54,8 @@ class PosPaymentSeeder extends Seeder
 				}
 				try {
 					$posId = $posIds[array_rand($posIds)];
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Pagamento para Ponto de Venda: {$posId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Pagamento para Ponto de Venda: {$posId}");
 					// 80% dos registros terão um Payment associado (em produção deveria ser 100%)
 					$paymentId = (!empty($availablePaymentIds) && random_int(1, 100) <= 80)
 						? array_pop($availablePaymentIds)

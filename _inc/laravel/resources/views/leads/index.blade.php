@@ -1,18 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
-    use Illuminate\Support\Collection;
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -34,19 +26,19 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Lead') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Lead') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
             $changePipelineRoute = VW::DL . '.change.pipeline';
-        @endphp
+@endphp
         {{ Form::open([
             'route' => Route::has($changePipelineRoute) ? $changePipelineRoute : null,
             'url'   => Route::has($changePipelineRoute) ? null : URL::to(trim(VW::DL,'/').'/change/pipeline'),
@@ -63,14 +55,18 @@
 
         @can('view lead')
             @php
-                $listGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_list_route_unavailable')
-                    ?? 'List view route is unavailable. Please contact technical support or your domain administrator.';
-                $listHref = Route::has(VW::LD.'.list') ? route(VW::LD.'.list') : '#';
-            @endphp
+                try {
+                    $listGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_list_route_unavailable')
+                        ?? 'List view route is unavailable. Please contact technical support or your domain administrator.';
+                    $listHref = Route::has(VW::LD.'.list') ? route(VW::LD.'.list') : '#';
+                } catch (\Throwable $e) {
+                    \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $listHref }}"
                class="{{ VC::BT_SM_PM }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $listGuard }}"
+               data-guard-msg="{{ base64_encode($listGuard) }}"
                data-bs-toggle="tooltip"
                title="{{ __('List View') }}">
                 <i class="{{ VC::TI_LT }}"></i>
@@ -89,16 +85,20 @@
 
         @can('create lead')
             @php
-                $createGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_create_route_unavailable')
-                    ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
-                $createHref = Route::has(VW::LD.'.create') ? route(VW::LD.'.create') : '#';
-            @endphp
+                try {
+                    $createGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_create_route_unavailable')
+                        ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
+                    $createHref = Route::has(VW::LD.'.create') ? route(VW::LD.'.create') : '#';
+                } catch (\Throwable $e) {
+                    \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="#"
                data-size="lg"
                data-url="{{ $createHref }}"
                data-ajax-popup="true"
                data-sv-localized="true"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="{{ base64_encode($createGuard) }}"
                data-bs-toggle="tooltip"
                title="{{ __('Create New Lead') }}"
                data-title="{{ __('Create Lead') }}"
@@ -121,27 +121,10 @@
     <script defer>
         (function () {
             if (window.svShowGuard) return;
-            window.svShowGuard = function (msg) {
+            const RG = window.RouteGuard || {};
+            window.svShowGuard = RG.showToast || function (msg) {
                 var m = (msg || '').trim() || 'Route is unavailable. Please contact technical support or your domain administrator.';
-                if (window.bootstrap && typeof bootstrap.Toast === 'function') {
-                    var c = document.getElementById('sv-toast-container');
-                    if (!c) {
-                        c = document.createElement('div');
-                        c.id = 'sv-toast-container';
-                        c.className = 'toast-container position-fixed top-0 end-0 p-3';
-                        document.body.appendChild(c);
-                    }
-                    var el = document.createElement('div');
-                    el.className = 'toast align-items-center text-bg-warning border-0';
-                    el.setAttribute('role','alert');
-                    el.setAttribute('aria-live','assertive');
-                    el.setAttribute('aria-atomic','true');
-                    el.innerHTML = '<div class="d-flex"><div class="toast-body" data-sv-localized="true">'+m+'</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
-                    c.appendChild(el);
-                    new bootstrap.Toast(el, {delay: 4000}).show();
-                } else {
-                    alert(m);
-                }
+                alert(m);
             };
         })();
     </script>
@@ -151,15 +134,19 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
             @php
-                $lead_stages   = data_get($pipeline ?? null, 'leadStages', []);
-                $containersIds = [];
-                if (is_iterable($lead_stages)) {
-                    foreach ($lead_stages as $lead_stage) {
-                        $sid = data_get($lead_stage,'id');
-                        if (isset($sid)) $containersIds[] = 'task-list-'.$sid;
+                try {
+                    $lead_stages   = data_get($pipeline ?? null, 'leadStages', []);
+                    $containersIds = [];
+                    if (is_iterable($lead_stages)) {
+                        foreach ($lead_stages as $lead_stage) {
+                            $sid = data_get($lead_stage,'id');
+                            if (isset($sid)) $containersIds[] = 'task-list-'.$sid;
+                        }
                     }
+                } catch (\Throwable $e) {
+                    \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                 }
-            @endphp
+@endphp
 
             <div class="{{ VC::RW }} kanban-wrapper horizontal-scroll-cards"
                  data-containers='{!! json_encode($containersIds) !!}'
@@ -168,41 +155,49 @@
                 @if(is_iterable($lead_stages))
                     @foreach($lead_stages as $lead_stage)
                         @php
-                            $stageId   = (string) data_get($lead_stage,'id','0');
-                            $stageName = (string) data_get($lead_stage,'name',__('No stage name available'));
-                            $leads     = method_exists($lead_stage,'lead') ? ($lead_stage->lead() ?? []) : [];
-                            $leadCount = is_countable($leads) ? count($leads) : 0;
-                        @endphp
+                            try {
+                                $stageId   = (string) data_get($lead_stage,'id','0');
+                                $stageName = (string) data_get($lead_stage,'name',__('No stage name available'));
+                                $leads     = method_exists($lead_stage,'lead') ? ($lead_stage->lead() ?? []) : [];
+                                $leadCount = is_countable($leads) ? count($leads) : 0;
+                            } catch (\Throwable $e) {
+                                \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
 
                         <div class="col">
                             <div class="{{ VC::CD }}">
-                                <div class="card-header">
+                                <div class="{{ VC::CD_HD }}">
                                     <div class="{{ VC::FEND }}">
                                         <span class="{{ VC::BT_SM_PM }} btn-icon count">{{ $leadCount }}</span>
                                     </div>
                                     <h4 class="{{ VC::MB0 }}">{{ $stageName }}</h4>
                                 </div>
 
-                                <div class="card-body kanban-box" id="task-list-{{ $stageId }}" data-id="{{ $stageId }}">
+                                <div class="{{ VC::CD_BD }} kanban-box" id="task-list-{{ $stageId }}" data-id="{{ $stageId }}">
                                     @if(is_iterable($leads))
                                         @foreach($leads as $lead)
                                             @php
-                                                $leadId   = (string) data_get($lead,'id','0');
-                                                $leadName = (string) data_get($lead,'name',__('No lead name available'));
-                                                $isActive = (int) data_get($lead,'is_active',0) === 1;
+                                                try {
+                                                    $leadId   = (string) data_get($lead,'id','0');
+                                                    $leadName = (string) data_get($lead,'name',__('No lead name available'));
+                                                    $isActive = (int) data_get($lead,'is_active',0) === 1;
 
-                                                $labels   = method_exists($lead,'labels')   ? ($lead->labels()   ?? []) : [];
-                                                $products = method_exists($lead,'products') ? ($lead->products() ?? []) : [];
-                                                $sources  = method_exists($lead,'sources')  ? ($lead->sources()  ?? []) : [];
-                                                $leadUsers= data_get($lead,'users',[]);
-                                                $guardShow   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_show_route_unavailable')   ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardEdit   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_edit_route_unavailable')   ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardLabels = Utility::fetchLinkMessage($lang, VW::DL, 'deals_labels_route_unavailable') ?? 'Labels route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardDelete = Utility::fetchLinkMessage($lang, 'generics', 'deal_destroy_route_unavailable') ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
+                                                    $labels   = method_exists($lead,'labels')   ? ($lead->labels()   ?? []) : [];
+                                                    $products = method_exists($lead,'products') ? ($lead->products() ?? []) : [];
+                                                    $sources  = method_exists($lead,'sources')  ? ($lead->sources()  ?? []) : [];
+                                                    $leadUsers= data_get($lead,'users',[]);
+                                                    $guardShow   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_show_route_unavailable')   ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $guardEdit   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_edit_route_unavailable')   ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $guardLabels = Utility::fetchLinkMessage($lang, VW::DL, 'deals_labels_route_unavailable') ?? 'Labels route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $guardDelete = Utility::fetchLinkMessage($lang, 'generics', 'deal_destroy_route_unavailable') ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
 
                                             <div class="{{ VC::CD }}" data-id="{{ $leadId }}">
-                                                <div class="pt-3 ps-3">
+                                                <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
                                                     @if(is_iterable($labels) && (is_countable($labels) ? count($labels) : true))
                                                         @foreach($labels as $label)
                                                             <div class="{{ VC::BDG_XS }} bg-{{ data_get($label,'color','secondary') }} p-2 px-3 rounded">
@@ -212,16 +207,16 @@
                                                     @endif
                                                 </div>
 
-                                                <div class="card-header border-0 pb-0 position-relative">
+                                                <div class="{{ VC::CD_HD }} border-0 pb-0 position-relative">
                                                     <h5>
                                                         @can('view lead')
                                                             @php
                                                                 $showHref = ($isActive && Route::has(VW::LD.'.show')) ? route(VW::LD.'.show',$leadId) : '#';
-                                                            @endphp
+@endphp
                                                             <a href="{{ $showHref }}"
                                                                class="fc-daygrid-event"
                                                                data-sv-localized="true"
-                                                               data-guard-msg="{{ $guardShow }}">
+                                                               data-guard-msg="{{ base64_encode($guardShow) }}">
                                                                 {{ $leadName }}
                                                             </a>
                                                         @else
@@ -233,21 +228,21 @@
                                                         @if(($user?->type ?? '') !== 'client')
                                                             <div class="btn-group card-option">
                                                                 <button type="button" class="{{ VC::BT }} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    <i class="ti ti-dots-vertical"></i>
+                                                                    <i class="{{ VC::TD_DOTV }}"></i>
                                                                 </button>
                                                                 <div class="{{ VC::DRP_MN_EM }}">
                                                                     @can('edit lead')
                                                                         @php
                                                                             $labelsHref = Route::has(VW::LD.'.labels') ? URL::to(VW::LD.'/'.$leadId.'/labels') : '#';
                                                                             $editHref   = Route::has(VW::LD.'.edit')   ? URL::to(VW::LD.'/'.$leadId.'/edit')     : '#';
-                                                                        @endphp
+@endphp
                                                                         <a href="#!"
                                                                            data-size="md"
                                                                            data-url="{{ $labelsHref }}"
                                                                            data-ajax-popup="true"
-                                                                           class="dropdown-item"
+                                                                           class="{{ VC::DRP_IT }}"
                                                                            data-sv-localized="true"
-                                                                           data-guard-msg="{{ $guardLabels }}">
+                                                                           data-guard-msg="{{ base64_encode($guardLabels) }}">
                                                                             <i class="ti ti-bookmark"></i>
                                                                             <span>{{ __('Labels') }}</span>
                                                                         </a>
@@ -255,21 +250,25 @@
                                                                            data-size="lg"
                                                                            data-url="{{ $editHref }}"
                                                                            data-ajax-popup="true"
-                                                                           class="dropdown-item"
+                                                                           class="{{ VC::DRP_IT }}"
                                                                            data-sv-localized="true"
-                                                                           data-guard-msg="{{ $guardEdit }}">
+                                                                           data-guard-msg="{{ base64_encode($guardEdit) }}">
                                                                             <i class="{{ VC::TI_PC }}"></i>
                                                                             <span>{{ __('Edit') }}</span>
                                                                         </a>
                                                                     @endcan
                                                                     @can('delete lead')
                                                                         @php
-                                                                            $deleteRouteExists = Route::has(VW::LD.'.destroy');
-                                                                            $deleteAction = $deleteRouteExists ? route(VW::LD.'.destroy',$leadId) : '#';
-                                                                            $deleteConfirm = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
-                                                                                .'|' .
-                                                                                __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                                        @endphp
+                                                                            try {
+                                                                                $deleteRouteExists = Route::has(VW::LD.'.destroy');
+                                                                                $deleteAction = $deleteRouteExists ? route(VW::LD.'.destroy',$leadId) : '#';
+                                                                                $deleteConfirm = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
+                                                                                    .'|' .
+                                                                                    __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                                            } catch (\Throwable $e) {
+                                                                                \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                            }
+@endphp
                                                                         @if($deleteRouteExists)
                                                                             {!! Form::open([
                                                                                 'method' => 'DELETE',
@@ -277,9 +276,9 @@
                                                                                 'id'     => 'delete-form-'.$leadId
                                                                             ]) !!}
                                                                                 <a href="#!"
-                                                                                   class="dropdown-item bs-pass-para"
+                                                                                   class="{{ VC::DRP_IT }} bs-pass-para"
                                                                                    data-sv-localized="true"
-                                                                                   data-guard-msg="{{ $guardDelete }}"
+                                                                                   data-guard-msg="{{ base64_encode($guardDelete) }}"
                                                                                    data-confirm="{{ $deleteConfirm }}"
                                                                                    data-confirm-yes="document.getElementById('delete-form-{{ $leadId }}').submit();">
                                                                                     <i class="{{ VC::TI_ARC }}"></i>
@@ -288,9 +287,9 @@
                                                                             {!! Form::close() !!}
                                                                         @else
                                                                             <a href="#!"
-                                                                               class="dropdown-item"
+                                                                               class="{{ VC::DRP_IT }}"
                                                                                data-sv-localized="true"
-                                                                               data-guard-msg="{{ $guardDelete }}">
+                                                                               data-guard-msg="{{ base64_encode($guardDelete) }}">
                                                                                 <i class="{{ VC::TI_ARC }}"></i>
                                                                                 <span>{{ __('Delete') }}</span>
                                                                             </a>
@@ -305,27 +304,31 @@
                                                 @php
                                                     $productsCount = is_countable($products) ? count($products) : 0;
                                                     $sourcesCount  = is_countable($sources)  ? count($sources)  : 0;
-                                                @endphp
+@endphp
 
-                                                <div class="card-body">
+                                                <div class="{{ VC::CD_BD }}">
                                                     <div class="{{ VC::DFL_AIC_JCB }}">
                                                         <ul class="list-inline {{ VC::MB0 }}">
                                                             <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Product') }}">
-                                                                <i class="f-16 text-primary ti ti-shopping-cart"></i> {{ $productsCount }}
+                                                                <i class="f-16 {{ VC::TX_PM }} ti ti-shopping-cart"></i> {{ $productsCount }}
                                                             </li>
                                                             <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Source') }}">
-                                                                <i class="f-16 text-primary ti ti-social"></i>{{ $sourcesCount }}
+                                                                <i class="f-16 {{ VC::TX_PM }} ti ti-social"></i>{{ $sourcesCount }}
                                                             </li>
                                                         </ul>
                                                         <div class="user-group">
                                                             @if(is_iterable($leadUsers))
                                                                 @foreach($leadUsers as $u)
                                                                     @php
-                                                                        $uName = (string) data_get($u,'name',__('No user name available'));
-                                                                        $uAvatar = data_get($u,'avatar');
-                                                                        $src = $uAvatar ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('storage/uploads/avatar/avatar.png');
-                                                                    @endphp
-                                                                    <img src="{{ $src }}" alt="{{ __('image') }}" data-bs-toggle="tooltip" title="{{ $uName }}">
+                                                                        try {
+                                                                            $uName = (string) data_get($u,'name',__('No user name available'));
+                                                                            $uAvatar = data_get($u,'avatar');
+                                                                            $src = $uAvatar ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('storage/uploads/avatar/avatar.png');
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('leads/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
+                                                                    <img src="{{ $src }}" alt="image" data-bs-toggle="tooltip" title="{{ $uName }}">
                                                                 @endforeach
                                                             @endif
                                                         </div>

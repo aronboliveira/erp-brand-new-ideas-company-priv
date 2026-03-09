@@ -1,31 +1,29 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $formId    = 'pms-store-form';
+        $base      = VW::PMS . '.store';
+        $baseKebab = Str::kebab($base);
+        $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
+        $actionUrl = $routeRes ? route($routeRes) : '#';
+        $guardMsg  = Utility::fetchLinkMessage($lang, VW::PMS, 'store_route_unavailable') ?? __('Permission store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $formId    = 'pms-store-form';
-    $base      = VW::PMS . '.store';
-    $baseKebab = Str::kebab($base);
-    $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
-    $actionUrl = $routeRes ? route($routeRes) : '#';
-    $guardMsg  = Utility::fetchLinkMessage($lang, VW::PMS, 'store_route_unavailable') ?? __('Permission store route is unavailable. Please contact technical support or your domain administrator.');
+        $nameErr = $errors->has('name');
+        $nameAttrs = [
+            'id'               => 'name',
+            'class'            => trim(VC::FM_CT . ' ' . ($nameErr ? 'is-invalid' : '')),
+            'placeholder'      => __('Enter Permission Name'),
+            'required'         => 'required',
+            'aria-invalid'     => $nameErr ? 'true' : 'false',
+            'aria-describedby' => $nameErr ? 'name-error' : null,
+            'autocomplete'     => 'off',
+        ];
 
-    $nameErr = $errors->has('name');
-    $nameAttrs = [
-        'id'               => 'name',
-        'class'            => trim(VC::FM_CT . ' ' . ($nameErr ? 'is-invalid' : '')),
-        'placeholder'      => __('Enter Permission Name'),
-        'required'         => 'required',
-        'aria-invalid'     => $nameErr ? 'true' : 'false',
-        'aria-describedby' => $nameErr ? 'name-error' : null,
-        'autocomplete'     => 'off',
-    ];
-
-    $rolesIsList = (is_array($roles ?? null) && count($roles ?? []) > 0) || (($roles ?? null) instanceof Collection && $roles->isNotEmpty());
+        $rolesIsList = (is_array($roles ?? null) && count($roles ?? []) > 0) || (($roles ?? null) instanceof Collection && $roles->isNotEmpty());
+    } catch (\Throwable $e) {
+        \Log::error('permissions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -41,7 +39,7 @@
             {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
             {{ Form::text('name', null, $nameAttrs) }}
             @error('name')
-                <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
             @enderror
         </div>
 
@@ -50,10 +48,14 @@
             @if($rolesIsList)
                 @foreach(($roles instanceof Collection) ? $roles : collect($roles) as $role)
                     @php
-                        $roleId   = (string) data_get($role, 'id', '');
-                        $roleName = (string) data_get($role, 'name', __('(Role name unavailable)'));
-                        $inputId  = $roleId !== '' ? ('role'.$roleId) : ('role-x-'.$loop->index);
-                    @endphp
+                        try {
+                            $roleId   = (string) data_get($role, 'id', '');
+                            $roleName = (string) data_get($role, 'name', __('(Role name unavailable)'));
+                            $inputId  = $roleId !== '' ? ('role'.$roleId) : ('role-x-'.$loop->index);
+                        } catch (\Throwable $e) {
+                            \Log::error('permissions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::CST_CT_CB }}">
                         {{ Form::checkbox(
                             'roles[]',
@@ -72,7 +74,7 @@
                 <p class="{{ VC::TXT_MT }}">{{ __('No roles available.') }}</p>
             @endif
             @error('roles')
-                <span class="invalid-roles d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                <span class="invalid-roles {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
             @enderror
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{StockReport, ProductService};
 
 class StockReportTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -33,9 +39,7 @@ class StockReportTest extends TestCase
 
 		$sr = StockReport::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $sr->$field);
-		}
+		$this->assertFillableMatches($data, $sr);
 	}
 
 	/**
@@ -66,10 +70,10 @@ class StockReportTest extends TestCase
 	{
 		$relation = (new StockReport)->product();
 
-		$this->assertInstanceOf(HasOne::class,         $relation);
+		$this->assertInstanceOf(BelongsTo::class,         $relation);
 		$this->assertSame(ProductService::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',                        $relation->getForeignKeyName());
-		$this->assertSame('product_id',                $relation->getLocalKeyName());
+		$this->assertSame('product_service_id',                $relation->getForeignKeyName());
+		$this->assertSame('id',                $relation->getOwnerKeyName());
 	}
 
 	/**

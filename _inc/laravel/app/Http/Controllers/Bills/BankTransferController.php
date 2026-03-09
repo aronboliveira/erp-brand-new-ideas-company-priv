@@ -1,14 +1,16 @@
 <?php
 // TODO STOPPED MEASURING HERE
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Bills;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-  DatabaseConstants,
-  MiddlewaresConstants,
-  PermissionsConstants,
-  UsersConstants,
-  ViewsConstants
+  DatabaseConstants as DC,
+  MiddlewaresConstants as MWC,
+  PermissionsConstants as PMC,
+  UsersConstants as UC,
+  ViewsConstants as VW
 };
 use App\Models\{BankAccount, BankTransfer, Utility};
 use App\Traits\ChecksLogin;
@@ -16,14 +18,23 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{Request, RedirectResponse, JsonResponse, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Redirect, Route, View as ViewFacade};
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 final class BankTransferController extends Controller
 {
   use ChecksLogin;
+  public const IDX = 'index';
+  public const CRT = 'create';
+  public const STR = 'store';
+  public const SHW = 'show';
+  public const EDT = 'edit';
+  public const UPD = 'update';
+  public const DEL = 'destroy';
+
 
   public function __construct()
   {
-    $this->middleware([MiddlewaresConstants::AUTH]);
+    $this->middleware([MWC::AUTH]);
   }
 
   public function index(Request $request): View|Response|RedirectResponse|JsonResponse|null
@@ -33,21 +44,21 @@ final class BankTransferController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $req    = $request;
-    $viewPath = ViewsConstants::BNK_TRF . '.' . $action;
+    $viewPath = VW::BNK_TRF . '.' . $action;
     return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
       if (($redirect = self::_checkLogin()) instanceof RedirectResponse) {
         Log::warning("[{$base}::{$action}] unauthenticated access");
         return $redirect;
       }
       $user = $req->user();
-      Log::info("[{$base}::{$action}] listing bank transfers", [UsersConstants::COL_USER_ID => $user?->id, 'filters' => $req->only(['date', 'fromAccount', 'toAccount']), 'method' => $method]);
+      Log::info("[{$base}::{$action}] listing bank transfers", [UC::COL_USER_ID => $user?->id, 'filters' => $req->only(['date', 'fromAccount', 'toAccount']), 'method' => $method]);
       try {
-        if (!$user?->can(PermissionsConstants::MNG_BTF)) {
-          Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
+        if (!$user?->can(PMC::MNG_BTF)) {
+          Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $user?->id]);
           throw new \Illuminate\Auth\Access\AuthorizationException;
         }
         $buildStart = microtime(true);
-        $query = BankTransfer::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
+        $query = BankTransfer::where(DC::COL_TABLE_CREATOR, $user?->creatorId());
         if ($range = $req->input('date')) {
           [$start, $end] = count($p = explode(' to ', $range)) > 1 ? $p : [$range, $range];
           $query->whereBetween('date', [$start, $end]);
@@ -60,7 +71,7 @@ final class BankTransferController extends Controller
         $this->logExecutionTime($fetchStart, $action, 'fetchTransfers');
         Log::info("[{$base}::{$action}] loaded transfers", ['count' => $transfers->count()]);
         $acctStart = microtime(true);
-        $accounts = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('holder_name', 'id')->prepend(__('Select Account'), '');
+        $accounts = BankAccount::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('holder_name', 'id')->prepend(__('Select Account'), '');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -83,28 +94,28 @@ final class BankTransferController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
   }
 
-  public function create(Request $request): Response|JsonResponse|RedirectResponse|null
+  public function create(Request $request): Response|JsonResponse|RedirectResponse|View|null
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class  = static::class;
     $base   = class_basename($class);
     $req    = $request;
-    $viewPath = ViewsConstants::BNK_TRF . '.' . $action;
+    $viewPath = VW::BNK_TRF . '.' . $action;
     return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
       if (($redirect = self::_checkLogin()) instanceof RedirectResponse) {
         Log::warning("[{$base}::{$action}] unauthenticated access");
         return $redirect;
       }
       $user = $req->user();
-      Log::info("[{$base}::{$action}] showing create transfer form", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
+      Log::info("[{$base}::{$action}] showing create transfer form", [UC::COL_USER_ID => $user?->id, 'method' => $method]);
       try {
         if (!$user?->can('create bank transfer')) {
-          Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
+          Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $user?->id]);
           throw new \Illuminate\Auth\Access\AuthorizationException;
         }
         $acctStart = microtime(true);
-        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -140,10 +151,10 @@ final class BankTransferController extends Controller
         return $redirect;
       }
       $user = $req->user();
-      Log::info("[{$base}::{$action}] attempting to store transfer", [UsersConstants::COL_USER_ID => $user?->id, 'input' => $req->only(['fromAccount', 'toAccount', 'amount', 'date']), 'method' => $method]);
+      Log::info("[{$base}::{$action}] attempting to store transfer", [UC::COL_USER_ID => $user?->id, 'input' => $req->only(['fromAccount', 'toAccount', 'amount', 'date']), 'method' => $method]);
       try {
         if (!$user?->can('create bank transfer')) {
-          Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
+          Log::warning("[{$base}::{$action}] permission denied", [UC::COL_USER_ID => $user?->id]);
           throw new \Illuminate\Auth\Access\AuthorizationException;
         }
         $valStart = microtime(true);
@@ -160,7 +171,7 @@ final class BankTransferController extends Controller
             'payment_method' => 0,
             'reference' => $req->input('reference'),
             'description' => $req->input('description'),
-            DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+            DC::COL_TABLE_CREATOR => $user?->creatorId(),
           ]);
           $this->logExecutionTime($createStart, $action, 'createTransfer');
           $balStart = microtime(true);
@@ -170,7 +181,7 @@ final class BankTransferController extends Controller
           Log::info("[{$base}::{$action}] transfer created", ['transfer_id' => $transfer->id]);
         });
         $this->logExecutionTime($txnStart, $action, 'transaction');
-        return Redirect::route(ViewsConstants::BNK_TRF . '.index')->with('success', __('Amount successfully transferred.'));
+        return Redirect::route(VW::BNK_TRF . '.index')->with('success', __('Amount successfully transferred.'));
       } catch (\Illuminate\Validation\ValidationException $e) {
         Log::warning("[{$base}::{$action}] validation failed", ['errors' => $e->errors()]);
         Log::debug("[{$base}::{$action}] validation debug", ['route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all())]);
@@ -194,16 +205,16 @@ final class BankTransferController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $req    = $request;
-    $viewPath = ViewsConstants::BNK_TRF . '.show';
+    $viewPath = VW::BNK_TRF . '.show';
     return $this->measureProfile($action, function () use ($req, $transfer, $action, $method, $class, $base, $viewPath) {
       if (($redirect = self::_checkLogin()) instanceof RedirectResponse) {
         Log::warning("[{$base}::{$action}] unauthenticated access");
         return $redirect;
       }
-      Log::info("[{$base}::{$action}] showing transfer", ['transfer_id' => $transfer->id, UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
+      Log::info("[{$base}::{$action}] showing transfer", ['transfer_id' => $transfer->id, UC::COL_USER_ID => $req->user()->id, 'method' => $method]);
       try {
         $authStart = microtime(true);
-        if (($r = $this->authorizeOwnership($req, $transfer, PermissionsConstants::MNG_BTF)) !== true) return $r;
+        if (($r = $this->authorizeOwnership($req, $transfer, PMC::MNG_BTF)) !== true) return $r;
         $this->logExecutionTime($authStart, $action, 'authorizeOwnership');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath, 'transfer_id' => $transfer->id]);
@@ -233,13 +244,13 @@ final class BankTransferController extends Controller
     $class  = static::class;
     $base   = class_basename($class);
     $req    = $request;
-    $viewPath = ViewsConstants::BNK_TRF . '.edit';
+    $viewPath = VW::BNK_TRF . '.edit';
     return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base, $viewPath) {
       if (($redirect = self::_checkLogin()) instanceof RedirectResponse) {
         Log::warning("[{$base}::{$action}] unauthenticated edit access");
         return $redirect;
       }
-      Log::info("[{$base}::{$action}] editing transfer request", ['transfer_id' => $id, UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
+      Log::info("[{$base}::{$action}] editing transfer request", ['transfer_id' => $id, UC::COL_USER_ID => $req->user()->id, 'method' => $method]);
       try {
         $fetchStart = microtime(true);
         $transfer = BankTransfer::findOrFail($id);
@@ -248,7 +259,7 @@ final class BankTransferController extends Controller
         if (($r = $this->authorizeOwnership($req, $transfer, 'edit bank transfer')) !== true) return $r;
         $this->logExecutionTime($authStart, $action, 'authorizeOwnership');
         $acctStart = microtime(true);
-        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
+        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DC::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -320,7 +331,7 @@ final class BankTransferController extends Controller
         });
         $this->logExecutionTime($txnStart, $action, 'transaction');
         Log::info("[{$base}::{$action}] transfer updated", ['transfer_id' => $transfer->id]);
-        return Redirect::route(ViewsConstants::BNK_TRF . '.index')->with('success', __('Amount transfer successfully updated.'));
+        return Redirect::route(VW::BNK_TRF . '.index')->with('success', __('Amount transfer successfully updated.'));
       } catch (\Illuminate\Validation\ValidationException $e) {
         Log::warning("[{$base}::{$action}] validation failed", ['errors' => $e->errors()]);
         Log::debug("[{$base}::{$action}] validation debug", ['route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all())]);
@@ -349,7 +360,7 @@ final class BankTransferController extends Controller
         Log::warning("[{$base}::{$action}] unauthenticated destroy access");
         return $redirect;
       }
-      Log::info("[{$base}::{$action}] destroying transfer", ['transfer_id' => $transfer->id, UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
+      Log::info("[{$base}::{$action}] destroying transfer", ['transfer_id' => $transfer->id, UC::COL_USER_ID => $req->user()->id, 'method' => $method]);
       try {
         $authStart = microtime(true);
         if (($r = $this->authorizeOwnership($req, $transfer, 'delete bank transfer')) !== true) return $r;
@@ -366,7 +377,7 @@ final class BankTransferController extends Controller
         });
         $this->logExecutionTime($txnStart, $action, 'transaction');
         Log::info("[{$base}::{$action}] transfer deleted", ['transfer_id' => $transfer->id]);
-        return Redirect::route(ViewsConstants::BNK_TRF . '.index')->with('success', __('Transfer successfully deleted.'));
+        return Redirect::route(VW::BNK_TRF . '.index')->with('success', __('Transfer successfully deleted.'));
       } catch (AuthorizationException $e) {
         Log::warning("[{$base}::{$action}] authorization exception", ['message' => $e->getMessage(), 'transfer_id' => $transfer->id]);
         Log::debug("[{$base}::{$action}] auth debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -389,16 +400,24 @@ final class BankTransferController extends Controller
       throw new \Illuminate\Auth\Access\AuthorizationException;
     }
     $user = $userOrRedirect;
+    if (strtolower((string)($user?->type ?? '')) === \App\Config\Constants\PermissionsConstants::SA) {
+      Log::notice('SA bypass for transfer ownership', [
+        UC::COL_USER_ID => $user?->id,
+        'transfer_id' => $transfer->id,
+        'permission'  => $perm
+      ]);
+      return;
+    }
     if (!$user->can($perm) || $transfer->created_by != $user?->creatorId()) {
       Log::warning('Unauthorized transfer access', [
-        UsersConstants::COL_USER_ID     => $user?->id,
+        UC::COL_USER_ID     => $user?->id,
         'transfer_id' => $transfer->id,
         'permission'  => $perm
       ]);
       throw new \Illuminate\Auth\Access\AuthorizationException;
     }
     Log::info('Ownership authorized', [
-      UsersConstants::COL_USER_ID     => $user?->id,
+      UC::COL_USER_ID     => $user?->id,
       'transfer_id' => $transfer->id,
       'permission'  => $perm
     ]);

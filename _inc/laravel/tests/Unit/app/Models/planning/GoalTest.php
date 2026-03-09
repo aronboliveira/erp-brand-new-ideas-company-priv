@@ -9,9 +9,17 @@ namespace Tests\Unit\Models;
 use App\Models\Goal;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class GoalTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -33,7 +41,7 @@ class GoalTest extends TestCase
 				return $v;
 			}
 		};
-		Mockery::mock('alias:' . Goal::class)
+		$this->aliasMock(Goal::class)
 			->shouldReceive('_checkLogin')
 			->once()
 			->andReturn($user);
@@ -56,6 +64,6 @@ class GoalTest extends TestCase
 		$expected = ['Invoice', 'Bill', 'Revenue', 'Payment'];
 
 		$ref = new \ReflectionClass(Goal::class);
-		$this->assertSame($expected, $ref->getConstant('GOAL_TYPES'));
+		$this->assertSame($expected, $ref->getConstant('LEGACY_GOAL_TYPES'));
 	}
 }

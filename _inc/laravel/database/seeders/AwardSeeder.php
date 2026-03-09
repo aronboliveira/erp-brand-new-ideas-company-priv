@@ -133,12 +133,15 @@ final class AwardSeeder extends Seeder
 
 			$rows = [];
 			$now = now('America/Sao_Paulo');
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
+			$awardCreated = 0;
 
 			foreach ($typeIds as $typeId) {
 				$typeId = (string) $typeId;
 				$iter = (int) ($iterationsByType[$typeId] ?? 0);
 
 				for ($i = 0; $i < $iter; $i++) {
+					if ($awardCreated >= $HARD_CAP) break 2; // Hard cap guard
 					$empId = null;
 
 					// First, satisfy coverage employees (each at least once).
@@ -174,6 +177,7 @@ final class AwardSeeder extends Seeder
 						'created_at' => $now,
 						'updated_at' => $now,
 					];
+					$awardCreated++;
 
 					if (count($rows) >= self::CHUNK) {
 						DB::table(DC::TABLE_AWD)->insert($rows);

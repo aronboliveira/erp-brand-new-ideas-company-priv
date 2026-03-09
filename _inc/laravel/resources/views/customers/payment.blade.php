@@ -1,15 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        ViewsConstants,
-        StacksConstants,
-        YieldingConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('customers/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -25,17 +19,21 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
+                <div class="{{ VC::CD_BD_TB_BD }}">
                     @php
-                        $paymentRoute = Route::has(ViewsConstants::CST . '.payment')
-                            ? route(ViewsConstants::CST . '.payment')
-                            : '#';
-                        $paymentGuardMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::CST,
-                            'payment_route_unavailable'
-                        ) ?? 'Payment route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $paymentRoute = Route::has(ViewsConstants::CST . '.payment')
+                                ? route(ViewsConstants::CST . '.payment')
+                                : '#';
+                            $paymentGuardMsg = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::CST,
+                                'payment_route_unavailable'
+                            ) ?? 'Payment route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('customers/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     {{ Form::open(['url' => $paymentRoute, 'method' => 'GET', 'id' => 'frm_submit']) }}
                         <div class="{{ VC::RW }} justify-content-end mt-2">
                             <div class="{{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }}">
@@ -59,7 +57,7 @@
                                     id="filter-apply-btn"
                                     href="{{ $paymentRoute }}"
                                     data-url="{{ $paymentRoute }}"
-                                    data-guard-msg="{{ $paymentGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($paymentGuardMsg) }}"
                                     class="apply-btn"
                                     data-bs-toggle="tooltip"
                                     title="{{ __('Apply') }}"
@@ -70,7 +68,7 @@
                                     id="filter-reset-btn"
                                     href="{{ $paymentRoute }}"
                                     data-url="{{ $paymentRoute }}"
-                                    data-guard-msg="{{ $paymentGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($paymentGuardMsg) }}"
                                     class="reset-btn"
                                     data-bs-toggle="tooltip"
                                     title="{{ __('Reset') }}"
@@ -84,7 +82,7 @@
                         <script defer src="{{ asset('assets/js/routes/customers/payments/apply.js') }}"></script>
                         <script defer src="{{ asset('assets/js/routes/customers/payments/reset.js') }}"></script>
                     @endpush
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} dataTable">
                             <thead>
                                 <tr>
@@ -96,10 +94,14 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $rows = ((is_array($payments ?? null) && count($payments)) || ($payments instanceof Collection && $payments->isNotEmpty())) ? $payments : [];
-                                    $hasDateFormat = method_exists($user, 'dateFormat');
-                                    $hasPriceFormat = method_exists($user, 'priceFormat');
-                                @endphp
+                                    try {
+                                        $rows = ((is_array($payments ?? null) && count($payments)) || ($payments instanceof Collection && $payments->isNotEmpty())) ? $payments : [];
+                                        $hasDateFormat = method_exists($user, 'dateFormat');
+                                        $hasPriceFormat = method_exists($user, 'priceFormat');
+                                    } catch (\Throwable $e) {
+                                        \Log::error('customers/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 @if(!empty($rows))
                                     @foreach($rows as $payment)
                                         <tr>

@@ -122,9 +122,11 @@ class DealCallSeeder extends Seeder
 
 			$callTypes = CallType::values();
 			$totalInserted = 0;
+			$HARD_CAP = 2; // HARD CAP guard
 
 			// Para cada deal, criar entre minCalls e maxCalls chamadas
 			foreach ($dealIds as $dealId) {
+				if ($totalInserted >= $HARD_CAP) break; // HARD CAP guard
 				$numCalls = $faker->numberBetween($minCalls, $maxCalls);
 
 				for ($i = 0; $i < $numCalls; $i++) {
@@ -156,7 +158,7 @@ class DealCallSeeder extends Seeder
 						$creatorId = $maybe(fn() => $userIds[array_rand($userIds)]);
 						$updaterId = $maybe(fn() => $userIds[array_rand($userIds)]);
 						$updatedAt = $startedAt->addMinutes($faker->numberBetween(1, 240));
-						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Acordo de Negócios {$dealId} de {$fromAddr} para {$toAddr} sobre o assunto '{$subject}'");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Chamada sobre Acordo de Negócios {$dealId} de {$fromAddr} para {$toAddr} sobre o assunto '{$subject}'");
 						DealCall::query()->create([
 							AC::COL_DL            => $dealId,
 							UC::COL_USER_ID       => $userId,

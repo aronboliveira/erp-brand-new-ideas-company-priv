@@ -1,14 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Support, Utility};
-    use Illuminate\Support\Facades\{Auth, Crypt, Route, Storage};
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -18,37 +13,41 @@
 @endsection
 @section('title')
     <div class="d-inline-block">
-        <h5 class="h4 d-inline-block font-weight-400 mb-0 ">{{__('Support')}}</h5>
+        <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB0 }}">{{__('Support')}}</h5>
     </div>
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Support')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Support')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $sptGridBase = VW::SPT.'.grid';
-        $sptGridKebab = Str::kebab($sptGridBase);
-        $sptGridResolved = Route::has($sptGridBase) ? $sptGridBase : (Route::has($sptGridKebab) ? $sptGridKebab : null);
-        $sptGridUrl = $sptGridResolved ? route($sptGridResolved) : '#';
-        $sptCreateBase = VW::SPT.'.create';
-        $sptCreateKebab = Str::kebab($sptCreateBase);
-        $sptCreateResolved = Route::has($sptCreateBase) ? $sptCreateBase : (Route::has($sptCreateKebab) ? $sptCreateKebab : null);
-        $sptCreateUrl = $sptCreateResolved ? route($sptCreateResolved) : '#';
-        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-        $gridGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'grid_support_route_unavailable') ?? 'Grid support route is unavailable. Please contact technical support or your domain administrator.';
-        $createGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'create_support_route_unavailable') ?? 'Create support route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        try {
+            $sptGridBase = VW::SPT.'.grid';
+            $sptGridKebab = Str::kebab($sptGridBase);
+            $sptGridResolved = Route::has($sptGridBase) ? $sptGridBase : (Route::has($sptGridKebab) ? $sptGridKebab : null);
+            $sptGridUrl = $sptGridResolved ? route($sptGridResolved) : '#';
+            $sptCreateBase = VW::SPT.'.create';
+            $sptCreateKebab = Str::kebab($sptCreateBase);
+            $sptCreateResolved = Route::has($sptCreateBase) ? $sptCreateBase : (Route::has($sptCreateKebab) ? $sptCreateKebab : null);
+            $sptCreateUrl = $sptCreateResolved ? route($sptCreateResolved) : '#';
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $gridGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'grid_support_route_unavailable') ?? 'Grid support route is unavailable. Please contact technical support or your domain administrator.';
+            $createGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'create_support_route_unavailable') ?? 'Create support route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::FEND }}">
         <a href="{{ $sptGridUrl }}"
            class="{{ VC::BT_SM_PM }} support-grid"
            data-url="{{ $sptGridUrl }}"
-           data-guard-msg="{{ $gridGuardMsg }}"
+           data-guard-msg="{{ base64_encode($gridGuardMsg) }}"
            data-sv-localized="true"
            data-bs-toggle="tooltip"
            title="{{ __('Grid View') }}">
@@ -62,7 +61,7 @@
            title="{{ __('Create') }}"
            data-title="{{ __('Create Support') }}"
            class="{{ VC::BT_SM_PM }} support-create"
-           data-guard-msg="{{ $createGuardMsg }}"
+           data-guard-msg="{{ base64_encode($createGuardMsg) }}"
            data-sv-localized="true">
             <i class="{{ VC::TI_PLS }}"></i>
         </a>
@@ -77,60 +76,60 @@
 	<div class="{{ VC::RW }}">
 		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body">
+				<div class="{{ VC::CD_BD }}">
 					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
-						<div class="col-auto mb-3 mb-sm-0">
+						<div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
 							<div class="{{ VC::DFL_AIC }}">
 								<div class="theme-avatar {{ VC::BG_P }}"><i class="ti ti-cast"></i></div>
 								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
 							</div>
 						</div>
-						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countTicket ?? 0) }}</h3></div>
+						<div class="{{ VC::C_AT }} {{ VC::TX_END }}"><h3 class="m-0">{{ (int)($countTicket ?? 0) }}</h3></div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body">
+				<div class="{{ VC::CD_BD }}">
 					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
-						<div class="col-auto mb-3 mb-sm-0">
+						<div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
 							<div class="{{ VC::DFL_AIC }}">
 								<div class="theme-avatar bg-info"><i class="ti ti-cast"></i></div>
 								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Open') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
 							</div>
 						</div>
-						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countOpenTicket ?? 0) }}</h3></div>
+						<div class="{{ VC::C_AT }} {{ VC::TX_END }}"><h3 class="m-0">{{ (int)($countOpenTicket ?? 0) }}</h3></div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body">
+				<div class="{{ VC::CD_BD }}">
 					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
-						<div class="col-auto mb-3 mb-sm-0">
+						<div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
 							<div class="{{ VC::DFL_AIC }}">
 								<div class="theme-avatar bg-warning"><i class="ti ti-cast"></i></div>
 								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('On Hold') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
 							</div>
 						</div>
-						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countonholdTicket ?? 0) }}</h3></div>
+						<div class="{{ VC::C_AT }} {{ VC::TX_END }}"><h3 class="m-0">{{ (int)($countonholdTicket ?? 0) }}</h3></div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body">
+				<div class="{{ VC::CD_BD }}">
 					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
-						<div class="col-auto mb-3 mb-sm-0">
+						<div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
 							<div class="{{ VC::DFL_AIC }}">
 								<div class="theme-avatar bg-danger"><i class="ti ti-cast"></i></div>
 								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Close') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
 							</div>
 						</div>
-						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countCloseTicket ?? 0) }}</h3></div>
+						<div class="{{ VC::C_AT }} {{ VC::TX_END }}"><h3 class="m-0">{{ (int)($countCloseTicket ?? 0) }}</h3></div>
 					</div>
 				</div>
 			</div>
@@ -139,8 +138,8 @@
 	<div class="{{ VC::RW }}">
 		<div class="{{ VC::CM12 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="{{ VC::TB }} datatable">
 							<thead>
 								<tr>
@@ -157,7 +156,7 @@
 							<tbody class="list">
 								@php
 									$supportpath = \App\Models\Utility::getFile('uploads/supports') ?? '';
-								@endphp
+@endphp
 								@forelse((($supports ?? null) instanceof \Illuminate\Support\Collection || is_array($supports ?? null)) ? $supports : [] as $support)
 									<tr>
 										<td scope="row">
@@ -165,10 +164,14 @@
 												<div>
 													<div class="avatar-parent-child">
 														@php
-															$avatar = data_get($support,'createdBy.avatar');
-															$avatarSrc = !empty($avatar) ? asset(Storage::url('uploads/avatar')).'/'.$avatar : asset(Storage::url('uploads/avatar')).'/avatar.png';
-															$unread = (is_object($support) && method_exists($support,'replyUnread')) ? (int)($support->replyUnread() ?? 0) : 0;
-														@endphp
+															try {
+															    $avatar = data_get($support,'createdBy.avatar');
+															    $avatarSrc = !empty($avatar) ? asset(Storage::url('uploads/avatar')).'/'.$avatar : asset(Storage::url('uploads/avatar')).'/avatar.png';
+															    $unread = (is_object($support) && method_exists($support,'replyUnread')) ? (int)($support->replyUnread() ?? 0) : 0;
+															} catch (\Throwable $e) {
+															    \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+															}
+@endphp
 														<img alt="" class="{{ VC::AV_CC_SM }} me-1" src="{{ $avatarSrc }}">
 														@if($unread > 0)
 															<span class="avatar-child avatar-badge bg-success"></span>
@@ -182,22 +185,26 @@
 											<div class="{{ VC::MD_AIC }}">
 												<div class="media-body">
 													@php
-                                                        $sptReplyBase = VW::SPT.'.reply';
-                                                        $sptReplyKebab = Str::kebab($sptReplyBase);
-                                                        $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
-                                                        $supportIdRaw = data_get($support,'id');
-                                                        $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
-                                                        $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
-                                                        $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $sptReplyAnchorId = 'support-reply-'.Str::uuid();
-                                                    @endphp
+                                                        try {
+                                                            $sptReplyBase = VW::SPT.'.reply';
+                                                            $sptReplyKebab = Str::kebab($sptReplyBase);
+                                                            $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
+                                                            $supportIdRaw = data_get($support,'id');
+                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                            $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $sptReplyAnchorId = 'support-reply-'.Str::uuid();
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a id="{{ $sptReplyAnchorId }}"
                                                     href="{{ $sptReplyUrl }}"
                                                     class="name {{ VC::H6 }} {{ VC::MB0 }} {{ VC::TXSM }}"
                                                     data-url="{{ $sptReplyUrl }}"
-                                                    data-guard-msg="{{ $sptReplyGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($sptReplyGuardMsg) }}"
                                                     data-sv-localized="true"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ __('Reply') }}">
@@ -218,28 +225,7 @@
                                                                             if (url !== '#' && href !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route', 'true');
                                                                         } catch (err) {}
                                                                     });
@@ -249,13 +235,17 @@
                                                     @endpush
                                                     <br/>
 													@php
-														$priorityBadgeClasses = [0 => VC::BG_P, 1 => 'bg-info', 2 => 'bg-warning', 3 => 'bg-danger'];
-														$prio = data_get($support,'priority');
-														$prioClass = $priorityBadgeClasses[$prio] ?? 'bg-secondary';
-														$priorityMap = Support::$priority ?? [];
-														$prioLabel = isset($priorityMap[$prio]) ? __($priorityMap[$prio]) : __('No priority available');
-													@endphp
-													<span data-toggle="tooltip" data-title="{{ __('Priority') }}" class="text-capitalize badge {{ $prioClass }} p-2 px-3 rounded">{{ $prioLabel }}</span>
+														try {
+														    $priorityBadgeClasses = [0 => VC::BG_P, 1 => 'bg-info', 2 => 'bg-warning', 3 => 'bg-danger'];
+														    $prio = data_get($support,'priority');
+														    $prioClass = $priorityBadgeClasses[$prio] ?? 'bg-secondary';
+														    $priorityMap = Support::$priority ?? [];
+														    $prioLabel = isset($priorityMap[$prio]) ? __($priorityMap[$prio]) : __('No priority available');
+														} catch (\Throwable $e) {
+														    \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+														}
+@endphp
+													<span data-toggle="tooltip" data-title="{{ __('Priority') }}" class="text-capitalize badge {{ $prioClass }} p-2 {{ VC::PX3 }} rounded">{{ $prioLabel }}</span>
 												</div>
 											</div>
 										</td>
@@ -264,7 +254,7 @@
 											@php
 												$attachment = data_get($support,'attachment');
 												$fileUrl = !empty($attachment) && !empty($supportpath) ? $supportpath.'/'.$attachment : '';
-											@endphp
+@endphp
 											@if(!empty($fileUrl))
 												<a class="{{ VC::ACT_BTN_PRIM }} {{ VC::BT_SM_CT }}" href="{{ $fileUrl }}" download data-bs-toggle="tooltip" title="{{ __('Download') }}" target="_blank">
 													<i class="{{ VC::TI_DWN }} {{ VC::TXT_WT }}"></i>
@@ -279,29 +269,37 @@
 										<td>{{ data_get($support,'assignUser.name') ?: __('No user name found') }}</td>
 										<td>
 											@php
-												$status = (string) data_get($support,'status','');
-												$statusMap = Support::$status ?? [];
-												$statusLabel = isset($statusMap[$status]) ? __($statusMap[$status]) : __('No status available');
-												$statusClass = $status === 'Open' ? 'bg-success' : ($status === 'Close' ? 'bg-danger' : ($status === 'On Hold' ? 'bg-warning' : 'bg-secondary'));
-											@endphp
-											<span class="status_badge text-capitalize badge {{ $statusClass }} p-2 px-3 rounded">{{ $statusLabel }}</span>
+												try {
+												    $status = (string) data_get($support,'status','');
+												    $statusMap = Support::$status ?? [];
+												    $statusLabel = isset($statusMap[$status]) ? __($statusMap[$status]) : __('No status available');
+												    $statusClass = $status === 'Open' ? 'bg-success' : ($status === 'Close' ? 'bg-danger' : ($status === 'On Hold' ? 'bg-warning' : 'bg-secondary'));
+												} catch (\Throwable $e) {
+												    \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+												}
+@endphp
+											<span class="status_badge text-capitalize badge {{ $statusClass }} p-2 {{ VC::PX3 }} rounded">{{ $statusLabel }}</span>
 										</td>
 										<td>{{ $user?->dateFormat(data_get($support,'created_at')) ?? __('Failed to get created date') }}</td>
 										<td class="Action">
 											<span>
 												<div class="{{ VC::ACT_BTN_WRN }} me-2">
 													@php
-                                                        $sptReplyBase = VW::SPT.'.reply';
-                                                        $sptReplyKebab = Str::kebab($sptReplyBase);
-                                                        $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
-                                                        $supportIdRaw = data_get($support,'id');
-                                                        $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
-                                                        $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
-                                                        $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $sptReplyAnchorId = 'support-reply-'.($supportId ? substr(md5($supportId),0,8) : 'x');
-                                                    @endphp
+                                                        try {
+                                                            $sptReplyBase = VW::SPT.'.reply';
+                                                            $sptReplyKebab = Str::kebab($sptReplyBase);
+                                                            $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
+                                                            $supportIdRaw = data_get($support,'id');
+                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                            $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $sptReplyAnchorId = 'support-reply-'.($supportId ? substr(md5($supportId),0,8) : 'x');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a id="{{ $sptReplyAnchorId }}"
                                                     href="{{ $sptReplyUrl }}"
                                                     data-title="{{ __('Support Reply') }}"
@@ -310,7 +308,7 @@
                                                     title="{{ __('Reply') }}"
                                                     data-original-title="{{ __('Reply') }}"
                                                     data-url="{{ $sptReplyUrl }}"
-                                                    data-guard-msg="{{ $sptReplyGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($sptReplyGuardMsg) }}"
                                                     data-sv-localized="true">
                                                         <i class="ti ti-corner-up-left {{ VC::TXT_WT }}"></i>
                                                     </a>
@@ -329,28 +327,7 @@
                                                                             if (url !== '#' && href !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role', 'alert');
-                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route', 'true');
                                                                         } catch (err) {}
                                                                     });
@@ -362,17 +339,21 @@
 												@if((($user?->type) ?? '') === 'company' || (($user?->id) ?? null) === data_get($support,'ticket_created'))
 													<div class="{{ VC::ACT_BTN_PRIM }} me-2">
 														@php
-                                                            $sptEditBase = VW::SPT.'.edit';
-                                                            $sptEditKebab = Str::kebab($sptEditBase);
-                                                            $sptEditResolved = Route::has($sptEditBase) ? $sptEditBase : (Route::has($sptEditKebab) ? $sptEditKebab : null);
-                                                            $supportIdRaw = data_get($support,'id');
-                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
-                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
-                                                            $sptEditUrl = ($sptEditResolved && $sptEncryptedId) ? route($sptEditResolved, $sptEncryptedId) : '#';
-                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $sptEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'edit_support_route_unavailable') ?? 'Edit support route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $sptEditAnchorId = 'support-edit-'.($supportId ? substr(md5($supportId),0,8) : 'x');
-                                                        @endphp
+                                                            try {
+                                                                $sptEditBase = VW::SPT.'.edit';
+                                                                $sptEditKebab = Str::kebab($sptEditBase);
+                                                                $sptEditResolved = Route::has($sptEditBase) ? $sptEditBase : (Route::has($sptEditKebab) ? $sptEditKebab : null);
+                                                                $supportIdRaw = data_get($support,'id');
+                                                                $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                                $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                                $sptEditUrl = ($sptEditResolved && $sptEncryptedId) ? route($sptEditResolved, $sptEncryptedId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $sptEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'edit_support_route_unavailable') ?? 'Edit support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $sptEditAnchorId = 'support-edit-'.($supportId ? substr(md5($supportId),0,8) : 'x');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <a
                                                             id="{{ $sptEditAnchorId }}"
                                                             href="{{ $sptEditUrl }}"
@@ -384,7 +365,7 @@
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Edit') }}"
                                                             data-original-title="{{ __('Edit') }}"
-                                                            data-guard-msg="{{ $sptEditGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sptEditGuardMsg) }}"
                                                             data-sv-localized="true"
                                                         >
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
@@ -404,28 +385,7 @@
                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Edit support route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                             } catch (err) {}
                                                                         });
@@ -436,20 +396,24 @@
 													</div>
 													<div class="{{ VC::ACT_BTN_DNG_2 }}">
 														@php
-                                                            $sptDestroyBase = VW::SPT.'.destroy';
-                                                            $sptDestroyKebab = Str::kebab($sptDestroyBase);
-                                                            $sptDestroyResolved = Route::has($sptDestroyBase) ? $sptDestroyBase : (Route::has($sptDestroyKebab) ? $sptDestroyKebab : null);
-                                                            $supportIdRaw = data_get($support,'id');
-                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
-                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
-                                                            $sptDestroyUrl = ($sptDestroyResolved && $sptEncryptedId) ? route($sptDestroyResolved, $sptEncryptedId) : '#';
-                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                            $sptDeleteGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'delete_support_route_unavailable') ?? 'Delete support route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                            $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                            $formId = 'support-delete-form-'.Str::uuid();
-                                                            $anchorId = 'support-delete-btn-'.Str::uuid();
-                                                        @endphp
+                                                            try {
+                                                                $sptDestroyBase = VW::SPT.'.destroy';
+                                                                $sptDestroyKebab = Str::kebab($sptDestroyBase);
+                                                                $sptDestroyResolved = Route::has($sptDestroyBase) ? $sptDestroyBase : (Route::has($sptDestroyKebab) ? $sptDestroyKebab : null);
+                                                                $supportIdRaw = data_get($support,'id');
+                                                                $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                                $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                                $sptDestroyUrl = ($sptDestroyResolved && $sptEncryptedId) ? route($sptDestroyResolved, $sptEncryptedId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $sptDeleteGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'delete_support_route_unavailable') ?? 'Delete support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                                $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                                $formId = 'support-delete-form-'.Str::uuid();
+                                                                $anchorId = 'support-delete-btn-'.Str::uuid();
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('supports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Collective\Html\FormFacade::open(['method' => 'DELETE','url' => $sptDestroyUrl,'id' => $formId]) !!}
                                                             <a id="{{ $anchorId }}"
                                                             href="#!"
@@ -460,7 +424,7 @@
                                                             data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
                                                             data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                             data-url="{{ $sptDestroyUrl }}"
-                                                            data-guard-msg="{{ $sptDeleteGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sptDeleteGuardMsg) }}"
                                                             data-sv-localized="true">
                                                                 <i class="{{ VC::TI_TRS_WT }}"></i>
                                                             </a>
@@ -482,28 +446,7 @@
                                                                                 if (url !== '#' && href !== '#!' && action !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Delete support route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (hasBootstrap) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role', 'alert');
-                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
+                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                                 if (form) { form.setAttribute('data-failed-route', 'true'); }
                                                                             } catch (err) {}
@@ -518,7 +461,7 @@
 										</td>
 									</tr>
 								@empty
-									<tr><td colspan="8" class="text-center text-muted">{{ __('No supports available') }}</td></tr>
+									<tr><td colspan="8" class="{{ VC::TXCT_MT }}">{{ __('No supports available') }}</td></tr>
 								@endforelse
 							</tbody>
 						</table>

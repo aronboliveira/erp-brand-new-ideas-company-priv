@@ -1,57 +1,55 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Gate, Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('attendances/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Attendance List')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Attendance')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Attendance')}}</li>
 @endsection
 {{--@section('action-btn')--}}
-{{--    <div class="float-end">--}}
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--    <div class="{{ VC::FEND }}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 {{--    </div>--}}
 {{--@endsection--}}
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-sm-12">
+        <div class="{{ VC::CS12 }}">
             @if (session('status'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="{{ VC::ALT_DNG }} alert-dismissible fade show" role="alert">
                     {!! session('status') !!}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="card">
                     @php
-                        $indexRoute    = Route::has(VW::EMP_ATD.'.index') ? [VW::EMP_ATD.'.index'] : ['#'];
-                        $indexUrl      = Route::has(VW::EMP_ATD.'.index') ? route(VW::EMP_ATD.'.index') : '#';
-                        $formId        = 'employeeAttendance_filter';
-                        $resetClass    = 'reset-employee-attendance-link';
-                        $importRoute   = Route::has(VW::ATD.'.file.import') ? route(VW::ATD.'.file.import') : '#';
-                        $importClass   = 'import-attendance-link';
-                    @endphp
-                    <div class="card-body">
+                        try {
+                            $indexRoute    = Route::has(VW::EMP_ATD.'.index') ? [VW::EMP_ATD.'.index'] : ['#'];
+                            $indexUrl      = Route::has(VW::EMP_ATD.'.index') ? route(VW::EMP_ATD.'.index') : '#';
+                            $formId        = 'employeeAttendance_filter';
+                            $resetClass    = 'reset-employee-attendance-link';
+                            $importRoute   = Route::has(VW::ATD.'.file.import') ? route(VW::ATD.'.file.import') : '#';
+                            $importClass   = 'import-attendance-link';
+                        } catch (\Throwable $e) {
+                            \Log::error('attendances/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <div class="{{ VC::CD_BD }}">
                         {!! Form::open([
                             'route'          => $indexRoute,
                             'method'         => 'get',
@@ -61,10 +59,10 @@
                             'data-guard-msg' => Utility::fetchLinkMessage($lang,VW::EMP_ATD,'index_attendance_unavailable') ?? 'Employee attendance index route is unavailable. Please contact technical support or your domain administrator.'
                         ]) !!}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="row">
-                                        <div class="col-3">
-                                            <label class="form-label">{{ __('Type') }}</label><br>
+                                        <div class="{{ VC::C3 }}">
+                                            <label class="{{ VC::FM_LB }}">{{ __('Type') }}</label><br>
                                             <div class="{{ VC::FM_CHK_IL_GP }}">
                                                 <input type="radio" id="monthly" value="monthly" name="type" class="form-check-input" {{ isset($_GET['type']) && $_GET['type']=='monthly' ? 'checked' : 'checked' }}>
                                                 <label class="form-check-label" for="monthly">{{ __('Monthly') }}</label>
@@ -102,20 +100,20 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="col-auto mt-4">
+                                <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                     <div class="row">
-                                        <div class="col-auto">
+                                        <div class="{{ VC::C_AT }}">
                                             <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('{{ $formId }}').submit();return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                             </a>
                                             <a href="{{ $indexUrl }}" id="{{ $resetClass }}" class="{{ VC::BT_SM_DG }} {{ $resetClass }}" data-url="{{ $indexUrl }}"
                                             data-sv-localized="true"
-                                            data-guard-msg="{{ Utility::fetchLinkMessage($lang,VW::EMP_ATD,'index_attendance_unavailable') ?? 'Employee attendance index route is unavailable. Please contact technical support or your domain administrator.' }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}" data-original-title="{{ __('Reset') }}">
+                                            data-guard-msg="{{ base64_encode(Utility::fetchLinkMessage($lang,VW::EMP_ATD,'index_attendance_unavailable') ?? 'Employee attendance index route is unavailable. Please contact technical support or your domain administrator.') }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}" data-original-title="{{ __('Reset') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                             </a>
-                                            <a href="#" id="{{ $importClass }}" class="{{ VC::BT_SM_PM }} {{ $importClass }}" data-url="{{ $importRoute }}" 
+                                            <a href="#" id="{{ $importClass }}" class="{{ VC::BT_SM_PM }} {{ $importClass }}" data-url="{{ $importRoute }}"
                                             data-sv-localized="true"
-                                            data-guard-msg="{{ Utility::fetchLinkMessage($lang,VW::ATD,'csv_attendance_unavailable') ?? 'Import employee CSV file route is unavailable. Please contact technical support or your domain administrator.' }}" data-size="md" data-ajax-popup="true" data-title="{{ __('Import employee CSV file') }}" data-url="{{ $importRoute }}" data-bs-toggle="tooltip" title="{{ __('Import') }}" data-original-title="{{ __('Import') }}">
+                                            data-guard-msg="{{ base64_encode(Utility::fetchLinkMessage($lang,VW::ATD,'csv_attendance_unavailable') ?? 'Import employee CSV file route is unavailable. Please contact technical support or your domain administrator.') }}" data-size="md" data-ajax-popup="true" data-title="{{ __('Import employee CSV file') }}" data-url="{{ $importRoute }}" data-bs-toggle="tooltip" title="{{ __('Import') }}" data-original-title="{{ __('Import') }}">
                                                 <i class="{{ VC::TI_IMP }}"></i>
                                             </a>
                                         </div>
@@ -129,10 +127,10 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="table datatable">
                             <thead>
                             <tr>
@@ -154,22 +152,26 @@
                             <tbody>
                             @foreach ($EmployeeAttendance as $attendance)
                                 <tr>
-                                    <td>{{!empty($attendance->employee)?$attendance->employee->name:'' }}</td>
-                                    <td>{{ $user?->dateFormat($attendance->date) }}</td>
-                                    <td>{{ $attendance->status }}</td>
-                                    <td>{{ ($attendance->clock_in !='00:00:00') ?$user?->timeFormat( $attendance->clock_in):'00:00' }} </td>
-                                    <td>{{ ($attendance->clock_out !='00:00:00') ?$user?->timeFormat( $attendance->clock_out):'00:00' }}</td>
-                                    <td>{{ $attendance->late }}</td>
-                                    <td>{{ $attendance->early_leaving }}</td>
-                                    <td>{{ $attendance->overtime }}</td>
+                                    <td>{{ !empty($attendance->employee) ? ($attendance->employee->name ?? '') : '' }}</td>
+                                    <td>{{ $user?->dateFormat($attendance->date ?? null) ?? '-' }}</td>
+                                    <td>{{ $attendance->status ?? '-' }}</td>
+                                    <td>{{ (($attendance->clock_in ?? '00:00:00') !== '00:00:00') ? ($user?->timeFormat($attendance->clock_in) ?? '00:00') : '00:00' }}</td>
+                                    <td>{{ (($attendance->clock_out ?? '00:00:00') !== '00:00:00') ? ($user?->timeFormat($attendance->clock_out) ?? '00:00') : '00:00' }}</td>
+                                    <td>{{ $attendance->late ?? '-' }}</td>
+                                    <td>{{ $attendance->early_leaving ?? '-' }}</td>
+                                    <td>{{ $attendance->overtime ?? '-' }}</td>
                                     @if(Gate::check('edit attendance') || Gate::check('delete attendance'))
                                         <td class="">
                                             @can('edit attendance')
                                                 @php
-                                                    $editRouteName = VW::EMP_ATD . '.edit';
-                                                    $editUrl = Route::has($editRouteName) ? route($editRouteName, $attendance->id) : '#';
-                                                    $editClass = 'edit-attendance-link-' . $attendance->id;
-                                                @endphp
+                                                    try {
+                                                        $editRouteName = VW::EMP_ATD . '.edit';
+                                                        $editUrl = Route::has($editRouteName) ? route($editRouteName, $attendance->id) : '#';
+                                                        $editClass = 'edit-attendance-link-' . $attendance->id;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('attendances/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                     <a
                                                         href="{{ $editUrl }}"
@@ -177,7 +179,7 @@
                                                         class="{{ VC::BT_SM_CT }} {{ $editClass }}"
                                                         data-url="{{ $editUrl }}"
                                                         data-sv-localized="true"
-                                                        data-guard-msg="{{ Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'edit_attendance_unavailable') ?? 'Edit attendance route is unavailable. Please contact technical support or your domain administrator.' }}"
+                                                        data-guard-msg="{{ base64_encode(Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'edit_attendance_unavailable') ?? 'Edit attendance route is unavailable. Please contact technical support or your domain administrator.') }}"
                                                         data-ajax-popup="true"
                                                         data-size="lg"
                                                         data-title="{{ __('Edit Attendance') }}"
@@ -191,12 +193,16 @@
                                             @endcan
                                             @can('delete attendance')
                                                 @php
-                                                    $deleteRouteName = VW::EMP_ATD . '.destroy';
-                                                    $deleteRoute = Route::has($deleteRouteName) ? [$deleteRouteName, $attendance->id] : ['#'];
-                                                    $deleteUrl = Route::has($deleteRouteName) ? route($deleteRouteName, $attendance->id) : '#';
-                                                    $deleteClass = 'delete-attendance-link-' . $attendance->id;
-                                                    $formId = 'delete-form-' . $attendance->id;
-                                                @endphp
+                                                    try {
+                                                        $deleteRouteName = VW::EMP_ATD . '.destroy';
+                                                        $deleteRoute = Route::has($deleteRouteName) ? [$deleteRouteName, $attendance->id] : ['#'];
+                                                        $deleteUrl = Route::has($deleteRouteName) ? route($deleteRouteName, $attendance->id) : '#';
+                                                        $deleteClass = 'delete-attendance-link-' . $attendance->id;
+                                                        $formId = 'delete-form-' . $attendance->id;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('attendances/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open(['method'=>'DELETE','route'=>$deleteRoute,'id'=>$formId]) !!}
                                                         <a
@@ -205,7 +211,7 @@
                                                             class="{{ VC::TRS_PARA }} {{ $deleteClass }}"
                                                             data-url="{{ $deleteUrl }}"
                                                             data-sv-localized="true"
-                                                            data-guard-msg="{{ Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'delete_attendance_unavailable') ?? 'Delete attendance route is unavailable. Please contact technical support or your domain administrator.' }}"
+                                                            data-guard-msg="{{ base64_encode(Utility::fetchLinkMessage($lang, VW::EMP_ATD, 'delete_attendance_unavailable') ?? 'Delete attendance route is unavailable. Please contact technical support or your domain administrator.') }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-original-title="{{ __('Delete') }}"
@@ -217,7 +223,7 @@
                                                     {!! Form::close() !!}
                                                 </div>
                                             @endcan
-                                        </td>         
+                                        </td>
                                     @endif
                                 </tr>
                             @endforeach
@@ -230,6 +236,7 @@
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/attendances/lang/date.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/attendances/date.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/attendances/page.js') }}"></script>

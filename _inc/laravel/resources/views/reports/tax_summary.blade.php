@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/tax_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +12,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Tax Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Tax Summary')}}</li>
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
@@ -38,15 +31,15 @@
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadLabelTax = __('Download');
             $downloadGuardMsgTax = Utility::fetchLinkMessage($lang, VW::RPT, 'download_tax_reports_unavailable') ?? 'Download function for Tax Reports is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         class="{{ VC::BT_SM_PM }} download-tax-reports"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsgTax }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsgTax) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ $downloadLabelTax }}"
@@ -63,23 +56,27 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $taxSummaryBase = ViewsConstants::RPT.'.tax.summary';
-                            $taxSummaryKebab = Str::kebab($taxSummaryBase);
-                            $taxSummaryResolved = Route::has($taxSummaryBase) ? $taxSummaryBase : (Route::has($taxSummaryKebab) ? $taxSummaryKebab : null);
-                            $actionRoute = $taxSummaryResolved ? [$taxSummaryResolved] : ['#'];
-                            $actionUrl = $taxSummaryResolved ? route($taxSummaryResolved) : '#';
-                            $resetUrl = $actionUrl;
-                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_tax_summary_route_unavailable') ?? 'Apply tax summary route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_tax_summary_route_unavailable') ?? 'Reset tax summary route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $taxSummaryBase = ViewsConstants::RPT.'.tax.summary';
+                                $taxSummaryKebab = Str::kebab($taxSummaryBase);
+                                $taxSummaryResolved = Route::has($taxSummaryBase) ? $taxSummaryBase : (Route::has($taxSummaryKebab) ? $taxSummaryKebab : null);
+                                $actionRoute = $taxSummaryResolved ? [$taxSummaryResolved] : ['#'];
+                                $actionUrl = $taxSummaryResolved ? route($taxSummaryResolved) : '#';
+                                $resetUrl = $actionUrl;
+                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_tax_summary_route_unavailable') ?? 'Apply tax summary route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_tax_summary_route_unavailable') ?? 'Reset tax summary route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/tax_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open(['route' => $actionRoute, 'method' => 'GET', 'id' => 'report_tax_summary', 'data-url' => $actionUrl, 'data-guard-msg' => $applyGuardMsg, 'data-sv-localized' => 'true']) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -99,7 +96,7 @@
                                             href="#"
                                             class="{{ VC::BT_SM_PM }}"
                                             data-form-id="report_tax_summary"
-                                            data-guard-msg="{{ $applyGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -110,7 +107,7 @@
                                             href="{{ $resetUrl }}"
                                             class="{{ VC::BT_SM_DG }}"
                                             data-url="{{ $resetUrl }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -151,25 +148,29 @@
             </div>
         </div>
         @php
-            $colCount      = count($monthList);
-            $incomeTotals  = array_fill(0, $colCount, 0.0);
-            $expenseTotals = array_fill(0, $colCount, 0.0);
-            foreach ($incomes as $prices)
-                foreach (array_values($prices) as $i => $price)
-                    if ($i < $colCount) $incomeTotals[$i] += (float) $price;
-            foreach ($expenses as $prices)
-                foreach (array_values($prices) as $i => $price)
-                    if ($i < $colCount) $expenseTotals[$i] += (float) $price;
-            $netTotals = [];
-            for ($i = 0; $i < $colCount; $i++)
-                $netTotals[$i] = $incomeTotals[$i] - $expenseTotals[$i];
-            $noIncome  = empty($incomes);
-            $noExpense = empty($expenses);
-        @endphp
+            try {
+                $colCount      = count($monthList);
+                $incomeTotals  = array_fill(0, $colCount, 0.0);
+                $expenseTotals = array_fill(0, $colCount, 0.0);
+                foreach ($incomes as $prices)
+                    foreach (array_values($prices) as $i => $price)
+                        if ($i < $colCount) $incomeTotals[$i] += (float) $price;
+                foreach ($expenses as $prices)
+                    foreach (array_values($prices) as $i => $price)
+                        if ($i < $colCount) $expenseTotals[$i] += (float) $price;
+                $netTotals = [];
+                for ($i = 0; $i < $colCount; $i++)
+                    $netTotals[$i] = $incomeTotals[$i] - $expenseTotals[$i];
+                $noIncome  = empty($incomes);
+                $noExpense = empty($expenses);
+            } catch (\Throwable $e) {
+                \Log::error('reports/tax_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
                         <div class="{{ VC::CS12 }}">
                             <h5>{{ __('Income') }}</h5>
                             <div class="table-responsive {{ VC::MT3 }} {{ VC::MB3 }}">
@@ -178,7 +179,7 @@
                                     <tr>
                                         <th>{{ __('Tax') }}</th>
                                         @foreach($monthList as $month)
-                                            <th class="text-end">{{ $month }}</th>
+                                            <th class="{{ VC::TX_END }}">{{ $month }}</th>
                                         @endforeach
                                     </tr>
                                     </thead>
@@ -187,21 +188,21 @@
                                         <tr>
                                             <td>{{ $taxName }}</td>
                                             @foreach($prices as $price)
-                                                <td class="text-end">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
                                             @endforeach
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ 1 + $colCount }}" class="text-center">{{ __('Income tax not found') }}</td>
+                                            <td colspan="{{ 1 + $colCount }}" class="{{ VC::TXCT }}">{{ __('Income tax not found') }}</td>
                                         </tr>
                                     @endforelse
                                     </tbody>
                                     @unless($noIncome)
                                         <tfoot>
                                             <tr>
-                                                <th class="text-end">{{ __('Total Income Tax') }}</th>
+                                                <th class="{{ VC::TX_END }}">{{ __('Total Income Tax') }}</th>
                                                 @foreach($incomeTotals as $sum)
-                                                    <th class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
                                                 @endforeach
                                             </tr>
                                         </tfoot>
@@ -217,7 +218,7 @@
                                     <tr>
                                         <th>{{ __('Tax') }}</th>
                                         @foreach($monthList as $month)
-                                            <th class="text-end">{{ $month }}</th>
+                                            <th class="{{ VC::TX_END }}">{{ $month }}</th>
                                         @endforeach
                                     </tr>
                                     </thead>
@@ -226,21 +227,21 @@
                                         <tr>
                                             <td>{{ $taxName }}</td>
                                             @foreach($prices as $price)
-                                                <td class="text-end">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
+                                                <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
                                             @endforeach
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ 1 + $colCount }}" class="text-center">{{ __('Expense tax not found') }}</td>
+                                            <td colspan="{{ 1 + $colCount }}" class="{{ VC::TXCT }}">{{ __('Expense tax not found') }}</td>
                                         </tr>
                                     @endforelse
                                     </tbody>
                                     @unless($noExpense)
                                         <tfoot>
                                             <tr>
-                                                <th class="text-end">{{ __('Total Expense Tax') }}</th>
+                                                <th class="{{ VC::TX_END }}">{{ __('Total Expense Tax') }}</th>
                                                 @foreach($expenseTotals as $sum)
-                                                    <th class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
+                                                    <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
                                                 @endforeach
                                             </tr>
                                         </tfoot>
@@ -257,7 +258,7 @@
                                         <tr>
                                             <th>{{ __('Metric') }}</th>
                                             @foreach($monthList as $month)
-                                                <th class="text-end">{{ $month }}</th>
+                                                <th class="{{ VC::TX_END }}">{{ $month }}</th>
                                             @endforeach
                                         </tr>
                                         </thead>
@@ -265,7 +266,7 @@
                                             <tr>
                                                 <td>{{ __('Net') }}</td>
                                                 @foreach($netTotals as $sum)
-                                                    <td class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</td>
                                                 @endforeach
                                             </tr>
                                         </tbody>
@@ -279,5 +280,3 @@
         </div>
     </div>
 @endsection
-
-

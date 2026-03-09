@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\app\Http\Middlewares;
 
 use Tests\TestCase;
 use App\Http\Middleware\XSS;
@@ -10,12 +10,18 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\App;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-class XSSMiddlewareTest extends TestCase
+/**
+ * XSSTest requires a full HTTP pipeline dispatch that accumulates too much
+ * memory when run after thousands of other tests, causing the PHP process
+ * to die.  Isolated in the "slow" group so it can be run separately:
+ *   php vendor/bin/phpunit --group=slow tests/Unit/app/Http/Middlewares/XSSTest.php
+ */
+#[Group('slow')]
+class XSSTest extends TestCase
 {
-	use RefreshDatabase;
 
 	protected function setUp(): void
 	{
@@ -52,7 +58,7 @@ class XSSMiddlewareTest extends TestCase
 	 **
 	 ** Guests should be redirected to login before any XSS processing.
 	 **/
-	public function guests_are_redirected_to_login()
+	public function test_guests_are_redirected_to_login()
 	{
 		$response = $this->postJson('/test-xss', ['foo' => '<b>bar</b>']);
 		$response->assertRedirect(route('login'));
@@ -65,7 +71,7 @@ class XSSMiddlewareTest extends TestCase
 	 ** to the LaravelUpdater welcome route,
 	 ** and Utility::addNewData and User::defaultEmail are called.
 	 **/
-	public function super_admin_with_pending_migrations_redirects_to_updater()
+	public function test_super_admin_with_pending_migrations_redirects_to_updater()
 	{
 		$admin = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
 		Auth::login($admin);
@@ -85,7 +91,7 @@ class XSSMiddlewareTest extends TestCase
 	 ** The middleware strips HTML tags from all inputs recursively,
 	 ** except for redirection logic, and passes sanitized data to the application.
 	 **/
-	public function it_strips_tags_from_input_except_login_and_migrations()
+	public function test_it_strips_tags_from_input_except_login_and_migrations()
 	{
 		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
@@ -110,7 +116,7 @@ class XSSMiddlewareTest extends TestCase
 	 ** If an exception occurs during request processing (e.g., in the next stage),
 	 ** the middleware logs an error and returns JSON 500 with the correct message.
 	 **/
-	public function exceptions_are_caught_logged_and_return_json_error()
+	public function test_exceptions_are_caught_logged_and_return_json_error()
 	{
 		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		Auth::login($user);

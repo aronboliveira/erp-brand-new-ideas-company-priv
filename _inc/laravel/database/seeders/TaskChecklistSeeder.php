@@ -152,11 +152,13 @@ final class TaskChecklistSeeder extends Seeder
 		// 5) Persist with Model::create to respect $casts + booted() rules (no raw DB insert)
 		$localUsedNames = [];
 
+		$HARD_CAP = 4; // Hard cap to prevent excessive record creation
 		$created = 0;
 		$byTypeCreated = [];
 
 		$cap = 512;
 		foreach ($plan as $p) {
+			if ($created >= $HARD_CAP) break; // Hard cap guard
 			if (!$cap || $cap <= 0) break;
 			$cap--;
 			$taskId = (string)($p['task_id'] ?? '');
@@ -196,13 +198,14 @@ final class TaskChecklistSeeder extends Seeder
 			// important: do NOT strip nulls; let Eloquent handle nullable attributes naturally
 			$row['name'] = $name;
 			$row['notification'] = $notification;
-			$output->writeln('Creating TaskChecklist for task ' . $taskId . ' with name ' . $name);
+			// $output->writeln('Creating TaskChecklist for task ' . $taskId . ' with name ' . $name);
 			TaskChecklist::query()->create($row);
 
 			$created++;
 			$byTypeCreated[$userTypeValue] = (int)($byTypeCreated[$userTypeValue] ?? 0) + 1;
 		}
 
+		$output->writeln("<info>[TaskChecklistSeeder]</info> Done. Created: {$created}");
 		$io->section('TaskChecklistSeeder result');
 		$io->text([
 			'Created: ' . $created,

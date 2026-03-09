@@ -19,6 +19,9 @@ final class StageSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 
+	// private const MIN_ROWS = 800;
+	private const HARD_CAP = 128; /* original: pipelines × 11 names; unbounded — raised from 4 to cover ~12 pipelines */
+
 	public function run(): void
 	{
 		DB::transaction(function () {
@@ -32,13 +35,16 @@ final class StageSeeder extends Seeder
 
 			$names = ['Backlog', 'A Fazer', 'Em Progresso', 'Revisão', 'Concluído', 'Arquivado', 'Cancelado', 'Pausado', 'Em Espera', 'Rejeitado', 'Aprovado'];
 
+			$created = 0;
 			foreach ($pipelineIds as $pipelineId) {
+				if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 				$order = 0;
 
 				foreach ($names as $nm) {
+					if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 					try {
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Estágio de Projeto: {$nm}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Estágio de Projeto: {$nm}");
 						do $stageId = Str::uuid()->toString();
 						while (Stg::where('id', $stageId)->exists());
 
@@ -51,6 +57,7 @@ final class StageSeeder extends Seeder
 						$s->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 						$s->save();
+						$created++;
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;

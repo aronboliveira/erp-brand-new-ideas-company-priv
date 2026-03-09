@@ -1,65 +1,16 @@
 (() => {
-  const errFb = "# ERROR";
-  const clientLoc = "data-client-localized";
-  const guardMsg = "data-guard-msg";
-  const langKey = "erp-np-lang";
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  if (!guard || !utils) return;
+
   let errorMessage = "";
 
   const getMsg = (key, el) => {
-    let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(clientLoc) === "true"
-    ) {
-      msg = el.getAttribute(guardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem(langKey) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ||
-        window.translations?.["en"]?.[key] ||
-        errFb;
-      if (msg !== errFb) {
-        el.setAttribute(guardMsg, msg);
-        el.setAttribute(clientLoc, "true");
-      }
-    }
-    return msg;
+    return utils.getTranslation(key) || "# ERROR";
   };
 
   const showError = message => {
-    try {
-      const bs = document.querySelector('link[href*="bootstrap"]');
-      let c = document.getElementById("toast-container");
-      if (bs && window.bootstrap) {
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = message;
-        t.appendChild(b);
-        c.appendChild(t);
-        window.bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
+    guard.showToast(message);
   };
 
   document.addEventListener("pointerup", () => {
@@ -126,10 +77,8 @@
         data: { id },
       })
         .done(data => {
-          if (data && detail) {
-            // SECURITY: Use safe HTML insertion instead of innerHTML
-            safeSethtmlContent(detail, data);
-          } else if (box && detail) {
+          if (data && detail) detail.innerHTML = data;
+          else if (box && detail) {
             box.classList.replace("d-none", "d-block");
             detail.classList.replace("d-block", "d-none");
           }
@@ -162,26 +111,4 @@
         console.error("Initialization error");
     }
   });
-
-  // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el, html) {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      if (doc.body.innerHTML.includes("PARSER ERROR")) {
-        el.textContent = html;
-        return;
-      }
-      while (el.firstChild) {
-        el.removeChild(el.firstChild);
-      }
-      const fragment = document.createDocumentFragment();
-      for (const node of doc.body.childNodes) {
-        fragment.appendChild(node.cloneNode(true));
-      }
-      el.appendChild(fragment);
-    } catch (e) {
-      el.textContent = html;
-    }
-  }
 })();

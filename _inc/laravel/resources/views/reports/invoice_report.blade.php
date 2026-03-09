@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang($user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang($user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/invoice_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +12,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Invoice Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Invoice Summary')}}</li>
 @endsection
 
 @push('theme-script')
@@ -74,7 +67,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -127,7 +120,7 @@
             if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
             target.setAttribute(dataChartGuard, "true");
             if (typeof window.ApexCharts !== "function") {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -167,7 +160,7 @@
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
                 if (typeof window.html2pdf !== "function") {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -186,7 +179,7 @@
             const $table = $("#report-dataTable");
             if (!$table.length) { return; }
             if (!$.fn || !$.fn.DataTable) {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -218,20 +211,20 @@
         })();
     </script>
 @endpush
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_invoice_reports_unavailable') ?? 'Download function for invoice reports is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-invoice-reports-link"
         class="{{ VC::BT_SM_PM }} download-invoice-reports"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -245,18 +238,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $invoiceSummaryBase        = VW::RPT.'.invoice.summary';
-                            $invoiceSummaryKebab       = Str::kebab($invoiceSummaryBase);
-                            $invoiceSummaryResolved    = Route::has($invoiceSummaryBase) ? $invoiceSummaryBase : (Route::has($invoiceSummaryKebab) ? $invoiceSummaryKebab : null);
-                            $invoiceSummaryUrl         = $invoiceSummaryResolved ? route($invoiceSummaryResolved) : '#';
-                            $invoiceSummaryGuardMsg    = Utility::fetchLinkMessage($lang, VW::RPT, 'invoice_summary_report_route_unavailable') ?? 'Invoice summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $invoiceSummaryBase        = VW::RPT.'.invoice.summary';
+                                $invoiceSummaryKebab       = Str::kebab($invoiceSummaryBase);
+                                $invoiceSummaryResolved    = Route::has($invoiceSummaryBase) ? $invoiceSummaryBase : (Route::has($invoiceSummaryKebab) ? $invoiceSummaryKebab : null);
+                                $invoiceSummaryUrl         = $invoiceSummaryResolved ? route($invoiceSummaryResolved) : '#';
+                                $invoiceSummaryGuardMsg    = Utility::fetchLinkMessage($lang, VW::RPT, 'invoice_summary_report_route_unavailable') ?? 'Invoice summary report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/invoice_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $invoiceSummaryUrl,
@@ -266,7 +264,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box">
@@ -300,7 +298,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-invoice-summary"
                                             data-form-id="report_invoice_summary"
-                                            data-guard-msg="{{ $invoiceSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($invoiceSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -310,7 +308,7 @@
                                             <a href="{{ $invoiceSummaryUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-invoice-summary"
                                             data-url="{{ $invoiceSummaryUrl }}"
-                                            data-guard-msg="{{ $invoiceSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($invoiceSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -333,31 +331,35 @@
     </div>
     <div id="printableArea">
         @php
-            $fltStatus   = data_get($filter,'status');
-            $fltCust     = data_get($filter,'customer');
-            $fltStart    = data_get($filter,'startDateRange');
-            $fltEnd      = data_get($filter,'endDateRange');
+            try {
+                $fltStatus   = data_get($filter,'status');
+                $fltCust     = data_get($filter,'customer');
+                $fltStart    = data_get($filter,'startDateRange');
+                $fltEnd      = data_get($filter,'endDateRange');
 
-            $statusText  = $fltStatus ?: __('Could not find status');
-            $custText    = $fltCust   ?: __('Could not find customer');
-            $startText   = $fltStart  ?: __('Could not find start date');
-            $endText     = $fltEnd    ?: __('Could not find end date');
+                $statusText  = $fltStatus ?: __('Could not find status');
+                $custText    = $fltCust   ?: __('Could not find customer');
+                $startText   = $fltStart  ?: __('Could not find start date');
+                $endText     = $fltEnd    ?: __('Could not find end date');
 
-            $filename = "{$statusText} " . __('Invoice') . " " . __('Report of') . " {$startText} " . __('to') . " {$endText} " . __('of') . " {$custText}";
+                $filename = "{$statusText} " . __('Invoice') . " " . __('Report of') . " {$startText} " . __('to') . " {$endText} " . __('of') . " {$custText}";
 
-            $items = [
-                ['label'=> __('Report'),   'value'=> __('Invoice Summary'),                           'when'=> true],
-                ['label'=> __('Customer'), 'value'=> $custText,                                       'when'=> $fltCust && $fltCust != __('All')],
-                ['label'=> __('Status'),   'value'=> $statusText,                                     'when'=> $fltStatus && $fltStatus != __('All')],
-                ['label'=> __('Duration'), 'value'=> "{$startText} " . __('to') . " {$endText}",      'when'=> true],
-            ];
+                $items = [
+                    ['label'=> __('Report'),   'value'=> __('Invoice Summary'),                           'when'=> true],
+                    ['label'=> __('Customer'), 'value'=> $custText,                                       'when'=> $fltCust && $fltCust != __('All')],
+                    ['label'=> __('Status'),   'value'=> $statusText,                                     'when'=> $fltStatus && $fltStatus != __('All')],
+                    ['label'=> __('Duration'), 'value'=> "{$startText} " . __('to') . " {$endText}",      'when'=> true],
+                ];
 
-            $stats = [
-                ['label' => __('Total Invoice'), 'value' => $totalInvoice ?? 0],
-                ['label' => __('Total Paid'),    'value' => $totalPaidInvoice ?? 0],
-                ['label' => __('Total Due'),     'value' => $totalDueInvoice ?? 0],
-            ];
-        @endphp
+                $stats = [
+                    ['label' => __('Total Invoice'), 'value' => $totalInvoice ?? 0],
+                    ['label' => __('Total Paid'),    'value' => $totalPaidInvoice ?? 0],
+                    ['label' => __('Total Due'),     'value' => $totalDueInvoice ?? 0],
+                ];
+            } catch (\Throwable $e) {
+                \Log::error('reports/invoice_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <input type="hidden" id="filename" value="{{ $filename }}">
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             @foreach($items as $item)
@@ -372,19 +374,16 @@
             @endforeach
         </div>
         <div class="{{ VC::RW }}">
-            @foreach($stats as $stat)
-                <div class="col-xl-4 col-md-6 col-lg-4">
-                    <div class="{{ VC::CD_POS }}">
-                        <h7 class="{{ VC::RPT_TX_GR }}">{{ $stat['label'] }}</h7>
-                        <h6 class="{{ VC::RPT_TX_DEF }}">{{ $user?->priceFormat($stat['value']) ?? number_format((float)$stat['value'],2) }}</h6>
-                    </div>
-                </div>
-            @endforeach
+            @include('reports.partials._kpi_cards', ['kpiHeading' => __('Invoice Overview'), 'kpis' => [
+                ['label' => __('Total Invoice'), 'value' => $user?->priceFormat($stats[0]['value'] ?? 0) ?? number_format((float)($stats[0]['value'] ?? 0),2), 'tone' => 'neutral'],
+                ['label' => __('Total Paid'),    'value' => $user?->priceFormat($stats[1]['value'] ?? 0) ?? number_format((float)($stats[1]['value'] ?? 0),2), 'tone' => 'positive'],
+                ['label' => __('Total Due'),     'value' => $user?->priceFormat($stats[2]['value'] ?? 0) ?? number_format((float)($stats[2]['value'] ?? 0),2), 'tone' => 'negative'],
+            ]])
         </div>
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}" id="invoice-container">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="{{ VC::DFL_JCB }} w-100">
                             <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
                                 <li class="{{ VC::NV_IT }}">
@@ -396,43 +395,52 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CS12 }}">
                                 <div class="tab-content" id="myTabContent2">
                                     <div class="tab-pane fade fade" id="invoices" role="tabpanel" aria-labelledby="profile-tab3">
-                                        <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                        <table class="{{ VC::TB }} table-flush rpt-table" id="report-dataTable" role="table" aria-label="{{ __('Invoices Detail') }}">
+                                            <caption class="sr-only">{{ __('Detailed list of invoices with amounts, status, and payment information') }}</caption>
                                             <thead>
                                                 <tr>
-                                                    <th>{{__('Invoice')}}</th>
-                                                    <th>{{__('Date')}}</th>
-                                                    <th>{{__('Customer')}}</th>
-                                                    <th>{{__('Category')}}</th>
-                                                    <th>{{__('Status')}}</th>
-                                                    <th>{{__('Paid Amount')}}</th>
-                                                    <th>{{__('Due Amount')}}</th>
-                                                    <th>{{__('Payment Date')}}</th>
-                                                    <th>{{__('Amount')}}</th>
+                                                    <th scope="col">{{__('Invoice')}}</th>
+                                                    <th scope="col">{{__('Date')}}</th>
+                                                    <th scope="col">{{__('Customer')}}</th>
+                                                    <th scope="col">{{__('Category')}}</th>
+                                                    <th scope="col">{{__('Status')}}</th>
+                                                    <th scope="col">{{__('Paid Amount')}}</th>
+                                                    <th scope="col">{{__('Due Amount')}}</th>
+                                                    <th scope="col">{{__('Payment Date')}}</th>
+                                                    <th scope="col">{{__('Amount')}}</th>
                                                 </tr>
                                             </thead>
                                             @php
-                                                $statusClasses = [
-                                                    0 => 'bg-primary',
-                                                    1 => 'bg-warning',
-                                                    2 => 'bg-danger',
-                                                    3 => 'bg-info',
-                                                    4 => 'bg-success',
-                                                ];
-                                            @endphp
+                                                try {
+                                                    $statusClasses = [
+                                                        0 => 'bg-primary',
+                                                        1 => 'bg-warning',
+                                                        2 => 'bg-danger',
+                                                        3 => 'bg-info',
+                                                        4 => 'bg-success',
+                                                    ];
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('reports/invoice_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tbody>
                                                 @forelse($invoices as $invoice)
                                                     @php
-                                                        $status = $invoice->status;
-                                                        $badgeClass = $statusClasses[$status] ?? 'bg-secondary';
-                                                        $custName = optional($invoice->customer)->name ?? __('No customer available');
-                                                        $catName  = optional($invoice->category)->name ?? __('No category available');
-                                                        $payDate  = optional($invoice->lastPayments)->date ? ($user?->dateFormat($invoice->lastPayments->date)) : __('No payment date available');
-                                                    @endphp
+                                                        try {
+                                                            $status = $invoice->status;
+                                                            $badgeClass = $statusClasses[$status] ?? 'bg-secondary';
+                                                            $custName = optional($invoice->customer)->name ?? __('No customer available');
+                                                            $catName  = optional($invoice->category)->name ?? __('No category available');
+                                                            $payDate  = optional($invoice->lastPayments)->date ? ($user?->dateFormat($invoice->lastPayments->date)) : __('No payment date available');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/invoice_report — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <tr>
                                                         <td class="Id">
                                                             <a href="{{ route(VW::INV . '.show', Crypt::encrypt($invoice->id)) }}" class="{{ VC::BT_OUTPM }}">
@@ -454,7 +462,7 @@
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="9" class="text-center text-muted">{{ __('No invoices available for the selected filters') }}</td>
+                                                        <td colspan="9" class="{{ VC::TXCT_MT }}">{{ __('No invoices available for the selected filters') }}</td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>
@@ -466,7 +474,7 @@
                                                 <div id="chart-sales" data-color="primary" data-type="bar" data-height="300"></div>
                                             </div>
                                             @if(empty($invoices) || count($invoices) === 0)
-                                                <div class="text-center text-muted mt-3">{{ __('No summary data available for the selected filters') }}</div>
+                                                <div class="{{ VC::TXCT_MT }} {{ VC::MT3 }}">{{ __('No summary data available for the selected filters') }}</div>
                                             @endif
                                         </div>
                                     </div>

@@ -24,11 +24,13 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 final class TimeTrackerSeeder extends Seeder
 {
-	private const MAX_LOOP_GUARD = 2000;
+	// private const MAX_LOOP_GUARD = 2000;
+	private const MAX_LOOP_GUARD = 4; /* original: 2000 */
 
 	private const DEFAULT_POOL_LIMIT = 1600;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$out = $this->output();

@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/quarterly_cashflow — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +12,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Cash Flow')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Cash Flow')}}</li>
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
@@ -35,15 +28,15 @@
 @endpush
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadLabelQc = __('Download');
             $downloadGuardMsgQc = Utility::fetchLinkMessage($lang, VW::RPT, 'download_quarterly_cashflow_report_unavailable') ?? 'Download function for Quarterly Cashflow report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
            class="{{ VC::BT_SM_PM }} download-quarterly-cashflow"
            data-func-name="saveAsPDF"
-           data-guard-msg="{{ $downloadGuardMsgQc }}"
+           data-guard-msg="{{ base64_encode($downloadGuardMsgQc) }}"
            data-sv-localized="true"
            data-bs-toggle="tooltip"
            title="{{ $downloadLabelQc }}"
@@ -61,13 +54,17 @@
     <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
         <li class="{{ VC::NV_IT }}">
             @php
-                $monthlyCashflowBase = VW::RPT.'.monthly.cashflow';
-                $monthlyCashflowKebab = Str::kebab($monthlyCashflowBase);
-                $monthlyCashflowResolved = Route::has($monthlyCashflowBase) ? $monthlyCashflowBase : (Route::has($monthlyCashflowKebab) ? $monthlyCashflowKebab : null);
-                $monthlyCashflowUrl = $monthlyCashflowResolved ? route($monthlyCashflowResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $mcGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_monthly_cashflow_route_unavailable') ?? 'Monthly cashflow route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $monthlyCashflowBase = VW::RPT.'.monthly.cashflow';
+                    $monthlyCashflowKebab = Str::kebab($monthlyCashflowBase);
+                    $monthlyCashflowResolved = Route::has($monthlyCashflowBase) ? $monthlyCashflowBase : (Route::has($monthlyCashflowKebab) ? $monthlyCashflowKebab : null);
+                    $monthlyCashflowUrl = $monthlyCashflowResolved ? route($monthlyCashflowResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $mcGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_monthly_cashflow_route_unavailable') ?? 'Monthly cashflow route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('reports/quarterly_cashflow — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a class="{{ VC::NV_LK }}"
             id="pills-home-tab"
             data-bs-toggle="pill"
@@ -76,7 +73,7 @@
             aria-controls="pills-home"
             aria-selected="true"
             data-url="{{ $monthlyCashflowUrl }}"
-            data-guard-msg="{{ $mcGuardMsg }}"
+            data-guard-msg="{{ base64_encode($mcGuardMsg) }}"
             data-sv-localized="true">{{ __('Monthly') }}</a>
 
             @push(StacksConstants::ADM_SCR_PG)
@@ -95,19 +92,23 @@
     </ul>
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $qcBase      = VW::RPT.'.quarterly.cashflow';
-                            $qcKebab     = Str::kebab($qcBase);
-                            $qcResolved  = Route::has($qcBase) ? $qcBase : (Route::has($qcKebab) ? $qcKebab : null);
-                            $actionRoute = $qcResolved ? [$qcResolved] : ['#'];
-                            $actionUrl   = $qcResolved ? route($qcResolved) : '#';
-                            $langValue      = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg  = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_quarterly_cashflow_route_unavailable') ?? 'Apply quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg  = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_quarterly_cashflow_route_unavailable') ?? 'Reset quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $qcBase      = VW::RPT.'.quarterly.cashflow';
+                                $qcKebab     = Str::kebab($qcBase);
+                                $qcResolved  = Route::has($qcBase) ? $qcBase : (Route::has($qcKebab) ? $qcKebab : null);
+                                $actionRoute = $qcResolved ? [$qcResolved] : ['#'];
+                                $actionUrl   = $qcResolved ? route($qcResolved) : '#';
+                                $langValue      = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg  = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_quarterly_cashflow_route_unavailable') ?? 'Apply quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg  = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_quarterly_cashflow_route_unavailable') ?? 'Reset quarterly cashflow route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/quarterly_cashflow — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'route'             => $actionRoute,
                             'method'            => 'GET',
@@ -117,7 +118,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_FLX_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -138,7 +139,7 @@
                                             href="#"
                                             class="{{ VC::BT_SM_PM }}"
                                             data-form-id="quarterly_cashflow"
-                                            data-guard-msg="{{ $applyGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -150,7 +151,7 @@
                                             href="{{ $actionUrl }}"
                                             class="{{ VC::BT_SM_DG }}"
                                             data-url="{{ $actionUrl }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -172,11 +173,15 @@
         </div>
     </div>
     @php
-        $startLabel = $filter['startDateRange'] ?? __('No start date available');
-        $endLabel   = $filter['endDateRange']   ?? __('No end date available');
-        $months     = $month ?? [];
-        $colspan    = max(2, count($months) + 1);
-    @endphp
+        try {
+            $startLabel = $filter['startDateRange'] ?? __('No start date available');
+            $endLabel   = $filter['endDateRange']   ?? __('No end date available');
+            $months     = $month ?? [];
+            $colspan    = max(2, count($months) + 1);
+        } catch (\Throwable $e) {
+            \Log::error('reports/quarterly_cashflow — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div id="printableArea">
         <div class="{{ VC::RW }} {{ VC::MT1 }}">
             <div class="col">
@@ -197,7 +202,7 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CS12 }}">
                                 <h5 class="pb-3">{{ __('Income') }}</h5>
@@ -223,7 +228,9 @@
                                             @forelse(($revenueIncomeArray ?? []) as $revenue)
                                                 <tr>
                                                     <td>{{ $revenue['category'] ?? __('No revenue category available') }}</td>
-                                                    @php $amounts = $revenue['amount'] ?? []; @endphp
+                                                    @php
+ $amounts = $revenue['amount'] ?? [];
+@endphp
                                                     @forelse($amounts as $amount)
                                                         <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                     @empty
@@ -245,7 +252,9 @@
                                             @forelse(($invoiceIncomeArray ?? []) as $invoice)
                                                 <tr>
                                                     <td>{{ $invoice['category'] ?? __('No invoice category available') }}</td>
-                                                    @php $amounts = $invoice['amount'] ?? []; @endphp
+                                                    @php
+ $amounts = $invoice['amount'] ?? [];
+@endphp
                                                     @forelse($amounts as $amount)
                                                         <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                     @empty
@@ -271,7 +280,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td width="25%" class="text-dark">{{ __('Total Income') }}</td>
+                                                    <td width="25%" class="{{ VC::TX_DK }}">{{ __('Total Income') }}</td>
                                                     @forelse(($totalIncome ?? []) as $income)
                                                         <td width="15%">{{ $user?->priceFormat($income) }}</td>
                                                     @empty
@@ -307,7 +316,9 @@
                                                 @forelse(($expenseArray ?? []) as $expense)
                                                     <tr>
                                                         <td>{{ $expense['category'] ?? __('No payment category available') }}</td>
-                                                        @php $amounts = $expense['amount'] ?? []; @endphp
+                                                        @php
+ $amounts = $expense['amount'] ?? [];
+@endphp
                                                         @forelse($amounts as $amount)
                                                             <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                         @empty
@@ -329,7 +340,9 @@
                                                 @forelse(($billExpenseArray ?? []) as $bill)
                                                     <tr>
                                                         <td>{{ $bill['category'] ?? __('No bill category available') }}</td>
-                                                        @php $amounts = $bill['amount'] ?? []; @endphp
+                                                        @php
+ $amounts = $bill['amount'] ?? [];
+@endphp
                                                         @forelse($amounts as $amount)
                                                             <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                         @empty
@@ -355,7 +368,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="text-dark">{{ __('Total Expenses') }}</td>
+                                                        <td class="{{ VC::TX_DK }}">{{ __('Total Expenses') }}</td>
                                                         @forelse(($totalExpense ?? []) as $expense)
                                                             <td width="15%">{{ $user?->priceFormat($expense) }}</td>
                                                         @empty
@@ -379,7 +392,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td width="25%" class="text-dark">{{ __('Net Profit') }}</td>
+                                                        <td width="25%" class="{{ VC::TX_DK }}">{{ __('Net Profit') }}</td>
                                                         @forelse(($netProfitArray ?? []) as $profit)
                                                             <td width="15%">{{ $user?->priceFormat($profit) }}</td>
                                                         @empty
@@ -399,4 +412,3 @@
         </div>
     </div>
 @endsection
-

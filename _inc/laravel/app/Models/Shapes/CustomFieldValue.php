@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Config\Constants\DatabaseConstants as DC;
-use App\Models\CustomField;
+use App\Config\Constants\{DatabaseConstants as DC};
+use App\Models\{CustomField};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Builder,

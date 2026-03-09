@@ -1,16 +1,15 @@
 @php
-    use Illuminate\Support\Collection;
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Models\Utility;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\{Auth, Route};
-    $auth = Auth::user();
-    $avatarFolder = config('chatify.user_avatar.folder','uploads/avatar');
-    $avatarFile = data_get($auth,'avatar') ?: 'avatar.png';
-    $avatarPathTmp = Utility::getFile('/'.$avatarFolder.'/'.$avatarFile);
-    $avatarPath = $avatarPathTmp ?: asset('/storage/'.$avatarFolder.'/avatar.png');
-    $darkMode = (int) (data_get($auth,'dark_mode',0)) > 0 ? 1 : 0;
-    $appName = config('chatify.name') ?: __('Messenger');
+    try {
+$auth = Auth::user();
+        $avatarFolder = config('chatify.user_avatar.folder','uploads/avatar');
+        $avatarFile = data_get($auth,'avatar') ?: 'avatar.png';
+        $avatarPathTmp = Utility::getFile('/'.$avatarFolder.'/'.$avatarFile);
+        $avatarPath = $avatarPathTmp ?: asset('/storage/'.$avatarFolder.'/avatar.png');
+        $darkMode = (int) (data_get($auth,'dark_mode',0)) > 0 ? 1 : 0;
+        $appName = config('chatify.name') ?: __('Messenger');
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/modals — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <div id="imageModalBox" class="imageModal"><span class="imageModal-close">&times;</span><img class="imageModal-content" id="imageModalBoxSrc"></div>
 <div class="app-modal" data-name="delete">
@@ -35,20 +34,24 @@
     <div class="app-modal-container">
         <div class="app-modal-card" data-name="settings" data-modal="0">
             @php
-                $avatarUpdateBase = 'avatar.update';
-                $avatarUpdateKebab = Str::kebab($avatarUpdateBase);
-                $avatarUpdateResolved = Route::has($avatarUpdateBase) ? $avatarUpdateBase : (Route::has($avatarUpdateKebab) ? $avatarUpdateKebab : null);
-                $avatarUpdateUrl = $avatarUpdateResolved ? route($avatarUpdateResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $avatarUpdateGuardMsg = Utility::fetchLinkMessage($langValue, 'messenger', 'update_avatar_route_unavailable') ?? 'Update avatar route is unavailable. Please contact technical support or your domain administrator.';
-                $formId = 'update-settings';
-            @endphp
+                $avatarUpdateBase ??= 'avatar.update';
+                try {
+                    $avatarUpdateKebab = Str::kebab($avatarUpdateBase);
+                    $avatarUpdateResolved = Route::has($avatarUpdateBase) ? $avatarUpdateBase : (Route::has($avatarUpdateKebab) ? $avatarUpdateKebab : null);
+                    $avatarUpdateUrl = $avatarUpdateResolved ? route($avatarUpdateResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $avatarUpdateGuardMsg = Utility::fetchLinkMessage($langValue, 'messenger', 'update_avatar_route_unavailable') ?? 'Update avatar route is unavailable. Please contact technical support or your domain administrator.';
+                    $formId = 'update-settings';
+                } catch (\Throwable $e) {
+                    \Log::error('vendor/Chatify/layouts/modals — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <form id="{{ $formId }}"
                 action="{{ $avatarUpdateUrl }}"
                 enctype="multipart/form-data"
                 method="POST"
                 data-url="{{ $avatarUpdateUrl }}"
-                data-guard-msg="{{ $avatarUpdateGuardMsg }}"
+                data-guard-msg="{{ base64_encode($avatarUpdateGuardMsg) }}"
                 data-sv-localized="true">
                 @csrf
                 <div class="app-modal-header">{{ __('Update your profile settings') }}</div>

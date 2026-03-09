@@ -1,19 +1,21 @@
 @php
-    use App\Config\Constants\{ViewClassNamesConstants as VC};
-    use Illuminate\Support\{Arr, Collection};
-    $starOptions = [
-        5 => __('Excellent – 5 stars'),
-        4 => __('Very Good – 4 stars'),
-        3 => __('Good – 3 stars'),
-        2 => __('Fair – 2 stars'),
-        1 => __('Poor – 1 star'),
-    ];
-    $sections = ['ratings' => __('Indicator'), 'rating' => __('Appraisal')];
-    $details = [
-        ['col' => 'col-md-12',     'label' => __('Branch'),         'value' => data_get($appraisal ?? null, 'branches.name', __('Failed to get branch name'))],
-        ['col' => 'col-md-6 mt-3', 'label' => __('Employee'),       'value' => data_get($appraisal ?? null, 'employees.name', __('Failed to get employee name'))],
-        ['col' => 'col-md-6 mt-3', 'label' => __('Appraisal Date'), 'value' => data_get($appraisal ?? null, 'appraisal_date', __('Failed to get appraisal date'))],
-    ];
+    try {
+$starOptions = [
+            5 => __('Excellent – 5 stars'),
+            4 => __('Very Good – 4 stars'),
+            3 => __('Good – 3 stars'),
+            2 => __('Fair – 2 stars'),
+            1 => __('Poor – 1 star'),
+        ];
+        $sections = ['ratings' => __('Indicator'), 'rating' => __('Appraisal')];
+        $details = [
+            ['col' => 'col-md-12',     'label' => __('Branch'),         'value' => data_get($appraisal ?? null, 'branches.name', __('Failed to get branch name'))],
+            ['col' => 'col-md-6 mt-3', 'label' => __('Employee'),       'value' => data_get($appraisal ?? null, 'employees.name', __('Failed to get employee name'))],
+            ['col' => 'col-md-6 mt-3', 'label' => __('Appraisal Date'), 'value' => data_get($appraisal ?? null, 'appraisal_date', __('Failed to get appraisal date'))],
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('appraisals/star_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="modal-body">
@@ -33,19 +35,21 @@
     @endif
 
     <div class="{{ VC::RW }}">
-        <div class="col-5 text-end" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
-        <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
+        <div class="col-5 {{ VC::TX_END }}" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
+        <div class="col-4 {{ VC::TX_END }}"><h5>{{ __('Appraisal') }}</h5></div>
 
         @if(
             !empty($performance_types) && ((is_array($performance_types) && count($performance_types) > 0) || ($performance_types instanceof Collection && $performance_types->isNotEmpty()))
         )
             @foreach($performance_types as $pt)
-                <div class="col-md-12 mt-3">
+                <div class="{{ VC::CM12 }} {{ VC::MT3 }}">
                     <h6>{{ $pt->name ?? __('No name for Performance type group found') }}</h6>
                     <hr class="mt-0">
                 </div>
 
-                @php $types = $pt->types ?? null; @endphp
+                @php
+ $types = $pt->types ?? null;
+@endphp
                 @if(
                     !empty($types) && ((is_array($types) && count($types) > 0)
                     || ($types instanceof Collection && $types->isNotEmpty()))
@@ -78,13 +82,13 @@
                 @endif
             @endforeach
         @else
-            <div class="col-3 text-end"><h5>{{ __('No Indicator group found') }}</h5></div>
+            <div class="{{ VC::C3 }} {{ VC::TX_END }}"><h5>{{ __('No Indicator group found') }}</h5></div>
         @endif
     </div>
     @if(!empty($appraisal) && isset($appraisal))
         <div class="{{ VC::RW }}">
-            <div class="col-md-12"><hr><h6>{{ __('Remark') }}</h6></div>
-            <div class="col-md-12 mt-3"><p class="{{ VC::TXSM }}">{{ $appraisal->remark ?? __('No remark found.') }}</p></div>
+            <div class="{{ VC::CM12 }}"><hr><h6>{{ __('Remark') }}</h6></div>
+            <div class="{{ VC::CM12 }} {{ VC::MT3 }}"><p class="{{ VC::TXSM }}">{{ $appraisal->remark ?? __('No remark found.') }}</p></div>
         </div>
     @else
         <div class="{{ VC::RW }}">{{ __('No appraisal found.') }}</div>

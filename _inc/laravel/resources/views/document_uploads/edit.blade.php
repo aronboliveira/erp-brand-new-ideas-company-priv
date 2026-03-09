@@ -1,50 +1,88 @@
 @php
-    use App.Config.Constants\{PlansConstants as PL, ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, Storage};
-    use Illuminate\Support\{Collection, Str};
-
-    $lang = Utility::fetchUserLang();
-    $hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
-    $plan = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
-    $aiEnabled = $plan?->{PL::COL_GPT} == 1;
-
-    $rolesIsList = (is_array($roles ?? null) && count($roles ?? []) > 0) || (($roles ?? null) instanceof Collection && $roles->isNotEmpty());
-    $roleOptions = ($roles ?? null) instanceof Collection ? $roles->toArray() : (is_array($roles ?? null) ? $roles : []);
-    $roleHasError = $errors->has('role');
-    $roleAttrs = [
-        'id' => 'role',
-        'class' => trim(VC::FM_CT_SL.' '.($roleHasError ? 'is-invalid' : '')),
-        'placeholder' => __('Select Role'),
-        'aria-invalid' => $roleHasError ? 'true' : 'false',
-        'aria-describedby' => $roleHasError ? 'role-error' : null,
-    ];
-    if (!$rolesIsList) { $roleAttrs['disabled'] = 'disabled'; }
-
-    $hasDocument = !empty($documentUpload->document ?? null);
-    $docSrc = $hasDocument ? asset(Storage::url('uploads/documentUpload')).'/'.$documentUpload->document : null;
-
-    $docUpdateBase = VW::DOC_UP.'.update';
-    $docUpdateKebab = Str::kebab($docUpdateBase);
-    $docUpdateResolved = Route::has($docUpdateBase) ? $docUpdateBase : (Route::has($docUpdateKebab) ? $docUpdateKebab : null);
-    $docUpdateUrl = ($docUpdateResolved && !empty($documentUpload?->id)) ? route($docUpdateResolved, [$documentUpload->id]) : '#';
-    $docUpdateFormId = 'document-upload-update-form-'.($documentUpload->id ?? 'x');
-    $docUpdateGuardMsg = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'update_document_route_unavailable') ?? 'Update document route is unavailable. Please contact technical support or your domain administrator.';
-    $nameHasError = $errors->has('name');
-    $nameAttrs = [
-        'id' => 'name',
-        'class' => trim(VC::FM_CT.' '.($nameHasError ? 'is-invalid' : '')),
-        'required' => 'required',
-        'aria-invalid' => $nameHasError ? 'true' : 'false',
-        'aria-describedby' => $nameHasError ? 'name-error' : null,
-        'autocomplete' => 'off',
-    ];
-    $genBase = 'generate';
-    $genKebab = Str::kebab($genBase);
-    $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
-    $genUrl = $aiEnabled ? ($genResolved ? route($genResolved, ['document']) : '#') : '#';
-    $genGuardMsg = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'generate_document_route_unavailable') ?? 'Generate document route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$hasChatGPTSettings ??= false;
+	$plan ??= null;
+	$aiEnabled ??= false;
+	$rolesIsList ??= false;
+	$roleOptions ??= [];
+	$roleHasError ??= false;
+	$roleAttrs ??= [];
+	$hasDocument ??= false;
+	$docSrc ??= null;
+	$docUpdateBase ??= '';
+	$docUpdateKebab ??= '';
+	$docUpdateResolved ??= null;
+	$docUpdateUrl ??= '#';
+	$docUpdateFormId ??= 'document-upload-update-form-x';
+	$docUpdateGuardMsg ??= '';
+	$nameHasError ??= false;
+	$nameAttrs ??= [];
+	$genBase ??= 'generate';
+	$genKebab ??= '';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
+		$plan = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
+		$aiEnabled = $plan?->{PL::COL_GPT} == 1;
+		$rolesIsList = (is_array($roles ?? null) && count($roles ?? []) > 0) || (($roles ?? null) instanceof Collection && $roles->isNotEmpty());
+		$roleOptions = ($roles ?? null) instanceof Collection ? $roles->toArray() : (is_array($roles ?? null) ? $roles : []);
+		$roleHasError = !empty($errors) && method_exists($errors, 'has') && $errors->has('role');
+		$roleAttrs = [
+			'id' => 'role',
+			'class' => trim(VC::FM_CT_SL . ' ' . ($roleHasError ? 'is-invalid' : '')),
+			'placeholder' => __('Select Role'),
+			'aria-invalid' => $roleHasError ? 'true' : 'false',
+			'aria-describedby' => $roleHasError ? 'role-error' : null,
+		];
+		if (!$rolesIsList) { $roleAttrs['disabled'] = 'disabled'; }
+		$hasDocument = !empty(data_get($documentUpload ?? null, 'document'));
+		$docSrc = $hasDocument ? asset(Storage::url('uploads/documentUpload')) . '/' . data_get($documentUpload ?? null, 'document') : null;
+		$docUpdateBase = VW::DOC_UP . '.update';
+		$docUpdateKebab = Str::kebab($docUpdateBase);
+		$docUpdateResolved = Route::has($docUpdateBase) ? $docUpdateBase : (Route::has($docUpdateKebab) ? $docUpdateKebab : null);
+		$documentUploadId = data_get($documentUpload ?? null, 'id');
+		$docUpdateUrl = ($docUpdateResolved && $documentUploadId) ? (route($docUpdateResolved, [$documentUploadId]) ?? '#') : '#';
+		$docUpdateFormId = 'document-upload-update-form-' . ($documentUploadId ?? 'x');
+		$docUpdateGuardMsg = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'update_document_route_unavailable') ?? 'Update document route is unavailable. Please contact technical support or your domain administrator.';
+		$nameHasError = !empty($errors) && method_exists($errors, 'has') && $errors->has('name');
+		$nameAttrs = [
+			'id' => 'name',
+			'class' => trim(VC::FM_CT . ' ' . ($nameHasError ? 'is-invalid' : '')),
+			'required' => 'required',
+			'aria-invalid' => $nameHasError ? 'true' : 'false',
+			'aria-describedby' => $nameHasError ? 'name-error' : null,
+			'autocomplete' => 'off',
+		];
+		$genBase = 'generate';
+		$genKebab = Str::kebab($genBase);
+		$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+		$genUrl = $aiEnabled ? ($genResolved ? (route($genResolved, ['document']) ?? '#') : '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'generate_document_route_unavailable') ?? 'Generate document route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in document_uploads/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in document_uploads/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in document_uploads/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($documentUpload) && !isset($documentUpload->id))
@@ -59,11 +97,11 @@
     ]) }}
         <div class="modal-body">
             @if($aiEnabled)
-                <div class="text-end">
+                <div class="{{ VC::TX_END }}">
                     <a id="document-generate-btn"
                     href="{{ $genUrl }}"
                     data-url="{{ $genUrl }}"
-                    data-guard-msg="{{ $genGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($genGuardMsg) }}"
                     data-sv-localized="true"
                     data-size="md"
                     class="{{ VC::BT_SM_PM }} btn-icon"
@@ -80,7 +118,7 @@
                         {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                         {{ Form::text('name', null, $nameAttrs) }}
                         @error('name')
-                            <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                            <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                         @enderror
                     </div>
                 </div>
@@ -89,7 +127,7 @@
                         {{ Form::label('role', __('Role'), ['class' => VC::FM_LB]) }}
                         {{ Form::select('role', $roleOptions, null, $roleAttrs) }}
                         @error('role')
-                            <span id="role-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                            <span id="role-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></span>
                         @enderror
                     </div>
                 </div>

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
     ActivitiesConstants,
@@ -14,6 +16,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Storage, Validator, View as ViewFacade};
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class TimeTrackerController extends Controller
 {
@@ -53,7 +56,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id]);
-            if ($resp = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($c = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) !== true) return $c;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view);
         });
@@ -67,7 +70,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'input' => $request->all()]);
-            if ($resp = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($c = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) !== true) return $c;
             $v = Validator::make($request->all(), [
                 ProjectsConstants::COL_PJ_ID      => 'required|integer|exists:projects,id',
                 ActivitiesConstants::COL_TSK_ID   => 'required|integer|exists:project_tasks,id',
@@ -117,7 +120,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
-            if ($resp = $this->guard($request, 'view time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($c = $this->guard($request, 'view time tracker', self::REDIRECT_INDEX)) !== true) return $c;
             if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
@@ -133,7 +136,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
-            if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($c = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) !== true) return $c;
             if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
@@ -148,7 +151,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id, 'input' => $request->all()]);
-            if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($c = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) !== true) return $c;
             if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             $v = Validator::make($request->all(), [
                 ProjectsConstants::COL_PJ_ID      => 'required|integer|exists:projects,id',
@@ -260,6 +263,14 @@ class TimeTrackerController extends Controller
     }
 
     public const RM_TRT = 'removeTracker';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function removeTracker(Request $request): JsonResponse
     {
         $action = __METHOD__;

@@ -1,67 +1,17 @@
 (() => {
-  const errFb = "# ERROR";
-  const clientFlag = "data-client-localized";
-  const guardMsgKey = "data-guard-msg";
-  const langKey = "erp-np-lang";
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  const $ = window.jQuery;
+  if (!guard || !utils || !$) return;
+
   let errorMessage = "";
 
   const getLocalizedMessage = (key, el) => {
-    let msg = errFb;
-    if (el.getAttribute(clientFlag) === "true") {
-      msg = el.getAttribute(guardMsgKey) || msg;
-    } else {
-      let lang = (
-        sessionStorage.getItem(langKey) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        translations?.[lang]?.[key] ||
-        el.getAttribute(guardMsgKey) ||
-        translations?.["en"]?.[key] ||
-        msg;
-      if (msg !== errFb) {
-        el.setAttribute(guardMsgKey, msg);
-        el.setAttribute(clientFlag, "true");
-      }
-    }
-    return msg;
+    return utils.getTranslation(key) || "# ERROR";
   };
 
   const showError = message => {
-    try {
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      const bs =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
-      if (bs) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = message;
-        toast.appendChild(body);
-        container.appendChild(toast);
-        bootstrap.Toast.getOrCreateInstance(toast).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
+    guard.showToast(message);
   };
 
   const onErrorPointerUp = () => {
@@ -70,7 +20,9 @@
       errorMessage = "";
     }
   };
+
   document.addEventListener("pointerup", onErrorPointerUp);
+
   new MutationObserver((muts, obs) => {
     muts.forEach(m =>
       Array.from(m.removedNodes).forEach(n => {
@@ -84,43 +36,42 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const typeEl = document.getElementById("type");
-    if (typeEl && typeEl.dataset.listenerAttached !== "true") {
-      typeEl.dataset.listenerAttached = "true";
+    if (typeEl && typeEl.dataset.listenerAttached !== \"true\") {
+      typeEl.dataset.listenerAttached = \"true\";
       const onTypeChange = () => {
         try {
-          const url = '{{ route("charofAccount.subType") }}';
-          if (!url) throw new Error("char_of_account_subtype_unavailable");
-          const val = typeEl.value ?? "";
+          const url = '{{ route(\"charofAccount.subType\") }}';\n          if (!url) throw new Error(\"char_of_account_subtype_unavailable\");
+          const val = typeEl.value ?? \"\";
           $.ajax({
             url,
-            type: "POST",
-            dataType: "json",
-            data: { type: val, _token: "{{ csrf_token() }}" },
+            type: \"POST\",
+            dataType: \"json\",
+            data: { type: val, _token: \"{{ csrf_token() }}\" },
           })
             .done(data => {
-              const sub = document.getElementById("sub_type");
+              const sub = document.getElementById(\"sub_type\");
               if (!sub) return;
-              sub.innerHTML = "";
+              sub.innerHTML = \"\";
               Object.entries(data).forEach(([k, v]) => {
-                const o = document.createElement("option");
+                const o = document.createElement(\"option\");
                 o.value = k;
                 o.textContent = v;
                 sub.appendChild(o);
               });
             })
             .fail(() => {
-              throw new Error("char_of_account_subtype_unavailable");
+              errorMessage = getLocalizedMessage(\"char_of_account_subtype_unavailable\", typeEl);
             });
         } catch (e) {
           errorMessage = getLocalizedMessage(e.message, typeEl);
         }
       };
-      typeEl.addEventListener("change", onTypeChange);
+      typeEl.addEventListener(\"change\", onTypeChange);
       new MutationObserver((ms, obs) => {
         ms.forEach(m =>
           Array.from(m.removedNodes).forEach(n => {
             if (n === typeEl) {
-              typeEl.removeEventListener("change", onTypeChange);
+              typeEl.removeEventListener(\"change\", onTypeChange);
               obs.disconnect();
             }
           })
@@ -130,16 +81,16 @@
 
     try {
       const copyDates = () => {
-        const start = document.querySelector(".startDate")?.value ?? "";
-        const end = document.querySelector(".endDate")?.value ?? "";
+        const start = document.querySelector(\".startDate\")?.value ?? \"\";
+        const end = document.querySelector(\".endDate\")?.value ?? \"\";
         document
-          .querySelectorAll(".start_date")
+          .querySelectorAll(\".start_date\")
           .forEach(el => (el.value = start));
-        document.querySelectorAll(".end_date").forEach(el => (el.value = end));
+        document.querySelectorAll(\".end_date\").forEach(el => (el.value = end));
       };
       copyDates();
     } catch {
-      errorMessage = getLocalizedMessage("date_callback_failed", document.body);
+      errorMessage = getLocalizedMessage(\"date_callback_failed\", document.body);
     }
   });
 })();

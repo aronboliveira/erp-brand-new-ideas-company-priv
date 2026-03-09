@@ -66,11 +66,13 @@ enum AppModuleType: string
 			'customer_relationship_management' => self::CRM,
 			'customer_relation' => self::CRM,
 			'clients'           => self::CRM,
+			'clientes'          => self::CRM,
 			'client_management' => self::CRM,
 
 			// HRM
 			'hrm'               => self::HRM,
 			'human_resources'   => self::HRM,
+			'recursos_humanos'  => self::HRM,
 			'recursos_humanos'  => self::HRM,
 			'hr'                => self::HRM,
 			'rh'                => self::HRM,

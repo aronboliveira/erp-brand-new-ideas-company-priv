@@ -1,12 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants, StacksConstants as ST, ViewClassNamesConstants as VC, ViewsConstants as VW, YieldingConstants};
-	use App\Models\{Utility};
-	use Illuminate\Support\{Collection, Str};
-	use Illuminate\Support\Facades\{Auth, Crypt, Gate, Log, Route};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$user ??= null;
+$user ??= null;
 	$lang ??= (string)'';
 	$employees ??= [];
 	try {
@@ -46,39 +39,43 @@
 	{{ __('Manage Employee') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-	<li class="breadcrumb-item">
+	<li class="{{ VC::BCI }}">
 		<a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"{{ Route::has('dashboard') ? '' : ' aria-disabled="true"' }}>
 			{{ __('Dashboard') }}
 		</a>
 	</li>
-	<li class="breadcrumb-item">{{ __('Employee') }}</li>
+	<li class="{{ VC::BCI }}">{{ __('Employee') }}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $empImportBase   = VW::EMP.'.file.import';
-        $empImportKebab  = Str::kebab($empImportBase);
-        $empImportName   = Route::has($empImportBase) ? $empImportBase : (Route::has($empImportKebab) ? $empImportKebab : null);
-        $empImportUrl    = $empImportName ? route($empImportName) : '#';
-        $empImportMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'import_employee_file_route_unavailable') ?? 'Import employee file route is unavailable. Please contact technical support or your domain administrator.';
+        try {
+            $empImportBase   = VW::EMP.'.file.import';
+            $empImportKebab  = Str::kebab($empImportBase);
+            $empImportName   = Route::has($empImportBase) ? $empImportBase : (Route::has($empImportKebab) ? $empImportKebab : null);
+            $empImportUrl    = $empImportName ? route($empImportName) : '#';
+            $empImportMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'import_employee_file_route_unavailable') ?? 'Import employee file route is unavailable. Please contact technical support or your domain administrator.';
 
-        $empExportBase   = VW::EMP.'.export';
-        $empExportKebab  = Str::kebab($empExportBase);
-        $empExportName   = Route::has($empExportBase) ? $empExportBase : (Route::has($empExportKebab) ? $empExportKebab : null);
-        $empExportUrl    = $empExportName ? route($empExportName) : '#';
-        $empExportMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'export_employee_route_unavailable') ?? 'Export employee route is unavailable. Please contact technical support or your domain administrator.';
+            $empExportBase   = VW::EMP.'.export';
+            $empExportKebab  = Str::kebab($empExportBase);
+            $empExportName   = Route::has($empExportBase) ? $empExportBase : (Route::has($empExportKebab) ? $empExportKebab : null);
+            $empExportUrl    = $empExportName ? route($empExportName) : '#';
+            $empExportMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'export_employee_route_unavailable') ?? 'Export employee route is unavailable. Please contact technical support or your domain administrator.';
 
-        $empCreateBase   = VW::EMP.'.create';
-        $empCreateKebab  = Str::kebab($empCreateBase);
-        $empCreateName   = Route::has($empCreateBase) ? $empCreateBase : (Route::has($empCreateKebab) ? $empCreateKebab : null);
-        $empCreateUrl    = $empCreateName ? route($empCreateName) : '#';
-        $empCreateMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'create_employee_route_unavailable') ?? 'Create employee route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+            $empCreateBase   = VW::EMP.'.create';
+            $empCreateKebab  = Str::kebab($empCreateBase);
+            $empCreateName   = Route::has($empCreateBase) ? $empCreateBase : (Route::has($empCreateKebab) ? $empCreateKebab : null);
+            $empCreateUrl    = $empCreateName ? route($empCreateName) : '#';
+            $empCreateMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'create_employee_route_unavailable') ?? 'Create employee route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('employees/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::FEND }}">
         <a
             id="employee-import-btn"
             href="{{ $empImportUrl }}"
             data-url="{{ $empImportUrl }}"
-            data-guard-msg="{{ $empImportMsg }}"
+            data-guard-msg="{{ base64_encode($empImportMsg) }}"
             data-sv-localized="true"
             data-size="md"
             data-bs-toggle="tooltip"
@@ -93,7 +90,7 @@
             id="employee-export-btn"
             href="{{ $empExportUrl }}"
             data-url="{{ $empExportUrl }}"
-            data-guard-msg="{{ $empExportMsg }}"
+            data-guard-msg="{{ base64_encode($empExportMsg) }}"
             data-sv-localized="true"
             data-bs-toggle="tooltip"
             title="{{ __('Export') }}"
@@ -105,7 +102,7 @@
             id="employee-create-btn"
             href="{{ $empCreateUrl }}"
             data-url="{{ $empCreateUrl }}"
-            data-guard-msg="{{ $empCreateMsg }}"
+            data-guard-msg="{{ base64_encode($empCreateMsg) }}"
             data-sv-localized="true"
             data-bs-toggle="tooltip"
             title="{{ __('Create') }}"
@@ -123,10 +120,10 @@
 @endpush
 @section(YieldingConstants::ADM_CTT)
 	<div class="{{ VC::RW }}">
-		<div class="col-xl-12">
+		<div class="{{ VC::CXL12 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="{{ VC::TB }} datatable">
 							<thead>
 								<tr>
@@ -145,28 +142,32 @@
 								@php
 									$list = (is_array($employees ?? null) || ($employees ?? null) instanceof Collection) ? $employees : [];
 									$hasItems = (is_array($list) && count($list) > 0) || ($list instanceof Collection && $list->isNotEmpty());
-								@endphp
+@endphp
 								@forelse($list as $employee)
 									<tr>
 										<td class="Id">
 											@can('show employee profile')
 												@php
-														$employeeIdStr     = (string) data_get($employee ?? null, 'id', '');
-														$encryptedId       = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
-														$empShowBase       = VW::EMP.'.show';
-														$empShowKebab      = Str::kebab($empShowBase);
-														$empShowResolved   = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
-														$empShowUrl        = ($empShowResolved && $encryptedId) ? route($empShowResolved, $encryptedId) : '#';
-														$empShowGuardMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-														$showLinkId        = 'employee-show-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
-														$hasEmpCode        = isset($employee->employee_id) && $employee->employee_id !== '';
-														$displayEmpCode    = $hasEmpCode ? (string) ($user?->employeeIdFormat($employee->employee_id) ?? $employee->employee_id) : __('No employee ID available');
-												@endphp
+														try {
+														    $employeeIdStr     = (string) data_get($employee ?? null, 'id', '');
+														    $encryptedId       = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
+														    $empShowBase       = VW::EMP.'.show';
+														    $empShowKebab      = Str::kebab($empShowBase);
+														    $empShowResolved   = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
+														    $empShowUrl        = ($empShowResolved && $encryptedId) ? route($empShowResolved, $encryptedId) : '#';
+														    $empShowGuardMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+														    $showLinkId        = 'employee-show-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
+														    $hasEmpCode        = isset($employee->employee_id) && $employee->employee_id !== '';
+														    $displayEmpCode    = $hasEmpCode ? (string) ($user?->employeeIdFormat($employee->employee_id) ?? $employee->employee_id) : __('No employee ID available');
+														} catch (\Throwable $e) {
+														    \Log::error('employees/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+														}
+@endphp
 												<a
 														id="{{ $showLinkId }}"
 														href="{{ $empShowUrl }}"
 														data-url="{{ $empShowUrl }}"
-														data-guard-msg="{{ $empShowGuardMsg }}"
+														data-guard-msg="{{ base64_encode($empShowGuardMsg) }}"
 														data-sv-localized="true"
 														class="{{ VC::BT_OUTPM }}"
 														{{ $empShowUrl === '#' ? 'aria-disabled=true' : '' }}
@@ -197,27 +198,33 @@
 											{{ !empty($employee->company_doj) ? (string)($user?->dateFormat($employee->company_doj) ?? '-') : '-' }}
 										</td>
 										<td>{{ data_get($employee,'user.last_login_at') ?: '-' }}</td>
-										@php $canEdit = Gate::check('edit employee'); $canDelete = Gate::check('delete employee'); @endphp
+										@php
+ $canEdit = Gate::check('edit employee'); $canDelete = Gate::check('delete employee');
+@endphp
 										@if($canEdit || $canDelete)
 											<td>
 												@if(isset($employee->is_active) && (int)$employee->is_active === 1)
 													@can('edit employee')
 														<div class="{{ VC::ACT_BTN_PRIM }}">
 														@php
-																$employeeIdStr    = (string) data_get($employee ?? null, 'id', '');
-																$encryptedId      = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
-																$empEditBase      = VW::EMP.'.edit';
-																$empEditKebab     = Str::kebab($empEditBase);
-																$empEditResolved  = Route::has($empEditBase) ? $empEditBase : (Route::has($empEditKebab) ? $empEditKebab : null);
-																$empEditUrl       = ($empEditResolved && $encryptedId) ? route($empEditResolved, $encryptedId) : '#';
-																$empEditGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'edit_employee_route_unavailable') ?? 'Edit employee route is unavailable. Please contact technical support or your domain administrator.';
-																$editLinkId       = 'employee-edit-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
-														@endphp
+																try {
+																    $employeeIdStr    = (string) data_get($employee ?? null, 'id', '');
+																    $encryptedId      = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
+																    $empEditBase      = VW::EMP.'.edit';
+																    $empEditKebab     = Str::kebab($empEditBase);
+																    $empEditResolved  = Route::has($empEditBase) ? $empEditBase : (Route::has($empEditKebab) ? $empEditKebab : null);
+																    $empEditUrl       = ($empEditResolved && $encryptedId) ? route($empEditResolved, $encryptedId) : '#';
+																    $empEditGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'edit_employee_route_unavailable') ?? 'Edit employee route is unavailable. Please contact technical support or your domain administrator.';
+																    $editLinkId       = 'employee-edit-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
+																} catch (\Throwable $e) {
+																    \Log::error('employees/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+																}
+@endphp
 														<a
 																id="{{ $editLinkId }}"
 																href="{{ $empEditUrl }}"
 																data-url="{{ $empEditUrl }}"
-																data-guard-msg="{{ $empEditGuardMsg }}"
+																data-guard-msg="{{ base64_encode($empEditGuardMsg) }}"
 																data-sv-localized="true"
 																class="{{ VC::BT_SM_CT }}"
 																data-bs-toggle="tooltip"
@@ -234,17 +241,21 @@
 													@can('delete employee')
 														<div class="{{ VC::ACT_BTN_DNG_2 }}">
 															@php
-																	$employeeIdStr     = (string) data_get($employee ?? null, 'id', '');
-																	$empDestroyBase    = VW::EMP.'.destroy';
-																	$empDestroyKebab   = Str::kebab($empDestroyBase);
-																	$empDestroyName    = Route::has($empDestroyBase) ? $empDestroyBase : (Route::has($empDestroyKebab) ? $empDestroyKebab : null);
-																	$empDestroyUrl     = ($empDestroyName && $employeeIdStr !== '') ? route($empDestroyName, [$employeeIdStr]) : '#';
-																	$destroyFormId     = 'delete-form-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
-																	$destroyBtnId      = 'delete-employee-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
-																	$destroyGuardMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'destroy_employee_route_unavailable') ?? 'Delete employee route is unavailable. Please contact technical support or your domain administrator.';
-																	$areYouSure        = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-																	$irreversible      = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-															@endphp
+																	try {
+																	    $employeeIdStr     = (string) data_get($employee ?? null, 'id', '');
+																	    $empDestroyBase    = VW::EMP.'.destroy';
+																	    $empDestroyKebab   = Str::kebab($empDestroyBase);
+																	    $empDestroyName    = Route::has($empDestroyBase) ? $empDestroyBase : (Route::has($empDestroyKebab) ? $empDestroyKebab : null);
+																	    $empDestroyUrl     = ($empDestroyName && $employeeIdStr !== '') ? route($empDestroyName, [$employeeIdStr]) : '#';
+																	    $destroyFormId     = 'delete-form-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
+																	    $destroyBtnId      = 'delete-employee-btn-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
+																	    $destroyGuardMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'destroy_employee_route_unavailable') ?? 'Delete employee route is unavailable. Please contact technical support or your domain administrator.';
+																	    $areYouSure        = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+																	    $irreversible      = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+																	} catch (\Throwable $e) {
+																	    \Log::error('employees/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+																	}
+@endphp
 															{{ Form::open([
 																	'method' => 'DELETE',
 																	'url'    => $empDestroyUrl,
@@ -260,7 +271,7 @@
 																			data-confirm="{{ __($areYouSure) }}|{{ __($irreversible) }}"
 																			data-confirm-yes="document.getElementById('{{ $destroyFormId }}').submit();"
 																			data-url="{{ $empDestroyUrl }}"
-																			data-guard-msg="{{ $destroyGuardMsg }}"
+																			data-guard-msg="{{ base64_encode($destroyGuardMsg) }}"
 																			data-sv-localized="true"
 																			{{ $empDestroyUrl === '#' ? 'aria-disabled=true' : '' }}
 																	>
@@ -281,7 +292,7 @@
 								@empty
 									<tr>
 										<td colspan="9">
-											<div class="text-center">{{ __('No employees available') }}</div>
+											<div class="{{ VC::TXCT }}">{{ __('No employees available') }}</div>
 										</td>
 									</tr>
 								@endforelse

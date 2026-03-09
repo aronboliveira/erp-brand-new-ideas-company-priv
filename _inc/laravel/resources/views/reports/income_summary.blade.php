@@ -1,17 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    $chartIncomeArr ??= [];
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/income_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +14,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Income Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Income Summary')}}</li>
 @endsection
 
 @push('theme-script')
@@ -40,72 +35,23 @@
         (function () {
             const $ = window.jQuery;
             const qs = (s, r = document) => r.querySelector(s);
-            const errFb = "# ERROR";
-            const dataClientLocalized = "data-client-localized";
-            const dataGuardMsg = "data-guard-msg";
+            const RG = window.RouteGuard || {};
+            const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '# ERROR');
+            const showErrorNow = RG.showToast || (m => alert(m));
             const dataErrGuard = "data-error-guard";
             const dataChartGuard = "data-income-chart-bound";
-            const ensureToastContainer = () => {
-            const id = "np-toast-container";
-            let c = qs("#" + id);
-            if (c) { return c; }
-            c = document.createElement("div");
-            c.id = id;
-            c.setAttribute("aria-live", "polite");
-            c.setAttribute("aria-atomic", "true");
-            c.style.position = "fixed";
-            c.style.top = "1rem";
-            c.style.right = "1rem";
-            document.body.appendChild(c);
-            return c;
-            };
-            const showErrorNow = (message) => {
-            const hasBootstrap = (qs('link[rel="stylesheet"][href*="bootstrap"]') || qs('link[href*="bootstrap"]')) && window.bootstrap && window.bootstrap.Toast;
-            if (hasBootstrap) {
-                const container = ensureToastContainer();
-                const tid = "np-toast";
-                let t = qs("#" + tid, container);
-                if (!t) {
-                t = document.createElement("div");
-                t.id = tid;
-                t.className = "toast";
-                t.setAttribute("role", "alert");
-                t.setAttribute("aria-live", "assertive");
-                t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
-                container.appendChild(t);
-                }
-                const body = qs(".toast-body", t);
-                if (body) { body.textContent = message ?? errFb; }
-                try { new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show(); } catch (_) { alert(message ?? errFb); }
-            } else { alert(message ?? errFb); }
-            };
             const scheduleInteractiveError = (message) => {
             const host = document.body;
             if (!host || host.getAttribute(dataErrGuard) === "true") { return; }
             host.setAttribute(dataErrGuard, "true");
             const once = () => { try { showErrorNow(message); } finally { host.removeAttribute(dataErrGuard); } };
             document.addEventListener("click", once, { once: true });
-            const mo = new MutationObserver((m, o) => { if (!document.body.contains(host)) { document.removeEventListener("click", once); o.disconnect(); } });
-            mo.observe(document.documentElement, { childList: true, subtree: true });
-            };
-            const getMsg = (el, key) => {
-            let msg = errFb;
-            if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true") { msg = el.getAttribute(dataGuardMsg) || errFb; }
-            else {
-                let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
-                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-                const msgKey = key;
-                msg = window.translations?.[lang]?.[msgKey] || el?.getAttribute(dataGuardMsg) || window.translations?.["en"]?.[msgKey] || errFb;
-                if (msg !== errFb) { el?.setAttribute(dataGuardMsg, msg); el?.setAttribute(dataClientLocalized, "true"); }
-            }
-            return msg;
             };
             const renderIncomeChart = () => {
             const target = qs("#chart-sales");
             if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
             target.setAttribute(dataChartGuard, "true");
-            if (typeof window.ApexCharts !== "function") { try { 
+            if (typeof window.ApexCharts !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -135,7 +81,7 @@
             const name = (($ && $("#filename").val()) ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { 
+                if (typeof window.html2pdf !== "function") { try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -153,15 +99,15 @@
 @endpush
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_income_summary_unavailable') ?? 'Download function for income summary report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-income-summary-link"
-        class="btn btn-sm btn-primary download-income-summary"
+        class="{{ VC::BT_SM_PM }} download-income-summary"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -175,18 +121,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $incomeSummaryBase     = ViewsConstants::RPT.'.income.summary';
-                            $incomeSummaryKebab    = Str::kebab($incomeSummaryBase);
-                            $incomeSummaryResolved = Route::has($incomeSummaryBase) ? $incomeSummaryBase : (Route::has($incomeSummaryKebab) ? $incomeSummaryKebab : null);
-                            $incomeSummaryUrl      = $incomeSummaryResolved ? route($incomeSummaryResolved) : '#';
-                            $incomeSummaryGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'income_summary_report_unavailable') ?? 'Income summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $incomeSummaryBase     = ViewsConstants::RPT.'.income.summary';
+                                $incomeSummaryKebab    = Str::kebab($incomeSummaryBase);
+                                $incomeSummaryResolved = Route::has($incomeSummaryBase) ? $incomeSummaryBase : (Route::has($incomeSummaryKebab) ? $incomeSummaryKebab : null);
+                                $incomeSummaryUrl      = $incomeSummaryResolved ? route($incomeSummaryResolved) : '#';
+                                $incomeSummaryGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'income_summary_report_unavailable') ?? 'Income summary report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/income_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $incomeSummaryUrl,
@@ -196,7 +147,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box"></div>
@@ -227,7 +178,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-income-summary"
                                             data-form-id="report_income_summary"
-                                            data-guard-msg="{{ $incomeSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($incomeSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -237,7 +188,7 @@
                                             <a href="{{ $incomeSummaryUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-income-summary"
                                             data-url="{{ $incomeSummaryUrl }}"
-                                            data-guard-msg="{{ $incomeSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($incomeSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -260,22 +211,47 @@
     </div>
 
     @php
-        $categoryLabel   = data_get($filter, 'category');
-        $categoryText    = $categoryLabel ? $categoryLabel : __('No category available');
-        $customerLabel   = data_get($filter, 'customer');
-        $customerText    = $customerLabel ? $customerLabel : __('No customer available');
-        $startRange      = data_get($filter, 'startDateRange');
-        $endRange        = data_get($filter, 'endDateRange');
-        $startText       = $startRange ? $startRange : __('Could not find start date');
-        $endText         = $endRange ? $endRange : __('Could not find end date');
-        $months          = is_array($monthList ?? null) ? $monthList : [];
-        $colspan         = max(2, count($months) + 1);
-        $hasRevenueRows  = !empty($incomeArr);
-        $hasInvoiceRows  = !empty($invoiceArray);
-        $hasTotals       = !empty($chartIncomeArr);
-    @endphp
+        try {
+            $categoryLabel   = data_get($filter, 'category');
+            $categoryText    = $categoryLabel ? $categoryLabel : __('No category available');
+            $customerLabel   = data_get($filter, 'customer');
+            $customerText    = $customerLabel ? $customerLabel : __('No customer available');
+            $startRange      = data_get($filter, 'startDateRange');
+            $endRange        = data_get($filter, 'endDateRange');
+            $startText       = $startRange ? $startRange : __('Could not find start date');
+            $endText         = $endRange ? $endRange : __('Could not find end date');
+            $months          = is_array($monthList ?? null) ? $monthList : [];
+            $colspan         = max(2, count($months) + 1);
+            $hasRevenueRows  = !empty($incomeArr);
+            $hasInvoiceRows  = !empty($invoiceArray);
+            $hasTotals       = !empty($chartIncomeArr);
+        } catch (\Throwable $e) {
+            \Log::error('reports/income_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
 
     <div id="printableArea">
+        {{-- ── KPI Aggregation Cards ── --}}
+        @php
+            $grandTotalIncome = is_array($chartIncomeArr) ? array_sum($chartIncomeArr) : 0;
+            $grandTotalRevenue = 0;
+            $grandTotalInvoice = 0;
+            foreach (($incomeArr ?? []) as $_inc) {
+                $grandTotalRevenue += array_sum($_inc['data'] ?? []);
+            }
+            foreach (($invoiceArray ?? []) as $_inv) {
+                $grandTotalInvoice += array_sum($_inv['data'] ?? []);
+            }
+            $fmtIncome  = ($user?->priceFormat($grandTotalIncome))  ?? number_format((float)$grandTotalIncome, 2);
+            $fmtRevenue = ($user?->priceFormat($grandTotalRevenue)) ?? number_format((float)$grandTotalRevenue, 2);
+            $fmtInvoice = ($user?->priceFormat($grandTotalInvoice)) ?? number_format((float)$grandTotalInvoice, 2);
+        @endphp
+        @include('reports.partials._kpi_cards', ['kpiHeading' => __('Income Overview'), 'kpis' => [
+            ['label' => __('Total Revenue'),       'value' => $fmtRevenue, 'tone' => 'positive'],
+            ['label' => __('Total Invoice Income'), 'value' => $fmtInvoice, 'tone' => 'neutral'],
+            ['label' => __('Grand Total Income'),   'value' => $fmtIncome,  'tone' => 'positive'],
+        ]])
+
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="col">
                 <input type="hidden" value="{{ $categoryText.' '.__('Income Summary').' '.__('Report of').' '.$startText.' '.__('to').' '.$endText }}" id="filename">
@@ -311,7 +287,7 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}" id="chart-container">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="scrollbar-inner">
                             <div id="chart-sales" data-color="primary" data-height="300"></div>
                         </div>
@@ -321,33 +297,38 @@
 
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
-                            <table class="{{ VC::TB }}">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
+                            <table class="{{ VC::TB }} rpt-table" role="table" aria-label="{{ __('Income Summary') }}">
+                                <caption class="sr-only">{{ __('Income summary report broken down by category and month') }}</caption>
                                 <thead>
                                 <tr>
-                                    <th>{{ __('Category') }}</th>
+                                    <th scope="col">{{ __('Category') }}</th>
                                     @if(count($months))
                                         @foreach($months as $month)
-                                            <th>{{ $month }}</th>
+                                            <th scope="col">{{ $month }}</th>
                                         @endforeach
                                     @else
-                                        <th>{{ __('No months available') }}</th>
+                                        <th scope="col">{{ __('No months available') }}</th>
                                     @endif
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Revenue :') }}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Revenue :') }}</span></td>
                                 </tr>
                                 @if($hasRevenueRows)
                                     @foreach($incomeArr as $income)
-                                        @php $row = $income['data'] ?? []; @endphp
+                                        @php
+ $row = $income['data'] ?? [];
+@endphp
                                         <tr>
                                             <td>{{ $income['category'] ?? __('No category available') }}</td>
                                             @if(count($months))
                                                 @foreach($months as $idx => $m)
-                                                    @php $val = $row[$idx] ?? 0; @endphp
+                                                    @php
+ $val = $row[$idx] ?? 0;
+@endphp
                                                     <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                                 @endforeach
                                             @else
@@ -357,21 +338,25 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No revenue data available') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No revenue data available') }}</td>
                                     </tr>
                                 @endif
 
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Invoice :') }}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Invoice :') }}</span></td>
                                 </tr>
                                 @if($hasInvoiceRows)
                                     @foreach($invoiceArray as $invoice)
-                                        @php $row = $invoice['data'] ?? []; @endphp
+                                        @php
+ $row = $invoice['data'] ?? [];
+@endphp
                                         <tr>
                                             <td>{{ $invoice['category'] ?? __('No category available') }}</td>
                                             @if(count($months))
                                                 @foreach($months as $idx => $m)
-                                                    @php $val = $row[$idx] ?? 0; @endphp
+                                                    @php
+ $val = $row[$idx] ?? 0;
+@endphp
                                                     <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                                 @endforeach
                                             @else
@@ -381,31 +366,33 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No invoice data available') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No invoice data available') }}</td>
                                     </tr>
                                 @endif
 
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Income = Revenue + Invoice :') }}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Income = Revenue + Invoice :') }}</span></td>
                                 </tr>
                                 @if(count($months))
-                                    <tr>
-                                        <td class="text-dark"><h6>{{ __('Total') }}</h6></td>
+                                    <tr class="rpt-total-row">
+                                        <td class="{{ VC::TX_DK }}"><h6>{{ __('Total') }}</h6></td>
                                         @foreach($months as $idx => $m)
-                                            @php $val = $chartIncomeArr[$idx] ?? 0; @endphp
+                                            @php
+ $val = $chartIncomeArr[$idx] ?? 0;
+@endphp
                                             <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                         @endforeach
                                     </tr>
                                 @else
                                     <tr>
-                                        <td class="text-dark"><h6>{{ __('Total') }}</h6></td>
+                                        <td class="{{ VC::TX_DK }}"><h6>{{ __('Total') }}</h6></td>
                                         <td>{{ __('Could not compute totals because no months are available') }}</td>
                                     </tr>
                                 @endif
 
                                 @if(!$hasRevenueRows && !$hasInvoiceRows && !$hasTotals)
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No income data available for the selected filters') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No income data available for the selected filters') }}</td>
                                     </tr>
                                 @endif
                                 </tbody>
@@ -417,5 +404,3 @@
         </div>
     </div>
 @endsection
-
-

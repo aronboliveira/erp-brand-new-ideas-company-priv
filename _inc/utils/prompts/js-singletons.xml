@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Directives: JS Singleton Bootstrap Architecture
+  Task: Refactor duplicate boilerplate across route JS files to delegate
+        to ERPGuard / ERPUtils / ERPBootstrap singletons.
+  Workspace: _inc/laravel/  (Laravel submodule)
+  Branch: agent
+  Completed: 2026-02-26  commit 557aa8ae
+  Reproducer: feed this file to the coding agent as context + task prompt
+-->
+<instructions>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       1. CONTEXT
+       ═══════════════════════════════════════════════════════════════════ -->
+  <context>
+    <workspace>_inc/laravel/public/assets/js/</workspace>
+    <problem>
+      Every route-level JS file (under public/assets/js/routes/**/) re-declares
+      the same ~150-line boilerplate block verbatim:
+        - ensureToastContainer(containerId)
+        - showErrorNow(message)
+        - scheduleInteractiveError(msg) / schedulePointerupError(msg)
+        - getMsg(el, key)       — full locale-lookup logic
+        - verifyRoute(candidate)
+        - getToken()
+      This causes ~60 KB of dead duplication across 1 100+ route files.
+    </problem>
+    <solution>
+      Build three singleton files (ERPGuard, ERPUtils, ERPBootstrap) loaded by
+      the main Blade layouts.  Each route file then gets a one-liner bootstrap
+      call and delegates to guard.* instead of re-implementing the logic.
+    </solution>
+    <retrocompatibility>
+      All filesystem paths MUST remain unchanged.  Namespace modules that
+      expose a public API (e.g. ContractHelpers) MUST preserve every exported
+      symbol — only their implementations are delegated inward.
+    </retrocompatibility>
+  </context>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       2. SINGLETON FILES  (create if absent, do NOT rename)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <singletons>
+
+    <file path="public/assets/js/core/erp-guard.js">
+      <pattern>IIFE + static #instance field + static getInstance()</pattern>
+      <globalExport>window.ERPGuard</globalExport>
+      <requiredMethods>
+        <!-- pre-existing -->
+        <method>constructor()</method>
+        <method>getInstance()</method>
+        <method>getLocale() / setLocale(locale)</method>
+        <method>getMsg(key) — locale lookup from window.translations</method>
+        <method>hasBootstrap() / hasToast() / hasModal()</method>
+        <method>showToast(message, type, options)</method>
+        <method>success(msg) / error(msg) / warning(msg) / info(msg)</method>
+        <method>showModal(options)</method>
+        <method>confirm(options)</method>
+        <method>scheduleError(msg)</method>
+        <method>scheduleInteractiveError(msg) — arms one-shot click listener</method>
+        <method>isInvalidUrl(candidate)</method>
+        <method>bindSubmitGuard / bindClickGuard / bindChangeGuard / unbind</method>
+        <method>encodeMsg / decodeMsg</method>
+        <method>handleAjaxError(jqXHR, textStatus, errorThrown)</method>
+        <method>destroy()</method>
+        <!-- added in this refactor -->
+        <method>getCsrfToken() — reads meta[name="csrf-token"]</method>
+        <method>resolveUrl(el, explicit?) — data-url → action/href fallback</method>
+        <method>safeFetch(url, opts) — fetch + JSON + error normalisation</method>
+        <method>ajaxPost(url, data, opts) — thin wrapper over safeFetch</method>
+        <method>ajaxDelete(url, opts)    — thin wrapper over safeFetch</method>
+        <method>guardedAjax(config)      — generalised AJAX queue entry</method>
+      </requiredMethods>
+    </file>
+
+    <file path="public/assets/js/core/erp-utils.js">
+      <pattern>constructor-check singleton (new ERPUtils() or getInstance)</pattern>
+      <globalExport>window.ERPUtils</globalExport>
+      <note>No modifications required by this refactor; it already exists.</note>
+    </file>
+
+    <file path="public/assets/js/core/erp-bootstrap.js" status="CREATE">
+      <pattern>Plain IIFE — no class required</pattern>
+      <globalExport>window.ERPBootstrap</globalExport>
+      <api>
+        <method>ERPBootstrap.register(key, factory)
+          — factory() must return the singleton instance</method>
+        <method>ERPBootstrap.require(...keys) → Object
+          — returns { guard, utils, … } with camelCase keys
+          — warns but does NOT throw when a singleton is missing</method>
+        <method>ERPBootstrap.ensureSingletons()
+          — initialises all registered factories that have not yet run</method>
+      </api>
+      <defaultRegistry>
+        <entry key="ERPGuard"  factory="() => window.ERPGuard?.getInstance?.() ?? null" />
+        <entry key="ERPUtils"  factory="() => window.ERPUtils  ? new window.ERPUtils() : null" />
+      </defaultRegistry>
+      <minify>
+        Produce erp-bootstrap.min.js alongside the source.
+        Command: npx terser erp-bootstrap.js -o erp-bootstrap.min.js --compress --mangle
+      </minify>
+    </file>
+
+  </singletons>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       3. BLADE LAYOUT INTEGRATION
+       ═══════════════════════════════════════════════════════════════════ -->
+  <bladeLayouts>
+    <rule>
+      Add ONE script tag loading erp-bootstrap.min.js in each master layout,
+      placed BEFORE any deferred route script tags but AFTER core dependency
+      scripts (jQuery, Bootstrap JS).
+    </rule>
+    <targets>
+      <layout file="resources/views/layouts/admin.blade.php"   loading="defer" />
+      <layout file="resources/views/layouts/auth.blade.php"    loading="sync" />
+      <layout file="resources/views/layouts/landing.blade.php" loading="defer" />
+    </targets>
+    <assetPath>{{ asset('assets/js/core/erp-bootstrap.min.js') }}</assetPath>
+  </bladeLayouts>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       4. FILE CATEGORISATION  (run before touching any file)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <categorisation>
+    <heavy description="Full boilerplate re-implementations — all 4 functions present">
+      <detect>grep -rl "const ensureToastContainer =" public/assets/js/routes/</detect>
+      <count>21 files (as of 2026-02)</count>
+    </heavy>
+    <medium description="Only getMsg + locale logic without toast boilerplate">
+      <detect>grep -rn "const getMsg = (el" public/assets/js/routes/ | grep -v "const ensureToastContainer"</detect>
+      <count>6 files</count>
+    </medium>
+    <light description="Only destructuring from singletons — no actual re-implementation">
+      <note>These files are already clean; skip them.</note>
+    </light>
+    <namespaceModules description="Exports a public window.* API consumed by other scripts">
+      <example>public/assets/js/routes/contracts/shared/helpers.js → window.ContractHelpers</example>
+      <rule>MUST NOT use the automated batch script. See section 7.</rule>
+    </namespaceModules>
+  </categorisation>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       5. AUTOMATED BATCH REFACTORING  (heavy + medium files only)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <batchScript>
+    <file>_inc/laravel/refactor-routes.mjs</file>
+    <steps>
+      <step order="1" name="removeConstBlock">
+        Brace-counting scanner: locate any of the following top-level const
+        declarations and remove the entire block (declaration + body):
+          ensureToastContainer, showErrorNow, scheduleInteractiveError,
+          schedulePointerupError, getMsg, verifyRoute, getToken
+      </step>
+      <step order="2" name="insertBootstrapRequire">
+        At the top of the IIFE body (after "use strict" if present) inject:
+          const { guard } = window.ERPBootstrap.require("ERPGuard");
+          if (!guard) return;
+      </step>
+      <step order="3" name="removeOldDestructuring">
+        Remove any line matching:
+          const { getMsg, showErrorNow, … } = window.ERPGuard …
+          const guard = window.ERPGuard.getInstance()
+        that existed in the original file before this refactor.
+      </step>
+      <step order="4" name="replaceCalls">
+        Apply the following call-site substitutions (regex, whole-word):
+          getMsg(el, key)               → guard.getMsg(key)
+          getMsg(_, key)                → guard.getMsg(key)
+          showErrorNow(…)               → guard.error(…)
+          scheduleInteractiveError(…)   → guard.scheduleInteractiveError(…)
+          schedulePointerupError(…)     → guard.scheduleInteractiveError(…)
+          !ensureJq()                   → !(window.jQuery &amp;&amp; window.jQuery.fn)
+          verifyRoute(x)                → !guard.isInvalidUrl(x)
+          getToken()                    → guard.getCsrfToken()
+        CAUTION: !ensureJq() becomes !(…) not !!!(…) — verify after sed.
+      </step>
+      <step order="5" name="removeUnusedDataConsts">
+        Remove const DATA_* = "data-*" lines that are no longer referenced
+        after the function blocks have been stripped.
+      </step>
+      <step order="6" name="cleanBlankLines">
+        Collapse 3+ consecutive blank lines to 2.
+      </step>
+    </steps>
+    <artifactFix>
+      After running the script, check for triple-negation artifacts:
+        grep -rn "!!!(" public/assets/js/routes/
+      Fix with: sed -i 's/!!!(window\.jQuery/!(window.jQuery/g' &lt;file&gt;
+      Affected files (2026-02): leads/order.js, zoomMeetings/calendar.js,
+                                zoomMeetings/actions.js, contracts/note,js
+    </artifactFix>
+  </batchScript>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       6. STANDARD ROUTE FILE SHAPE  (post-refactor expected output)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <routeFileShape>
+    <template><![CDATA[
+/** @requires ERPGuard */
+(function () {
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
+
+  /* optional: const $ = window.jQuery; */
+
+  /* ── business logic only ──────────────────────────────────────────── */
+
+  /* guard.error(message)                  ← was showErrorNow         */
+  /* guard.scheduleInteractiveError(msg)   ← was scheduleInteractiveError */
+  /* guard.getMsg("translation_key")       ← was getMsg(el, key)      */
+  /* guard.getCsrfToken()                  ← was getToken()           */
+  /* !guard.isInvalidUrl(url)              ← was verifyRoute(url)     */
+})();
+    ]]></template>
+    <bladePreservation>
+      Blade template literals embedded in JS strings MUST NOT be touched:
+        {{route('name', [param])}}
+        {{__('Translation string')}}
+        {{$phpVariable}}
+      These are valid at Laravel compile time; the script must treat them
+      as opaque string content.
+    </bladePreservation>
+  </routeFileShape>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       7. NAMESPACE MODULE PATTERN  (manual refactor — do NOT batch)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <namespaceModuleRefactor>
+    <description>
+      Files that export a public namespace (e.g. window.ContractHelpers) must
+      preserve every exported symbol in the exact same shape.  Only the
+      internal implementation is delegated to guard.*.
+    </description>
+    <rule>Add ERPBootstrap.require at module top (after "use strict").</rule>
+    <rule>Replace function bodies — keep signatures identical.</rule>
+    <rule>Do NOT remove any key from the exported namespace object.</rule>
+    <rule>Provide a null/alert fallback for every guard.* call in case
+          ERPBootstrap itself is unavailable (degraded environment).</rule>
+    <delegationMap>
+      <map from="showError(message)"          to="guard.error(message)" />
+      <map from="svToastOrAlert(msg)"         to="guard.showToast(msg, 'danger')" />
+      <map from="scheduleErrorOnEvent(msg)"   to="guard.scheduleInteractiveError(msg)" />
+      <map from="getLocalizedMessage(el, key)" to="guard.getMsg(key)" />
+      <map from="verifyRouteFromElement(el)"  to="guard.resolveUrl(el)" />
+      <map from="verifyRoute(candidate)"      to="!guard.isInvalidUrl(candidate)" />
+      <map from="getToken()"                  to="guard.getCsrfToken()" />
+      <map from="hasBootstrap()"              to="guard.hasBootstrap()" />
+      <map from="ensureToastContainer(id)"    to="thin local fallback (guard handles internally)" />
+    </delegationMap>
+    <uniqueFunctions>
+      Keep these implementations intact — they have no guard equivalent:
+        ensureJQuery(onError), ensureDropzone(onError), isLocalhost(),
+        guardAnchor(anchor, useDataUrl), guardFormAction(sel, anchorSel),
+        createBoundHandler(bindAttr, setup, cleanup)
+    </uniqueFunctions>
+    <example>public/assets/js/routes/contracts/shared/helpers.js</example>
+  </namespaceModuleRefactor>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       8. VERIFICATION CHECKLIST
+       ═══════════════════════════════════════════════════════════════════ -->
+  <verification>
+    <check id="1">No !!!( artifacts:  grep -rn "!!!(" public/assets/js/routes/</check>
+    <check id="2">No orphan ensureToastContainer calls:
+      grep -rn "ensureToastContainer(" public/assets/js/routes/ | grep -v "function ensureToastContainer"</check>
+    <check id="3">Blade literals intact in Blade-embedded JS files:
+      grep -c "{{" public/assets/js/routes/tasks/drag.js          (expect ≥ 21)
+      grep -c "{{" public/assets/js/routes/leads/order.js         (expect ≥ 2)
+      grep -c "{{" public/assets/js/routes/zoomMeetings/calendar.js (expect ≥ 3)</check>
+    <check id="4">ContractHelpers public API intact:
+      node -e "require('./public/assets/js/routes/contracts/shared/helpers.js')" 2>&amp;1 | grep -v "window is not defined"
+      Alternatively: grep "global.ContractHelpers = {" … and count exported keys.</check>
+    <check id="5">Git diff byte reduction ≥ 2000 deletions across route files.</check>
+  </verification>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       9. COMMIT CONVENTION
+       ═══════════════════════════════════════════════════════════════════ -->
+  <commitMessage><![CDATA[
+feat(js): singleton bootstrap architecture + refactor N route files
+
+- ERPGuard: add getCsrfToken, resolveUrl, safeFetch, ajaxPost,
+  ajaxDelete, guardedAjax methods
+- ERPBootstrap: new singleton registry & loader (erp-bootstrap.js/min.js)
+  with require(), register(), ensureSingletons() API
+- Blade layouts: load erp-bootstrap.min.js in admin, auth, landing
+- Route files: remove ~2,500 lines of duplicated boilerplate from N files
+  (ensureToastContainer, showErrorNow, scheduleInteractiveError, getMsg,
+  verifyRoute), replaced with ERPBootstrap.require + guard.* delegates
+- <namespace module>: manually refactored as thin wrapper preserving
+  public API for backward compatibility
+- All Blade template literals (route macros, translations) preserved
+  ]]></commitMessage>
+
+</instructions>

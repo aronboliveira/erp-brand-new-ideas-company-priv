@@ -1,39 +1,55 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route, URL};
-    use Illuminate\Support\{Collection, Str};
-
-    $user = Auth::user();
-
-    $hasFetchUserLang    = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-
-    $dashBase       = 'dashboard';
-    $dashKebab      = Str::kebab($dashBase);
-    $dashResolved   = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
-    $dashUrl        = $dashResolved ? route($dashResolved) : '#';
-    $dashLinkId     = 'dashboard-breadcrumb-link';
-    $dashGuardMsg   = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
-                        ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
-
-    $fmtDate = function ($value, $fallback) use ($user) {
-        return ($value && $user && method_exists($user, 'dateFormat')) ? ($user->dateFormat($value) ?? $fallback) : $fallback;
-    };
-
-    $isEmployeeCol = strtolower($user?->{UsersConstants::COL_TP} ?? '') !== 'employee';
-
-    $leavesIsList = (is_array($leaves ?? null) && count($leaves ?? []) > 0)
-        || (($leaves ?? null) instanceof Collection && $leaves->isNotEmpty());
+$user ??= null;
+	$hasFetchUserLang ??= false;
+	$hasFetchLinkMessage ??= false;
+	$lang ??= 'en';
+	$dashBase ??= 'dashboard';
+	$dashKebab ??= '';
+	$dashResolved ??= null;
+	$dashUrl ??= '#';
+	$dashLinkId ??= 'dashboard-breadcrumb-link';
+	$dashGuardMsg ??= '';
+	$fmtDate ??= null;
+	$isEmployeeCol ??= false;
+	$leavesIsList ??= false;
+	try {
+		$user = Auth::user();
+		$hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+		$hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+		$lang = $hasFetchUserLang ? (Utility::fetchUserLang(user: $user) ?? 'en') : app()->getLocale();
+		$dashKebab = Str::kebab($dashBase);
+		$dashResolved = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
+		$dashUrl = $dashResolved ? (route($dashResolved) ?? '#') : '#';
+		$dashGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null)
+			?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+		$fmtDate = function ($value, $fallback) use ($user) {
+			return ($value && $user && method_exists($user, 'dateFormat')) ? ($user->dateFormat($value) ?? $fallback) : $fallback;
+		};
+		$isEmployeeCol = strtolower($user?->{UsersConstants::COL_TP} ?? '') !== 'employee';
+		$leavesIsList = (is_array($leaves ?? null) && count($leaves ?? []) > 0)
+			|| (($leaves ?? null) instanceof Collection && $leaves->isNotEmpty());
+	} catch (\Error $e) {
+		Log::error('Error in leaves/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in leaves/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in leaves/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(EL::ADM)
@@ -43,26 +59,30 @@
 @endsection
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            id="{{ $dashLinkId }}"
            data-url="{{ $dashUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuardMsg }}">
+           data-guard-msg="{{ base64_encode($dashGuardMsg) }}">
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Manage Leave') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Manage Leave') }}</li>
 @endsection
 
 @section(YD::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create leave')
             @php
-                $createUrl = Route::has(VW::LV.'.create') ? route(VW::LV.'.create') : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'create_leave_unavailable') : null)
-                    ?? __('Create leave route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $createUrl = Route::has(VW::LV.'.create') ? route(VW::LV.'.create') : '#';
+                    $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'create_leave_unavailable') : null)
+                        ?? __('Create leave route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('leaves/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $createUrl }}"
                id="leave-create-link"
                class="{{ VC::BT_SM_PM }}"
@@ -71,7 +91,7 @@
                data-size="lg"
                data-title="{{ __('Create Leave') }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $createGuardMsg }}"
+               data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                data-bs-toggle="tooltip"
                title="{{ __('Create') }}">
                 <i class="{{ VC::TI_PLS }}"></i>
@@ -82,15 +102,15 @@
 
 @section(YD::ADM_CTT)
     @if(!$user)
-        <div class="alert alert-warning mb-0">
+        <div class="{{ VC::ALT_WRN_MB0 }}">
             {{ __('The current user session was not available. The procedure could not be completed.') }}
         </div>
     @else
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                     <tr>
@@ -113,40 +133,44 @@
                                     @if($leavesIsList)
                                         @foreach(($leaves ?? []) as $leave)
                                             @php
-                                                $lid = isset($leave->id) ? (string)$leave->id : '';
+                                                try {
+                                                    $lid = isset($leave->id) ? (string)$leave->id : '';
 
-                                                $empName = (isset($leave->employees) && isset($leave->employees->name) && $leave->employees->name !== '')
-                                                    ? $leave->employees->name
-                                                    : __('Employee name was not available.');
+                                                    $empName = (isset($leave->employees) && isset($leave->employees->name) && $leave->employees->name !== '')
+                                                        ? $leave->employees->name
+                                                        : __('Employee name was not available.');
 
-                                                $typeTitle = (isset($leave->leaveType) && isset($leave->leaveType->title) && $leave->leaveType->title !== '')
-                                                    ? $leave->leaveType->title
-                                                    : __('Leave type was not available.');
+                                                    $typeTitle = (isset($leave->leaveType) && isset($leave->leaveType->title) && $leave->leaveType->title !== '')
+                                                        ? $leave->leaveType->title
+                                                        : __('Leave type was not available.');
 
-                                                $appliedOn = $fmtDate($leave->applied_on ?? null, __('Applied date was not available or failed to be formatted.'));
-                                                $startDate = $fmtDate($leave->start_date ?? null, __('Start date was not available or failed to be formatted.'));
-                                                $endDate   = $fmtDate($leave->end_date ?? null, __('End date was not available or failed to be formatted.'));
+                                                    $appliedOn = $fmtDate($leave->applied_on ?? null, __('Applied date was not available or failed to be formatted.'));
+                                                    $startDate = $fmtDate($leave->start_date ?? null, __('Start date was not available or failed to be formatted.'));
+                                                    $endDate   = $fmtDate($leave->end_date ?? null, __('End date was not available or failed to be formatted.'));
 
-                                                $totalDays = (isset($leave->total_leave_days) && $leave->total_leave_days !== '')
-                                                    ? $leave->total_leave_days
-                                                    : __('Total days data was not available.');
+                                                    $totalDays = (isset($leave->total_leave_days) && $leave->total_leave_days !== '')
+                                                        ? $leave->total_leave_days
+                                                        : __('Total days data was not available.');
 
-                                                $reason = isset($leave->leave_reason) && $leave->leave_reason !== ''
-                                                    ? $leave->leave_reason
-                                                    : __('Leave reason was not available.');
+                                                    $reason = isset($leave->leave_reason) && $leave->leave_reason !== ''
+                                                        ? $leave->leave_reason
+                                                        : __('Leave reason was not available.');
 
-                                                $stRaw  = strtolower((string)($leave->status ?? ''));
-                                                $stText = isset($leave->status) && $leave->status !== ''
-                                                    ? $leave->status
-                                                    : __('Status was not available.');
+                                                    $stRaw  = strtolower((string)($leave->status ?? ''));
+                                                    $stText = isset($leave->status) && $leave->status !== ''
+                                                        ? $leave->status
+                                                        : __('Status was not available.');
 
-                                                $stClass = match ($stRaw) {
-                                                    'pending'                  => 'bg-warning',
-                                                    'approved'                 => 'bg-success',
-                                                    'reject', 'rejected'       => 'bg-danger',
-                                                    default                    => 'bg-secondary',
-                                                };
-                                            @endphp
+                                                    $stClass = match ($stRaw) {
+                                                        'pending'                  => 'bg-warning',
+                                                        'approved'                 => 'bg-success',
+                                                        'reject', 'rejected'       => 'bg-danger',
+                                                        default                    => 'bg-secondary',
+                                                    };
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('leaves/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <tr>
                                                 @if($isEmployeeCol)
                                                     <td>{{ $empName }}</td>
@@ -158,7 +182,7 @@
                                                 <td>{{ $totalDays }}</td>
                                                 <td>{{ $reason }}</td>
                                                 <td>
-                                                    <div class="badge {{ $stClass }} p-2 px-3 rounded">
+                                                    <div class="badge {{ $stClass }} p-2 {{ VC::PX3 }} rounded">
                                                         {{ $stText }}
                                                     </div>
                                                 </td>
@@ -167,10 +191,14 @@
                                                         @if($isEmployeeCol)
                                                             @if($stRaw === 'pending')
                                                                 @php
-                                                                    $editUrl   = ($lid !== '' && Route::has(VW::LV.'.edit')) ? route(VW::LV.'.edit', [$lid]) : '#';
-                                                                    $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'edit_leave_unavailable') : null)
-                                                                        ?? __('Edit leave route is unavailable. Please contact technical support or your domain administrator.');
-                                                                @endphp
+                                                                    try {
+                                                                        $editUrl   = ($lid !== '' && Route::has(VW::LV.'.edit')) ? route(VW::LV.'.edit', [$lid]) : '#';
+                                                                        $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'edit_leave_unavailable') : null)
+                                                                            ?? __('Edit leave route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('leaves/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a href="#"
                                                                        class="{{ VC::BT_SM_CT }}"
@@ -179,7 +207,7 @@
                                                                        data-size="lg"
                                                                        data-title="{{ __('Edit Leave') }}"
                                                                        data-sv-localized="true"
-                                                                       data-guard-msg="{{ $editGuard }}"
+                                                                       data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                        data-bs-toggle="tooltip"
                                                                        title="{{ __('Edit') }}">
                                                                         <i class="{{ VC::TI_PC_WT }}"></i>
@@ -188,16 +216,20 @@
                                                             @endif
                                                         @else
                                                             @php
-                                                                $actionUrl = ($lid !== '' && Route::has(VW::LV.'.action')) ? route(VW::LV.'.action', [$lid]) : '#';
-                                                                $actionGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'leave_action_route_unavailable') : null)
-                                                                    ?? __('Leave action route is unavailable. Please contact technical support or your domain administrator.');
+                                                                try {
+                                                                    $actionUrl = ($lid !== '' && Route::has(VW::LV.'.action')) ? route(VW::LV.'.action', [$lid]) : '#';
+                                                                    $actionGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'leave_action_route_unavailable') : null)
+                                                                        ?? __('Leave action route is unavailable. Please contact technical support or your domain administrator.');
 
-                                                                $editUrl   = ($lid !== '' && Route::has(VW::LV.'.edit')) ? route(VW::LV.'.edit', [$lid]) : '#';
-                                                                $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'edit_leave_unavailable') : null)
-                                                                    ?? __('Edit leave route is unavailable. Please contact technical support or your domain administrator.');
-                                                            @endphp
+                                                                    $editUrl   = ($lid !== '' && Route::has(VW::LV.'.edit')) ? route(VW::LV.'.edit', [$lid]) : '#';
+                                                                    $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'edit_leave_unavailable') : null)
+                                                                        ?? __('Edit leave route is unavailable. Please contact technical support or your domain administrator.');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('leaves/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::BT_SM_MX3 }} {{ VC::DFL_IL_VC }}">
-                                                                <div class="action-btn bg-warning ms-2">
+                                                                <div class="{{ VC::ACT_BTN_WRN }}">
                                                                     <a href="#"
                                                                        class="{{ VC::BT_SM_CT }}"
                                                                        data-url="{{ $actionUrl }}"
@@ -205,7 +237,7 @@
                                                                        data-size="lg"
                                                                        data-title="{{ __('Leave Action') }}"
                                                                        data-sv-localized="true"
-                                                                       data-guard-msg="{{ $actionGuard }}"
+                                                                       data-guard-msg="{{ base64_encode($actionGuard) }}"
                                                                        data-bs-toggle="tooltip"
                                                                        title="{{ __('Leave Action') }}">
                                                                         <i class="{{ VC::TI_CRT_WT }}"></i>
@@ -219,7 +251,7 @@
                                                                        data-size="lg"
                                                                        data-title="{{ __('Edit Leave') }}"
                                                                        data-sv-localized="true"
-                                                                       data-guard-msg="{{ $editGuard }}"
+                                                                       data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                        data-bs-toggle="tooltip"
                                                                        title="{{ __('Edit') }}">
                                                                         <i class="{{ VC::TI_PC_WT }}"></i>
@@ -230,13 +262,17 @@
 
                                                         @can('delete leave')
                                                             @php
-                                                                $delUrl   = ($lid !== '' && Route::has(VW::LV.'.destroy')) ? route(VW::LV.'.destroy', [$lid]) : '#';
-                                                                $formId   = 'delete-form-'.$lid;
-                                                                $delGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'delete_leave_unavailable') : null)
-                                                                    ?? __('Delete leave route is unavailable. Please contact technical support or your domain administrator.');
-                                                                $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? __('Are You Sure?');
-                                                                $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? __('This action can not be undone. Do you want to continue?');
-                                                            @endphp
+                                                                try {
+                                                                    $delUrl   = ($lid !== '' && Route::has(VW::LV.'.destroy')) ? route(VW::LV.'.destroy', [$lid]) : '#';
+                                                                    $formId   = 'delete-form-'.$lid;
+                                                                    $delGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV, 'delete_leave_unavailable') : null)
+                                                                        ?? __('Delete leave route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? __('Are You Sure?');
+                                                                    $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? __('This action can not be undone. Do you want to continue?');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('leaves/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Form::open([
                                                                     'method'            => 'DELETE',
@@ -263,7 +299,7 @@
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="{{ $isEmployeeCol ? 9 : 8 }}" class="text-center text-muted">
+                                            <td colspan="{{ $isEmployeeCol ? 9 : 8 }}" class="{{ VC::TXCT_MT }}">
                                                 {{ __('Leave data was not available or failed to be fetched.') }}
                                             </td>
                                         </tr>
@@ -287,55 +323,13 @@
             const errFb = "# ERROR";
             const dataClientLocalized = "data-client-localized";
             const dataGuardMsg = "data-guard-msg";
+            const RG = window.RouteGuard || {};
+            const showErrorNow = RG.showToast || (m => alert(m));
             const dataSvLocalized = "data-sv-localized";
             const dataInit = "data-leaves-bound";
             const dataErr = "data-leaves-error";
             const ns = "._npLeaves";
             const qs = (s, r = document) => r.querySelector(s);
-            const hasBS = () =>
-                !!(
-                qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-                qs('link[href*="bootstrap"]')
-                ) && !!(window.bootstrap && window.bootstrap.Toast);
-            const ensureToastContainer = () => {
-                let c = qs("#np-toast-container");
-                if (c) return c;
-                c = document.createElement("div");
-                c.id = "np-toast-container";
-                c.setAttribute("aria-live", "polite");
-                c.setAttribute("aria-atomic", "true");
-                c.style.position = "fixed";
-                c.style.top = "1rem";
-                c.style.right = "1rem";
-                document.body.appendChild(c);
-                return c;
-            };
-            const showErrorNow = message => {
-                if (hasBS()) {
-                const container = ensureToastContainer();
-                let t = qs("#np-toast", container);
-                if (!t) {
-                    t = document.createElement("div");
-                    t.id = "np-toast";
-                    t.className = "toast";
-                    t.setAttribute("role", "alert");
-                    t.setAttribute("aria-live", "assertive");
-                    t.setAttribute("aria-atomic", "true");
-                    t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
-                    container.appendChild(t);
-                }
-                const body = t.querySelector(".toast-body");
-                if (body) body.textContent = message ?? errFb;
-                try {
-                    new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-                } catch (_) {
-                    alert(message ?? errFb);
-                }
-                } else {
-                alert(message ?? errFb);
-                }
-            };
             const schedulePointerupError = msg => {
                 const host = document.body;
                 if (!host || host.getAttribute(dataErr) === "true") return;
@@ -348,13 +342,6 @@
                 }
                 };
                 document.addEventListener("pointerup", once, { once: true });
-                const mo = new MutationObserver((m, o) => {
-                if (!document.body.contains(host)) {
-                    document.removeEventListener("pointerup", once);
-                    o.disconnect();
-                }
-                });
-                mo.observe(document.documentElement, { childList: true, subtree: true });
             };
             const getMsg = (el, key) => {
                 let msg = errFb;

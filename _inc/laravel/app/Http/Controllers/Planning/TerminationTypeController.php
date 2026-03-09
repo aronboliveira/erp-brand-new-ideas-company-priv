@@ -1,19 +1,30 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{DatabaseConstants, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{DatabaseConstants as DC, ViewsConstants as VW};
 use App\Models\TerminationType;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class TerminationTypeController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = VW::TMN_TP . '.index';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): View|RedirectResponse|null
     {
@@ -28,13 +39,13 @@ class TerminationTypeController extends Controller
                 return $redirect;
             }
 
-            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+            $terminationtypes = TerminationType::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             }
 
-            return view($view, compact('terminationTypes'));
+            return view($view, compact('terminationtypes'));
         });
     }
 

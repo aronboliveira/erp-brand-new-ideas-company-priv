@@ -32,15 +32,18 @@ final class DealDiscussionSeeder extends Seeder
 				return;
 			}
 
+			$HARD_CAP = 2;
+			$created = 0;
 			foreach ($dealIds as $dealId) {
+				if ($created >= $HARD_CAP) break;
 				$count = random_int(4, 16);
 
 				for ($i = 0; $i < $count; $i++) {
 					try {
 						do $discussionId = Str::uuid()->toString();
 						while (Dds::where('id', $discussionId)->exists());
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Discussão para Acordo de Negócios: {$discussionId}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Discussão para Acordo de Negócios: {$discussionId}");
 						$body = $faker->realText($faker->numberBetween(120, 600));
 						$ts   = $faker->dateTimeBetween('-30 days', 'now');
 
@@ -53,6 +56,7 @@ final class DealDiscussionSeeder extends Seeder
 						$d->setAttribute('created_at', $ts);
 						$d->setAttribute('updated_at', $ts);
 						$d->save();
+						$created++;
 					} catch (\Exception $e) {
 						Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 						continue;

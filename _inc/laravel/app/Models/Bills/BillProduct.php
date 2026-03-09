@@ -23,28 +23,6 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 
-// Same-namespace explicit imports (silences PHP Namespace Resolver)
-use App\Models\Bill;
-use App\Models\ChartOfAccount;
-use App\Models\ProductService;
-use App\Models\Tax;
-
-/**
- * @property string $id
- * @property string $bill_id
- * @property string|null $product_id
- * @property string|null $chart_account_id
- * @property float|null $quantity
- * @property float|null $discount
- * @property float|null $total
- * @property float|null $tax
- * @property string|null $tax_id
- * @property float|null $price
- * @property string|null $description
- * @property string|null $created_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- */
 final class BillProduct extends Model
 {
     use UsesUuids;
@@ -140,68 +118,73 @@ final class BillProduct extends Model
 
     protected static function filterOtherTaxesAgainstBill(array $otherTaxes, string $billId): array
     {
-        if (!$otherTaxes)
-            return [];
-
         try {
-            /** @var \App\Models\Bill|null $bill */
-            $bill = Bill::find($billId);
-            if (!$bill)
+            if (!$otherTaxes)
                 return [];
 
-            $billTaxes = is_array($bill->taxes) ? $bill->taxes : [];
-            $allowed   = [];
+            try {
+                /** @var \App\Models\Bill|null $bill */
+                $bill = Bill::find($billId);
+                if (!$bill)
+                    return [];
 
-            foreach ($billTaxes as $t) {
-                if (!is_array($t))
-                    continue;
+                $billTaxes = is_array($bill->taxes) ? $bill->taxes : [];
+                $allowed   = [];
 
-                $value = $t['id']
-                    ?? $t['tax_id']
-                    ?? $t['key']
-                    ?? null;
+                foreach ($billTaxes as $t) {
+                    if (!is_array($t))
+                        continue;
 
-                if (is_string($value))
-                    $value = trim($value);
+                    $value = $t['id']
+                        ?? $t['tax_id']
+                        ?? $t['key']
+                        ?? null;
 
-                if ($value === null || $value === '')
-                    continue;
+                    if (is_string($value))
+                        $value = trim($value);
 
-                $allowed[(string) $value] = true;
-            }
+                    if ($value === null || $value === '')
+                        continue;
 
-            if (!$allowed)
+                    $allowed[(string) $value] = true;
+                }
+
+                if (!$allowed)
+                    return [];
+
+                $valid = [];
+
+                foreach ($otherTaxes as $item) {
+                    if (!is_array($item))
+                        continue;
+
+                    $value = $item['id']
+                        ?? $item['tax_id']
+                        ?? $item['key']
+                        ?? null;
+
+                    if (is_string($value))
+                        $value = trim($value);
+
+                    if ($value === null || $value === '')
+                        continue;
+
+                    if (!isset($allowed[(string) $value]))
+                        continue;
+
+                    $valid[] = $item;
+                }
+
+                return $valid;
+            } catch (\Throwable $e) {
+                Log::warning(self::class . '::filterOtherTaxesAgainstBill failed', [
+                    'bill_id' => $billId,
+                    'error'   => $e->getMessage(),
+                ]);
                 return [];
-
-            $valid = [];
-
-            foreach ($otherTaxes as $item) {
-                if (!is_array($item))
-                    continue;
-
-                $value = $item['id']
-                    ?? $item['tax_id']
-                    ?? $item['key']
-                    ?? null;
-
-                if (is_string($value))
-                    $value = trim($value);
-
-                if ($value === null || $value === '')
-                    continue;
-
-                if (!isset($allowed[(string) $value]))
-                    continue;
-
-                $valid[] = $item;
             }
-
-            return $valid;
         } catch (\Throwable $e) {
-            Log::warning(self::class . '::filterOtherTaxesAgainstBill failed', [
-                'bill_id' => $billId,
-                'error'   => $e->getMessage(),
-            ]);
+            Log::error(static::class . '::filterOtherTaxesAgainstBill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return [];
         }
     }
@@ -216,14 +199,6 @@ final class BillProduct extends Model
         return $this->belongsTo(ProductService::class, BC::COL_PRD_ID, 'id');
     }
 
-    /**
-     * Alias for {@see productService()} – used by Bill::with('items.product').
-     */
-    public function product(): BelongsTo
-    {
-        return $this->productService();
-    }
-
     public function chartOfAccount(): BelongsTo
     {
         return $this->belongsTo(ChartOfAccount::class, BKC::COL_COA, 'id');
@@ -234,9 +209,19 @@ final class BillProduct extends Model
         return $this->belongsTo(Tax::class, BC::COL_TAX_ID, 'id');
     }
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
         // * considerar belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id')
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(ProductService::class, 'product_id', 'id');
+    }
+
+    public function chartAccount(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class, 'chart_account_id', 'id');
     }
 }

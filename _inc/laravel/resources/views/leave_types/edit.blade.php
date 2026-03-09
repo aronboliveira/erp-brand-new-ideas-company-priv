@@ -1,23 +1,43 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW,
-        StacksConstants as ST
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang   = Utility::fetchUserLang();
-    $hasLT  = !empty($leavetype ?? null) && data_get($leavetype, 'id');
-
-    $updateBase     = VW::LV_TP . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasLT) ? route($updateResolved, $leavetype->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::LV_TP, 'update_route_unavailable')
-                        ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasLT ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasLT = !empty($leavetype ?? null) && data_get($leavetype, 'id');
+		$updateBase = VW::LV_TP . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$leaveTypeId = data_get($leavetype ?? null, 'id', '');
+		$updateUrl = ($updateResolved && $hasLT && $leaveTypeId) ? (route($updateResolved, $leaveTypeId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::LV_TP, 'update_route_unavailable')
+			?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in leave_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in leave_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in leave_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasLT)
@@ -34,7 +54,7 @@
                     {{ Form::text('title', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Leave Type Name')]) }}
                     @error('title')
                         <span class="invalid-name" role="alert">
-                            <strong class="text-danger">{{ $message }}</strong>
+                            <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>

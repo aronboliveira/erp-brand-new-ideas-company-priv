@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Bills;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    MiddlewaresConstants,
-    UsersConstants,
+    DatabaseConstants as DC,
+    MiddlewaresConstants as MWC,
+    UsersConstants as UC,
     ViewsConstants as VW
 };
 use App\Models\{Bill, Budget, Invoice, Payment, ProductServiceCategory, Revenue, Utility};
@@ -15,6 +17,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, View as ViewFacade};
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 final class BudgetController extends Controller
 {
@@ -23,7 +26,7 @@ final class BudgetController extends Controller
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH]);
+        $this->middleware([MWC::AUTH]);
     }
 
     public function index(Request $req): View|Response|RedirectResponse|JsonResponse
@@ -40,7 +43,7 @@ final class BudgetController extends Controller
             if (($g = self::guard($req, 'manage budget plan')) !== true) return $g;
             try {
                 $fetchStart = microtime(true);
-                $budgets = Budget::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $budgets = Budget::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchBudgets');
                 Log::info("[{$base}::{$action}] loaded budgets", ['count' => $budgets->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -49,7 +52,7 @@ final class BudgetController extends Controller
                 $this->logExecutionTime($renderStart, $action, 'renderIndex');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), UsersConstants::COL_USER_ID => $user?->id]);
+                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), UC::COL_USER_ID => $user?->id]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
@@ -70,10 +73,10 @@ final class BudgetController extends Controller
             if (($g = self::guard($req, 'create budget plan')) !== true) return $g;
             try {
                 $incStart = microtime(true);
-                $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $incomeCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, 'income')->get();
                 $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
                 $expStart = microtime(true);
-                $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $expenseCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, 'expense')->get();
                 $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
                 Log::info("[{$base}::{$action}] rendering form", ['income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -121,7 +124,7 @@ final class BudgetController extends Controller
                     'period' => $req->period,
                     'income_data' => json_encode(!empty($req->income) ? $req->income : []),
                     'expense_data' => json_encode(!empty($req->expense) ? $req->expense : []),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($createStart, $action, 'createBudget');
                 Log::info("[{$base}::{$action}] created budget", ['budget_id' => $budget->id]);
@@ -163,7 +166,7 @@ final class BudgetController extends Controller
                 $budget = Budget::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findBudget');
                 if (!$this->isOwner($budget, $user)) {
-                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UsersConstants::COL_USER_ID => $user?->id]);
+                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UC::COL_USER_ID => $user?->id]);
                     return defaultPermissionDenial(request(), new \Exception('owner'), $class . '::' . $action);
                 }
                 $repStart = microtime(true);
@@ -204,7 +207,7 @@ final class BudgetController extends Controller
                 $budget = Budget::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findBudget');
                 if (!$this->isOwner($budget, $user)) {
-                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UsersConstants::COL_USER_ID => $user?->id]);
+                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UC::COL_USER_ID => $user?->id]);
                     return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
                 }
                 $decodeStart = microtime(true);
@@ -212,10 +215,10 @@ final class BudgetController extends Controller
                 $budget->expense_data = json_decode($budget->expense_data, true);
                 $this->logExecutionTime($decodeStart, $action, 'decodeBudgetData');
                 $incStart = microtime(true);
-                $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $incomeCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, 'income')->get();
                 $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
                 $expStart = microtime(true);
-                $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $expenseCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, 'expense')->get();
                 $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
                 Log::info("[{$base}::{$action}] rendering form", ['budget_id' => $id, 'income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -253,7 +256,7 @@ final class BudgetController extends Controller
             $user = $u;
             if (($g = self::guard($req, 'edit budget plan')) !== true) return $g;
             if (!$this->isOwner($budget, $user)) {
-                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UsersConstants::COL_USER_ID => $user?->id]);
+                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
             }
             $valStart = microtime(true);
@@ -292,7 +295,7 @@ final class BudgetController extends Controller
             $user = $u;
             if (($g = self::guard($req, 'delete budget plan')) !== true) return $g;
             if (!$this->isOwner($budget, $user)) {
-                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UsersConstants::COL_USER_ID => $user?->id]);
+                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UC::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
             }
             try {
@@ -312,7 +315,7 @@ final class BudgetController extends Controller
     public const Y_M = 'yearMonth';
     public function yearMonth(Request $request): array
     {
-        Log::info(__METHOD__, [UsersConstants::COL_USER_ID => Auth::id()]);
+        Log::info(__METHOD__, [UC::COL_USER_ID => Auth::id()]);
         if (
             (self::_checkLogin()) instanceof RedirectResponse
         ) return [];
@@ -333,9 +336,17 @@ final class BudgetController extends Controller
     }
 
     public const Y_L = 'yearList';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function yearList(Request $request): array
     {
-        Log::info(__METHOD__, [UsersConstants::COL_USER_ID => Auth::id()]);
+        Log::info(__METHOD__, [UC::COL_USER_ID => Auth::id()]);
         if (
             (self::_checkLogin()) instanceof RedirectResponse
         ) return [];
@@ -351,7 +362,7 @@ final class BudgetController extends Controller
     {
         if (!$req->user()->can($perm)) {
             Log::warning('Permission denied', [
-                UsersConstants::COL_USER_ID   => $req->user()->id,
+                UC::COL_USER_ID   => $req->user()->id,
                 'permission' => $perm,
                 'method'    => __CLASS__ . '::' . debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function']
             ]);
@@ -366,7 +377,7 @@ final class BudgetController extends Controller
 
     private function isOwner(object $model, object $user): bool
     {
-        return $model[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
+        return $model[DC::COL_TABLE_CREATOR] === $user?->creatorId();
     }
 
     private static function _months(): array
@@ -400,7 +411,7 @@ final class BudgetController extends Controller
     private function _buildReports(Budget $budget): array
     {
         $year  = $budget->from ?: now()->year;
-        $creatorId = $budget[DatabaseConstants::COL_TABLE_CREATOR];
+        $creatorId = $budget[DC::COL_TABLE_CREATOR];
         // 1) Common labels for all views:
         $common = [
             'monthList'             => self::_months(),
@@ -411,9 +422,9 @@ final class BudgetController extends Controller
             'currentYear'           => $year,
         ];
         // 2) Categories
-        $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+        $incomeCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'income')->get();
-        $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+        $expenseCats = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'expense')->get();
         // 3) Budget totals from stored JSON
         $incomeData = json_decode($budget->income_data,  true) ?? [];
@@ -449,7 +460,7 @@ final class BudgetController extends Controller
                 else
                     [$start, $end] = explode('-', $key);
                 // 5a) revenue
-                $rev = Revenue::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                $rev = Revenue::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('date', $year)
                     ->whereMonth('date', '>=', $start)
@@ -457,7 +468,7 @@ final class BudgetController extends Controller
                     ->sum('amount');
                 // 5b) invoices
                 $invTotal = 0;
-                Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                Invoice::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('send_date', $year)
                     ->whereMonth('send_date', '>=', $start)
@@ -482,7 +493,7 @@ final class BudgetController extends Controller
                 else
                     [$start, $end] = explode('-', $key);
                 // 6a) payments
-                $pay = Payment::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                $pay = Payment::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('date', $year)
                     ->whereMonth('date', '>=', $start)
@@ -490,7 +501,7 @@ final class BudgetController extends Controller
                     ->sum('amount');
                 // 6b) bills
                 $billTotal = 0;
-                Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                Bill::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('send_date', $year)
                     ->whereMonth('send_date', '>=', $start)

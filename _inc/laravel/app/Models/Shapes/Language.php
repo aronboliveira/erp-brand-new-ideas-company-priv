@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Config\Constants\DatabaseConstants;
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\Model;
+use App\Config\Constants\{DatabaseConstants};
+use App\Traits\{UsesUuids};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Support\Facades\{Log};
 
 class Language extends Model
 {
@@ -18,10 +19,15 @@ class Language extends Model
 
     public static function languageData(string $code): ?self
     {
-        return cache()->remember(
-            'language_data_' . $code,
-            now()->addHours(24),
-            fn() => self::where('code', $code)->first()
-        );
+        try {
+            return cache()->remember(
+                'language_data_' . $code,
+                now()->addHours(24),
+                fn() => self::where('code', $code)->first()
+            );
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::languageData — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 }

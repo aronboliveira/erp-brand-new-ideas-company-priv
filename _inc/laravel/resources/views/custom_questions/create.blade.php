@@ -1,27 +1,21 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-
-    $lang                   = Utility::fetchUserLang();
-    $routeName              = ViewsConstants::CST_QT;
-    $createUrl              = Route::has($routeName)
-        ? route($routeName)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName))
-            : '#');
-    $formId                 = 'custom-question-store-form';
-    $guardMsg               = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CST_QT,
-        'custom_question_index_route_unavailable'
-    ) ?? 'Custom Question index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang                   = Utility::fetchUserLang();
+        $routeName              = ViewsConstants::CST_QT;
+        $createUrl              = Route::has($routeName)
+            ? route($routeName)
+            : (Route::has(Str::kebab($routeName))
+                ? route(Str::kebab($routeName))
+                : '#');
+        $formId                 = 'custom-question-store-form';
+        $guardMsg               = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::CST_QT,
+            'custom_question_index_route_unavailable'
+        ) ?? 'Custom Question index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('custom_questions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

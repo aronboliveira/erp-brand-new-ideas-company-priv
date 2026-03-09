@@ -3,20 +3,20 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    SettingsConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    SettingsConstants as SC
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\ChecksLogin;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants as RRC,
-    Config\Constants\SettingsConstants as LPC,
+    Config\Constants\SettingsConstants as LPSC,
     Entities\LandingPageSetting
 };
 
@@ -42,10 +42,13 @@ class DiscoverController extends AppController
                 $userId  = $user->id;
                 Log::debug("{$action} • authenticated user", ['user_id' => $userId]);
             }
+            if (!isset($user) || $user->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             try {
                 Log::debug("{$action} • retrieving landing page settings", ['user_id' => $userId]);
                 $settings = LandingPageSetting::landingPageSetting();
-                $discover_of_features = json_decode(!empty($settings[LPC::DC_OF_FTS_K]) ? $settings[LPC::DC_OF_FTS_K] : (!empty(RRC::DV) ? RRC::DV : '[]'), true);
+                $discover_of_features = json_decode(!empty($settings[LPSC::DC_OF_FTS_K]) ? $settings[LPSC::DC_OF_FTS_K] : (!empty(RRC::DV) ? RRC::DV : '[]'), true);
                 if (!empty($discover_of_features) && is_array($discover_of_features)) {
                     if (count($discover_of_features) === 1 && isset($discover_of_features[0]) && is_array($discover_of_features[0])) {
                         $firstElement = $discover_of_features[0];
@@ -64,7 +67,7 @@ class DiscoverController extends AppController
                 return view(
                     $view,
                     [
-                        DatabaseConstants::TABLE_SETTINGS => $settings,
+                        DC::TABLE_SETTINGS => $settings,
                         'discover_of_features' => $discover_of_features,
                     ]
                 );
@@ -101,7 +104,7 @@ class DiscoverController extends AppController
                 $settings = LandingPageSetting::settings();
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
                 $decodeStart = microtime(true);
-                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true) ?: [];
+                $features = json_decode($settings[LPSC::DC_OF_FTS_K] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
                 if (!isset($features[$id])) {
                     Log::warning("[$action] invalid key", ['key' => $id]);
@@ -180,7 +183,7 @@ class DiscoverController extends AppController
                     static::ENTITY . '_buy_now_link'  => $payload[static::ENTITY . '_buy_now_link']   ?? ''
                 ];
                 foreach ($update as $name => $value)
-                    LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value, DatabaseConstants::COL_TABLE_CREATOR => $user?->id]);
+                    LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value, DC::COL_TABLE_CREATOR => $user?->id]);
                 $commitTime = microtime(true);
                 DB::commit();
                 $this->logExecutionTime($commitTime, explode("::", $method)[1] . '::commit', 'completed');
@@ -189,7 +192,7 @@ class DiscoverController extends AppController
                 $rollTime = microtime(true);
                 DB::rollBack();
                 $this->logExecutionTime($rollTime, explode("::", $method)[1] . '::rollback', 'failed');
-                Log::error($method . ' failed to ' . explode("::", $method)[1] . ' ' . DatabaseConstants::TABLE_SETTINGS, ['user_id' => $user?->id, 'payload' => $payload, 'error' => $e->getMessage()]);
+                Log::error($method . ' failed to ' . explode("::", $method)[1] . ' ' . DC::TABLE_SETTINGS, ['user_id' => $user?->id, 'payload' => $payload, 'error' => $e->getMessage()]);
                 Log::debug($method . ' debug', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method, route(static::ROUTE_INDEX));
             }
@@ -213,7 +216,7 @@ class DiscoverController extends AppController
                 }
                 Log::debug("{$action} • loading settings");
                 $settings = LandingPageSetting::settings();
-                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true);
+                $features = json_decode($settings[LPSC::DC_OF_FTS_K] ?? '[]', true);
                 if (!isset($features[$id])) {
                     Log::warning("{$action} • invalid feature key", ['key' => $id]);
                     return redirect()->route(self::ROUTE_INDEX)
@@ -302,12 +305,13 @@ class DiscoverController extends AppController
                     return redirect()->route(static::ROUTE_INDEX)->with('error', __('Feature not found.'));
                 }
                 $feature = $features[$key];
+                $discover = $feature;
                 $view = self::getFirstExistingView(static::ENTITY . '.edit');
                 if (!$view) {
                     Log::warning($method . ' - view not found', ['attempted' => static::ENTITY . '.edit']);
                     throw new \RuntimeException("View not found: " . static::ENTITY . '.edit');
                 }
-                return view($view, compact('feature', 'key'));
+                return view($view, compact('feature', 'key', 'discover'));
             } catch (\Throwable $e) {
                 Log::error($method . ' • failed', ['error' => $e->getMessage(), 'key' => $key]);
                 Log::debug($method . ' • exception trace', ['trace' => $e->getTraceAsString()]);
@@ -332,12 +336,12 @@ class DiscoverController extends AppController
             $payload = $request->validate([
                 self::ENTITY . 'Heading'     => 'string|nullable',
                 self::ENTITY . 'Description' => 'string|nullable',
-                self::ENTITY . 'Logo'        => 'image|mimes:png,jpg,jpeg,svg,webp|max:' . SettingsConstants::MAX_U_SIZE_DEF . '|nullable',
+                self::ENTITY . 'Logo'        => 'image|mimes:png,jpg,jpeg,svg,webp|max:' . SC::MAX_U_SIZE_DEF . '|nullable',
             ]);
             DB::beginTransaction();
             try {
                 $settings = LandingPageSetting::settings();
-                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true);
+                $features = json_decode($settings[LPSC::DC_OF_FTS_K] ?? '[]', true);
                 if (!isset($features[$key])) {
                     DB::rollBack();
                     Log::warning("{$action} • feature not found", ['user_id' => $user->id, 'key' => $key]);
@@ -357,8 +361,8 @@ class DiscoverController extends AppController
                 $features[$key][self::ENTITY . 'Heading']     = $payload[self::ENTITY . 'Heading']     ?? $features[$key][self::ENTITY . 'Heading'];
                 $features[$key][self::ENTITY . 'Description'] = $payload[self::ENTITY . 'Description'] ?? $features[$key][self::ENTITY . 'Description'];
                 LandingPageSetting::updateOrCreate(
-                    ['name'   => LPC::DC_OF_FTS_K],
-                    ['value'  => json_encode(array_values($features)), DatabaseConstants::COL_TABLE_CREATOR => $user->id]
+                    ['name'   => LPSC::DC_OF_FTS_K],
+                    ['value'  => json_encode(array_values($features)), DC::COL_TABLE_CREATOR => $user->id]
                 );
                 DB::commit();
                 Log::info("{$action} • feature updated successfully", ['user_id' => $user->id, 'key' => $key]);
@@ -367,7 +371,7 @@ class DiscoverController extends AppController
                 DB::rollBack();
                 $errCtx = ['exception' => get_class($e), 'message' => $e->getMessage(), 'user_id' => $user->id, 'key' => $key, 'payload' => $payload];
                 Log::critical("{$action} • failed to update feature", $errCtx);
-                Log::channel(SettingsConstants::CRT_TRACE)->debug("{$action} • failed to update feature", array_merge($errCtx, ['trace' => $e->getTraceAsString()]));
+                Log::channel(SC::CRT_TRACE)->debug("{$action} • failed to update feature", array_merge($errCtx, ['trace' => $e->getTraceAsString()]));
                 return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         });
@@ -392,7 +396,7 @@ class DiscoverController extends AppController
                 $settings = LandingPageSetting::settings();
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
                 $decodeStart = microtime(true);
-                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true) ?: [];
+                $features = json_decode($settings[LPSC::DC_OF_FTS_K] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
                 if (!isset($features[$key])) {
                     Log::warning("[$action] feature not found", ['user_id' => $user?->id, 'key' => $key]);
@@ -402,7 +406,7 @@ class DiscoverController extends AppController
                 }
                 unset($features[$key]);
                 $updateStart = microtime(true);
-                LandingPageSetting::updateOrCreate(['name' => LPC::DC_OF_FTS_K], ['value' => json_encode(array_values($features)), DatabaseConstants::COL_TABLE_CREATOR => $user?->id]);
+                LandingPageSetting::updateOrCreate(['name' => LPSC::DC_OF_FTS_K], ['value' => json_encode(array_values($features)), DC::COL_TABLE_CREATOR => $user?->id]);
                 $this->logExecutionTime($updateStart, $action . '::updateOrCreate', 'completed');
                 DB::commit();
                 Log::info("[$action] feature deleted", ['user_id' => $user?->id, 'key' => $key]);
@@ -460,6 +464,14 @@ class DiscoverController extends AppController
      * Persist a new discover feature.
      */
     public const DCV_STR = 'discoverStore';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function discoverStore(Request $request): RedirectResponse
     {
         $method = static::class . '::' . __FUNCTION__;
@@ -489,7 +501,7 @@ class DiscoverController extends AppController
             $startUpdate = microtime(true);
             LandingPageSetting::updateOrCreate(
                 ['name' => static::ENTITY . '_of_features'],
-                ['value' => json_encode(array_values($data)), DatabaseConstants::COL_TABLE_CREATOR => $user->id]
+                ['value' => json_encode(array_values($data)), DC::COL_TABLE_CREATOR => $user->id]
             );
             $this->logExecutionTime($startUpdate, explode("::", $method)[1] . '::updateOrCreate', 'completed');
             return redirect()->back()->with('success', __('Feature added successfully'));

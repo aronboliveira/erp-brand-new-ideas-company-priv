@@ -12,6 +12,11 @@ use App\Models\JobOnBoard;
 
 class JobOnBoardTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -36,9 +41,7 @@ class JobOnBoardTest extends TestCase
 
 		$jobBoard = JobOnBoard::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $jobBoard->$field);
-		}
+		$this->assertFillableMatches($data, $jobBoard);
 	}
 
 	/**

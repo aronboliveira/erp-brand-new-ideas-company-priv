@@ -1,29 +1,28 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\{Facades\Route, Str};
-    use Collective\Html\FormFacade as Form;
+    try {
+$lang        = Utility::fetchUserLang();
+        $purchaseId  = isset($purchase) && !empty(data_get($purchase, 'id')) ? data_get($purchase, 'id') : null;
 
-    $lang        = Utility::fetchUserLang();
-    $purchaseId  = isset($purchase) && !empty(data_get($purchase, 'id')) ? data_get($purchase, 'id') : null;
+        $payBase     = VW::PRC . '.payment';
+        $payKebab    = Str::kebab($payBase);
+        $payResolved = Route::has($payBase) ? $payBase : (Route::has($payKebab) ? $payKebab : null);
 
-    $payBase     = VW::PRC . '.payment';
-    $payKebab    = Str::kebab($payBase);
-    $payResolved = Route::has($payBase) ? $payBase : (Route::has($payKebab) ? $payKebab : null);
+        $formId      = 'purchase-payment-form';
+        $guardMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'payment_purchase_unavailable') ?? 'Purchase payment route is unavailable. Please contact technical support or your domain administrator.';
 
-    $formId      = 'purchase-payment-form';
-    $guardMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'payment_purchase_unavailable') ?? 'Purchase payment route is unavailable. Please contact technical support or your domain administrator.';
-
-    $formOpen = [
-        'method'         => 'post',
-        'enctype'        => 'multipart/form-data',
-        'id'             => $formId,
-        'data-guard-msg' => $guardMsg,
-    ];
-    if ($payResolved && $purchaseId) {
-        $formOpen['route'] = [$payResolved, $purchaseId];
-    } else {
-        $formOpen['url'] = '#';
+        $formOpen = [
+            'method'         => 'post',
+            'enctype'        => 'multipart/form-data',
+            'id'             => $formId,
+            'data-guard-msg' => $guardMsg,
+        ];
+        if ($payResolved && $purchaseId) {
+            $formOpen['route'] = [$payResolved, $purchaseId];
+        } else {
+            $formOpen['url'] = '#';
+        }
+    } catch (\Throwable $e) {
+        \Log::error('purchases/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
 @endphp
 

@@ -6,13 +6,23 @@ use App\Models\{ExperienceCertificate, Utility};
 use Illuminate\Support\Facades\{Auth, Log};
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExperienceCertificateTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -23,7 +33,10 @@ class ExperienceCertificateTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['lang', 'content', 'created_by'];
+		$expected = [
+			'lang',
+			'content',
+		];
 		$this->assertSame($expected, (new ExperienceCertificate)->getFillable());
 	}
 
@@ -53,7 +66,7 @@ class ExperienceCertificateTest extends TestCase
 	public function replace_variable_prefers_settings_app_name_over_env(): void
 	{
 		// Stub Utility::settings() to return a custom app_name and date format
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -84,7 +97,7 @@ class ExperienceCertificateTest extends TestCase
 	public function replace_variable_uses_env_app_name_when_settings_app_name_empty(): void
 	{
 		// Stub Utility::settings() to return an empty app_name but custom date format
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -113,7 +126,7 @@ class ExperienceCertificateTest extends TestCase
 	public function replace_variable_handles_date_formatting_exceptions(): void
 	{
 		// Stub Utility::settings() to return valid values
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -151,7 +164,7 @@ class ExperienceCertificateTest extends TestCase
 		Auth::shouldReceive('id')->once()->andReturn(10);
 
 		// Spy on the static create() method
-		$createMock = Mockery::mock('alias:' . ExperienceCertificate::class)
+		$createMock = $this->aliasMock(ExperienceCertificate::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)
@@ -175,7 +188,7 @@ class ExperienceCertificateTest extends TestCase
 	{
 		Auth::shouldReceive('id')->once()->andReturn(20);
 
-		$createMock = Mockery::mock('alias:' . ExperienceCertificate::class)
+		$createMock = $this->aliasMock(ExperienceCertificate::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)

@@ -1,22 +1,42 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as C, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang = Utility::fetchUserLang();
-    $storeRoute = Route::has(ViewsConstants::AWD_TP)
-        ? route(ViewsConstants::AWD_TP)
-        : Route::has(Str::kebab(ViewsConstants::AWD_TP))
-            ? route(Str::kebab(ViewsConstants::AWD_TP))
-            : '#';
-    $formId = 'awardtype-store-form';
-    $storeMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::AWD_TP,
-        'award_type_store_route_unavailable'
-    ) ?? 'Award Type store route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$storeRoute ??= '#';
+	$formId ??= 'awardtype-store-form';
+	$storeMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeRoute = Route::has(ViewsConstants::AWD_TP)
+			? (route(ViewsConstants::AWD_TP) ?? '#')
+			: (Route::has(Str::kebab(ViewsConstants::AWD_TP))
+				? (route(Str::kebab(ViewsConstants::AWD_TP)) ?? '#')
+				: '#');
+		$storeMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::AWD_TP,
+			'award_type_store_route_unavailable'
+		) ?? 'Award Type store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in award_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in award_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in award_types/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::open([
@@ -29,12 +49,12 @@
 ]) }}
     <div class="modal-body">
         <div class="{{ C::RW }}">
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ C::FM_GB3 }}">
-                    {{ Form::label('name', __('Name'), ['class'=>C::FM_LB]) }}<span class="text-danger">*</span>
+                    {{ Form::label('name', __('Name'), ['class'=>C::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                     {{ Form::text('name', null, ['class'=>C::FM_CT,'placeholder'=>__('Enter Award Type Name')]) }}
                     @error('name')
-                        <span class="text-danger">{{ $message }}</span>
+                        <span class="{{ VC::TX_DNG }}">{{ $message }}</span>
                     @enderror
                 </div>
             </div>
@@ -46,4 +66,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/awardTypes/store.js') }}"></script>
 {{ Form::close() }}
-

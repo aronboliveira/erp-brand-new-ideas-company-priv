@@ -5,18 +5,16 @@ import platform
 import re
 from datetime import datetime
 from colorama import Fore, init
-from typing import Any, Tuple
+from typing import Tuple
 init(autoreset=True)
-DepTuple = Tuple[str, str, str, str, str]
-composer_deps: list[DepTuple] = []
-npm_deps: list[DepTuple] = []
+composer_deps = []
+npm_deps = []
 def extract_file_deps(file: str, _case: str) -> None:
     try:
         rel = os.path.relpath(file)
         with open(file, 'r', encoding='utf-8') as f:
             content = json.load(f)
-
-        def add_deps(c: dict[str, Any], prop: str, group: str = 'general') -> None:
+        def add_deps(c: dict, prop: str, group: str = 'general') -> None:
             for d, v in c.get(prop, {}).items():
                 loaded_vn = re.sub(r'[^0-9]', '', v)
                 found = None
@@ -34,8 +32,7 @@ def extract_file_deps(file: str, _case: str) -> None:
                             break
                 else:
                     raise ValueError('Case does not exist in dependency check switch.')
-
-                def case_append(item: DepTuple) -> None:
+                def case_append(item: Tuple[str]) -> None:
                     if _case == 'npm':
                         npm_deps.append(item)
                     elif _case == 'composer':
@@ -111,7 +108,6 @@ def extract_all_deps() -> bool:
     except Exception as e:
         print(Fore.RED + f'An unknown error has stopped the execution: {e}')
         return False
-
 
 if __name__ == '__main__':
     extract_all_deps()

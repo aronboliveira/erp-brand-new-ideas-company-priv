@@ -1,53 +1,15 @@
+/**
+ * @fileoverview Invoice store route guard
+ * @description Protects invoice store form from submission when route is unavailable
+ */
+
 (() => {
   try {
-    const fm = document.getElementById("invoice-store-form");
-    if (!fm) {
-      return;
-    }
-    if (fm.getAttribute("data-submit-guarded") === "true") {
-      return;
-    }
-    fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
-      try {
-        const action = (fm.getAttribute("action") ?? "#").trim();
-        const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
-        if (url !== "#" && action !== "#") {
-          return;
-        }
-        e.preventDefault();
-        const msg =
-          fm.getAttribute("data-guard-msg") ??
-          "Store invoice route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        if (hasBootstrap) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-        fm.setAttribute("data-failed-route", "true");
-      } catch (err) {}
-    });
-  } catch (err) {}
+    const guard = window.ERPGuard;
+    if (!guard) return;
+    guard.bindSubmitGuard(
+      "#invoice-store-form",
+      "U3RvcmUgaW52b2ljZSByb3V0ZSBpcyB1bmF2YWlsYWJsZS4gUGxlYXNlIGNvbnRhY3QgdGVjaG5pY2FsIHN1cHBvcnQgb3IgeW91ciBkb21haW4gYWRtaW5pc3RyYXRvci4=",
+    );
+  } catch {}
 })();

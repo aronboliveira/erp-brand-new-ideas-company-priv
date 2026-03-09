@@ -1,11 +1,5 @@
 @php
-	use App\Config\Constants\{
-        SettingsConstants,
-        ViewClassNamesConstants as VC
-    };
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\Log;
-	$data ??= [];
+$data ??= [];
 	$logo ??= '';
 	$company_logo ??= '';
 	$company_favicon ??= '';
@@ -54,13 +48,13 @@
     {{__('Settings')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Print-Settings')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Print-Settings')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('assets/js/routes/settings/pos/lang/purchase.js') }}"></script>
@@ -69,7 +63,7 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::CS12 }} {{ VC::MT4 }}">
         <div class="{{ VC::CD }}">
-            <div class="card-body">
+            <div class="{{ VC::CD_BD }}">
                 <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
                     <li class="{{ VC::NV_IT }}">
                         <a class="{{ VC::NV_LK }} active"
@@ -94,28 +88,37 @@
                         </a>
                     </li>
                 </ul>
-                @php 
-                    $templateData = Utility::templateData(); 
-                    $templates = $templateData['templates'];
-                    $colors = $templateData['colors'];
-                @endphp
+                @php
+
+                    try {
+                        $templateData = Utility::templateData();
+                        $templates = $templateData['templates'];
+                        $colors = $templateData['colors'];
+                    } catch (\Throwable $e) {
+                        \Log::error('settings/pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <div class="tab-content" id="pills-tabContent">
-                    <div class="tab-pane fade show active" id="pills-purchase" role="tabpanel" aria-labelledby="pills-purchase-tab">
+                    <div class="{{ VC::TAB_FD_SH }} active" id="pills-purchase" role="tabpanel" aria-labelledby="pills-purchase-tab">
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <h5></h5>
                                         @php
-                                            $prcSettingsBase = ViewsConstants::PRC_TMP.'.settings';
-                                            $prcSettingsKebab = Str::kebab($prcSettingsBase);
-                                            $prcSettingsResolved = Route::has($prcSettingsBase) ? $prcSettingsBase : (Route::has($prcSettingsKebab) ? $prcSettingsKebab : null);
-                                            $prcSettingsUrl = $prcSettingsResolved ? route($prcSettingsResolved) : '#';
-                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $prcSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC_TMP, 'settings_purchase_template_route_unavailable') ?? 'Purchase template settings route is unavailable. Please contact technical support or your domain administrator.';
-                                            $prcTmpFormId = 'prc-settings-form';
-                                        @endphp
-                                        <form id="{{ $prcTmpFormId }}" method="post" action="{{ $prcSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $prcSettingsUrl }}" data-guard-msg="{{ $prcSettingsGuardMsg }}" data-sv-localized="true">
+                                            try {
+                                                $prcSettingsBase = ViewsConstants::PRC_TMP.'.settings';
+                                                $prcSettingsKebab = Str::kebab($prcSettingsBase);
+                                                $prcSettingsResolved = Route::has($prcSettingsBase) ? $prcSettingsBase : (Route::has($prcSettingsKebab) ? $prcSettingsKebab : null);
+                                                $prcSettingsUrl = $prcSettingsResolved ? route($prcSettingsResolved) : '#';
+                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $prcSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC_TMP, 'settings_purchase_template_route_unavailable') ?? 'Purchase template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                                $prcTmpFormId = 'prc-settings-form';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('settings/pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <form id="{{ $prcTmpFormId }}" method="post" action="{{ $prcSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $prcSettingsUrl }}" data-guard-msg="{{ base64_encode($prcSettingsGuardMsg) }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('Purchase Template') }}</label>
@@ -155,13 +158,13 @@
                                             </div>
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Purchase Logo') }}</label>
-                                                <div class="choose-files mt-2">
+                                                <div class="choose-files {{ VC::MT2 }}">
                                                     <label for="purchase_logo">
                                                         <div class="{{ VC::BG_P }} purchase_logo_update">
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
                                                         <input type="file" class="{{ VC::FM_CT }} file" name="purchase_logo" id="purchase_logo" data-filename="purchase_logo_update">
-                                                        <img id="purchase_image" class="mt-2" style="width:25%;"/>
+                                                        <img id="purchase_image" class="{{ VC::MT2 }}" style="width:25%;"/>
                                                     </label>
                                                 </div>
                                             </div>
@@ -176,23 +179,27 @@
                                     </div>
                                 </div>
                                 @php
-                                    $prcPreviewBase = ViewsConstants::PRC.'.preview';
-                                    $prcPreviewKebab = Str::kebab($prcPreviewBase);
-                                    $prcPreviewResolved = Route::has($prcPreviewBase) ? $prcPreviewBase : (Route::has($prcPreviewKebab) ? $prcPreviewKebab : null);
-                                    $tplValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings[BillsConstants::COL_PRC_TMP] : 'template1';
-                                    $colorValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings['purchase_color'] : 'ffffff';
-                                    $prcPreviewUrl = $prcPreviewResolved ? route($prcPreviewResolved, [$tplValue, $colorValue]) : '#';
-                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                    $prcPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC, 'preview_purchase_route_unavailable') ?? 'Purchase preview route is unavailable. Please contact technical support or your domain administrator.';
-                                    $iframeId = 'purchase_frame';
-                                @endphp
+                                    try {
+                                        $prcPreviewBase = ViewsConstants::PRC.'.preview';
+                                        $prcPreviewKebab = Str::kebab($prcPreviewBase);
+                                        $prcPreviewResolved = Route::has($prcPreviewBase) ? $prcPreviewBase : (Route::has($prcPreviewKebab) ? $prcPreviewKebab : null);
+                                        $tplValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings[BillsConstants::COL_PRC_TMP] : 'template1';
+                                        $colorValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings['purchase_color'] : 'ffffff';
+                                        $prcPreviewUrl = $prcPreviewResolved ? route($prcPreviewResolved, [$tplValue, $colorValue]) : '#';
+                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                        $prcPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC, 'preview_purchase_route_unavailable') ?? 'Purchase preview route is unavailable. Please contact technical support or your domain administrator.';
+                                        $iframeId = 'purchase_frame';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('settings/pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM9 }}">
                                     <iframe id="{{ $iframeId }}"
-                                            class="w-100 h-100"
+                                            class="{{ VC::W100 }} h-100"
                                             frameborder="0"
                                             src="{{ $prcPreviewUrl }}"
                                             data-url="{{ $prcPreviewUrl }}"
-                                            data-guard-msg="{{ $prcPreviewGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($prcPreviewGuardMsg) }}"
                                             data-sv-localized="true"></iframe>
                                 </div>
                                 @push(StacksConstants::ADM_SCR_PG)
@@ -205,18 +212,22 @@
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <h5></h5>
                                         @php
-                                            $posSettingsBase = ViewsConstants::POS_TMP.'.settings';
-                                            $posSettingsKebab = Str::kebab($posSettingsBase);
-                                            $posSettingsResolved = Route::has($posSettingsBase) ? $posSettingsBase : (Route::has($posSettingsKebab) ? $posSettingsKebab : null);
-                                            $posSettingsUrl = $posSettingsResolved ? route($posSettingsResolved) : '#';
-                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $posSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS_TMP, 'settings_pos_template_route_unavailable') ?? 'POS template settings route is unavailable. Please contact technical support or your domain administrator.';
-                                            $posTmpSettings = 'pos-settings-form';
-                                        @endphp
-                                        <form id="{{ $posTmpSettings }}" method="post" action="{{ $posSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $posSettingsUrl }}" data-guard-msg="{{ $posSettingsGuardMsg }}" data-sv-localized="true">
+                                            try {
+                                                $posSettingsBase = ViewsConstants::POS_TMP.'.settings';
+                                                $posSettingsKebab = Str::kebab($posSettingsBase);
+                                                $posSettingsResolved = Route::has($posSettingsBase) ? $posSettingsBase : (Route::has($posSettingsKebab) ? $posSettingsKebab : null);
+                                                $posSettingsUrl = $posSettingsResolved ? route($posSettingsResolved) : '#';
+                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $posSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS_TMP, 'settings_pos_template_route_unavailable') ?? 'POS template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                                $posTmpSettings = 'pos-settings-form';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('settings/pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <form id="{{ $posTmpSettings }}" method="post" action="{{ $posSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $posSettingsUrl }}" data-guard-msg="{{ base64_encode($posSettingsGuardMsg) }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('POS Template') }}</label>
@@ -251,18 +262,18 @@
                                                                 <span class="colorinput-color" style="background: #ffffff"></span>
                                                             </label>
                                                         </div>
-                                                    @endif   
+                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('POS Logo') }}</label>
-                                                <div class="choose-files mt-2">
+                                                <div class="choose-files {{ VC::MT2 }}">
                                                     <label for="pos_logo">
                                                         <div class="{{ VC::BG_P }} pos_logo_update">
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
                                                         <input type="file" class="{{ VC::FM_CT }} file" name="pos_logo" id="pos_logo" data-filename="pos_logo_update">
-                                                        <img id="pos_image" class="mt-2" style="width:25%;"/>
+                                                        <img id="pos_image" class="{{ VC::MT2 }}" style="width:25%;"/>
                                                     </label>
                                                 </div>
                                             </div>
@@ -277,23 +288,27 @@
                                     </div>
                                 </div>
                                 @php
-                                    $posPreviewBase = ViewsConstants::POS.'.preview';
-                                    $posPreviewKebab = Str::kebab($posPreviewBase);
-                                    $posPreviewResolved = Route::has($posPreviewBase) ? $posPreviewBase : (Route::has($posPreviewKebab) ? $posPreviewKebab : null);
-                                    $tplValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
-                                    $colorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings['pos_color'] : 'ffffff';
-                                    $posPreviewUrl = $posPreviewResolved ? route($posPreviewResolved, [$tplValue, $colorValue]) : '#';
-                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                    $posPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS, 'preview_pos_route_unavailable') ?? 'POS preview route is unavailable. Please contact technical support or your domain administrator.';
-                                    $iframeId = 'pos_frame';
-                                @endphp
+                                    try {
+                                        $posPreviewBase = ViewsConstants::POS.'.preview';
+                                        $posPreviewKebab = Str::kebab($posPreviewBase);
+                                        $posPreviewResolved = Route::has($posPreviewBase) ? $posPreviewBase : (Route::has($posPreviewKebab) ? $posPreviewKebab : null);
+                                        $tplValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
+                                        $colorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings['pos_color'] : 'ffffff';
+                                        $posPreviewUrl = $posPreviewResolved ? route($posPreviewResolved, [$tplValue, $colorValue]) : '#';
+                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                        $posPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS, 'preview_pos_route_unavailable') ?? 'POS preview route is unavailable. Please contact technical support or your domain administrator.';
+                                        $iframeId = 'pos_frame';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('settings/pos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM9 }}">
                                     <iframe id="{{ $iframeId }}"
-                                            class="w-100 h-100"
+                                            class="{{ VC::W100 }} h-100"
                                             frameborder="0"
                                             src="{{ $posPreviewUrl }}"
                                             data-url="{{ $posPreviewUrl }}"
-                                            data-guard-msg="{{ $posPreviewGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($posPreviewGuardMsg) }}"
                                             data-sv-localized="true"></iframe>
                                 </div>
                                 @push(StacksConstants::ADM_SCR_PG)

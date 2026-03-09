@@ -1,19 +1,11 @@
 (() => {
-  const getMsg = key => {
-    const lang = (
-      sessionStorage.getItem("erp-np-lang") ||
-      document.documentElement.lang ||
-      "en"
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    const short = lang === "pt-br" ? lang : lang.slice(0, 2);
-    return (
-      window.translations?.[short]?.[key] ||
-      window.translations?.["en"]?.[key] ||
-      "# ERROR"
-    );
-  };
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof getMsg !== "function") {
+    void(0);
+    return;
+  }
+
   const toast = msg =>
     window.show_toastr ? window.show_toastr("error", msg, "error") : alert(msg);
 

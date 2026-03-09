@@ -1,32 +1,21 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        YieldingConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Collection, Str};
-    use Illuminate\Support\Facades\Auth;
-
-    $user              = Auth::user();
-    $lang              = Utility::fetchUserLang(user: $user);
-    $createRoute       = Route::has(ViewsConstants::CTC_TP . '.create')
-        ? route(ViewsConstants::CTC_TP . '.create')
-        : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.create'))
-            ? route(Str::kebab(ViewsConstants::CTC_TP . '.create'))
-            : '#');
-    $createBtnId       = 'contract-type-create-btn';
-    $createGuardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CTC_TP,
-        'contract_type_create_route_unavailable'
-    ) ?? 'Contract Type create route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user              = Auth::user();
+        $lang              = Utility::fetchUserLang(user: $user);
+        $createRoute       = Route::has(ViewsConstants::CTC_TP . '.create')
+            ? route(ViewsConstants::CTC_TP . '.create')
+            : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.create'))
+                ? route(Str::kebab(ViewsConstants::CTC_TP . '.create'))
+                : '#');
+        $createBtnId       = 'contract-type-create-btn';
+        $createGuardMsg    = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::CTC_TP,
+            'contract_type_create_route_unavailable'
+        ) ?? 'Contract Type create route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('contract_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -36,13 +25,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Contract Type') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Contract Type') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -51,33 +40,33 @@
             id="{{ $createBtnId }}"
             href="#"
             data-url="{{ $createRoute }}"
-            data-guard-msg="{{ $createGuardMsg }}"
+            data-guard-msg="{{ base64_encode($createGuardMsg) }}"
             data-ajax-popup="true"
             data-size="md"
             class="{{ VC::BT_SM_PM }}"
             data-bs-toggle="tooltip"
             title="{{ __('Create New Contract Type') }}"
         >
-            <i class="ti ti-plus"></i>
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        <div class="col-3">
+        <div class="{{ VC::C3 }}">
             @include('layouts.crm_setup')
         </div>
-        <div class="col-9">
+        <div class="{{ VC::C9 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
                                     <th>{{ __('Name') }}</th>
                                     @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
-                                        <th class="text-end">{{ __('Action') }}</th>
+                                        <th class="{{ VC::TX_END }}">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
                             </thead>
@@ -87,22 +76,26 @@
                                         @php
                                             $typeId     = $type->id ?? null;
                                             $typeName   = !empty($type->name) ? $type->name : __('No contract type name available');
-                                        @endphp
+@endphp
                                         <tr class="font-style">
                                             <td>{{ $typeName }}</td>
                                             @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
                                                 @php
-                                                    $editUrl   = $typeId ? route(ViewsConstants::CTC_TP . '.edit', $typeId) : '#';
-                                                    $editBtnId = 'contract-type-edit-btn-' . ($typeId ?? 'x');
-                                                    $editMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_edit_route_unavailable') ?: __('Contract Type edit route is unavailable. Please contact technical support or your domain administrator.');
-                                                    $delUrl    = $typeId ? route(ViewsConstants::CTC_TP . '.destroy', $typeId) : '#';
-                                                    $delFormId = 'contract-type-delete-form-' . ($typeId ?? 'x');
-                                                    $delBtnId  = 'contract-type-delete-btn-' . ($typeId ?? 'x');
-                                                    $delMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_destroy_route_unavailable') ?: __('Contract Type delete route is unavailable. Please contact technical support or your domain administrator.');
-                                                @endphp
-                                                <td class="action text-end">
+                                                    try {
+                                                        $editUrl   = $typeId ? route(ViewsConstants::CTC_TP . '.edit', $typeId) : '#';
+                                                        $editBtnId = 'contract-type-edit-btn-' . ($typeId ?? 'x');
+                                                        $editMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_edit_route_unavailable') ?: __('Contract Type edit route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $delUrl    = $typeId ? route(ViewsConstants::CTC_TP . '.destroy', $typeId) : '#';
+                                                        $delFormId = 'contract-type-delete-form-' . ($typeId ?? 'x');
+                                                        $delBtnId  = 'contract-type-delete-btn-' . ($typeId ?? 'x');
+                                                        $delMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_destroy_route_unavailable') ?: __('Contract Type delete route is unavailable. Please contact technical support or your domain administrator.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('contract_types/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
+                                                <td class="action {{ VC::TX_END }}">
                                                     <div class="{{ VC::ACT_BTN_INF }}">
-                                                        <a id="{{ $editBtnId }}" href="#" data-url="{{ $editUrl }}" data-guard-msg="{{ $editMsg }}" data-ajax-popup="true" data-size="md" class="{{ VC::BT_SM_FL_CT }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Type') }}">
+                                                        <a id="{{ $editBtnId }}" href="#" data-url="{{ $editUrl }}" data-guard-msg="{{ base64_encode($editMsg) }}" data-ajax-popup="true" data-size="md" class="{{ VC::BT_SM_FL_CT }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Type') }}">
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
                                                         </a>
                                                     </div>
@@ -126,7 +119,7 @@
                                 @else
                                     <tr>
                                         <td colspan="2">
-                                            <div class="text-center">
+                                            <div class="{{ VC::TXCT }}">
                                                 <i class="{{ VC::TI_INB }} {{ VC::FS_3X }} {{ VC::TX_MUTED }}"></i>
                                                 <p class="{{ VC::TX_MUTED }} mt-2">{{ __('No Contract Types Found') }}</p>
                                             </div>
@@ -144,51 +137,14 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     <script defer>
-        (() => {
-            const guardClick = id => {
-                const el = document.getElementById(id);
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener('click', event => {
-                    try {
-                        const href = el.getAttribute('href');
-                        const url  = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-            guardClick('{{ $createBtnId }}');
+        window.RouteGuard?.guardMultiple?.(
+            '{{ $createBtnId }}'
             @if(!empty($types) && ((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty())))
                 @foreach($types as $type)
-                    guardClick('contract-type-edit-btn-{{ $type->id }}');
-                    guardClick('contract-type-delete-btn-{{ $type->id }}');
+                    , 'contract-type-edit-btn-{{ $type->id }}'
+                    , 'contract-type-delete-btn-{{ $type->id }}'
                 @endforeach
             @endif
-        })();
+        );
     </script>
 @endpush

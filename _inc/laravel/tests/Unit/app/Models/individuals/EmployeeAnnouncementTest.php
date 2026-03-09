@@ -8,6 +8,11 @@ use App\Models\EmployeeAnnouncement;
 
 class EmployeeAnnouncementTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -17,7 +22,15 @@ class EmployeeAnnouncementTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['announcement_id', 'employee_id', 'created_by'];
+		$expected = [
+			'announcement_id',
+			'employee_id',
+			'role',
+			'participations',
+			'participation',
+			'notes',
+			'created_by',
+		];
 		$this->assertEquals($expected, (new EmployeeAnnouncement())->getFillable());
 	}
 }

@@ -9,6 +9,11 @@ use App\Models\{Activity, User};
 
 class ActivityTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -61,14 +66,11 @@ class ActivityTest extends TestCase
 	 **/
 	public function getActivity_returns_employee_full_name_for_employee_module_type()
 	{
-		$employeeId = DB::table('employees')->insertGetId([
-			'first_name' => 'Alice',
-			'last_name'  => 'Smith',
-			'created_at' => Carbon::now(),
-			'updated_at' => Carbon::now(),
+		$emp = \App\Models\Employee::factory()->create([
+			'name' => 'Alice Smith',
 		]);
 
-		$result = Activity::getActivity('Employee', $employeeId);
+		$result = Activity::getActivity('Employee', $emp->id);
 		$this->assertEquals(['name' => 'Alice Smith'], $result);
 	}
 }

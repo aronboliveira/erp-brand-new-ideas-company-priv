@@ -1,19 +1,15 @@
 {{-- @extends(ExtendingLayoutsConstants::ADM) --}}
 @php
-    use App\Config\Constants\{
-        DatabaseConstants, 
-        SettingsConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\{Invoice, User, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $authUser = $user?->creatorId() ?? null;
-    $creatorUser = $authUser ? User::find($authUser) : null;
-    $settings = Utility::settings();
-    $color = !empty($settings[SettingsConstants::THML_CLR]) ? $settings[SettingsConstants::THML_CLR] : 'theme-3';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $authUser = $user?->creatorId() ?? null;
+        $creatorUser = $authUser ? User::find($authUser) : null;
+        $settings = Utility::settings();
+        $color = !empty($settings[SettingsConstants::THML_CLR]) ? $settings[SettingsConstants::THML_CLR] : 'theme-3';
+    } catch (\Throwable $e) {
+        \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
     <head>
@@ -39,7 +35,7 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::C12 }}" id="invoice-container">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::CS12 }}">
                                     <div class="tab-content" id="myTabContent2">
@@ -50,45 +46,53 @@
                                                         <th width="33%">{{ __('Vendor Name') }}</th>
                                                         <th width="33%">{{ __('Billed Amount') }}</th>
                                                         <th width="33%">{{ __('Available Debit') }}</th>
-                                                        <th class="text-end">{{ __('Closing Balance') }}</th>
+                                                        <th class="{{ VC::TX_END }}">{{ __('Closing Balance') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @php
-                                                        $mergedArray = [];
-                                                        foreach (($payableVendors ?? []) as $item) {
-                                                            $name = $item['name'] ?? __('No vendor name available');
-                                                            if (!isset($mergedArray[$name])) {
-                                                                $mergedArray[$name] = [
-                                                                    'name'        => $name,
-                                                                    'price'       => 0.0,
-                                                                    'pay_price'   => 0.0,
-                                                                    'total_tax'   => 0.0,
-                                                                    'debit_price' => 0.0,
-                                                                ];
+                                                        $mergedArray ??= [];
+                                                        try {
+                                                            foreach (($payableVendors ?? []) as $item) {
+                                                                $name = $item['name'] ?? __('No vendor name available');
+                                                                if (!isset($mergedArray[$name])) {
+                                                                    $mergedArray[$name] = [
+                                                                        'name'        => $name,
+                                                                        'price'       => 0.0,
+                                                                        'pay_price'   => 0.0,
+                                                                        'total_tax'   => 0.0,
+                                                                        'debit_price' => 0.0,
+                                                                    ];
+                                                                }
+                                                                $mergedArray[$name]['price']       += floatval($item['price'] ?? 0);
+                                                                if (!is_null($item['pay_price'] ?? null)) {
+                                                                    $mergedArray[$name]['pay_price'] += floatval($item['pay_price']);
+                                                                }
+                                                                $mergedArray[$name]['total_tax']   += floatval($item['total_tax'] ?? 0);
+                                                                $mergedArray[$name]['debit_price'] += floatval($item['debit_price'] ?? 0);
                                                             }
-                                                            $mergedArray[$name]['price']       += floatval($item['price'] ?? 0);
-                                                            if (!is_null($item['pay_price'] ?? null)) {
-                                                                $mergedArray[$name]['pay_price'] += floatval($item['pay_price']);
-                                                            }
-                                                            $mergedArray[$name]['total_tax']   += floatval($item['total_tax'] ?? 0);
-                                                            $mergedArray[$name]['debit_price'] += floatval($item['debit_price'] ?? 0);
+                                                            $resultArray = array_values($mergedArray);
+                                                            $total = 0.0;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                         }
-                                                        $resultArray = array_values($mergedArray);
-                                                        $total = 0.0;
-                                                    @endphp
+@endphp
 
                                                     @forelse ($resultArray as $receivableCustomer)
                                                         @php
-                                                            $customerBalance = ($receivableCustomer['price'] ?? 0) + ($receivableCustomer['total_tax'] ?? 0) - ($receivableCustomer['pay_price'] ?? 0);
-                                                            $balance = $customerBalance - ($receivableCustomer['debit_price'] ?? 0);
-                                                            $total += $balance;
-                                                        @endphp
+                                                            try {
+                                                                $customerBalance = ($receivableCustomer['price'] ?? 0) + ($receivableCustomer['total_tax'] ?? 0) - ($receivableCustomer['pay_price'] ?? 0);
+                                                                $balance = $customerBalance - ($receivableCustomer['debit_price'] ?? 0);
+                                                                $total += $balance;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <tr>
                                                             <td>{{ $receivableCustomer['name'] ?? __('No vendor name available') }}</td>
                                                             <td>{{ $user?->priceFormat($customerBalance) ?? number_format((float)$customerBalance,2) }}</td>
                                                             <td>{{ $user?->priceFormat($receivableCustomer['debit_price'] ?? 0) ?? number_format((float)($receivableCustomer['debit_price'] ?? 0),2) }}</td>
-                                                            <td class="text-end">{{ $user?->priceFormat($balance) ?? number_format((float)$balance,2) }}</td>
+                                                            <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($balance) ?? number_format((float)$balance,2) }}</td>
                                                         </tr>
                                                     @empty
                                                         <tr>
@@ -100,7 +104,7 @@
                                                             <th>{{ __('Total') }}</th>
                                                             <td></td>
                                                             <td></td>
-                                                            <th class="text-end">{{ $user?->priceFormat($total) ?? number_format((float)$total,2) }}</th>
+                                                            <th class="{{ VC::TX_END }}">{{ $user?->priceFormat($total) ?? number_format((float)$total,2) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tbody>
@@ -121,34 +125,42 @@
                                                 </thead>
                                                 <tbody>
                                                     @php
-                                                        $total = 0.0;
-                                                        $totalAmount = 0.0;
-                                                        $list = $payableSummaries ?? [];
-                                                        usort($list, function($a,$b){
-                                                            return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
-                                                        });
-                                                    @endphp
+                                                        $total ??= 0.0;
+                                                        $totalAmount ??= 0.0;
+                                                        try {
+                                                            $list = $payableSummaries ?? [];
+                                                            usort($list, function($a,$b){
+                                                                return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
+                                                            });
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     @forelse ($list as $payableSummary)
                                                         @php
-                                                            $isBill = (bool)($payableSummary['bill'] ?? false);
-                                                            $payableBalance = $isBill
-                                                                ? (float)($payableSummary['price'] ?? 0) + (float)($payableSummary['total_tax'] ?? 0)
-                                                                : -(float)($payableSummary['price'] ?? 0);
-                                                            $pay_price = (float)($payableSummary['pay_price'] ?? 0);
-                                                            $balance = $payableBalance - $pay_price;
-                                                            $total += $balance;
-                                                            $totalAmount += $payableBalance;
+                                                            try {
+                                                                $isBill = (bool)($payableSummary['bill'] ?? false);
+                                                                $payableBalance = $isBill
+                                                                    ? (float)($payableSummary['price'] ?? 0) + (float)($payableSummary['total_tax'] ?? 0)
+                                                                    : -(float)($payableSummary['price'] ?? 0);
+                                                                $pay_price = (float)($payableSummary['pay_price'] ?? 0);
+                                                                $balance = $payableBalance - $pay_price;
+                                                                $total += $balance;
+                                                                $totalAmount += $payableBalance;
 
-                                                            $status = $payableSummary['status'] ?? null;
-                                                            $statusClasses = [
-                                                                0 => 'bg-secondary',
-                                                                1 => 'bg-warning',
-                                                                2 => 'bg-danger',
-                                                                3 => 'bg-info',
-                                                                4 => VC::BG_P,
-                                                            ];
-                                                            $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
-                                                        @endphp
+                                                                $status = $payableSummary['status'] ?? null;
+                                                                $statusClasses = [
+                                                                    0 => 'bg-secondary',
+                                                                    1 => 'bg-warning',
+                                                                    2 => 'bg-danger',
+                                                                    3 => 'bg-info',
+                                                                    4 => VC::BG_P,
+                                                                ];
+                                                                $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <tr>
                                                             <td>{{ $payableSummary['name'] ?? __('No vendor name available') }}</td>
                                                             <td>{{ $payableSummary['bill_date'] ?? __('No date available') }}</td>
@@ -171,7 +183,7 @@
                                                                         {{ __(Invoice::$statuses[$status] ?? __('No status available')) }}
                                                                     </span>
                                                                 @else
-                                                                    <span class="p-2 px-3">{{ __('No status available') }}</span>
+                                                                    <span class="p-2 {{ VC::PX3 }}">{{ __('No status available') }}</span>
                                                                 @endif
                                                             </td>
                                                             <td>{{ $isBill ? ($payableSummary['type'] ?? __('No type available')) : __('Debit Note') }}</td>
@@ -214,33 +226,41 @@
                                                 </thead>
                                                 <tbody>
                                                     @php
-                                                        $total = 0.0;
-                                                        $totalQuantity = 0.0;
-                                                        $rows = $payableDetails ?? [];
-                                                        usort($rows, function($a,$b){
-                                                            return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
-                                                        });
-                                                    @endphp
+                                                        $total ??= 0.0;
+                                                        $totalQuantity ??= 0.0;
+                                                        try {
+                                                            $rows = $payableDetails ?? [];
+                                                            usort($rows, function($a,$b){
+                                                                return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
+                                                            });
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
 
                                                     @forelse ($rows as $payableDetail)
                                                         @php
-                                                            $isBill = (bool)($payableDetail['bill'] ?? false);
-                                                            $unitPrice = $isBill ? (float)($payableDetail['price'] ?? 0) : -(float)($payableDetail['price'] ?? 0);
-                                                            $quantity = $isBill ? (int)($payableDetail['quantity'] ?? 0) : 0;
-                                                            $itemTotal = $isBill ? $unitPrice * $quantity : -(float)($payableDetail['price'] ?? 0);
-                                                            $total += $itemTotal;
-                                                            $totalQuantity += $quantity;
+                                                            try {
+                                                                $isBill = (bool)($payableDetail['bill'] ?? false);
+                                                                $unitPrice = $isBill ? (float)($payableDetail['price'] ?? 0) : -(float)($payableDetail['price'] ?? 0);
+                                                                $quantity = $isBill ? (int)($payableDetail['quantity'] ?? 0) : 0;
+                                                                $itemTotal = $isBill ? $unitPrice * $quantity : -(float)($payableDetail['price'] ?? 0);
+                                                                $total += $itemTotal;
+                                                                $totalQuantity += $quantity;
 
-                                                            $status = $payableDetail['status'] ?? null;
-                                                            $statusClasses = [
-                                                                0 => 'bg-secondary',
-                                                                1 => 'bg-warning',
-                                                                2 => 'bg-danger',
-                                                                3 => 'bg-info',
-                                                                4 => VC::BG_P,
-                                                            ];
-                                                            $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
-                                                        @endphp
+                                                                $status = $payableDetail['status'] ?? null;
+                                                                $statusClasses = [
+                                                                    0 => 'bg-secondary',
+                                                                    1 => 'bg-warning',
+                                                                    2 => 'bg-danger',
+                                                                    3 => 'bg-info',
+                                                                    4 => VC::BG_P,
+                                                                ];
+                                                                $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('reports/payable_report_receipt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <tr>
                                                             <td>{{ $payableDetail['name'] ?? __('No customer name available') }}</td>
                                                             <td>{{ $payableDetail['bill_date'] ?? __('No date available') }}</td>
@@ -263,7 +283,7 @@
                                                                         {{ __(Invoice::$statuses[$status] ?? __('No status available')) }}
                                                                     </span>
                                                                 @else
-                                                                    <span class="p-2 px-3">{{ __('No status available') }}</span>
+                                                                    <span class="p-2 {{ VC::PX3 }}">{{ __('No status available') }}</span>
                                                                 @endif
                                                             </td>
                                                             <td>{{ $isBill ? ($payableDetail['type'] ?? __('No type available')) : __('Debit Note') }}</td>

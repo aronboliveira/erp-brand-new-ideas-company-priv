@@ -1,217 +1,137 @@
-(function () {
+/**
+ * @file POS Barcode Setting Route Guard
+ * @description Guards the barcode setting form and select elements
+ * @requires ERPGuard
+ * @requires ERPUtils
+ * @requires jQuery
+ */
+(() => {
+  const guard = window.ERPGuard;
+  const utils = window.ERPUtils;
+  const $ = window.jQuery;
+
+  if (!guard || !$) {
+    
+    return;
+  }
+
   const L = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const ERR = "# ERROR";
-  const map = new WeakMap();
-  function hasBootstrapCss() {
-    try {
-      return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]'
-      );
-    } catch (_) {
-      return false;
-    }
-  }
-  function toast(msg) {
-    try {
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        let c = document.getElementById("toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = msg;
-        t.appendChild(b);
-        c.appendChild(t);
-        window.bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(msg);
-      }
-    } catch (_) {
-      alert(msg);
-    }
-  }
-  function getMsg(el, key) {
-    try {
-      let msg = ERR;
-      if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
-        msg = el.getAttribute(DGM) || ERR;
-      else {
-        let lang = (
-          window.sessionStorage.getItem("erp-np-lang") ||
-          document.documentElement.lang ||
-          "en"
-        )
-          .toLowerCase()
-          .replace(/_/g, "-");
-        lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-        const dict = window.translations || {};
-        msg =
-          dict?.[lang]?.[key] ||
-          el.getAttribute(DGM) ||
-          dict?.["en"]?.[key] ||
-          ERR;
-        if (msg !== ERR) {
-          el.setAttribute(DGM, msg);
-          el.setAttribute(DCL, "true");
-        }
-      }
-      return msg || ERR;
-    } catch (_) {
-      return ERR;
-    }
-  }
-  function bindForm($f) {
-    const f = $f.get(0);
+  const LS = "data-listener-active";
+  const NS = ".barcodeSetting";
+  const FORM_ID = "pos-barcode-setting-form";
+  const MSG_KEY = "action_unavailable";
+  const FALLBACK_MSG = "This action is unavailable. Please contact technical support.";
+
+  const formHandlers = new WeakMap();
+
+  /**
+   * Binds guard to a form
+   * @param {HTMLFormElement} f - Form element
+   */
+  const bindForm = f => {
     if (!f || f.getAttribute(L) === "true") return;
     f.setAttribute(L, "true");
-    const handler = function (e) {
+
+    const handler = e => {
       try {
         const url = f.getAttribute("data-url");
-        const href = f.action;
-        if ((!url || url === "#") && (!href || href === "#")) {
+        const action = f.getAttribute("action");
+
+        if (guard.isInvalidUrl(url) && guard.isInvalidUrl(action)) {
           e.preventDefault();
-          toast(getMsg(f, "action_unavailable"));
+          const msg = utils?.getTranslation?.(MSG_KEY) ||
+            f.getAttribute("data-guard-msg") ||
+            FALLBACK_MSG;
+          guard.showToast(msg, "error");
         }
       } catch (_) {
         e.preventDefault();
-        toast(getMsg(f, "action_unavailable"));
+        guard.showToast(FALLBACK_MSG, "error");
       }
     };
-    $f.on("submit.formGuard", handler);
-    map.set(f, handler);
-  }
-  function unbindForm(f) {
+
+    $(f).on("submit.formGuard", handler);
+    formHandlers.set(f, handler);
+  };
+
+  /**
+   * Unbinds guard from a form
+   * @param {HTMLFormElement} f - Form element
+   */
+  const unbindForm = f => {
+    if (!f) return;
     try {
-      if (!f) return;
-      const $f = window.jQuery(f);
-      $f.off("submit.formGuard");
+      $(f).off("submit.formGuard");
       f.removeAttribute(L);
-      map.delete(f);
+      formHandlers.delete(f);
     } catch (_) {}
-  }
-  function observeRemoval(f) {
-    try {
-      const obs = new MutationObserver(function () {
-        if (!document.body.contains(f)) {
-          unbindForm(f);
-          obs.disconnect();
+  };
+
+  /**
+   * Binds change handler to select element
+   * @param {HTMLSelectElement} s - Select element
+   */
+  const bindSelect = s => {
+    if (!s || s.getAttribute(LS) === "true") return;
+    s.setAttribute(LS, "true");
+
+    if (!s.value && s.options?.length) s.selectedIndex = 0;
+
+    $(s).on("change" + NS, () => {
+      try {
+        const v = $(s).val();
+        if (v != null) {
+          s.setAttribute("data-has-selection", String(v !== ""));
         }
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
-  }
-  try {
-    const $ = window.jQuery;
-    if (!$) {
-      try {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error("jQuery not found for formGuard");
-      } catch (_) {}
-      return;
-    }
-    $(function () {
-      try {
-        const $forms = $("form[data-guard-msg], form[data-url]");
-        $forms.each(function () {
-          const $f = $(this);
-          bindForm($f);
-          observeRemoval($f.get(0));
-        });
       } catch (_) {}
     });
-  } catch (_) {
+  };
+
+  /**
+   * Unbinds change handler from select element
+   * @param {HTMLSelectElement} s - Select element
+   */
+  const unbindSelect = s => {
+    if (!s) return;
     try {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      )
-        console.error("Failed to initialize formGuard");
-    } catch (__) {}
-  }
-  (function () {
-    const L = "data-listener-active";
-    const NS = ".barcodeSetting";
-    function bindSelect($s) {
-      const el = $s.get(0);
-      if (!el || el.getAttribute(L) === "true") return;
-      el.setAttribute(L, "true");
-      if (!el.value && el.options && el.options.length) el.selectedIndex = 0;
-      $s.on("change" + NS, function () {
-        try {
-          const v = $s.val();
-          if (v == null) return;
-          el.setAttribute("data-has-selection", String(v !== ""));
-        } catch (_) {}
+      $(s).off("change" + NS);
+      s.removeAttribute(LS);
+    } catch (_) {}
+  };
+
+  const ready = () => {
+    try {
+      // Bind forms with guard attributes
+      $("form[data-guard-msg], form[data-url]").each(function () {
+        bindForm(this);
       });
-    }
-    function unbindSelect(el) {
-      try {
-        if (!el) return;
-        const $s = window.jQuery(el);
-        $s.off("change" + NS);
-        el.removeAttribute(L);
-      } catch (_) {}
-    }
-    function observeRemoval(nodeList) {
-      try {
-        const obs = new MutationObserver(function () {
-          nodeList.forEach(function (el) {
-            if (!document.body.contains(el)) {
-              unbindSelect(el);
-            }
-          });
-        });
-        obs.observe(document.body, { childList: true, subtree: true });
-      } catch (_) {}
-    }
-    try {
-      const $ = window.jQuery;
-      if (!$) {
-        try {
-          if (
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1"
-          )
-            console.error("jQuery not found for barcodeSetting");
-        } catch (_) {}
-        return;
+
+      // Bind barcode setting form selects
+      const form = document.getElementById(FORM_ID);
+      if (form) {
+        bindForm(form);
+        form.querySelectorAll('select[data-toggle="select"]').forEach(bindSelect);
       }
-      $(function () {
-        try {
-          const form = document.getElementById("pos-barcode-setting-form");
-          if (!form) return;
-          const selects = form.querySelectorAll('select[data-toggle="select"]');
-          const nodes = [];
-          selects.forEach(function (s) {
-            const $s = $(s);
-            bindSelect($s);
-            nodes.push(s);
-          });
-          observeRemoval(nodes);
-        } catch (_) {}
+    } catch (_) {}
+  };
+
+  if (document.readyState === "loading") {
+    $(ready);
+  } else {
+    ready();
+  }
+
+  // Observe DOM changes for cleanup
+  const mo = new MutationObserver(muts => {
+    muts.forEach(m => {
+      m.removedNodes?.forEach(n => {
+        if (n.nodeType !== 1) return;
+        if (n.tagName === "FORM") unbindForm(n);
+        if (n.tagName === "SELECT") unbindSelect(n);
+        n.querySelectorAll?.("form").forEach(unbindForm);
+        n.querySelectorAll?.("select").forEach(unbindSelect);
       });
-    } catch (_) {
-      try {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error("Failed to initialize barcodeSetting");
-      } catch (__) {}
-    }
-  })();
+    });
+  });
+  mo.observe(document.documentElement, { childList: true, subtree: true });
 })();

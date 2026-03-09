@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class ProductCategoryTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +19,12 @@ class ProductCategoryTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(ProductCategory::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'name',
+			'description',
+			'product_service_category_id',
+			'tags',
+		];
 
 		$this->assertSame($expected, (new ProductCategory)->getFillable());
 	}

@@ -1,17 +1,24 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str, Collection};
-    $lang = Utility::fetchUserLang();
-    $satDedBaseName     = VW::STR_DD;
-    $satDedKebabName    = Str::kebab($satDedBaseName);
-    $satDedResolvedName = Route::has($satDedBaseName)
-        ? $satDedBaseName
-        : (Route::has($satDedKebabName) ? $satDedKebabName : null);
-    $satDedUrl          = $satDedResolvedName ? route($satDedResolvedName) : '#';
-    $satDedGuardMsg     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_store_route_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
-    $satDedFormId       = 'create_saturation_deduction_form';
+    $employee ??= null;
+    try {
+$lang = Utility::fetchUserLang();
+        $satDedBaseName     = VW::STR_DD;
+        $satDedKebabName    = Str::kebab($satDedBaseName);
+        $satDedResolvedName = Route::has($satDedBaseName)
+            ? $satDedBaseName
+            : (Route::has($satDedKebabName) ? $satDedKebabName : null);
+        $satDedUrl          = $satDedResolvedName ? route($satDedResolvedName) : '#';
+        $satDedGuardMsg     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_store_route_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+        $satDedFormId       = 'create_saturation_deduction_form';
+    } catch (\Throwable $e) {
+        \Log::error('saturation_deductions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
+    $satDedFormId ??= 'create_saturation_deduction_form';
+    $satDedUrl ??= '#';
+    $satDedGuardMsg ??= '';
+    $deduction_options ??= [];
+    $saturationdeduc ??= [];
 @endphp
 
 {{ Form::open([
@@ -23,12 +30,12 @@
     'data-sv-localized'   => 'true',
 ]) }}
 <div class="modal-body">
-    {{ Form::hidden('employee_id', $employee->id, []) }}
+    {{ Form::hidden('employee_id', $employee?->id, []) }}
 
     <div class="{{ VC::RW }}">
         <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('deduction_option', __('Deduction Options'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-            {{ Form::select('deduction_option', (Utility::isFilled($deduction_options)) ? $deduction_options : ['' => ___('No deduction option available')], null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ] ?? []) }}
+            {{ Form::label('deduction_option', __('Deduction Options'), [ 'class' => VC::FM_LB ]) }}<span class="{{ VC::TX_DNG }}">*</span>
+            {{ Form::select('deduction_option', (Utility::isFilled($deduction_options)) ? $deduction_options : ['' => __('No deduction option available')], null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ] ?? []) }}
         </div>
 
         <div class="{{ VC::FM_GCB6 }}">

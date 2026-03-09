@@ -1,3 +1,4 @@
+/** @requires ERPGuard */
 (() => {
   try {
     const f = document.getElementById("create-project-task-form");

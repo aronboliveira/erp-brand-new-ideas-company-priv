@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Bills;
 
-use App\Config\Constants\{MiddlewaresConstants, ViewsConstants};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{MiddlewaresConstants as MWC, ViewsConstants as VW};
 use App\Models\{
     Coupon,
     Customer,
@@ -26,6 +28,7 @@ use Illuminate\Support\Facades\{
     Route,
     View as ViewFacade
 };
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 final class CashfreeController extends Controller
 {
@@ -34,7 +37,7 @@ final class CashfreeController extends Controller
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH]);
+        $this->middleware([MWC::AUTH]);
     }
 
     public function paymentConfig(?array $settings = null): void
@@ -153,12 +156,11 @@ final class CashfreeController extends Controller
                 Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
                 return redirect()->route('plans.index')->with('error', __('Transaction failed.'));
             }
-            $verifiedAmount = (float)($info->payment_amount ?? $plan->price);
             DB::beginTransaction();
             try {
                 $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
                 $recStart = microtime(true);
-                self::recordOrder($orderId, $usr, $plan, $verifiedAmount, config('services.cashfree.currency'));
+                self::recordOrder($orderId, $usr, $plan, $req->amount, config('services.cashfree.currency'));
                 $this->logExecutionTime($recStart, $action, 'recordOrder');
                 if ($cid = $req->coupon) {
                     $coupStart = microtime(true);
@@ -236,7 +238,7 @@ final class CashfreeController extends Controller
                             'customer_phone' => '1234567890',
                         ],
                         'order_meta' => [
-                            'return_url' => route(ViewsConstants::INV . '.cashfree.payment.success') . "?order_id={order_id}&invoice_id={$invoice->id}&amount={$amount}",
+                            'return_url' => route(VW::INV . '.cashfree.payment.success') . "?order_id={order_id}&invoice_id={$invoice->id}&amount={$amount}",
                         ],
                     ]
                 );
@@ -282,16 +284,15 @@ final class CashfreeController extends Controller
                 $this->logExecutionTime($infoStart, $action, 'getPaymentInfo');
                 if (!$info || $info->payment_status !== 'SUCCESS') {
                     Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
-                    return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('error', __('Transaction failed.'));
+                    return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('error', __('Transaction failed.'));
                 }
-                $verifiedAmount = (float)($info->payment_amount ?? $invoice->getDue());
                 DB::beginTransaction();
                 try {
                     $recStart = microtime(true);
-                    self::recordInvoicePayment($invoice, $verifiedAmount);
+                    self::recordInvoicePayment($invoice, $req->amount);
                     $this->logExecutionTime($recStart, $action, 'recordInvoicePayment');
                     $balStart = microtime(true);
-                    Utility::updateUserBalance('customer', $invoice->customer_id, $verifiedAmount, 'debit');
+                    Utility::updateUserBalance('customer', $invoice->customer_id, $req->amount, 'debit');
                     $this->logExecutionTime($balStart, $action, 'updateUserBalance');
                     $sessStart = microtime(true);
                     $req->session()->forget('invoice_data');
@@ -299,8 +300,8 @@ final class CashfreeController extends Controller
                     $commitStart = microtime(true);
                     DB::commit();
                     $this->logExecutionTime($commitStart, $action, 'commitTransaction');
-                    Log::info("[{$base}::{$action}] invoice paid", ['invoice_id' => $invoice->id, 'amount' => $verifiedAmount]);
-                    return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice paid successfully!'));
+                    Log::info("[{$base}::{$action}] invoice paid", ['invoice_id' => $invoice->id, 'amount' => $req->amount]);
+                    return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice paid successfully!'));
                 } catch (\Throwable $e) {
                     $rbStart = microtime(true);
                     DB::rollBack();
@@ -313,7 +314,7 @@ final class CashfreeController extends Controller
                 Log::error("[{$base}::{$action}] exception", ['error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                 $safeId = isset($invoice) ? $invoice->id : $invId;
-                return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($safeId ?? ''))->with('error', $e->getMessage());
+                return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($safeId ?? ''))->with('error', $e->getMessage());
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $req->order_id, 'invoice_id' => $req->invoice_id]);
     }

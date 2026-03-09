@@ -4,12 +4,17 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\Overtime;
 use App\Models\Employee;
 
 class OvertimeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -33,9 +38,7 @@ class OvertimeTest extends TestCase
 
 		$overtime = Overtime::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $overtime->$field);
-		}
+		$this->assertFillableMatches($data, $overtime);
 	}
 
 	/**
@@ -77,9 +80,9 @@ class OvertimeTest extends TestCase
 	{
 		$relation = (new Overtime)->employee();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class,      get_class($relation->getRelated()));
-		$this->assertSame('id',                 $relation->getForeignKeyName());
-		$this->assertSame('employee_id',        $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                 $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 }

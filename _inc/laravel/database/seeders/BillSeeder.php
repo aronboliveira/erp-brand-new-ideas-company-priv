@@ -29,7 +29,10 @@ use Illuminate\Support\Str;
 
 class BillSeeder extends Seeder
 {
-	private const SECONDS_LIMIT = 6 * 10 ** 2; // 5 minutos
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
+
+	private const HARD_CAP = 2;
 	public function run(): void
 	{
 		// Dependências mínimas para respeitar FKs
@@ -49,7 +52,7 @@ class BillSeeder extends Seeder
 			return;
 		}
 
-		$count = 512;
+		$count = self::HARD_CAP; /* original: 512 */
 		$clock = microtime(true);
 		$today = Carbon::today();
 		$customerPool = DB::table(DC::TABLE_CUSTOMERS)->inRandomOrder()->get()->toArray();
@@ -98,8 +101,8 @@ class BillSeeder extends Seeder
 						'tax'      => [], // o modelo filtrará impostos inválidos
 					],
 				];
-				(new \Symfony\Component\Console\Output\ConsoleOutput
-				)->writeln("Criando Conta do fornecedor {$vendorId} associada ao pedido {$orderId}");
+				// (new \Symfony\Component\Console\Output\ConsoleOutput
+				// )->writeln("Criando Conta do fornecedor {$vendorId} associada ao pedido {$orderId}");
 				$customer = $customerPool[array_rand($customerPool)];
 				// Use CountryName enum to get a real country
 				$countryEnum = fake()->randomElement([
@@ -164,6 +167,8 @@ class BillSeeder extends Seeder
 				};
 				// Criação via Eloquent para acionar normalizações do modelo
 				Bill::create([
+					// Ownership
+					DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
 					// Identificadores e relacionamentos
 					BC::COL_BL_ID   => Str::uuid()->toString(),
 					UC::COL_VD_ID   => $vendorId,
@@ -244,13 +249,64 @@ class BillSeeder extends Seeder
 						'Referência: ' . fake()->sentence(3),
 					]),
 				]);
-				$out->writeln("Creating bill {$i} / {$count} succeeded, vendor {$vendorId}, order {$orderId}, amount {$amount}");
+				// $out->writeln("Creating bill {$i} / {$count} succeeded, vendor {$vendorId}, order {$orderId}, amount {$amount}");
 			} catch (\Exception $e) {
 				Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 				continue;
 			}
 		}
 
-		$this->command?->info('[BillSeeder] ' . $count . ' contas lançadas com sucesso.');
+		$this->command?->info('[BillSeeder] ' . $count . ' contas (type=bill) lançadas com sucesso.');
+
+		// ── Expense-type bills ──────────────────────────────────────────
+		// The original ERP stores expenses as bills with type='Expense'.
+		// Our ENUM accepts lowercase 'expense'. The ExpenseController
+		// queries Bill::where('type','expense') so we seed matching rows.
+		$expCount = self::HARD_CAP;
+		$expClock = microtime(true);
+		for ($j = 0; $j < $expCount; $j++) {
+			try {
+				if ((microtime(true) - $expClock) > self::SECONDS_LIMIT) {
+					$out->writeln('[BillSeeder] Expense time-limit reached.');
+					break;
+				}
+				$vendorId = $vendorIds->random();
+				$catId    = $catIds->random();
+				$orderId  = $orderIds->random();
+				$sendDate = $today->copy()->addDays(random_int(0, 1));
+				$billDate = $today->copy()->addDays(random_int(0, 2));
+				$dueDate  = $today->copy()->addDays(random_int(3, 15));
+				$amount   = round(random_int(500, 50_000) / 100, 2);
+				$customer = $customerPool[array_rand($customerPool)];
+				Bill::create([
+					DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+					BC::COL_BL_ID   => Str::uuid()->toString(),
+					UC::COL_VD_ID   => $vendorId,
+					BC::COL_CAT_ID  => $catId,
+					BC::COL_OD_ID   => $orderId,
+					BC::COL_SD_DT   => $sendDate->toDateString(),
+					BC::COL_BL_DT   => $billDate->toDateString(),
+					PJC::COL_D_DATE => $dueDate->toDateString(),
+					PJC::COL_STATUS => random_int(0, 3),
+					BC::COL_STT_LB  => BillStatus::cases()[array_rand(BillStatus::cases())],
+					BC::COL_PAY_STT => PaymentStatus::cases()[array_rand(PaymentStatus::cases())],
+					'type'          => ConsumableType::Expense->value, // 'expense' — valid ENUM value
+					UC::COL_U_TP    => UserType::Customer,
+					BC::COL_PRC_CUR => strtoupper(SC::DEF_SITE_CURRENCY_ID),
+					'amount'        => $amount,
+					BC::COL_DSC_APL => 0,
+					'discount'      => 0,
+					'taxes'         => [],
+					'items'         => [['name' => 'Despesa ' . Str::upper(Str::random(4)), 'price' => $amount, 'quantity' => 1, 'discount' => 0, 'tax' => []]],
+					'notes'         => 'Despesa gerada por seeder para testes.',
+					BC::COL_BL_NAME => $customer->name ?? 'Cliente ' . ($j + 1),
+					BC::COL_BL_EMAIL => $customer->email ?? 'cliente' . ($j + 1) . '@example.com',
+				]);
+			} catch (\Exception $e) {
+				Log::warning(get_class($this) . ' expense-type failed: ' . $e->getMessage());
+				continue;
+			}
+		}
+		$this->command?->info('[BillSeeder] ' . $expCount . ' despesas (type=expense) lançadas com sucesso.');
 	}
 }

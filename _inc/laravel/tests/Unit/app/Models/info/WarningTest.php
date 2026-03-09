@@ -10,6 +10,12 @@ class WarningTest extends TestCase
 {
 	use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
 	/**
 	 ** @test
 	 **
@@ -18,8 +24,12 @@ class WarningTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'warning_to', 'warning_by', 'subject',
-			'warning_date', 'description', 'created_by'
+			'warning_to',
+			'warning_by',
+			'warning_date',
+			'subject',
+			'description',
+			'employee_id',
 		];
 		$this->assertEquals($expected, (new Warning())->getFillable());
 	}
@@ -27,20 +37,20 @@ class WarningTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** warningTo() and warningBy() return HasOne to Employee.
-	 **/
-	public function it_defines_warning_relations()
-	{
-		$warning = new Warning();
-		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
-			$warning->warningTo()
-		);
-		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
-			$warning->warningBy()
-		);
-	}
+         ** warningTo() and warningBy() return BelongsTo to Employee.
+         **/
+        public function it_defines_warning_relations()
+        {
+                $warning = new Warning();
+                $this->assertInstanceOf(
+                        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+                        $warning->warningTo()
+                );
+                $this->assertInstanceOf(
+                        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+                        $warning->warningBy()
+                );
+        }
 
 	/**
 	 ** @test

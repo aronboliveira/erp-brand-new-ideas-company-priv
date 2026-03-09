@@ -1,22 +1,43 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang      = Utility::fetchUserLang();
-    $hasModel  = !empty($pipeline ?? null) && data_get($pipeline, 'id');
-
-    $updateBase     = VW::PPL . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $pipeline->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PPL, 'update_route_unavailable')
-                        ?? __('Update Pipeline route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasModel = !empty($pipeline ?? null) && data_get($pipeline, 'id');
+		$updateBase = VW::PPL . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$pipelineId = data_get($pipeline ?? null, 'id', '');
+		$updateUrl = ($updateResolved && $hasModel && $pipelineId) ? (route($updateResolved, $pipelineId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PPL, 'update_route_unavailable')
+			?? __('Update Pipeline route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in pipelines/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in pipelines/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in pipelines/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)

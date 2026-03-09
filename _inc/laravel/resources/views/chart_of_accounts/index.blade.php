@@ -1,43 +1,34 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-
-    $user = Auth::user();
-    $lang               = Utility::fetchUserLang(user: $user);
-    $indexName          = ViewsConstants::COA . '.index';
-    $indexRoute         = Route::has($indexName)
-        ? route($indexName)
-        : (Route::has(Str::kebab($indexName))
-            ? route(Str::kebab($indexName))
-            : '#');
-    $indexGuardMsg      = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COA,
-        'chart_of_account_index_route_unavailable'
-    ) ?? 'Chart of Account index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user = Auth::user();
+        $lang               = Utility::fetchUserLang(user: $user);
+        $indexName          = ViewsConstants::COA . '.index';
+        $indexRoute         = Route::has($indexName)
+            ? route($indexName)
+            : (Route::has(Str::kebab($indexName))
+                ? route(Str::kebab($indexName))
+                : '#');
+        $indexGuardMsg      = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::COA,
+            'chart_of_account_index_route_unavailable'
+        ) ?? 'Chart of Account index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Manage Chart of Accounts') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Chart of Account') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Chart of Account') }}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('assets/js/routes/chartOfAccounts/lang/date.js') }}"></script>
@@ -48,14 +39,18 @@
     <div class="{{ VC::FEND }}">
         @can(PermissionsConstants::CR_COA)
             @php
-                $coaCreateBase = ViewsConstants::COA.'.create';
-                $coaCreateKebab = Str::kebab($coaCreateBase);
-                $coaCreateResolved = Route::has($coaCreateBase) ? $coaCreateBase : (Route::has($coaCreateKebab) ? $coaCreateKebab : null);
-                $coaCreateUrl = $coaCreateResolved ? route($coaCreateResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $coaCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'create_chart_of_account_route_unavailable') ?? 'Create chart of account route is unavailable. Please contact technical support or your domain administrator.';
-                $coaCreateLinkId = 'coa-create-account-link';
-            @endphp
+                try {
+                    $coaCreateBase = ViewsConstants::COA.'.create';
+                    $coaCreateKebab = Str::kebab($coaCreateBase);
+                    $coaCreateResolved = Route::has($coaCreateBase) ? $coaCreateBase : (Route::has($coaCreateKebab) ? $coaCreateKebab : null);
+                    $coaCreateUrl = $coaCreateResolved ? route($coaCreateResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $coaCreateGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'create_chart_of_account_route_unavailable') ?? 'Create chart of account route is unavailable. Please contact technical support or your domain administrator.';
+                    $coaCreateLinkId = 'coa-create-account-link';
+                } catch (\Throwable $e) {
+                    \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="{{ $coaCreateLinkId }}"
             href="{{ $coaCreateUrl }}"
             data-url="{{ $coaCreateUrl }}"
@@ -65,7 +60,7 @@
             data-ajax-popup="true"
             data-title="{{ __('Create New Account') }}"
             class="{{ VC::BT_SM_PM }}"
-            data-guard-msg="{{ $coaCreateGuardMsg }}"
+            data-guard-msg="{{ base64_encode($coaCreateGuardMsg) }}"
             data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -78,18 +73,22 @@
 
 @section(YieldingConstants::ADM_CTT)
     @php
-        $indexUrl = !empty($indexRoute) ? $indexRoute : '#';
-        $indexGuard = $indexGuardMsg ?? __('No guard message available');
-        $start = data_get($filter,'startDateRange');
-        $end = data_get($filter,'endDateRange');
-        $groups = ((is_array($chartAccounts ?? null) && count($chartAccounts ?? [])) || (($chartAccounts ?? null) instanceof Collection && ($chartAccounts)->isNotEmpty())) ? $chartAccounts : [];
-        $isPriceFormatAvailable = ($user ?? null) && method_exists($user,'priceFormat');
-    @endphp
+        try {
+            $indexUrl = !empty($indexRoute) ? $indexRoute : '#';
+            $indexGuard = $indexGuardMsg ?? __('No guard message available');
+            $start = data_get($filter,'startDateRange');
+            $end = data_get($filter,'endDateRange');
+            $groups = ((is_array($chartAccounts ?? null) && count($chartAccounts ?? [])) || (($chartAccounts ?? null) instanceof Collection && ($chartAccounts)->isNotEmpty())) ? $chartAccounts : [];
+            $isPriceFormatAvailable = ($user ?? null) && method_exists($user,'priceFormat');
+        } catch (\Throwable $e) {
+            \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::RW }} justify-content-center">
         <div class="{{ VC::CM12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}" id="show_filter">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         {{ Form::open([
                             'url'            => $indexUrl,
                             'method'         => 'GET',
@@ -98,7 +97,7 @@
                             'data-guard-msg' => $indexGuard,
                         ]) }}
                         <div class="{{ VC::R_ALC_JCE }}">
-                            <div class="col-xl-10">
+                            <div class="{{ VC::CXL10 }}">
                                 <div class="{{ VC::RW }}">
                                     <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                     <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -133,14 +132,14 @@
         @forelse ($groups as $type => $accounts)
             @php
                 $list = ((is_array($accounts ?? null) && count($accounts ?? [])) || (($accounts ?? null) instanceof Collection && ($accounts)->isNotEmpty())) ? $accounts : [];
-            @endphp
+@endphp
             <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <h6>{{ !empty($type) ? $type : __('No type available') }}</h6>
                     </div>
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
@@ -155,41 +154,58 @@
                                 <tbody>
                                     @forelse ($list as $account)
                                         @php
-                                            $accId = data_get($account,'id');
-                                            $ledgerUrl = $accId ? route(ViewsConstants::RPT . '.ledger', $accId) . '?account=' . $accId : '#';
-                                            $ledgerGuard = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'ledger_route_unavailable') ?? __('No ledger route available');
-                                            $balanceVal = ($accId && $start && $end) ? (float) (Utility::getAccountBalance($accId,$start,$end) ?? 0) : 0;
-                                            $enabled = (bool) data_get($account,'is_enabled');
-                                        @endphp
+                                            $accId = null;
+                                            $ledgerUrl = '#';
+                                            $ledgerGuard = __('No ledger route available');
+                                            $balanceVal = 0;
+                                            $enabled = false;
+                                            try {
+                                                $accId = data_get($account,'id');
+                                                $ledgerUrl = $accId && Route::has(ViewsConstants::RPT . '.ledger') ? route(ViewsConstants::RPT . '.ledger', $accId) . '?account=' . $accId : '#';
+                                                $ledgerGuard = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'ledger_route_unavailable') ?? __('No ledger route available');
+                                                $balanceVal = ($accId && $start && $end) ? (float) (Utility::getAccountBalance($accId,$start,$end) ?? 0) : 0;
+                                                $enabled = (bool) data_get($account,'is_enabled');
+                                            } catch (\Throwable $e) {
+                                                \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ data_get($account,'code') ?: __('No code available') }}</td>
                                             <td>
-                                                <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $ledgerUrl }}" data-guard-msg="{{ $ledgerGuard }}" data-listener-alias="ledger-link" data-bs-toggle="tooltip" title="{{ __('Transaction Summary') }}">{{ data_get($account,'name') ?: __('No account name available') }}</a>
+                                                <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $ledgerUrl }}" data-guard-msg="{{ base64_encode($ledgerGuard) }}" data-listener-alias="ledger-link" data-bs-toggle="tooltip" title="{{ __('Transaction Summary') }}">{{ data_get($account,'name') ?: __('No account name available') }}</a>
                                             </td>
                                             <td>{{ data_get($account,'subType.name') ?: __('No subtype name available') }}</td>
                                             <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balanceVal) : __('Failed to format balance') }}</td>
-                                            <td><span class="badge {{ $enabled ? 'bg-primary' : 'bg-danger' }} p-2 px-3 rounded">{{ $enabled ? __('Enabled') : __('Disabled') }}</span></td>
+                                            <td><span class="badge {{ $enabled ? 'bg-primary' : 'bg-danger' }} p-2 {{ VC::PX3 }} rounded">{{ $enabled ? __('Enabled') : __('Disabled') }}</span></td>
                                             <td class="Action">
                                                 <div class="{{ VC::ACT_BTN_WRN }}">
-                                                    <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $ledgerUrl }}" data-guard-msg="{{ $ledgerGuard }}" data-listener-alias="ledger-link" data-bs-toggle="tooltip" title="{{ __('Transaction Summary') }}"><i class="ti ti-wave-sine {{ VC::TXT_WT }}"></i></a>
+                                                    <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $ledgerUrl }}" data-guard-msg="{{ base64_encode($ledgerGuard) }}" data-listener-alias="ledger-link" data-bs-toggle="tooltip" title="{{ __('Transaction Summary') }}"><i class="ti ti-wave-sine {{ VC::TXT_WT }}"></i></a>
                                                 </div>
                                                 @can('edit chart of account')
                                                     @php
-                                                        $editName = ViewsConstants::COA . '.edit';
-                                                        $editUrl = Route::has($editName) ? route($editName, $accId) : (Route::has(Str::kebab($editName)) ? route(Str::kebab($editName), $accId) : '#');
-                                                        $editGuard = Utility::fetchLinkMessage($lang, ViewsConstants::COA, 'chart_of_account_edit_route_unavailable') ?? __('No edit route available');
-                                                    @endphp
+                                                        try {
+                                                            $editName = ViewsConstants::COA . '.edit';
+                                                            $editUrl = Route::has($editName) ? route($editName, $accId) : (Route::has(Str::kebab($editName)) ? route(Str::kebab($editName), $accId) : '#');
+                                                            $editGuard = Utility::fetchLinkMessage($lang, ViewsConstants::COA, 'chart_of_account_edit_route_unavailable') ?? __('No edit route available');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $editUrl }}" data-guard-msg="{{ $editGuard }}" data-listener-alias="edit-account" data-ajax-popup="true" data-title="{{ __('Edit Account') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
+                                                        <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $editUrl }}" data-guard-msg="{{ base64_encode($editGuard) }}" data-listener-alias="edit-account" data-ajax-popup="true" data-title="{{ __('Edit Account') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
                                                     </div>
                                                 @endcan
                                                 @can(PermissionsConstants::DEL_COA)
                                                     @php
-                                                        $destroyName = ViewsConstants::COA . '.destroy';
-                                                        $destroyUrl = Route::has($destroyName) ? route($destroyName, $accId) : (Route::has(Str::kebab($destroyName)) ? route(Str::kebab($destroyName), $accId) : '#');
-                                                        $destroyGuard = Utility::fetchLinkMessage($lang, ViewsConstants::COA, 'chart_of_account_destroy_route_unavailable') ?? __('No delete route available');
-                                                        $deleteFormId = 'delete-form-' . $accId;
-                                                    @endphp
+                                                        try {
+                                                            $destroyName = ViewsConstants::COA . '.destroy';
+                                                            $destroyUrl = Route::has($destroyName) ? route($destroyName, $accId) : (Route::has(Str::kebab($destroyName)) ? route(Str::kebab($destroyName), $accId) : '#');
+                                                            $destroyGuard = Utility::fetchLinkMessage($lang, ViewsConstants::COA, 'chart_of_account_destroy_route_unavailable') ?? __('No delete route available');
+                                                            $deleteFormId = 'delete-form-' . $accId;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('chart_of_accounts/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Form::open([
                                                             'method'         => 'DELETE',
@@ -214,7 +230,7 @@
                 </div>
             </div>
         @empty
-            <div class="{{ VC::CM12 }}"><div class="{{ VC::CD }}"><div class="card-body"><p class="{{ VC::TXCT }}">{{ __('No chart accounts available') }}</p></div></div></div>
+            <div class="{{ VC::CM12 }}"><div class="{{ VC::CD }}"><div class="{{ VC::CD_BD }}"><p class="{{ VC::TXCT }}">{{ __('No chart accounts available') }}</p></div></div></div>
         @endforelse
     </div>
 @endsection

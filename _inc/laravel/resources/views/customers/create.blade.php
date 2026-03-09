@@ -1,40 +1,41 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    $basicFields = [
-        ['name'=>'name',         'type'=>'text',     'label'=>__('Name'),        'cols'=>4, 'attrs'=>['required'=>'required']],
-        ['name'=>'contact',      'type'=>'number',   'label'=>__('Contact'),     'cols'=>4, 'attrs'=>['required'=>'required']],
-        ['name'=>'email',        'type'=>'text',     'label'=>__('Email'),       'cols'=>4],
-        ['name'=>'tax_number',   'type'=>'text',     'label'=>__('Tax Number'),  'cols'=>4],
-    ];
-    $billingFields = [
-        ['name'=>'billing_name',    'type'=>'text',     'label'=>__('Name'),        'cols'=>6],
-        ['name'=>'billing_phone',   'type'=>'text',     'label'=>__('Phone'),       'cols'=>6],
-        ['name'=>'billing_address', 'type'=>'textarea', 'label'=>__('Address'),     'cols'=>12, 'attrs'=>['rows'=>3]],
-        ['name'=>'billing_city',    'type'=>'text',     'label'=>__('City'),        'cols'=>6],
-        ['name'=>'billing_state',   'type'=>'text',     'label'=>__('State'),       'cols'=>6],
-        ['name'=>'billing_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
-        ['name'=>'billing_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
-    ];
-    $shippingFields = [
-        ['name'=>'shipping_name',    'type'=>'text',     'label'=>__('Name'),        'cols'=>6],
-        ['name'=>'shipping_phone',   'type'=>'text',     'label'=>__('Phone'),       'cols'=>6],
-        ['name'=>'shipping_address', 'type'=>'textarea', 'label'=>__('Address'),     'cols'=>12, 'attrs'=>['rows'=>3]],
-        ['name'=>'shipping_city',    'type'=>'text',     'label'=>__('City'),        'cols'=>6],
-        ['name'=>'shipping_state',   'type'=>'text',     'label'=>__('State'),       'cols'=>6],
-        ['name'=>'shipping_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
-        ['name'=>'shipping_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
-    ];
-    $customersStoreBaseRouteName  = ViewsConstants::CST;
-    $customersStoreKebabRouteName = Str::kebab($customersStoreBaseRouteName);
-    $customersStoreResolvedName   = Route::has($customersStoreBaseRouteName)
-        ? $customersStoreBaseRouteName
-        : (Route::has($customersStoreKebabRouteName) ? $customersStoreKebabRouteName : null);
-    $customersStoreUrl            = $customersStoreResolvedName ? route($customersStoreResolvedName) : '#';
-    $customersCreateFormId        = 'customers-store-form';
-    $userLang                     = Utility::fetchUserLang();
-    $customersCreateGuardMessage  = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'store_customer_route_unavailable') ?? 'Store customer route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$basicFields = [
+            ['name'=>'name',         'type'=>'text',     'label'=>__('Name'),        'cols'=>4, 'attrs'=>['required'=>'required']],
+            ['name'=>'contact',      'type'=>'number',   'label'=>__('Contact'),     'cols'=>4, 'attrs'=>['required'=>'required']],
+            ['name'=>'email',        'type'=>'text',     'label'=>__('Email'),       'cols'=>4],
+            ['name'=>'tax_number',   'type'=>'text',     'label'=>__('Tax Number'),  'cols'=>4],
+        ];
+        $billingFields = [
+            ['name'=>'billing_name',    'type'=>'text',     'label'=>__('Name'),        'cols'=>6],
+            ['name'=>'billing_phone',   'type'=>'text',     'label'=>__('Phone'),       'cols'=>6],
+            ['name'=>'billing_address', 'type'=>'textarea', 'label'=>__('Address'),     'cols'=>12, 'attrs'=>['rows'=>3]],
+            ['name'=>'billing_city',    'type'=>'text',     'label'=>__('City'),        'cols'=>6],
+            ['name'=>'billing_state',   'type'=>'text',     'label'=>__('State'),       'cols'=>6],
+            ['name'=>'billing_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
+            ['name'=>'billing_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
+        ];
+        $shippingFields = [
+            ['name'=>'shipping_name',    'type'=>'text',     'label'=>__('Name'),        'cols'=>6],
+            ['name'=>'shipping_phone',   'type'=>'text',     'label'=>__('Phone'),       'cols'=>6],
+            ['name'=>'shipping_address', 'type'=>'textarea', 'label'=>__('Address'),     'cols'=>12, 'attrs'=>['rows'=>3]],
+            ['name'=>'shipping_city',    'type'=>'text',     'label'=>__('City'),        'cols'=>6],
+            ['name'=>'shipping_state',   'type'=>'text',     'label'=>__('State'),       'cols'=>6],
+            ['name'=>'shipping_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
+            ['name'=>'shipping_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
+        ];
+        $customersStoreBaseRouteName  = ViewsConstants::CST;
+        $customersStoreKebabRouteName = Str::kebab($customersStoreBaseRouteName);
+        $customersStoreResolvedName   = Route::has($customersStoreBaseRouteName)
+            ? $customersStoreBaseRouteName
+            : (Route::has($customersStoreKebabRouteName) ? $customersStoreKebabRouteName : null);
+        $customersStoreUrl            = $customersStoreResolvedName ? route($customersStoreResolvedName) : '#';
+        $customersCreateFormId        = 'customers-store-form';
+        $userLang                     = Utility::fetchUserLang();
+        $customersCreateGuardMessage  = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'store_customer_route_unavailable') ?? 'Store customer route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('customers/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -54,7 +55,7 @@
                         {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                         @php
                             $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []);
-                        @endphp
+@endphp
                         @if($f['type'] === 'textarea')
                             {{ Form::textarea($f['name'], null, $attrs) }}
                         @else
@@ -66,7 +67,7 @@
 
             @if(!$customFields->isEmpty())
                 <div class="{{ VC::CLMS3 }}">
-                    <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                    <div class="{{ VC::TAB_FD_SH }}" id="tab-2" role="tabpanel">
                         @include(ViewsConstants::CST_FD . '.formBuilder')
                     </div>
                 </div>
@@ -81,7 +82,7 @@
                         {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                         @php
                             $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []);
-                        @endphp
+@endphp
                         @if($f['type'] === 'textarea')
                             {{ Form::textarea($f['name'], null, $attrs) }}
                         @else
@@ -106,7 +107,7 @@
                             {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                             @php
                                 $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []);
-                            @endphp
+@endphp
                             @if($f['type'] === 'textarea')
                                 {{ Form::textarea($f['name'], null, $attrs) }}
                             @else

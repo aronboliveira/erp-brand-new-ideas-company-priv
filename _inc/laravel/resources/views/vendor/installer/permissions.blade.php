@@ -1,16 +1,16 @@
 @extends('vendor.installer.layouts.master')
 
 @php
-    use Illuminate\Support\Collection;
-    use Illuminate\Support\Facades\Route;
+    try {
+$items = $permissions['permissions'] ?? [];
+        $items = $items instanceof Collection ? $items : collect($items);
 
-    /** @var array|Collection $permissions */
-    $items = $permissions['permissions'] ?? [];
-    $items = $items instanceof Collection ? $items : collect($items);
-
-    $hasErrors = isset($permissions['errors']);
-    $nextUrl   = Route::has('LaravelInstaller::environment') ? route('LaravelInstaller::environment') : '#';
-    $canGoNext = !$hasErrors && $nextUrl !== '#';
+        $hasErrors = isset($permissions['errors']);
+        $nextUrl   = Route::has('LaravelInstaller::environment') ? route('LaravelInstaller::environment') : '#';
+        $canGoNext = !$hasErrors && $nextUrl !== '#';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/installer/permissions — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @section('template_title')
@@ -26,13 +26,17 @@
     <ul class="list" role="list">
         @forelse($items as $perm)
             @php
-                $ok        = (bool) data_get($perm, 'isSet', false);
-                $folder    = (string) data_get($perm, 'folder', '');
-                $mode      = (string) data_get($perm, 'permission', '');
-                $statusCls = $ok ? 'success' : 'error';
-                $icon      = $ok ? 'check-circle-o' : 'exclamation-circle';
-                $statusTxt = $ok ? __('OK') : __('Missing');
-            @endphp
+                try {
+                    $ok        = (bool) data_get($perm, 'isSet', false);
+                    $folder    = (string) data_get($perm, 'folder', '');
+                    $mode      = (string) data_get($perm, 'permission', '');
+                    $statusCls = $ok ? 'success' : 'error';
+                    $icon      = $ok ? 'check-circle-o' : 'exclamation-circle';
+                    $statusTxt = $ok ? __('OK') : __('Missing');
+                } catch (\Throwable $e) {
+                    \Log::error('vendor/installer/permissions — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <li class="list__item list__item--permissions {{ $statusCls }}">
                 <span aria-label="{{ __('Folder') }}: {{ $folder }}">{{ e($folder) }}</span>
                 <span aria-label="{{ __('Permission') }}: {{ $mode }} ({{ $statusTxt }})">

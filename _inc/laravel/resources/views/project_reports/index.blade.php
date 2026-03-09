@@ -1,49 +1,41 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants as PM,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Collection;
+    try {
+$profile      = Utility::getFile('uploads/avatar/');
+        $user         = Auth::user();
+        $canFetchMsg  = is_callable([Utility::class,'fetchLinkMessage']);
+        $lang         = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
 
-    $profile      = Utility::getFile('uploads/avatar/');
-    $user         = Auth::user();
-    $canFetchMsg  = is_callable([Utility::class,'fetchLinkMessage']);
-    $lang         = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $dashUrl      = Route::has('dashboard') ? route('dashboard') : '#';
+        $dashGuard    = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-    $dashUrl      = Route::has('dashboard') ? route('dashboard') : '#';
-    $dashGuard    = ($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+        $indexName    = VW::PRJ_RPT.'.index';
+        $indexRoute   = Route::has($indexName) ? [$indexName] : ['#'];
+        $indexUrl     = Route::has($indexName) ? route($indexName) : '#';
+        $indexGuard   = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_index_route_unavailable') : 'Project Reports index route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project Reports index route is unavailable. Please contact technical support or your domain administrator.');
+        $resetClass   = 'reset-project-report-link';
 
-    $indexName    = VW::PRJ_RPT.'.index';
-    $indexRoute   = Route::has($indexName) ? [$indexName] : ['#'];
-    $indexUrl     = Route::has($indexName) ? route($indexName) : '#';
-    $indexGuard   = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'project_report_index_route_unavailable') : 'Project Reports index route is unavailable. Please contact technical support or your domain administrator.') ?? __('Project Reports index route is unavailable. Please contact technical support or your domain administrator.');
-    $resetClass   = 'reset-project-report-link';
+        $projectsList = [];
+        if (is_array($projects ?? null) && count($projects)) {
+            $projectsList = $projects;
+        } elseif (($projects ?? null) instanceof Collection && $projects->isNotEmpty()) {
+            $projectsList = $projects;
+        }
 
-    $projectsList = [];
-    if (is_array($projects ?? null) && count($projects)) {
-        $projectsList = $projects;
-    } elseif (($projects ?? null) instanceof Collection && $projects->isNotEmpty()) {
-        $projectsList = $projects;
-    }
-
-    $usersList = [];
-    if (is_array($users ?? null) && count($users)) {
-        $usersList = $users;
-    } elseif (($users ?? null) instanceof Collection && $users->isNotEmpty()) {
-        $usersList = $users;
+        $usersList = [];
+        if (is_array($users ?? null) && count($users)) {
+            $usersList = $users;
+        } elseif (($users ?? null) instanceof Collection && $users->isNotEmpty()) {
+            $usersList = $users;
+        }
+    } catch (\Throwable $e) {
+        \Log::error('project_reports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
 @endphp
 
 @extends(EL::ADM)
 
 @push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
 @endpush
 
 @section(YD::ADM_PG_TTL)
@@ -52,21 +44,21 @@
 
 @section('title')
     <div class="d-inline-block">
-        <h5 class="h4 d-inline-block font-weight-400 mb-0">{{ __('Project Reports') }}</h5>
+        <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB0 }}">{{ __('Project Reports') }}</h5>
     </div>
 @endsection
 
 @section(YD::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
            data-sv-localized="true"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">{{ __('All Project') }}</li>
+    <li class="{{ VC::BCI_ACT }}" aria-current="page">{{ __('All Project') }}</li>
 @endsection
 
 @push(ST::ADM_CSS)
@@ -80,7 +72,7 @@
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::MT3 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             {!! Form::open(['route' => $indexRoute, 'method' => 'GET', 'id' => 'project_report_submit']) !!}
                                 <div class="{{ VC::R_FLX_ALC_JCE }}">
                                     <div class="{{ VC::CL_POS2 }} mb-0">
@@ -125,7 +117,7 @@
                                            class="{{ VC::BT_SM_DG }} {{ $resetClass }}"
                                            data-url="{{ $indexUrl }}"
                                            data-sv-localized="true"
-                                           data-guard-msg="{{ $indexGuard }}"
+                                           data-guard-msg="{{ base64_encode($indexGuard) }}"
                                            data-toggle="tooltip"
                                            data-original-title="{{ __('Reset') }}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
@@ -143,8 +135,8 @@
 
     <div class="{{ VC::C12 }} {{ VC::MT3 }}">
         <div class="{{ VC::CD }} table-card">
-            <div class="card-header card-body table-border-style">
-                <div class="table-responsive">
+            <div class="{{ VC::CD_HD }} {{ VC::CD_BD_TB_BD }}">
+                <div class="{{ VC::TB_RSP }}">
                     <table class="table datatable">
                         <thead>
                             <tr>
@@ -161,36 +153,40 @@
                         @if(Utility::isFilled($projectsList) ?? [])
                             @foreach ($projectsList as $proj)
                                 @php
-                                    $projId    = data_get($proj,'id');
-                                    $projName  = data_get($proj,'project_name', __('No project name available'));
-                                    $startRaw  = data_get($proj,'start_date');
-                                    $endRaw    = data_get($proj,'end_date');
-                                    $isDateFormatAvailable = is_callable([Utility::class,'getDateFormated']);
-                                    $startTxt  = $isDateFormatAvailable && $startRaw ? Utility::getDateFormated($startRaw) : __('No start date');
-                                    $endTxt    = $isDateFormatAvailable && $endRaw ? Utility::getDateFormated($endRaw)   : __('No due date');
-                                    $projUsers = data_get($proj,'users');
+                                    try {
+                                        $projId    = data_get($proj,'id');
+                                        $projName  = data_get($proj,'project_name', __('No project name available'));
+                                        $startRaw  = data_get($proj,'start_date');
+                                        $endRaw    = data_get($proj,'end_date');
+                                        $isDateFormatAvailable = is_callable([Utility::class,'getDateFormated']);
+                                        $startTxt  = $isDateFormatAvailable && $startRaw ? Utility::getDateFormated($startRaw) : __('No start date');
+                                        $endTxt    = $isDateFormatAvailable && $endRaw ? Utility::getDateFormated($endRaw)   : __('No due date');
+                                        $projUsers = data_get($proj,'users');
 
-                                    $usersSafe = [];
-                                    if (is_array($projUsers ?? null) && count($projUsers)) {
-                                        $usersSafe = $projUsers;
-                                    } elseif (($projUsers ?? null) instanceof Collection && $projUsers->isNotEmpty()) {
-                                        $usersSafe = $projUsers;
+                                        $usersSafe = [];
+                                        if (is_array($projUsers ?? null) && count($projUsers)) {
+                                            $usersSafe = $projUsers;
+                                        } elseif (($projUsers ?? null) instanceof Collection && $projUsers->isNotEmpty()) {
+                                            $usersSafe = $projUsers;
+                                        }
+
+                                        $showName  = VW::PRJ_RPT.'.show';
+                                        $showUrl   = Route::has($showName) ? route($showName, $projId) : '#';
+                                        $showGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'show_project_report_unavailable') : 'View project report route is unavailable. Please contact technical support or your domain administrator.') ?? __('View project report route is unavailable. Please contact technical support or your domain administrator.');
+                                        $showClass = 'show-project-report-link';
+
+                                        $editName  = VW::PRJ.'.edit';
+                                        $editUrl   = Route::has($editName) ? route($editName, $projId) : '#';
+                                        $editGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ, 'project_report_edit_route_unavailable') : 'Edit project route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit project route is unavailable. Please contact technical support or your domain administrator.');
+                                        $editClass = 'edit-project-link';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('project_reports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                     }
-
-                                    $showName  = VW::PRJ_RPT.'.show';
-                                    $showUrl   = Route::has($showName) ? route($showName, $projId) : '#';
-                                    $showGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ_RPT, 'show_project_report_unavailable') : 'View project report route is unavailable. Please contact technical support or your domain administrator.') ?? __('View project report route is unavailable. Please contact technical support or your domain administrator.');
-                                    $showClass = 'show-project-report-link';
-
-                                    $editName  = VW::PRJ.'.edit';
-                                    $editUrl   = Route::has($editName) ? route($editName, $projId) : '#';
-                                    $editGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PRJ, 'project_report_edit_route_unavailable') : 'Edit project route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit project route is unavailable. Please contact technical support or your domain administrator.');
-                                    $editClass = 'edit-project-link';
-                                @endphp
+@endphp
                                 <tr>
                                     <td>
                                         <div class="{{ VC::DFL_AIC }}">
-                                            <p class="mb-0"><a class="{{ VC::NM_HD_SM }}">{{ $projName }}</a></p>
+                                            <p class="{{ VC::MB0 }}"><a class="{{ VC::NM_HD_SM }}">{{ $projName }}</a></p>
                                         </div>
                                     </td>
                                     <td>{{ $startTxt }}</td>
@@ -210,7 +206,7 @@
                                                 @endforeach
                                                 @php
                                                     $extra = is_array($usersSafe) ? count($usersSafe) : $usersSafe->count();
-                                                @endphp
+@endphp
                                                 @if($extra > 3)
                                                     <a href="#" class="{{ VC::AV_CC_SM }}">
                                                         <img avatar="+ {{ $extra - 3 }}" style="height:36px;width:36px;">
@@ -223,22 +219,30 @@
                                     </td>
                                     <td>
                                         @php
-                                            $pp = method_exists($proj,'projectProgress') && isset($last_task) && isset($last_task->id)
-                                                ? $proj->projectProgress($proj,$last_task->id)
-                                                : ['percentage'=>'0%','color'=>'secondary'];
-                                        @endphp
-                                        <h6 class="mb-0 text-success">{{ $pp['percentage'] }}</h6>
-                                        <div class="progress mb-0">
+                                            try {
+                                                $pp = method_exists($proj,'projectProgress') && isset($last_task) && isset($last_task->id)
+                                                    ? $proj->projectProgress($proj,$last_task->id)
+                                                    : ['percentage'=>'0%','color'=>'secondary'];
+                                            } catch (\Throwable $e) {
+                                                \Log::error('project_reports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <h6 class="{{ VC::MB0 }} text-success">{{ $pp['percentage'] }}</h6>
+                                        <div class="progress {{ VC::MB0 }}">
                                             <div class="progress-bar bg-{{ $pp['color'] }}" style="width: {{ $pp['percentage'] }};"></div>
                                         </div>
                                     </td>
                                     <td>
                                         @php
-                                            $statusKey = data_get($proj,'status');
-                                            $stTxt = \App\Models\Project::$project_status[$statusKey] ?? __('Unknown');
-                                            $stClr = \App\Models\Project::$status_color[$statusKey] ?? 'secondary';
-                                        @endphp
-                                        <span class="badge bg-{{ $stClr }} p-2 px-3 rounded status_badge">{{ __($stTxt) }}</span>
+                                            try {
+                                                $statusKey = data_get($proj,'status');
+                                                $stTxt = \App\Models\Project::$project_status[$statusKey] ?? __('Unknown');
+                                                $stClr = \App\Models\Project::$status_color[$statusKey] ?? 'secondary';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('project_reports/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <span class="badge bg-{{ $stClr }} p-2 {{ VC::PX3 }} rounded status_badge">{{ __($stTxt) }}</span>
                                     </td>
                                     <td>
                                         @can(PM::MNG_PRJ)
@@ -248,7 +252,7 @@
                                                    class="{{ VC::BT_SM_CT }} {{ $showClass }}"
                                                    data-url="{{ $showUrl }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ $showGuard }}"
+                                                   data-guard-msg="{{ base64_encode($showGuard) }}"
                                                    data-bs-toggle="tooltip"
                                                    title="{{ __('View Project Report') }}"
                                                    data-original-title="{{ __('Detail') }}">
@@ -264,7 +268,7 @@
                                                    class="{{ VC::BT_SM_FL_CT }} {{ $editClass }}"
                                                    data-url="{{ $editUrl }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ $editGuard }}"
+                                                   data-guard-msg="{{ base64_encode($editGuard) }}"
                                                    data-ajax-popup="true"
                                                    data-size="lg"
                                                    data-bs-toggle="tooltip"
@@ -280,7 +284,7 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="7" class="text-center text-muted">{{ __('No projects found.') }}</td>
+                                <td colspan="7" class="{{ VC::TXCT_MT }}">{{ __('No projects found.') }}</td>
                             </tr>
                         @endif
                         </tbody>
@@ -290,4 +294,3 @@
         </div>
     </div>
 @endsection
-

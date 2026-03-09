@@ -23,7 +23,10 @@ class EmailSeeder extends Seeder
 {
 	private const FROM_FRACTION = 0.10;
 	private const TO_FRACTION   = 0.10;
-	private const SECONDS_LIMIT = 6 * 10 ** 2; // segundos
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
+
+	private const HARD_CAP = 4;
 
 	// provider minimum shares (sobre o TOTAL a criar)
 	private const PROVIDER_MIN = [
@@ -109,11 +112,13 @@ class EmailSeeder extends Seeder
 		$created = 0;
 
 		foreach ($types as $t) {
+			if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 			$k = $t->value;
 			$n = (int) ($countsByType[$k] ?? 0);
 			if ($n < 1) continue;
 
 			for ($i = 0; $i < $n; $i++) {
+				if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 
 				if ((microtime(true) - $clock) > (!empty(self::SECONDS_LIMIT) ? self::SECONDS_LIMIT : 6 * 10 ** 2)) {
 					Log::warning(self::class . ' seeding time limit reached, stopping early');
@@ -241,9 +246,9 @@ class EmailSeeder extends Seeder
 						DC::COL_TABLE_UPDATER => null,
 					]);
 
-					$out->writeln(
-						'(' . $i . '/' . $n . ') ' . ' Creating email from ' . $fromEm . ' to ' . $toEm . ' module ' . $t->value . ' provider ' . $provider
-					);
+					// $out->writeln(
+					// 	'(' . $i . '/' . $n . ') ' . ' Creating email from ' . $fromEm . ' to ' . $toEm . ' module ' . $t->value . ' provider ' . $provider
+					// );
 
 					$created++;
 					$createdIds[] = (string) $m->getAttribute('id');

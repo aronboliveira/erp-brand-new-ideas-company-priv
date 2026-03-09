@@ -1,13 +1,29 @@
 <?php
 
-namespace Tests\Unit\Models\Aug;
+namespace Tests\Unit\app\Models\Aug;
 
-use PHPUnit\Framework\TestCase;
+use App\Models\DealEmail;
+use Tests\TestCase;
 
 class DealEmailTest extends TestCase
 {
-    public function test_placeholder(): void
+    protected function setUp(): void
     {
-        $this->markTestSkipped('Stub — no test logic implemented yet.');
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
+	/** @test */
+	public function it_is_instantiable(): void
+	{
+		$model = new DealEmail();
+		$this->assertInstanceOf(DealEmail::class, $model);
+	}
+
+	/** @test */
+	public function it_uses_uuid_primary_key(): void
+	{
+		$model = new DealEmail();
+		$this->assertFalse($model->getIncrementing());
+		$this->assertSame('string', $model->getKeyType());
+	}
 }

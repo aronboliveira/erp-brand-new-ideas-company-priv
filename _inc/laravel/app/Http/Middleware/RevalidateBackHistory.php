@@ -3,17 +3,14 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\Config\Constants\{DatabaseConstants, LangsConstants, SettingsConstants};
+use App\Config\Constants\{DatabaseConstants, LangsConstants};
 use App\Models\Utility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class RevalidateBackHistory
 {
-    use MeasuresPerformance;
-
     /**
      * Apply CORS headers (or on error, redirect back safely).
      *
@@ -23,27 +20,9 @@ final class RevalidateBackHistory
      */
     public function handle(Request $request, Closure $next): SymfonyResponse
     {
-        $class  = class_basename(static::class);
-        $method = __FUNCTION__;
-        $output = SafeConsoleOutput::make();
-
-        Log::debug("{$class}::{$method} start", [
-            'ip'       => $request->ip(),
-            'referrer' => $request->headers->get('referer', '#UNIDENTIFIED'),
-            'uri'      => $request->getRequestUri(),
-            'method'   => $request->getMethod(),
-            'bearer_present' => (bool)$request->bearerToken(),
-            'next'     => $this->searchForNext($request),
-        ]);
-
-        $output->writeln("[{$class}] Applying CORS headers to {$request->getRequestUri()}");
         try {
             $lang = Utility::fetchUserLang();
         } catch (\Throwable $e) {
-            Log::warning("{$class}::{$method} failed to fetch user language", [
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-            ]);
             $lang = DatabaseConstants::DEFAULT_LANG;
         }
 
@@ -53,7 +32,7 @@ final class RevalidateBackHistory
         try {
             $response = $next($request);
         } catch (\Throwable $e) {
-            Log::error("{$class} downstream error in {$method}", [
+            Log::error('RevalidateBackHistory: downstream error', [
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
             ]);
@@ -65,31 +44,21 @@ final class RevalidateBackHistory
             'Access-Control-Allow-Origin'  => '*',
             'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS, PUT, DELETE',
             'Access-Control-Allow-Headers' => 'Content-Type, Accept, Authorization, X-Requested-With, Application',
+            'Cache-Control'                => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma'                       => 'no-cache',
+            'Expires'                      => 'Sat, 01 Jan 2000 00:00:00 GMT',
         ];
 
         foreach ($headers as $key => $value) {
             try {
                 $response->headers->set($key, $value);
             } catch (\Throwable $e) {
-                Log::warning("{$class}::{$method} failed to set header", [
-                    'header'    => $key,
-                    'value'     => $value,
-                    'exception' => get_class($e),
-                    'message'   => $e->getMessage(),
+                Log::warning('RevalidateBackHistory: failed to set header', [
+                    'header'  => $key,
+                    'message' => $e->getMessage(),
                 ]);
             }
         }
-        Log::info("{$class}::{$method} CORS headers applied successfully", [
-            'uri'     => $request->getRequestUri(),
-        ]);
-        Log::debug("{$class}::{$method} CORS headers applied", [
-            'uri'     => $request->getRequestUri(),
-            'headers' => array_keys($headers),
-            'status'  => $response->getStatusCode(),
-            'next'    => $this->searchForNext($request),
-        ]);
-
-        $output->writeln("[{$class}] CORS headers set successfully");
 
         return $response;
     }

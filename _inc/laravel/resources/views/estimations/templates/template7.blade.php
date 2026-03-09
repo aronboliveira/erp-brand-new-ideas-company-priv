@@ -1,13 +1,5 @@
 @php
-    # Template 7
-    use App.Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-    use App\Models\{Utility};
-    use Illuminate\Support\Facades\{Auth, Log};
-    use InvalidArgumentException;
-    use RuntimeException;
-    use TypeError;
-
-    $usr ??= null;
+$usr ??= null;
     $lang ??= (string)'';
     $siteRtl ??= (string)'';
     $color ??= (string)'#ffffff';
@@ -116,7 +108,7 @@
                                                 <tbody data-v-1ad6e3b9>
                                                     <tr data-v-1ad6e3b9>
                                                         <td data-v-1ad6e3b9 class="fwb">{{ __('Number') }}:</td>
-                                                        <td data-v-1ad6e3b9 class="text-end">
+                                                        <td data-v-1ad6e3b9 class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->estimation_id))
                                                                 {{ $hasEstimateNumberFormat ? (string)$usr->estimateNumberFormat($estimation->estimation_id) : (string)$estimation->estimation_id }}
                                                             @else
@@ -126,7 +118,7 @@
                                                     </tr>
                                                     <tr data-v-1ad6e3b9>
                                                         <td data-v-1ad6e3b9 class="fwb">{{ __('Issue Date') }}:</td>
-                                                        <td data-v-1ad6e3b9 class="text-end">
+                                                        <td data-v-1ad6e3b9 class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->issue_date) && $estimation->issue_date !== '')
                                                                 {{ $hasDateFormat ? (string)$usr->dateFormat($estimation->issue_date) : (string)$estimation->issue_date }}
                                                             @else
@@ -140,7 +132,7 @@
                                     </div>
                                     <div data-v-1ad6e3b9 class="d-inner-2">
                                         <div data-v-1ad6e3b9 class="row">
-                                            <div data-v-1ad6e3b9 class="col-2">
+                                            <div data-v-1ad6e3b9 class="{{ VC::C2 }}">
                                                 <div data-v-1ad6e3b9 class="col-66">
                                                     <small data-v-1ad6e3b9>{{ __('To') }}:</small>
                                                     <strong data-v-1ad6e3b9 class="sub-title">{{ isset($client->name) && $client->name !== '' ? $client->name : __('No client name available') }}</strong>
@@ -156,16 +148,20 @@
                                                     <div data-v-1ad6e3b9 class="d-table-th w-13" style="padding:5px;">{{ __('Item description') }}</div>
                                                     <div data-v-1ad6e3b9 class="d-table-th w-3" style="padding:5px;">{{ __('Price') }}</div>
                                                     <div data-v-1ad6e3b9 class="d-table-th w-2" style="padding:5px;">{{ __('Qty') }}</div>
-                                                    <div data-v-1ad6e3b9 class="d-table-th w-3 text-end" style="padding:5px;">{{ __('Amount') }}</div>
+                                                    <div data-v-1ad6e3b9 class="d-table-th w-3 {{ VC::TX_END }}" style="padding:5px;">{{ __('Amount') }}</div>
                                                 </div>
                                                 <div data-v-1ad6e3b9 class="d-table-body">
                                                     @if(!empty($items))
                                                         @foreach($items as $key => $item)
                                                             @php
-                                                                $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
-                                                                $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
-                                                                $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
-                                                            @endphp
+                                                                try {
+                                                                    $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
+                                                                    $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
+                                                                    $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('estimations/templates/template7 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div data-v-1ad6e3b9 class="d-table-tr">
                                                                 <div data-v-1ad6e3b9 class="d-table-td w-3" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>{{ (int)$key + 1 }}</span></div>
                                                                 <div data-v-1ad6e3b9 class="d-table-td w-13" style="border:1px solid {{ $color }}; padding:5px;">
@@ -181,7 +177,7 @@
                                                                     </span>
                                                                 </div>
                                                                 <div data-v-1ad6e3b9 class="d-table-td w-2" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>{{ !is_null($q) ? $q : __('No quantity available') }}</span></div>
-                                                                <div data-v-1ad6e3b9 class="d-table-td w-3 text-end" style="border:1px solid {{ $color }}; padding:5px;">
+                                                                <div data-v-1ad6e3b9 class="d-table-td w-3 {{ VC::TX_END }}" style="border:1px solid {{ $color }}; padding:5px;">
                                                                     <span data-v-1ad6e3b9>
                                                                         @if(!is_null($lt))
                                                                             {{ $hasPriceFormat ? (string)$usr->priceFormat($lt) : number_format($lt, 2) }}
@@ -198,7 +194,7 @@
                                                             <div data-v-1ad6e3b9 class="d-table-td w-13" style="border:1px solid {{ $color }}; padding:5px;"><pre data-v-1ad6e3b9>-<br data-v-1ad6e3b9></pre></div>
                                                             <div data-v-1ad6e3b9 class="d-table-td w-3" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>-</span></div>
                                                             <div data-v-1ad6e3b9 class="d-table-td w-2" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>-</span></div>
-                                                            <div data-v-1ad6e3b9 class="d-table-td w-3 text-end" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>-</span></div>
+                                                            <div data-v-1ad6e3b9 class="d-table-td w-3 {{ VC::TX_END }}" style="border:1px solid {{ $color }}; padding:5px;"><span data-v-1ad6e3b9>-</span></div>
                                                         </div>
                                                     @endif
                                                 </div>

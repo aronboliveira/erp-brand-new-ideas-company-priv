@@ -10,9 +10,18 @@ use App\Models\Estimation;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class EstimationTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
+
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -35,15 +44,26 @@ class EstimationTest extends TestCase
 	 **/
 	public function it_calculates_subtotal_correctly(): void
 	{
-		$estimation = new Estimation;
-
 		$products = new Collection([
 			(object) ['pivot' => (object) ['price' => 10.0, 'quantity' => 2]],
 			(object) ['pivot' => (object) ['price' =>  5.5, 'quantity' => 4]],
 		]);
 
-		// Pretend the relation is already loaded.
-		$estimation->setRelation('getProducts', $products);
+		$fakeRelation = new class($products) extends Collection {
+			private Collection $result;
+			public function __construct(Collection $result)
+			{
+				parent::__construct();
+				$this->result = $result;
+			}
+			public function get($key = null, $default = null): mixed
+			{
+				return $key === null ? $this->result : parent::get($key, $default);
+			}
+		};
+
+		$estimation = Mockery::mock(Estimation::class)->makePartial();
+		$estimation->shouldReceive('getProducts')->andReturn($fakeRelation);
 
 		$this->assertSame(10.0 * 2 + 5.5 * 4, $estimation->getSubTotal());
 	}
@@ -56,16 +76,27 @@ class EstimationTest extends TestCase
 	 **/
 	public function it_calculates_tax_correctly(): void
 	{
-		$estimation = new Estimation;
-		$estimation->discount = 5.0;
-
-		// Sub-total 100
-		$estimation->setRelation('getProducts', collect([
+		$products = collect([
 			(object) ['pivot' => (object) ['price' => 20, 'quantity' => 5]],
-		]));
+		]);
 
-		// Fake tax relation with 10 % rate
-		$estimation->setRelation('tax', (object) ['rate' => 10]);
+		$fakeRelation = new class($products) extends Collection {
+			private Collection $result;
+			public function __construct(Collection $result)
+			{
+				parent::__construct();
+				$this->result = $result;
+			}
+			public function get($key = null, $default = null): mixed
+			{
+				return $key === null ? $this->result : parent::get($key, $default);
+			}
+		};
+
+		$estimation = Mockery::mock(Estimation::class)->makePartial();
+		$estimation->shouldReceive('getProducts')->andReturn($fakeRelation);
+		$estimation->shouldReceive('getAttribute')->with('discount')->andReturn(5.0);
+		$estimation->shouldReceive('getAttribute')->with('tax')->andReturn((object) ['rate' => 10]);
 
 		$this->assertSame((100 - 5) * 0.10, $estimation->getTax());
 	}
@@ -77,13 +108,27 @@ class EstimationTest extends TestCase
 	 **/
 	public function it_calculates_total_correctly(): void
 	{
-		$estimation = new Estimation;
-		$estimation->discount = 5;
-
-		$estimation->setRelation('getProducts', collect([
+		$products = collect([
 			(object) ['pivot' => (object) ['price' => 25, 'quantity' => 2]], // 50
-		]));
-		$estimation->setRelation('tax', (object) ['rate' => 10]); // (50-5)*0.10 = 4.5
+		]);
+
+		$fakeRelation = new class($products) extends Collection {
+			private Collection $result;
+			public function __construct(Collection $result)
+			{
+				parent::__construct();
+				$this->result = $result;
+			}
+			public function get($key = null, $default = null): mixed
+			{
+				return $key === null ? $this->result : parent::get($key, $default);
+			}
+		};
+
+		$estimation = Mockery::mock(Estimation::class)->makePartial();
+		$estimation->shouldReceive('getProducts')->andReturn($fakeRelation);
+		$estimation->shouldReceive('getAttribute')->with('discount')->andReturn(5.0);
+		$estimation->shouldReceive('getAttribute')->with('tax')->andReturn((object) ['rate' => 10]);
 
 		$this->assertSame(50 - 5 + 4.5, $estimation->getTotal());
 	}
@@ -110,7 +155,7 @@ class EstimationTest extends TestCase
 			}
 		};
 
-		Mockery::mock('alias:' . Estimation::class)
+		$this->aliasMock(Estimation::class)
 			->shouldReceive('_checkLogin')
 			->once()
 			->andReturn($user);

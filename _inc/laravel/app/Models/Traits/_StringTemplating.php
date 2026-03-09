@@ -2,8 +2,6 @@
 
 namespace App\Traits;
 
-// ! TODO This trait is just a workaround for now to facilitate reading and avoid compiler issues with Models using String Templating. The templates should be moved to proper Blades later.
-
 trait _StringTemplating
 {
 	public const DEFAULT_JOINING_LETTER = [
@@ -92,8 +90,6 @@ trait _StringTemplating
 
         <p>العنوان الذي أشرت إليه في السجلات الرسمية.</p>
 
-
-
         <p>13. تطبيق سياسة الشركة</p>
 
         <p>يحق للشركة تقديم إعلانات السياسة من وقت لآخر فيما يتعلق بمسائل مثل استحقاق الإجازة والأمومة</p>
@@ -102,25 +98,17 @@ trait _StringTemplating
 
         <p>جميع قرارات سياسة الشركة هذه ملزمة لك ويجب أن تلغي هذه الاتفاقية إلى هذا الحد.</p>
 
-
-
         <p>14. القانون الحاكم / الاختصاص القضائي</p>
 
         <p>يخضع عملك في الشركة لقوانين الدولة. تخضع جميع النزاعات للاختصاص القضائي للمحكمة العليا</p>
 
         <p>غوجارات فقط.</p>
 
-
-
         <p>15. قبول عرضنا</p>
 
         <p>يرجى تأكيد قبولك لعقد العمل هذا من خلال التوقيع وإعادة النسخة المكررة.</p>
 
-
-
         <p>نرحب بكم ونتطلع إلى تلقي موافقتكم والعمل معكم.</p>
-
-
 
         <p>تفضلوا بقبول فائق الاحترام،</p>
 
@@ -212,9 +200,7 @@ trait _StringTemplating
         <p>{应用名称}</p>
         <p>{日期}</p>',
 
-
 		'da' => '<h3 style="text-align: center;"><strong>Tilslutningsbrev</strong></h3>
-
 
         <p>{date}</p>
 
@@ -224,46 +210,29 @@ trait _StringTemplating
 
         <p>Emne: Udn&aelig;vnelse til stillingen som {designation}</p>
 
-
-
-
-
-
-
         <p>K&aelig;re {employee_name}</p>
-
-
 
         <p>Vi er glade for at kunne tilbyde dig stillingen som {designation} hos {app_name} "Virksomheden" p&aring; f&oslash;lgende vilk&aring;r og</p>
 
         <p>betingelser:</p>
 
-
         <p>1. P&aring;begyndelse af ans&aelig;ttelse</p>
 
         <p>Din ans&aelig;ttelse tr&aelig;der i kraft fra {start_date}</p>
 
-
-
         <p>2. Jobtitel</p>
 
-
         <p>Din jobtitel vil v&aelig;re {designation}.</p>
-
-
 
         <p>3. L&oslash;n</p>
 
         <p>Din l&oslash;n og andre goder vil v&aelig;re som angivet i skema 1, hertil.</p>
-
-
 
         <p>4. Udstationeringssted</p>
 
         <p>Du vil blive sl&aring;et op p&aring; {branch}. Du kan dog blive bedt om at arbejde p&aring; ethvert forretningssted, som virksomheden har, eller</p>
 
         <p>senere kan erhverve.</p>
-
 
         <p>5. Arbejdstimer</p>
 
@@ -275,8 +244,6 @@ trait _StringTemplating
 
         <p>ansvar.</p>
 
-
-
         <p>6. Orlov/Ferie</p>
 
         <p>6.1 Du har ret til tilf&aelig;ldig ferie p&aring; 12 dage.</p>
@@ -285,14 +252,11 @@ trait _StringTemplating
 
         <p>6.3 Virksomheden skal meddele en liste over erkl&aelig;rede helligdage i begyndelsen af ​​hvert &aring;r.</p>
 
-
-
         <p>7. Arbejdsopgavernes art</p>
 
         <p>Du vil efter bedste evne udf&oslash;re alle de opgaver, der er iboende i din stilling og s&aring;danne yderligere opgaver som virksomheden</p>
 
         <p>kan opfordre dig til at optr&aelig;de, fra tid til anden. Dine specifikke pligter er beskrevet i skema II hertil.</p>
-
 
         <p>8. Firmaejendom</p>
 
@@ -301,8 +265,6 @@ trait _StringTemplating
         <p>din ans&aelig;ttelse, og skal returnere al s&aring;dan ejendom til virksomheden, f&oslash;r du opgiver din afgift, i modsat fald vil omkostningerne</p>
 
         <p>af samme vil blive inddrevet fra dig af virksomheden.</p>
-
-
 
         <p>9. L&aring;n/modtagelse af gaver</p>
 
@@ -375,8 +337,6 @@ trait _StringTemplating
 
         <p>den adresse, du har angivet i de officielle optegnelser.</p>
 
-
-
         <p>13. Anvendelse af virksomhedens politik</p>
 
         <p>Virksomheden er berettiget til fra tid til anden at afgive politiske erkl&aelig;ringer vedr&oslash;rende sager som ret til orlov, barsel</p>
@@ -385,25 +345,17 @@ trait _StringTemplating
 
         <p>Alle s&aring;danne politiske beslutninger fra virksomheden er bindende for dig og tilsides&aelig;tter denne aftale i det omfang.</p>
 
-
-
         <p>14. G&aelig;ldende lov/Jurisdiktion</p>
 
         <p>Din ans&aelig;ttelse hos virksomheden er underlagt landets love. Alle tvister er underlagt High Courts jurisdiktion</p>
 
         <p>Kun Gujarat.</p>
 
-
-
         <p>15. Accept af vores tilbud</p>
 
         <p>Bekr&aelig;ft venligst din accept af denne ans&aelig;ttelseskontrakt ved at underskrive og returnere kopien.</p>
 
-
-
         <p>Vi byder dig velkommen og ser frem til at modtage din accept og til at arbejde sammen med dig.</p>
-
-
 
         <p>Venlig hilsen,</p>
 
@@ -416,39 +368,25 @@ trait _StringTemplating
         <p>{employee_name}</p>
         <p>{address}</p>
 
-
-
         <p>Betreff: Ernennung f&uuml;r die Stelle von {designation}</p>
 
-
-
-
-
-
-
         <p>Sehr geehrter {employee_name},</p>
-
-
 
         <p>Wir freuen uns, Ihnen die Position von {designation} bei {app_name} dem &bdquo;Unternehmen&ldquo; zu den folgenden Bedingungen anbieten zu k&ouml;nnen</p>
 
         <p>Bedingungen:</p>
 
-
         <p>1. Aufnahme des Arbeitsverh&auml;ltnisses</p>
 
         <p>Ihre Anstellung gilt ab dem {start_date}</p>
-
 
         <p>2. Berufsbezeichnung</p>
 
         <p>Ihre Berufsbezeichnung lautet {designation}.</p>
 
-
         <p>3. Gehalt</p>
 
         <p>Ihr Gehalt und andere Leistungen sind in Anhang 1 zu diesem Dokument aufgef&uuml;hrt.</p>
-
 
         <p>4. Postort</p>
 
@@ -456,14 +394,11 @@ trait _StringTemplating
 
         <p>sp&auml;ter erwerben kann.</p>
 
-
         <p>5. Arbeitszeit</p>
         <p>Die normalen Arbeitstage sind Montag bis Freitag. Sie m&uuml;ssen so viele Stunden arbeiten, wie es f&uuml;r die erforderlich ist</p>
         <p>ordnungsgem&auml;&szlig;e Erf&uuml;llung Ihrer Pflichten gegen&uuml;ber dem Unternehmen. Die normalen Arbeitszeiten sind von {start_time} bis {end_time} und Sie sind es</p>
         <p>voraussichtlich nicht weniger als {total_hours} Stunden pro Woche arbeiten, und falls erforderlich, abh&auml;ngig von Ihren zus&auml;tzlichen Stunden</p>
         <p>Verantwortlichkeiten.</p>
-
-
 
         <p>6. Urlaub/Urlaub</p>
 
@@ -473,15 +408,11 @@ trait _StringTemplating
 
         <p>6.3 Das Unternehmen teilt zu Beginn jedes Jahres eine Liste der erkl&auml;rten Feiertage mit.</p>
 
-
-
         <p>7. Art der Pflichten</p>
 
         <p>Sie werden alle Aufgaben, die mit Ihrer Funktion verbunden sind, sowie alle zus&auml;tzlichen Aufgaben als Unternehmen nach besten Kr&auml;ften erf&uuml;llen</p>
 
         <p>kann Sie von Zeit zu Zeit zur Leistung auffordern. Ihre spezifischen Pflichten sind in Anhang II zu diesem Dokument aufgef&uuml;hrt.</p>
-
-
 
         <p>8. Firmeneigentum</p>
 
@@ -490,8 +421,6 @@ trait _StringTemplating
         <p>Ihrer Anstellung und muss all dieses Eigentum an das Unternehmen zur&uuml;ckgeben, bevor Sie Ihre Geb&uuml;hr aufgeben, andernfalls die Kosten</p>
 
         <p>derselben werden von der Gesellschaft von Ihnen zur&uuml;ckgefordert.</p>
-
-
 
         <p>9. Leihen/Annehmen von Geschenken</p>
 
@@ -566,8 +495,6 @@ trait _StringTemplating
 
         <p>the address intimated by you in the official records.</p>
 
-
-
         <p>13. Applicability of Company Policy</p>
 
         <p>The Company shall be entitled to make policy declarations from time to time pertaining to matters like leave entitlement,maternity</p>
@@ -576,25 +503,17 @@ trait _StringTemplating
 
         <p>All such policy decisions of the Company shall be binding on you and shall override this Agreement to that&nbsp; extent.</p>
 
-
-
         <p>14. Governing Law/Jurisdiction</p>
 
         <p>Your employment with the Company is subject to Country laws. All disputes shall be subject to the jurisdiction of High Court</p>
 
         <p>Gujarat only.</p>
 
-
-
         <p>15. Acceptance of our offer</p>
 
         <p>Please confirm your acceptance of this Contract of Employment by signing and returning the duplicate copy.</p>
 
-
-
         <p>We welcome you and look forward to receiving your acceptance and to working with you.</p>
-
-
 
         <p>Yours Sincerely,</p>
 
@@ -687,18 +606,13 @@ trait _StringTemplating
 
 		'es' => '<h3 style="text-align: center;"><strong>Carta de uni&oacute;n</strong></h3>
 
-
         <p>{date}</p>
 
         <p>{employee_name}</p>
 
         <p>{address}</p>
 
-
-
         <p>Asunto: Nombramiento para el puesto de {designation}</p>
-
-
 
         <p>Estimado {employee_name},</p>
 
@@ -706,11 +620,9 @@ trait _StringTemplating
 
         <p>condiciones:</p>
 
-
         <p>1. Comienzo del empleo</p>
 
         <p>Su empleo ser&aacute; efectivo a partir del {start_date}</p>
-
 
         <p>2. T&iacute;tulo del trabajo</p>
         <p>El t&iacute;tulo de su trabajo ser&aacute; {designation}.</p>
@@ -719,13 +631,10 @@ trait _StringTemplating
 
         <p>Su salario y otros beneficios ser&aacute;n los establecidos en el Anexo 1 del presente.</p>
 
-
         <p>4. Lugar de destino</p>
         <p>Se le publicar&aacute; en {branch}. Sin embargo, es posible que deba trabajar en cualquier lugar de negocios que tenga la Compa&ntilde;&iacute;a, o</p>
 
         <p>puede adquirir posteriormente.</p>
-
-
 
         <p>5. Horas de trabajo</p>
 
@@ -737,8 +646,6 @@ trait _StringTemplating
 
         <p>responsabilidades.</p>
 
-
-
         <p>6. Licencia/Vacaciones</p>
 
         <p>6.1 Tiene derecho a un permiso eventual de 12 d&iacute;as.</p>
@@ -747,15 +654,11 @@ trait _StringTemplating
 
         <p>6.3 La Compa&ntilde;&iacute;a deber&aacute; notificar una lista de d&iacute;as festivos declarados al comienzo de cada a&ntilde;o.</p>
 
-
-
         <p>7. Naturaleza de los deberes</p>
 
         <p>Desempe&ntilde;ar&aacute; lo mejor que pueda todas las funciones inherentes a su puesto y aquellas funciones adicionales que la empresa</p>
 
         <p>puede pedirte que act&uacute;es, de vez en cuando. Sus deberes espec&iacute;ficos se establecen en el Anexo II del presente.</p>
-
-
 
         <p>8. Propiedad de la empresa</p>
 
@@ -764,8 +667,6 @@ trait _StringTemplating
         <p>su empleo, y devolver&aacute; todos esos bienes a la Compa&ntilde;&iacute;a antes de renunciar a su cargo, en caso contrario, el costo</p>
 
         <p>de la misma ser&aacute; recuperada de usted por la Compa&ntilde;&iacute;a.</p>
-
-
 
         <p>9. Tomar prestado/aceptar regalos</p>
 
@@ -838,8 +739,6 @@ trait _StringTemplating
 
         <p>la direcci&oacute;n indicada por usted en los registros oficiales.</p>
 
-
-
         <p>13. Aplicabilidad de la pol&iacute;tica de la empresa</p>
 
         <p>La Compa&ntilde;&iacute;a tendr&aacute; derecho a hacer declaraciones de pol&iacute;tica de vez en cuando relacionadas con asuntos como el derecho a licencia, maternidad</p>
@@ -848,25 +747,17 @@ trait _StringTemplating
 
         <p>Todas las decisiones pol&iacute;ticas de la Compa&ntilde;&iacute;a ser&aacute;n vinculantes para usted y anular&aacute;n este Acuerdo en esa medida.</p>
 
-
-
         <p>14. Ley aplicable/Jurisdicci&oacute;n</p>
 
         <p>Su empleo con la Compa&ntilde;&iacute;a est&aacute; sujeto a las leyes del Pa&iacute;s. Todas las disputas estar&aacute;n sujetas a la jurisdicci&oacute;n del Tribunal Superior</p>
 
         <p>S&oacute;lo Gujarat.</p>
 
-
-
         <p>15. Aceptaci&oacute;n de nuestra oferta</p>
 
         <p>Por favor, confirme su aceptaci&oacute;n de este Contrato de Empleo firmando y devolviendo el duplicado.</p>
 
-
-
         <p>Le damos la bienvenida y esperamos recibir su aceptaci&oacute;n y trabajar con usted.</p>
-
-
 
         <p>Tuyo sinceramente,</p>
 
@@ -876,19 +767,14 @@ trait _StringTemplating
 
 		'fr' => '<h3 style="text-align: center;">Lettre dadh&eacute;sion</h3>
 
-
         <p>{date}</p>
 
         <p>{employee_name}</p>
         <p>{address}</p>
 
-
         <p>Objet : Nomination pour le poste de {designation}</p>
 
-
-
         <p>Cher {employee_name},</p>
-
 
         <p>Nous sommes heureux de vous proposer le poste de {designation} avec {app_name} la "Soci&eacute;t&eacute;" selon les conditions suivantes et</p>
 
@@ -898,25 +784,18 @@ trait _StringTemplating
 
         <p>Votre emploi sera effectif &agrave; partir du {start_date}</p>
 
-
-
         <p>2. Intitul&eacute; du poste</p>
 
         <p>Votre titre de poste sera {designation}.</p>
-
-
 
         <p>3. Salaire</p>
 
         <p>Votre salaire et vos autres avantages seront tels quindiqu&eacute;s &agrave; lannexe 1 ci-jointe.</p>
 
-
         <p>4. Lieu de d&eacute;tachement</p>
         <p>Vous serez affect&eacute; &agrave; {branch}. Vous pouvez cependant &ecirc;tre tenu de travailler dans nimporte quel lieu daffaires que la Soci&eacute;t&eacute; a, ou</p>
 
         <p>pourra acqu&eacute;rir plus tard.</p>
-
-
 
         <p>5. Heures de travail</p>
 
@@ -936,15 +815,11 @@ trait _StringTemplating
 
         <p>6.3 La Soci&eacute;t&eacute; communiquera une liste des jours f&eacute;ri&eacute;s d&eacute;clar&eacute;s au d&eacute;but de chaque ann&eacute;e.</p>
 
-
-
         <p>7. Nature des fonctions</p>
 
         <p>Vous ex&eacute;cuterez au mieux de vos capacit&eacute;s toutes les t&acirc;ches inh&eacute;rentes &agrave; votre poste et les t&acirc;ches suppl&eacute;mentaires que lentreprise</p>
 
         <p>peut faire appel &agrave; vous pour effectuer, de temps &agrave; autre. Vos fonctions sp&eacute;cifiques sont &eacute;nonc&eacute;es &agrave; lannexe II ci-jointe.</p>
-
-
 
         <p>8. Biens sociaux</p>
 
@@ -953,8 +828,6 @@ trait _StringTemplating
         <p>votre emploi, et doit restituer tous ces biens &agrave; la Soci&eacute;t&eacute; avant labandon de votre charge, &agrave; d&eacute;faut de quoi le co&ucirc;t</p>
 
         <p>de m&ecirc;me seront r&eacute;cup&eacute;r&eacute;s aupr&egrave;s de vous par la Soci&eacute;t&eacute;.</p>
-
-
 
         <p>9. Emprunter/accepter des cadeaux</p>
 
@@ -1027,8 +900,6 @@ trait _StringTemplating
 
         <p>ladresse que vous avez indiqu&eacute;e dans les registres officiels.</p>
 
-
-
         <p>13. Applicabilit&eacute; de la politique de lentreprise</p>
 
         <p>La Soci&eacute;t&eacute; est autoris&eacute;e &agrave; faire des d&eacute;clarations de politique de temps &agrave; autre concernant des questions telles que le droit aux cong&eacute;s, la maternit&eacute;</p>
@@ -1037,25 +908,17 @@ trait _StringTemplating
 
         <p>Toutes ces d&eacute;cisions politiques de la Soci&eacute;t&eacute; vous lieront et pr&eacute;vaudront sur le pr&eacute;sent Contrat dans cette mesure.</p>
 
-
-
         <p>14. Droit applicable/juridiction</p>
 
         <p>Votre emploi au sein de la Soci&eacute;t&eacute; est soumis aux lois du pays. Tous les litiges seront soumis &agrave; la comp&eacute;tence du tribunal de grande instance</p>
 
         <p>Gujarat uniquement.</p>
 
-
-
         <p>15. Acceptation de notre offre</p>
 
         <p>Veuillez confirmer votre acceptation de ce contrat de travail en signant et en renvoyant le duplicata.</p>
 
-
-
         <p>Nous vous souhaitons la bienvenue et nous nous r&eacute;jouissons de recevoir votre acceptation et de travailler avec vous.</p>
-
-
 
         <p>Cordialement,</p>
 
@@ -1148,9 +1011,7 @@ trait _StringTemplating
 
         <p>{date}</p>',
 
-
 		'it' => '<h3 style="text-align: center;">Lettera di adesione</h3>
-
 
         <p>{date}</p>
 
@@ -1160,19 +1021,15 @@ trait _StringTemplating
 
         <p>Oggetto: Appuntamento alla carica di {designation}</p>
 
-
         <p>Gentile {employee_name},</p>
 
         <p>Siamo lieti di offrirti la posizione di {designation} con {app_name} la "Societ&agrave;" alle seguenti condizioni e</p>
 
         <p>condizioni:</p>
 
-
         <p>1. Inizio del rapporto di lavoro</p>
 
         <p>Il tuo impiego sar&agrave; effettivo a partire da {start_date}</p>
-
-
 
         <p>2. Titolo di lavoro</p>
 
@@ -1182,15 +1039,11 @@ trait _StringTemplating
 
         <p>Il tuo stipendio e altri benefici saranno come indicato nellAllegato 1, qui di seguito.</p>
 
-
-
         <p>4. Luogo di invio</p>
 
         <p>Sarai inviato a {branch}. Tuttavia, potrebbe essere richiesto di lavorare in qualsiasi luogo di attivit&agrave; che la Societ&agrave; ha, o</p>
 
         <p>potr&agrave; successivamente acquisire.</p>
-
-
 
         <p>5. Orario di lavoro</p>
 
@@ -1202,8 +1055,6 @@ trait _StringTemplating
 
         <p>responsabilit&agrave;.</p>
 
-
-
         <p>6. Permessi/Festivit&agrave;</p>
 
         <p>6.1 Hai diritto a un congedo occasionale di 12 giorni.</p>
@@ -1212,15 +1063,11 @@ trait _StringTemplating
 
         <p>6.3 La Societ&agrave; comunica allinizio di ogni anno un elenco delle festivit&agrave; dichiarate.</p>
 
-
-
         <p>7. Natura degli incarichi</p>
 
         <p>Eseguirai al meglio delle tue capacit&agrave; tutti i compiti inerenti al tuo incarico e compiti aggiuntivi come lazienda</p>
 
         <p>pu&ograve; invitarti a esibirti, di tanto in tanto. I tuoi doveri specifici sono stabiliti nellAllegato II del presente documento.</p>
-
-
 
         <p>8. Propriet&agrave; aziendale</p>
 
@@ -1229,8 +1076,6 @@ trait _StringTemplating
         <p>il tuo impiego, e restituir&agrave; tutte queste propriet&agrave; alla Societ&agrave; prima della rinuncia al tuo addebito, in caso contrario il costo</p>
 
         <p>degli stessi saranno da voi recuperati dalla Societ&agrave;.</p>
-
-
 
         <p>9. Prendere in prestito/accettare regali</p>
 
@@ -1303,8 +1148,6 @@ trait _StringTemplating
 
         <p>the address intimated by you in the official records.</p>
 
-
-
         <p>13. Applicability of Company Policy</p>
 
         <p>The Company shall be entitled to make policy declarations from time to time pertaining to matters like leave entitlement,maternity</p>
@@ -1313,25 +1156,17 @@ trait _StringTemplating
 
         <p>All such policy decisions of the Company shall be binding on you and shall override this Agreement to that&nbsp; extent.</p>
 
-
-
         <p>14. Governing Law/Jurisdiction</p>
 
         <p>Your employment with the Company is subject to Country laws. All disputes shall be subject to the jurisdiction of High Court</p>
 
         <p>Gujarat only.</p>
 
-
-
         <p>15. Acceptance of our offer</p>
 
         <p>Please confirm your acceptance of this Contract of Employment by signing and returning the duplicate copy.</p>
 
-
-
         <p>We welcome you and look forward to receiving your acceptance and to working with you.</p>
-
-
 
         <p>Yours Sincerely,</p>
 
@@ -1347,42 +1182,31 @@ trait _StringTemplating
 
         <p>{address}</p>
 
-
-
         <p>件名: {designation} の役職への任命</p>
 
-
-
         <p>{employee_name} 様</p>
-
 
         <p>{app_name} の {designation} の地位を以下の条件で「会社」として提供できることをうれしく思います。</p>
 
         <p>条件：</p>
 
-
         <p>1. 雇用開始</p>
 
         <p>あなたの雇用は {start_date} から有効になります</p>
-
 
         <p>2. 役職</p>
 
         <p>あなたの役職は{designation}になります。</p>
 
-
         <p>3. 給与</p>
 
         <p>あなたの給与およびその他の福利厚生は、本明細書のスケジュール 1 に記載されているとおりです。</p>
-
 
         <p>4. 掲示場所</p>
 
         <p>{branch} に掲載されます。ただし、会社が所有する事業所で働く必要がある場合があります。</p>
 
         <p>後で取得する場合があります。</p>
-
-
 
         <p>5. 労働時間</p>
 
@@ -1394,8 +1218,6 @@ trait _StringTemplating
 
         <p>責任。</p>
 
-
-
         <p>6.休暇・休日</p>
 
         <p>6.1 12 日間の臨時休暇を取得する権利があります。</p>
@@ -1404,15 +1226,11 @@ trait _StringTemplating
 
         <p>6.3 当社は、毎年の初めに宣言された休日のリストを通知するものとします。</p>
 
-
-
         <p>7. 職務内容</p>
 
         <p>あなたは、自分のポストに固有のすべての義務と、会社としての追加の義務を最大限に遂行します。</p>
 
         <p>時々あなたに演奏を依頼するかもしれません。あなたの特定の義務は、本明細書のスケジュール II に記載されています。</p>
-
-
 
         <p>8. 会社財産</p>
 
@@ -1421,8 +1239,6 @@ trait _StringTemplating
         <p>あなたの雇用を放棄し、あなたの料金を放棄する前に、そのようなすべての財産を会社に返還するものとします。</p>
 
         <p>同じのは、会社によってあなたから回収されます。</p>
-
-
 
         <p>9. 貸出・贈答品の受け取り</p>
 
@@ -1495,8 +1311,6 @@ trait _StringTemplating
 
         <p>公式記録であなたがほのめかした住所。</p>
 
-
-
         <p>13. 会社方針の適用性</p>
 
         <p>会社は、休暇の資格、出産などの事項に関して、随時方針を宣言する権利を有するものとします。</p>
@@ -1505,25 +1319,17 @@ trait _StringTemplating
 
         <p>当社のそのようなポリシー決定はすべて、あなたを拘束し、その範囲で本契約を無効にするものとします。</p>
 
-
-
         <p>14. 準拠法・裁判管轄</p>
 
         <p>当社でのあなたの雇用は、国の法律の対象となります。すべての紛争は、高等裁判所の管轄に服するものとします</p>
 
         <p>グジャラートのみ。</p>
 
-
-
         <p>15. オファーの受諾</p>
 
         <p>副本に署名して返送することにより、この雇用契約に同意したことを確認してください。</p>
 
-
-
         <p>私たちはあなたを歓迎し、あなたの受け入れを受け取り、あなたと一緒に働くことを楽しみにしています.</p>
-
-
 
         <p>敬具、</p>
 
@@ -1546,10 +1352,8 @@ trait _StringTemplating
 
         <p>conditie:</p>
 
-
         <p>1. Indiensttreding</p>
         <p>Uw dienstverband gaat in op {start_date}</p>
-
 
         <p>2. Functietitel</p>
 
@@ -1565,8 +1369,6 @@ trait _StringTemplating
 
         <p>later kan verwerven.</p>
 
-
-
         <p>5. Werkuren</p>
 
         <p>De normale werkdagen zijn van maandag tot en met vrijdag. Je zal de uren moeten werken die nodig zijn voor de</p>
@@ -1577,8 +1379,6 @@ trait _StringTemplating
 
         <p>verantwoordelijkheden.</p>
 
-
-
         <p>6. Verlof/Vakantie</p>
 
         <p>6.1 Je hebt recht op tijdelijk verlof van 12 dagen.</p>
@@ -1587,15 +1387,11 @@ trait _StringTemplating
 
         <p>6.3 De Maatschappij stelt aan het begin van elk jaar een lijst van verklaarde feestdagen op.</p>
 
-
-
         <p>7. Aard van de taken</p>
 
         <p>Je voert alle taken die inherent zijn aan je functie en bijkomende taken zoals het bedrijf naar beste vermogen uit;</p>
 
         <p>kan van tijd tot tijd een beroep op u doen om op te treden. Uw specifieke taken zijn uiteengezet in Bijlage II hierbij.</p>
-
-
 
         <p>8. Bedrijfseigendommen</p>
 
@@ -1604,8 +1400,6 @@ trait _StringTemplating
         <p>uw dienstverband, en zal al deze eigendommen aan het Bedrijf teruggeven voordat afstand wordt gedaan van uw kosten, bij gebreke waarvan de kosten</p>
 
         <p>hiervan zal door het Bedrijf van u worden verhaald.</p>
-
-
 
         <p>9. Geschenken lenen/aannemen</p>
 
@@ -1678,8 +1472,6 @@ trait _StringTemplating
 
         <p>het door u opgegeven adres in de offici&euml;le administratie.</p>
 
-
-
         <p>13. Toepasselijkheid van het bedrijfsbeleid</p>
 
         <p>Het bedrijf heeft het recht om van tijd tot tijd beleidsverklaringen af ​​te leggen met betrekking tot zaken als verlofrecht, moederschap</p>
@@ -1688,25 +1480,17 @@ trait _StringTemplating
 
         <p>Al dergelijke beleidsbeslissingen van het Bedrijf zijn bindend voor u en hebben voorrang op deze Overeenkomst in die mate.</p>
 
-
-
         <p>14. Toepasselijk recht/jurisdictie</p>
 
         <p>Uw dienstverband bij het bedrijf is onderworpen aan de landelijke wetgeving. Alle geschillen zijn onderworpen aan de jurisdictie van de High Court</p>
 
         <p>Alleen Gujarat.</p>
 
-
-
         <p>15. Aanvaarding van ons aanbod</p>
 
         <p>Bevestig uw aanvaarding van deze arbeidsovereenkomst door het duplicaat te ondertekenen en terug te sturen.</p>
 
-
-
         <p>Wij heten u van harte welkom en kijken ernaar uit uw acceptatie te ontvangen en met u samen te werken.</p>
-
-
 
         <p>Hoogachtend,</p>
 
@@ -1720,7 +1504,6 @@ trait _StringTemplating
         <p>{employee_name }</p>
 
         <p>{address }</p>
-
 
         <p>Dotyczy: mianowania na stanowisko {designation}</p>
 
@@ -1740,7 +1523,6 @@ trait _StringTemplating
 
         <p>Twoje wynagrodzenie i inne świadczenia będą określone w Zestawieniu 1, do niniejszego rozporządzenia.</p>
 
-
         <p>4. Miejsce delegowania</p>
         <p>Użytkownik zostanie opublikowany w {branch }. Użytkownik może jednak być zobowiązany do pracy w dowolnym miejscu prowadzenia działalności, kt&oacute;re Sp&oacute;łka posiada, lub może p&oacute;źniej nabyć.</p>
 
@@ -1756,13 +1538,9 @@ trait _StringTemplating
 
         <p>6.3 Sp&oacute;łka powiadamia na początku każdego roku wykaz ogłoszonych świąt.&nbsp;</p>
 
-
-
         <p>7. Rodzaj obowiązk&oacute;w</p>
 
         <p>Będziesz wykonywać na najlepsze ze swojej zdolności wszystkie obowiązki, jak są one nieodłączne w swoim poście i takie dodatkowe obowiązki, jak firma może zadzwonić do wykonania, od czasu do czasu. Państwa szczeg&oacute;lne obowiązki są określone w załączniku II do niniejszego rozporządzenia.</p>
-
-
 
         <p>8. Właściwość przedsiębiorstwa</p>
 
@@ -1786,8 +1564,6 @@ trait _StringTemplating
         <p>papieru, zar&oacute;wno oryginału, jak i jego kopii, w tym wszelkich pr&oacute;bek, literatury, um&oacute;w, zapis&oacute;w, wykaz&oacute;w, rysunk&oacute;w, konspekt&oacute;w,</p>
 
         <p>listy, notatki, dane i podobne; informacje poufne, znajdujące się w posiadaniu lub pod Twoją kontrolą związane z zatrudnieniem lub sprawami biznesowymi klient&oacute;w.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informacje poufne</p>
 
@@ -1813,13 +1589,9 @@ trait _StringTemplating
 
         <p>11.5 Naruszenie warunk&oacute;w niniejszej klauzuli spowoduje, że Użytkownik będzie zobowiązany do skr&oacute;conej umowy w ramach klauzuli powyżej, opr&oacute;cz wszelkich innych środk&oacute;w zaradcze, jakie Sp&oacute;łka może mieć przeciwko Państwu w prawie.</p>
 
-
-
         <p>12. Uwagi</p>
 
         <p>Ogłoszenia mogą być podane przez Państwa do Sp&oacute;łki pod adresem jej siedziby. Ogłoszenia mogą być podane przez Sp&oacute;łkę do Państwa na adres intymniony przez Państwa w ewidencji urzędowej.</p>
-
-
 
         <p>13. Stosowność polityki firmy</p>
 
@@ -1829,32 +1601,23 @@ trait _StringTemplating
 
         <p>Wszystkie takie decyzje polityczne Sp&oacute;łki są wiążące dla Państwa i przesłaniają niniejszą Umowę w tym zakresie.</p>
 
-
-
         <p>14. Prawo właściwe/jurysdykcja</p>
 
         <p>Twoje zatrudnienie ze Sp&oacute;łką podlega prawu krajowi. Wszelkie spory podlegają właściwości Sądu Najwyższego</p>
 
         <p>Tylko Gujarat.</p>
 
-
-
         <p>15. Akceptacja naszej oferty</p>
 
         <p>Prosimy o potwierdzenie przyjęcia niniejszej Umowy o pracę poprzez podpisanie i zwr&oacute;cenie duplikatu.</p>
 
-
-
         <p>Zapraszamy Państwa i czekamy na Państwa przyjęcie i wsp&oacute;łpracę z Tobą.</p>
-
-
 
         <p>Z Państwa Sincerely,</p>
 
         <p>{app_name }</p>
 
         <p>{date }</p>',
-
 
 		'pt' => '<h3 style="text-align: center;">Carta De Ades&atilde;o</h3>
 
@@ -1864,20 +1627,16 @@ trait _StringTemplating
 
         <p>{address}</p>
 
-
         <p>Assunto: Nomea&ccedil;&atilde;o para o cargo de {designation}</p>
 
         <p>Querido {employee_name},</p>
 
-
         <p>Temos o prazer de oferec&ecirc;-lo, a posi&ccedil;&atilde;o de {designation} com {app_name} a Empresa nos seguintes termos e</p>
         <p>condi&ccedil;&otilde;es:</p>
-
 
         <p>1. Comentamento do emprego</p>
 
         <p>Seu emprego ser&aacute; efetivo, a partir de {start_date}</p>
-
 
         <p>2. T&iacute;tulo do emprego</p>
 
@@ -1904,13 +1663,9 @@ trait _StringTemplating
 
         <p>6,3 Companhia notificar&aacute; uma lista de feriados declarados no in&iacute;cio de cada ano.&nbsp;</p>
 
-
-
         <p>7. Natureza dos deveres</p>
 
         <p>Voc&ecirc; ir&aacute; executar ao melhor da sua habilidade todos os deveres como s&atilde;o inerentes ao seu cargo e tais deveres adicionais como a empresa pode ligar sobre voc&ecirc; para executar, de tempos em tempos. Os seus deveres espec&iacute;ficos s&atilde;o estabelecidos no Hereto do Planejamento II.</p>
-
-
 
         <p>8. Propriedade da empresa</p>
 
@@ -1918,13 +1673,9 @@ trait _StringTemplating
 
         <p>o seu emprego, e devolver&aacute; toda essa propriedade &agrave; Companhia antes de abdicar de sua acusa&ccedil;&atilde;o, falhando qual o custo do mesmo ser&aacute; recuperado de voc&ecirc; pela Companhia.</p>
 
-
-
         <p>9. Borremir / aceitar presentes</p>
 
         <p>Voc&ecirc; n&atilde;o vai pedir empr&eacute;stimo ou aceitar qualquer dinheiro, presente, recompensa ou indeniza&ccedil;&atilde;o por seus ganhos pessoais de ou de outra forma colocar-se sob obriga&ccedil;&atilde;o pecuni&aacute;ria a qualquer pessoa / cliente com quem voc&ecirc; pode estar tendo rela&ccedil;&otilde;es oficiais.</p>
-
-
 
         <p>10. Termina&ccedil;&atilde;o</p>
 
@@ -1939,8 +1690,6 @@ trait _StringTemplating
         <p>papel, tanto originais como c&oacute;pias dos mesmos, incluindo quaisquer amostras, literatura, contratos, registros, listas, desenhos, plantas,</p>
 
         <p>cartas, notas, dados e semelhantes; e Informa&ccedil;&otilde;es Confidenciais, em sua posse ou sob seu controle relacionado ao seu emprego ou aos neg&oacute;cios de neg&oacute;cios dos clientes.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informa&ccedil;&otilde;es Confidenciais</p>
 
@@ -1966,13 +1715,9 @@ trait _StringTemplating
 
         <p>11,5 Viola&ccedil;&atilde;o das condi&ccedil;&otilde;es desta cl&aacute;usula ir&aacute; torn&aacute;-lo sujeito a demiss&atilde;o sum&aacute;ria sob a cl&aacute;usula acima, al&eacute;m de qualquer outro rem&eacute;dio que a Companhia possa ter contra voc&ecirc; em lei.</p>
 
-
-
         <p>12. Notices</p>
 
         <p>Os avisos podem ser conferidos por voc&ecirc; &agrave; Empresa em seu endere&ccedil;o de escrit&oacute;rio registrado. Os avisos podem ser conferidos pela Companhia a voc&ecirc; no endere&ccedil;o intimado por voc&ecirc; nos registros oficiais.</p>
-
-
 
         <p>13. Aplicabilidade da Pol&iacute;tica da Empresa</p>
 
@@ -1982,32 +1727,23 @@ trait _StringTemplating
 
         <p>Todas essas decis&otilde;es de pol&iacute;tica da Companhia devem ser vinculativas para si e substituir&atilde;o este Acordo nessa medida.</p>
 
-
-
         <p>14. Direito / Jurisdi&ccedil;&atilde;o</p>
 
         <p>Seu emprego com a Companhia est&aacute; sujeito &agrave;s leis do Pa&iacute;s. Todas as disputas est&atilde;o sujeitas &agrave; jurisdi&ccedil;&atilde;o do Tribunal Superior</p>
 
         <p>Gujarat apenas.</p>
 
-
-
         <p>15. Aceita&ccedil;&atilde;o da nossa oferta</p>
 
         <p>Por favor, confirme sua aceita&ccedil;&atilde;o deste Contrato de Emprego assinando e retornando a c&oacute;pia duplicada.</p>
 
-
-
         <p>N&oacute;s acolhemos voc&ecirc; e estamos ansiosos para receber sua aceita&ccedil;&atilde;o e para trabalhar com voc&ecirc;.</p>
-
-
 
         <p>Seu Sinceramente,</p>
 
         <p>{app_name}</p>
 
         <p>{data}</p>',
-
 
 		'ru' => '<h3 style="text-align: center;">Присоединение к письму</h3>
 
@@ -2024,11 +1760,9 @@ trait _StringTemplating
 
         <p>условия:</p>
 
-
         <p>1. Начало работы</p>
 
         <p>Ваше трудоустройство будет эффективным, начиная с { start_date }</p>
-
 
         <p>2. Название должности</p>
         <p>Ваш заголовок задания будет {designation}.</p>
@@ -2038,8 +1772,6 @@ trait _StringTemplating
 
         <p>4. Место размещения</p>
         <p>Вы будете работать в { branch }. Вы, однако, можете работать в любом месте, которое компания имеет или может впоследствии приобрести.</p>
-
-
 
         <p>5. Часы работы</p>
         <p>Обычные рабочие дни-с понедельника по пятницу. Вы должны будете работать в течение таких часов, как это необходимо для надлежащего выполнения Ваших обязанностей перед компанией. Обычные рабочие часы-от { start_time } до { end_time }, и вы, как ожидается, будут работать не менее { total_hours } часов каждую неделю, и при необходимости в течение дополнительных часов в зависимости от вашего</p>
@@ -2052,13 +1784,9 @@ trait _StringTemplating
 
         <p>6.3 Компания в начале каждого года уведомляет об объявленных праздниках.&nbsp;</p>
 
-
-
         <p>7. Характер обязанностей</p>
 
         <p>Вы будете выполнять все обязанности, присующие вам, и такие дополнительные обязанности, которые компания может призвать к вам, время от времени. Ваши конкретные обязанности изложены в приложении II к настоящему.</p>
-
-
 
         <p>8. Свойство компании</p>
 
@@ -2066,13 +1794,9 @@ trait _StringTemplating
 
         <p>вашей занятости, и возвратит все это имущество Компании до отказа от вашего заряда, при отсутствии которого стоимость одного и того же имущества будет взыскана с Вас компанией.</p>
 
-
-
         <p>9. Боровить/принять подарки</p>
 
         <p>Вы не будете брать взаймы или принимать какие-либо деньги, подарки, вознаграждение или компенсацию за ваши личные доходы от или в ином месте под денежный долг любому лицу/клиенту, с которым у вас могут быть официальные сделки.</p>
-
-
 
         <p>10. Прекращение</p>
 
@@ -2087,8 +1811,6 @@ trait _StringTemplating
         <p>бумаги, как оригинальные, так и их копии, включая любые образцы, литературу, контракты, записи, списки, чертежи, чертежи,</p>
 
         <p>письма, заметки, данные и тому подобное; и Конфиденциальная информация, в вашем распоряжении или под вашим контролем, связанным с вашей работой или деловыми делами клиентов.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Конфиденциальная информация</p>
 
@@ -2114,13 +1836,9 @@ trait _StringTemplating
 
         <p>11.5 Нарушение условий, изложенных в настоящем положении, приведет к тому, что в дополнение к любым другим средствам правовой защиты, которые компания может иметь против вас, в соответствии с вышеприведенным положением, вы можете получить краткое увольнение в соответствии с этим положением.</p>
 
-
-
         <p>12. Замечания</p>
 
         <p>Уведомления могут быть даны Вами Компании по адресу ее зарегистрированного офиса. Извещения могут быть даны компанией Вам по адресу, с которым вы в официальных отчетах.</p>
-
-
 
         <p>13. Применимость политики компании</p>
 
@@ -2130,25 +1848,17 @@ trait _StringTemplating
 
         <p>Все такие принципиальные решения Компании являются обязательными для Вас и переопределяют это Соглашение в такой степени.</p>
 
-
-
         <p>14. Регулирующий Право/юрисдикция</p>
 
         <p>Ваше трудоустройство с компанией подпадает под действие законов страны. Все споры подлежат юрисдикции Высокого суда</p>
 
         <p>Только Гуджарат.</p>
 
-
-
         <p>15. Принятие нашего предложения</p>
 
         <p>Пожалуйста, подтвердите свое согласие с этим Договором о занятости, подписав и возвращая дубликат копии.</p>
 
-
-
         <p>Мы приветствуем Вас и надеемся на то, что Вы принимаете свое согласие и работаете с Вами.</p>
-
-
 
         <p>Искренне Ваш,</p>
 
@@ -2249,20 +1959,16 @@ trait _StringTemplating
 
         <p>{address}</p>
 
-
         <p>Assunto: Nomea&ccedil;&atilde;o para o cargo de {designation}</p>
 
         <p>Querido {employee_name},</p>
 
-
         <p>Temos o prazer de oferec&ecirc;-lo, a posi&ccedil;&atilde;o de {designation} com {app_name} a Empresa nos seguintes termos e</p>
         <p>condi&ccedil;&otilde;es:</p>
-
 
         <p>1. Comentamento do emprego</p>
 
         <p>Seu emprego ser&aacute; efetivo, a partir de {start_date}</p>
-
 
         <p>2. T&iacute;tulo do emprego</p>
 
@@ -2289,13 +1995,9 @@ trait _StringTemplating
 
         <p>6,3 Companhia notificar&aacute; uma lista de feriados declarados no in&iacute;cio de cada ano.&nbsp;</p>
 
-
-
         <p>7. Natureza dos deveres</p>
 
         <p>Voc&ecirc; ir&aacute; executar ao melhor da sua habilidade todos os deveres como s&atilde;o inerentes ao seu cargo e tais deveres adicionais como a empresa pode ligar sobre voc&ecirc; para executar, de tempos em tempos. Os seus deveres espec&iacute;ficos s&atilde;o estabelecidos no Hereto do Planejamento II.</p>
-
-
 
         <p>8. Propriedade da empresa</p>
 
@@ -2303,13 +2005,9 @@ trait _StringTemplating
 
         <p>o seu emprego, e devolver&aacute; toda essa propriedade &agrave; Companhia antes de abdicar de sua acusa&ccedil;&atilde;o, falhando qual o custo do mesmo ser&aacute; recuperado de voc&ecirc; pela Companhia.</p>
 
-
-
         <p>9. Borremir / aceitar presentes</p>
 
         <p>Voc&ecirc; n&atilde;o vai pedir empr&eacute;stimo ou aceitar qualquer dinheiro, presente, recompensa ou indeniza&ccedil;&atilde;o por seus ganhos pessoais de ou de outra forma colocar-se sob obriga&ccedil;&atilde;o pecuni&aacute;ria a qualquer pessoa / cliente com quem voc&ecirc; pode estar tendo rela&ccedil;&otilde;es oficiais.</p>
-
-
 
         <p>10. Termina&ccedil;&atilde;o</p>
 
@@ -2324,8 +2022,6 @@ trait _StringTemplating
         <p>papel, tanto originais como c&oacute;pias dos mesmos, incluindo quaisquer amostras, literatura, contratos, registros, listas, desenhos, plantas,</p>
 
         <p>cartas, notas, dados e semelhantes; e Informa&ccedil;&otilde;es Confidenciais, em sua posse ou sob seu controle relacionado ao seu emprego ou aos neg&oacute;cios de neg&oacute;cios dos clientes.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informa&ccedil;&otilde;es Confidenciais</p>
 
@@ -2351,13 +2047,9 @@ trait _StringTemplating
 
         <p>11,5 Viola&ccedil;&atilde;o das condi&ccedil;&otilde;es desta cl&aacute;usula ir&aacute; torn&aacute;-lo sujeito a demiss&atilde;o sum&aacute;ria sob a cl&aacute;usula acima, al&eacute;m de qualquer outro rem&eacute;dio que a Companhia possa ter contra voc&ecirc; em lei.</p>
 
-
-
         <p>12. Notices</p>
 
         <p>Os avisos podem ser conferidos por voc&ecirc; &agrave; Empresa em seu endere&ccedil;o de escrit&oacute;rio registrado. Os avisos podem ser conferidos pela Companhia a voc&ecirc; no endere&ccedil;o intimado por voc&ecirc; nos registros oficiais.</p>
-
-
 
         <p>13. Aplicabilidade da Pol&iacute;tica da Empresa</p>
 
@@ -2367,25 +2059,17 @@ trait _StringTemplating
 
         <p>Todas essas decis&otilde;es de pol&iacute;tica da Companhia devem ser vinculativas para si e substituir&atilde;o este Acordo nessa medida.</p>
 
-
-
         <p>14. Direito / Jurisdi&ccedil;&atilde;o</p>
 
         <p>Seu emprego com a Companhia est&aacute; sujeito &agrave;s leis do Pa&iacute;s. Todas as disputas est&atilde;o sujeitas &agrave; jurisdi&ccedil;&atilde;o do Tribunal Superior</p>
 
         <p>Gujarat apenas.</p>
 
-
-
         <p>15. Aceita&ccedil;&atilde;o da nossa oferta</p>
 
         <p>Por favor, confirme sua aceita&ccedil;&atilde;o deste Contrato de Emprego assinando e retornando a c&oacute;pia duplicada.</p>
 
-
-
         <p>N&oacute;s acolhemos voc&ecirc; e estamos ansiosos para receber sua aceita&ccedil;&atilde;o e para trabalhar com voc&ecirc;.</p>
-
-
 
         <p>Seu Sinceramente,</p>
 
@@ -2393,7 +2077,6 @@ trait _StringTemplating
 
         <p>{data}</p>
         ',
-
 
 	];
 	protected const DEFAULT_JOINING_LETTER_REGISTER = [
@@ -2591,7 +2274,6 @@ trait _StringTemplating
         <p>Du vil blive sl&aring;et op p&aring; {branch}. Du kan dog blive bedt om at arbejde p&aring; ethvert forretningssted, som virksomheden har, eller</p>
         <p>senere kan erhverve.</p>
 
-
         <p>5. Arbejdstimer</p>
 
         <p>De normale arbejdsdage er mandag til fredag. Du vil blive forpligtet til at arbejde i de timer, som er n&oslash;dvendige for</p>
@@ -2602,8 +2284,6 @@ trait _StringTemplating
 
         <p>ansvar.</p>
 
-
-
         <p>6. Orlov/Ferie</p>
 
         <p>6.1 Du har ret til tilf&aelig;ldig ferie p&aring; 12 dage.</p>
@@ -2612,14 +2292,11 @@ trait _StringTemplating
 
         <p>6.3 Virksomheden skal meddele en liste over erkl&aelig;rede helligdage i begyndelsen af ​​hvert &aring;r.</p>
 
-
-
         <p>7. Arbejdsopgavernes art</p>
 
         <p>Du vil efter bedste evne udf&oslash;re alle de opgaver, der er iboende i din stilling og s&aring;danne yderligere opgaver som virksomheden</p>
 
         <p>kan opfordre dig til at optr&aelig;de, fra tid til anden. Dine specifikke pligter er beskrevet i skema II hertil.</p>
-
 
         <p>8. Firmaejendom</p>
 
@@ -2628,8 +2305,6 @@ trait _StringTemplating
         <p>din ans&aelig;ttelse, og skal returnere al s&aring;dan ejendom til virksomheden, f&oslash;r du opgiver din afgift, i modsat fald vil omkostningerne</p>
 
         <p>af samme vil blive inddrevet fra dig af virksomheden.</p>
-
-
 
         <p>9. L&aring;n/modtagelse af gaver</p>
 
@@ -2702,8 +2377,6 @@ trait _StringTemplating
 
         <p>den adresse, du har angivet i de officielle optegnelser.</p>
 
-
-
         <p>13. Anvendelse af virksomhedens politik</p>
 
         <p>Virksomheden er berettiget til fra tid til anden at afgive politiske erkl&aelig;ringer vedr&oslash;rende sager som ret til orlov, barsel</p>
@@ -2712,25 +2385,17 @@ trait _StringTemplating
 
         <p>Alle s&aring;danne politiske beslutninger fra virksomheden er bindende for dig og tilsides&aelig;tter denne aftale i det omfang.</p>
 
-
-
         <p>14. G&aelig;ldende lov/Jurisdiktion</p>
 
         <p>Din ans&aelig;ttelse hos virksomheden er underlagt landets love. Alle tvister er underlagt High Courts jurisdiktion</p>
 
         <p>Kun Gujarat.</p>
 
-
-
         <p>15. Accept af vores tilbud</p>
 
         <p>Bekr&aelig;ft venligst din accept af denne ans&aelig;ttelseskontrakt ved at underskrive og returnere kopien.</p>
 
-
-
         <p>Vi byder dig velkommen og ser frem til at modtage din accept og til at arbejde sammen med dig.</p>
-
-
 
         <p>Venlig hilsen,</p>
 
@@ -2743,39 +2408,25 @@ trait _StringTemplating
         <p>{employee_name}</p>
         <p>{address}</p>
 
-
-
         <p>Betreff: Ernennung f&uuml;r die Stelle von {designation}</p>
 
-
-
-
-
-
-
         <p>Sehr geehrter {employee_name},</p>
-
-
 
         <p>Wir freuen uns, Ihnen die Position von {designation} bei {app_name} dem &bdquo;Unternehmen&ldquo; zu den folgenden Bedingungen anbieten zu k&ouml;nnen</p>
 
         <p>Bedingungen:</p>
 
-
         <p>1. Aufnahme des Arbeitsverh&auml;ltnisses</p>
 
         <p>Ihre Anstellung gilt ab dem {start_date}</p>
-
 
         <p>2. Berufsbezeichnung</p>
 
         <p>Ihre Berufsbezeichnung lautet {designation}.</p>
 
-
         <p>3. Gehalt</p>
 
         <p>Ihr Gehalt und andere Leistungen sind in Anhang 1 zu diesem Dokument aufgef&uuml;hrt.</p>
-
 
         <p>4. Postort</p>
 
@@ -2783,14 +2434,11 @@ trait _StringTemplating
 
         <p>sp&auml;ter erwerben kann.</p>
 
-
         <p>5. Arbeitszeit</p>
         <p>Die normalen Arbeitstage sind Montag bis Freitag. Sie m&uuml;ssen so viele Stunden arbeiten, wie es f&uuml;r die erforderlich ist</p>
         <p>ordnungsgem&auml;&szlig;e Erf&uuml;llung Ihrer Pflichten gegen&uuml;ber dem Unternehmen. Die normalen Arbeitszeiten sind von {start_time} bis {end_time} und Sie sind es</p>
         <p>voraussichtlich nicht weniger als {total_hours} Stunden pro Woche arbeiten, und falls erforderlich, abh&auml;ngig von Ihren zus&auml;tzlichen Stunden</p>
         <p>Verantwortlichkeiten.</p>
-
-
 
         <p>6. Urlaub/Urlaub</p>
 
@@ -2800,15 +2448,11 @@ trait _StringTemplating
 
         <p>6.3 Das Unternehmen teilt zu Beginn jedes Jahres eine Liste der erkl&auml;rten Feiertage mit.</p>
 
-
-
         <p>7. Art der Pflichten</p>
 
         <p>Sie werden alle Aufgaben, die mit Ihrer Funktion verbunden sind, sowie alle zus&auml;tzlichen Aufgaben als Unternehmen nach besten Kr&auml;ften erf&uuml;llen</p>
 
         <p>kann Sie von Zeit zu Zeit zur Leistung auffordern. Ihre spezifischen Pflichten sind in Anhang II zu diesem Dokument aufgef&uuml;hrt.</p>
-
-
 
         <p>8. Firmeneigentum</p>
 
@@ -2817,8 +2461,6 @@ trait _StringTemplating
         <p>Ihrer Anstellung und muss all dieses Eigentum an das Unternehmen zur&uuml;ckgeben, bevor Sie Ihre Geb&uuml;hr aufgeben, andernfalls die Kosten</p>
 
         <p>derselben werden von der Gesellschaft von Ihnen zur&uuml;ckgefordert.</p>
-
-
 
         <p>9. Leihen/Annehmen von Geschenken</p>
 
@@ -2893,8 +2535,6 @@ trait _StringTemplating
 
         <p>the address intimated by you in the official records.</p>
 
-
-
         <p>13. Applicability of Company Policy</p>
 
         <p>The Company shall be entitled to make policy declarations from time to time pertaining to matters like leave entitlement,maternity</p>
@@ -2903,25 +2543,17 @@ trait _StringTemplating
 
         <p>All such policy decisions of the Company shall be binding on you and shall override this Agreement to that&nbsp; extent.</p>
 
-
-
         <p>14. Governing Law/Jurisdiction</p>
 
         <p>Your employment with the Company is subject to Country laws. All disputes shall be subject to the jurisdiction of High Court</p>
 
         <p>Gujarat only.</p>
 
-
-
         <p>15. Acceptance of our offer</p>
 
         <p>Please confirm your acceptance of this Contract of Employment by signing and returning the duplicate copy.</p>
 
-
-
         <p>We welcome you and look forward to receiving your acceptance and to working with you.</p>
-
-
 
         <p>Yours Sincerely,</p>
 
@@ -3013,18 +2645,13 @@ trait _StringTemplating
         <p>{date}</p>',
 		'es' => '<h3 style="text-align: center;"><strong>Carta de uni&oacute;n</strong></h3>
 
-
         <p>{date}</p>
 
         <p>{employee_name}</p>
 
         <p>{address}</p>
 
-
-
         <p>Asunto: Nombramiento para el puesto de {designation}</p>
-
-
 
         <p>Estimado {employee_name},</p>
 
@@ -3032,11 +2659,9 @@ trait _StringTemplating
 
         <p>condiciones:</p>
 
-
         <p>1. Comienzo del empleo</p>
 
         <p>Su empleo ser&aacute; efectivo a partir del {start_date}</p>
-
 
         <p>2. T&iacute;tulo del trabajo</p>
         <p>El t&iacute;tulo de su trabajo ser&aacute; {designation}.</p>
@@ -3045,13 +2670,10 @@ trait _StringTemplating
 
         <p>Su salario y otros beneficios ser&aacute;n los establecidos en el Anexo 1 del presente.</p>
 
-
         <p>4. Lugar de destino</p>
         <p>Se le publicar&aacute; en {branch}. Sin embargo, es posible que deba trabajar en cualquier lugar de negocios que tenga la Compa&ntilde;&iacute;a, o</p>
 
         <p>puede adquirir posteriormente.</p>
-
-
 
         <p>5. Horas de trabajo</p>
 
@@ -3063,8 +2685,6 @@ trait _StringTemplating
 
         <p>responsabilidades.</p>
 
-
-
         <p>6. Licencia/Vacaciones</p>
 
         <p>6.1 Tiene derecho a un permiso eventual de 12 d&iacute;as.</p>
@@ -3073,15 +2693,11 @@ trait _StringTemplating
 
         <p>6.3 La Compa&ntilde;&iacute;a deber&aacute; notificar una lista de d&iacute;as festivos declarados al comienzo de cada a&ntilde;o.</p>
 
-
-
         <p>7. Naturaleza de los deberes</p>
 
         <p>Desempe&ntilde;ar&aacute; lo mejor que pueda todas las funciones inherentes a su puesto y aquellas funciones adicionales que la empresa</p>
 
         <p>puede pedirte que act&uacute;es, de vez en cuando. Sus deberes espec&iacute;ficos se establecen en el Anexo II del presente.</p>
-
-
 
         <p>8. Propiedad de la empresa</p>
 
@@ -3090,8 +2706,6 @@ trait _StringTemplating
         <p>su empleo, y devolver&aacute; todos esos bienes a la Compa&ntilde;&iacute;a antes de renunciar a su cargo, en caso contrario, el costo</p>
 
         <p>de la misma ser&aacute; recuperada de usted por la Compa&ntilde;&iacute;a.</p>
-
-
 
         <p>9. Tomar prestado/aceptar regalos</p>
 
@@ -3164,8 +2778,6 @@ trait _StringTemplating
 
         <p>la direcci&oacute;n indicada por usted en los registros oficiales.</p>
 
-
-
         <p>13. Aplicabilidad de la pol&iacute;tica de la empresa</p>
 
         <p>La Compa&ntilde;&iacute;a tendr&aacute; derecho a hacer declaraciones de pol&iacute;tica de vez en cuando relacionadas con asuntos como el derecho a licencia, maternidad</p>
@@ -3174,25 +2786,17 @@ trait _StringTemplating
 
         <p>Todas las decisiones pol&iacute;ticas de la Compa&ntilde;&iacute;a ser&aacute;n vinculantes para usted y anular&aacute;n este Acuerdo en esa medida.</p>
 
-
-
         <p>14. Ley aplicable/Jurisdicci&oacute;n</p>
 
         <p>Su empleo con la Compa&ntilde;&iacute;a est&aacute; sujeto a las leyes del Pa&iacute;s. Todas las disputas estar&aacute;n sujetas a la jurisdicci&oacute;n del Tribunal Superior</p>
 
         <p>S&oacute;lo Gujarat.</p>
 
-
-
         <p>15. Aceptaci&oacute;n de nuestra oferta</p>
 
         <p>Por favor, confirme su aceptaci&oacute;n de este Contrato de Empleo firmando y devolviendo el duplicado.</p>
 
-
-
         <p>Le damos la bienvenida y esperamos recibir su aceptaci&oacute;n y trabajar con usted.</p>
-
-
 
         <p>Tuyo sinceramente,</p>
 
@@ -3200,22 +2804,16 @@ trait _StringTemplating
 
         <p>{date}</p>',
 
-
 		'fr' => '<h3 style="text-align: center;">Lettre dadh&eacute;sion</h3>
-
 
         <p>{date}</p>
 
         <p>{employee_name}</p>
         <p>{address}</p>
 
-
         <p>Objet : Nomination pour le poste de {designation}</p>
 
-
-
         <p>Cher {employee_name},</p>
-
 
         <p>Nous sommes heureux de vous proposer le poste de {designation} avec {app_name} la "Soci&eacute;t&eacute;" selon les conditions suivantes et</p>
 
@@ -3225,25 +2823,18 @@ trait _StringTemplating
 
         <p>Votre emploi sera effectif &agrave; partir du {start_date}</p>
 
-
-
         <p>2. Intitul&eacute; du poste</p>
 
         <p>Votre titre de poste sera {designation}.</p>
-
-
 
         <p>3. Salaire</p>
 
         <p>Votre salaire et vos autres avantages seront tels quindiqu&eacute;s &agrave; lannexe 1 ci-jointe.</p>
 
-
         <p>4. Lieu de d&eacute;tachement</p>
         <p>Vous serez affect&eacute; &agrave; {branch}. Vous pouvez cependant &ecirc;tre tenu de travailler dans nimporte quel lieu daffaires que la Soci&eacute;t&eacute; a, ou</p>
 
         <p>pourra acqu&eacute;rir plus tard.</p>
-
-
 
         <p>5. Heures de travail</p>
 
@@ -3263,15 +2854,11 @@ trait _StringTemplating
 
         <p>6.3 La Soci&eacute;t&eacute; communiquera une liste des jours f&eacute;ri&eacute;s d&eacute;clar&eacute;s au d&eacute;but de chaque ann&eacute;e.</p>
 
-
-
         <p>7. Nature des fonctions</p>
 
         <p>Vous ex&eacute;cuterez au mieux de vos capacit&eacute;s toutes les t&acirc;ches inh&eacute;rentes &agrave; votre poste et les t&acirc;ches suppl&eacute;mentaires que lentreprise</p>
 
         <p>peut faire appel &agrave; vous pour effectuer, de temps &agrave; autre. Vos fonctions sp&eacute;cifiques sont &eacute;nonc&eacute;es &agrave; lannexe II ci-jointe.</p>
-
-
 
         <p>8. Biens sociaux</p>
 
@@ -3280,8 +2867,6 @@ trait _StringTemplating
         <p>votre emploi, et doit restituer tous ces biens &agrave; la Soci&eacute;t&eacute; avant labandon de votre charge, &agrave; d&eacute;faut de quoi le co&ucirc;t</p>
 
         <p>de m&ecirc;me seront r&eacute;cup&eacute;r&eacute;s aupr&egrave;s de vous par la Soci&eacute;t&eacute;.</p>
-
-
 
         <p>9. Emprunter/accepter des cadeaux</p>
 
@@ -3354,8 +2939,6 @@ trait _StringTemplating
 
         <p>ladresse que vous avez indiqu&eacute;e dans les registres officiels.</p>
 
-
-
         <p>13. Applicabilit&eacute; de la politique de lentreprise</p>
 
         <p>La Soci&eacute;t&eacute; est autoris&eacute;e &agrave; faire des d&eacute;clarations de politique de temps &agrave; autre concernant des questions telles que le droit aux cong&eacute;s, la maternit&eacute;</p>
@@ -3364,32 +2947,23 @@ trait _StringTemplating
 
         <p>Toutes ces d&eacute;cisions politiques de la Soci&eacute;t&eacute; vous lieront et pr&eacute;vaudront sur le pr&eacute;sent Contrat dans cette mesure.</p>
 
-
-
         <p>14. Droit applicable/juridiction</p>
 
         <p>Votre emploi au sein de la Soci&eacute;t&eacute; est soumis aux lois du pays. Tous les litiges seront soumis &agrave; la comp&eacute;tence du tribunal de grande instance</p>
 
         <p>Gujarat uniquement.</p>
 
-
-
         <p>15. Acceptation de notre offre</p>
 
         <p>Veuillez confirmer votre acceptation de ce contrat de travail en signant et en renvoyant le duplicata.</p>
 
-
-
         <p>Nous vous souhaitons la bienvenue et nous nous r&eacute;jouissons de recevoir votre acceptation et de travailler avec vous.</p>
-
-
 
         <p>Cordialement,</p>
 
         <p>{app_name}</p>
 
         <p>{date}</p>',
-
 
 		'he' => '<h3 style="text-align: center;">מכתב הצטרפות</h3>
         <p>{date}</p>
@@ -3478,7 +3052,6 @@ trait _StringTemplating
 
 		'it' => '<h3 style="text-align: center;">Lettera di adesione</h3>
 
-
         <p>{date}</p>
 
         <p>{employee_name}</p>
@@ -3487,19 +3060,15 @@ trait _StringTemplating
 
         <p>Oggetto: Appuntamento alla carica di {designation}</p>
 
-
         <p>Gentile {employee_name},</p>
 
         <p>Siamo lieti di offrirti la posizione di {designation} con {app_name} la "Societ&agrave;" alle seguenti condizioni e</p>
 
         <p>condizioni:</p>
 
-
         <p>1. Inizio del rapporto di lavoro</p>
 
         <p>Il tuo impiego sar&agrave; effettivo a partire da {start_date}</p>
-
-
 
         <p>2. Titolo di lavoro</p>
 
@@ -3509,15 +3078,11 @@ trait _StringTemplating
 
         <p>Il tuo stipendio e altri benefici saranno come indicato nellAllegato 1, qui di seguito.</p>
 
-
-
         <p>4. Luogo di invio</p>
 
         <p>Sarai inviato a {branch}. Tuttavia, potrebbe essere richiesto di lavorare in qualsiasi luogo di attivit&agrave; che la Societ&agrave; ha, o</p>
 
         <p>potr&agrave; successivamente acquisire.</p>
-
-
 
         <p>5. Orario di lavoro</p>
 
@@ -3529,8 +3094,6 @@ trait _StringTemplating
 
         <p>responsabilit&agrave;.</p>
 
-
-
         <p>6. Permessi/Festivit&agrave;</p>
 
         <p>6.1 Hai diritto a un congedo occasionale di 12 giorni.</p>
@@ -3539,15 +3102,11 @@ trait _StringTemplating
 
         <p>6.3 La Societ&agrave; comunica allinizio di ogni anno un elenco delle festivit&agrave; dichiarate.</p>
 
-
-
         <p>7. Natura degli incarichi</p>
 
         <p>Eseguirai al meglio delle tue capacit&agrave; tutti i compiti inerenti al tuo incarico e compiti aggiuntivi come lazienda</p>
 
         <p>pu&ograve; invitarti a esibirti, di tanto in tanto. I tuoi doveri specifici sono stabiliti nellAllegato II del presente documento.</p>
-
-
 
         <p>8. Propriet&agrave; aziendale</p>
 
@@ -3556,8 +3115,6 @@ trait _StringTemplating
         <p>il tuo impiego, e restituir&agrave; tutte queste propriet&agrave; alla Societ&agrave; prima della rinuncia al tuo addebito, in caso contrario il costo</p>
 
         <p>degli stessi saranno da voi recuperati dalla Societ&agrave;.</p>
-
-
 
         <p>9. Prendere in prestito/accettare regali</p>
 
@@ -3630,8 +3187,6 @@ trait _StringTemplating
 
         <p>the address intimated by you in the official records.</p>
 
-
-
         <p>13. Applicability of Company Policy</p>
 
         <p>The Company shall be entitled to make policy declarations from time to time pertaining to matters like leave entitlement,maternity</p>
@@ -3640,25 +3195,17 @@ trait _StringTemplating
 
         <p>All such policy decisions of the Company shall be binding on you and shall override this Agreement to that&nbsp; extent.</p>
 
-
-
         <p>14. Governing Law/Jurisdiction</p>
 
         <p>Your employment with the Company is subject to Country laws. All disputes shall be subject to the jurisdiction of High Court</p>
 
         <p>Gujarat only.</p>
 
-
-
         <p>15. Acceptance of our offer</p>
 
         <p>Please confirm your acceptance of this Contract of Employment by signing and returning the duplicate copy.</p>
 
-
-
         <p>We welcome you and look forward to receiving your acceptance and to working with you.</p>
-
-
 
         <p>Yours Sincerely,</p>
 
@@ -3686,24 +3233,19 @@ trait _StringTemplating
 
         <p>あなたの雇用は {start_date} から有効になります</p>
 
-
         <p>2. 役職</p>
 
         <p>あなたの役職は{designation}になります。</p>
 
-
         <p>3. 給与</p>
 
         <p>あなたの給与およびその他の福利厚生は、本明細書のスケジュール 1 に記載されているとおりです。</p>
-
 
         <p>4. 掲示場所</p>
 
         <p>{branch} に掲載されます。ただし、会社が所有する事業所で働く必要がある場合があります。</p>
 
         <p>後で取得する場合があります。</p>
-
-
 
         <p>5. 労働時間</p>
 
@@ -3715,8 +3257,6 @@ trait _StringTemplating
 
         <p>責任。</p>
 
-
-
         <p>6.休暇・休日</p>
 
         <p>6.1 12 日間の臨時休暇を取得する権利があります。</p>
@@ -3725,15 +3265,11 @@ trait _StringTemplating
 
         <p>6.3 当社は、毎年の初めに宣言された休日のリストを通知するものとします。</p>
 
-
-
         <p>7. 職務内容</p>
 
         <p>あなたは、自分のポストに固有のすべての義務と、会社としての追加の義務を最大限に遂行します。</p>
 
         <p>時々あなたに演奏を依頼するかもしれません。あなたの特定の義務は、本明細書のスケジュール II に記載されています。</p>
-
-
 
         <p>8. 会社財産</p>
 
@@ -3742,8 +3278,6 @@ trait _StringTemplating
         <p>あなたの雇用を放棄し、あなたの料金を放棄する前に、そのようなすべての財産を会社に返還するものとします。</p>
 
         <p>同じのは、会社によってあなたから回収されます。</p>
-
-
 
         <p>9. 貸出・贈答品の受け取り</p>
 
@@ -3816,8 +3350,6 @@ trait _StringTemplating
 
         <p>公式記録であなたがほのめかした住所。</p>
 
-
-
         <p>13. 会社方針の適用性</p>
 
         <p>会社は、休暇の資格、出産などの事項に関して、随時方針を宣言する権利を有するものとします。</p>
@@ -3826,25 +3358,17 @@ trait _StringTemplating
 
         <p>当社のそのようなポリシー決定はすべて、あなたを拘束し、その範囲で本契約を無効にするものとします。</p>
 
-
-
         <p>14. 準拠法・裁判管轄</p>
 
         <p>当社でのあなたの雇用は、国の法律の対象となります。すべての紛争は、高等裁判所の管轄に服するものとします</p>
 
         <p>グジャラートのみ。</p>
 
-
-
         <p>15. オファーの受諾</p>
 
         <p>副本に署名して返送することにより、この雇用契約に同意したことを確認してください。</p>
 
-
-
         <p>私たちはあなたを歓迎し、あなたの受け入れを受け取り、あなたと一緒に働くことを楽しみにしています.</p>
-
-
 
         <p>敬具、</p>
 
@@ -3868,10 +3392,8 @@ trait _StringTemplating
 
         <p>conditie:</p>
 
-
         <p>1. Indiensttreding</p>
         <p>Uw dienstverband gaat in op {start_date}</p>
-
 
         <p>2. Functietitel</p>
 
@@ -3887,8 +3409,6 @@ trait _StringTemplating
 
         <p>later kan verwerven.</p>
 
-
-
         <p>5. Werkuren</p>
 
         <p>De normale werkdagen zijn van maandag tot en met vrijdag. Je zal de uren moeten werken die nodig zijn voor de</p>
@@ -3899,8 +3419,6 @@ trait _StringTemplating
 
         <p>verantwoordelijkheden.</p>
 
-
-
         <p>6. Verlof/Vakantie</p>
 
         <p>6.1 Je hebt recht op tijdelijk verlof van 12 dagen.</p>
@@ -3909,15 +3427,11 @@ trait _StringTemplating
 
         <p>6.3 De Maatschappij stelt aan het begin van elk jaar een lijst van verklaarde feestdagen op.</p>
 
-
-
         <p>7. Aard van de taken</p>
 
         <p>Je voert alle taken die inherent zijn aan je functie en bijkomende taken zoals het bedrijf naar beste vermogen uit;</p>
 
         <p>kan van tijd tot tijd een beroep op u doen om op te treden. Uw specifieke taken zijn uiteengezet in Bijlage II hierbij.</p>
-
-
 
         <p>8. Bedrijfseigendommen</p>
 
@@ -3926,8 +3440,6 @@ trait _StringTemplating
         <p>uw dienstverband, en zal al deze eigendommen aan het Bedrijf teruggeven voordat afstand wordt gedaan van uw kosten, bij gebreke waarvan de kosten</p>
 
         <p>hiervan zal door het Bedrijf van u worden verhaald.</p>
-
-
 
         <p>9. Geschenken lenen/aannemen</p>
 
@@ -4000,8 +3512,6 @@ trait _StringTemplating
 
         <p>het door u opgegeven adres in de offici&euml;le administratie.</p>
 
-
-
         <p>13. Toepasselijkheid van het bedrijfsbeleid</p>
 
         <p>Het bedrijf heeft het recht om van tijd tot tijd beleidsverklaringen af ​​te leggen met betrekking tot zaken als verlofrecht, moederschap</p>
@@ -4010,25 +3520,17 @@ trait _StringTemplating
 
         <p>Al dergelijke beleidsbeslissingen van het Bedrijf zijn bindend voor u en hebben voorrang op deze Overeenkomst in die mate.</p>
 
-
-
         <p>14. Toepasselijk recht/jurisdictie</p>
 
         <p>Uw dienstverband bij het bedrijf is onderworpen aan de landelijke wetgeving. Alle geschillen zijn onderworpen aan de jurisdictie van de High Court</p>
 
         <p>Alleen Gujarat.</p>
 
-
-
         <p>15. Aanvaarding van ons aanbod</p>
 
         <p>Bevestig uw aanvaarding van deze arbeidsovereenkomst door het duplicaat te ondertekenen en terug te sturen.</p>
 
-
-
         <p>Wij heten u van harte welkom en kijken ernaar uit uw acceptatie te ontvangen en met u samen te werken.</p>
-
-
 
         <p>Hoogachtend,</p>
 
@@ -4043,7 +3545,6 @@ trait _StringTemplating
         <p>{employee_name }</p>
 
         <p>{address }</p>
-
 
         <p>Dotyczy: mianowania na stanowisko {designation}</p>
 
@@ -4063,7 +3564,6 @@ trait _StringTemplating
 
         <p>Twoje wynagrodzenie i inne świadczenia będą określone w Zestawieniu 1, do niniejszego rozporządzenia.</p>
 
-
         <p>4. Miejsce delegowania</p>
         <p>Użytkownik zostanie opublikowany w {branch }. Użytkownik może jednak być zobowiązany do pracy w dowolnym miejscu prowadzenia działalności, kt&oacute;re Sp&oacute;łka posiada, lub może p&oacute;źniej nabyć.</p>
 
@@ -4079,13 +3579,9 @@ trait _StringTemplating
 
         <p>6.3 Sp&oacute;łka powiadamia na początku każdego roku wykaz ogłoszonych świąt.&nbsp;</p>
 
-
-
         <p>7. Rodzaj obowiązk&oacute;w</p>
 
         <p>Będziesz wykonywać na najlepsze ze swojej zdolności wszystkie obowiązki, jak są one nieodłączne w swoim poście i takie dodatkowe obowiązki, jak firma może zadzwonić do wykonania, od czasu do czasu. Państwa szczeg&oacute;lne obowiązki są określone w załączniku II do niniejszego rozporządzenia.</p>
-
-
 
         <p>8. Właściwość przedsiębiorstwa</p>
 
@@ -4109,8 +3605,6 @@ trait _StringTemplating
         <p>papieru, zar&oacute;wno oryginału, jak i jego kopii, w tym wszelkich pr&oacute;bek, literatury, um&oacute;w, zapis&oacute;w, wykaz&oacute;w, rysunk&oacute;w, konspekt&oacute;w,</p>
 
         <p>listy, notatki, dane i podobne; informacje poufne, znajdujące się w posiadaniu lub pod Twoją kontrolą związane z zatrudnieniem lub sprawami biznesowymi klient&oacute;w.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informacje poufne</p>
 
@@ -4136,13 +3630,9 @@ trait _StringTemplating
 
         <p>11.5 Naruszenie warunk&oacute;w niniejszej klauzuli spowoduje, że Użytkownik będzie zobowiązany do skr&oacute;conej umowy w ramach klauzuli powyżej, opr&oacute;cz wszelkich innych środk&oacute;w zaradcze, jakie Sp&oacute;łka może mieć przeciwko Państwu w prawie.</p>
 
-
-
         <p>12. Uwagi</p>
 
         <p>Ogłoszenia mogą być podane przez Państwa do Sp&oacute;łki pod adresem jej siedziby. Ogłoszenia mogą być podane przez Sp&oacute;łkę do Państwa na adres intymniony przez Państwa w ewidencji urzędowej.</p>
-
-
 
         <p>13. Stosowność polityki firmy</p>
 
@@ -4152,25 +3642,17 @@ trait _StringTemplating
 
         <p>Wszystkie takie decyzje polityczne Sp&oacute;łki są wiążące dla Państwa i przesłaniają niniejszą Umowę w tym zakresie.</p>
 
-
-
         <p>14. Prawo właściwe/jurysdykcja</p>
 
         <p>Twoje zatrudnienie ze Sp&oacute;łką podlega prawu krajowi. Wszelkie spory podlegają właściwości Sądu Najwyższego</p>
 
         <p>Tylko Gujarat.</p>
 
-
-
         <p>15. Akceptacja naszej oferty</p>
 
         <p>Prosimy o potwierdzenie przyjęcia niniejszej Umowy o pracę poprzez podpisanie i zwr&oacute;cenie duplikatu.</p>
 
-
-
         <p>Zapraszamy Państwa i czekamy na Państwa przyjęcie i wsp&oacute;łpracę z Tobą.</p>
-
-
 
         <p>Z Państwa Sincerely,</p>
 
@@ -4186,20 +3668,16 @@ trait _StringTemplating
 
         <p>{address}</p>
 
-
         <p>Assunto: Nomea&ccedil;&atilde;o para o cargo de {designation}</p>
 
         <p>Querido {employee_name},</p>
 
-
         <p>Temos o prazer de oferec&ecirc;-lo, a posi&ccedil;&atilde;o de {designation} com {app_name} a Empresa nos seguintes termos e</p>
         <p>condi&ccedil;&otilde;es:</p>
-
 
         <p>1. Comentamento do emprego</p>
 
         <p>Seu emprego ser&aacute; efetivo, a partir de {start_date}</p>
-
 
         <p>2. T&iacute;tulo do emprego</p>
 
@@ -4226,13 +3704,9 @@ trait _StringTemplating
 
         <p>6,3 Companhia notificar&aacute; uma lista de feriados declarados no in&iacute;cio de cada ano.&nbsp;</p>
 
-
-
         <p>7. Natureza dos deveres</p>
 
         <p>Voc&ecirc; ir&aacute; executar ao melhor da sua habilidade todos os deveres como s&atilde;o inerentes ao seu cargo e tais deveres adicionais como a empresa pode ligar sobre voc&ecirc; para executar, de tempos em tempos. Os seus deveres espec&iacute;ficos s&atilde;o estabelecidos no Hereto do Planejamento II.</p>
-
-
 
         <p>8. Propriedade da empresa</p>
 
@@ -4240,13 +3714,9 @@ trait _StringTemplating
 
         <p>o seu emprego, e devolver&aacute; toda essa propriedade &agrave; Companhia antes de abdicar de sua acusa&ccedil;&atilde;o, falhando qual o custo do mesmo ser&aacute; recuperado de voc&ecirc; pela Companhia.</p>
 
-
-
         <p>9. Borremir / aceitar presentes</p>
 
         <p>Voc&ecirc; n&atilde;o vai pedir empr&eacute;stimo ou aceitar qualquer dinheiro, presente, recompensa ou indeniza&ccedil;&atilde;o por seus ganhos pessoais de ou de outra forma colocar-se sob obriga&ccedil;&atilde;o pecuni&aacute;ria a qualquer pessoa / cliente com quem voc&ecirc; pode estar tendo rela&ccedil;&otilde;es oficiais.</p>
-
-
 
         <p>10. Termina&ccedil;&atilde;o</p>
 
@@ -4261,8 +3731,6 @@ trait _StringTemplating
         <p>papel, tanto originais como c&oacute;pias dos mesmos, incluindo quaisquer amostras, literatura, contratos, registros, listas, desenhos, plantas,</p>
 
         <p>cartas, notas, dados e semelhantes; e Informa&ccedil;&otilde;es Confidenciais, em sua posse ou sob seu controle relacionado ao seu emprego ou aos neg&oacute;cios de neg&oacute;cios dos clientes.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informa&ccedil;&otilde;es Confidenciais</p>
 
@@ -4288,13 +3756,9 @@ trait _StringTemplating
 
         <p>11,5 Viola&ccedil;&atilde;o das condi&ccedil;&otilde;es desta cl&aacute;usula ir&aacute; torn&aacute;-lo sujeito a demiss&atilde;o sum&aacute;ria sob a cl&aacute;usula acima, al&eacute;m de qualquer outro rem&eacute;dio que a Companhia possa ter contra voc&ecirc; em lei.</p>
 
-
-
         <p>12. Notices</p>
 
         <p>Os avisos podem ser conferidos por voc&ecirc; &agrave; Empresa em seu endere&ccedil;o de escrit&oacute;rio registrado. Os avisos podem ser conferidos pela Companhia a voc&ecirc; no endere&ccedil;o intimado por voc&ecirc; nos registros oficiais.</p>
-
-
 
         <p>13. Aplicabilidade da Pol&iacute;tica da Empresa</p>
 
@@ -4304,32 +3768,23 @@ trait _StringTemplating
 
         <p>Todas essas decis&otilde;es de pol&iacute;tica da Companhia devem ser vinculativas para si e substituir&atilde;o este Acordo nessa medida.</p>
 
-
-
         <p>14. Direito / Jurisdi&ccedil;&atilde;o</p>
 
         <p>Seu emprego com a Companhia est&aacute; sujeito &agrave;s leis do Pa&iacute;s. Todas as disputas est&atilde;o sujeitas &agrave; jurisdi&ccedil;&atilde;o do Tribunal Superior</p>
 
         <p>Gujarat apenas.</p>
 
-
-
         <p>15. Aceita&ccedil;&atilde;o da nossa oferta</p>
 
         <p>Por favor, confirme sua aceita&ccedil;&atilde;o deste Contrato de Emprego assinando e retornando a c&oacute;pia duplicada.</p>
 
-
-
         <p>N&oacute;s acolhemos voc&ecirc; e estamos ansiosos para receber sua aceita&ccedil;&atilde;o e para trabalhar com voc&ecirc;.</p>
-
-
 
         <p>Seu Sinceramente,</p>
 
         <p>{app_name}</p>
 
         <p>{data}</p>',
-
 
 		'ru' => '<h3 style="text-align: center;">Присоединение к письму</h3>
 
@@ -4346,11 +3801,9 @@ trait _StringTemplating
 
         <p>условия:</p>
 
-
         <p>1. Начало работы</p>
 
         <p>Ваше трудоустройство будет эффективным, начиная с { start_date }</p>
-
 
         <p>2. Название должности</p>
         <p>Ваш заголовок задания будет {designation}.</p>
@@ -4360,8 +3813,6 @@ trait _StringTemplating
 
         <p>4. Место размещения</p>
         <p>Вы будете работать в { branch }. Вы, однако, можете работать в любом месте, которое компания имеет или может впоследствии приобрести.</p>
-
-
 
         <p>5. Часы работы</p>
         <p>Обычные рабочие дни-с понедельника по пятницу. Вы должны будете работать в течение таких часов, как это необходимо для надлежащего выполнения Ваших обязанностей перед компанией. Обычные рабочие часы-от { start_time } до { end_time }, и вы, как ожидается, будут работать не менее { total_hours } часов каждую неделю, и при необходимости в течение дополнительных часов в зависимости от вашего</p>
@@ -4374,13 +3825,9 @@ trait _StringTemplating
 
         <p>6.3 Компания в начале каждого года уведомляет об объявленных праздниках.&nbsp;</p>
 
-
-
         <p>7. Характер обязанностей</p>
 
         <p>Вы будете выполнять все обязанности, присующие вам, и такие дополнительные обязанности, которые компания может призвать к вам, время от времени. Ваши конкретные обязанности изложены в приложении II к настоящему.</p>
-
-
 
         <p>8. Свойство компании</p>
 
@@ -4388,13 +3835,9 @@ trait _StringTemplating
 
         <p>вашей занятости, и возвратит все это имущество Компании до отказа от вашего заряда, при отсутствии которого стоимость одного и того же имущества будет взыскана с Вас компанией.</p>
 
-
-
         <p>9. Боровить/принять подарки</p>
 
         <p>Вы не будете брать взаймы или принимать какие-либо деньги, подарки, вознаграждение или компенсацию за ваши личные доходы от или в ином месте под денежный долг любому лицу/клиенту, с которым у вас могут быть официальные сделки.</p>
-
-
 
         <p>10. Прекращение</p>
 
@@ -4409,8 +3852,6 @@ trait _StringTemplating
         <p>бумаги, как оригинальные, так и их копии, включая любые образцы, литературу, контракты, записи, списки, чертежи, чертежи,</p>
 
         <p>письма, заметки, данные и тому подобное; и Конфиденциальная информация, в вашем распоряжении или под вашим контролем, связанным с вашей работой или деловыми делами клиентов.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Конфиденциальная информация</p>
 
@@ -4436,13 +3877,9 @@ trait _StringTemplating
 
         <p>11.5 Нарушение условий, изложенных в настоящем положении, приведет к тому, что в дополнение к любым другим средствам правовой защиты, которые компания может иметь против вас, в соответствии с вышеприведенным положением, вы можете получить краткое увольнение в соответствии с этим положением.</p>
 
-
-
         <p>12. Замечания</p>
 
         <p>Уведомления могут быть даны Вами Компании по адресу ее зарегистрированного офиса. Извещения могут быть даны компанией Вам по адресу, с которым вы в официальных отчетах.</p>
-
-
 
         <p>13. Применимость политики компании</p>
 
@@ -4452,25 +3889,17 @@ trait _StringTemplating
 
         <p>Все такие принципиальные решения Компании являются обязательными для Вас и переопределяют это Соглашение в такой степени.</p>
 
-
-
         <p>14. Регулирующий Право/юрисдикция</p>
 
         <p>Ваше трудоустройство с компанией подпадает под действие законов страны. Все споры подлежат юрисдикции Высокого суда</p>
 
         <p>Только Гуджарат.</p>
 
-
-
         <p>15. Принятие нашего предложения</p>
 
         <p>Пожалуйста, подтвердите свое согласие с этим Договором о занятости, подписав и возвращая дубликат копии.</p>
 
-
-
         <p>Мы приветствуем Вас и надеемся на то, что Вы принимаете свое согласие и работаете с Вами.</p>
-
-
 
         <p>Искренне Ваш,</p>
 
@@ -4570,20 +3999,16 @@ trait _StringTemplating
 
         <p>{address}</p>
 
-
         <p>Assunto: Nomea&ccedil;&atilde;o para o cargo de {designation}</p>
 
         <p>Querido {employee_name},</p>
 
-
         <p>Temos o prazer de oferec&ecirc;-lo, a posi&ccedil;&atilde;o de {designation} com {app_name} a Empresa nos seguintes termos e</p>
         <p>condi&ccedil;&otilde;es:</p>
-
 
         <p>1. Comentamento do emprego</p>
 
         <p>Seu emprego ser&aacute; efetivo, a partir de {start_date}</p>
-
 
         <p>2. T&iacute;tulo do emprego</p>
 
@@ -4610,13 +4035,9 @@ trait _StringTemplating
 
         <p>6,3 Companhia notificar&aacute; uma lista de feriados declarados no in&iacute;cio de cada ano.&nbsp;</p>
 
-
-
         <p>7. Natureza dos deveres</p>
 
         <p>Voc&ecirc; ir&aacute; executar ao melhor da sua habilidade todos os deveres como s&atilde;o inerentes ao seu cargo e tais deveres adicionais como a empresa pode ligar sobre voc&ecirc; para executar, de tempos em tempos. Os seus deveres espec&iacute;ficos s&atilde;o estabelecidos no Hereto do Planejamento II.</p>
-
-
 
         <p>8. Propriedade da empresa</p>
 
@@ -4624,13 +4045,9 @@ trait _StringTemplating
 
         <p>o seu emprego, e devolver&aacute; toda essa propriedade &agrave; Companhia antes de abdicar de sua acusa&ccedil;&atilde;o, falhando qual o custo do mesmo ser&aacute; recuperado de voc&ecirc; pela Companhia.</p>
 
-
-
         <p>9. Borremir / aceitar presentes</p>
 
         <p>Voc&ecirc; n&atilde;o vai pedir empr&eacute;stimo ou aceitar qualquer dinheiro, presente, recompensa ou indeniza&ccedil;&atilde;o por seus ganhos pessoais de ou de outra forma colocar-se sob obriga&ccedil;&atilde;o pecuni&aacute;ria a qualquer pessoa / cliente com quem voc&ecirc; pode estar tendo rela&ccedil;&otilde;es oficiais.</p>
-
-
 
         <p>10. Termina&ccedil;&atilde;o</p>
 
@@ -4645,8 +4062,6 @@ trait _StringTemplating
         <p>papel, tanto originais como c&oacute;pias dos mesmos, incluindo quaisquer amostras, literatura, contratos, registros, listas, desenhos, plantas,</p>
 
         <p>cartas, notas, dados e semelhantes; e Informa&ccedil;&otilde;es Confidenciais, em sua posse ou sob seu controle relacionado ao seu emprego ou aos neg&oacute;cios de neg&oacute;cios dos clientes.&nbsp; &nbsp;</p>
-
-
 
         <p>11. Informa&ccedil;&otilde;es Confidenciais</p>
 
@@ -4672,13 +4087,9 @@ trait _StringTemplating
 
         <p>11,5 Viola&ccedil;&atilde;o das condi&ccedil;&otilde;es desta cl&aacute;usula ir&aacute; torn&aacute;-lo sujeito a demiss&atilde;o sum&aacute;ria sob a cl&aacute;usula acima, al&eacute;m de qualquer outro rem&eacute;dio que a Companhia possa ter contra voc&ecirc; em lei.</p>
 
-
-
         <p>12. Notices</p>
 
         <p>Os avisos podem ser conferidos por voc&ecirc; &agrave; Empresa em seu endere&ccedil;o de escrit&oacute;rio registrado. Os avisos podem ser conferidos pela Companhia a voc&ecirc; no endere&ccedil;o intimado por voc&ecirc; nos registros oficiais.</p>
-
-
 
         <p>13. Aplicabilidade da Pol&iacute;tica da Empresa</p>
 
@@ -4688,25 +4099,17 @@ trait _StringTemplating
 
         <p>Todas essas decis&otilde;es de pol&iacute;tica da Companhia devem ser vinculativas para si e substituir&atilde;o este Acordo nessa medida.</p>
 
-
-
         <p>14. Direito / Jurisdi&ccedil;&atilde;o</p>
 
         <p>Seu emprego com a Companhia est&aacute; sujeito &agrave;s leis do Pa&iacute;s. Todas as disputas est&atilde;o sujeitas &agrave; jurisdi&ccedil;&atilde;o do Tribunal Superior</p>
 
         <p>Gujarat apenas.</p>
 
-
-
         <p>15. Aceita&ccedil;&atilde;o da nossa oferta</p>
 
         <p>Por favor, confirme sua aceita&ccedil;&atilde;o deste Contrato de Emprego assinando e retornando a c&oacute;pia duplicada.</p>
 
-
-
         <p>N&oacute;s acolhemos voc&ecirc; e estamos ansiosos para receber sua aceita&ccedil;&atilde;o e para trabalhar com voc&ecirc;.</p>
-
-
 
         <p>Seu Sinceramente,</p>
 
@@ -4719,7 +4122,6 @@ trait _StringTemplating
 	public const DEFAULT_XP_CERTIFICATE = [
 
 		'ar' => '<h3 style="text-align: center;">بريد إلكتروني تجربة</h3>
-
 
         <p>{app_name}</p>
 
@@ -4768,7 +4170,6 @@ trait _StringTemplating
         <p lang="en-IN" style="margin-bottom: 0cm; 方向: ltr; line-height: 2; text-align: left;"对齐=“中心”>签名</p>
         <p lang="en-IN" style="margin-bottom: 0cm; 方向: ltr; line-height: 2; text-align: left;" align="center">{app_name}</p>',
 
-
 		'da' => '<h3 style="text-align: center;">Erfaringsbrev</h3>
 
         <p>{app_name}</p>
@@ -4787,11 +4188,7 @@ trait _StringTemplating
 
         <p>Roller og ansvar</p>
 
-
-
         <p>Kort beskrivelse af medarbejderens ans&aelig;ttelsesforl&oslash;b og positiv udtalelse fra leder eller arbejdsleder.</p>
-
-
 
         <p>Med venlig hilsen</p>
 
@@ -4803,8 +4200,6 @@ trait _StringTemplating
 
         <p>{app_name}</p>',
 		'de' => '<h3 style="text-align: center;">Erfahrungsbrief</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -4822,11 +4217,7 @@ trait _StringTemplating
 
         <p>Rollen und Verantwortlichkeiten</p>
 
-
-
         <p>Kurze Beschreibung des beruflichen Werdegangs des Mitarbeiters und eine positive Stellungnahme des Vorgesetzten oder Vorgesetzten.</p>
-
-
 
         <p>Aufrichtig,</p>
 
@@ -4859,7 +4250,6 @@ trait _StringTemplating
 
 		'es' => '<h3 style="text-align: center;">Carta de experiencia</h3>
 
-
         <p>{app_name}</p>
 
         <p>A QUIEN LE INTERESE</p>
@@ -4876,11 +4266,7 @@ trait _StringTemplating
 
         <p>Funciones y responsabilidades</p>
 
-
-
         <p>Breve descripci&oacute;n del curso de empleo del empleado y una declaraci&oacute;n positiva del gerente o supervisor.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -4893,8 +4279,6 @@ trait _StringTemplating
         <p>{app_name}</p>',
 
 		'fr' => '<h3 style="text-align: center;">Lettre dexp&eacute;rience</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -4912,11 +4296,7 @@ trait _StringTemplating
 
         <p>R&ocirc;les et responsabilit&eacute;s</p>
 
-
-
         <p>Br&egrave;ve description de l&eacute;volution de lemploi de lemploy&eacute; et une d&eacute;claration positive du gestionnaire ou du superviseur.</p>
-
-
 
         <p>Sinc&egrave;rement,</p>
 
@@ -4947,10 +4327,7 @@ trait _StringTemplating
         <p lang="en-IN" style="margin-bottom: 0cm; direction: ltr; line-height: 2; text-align: left;" align="center">חתימה</p>
         <p lang="en-IN" style="margin-bottom: 0cm; direction: ltr; line-height: 2; text-align: left;" align="center">{app_name}</p>',
 
-
 		'it' => '<h3 style="text-align: center;">Lettera di esperienza</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -4968,11 +4345,7 @@ trait _StringTemplating
 
         <p>Ruoli e responsabilit&agrave;</p>
 
-
-
         <p>Breve descrizione del percorso lavorativo del dipendente e dichiarazione positiva del manager o supervisore.</p>
-
-
 
         <p>Cordiali saluti,</p>
 
@@ -4986,8 +4359,6 @@ trait _StringTemplating
 
 		'ja' => '
         <h3 style="text-align: center;">体験談</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5005,11 +4376,7 @@ trait _StringTemplating
 
         <p>役割と責任</p>
 
-
-
         <p>従業員の雇用コースの簡単な説明と、マネージャーまたはスーパーバイザーからの肯定的な声明。</p>
-
-
 
         <p>心から、</p>
 
@@ -5022,7 +4389,6 @@ trait _StringTemplating
         <p>{app_name}</p>',
 
 		'nl' => '<h3 style="text-align: center;">Ervaringsbrief</h3>
-
 
         <p>{app_name}</p>
 
@@ -5040,11 +4406,7 @@ trait _StringTemplating
 
         <p>Rollen en verantwoordelijkheden</p>
 
-
-
         <p>Korte omschrijving van het dienstverband van de medewerker en een positieve verklaring van de leidinggevende of leidinggevende.</p>
-
-
 
         <p>Eerlijk,</p>
 
@@ -5057,8 +4419,6 @@ trait _StringTemplating
         <p>{app_name}</p>',
 
 		'pl' => '<h3 style="text-align: center;">Doświadczenie List</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5076,11 +4436,7 @@ trait _StringTemplating
 
         <p>Role i obowiązki</p>
 
-
-
         <p>Kr&oacute;tki opis przebiegu zatrudnienia pracownika oraz pozytywna opinia kierownika lub przełożonego.</p>
-
-
 
         <p>Z poważaniem,</p>
 
@@ -5140,11 +4496,7 @@ trait _StringTemplating
 
         <p>Роли и обязанности</p>
 
-
-
         <p>Краткое описание трудового стажа работника и положительное заключение руководителя или руководителя.</p>
-
-
 
         <p>Искренне,</p>
 
@@ -5210,8 +4562,6 @@ trait _StringTemplating
 
 		'ar' => '<h3 style="text-align: center;">بريد إلكتروني تجربة</h3>
 
-
-
         <p>{app_name}</p>
 
         <p>إلي من يهمه الامر</p>
@@ -5228,11 +4578,7 @@ trait _StringTemplating
 
         <p>الادوار والمسؤوليات</p>
 
-
-
         <p>وصف موجز لمسار عمل الموظف وبيان إيجابي من المدير أو المشرف.</p>
-
-
 
         <p>بإخلاص،</p>
 
@@ -5263,7 +4609,6 @@ trait _StringTemplating
         <p lang="en-IN" style="margin-bottom: 0cm; 方向: ltr; line-height: 2; text-align: left;"对齐=“中心”>签名</p>
         <p lang="en-IN" style="margin-bottom: 0cm; 方向: ltr; line-height: 2; text-align: left;" align="center">{app_name}</p>',
 
-
 		'da' => '<h3 style="text-align: center;">Erfaringsbrev</h3>
 
         <p>{app_name}</p>
@@ -5282,11 +4627,7 @@ trait _StringTemplating
 
         <p>Roller og ansvar</p>
 
-
-
         <p>Kort beskrivelse af medarbejderens ans&aelig;ttelsesforl&oslash;b og positiv udtalelse fra leder eller arbejdsleder.</p>
-
-
 
         <p>Med venlig hilsen</p>
 
@@ -5298,8 +4639,6 @@ trait _StringTemplating
 
         <p>{app_name}</p>',
 		'de' => '<h3 style="text-align: center;">Erfahrungsbrief</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5317,11 +4656,7 @@ trait _StringTemplating
 
         <p>Rollen und Verantwortlichkeiten</p>
 
-
-
         <p>Kurze Beschreibung des beruflichen Werdegangs des Mitarbeiters und eine positive Stellungnahme des Vorgesetzten oder Vorgesetzten.</p>
-
-
 
         <p>Aufrichtig,</p>
 
@@ -5352,7 +4687,6 @@ trait _StringTemplating
         <p lang="en-IN" style="margin-bottom: 0cm; direction: ltr; line-height: 2; text-align: left;" align="center">{app_name}</p>',
 		'es' => '<h3 style="text-align: center;">Carta de experiencia</h3>
 
-
         <p>{app_name}</p>
 
         <p>A QUIEN LE INTERESE</p>
@@ -5369,11 +4703,7 @@ trait _StringTemplating
 
         <p>Funciones y responsabilidades</p>
 
-
-
         <p>Breve descripci&oacute;n del curso de empleo del empleado y una declaraci&oacute;n positiva del gerente o supervisor.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -5386,8 +4716,6 @@ trait _StringTemplating
         <p>{app_name}</p>',
 
 		'fr' => '<h3 style="text-align: center;">Lettre dexp&eacute;rience</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5405,11 +4733,7 @@ trait _StringTemplating
 
         <p>R&ocirc;les et responsabilit&eacute;s</p>
 
-
-
         <p>Br&egrave;ve description de l&eacute;volution de lemploi de lemploy&eacute; et une d&eacute;claration positive du gestionnaire ou du superviseur.</p>
-
-
 
         <p>Sinc&egrave;rement,</p>
 
@@ -5440,10 +4764,7 @@ trait _StringTemplating
         <p lang="en-IN" style="margin-bottom: 0cm; direction: ltr; line-height: 2; text-align: left;" align="center">חתימה</p>
         <p lang="en-IN" style="margin-bottom: 0cm; direction: ltr; line-height: 2; text-align: left;" align="center">{app_name}</p>',
 
-
-
 		'it' => '<h3 style="text-align: center;">Lettera di esperienza</h3>
-
 
         <p>{app_name}</p>
 
@@ -5463,8 +4784,6 @@ trait _StringTemplating
 
         <p>Breve descrizione del percorso lavorativo del dipendente e dichiarazione positiva del manager o supervisore.</p>
 
-
-
         <p>Cordiali saluti,</p>
 
         <p>{employee_name}</p>
@@ -5477,8 +4796,6 @@ trait _StringTemplating
 
 		'ja' => '
         <h3 style="text-align: center;">体験談</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5496,11 +4813,7 @@ trait _StringTemplating
 
         <p>役割と責任</p>
 
-
-
         <p>従業員の雇用コースの簡単な説明と、マネージャーまたはスーパーバイザーからの肯定的な声明。</p>
-
-
 
         <p>心から、</p>
 
@@ -5512,7 +4825,6 @@ trait _StringTemplating
 
         <p>{app_name}</p>',
 		'nl' => '<h3 style="text-align: center;">Ervaringsbrief</h3>
-
 
         <p>{app_name}</p>
 
@@ -5530,11 +4842,7 @@ trait _StringTemplating
 
         <p>Rollen en verantwoordelijkheden</p>
 
-
-
         <p>Korte omschrijving van het dienstverband van de medewerker en een positieve verklaring van de leidinggevende of leidinggevende.</p>
-
-
 
         <p>Eerlijk,</p>
 
@@ -5546,8 +4854,6 @@ trait _StringTemplating
 
         <p>{app_name}</p>',
 		'pl' => '<h3 style="text-align: center;">Doświadczenie List</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5565,11 +4871,7 @@ trait _StringTemplating
 
         <p>Role i obowiązki</p>
 
-
-
         <p>Kr&oacute;tki opis przebiegu zatrudnienia pracownika oraz pozytywna opinia kierownika lub przełożonego.</p>
-
-
 
         <p>Z poważaniem,</p>
 
@@ -5581,8 +4883,6 @@ trait _StringTemplating
 
         <p>{app_name}</p>',
 		'pt' => '<h3 style="text-align: center;">Carta de Experi&ecirc;ncia</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5600,11 +4900,7 @@ trait _StringTemplating
 
         <p>Pap&eacute;is e responsabilidades</p>
 
-
-
         <p>Breve descri&ccedil;&atilde;o do curso de emprego do funcion&aacute;rio e uma declara&ccedil;&atilde;o positiva do gerente ou supervisor.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -5617,8 +4913,6 @@ trait _StringTemplating
         <p>{app_name}</p>',
 
 		'ru' => '<h3 style="text-align: center;">Письмо об опыте</h3>
-
-
 
         <p>{app_name}</p>
 
@@ -5636,11 +4930,7 @@ trait _StringTemplating
 
         <p>Роли и обязанности</p>
 
-
-
         <p>Краткое описание трудового стажа работника и положительное заключение руководителя или руководителя.</p>
-
-
 
         <p>Искренне,</p>
 
@@ -5706,26 +4996,19 @@ trait _StringTemplating
 
 		'ar' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>رسالة عرض</strong></span></p>
 
-
                 <p>عزيزي {applicationant_name} ،</p>
-
 
                 <p>{app_name} متحمس لاصطحابك على متن الطائرة بصفتك {job_title}.</p>
 
                 <p>كنت على بعد خطوات قليلة من الشروع في العمل. يرجى أخذ الوقت الكافي لمراجعة عرضنا الرسمي. يتضمن تفاصيل مهمة حول راتبك ومزاياك وبنود وشروط عملك المتوقع مع {app_name}.</p>
 
-
                 <p>{app_name} يقدم {job_type}. المنصب بالنسبة لك كـ {job_title} ، تقديم التقارير إلى [المدير المباشر / المشرف] بدءًا من {start_date} في {workplace_location}. ساعات العمل المتوقعة هي {days_of_week}.</p>
-
 
                 <p>في هذا المنصب ، يعرض عليك {app_name}&nbsp; {salary}أن تبدأ لك بمعدل دفع {salary_type} لكل {salary_duration}. سوف يتم الدفع لك على أساس.</p>
 
-
                 <p>كجزء من تعويضك ، إذا كان ذلك ممكنًا ، ستصف مكافأتك ومشاركة الأرباح وهيكل العمولة وخيارات الأسهم وقواعد لجنة التعويضات هنا.</p>
 
-
                 <p>بصفتك موظفًا في {app_name} ، ستكون مؤهلاً للحصول على مزايا الاسم المختصر ، مثل التأمين الصحي ، وخطة الأسهم ، والتأمين على الأسنان ، وما إلى ذلك.</p>
-
 
                 <p>الرجاء توضيح موافقتك على هذه البنود وقبول هذا العرض عن طريق التوقيع على هذه الاتفاقية وتأريخها في أو قبل {offer_expiration_date}.</p>
 
@@ -5755,7 +5038,6 @@ trait _StringTemplating
 
                 <p>{应用名称}</p>',
 
-
 		'da' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Tilbudsbrev</strong></span></p>
 
                 <p>K&aelig;re {applicant_name}</p>
@@ -5766,11 +5048,9 @@ trait _StringTemplating
 
                 <p>{app_name} tilbyder en {job_type}. stilling til dig som {job_title}, der rapporterer til [n&aelig;rmeste leder/supervisor] fra og med {start_date} p&aring;{workplace_location}. Forventet arbejdstid er {days_of_week}.</p>
 
-
                 <p>I denne stilling tilbyder {app_name} at starte dig med en l&oslash;nsats p&aring; {salary} pr. {salary_type}. Du vil blive betalt p&aring; {salary_duration}-basis.</p>
 
                 <p>Som en del af din kompensation, du ogs&aring; tilbyder, hvis det er relevant, vil du beskrive din bonus, overskudsdeling, kommissionsstruktur, aktieoptioner og regler for kompensationsudvalget her.</p>
-
 
                 <p>Som ansat hos {app_name} vil du v&aelig;re berettiget til kort navnefordele, s&aring;som sundhedsforsikring, aktieplan, tandforsikring osv.</p>
 
@@ -5782,31 +5062,21 @@ trait _StringTemplating
 
 		'de' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Angebotsschreiben</strong></span></p>
 
-
                 <p>Sehr geehrter {applicant_name},</p>
-
 
                 <p>{app_name} freut sich, Sie als {job_title} an Bord zu holen.</p>
 
-
                 <p>Nur noch wenige Formalit&auml;ten bis zur Arbeit. Bitte nehmen Sie sich die Zeit, unser formelles Angebot zu pr&uuml;fen. Es enth&auml;lt wichtige Details zu Ihrer Verg&uuml;tung, Ihren Leistungen und den Bedingungen Ihrer voraussichtlichen Anstellung bei {app_name}.</p>
-
 
                 <p>{app_name} bietet einen {job_type} an. Position f&uuml;r Sie als {job_title}, ab {start_date} am {workplace_location} unterstellt an unmittelbarer Manager/Vorgesetzter. Erwartete Arbeitszeiten sind {days_of_week}.</p>
 
-
                 <p>In dieser Position bietet {app_name} Ihnen an, mit einem Gehaltssatz von {salary} pro {salary_type} zu beginnen. Sie werden auf Basis von {salary_duration} bezahlt.</p>
-
 
                 <p>Als Teil Ihrer Verg&uuml;tung, die Sie gegebenenfalls auch anbieten, beschreiben Sie hier Ihren Bonus, Ihre Gewinnbeteiligung, Ihre Provisionsstruktur, Ihre Aktienoptionen und die Regeln des Verg&uuml;tungsausschusses.</p>
 
-
                 <p>Als Mitarbeiter von {app_name} haben Sie Anspruch auf Kurznamenvorteile wie Krankenversicherung, Aktienplan, Zahnversicherung usw.</p>
 
-
-
                 <p>Bitte erkl&auml;ren Sie Ihr Einverst&auml;ndnis mit diesen Bedingungen und nehmen Sie dieses Angebot an, indem Sie diese Vereinbarung am oder vor dem {offer_expiration_date} unterzeichnen und datieren.</p>
-
 
                 <p>Aufrichtig,</p>
 
@@ -5836,29 +5106,21 @@ trait _StringTemplating
 
 		'es' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
 
-
                 <p>Estimado {applicant_name},</p>
 
                 <p>{app_name} se complace en incorporarlo como {job_title}.</p>
 
-
                 <p>Faltaban s&oacute;lo unos tr&aacute;mites para ponerse manos a la obra. T&oacute;mese el tiempo para revisar nuestra oferta formal. Incluye detalles importantes sobre su compensaci&oacute;n, beneficios y los t&eacute;rminos y condiciones de su empleo anticipado con {app_name}.</p>
-
 
                 <p>{app_name} est&aacute; ofreciendo {job_type}. posici&oacute;n para usted como {job_title}, reportando al gerente/supervisor inmediato a partir del {start_date} en {workplace_location}. Las horas de trabajo esperadas son {days_of_week}.</p>
 
-
                 <p>En este puesto, {app_name} te ofrece comenzar con una tarifa de pago de {salary} por {salary_type}. Se le pagar&aacute; sobre la base de {salary_duration}.</p>
-
 
                 <p>Como parte de su compensaci&oacute;n, tambi&eacute;n ofrecemos, si corresponde, aqu&iacute; describir&aacute; su bonificaci&oacute;n, participaci&oacute;n en las ganancias, estructura de comisiones, opciones sobre acciones y reglas del comit&eacute; de compensaci&oacute;n.</p>
 
-
                 <p>Como empleado de {app_name}, ser&aacute; elegible para beneficios de nombre breve, como seguro m&eacute;dico, plan de acciones, seguro dental, etc.</p>
 
-
                 <p>Indique su acuerdo con estos t&eacute;rminos y acepte esta oferta firmando y fechando este acuerdo el {offer_expiration_date} o antes.</p>
-
 
                 <p>Sinceramente,</p>
 
@@ -5866,30 +5128,21 @@ trait _StringTemplating
 
 		'fr' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Lettre doffre</strong></span></p>
 
-
                 <p>Cher {applicant_name},</p>
-
 
                 <p>{app_name} est ravi de vous accueillir en tant que {job_title}.</p>
 
-
                 <p>&Eacute;taient juste quelques formalit&eacute;s loin de se mettre au travail. Veuillez prendre le temps dexaminer notre offre formelle. Il comprend des d&eacute;tails importants sur votre r&eacute;mun&eacute;ration, vos avantages et les termes et conditions de votre emploi pr&eacute;vu avec {app_name}.</p>
-
 
                 <p>{app_name} propose un {job_type}. poste pour vous en tant que {job_title}, relevant du directeur/superviseur imm&eacute;diat &agrave; partir du {start_date} &agrave; {workplace_location}. Les heures de travail pr&eacute;vues sont de {days_of_week}.</p>
 
-
                 <p>&Agrave; ce poste, {app_name} vous propose de commencer avec un taux de r&eacute;mun&eacute;ration de {salary} par {salary_type}. Vous serez pay&eacute; sur une base de {salary_duration}.</p>
-
 
                 <p>Dans le cadre de votre r&eacute;mun&eacute;ration, le cas &eacute;ch&eacute;ant, vous d&eacute;crivez ici votre bonus, votre participation aux b&eacute;n&eacute;fices, votre structure de commission, vos options sur actions et les r&egrave;gles du comit&eacute; de r&eacute;mun&eacute;ration.</p>
 
-
                 <p>En tant quemploy&eacute; de {app_name}, vous aurez droit &agrave; des avantages bri&egrave;vement nomm&eacute;s, tels que lassurance maladie, le plan dactionnariat, lassurance dentaire, etc.</p>
 
-
                 <p>Veuillez indiquer votre accord avec ces conditions et accepter cette offre en signant et en datant cet accord au plus tard le {offer_expiration_date}.</p>
-
 
                 <p>Sinc&egrave;rement,</p>
 
@@ -5917,7 +5170,6 @@ trait _StringTemplating
 
                 <p>{app_name}</p>',
 
-
 		'it' => '<p style="text-align: center;"><strong>Lettera di offerta</strong></p>
 
                 <p>Gentile {applicant_name},</p>
@@ -5942,7 +5194,6 @@ trait _StringTemplating
 
 		'ja' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>内定通知</strong></span></p>
 
-
                 <p>{applicant_name} 様</p>
 
                 <p>{app_name} は、あなたを {job_title} として迎えることに興奮しています。</p>
@@ -5965,39 +5216,21 @@ trait _StringTemplating
 
 		'nl' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Aanbiedingsbrief</strong></span></p>
 
-
-
                 <p>Beste {applicant_name},</p>
-
-
 
                 <p>{app_name} is verheugd je aan boord te mogen verwelkomen als {job_title}.</p>
 
-
-
                 <p>Waren slechts een paar formaliteiten verwijderd om aan het werk te gaan. Neem de tijd om ons formele aanbod te bekijken. Het bevat belangrijke details over uw vergoeding, voordelen en de voorwaarden van uw verwachte dienstverband bij {app_name}.</p>
-
-
 
                 <p>{app_name} biedt een {job_type} aan. functie voor jou als {job_title}, rapporterend aan directe manager/supervisor vanaf {start_date} op {workplace_location}. De verwachte werkuren zijn {days_of_week}.</p>
 
-
-
                 <p>In deze functie biedt {app_name} aan om je te starten tegen een salaris van {salary} per {salary_type}. U wordt betaald op basis van {salary_duration}.</p>
-
-
 
                 <p>Als onderdeel van uw vergoeding, die u, indien van toepassing, ook aanbiedt, beschrijft u hier uw bonus, winstdeling, commissiestructuur, aandelenopties en regels van het vergoedingscomit&eacute;.</p>
 
-
-
                 <p>Als medewerker van {app_name} kom je in aanmerking voor korte naamvoordelen, zoals een ziektekostenverzekering, aandelenplan, tandartsverzekering, enz.</p>
 
-
-
                 <p>Geef aan dat u akkoord gaat met deze voorwaarden en accepteer deze aanbieding door deze overeenkomst op of v&oacute;&oacute;r {offer_expiration_date} te ondertekenen en te dateren.</p>
-
-
 
                 <p>Eerlijk,</p>
 
@@ -6011,15 +5244,11 @@ trait _StringTemplating
 
                 <p>Od rozpoczęcia pracy dzieliło mnie tylko kilka formalności. Prosimy o poświęcenie czasu na zapoznanie się z naszą oficjalną ofertą. Zawiera ważne szczeg&oacute;ły dotyczące Twojego wynagrodzenia, świadczeń oraz warunk&oacute;w Twojego przewidywanego zatrudnienia w {app_name}.</p>
 
-
                 <p>{app_name} oferuje {job_type}. stanowisko dla Ciebie jako {job_title}, raportowanie do bezpośredniego przełożonego/przełożonego począwszy od {start_date} w {workplace_location}. Przewidywane godziny pracy to {days_of_week}.</p>
-
 
                 <p>Na tym stanowisku {app_name} oferuje Ci rozpoczęcie pracy za stawkę {salary} za {salary_type}. Otrzymasz zapłatę na podstawie {salary_duration}.</p>
 
-
                 <p>W ramach wynagrodzenia, kt&oacute;re oferowaliśmy, jeśli dotyczy, opiszesz tutaj swoją premię, podział zysk&oacute;w, strukturę prowizji, opcje na akcje i zasady komitetu ds. Wynagrodzeń.</p>
-
 
                 <p>Jako pracownik {app_name} będziesz mieć prawo do kr&oacute;tkich imiennych świadczeń, takich jak ubezpieczenie zdrowotne, plan akcji, ubezpieczenie dentystyczne itp.</p>
 
@@ -6029,33 +5258,23 @@ trait _StringTemplating
 
                 <p>{app_name}</p>',
 
-
 		'pt' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
-
 
                 <p>Prezado {applicant_name},</p>
 
-
                 <p>{app_name} tem o prazer de trazer voc&ecirc; a bordo como {job_title}.</p>
-
 
                 <p>Faltavam apenas algumas formalidades para come&ccedil;ar a trabalhar. Por favor, reserve um tempo para revisar nossa oferta formal. Ele inclui detalhes importantes sobre sua remunera&ccedil;&atilde;o, benef&iacute;cios e os termos e condi&ccedil;&otilde;es de seu emprego previsto com {app_name}.</p>
 
-
                 <p>{app_name} est&aacute; oferecendo um {job_type}. posi&ccedil;&atilde;o para voc&ecirc; como {job_title}, reportando-se ao gerente/supervisor imediato a partir de {start_date} em {workplace_location}. As horas de trabalho previstas s&atilde;o {days_of_week}.</p>
-
 
                 <p>Nesta posi&ccedil;&atilde;o, {app_name} est&aacute; oferecendo para voc&ecirc; come&ccedil;ar com uma taxa de pagamento de {salary} por {salary_type}. Voc&ecirc; ser&aacute; pago em uma base de {salary_duration}.</p>
 
-
                 <p>Como parte de sua remunera&ccedil;&atilde;o, tamb&eacute;m oferecida, se aplic&aacute;vel, voc&ecirc; descrever&aacute; seu b&ocirc;nus, participa&ccedil;&atilde;o nos lucros, estrutura de comiss&otilde;es, op&ccedil;&otilde;es de a&ccedil;&otilde;es e regras do comit&ecirc; de remunera&ccedil;&atilde;o aqui.</p>
-
 
                 <p>Como funcion&aacute;rio de {app_name} , voc&ecirc; se qualificar&aacute; para benef&iacute;cios de nome breve, como seguro sa&uacute;de, plano de a&ccedil;&otilde;es, seguro odontol&oacute;gico etc.</p>
 
-
                 <p>Indique sua concord&acirc;ncia com estes termos e aceite esta oferta assinando e datando este contrato em ou antes de {offer_expiration_date}.</p>
-
 
                 <p>Sinceramente,</p>
 
@@ -6063,30 +5282,21 @@ trait _StringTemplating
 
 		'ru' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Письмо с предложением</strong></span></p>
 
-
                 <p>Уважаемый {applicant_name!</p>
-
 
                 <p>{app_name} рад предложить вам присоединиться к нам в качестве {job_title}.</p>
 
-
                 <p>Осталось всего несколько формальностей, чтобы приступить к работе. Пожалуйста, найдите время, чтобы ознакомиться с нашим официальным предложением. В нем содержится важная информация о вашем вознаграждении, льготах и ​​условиях вашего предполагаемого трудоустройства в {app_name}.</p>
-
 
                 <p>{app_name} предлагает {job_type}. должность для вас как {job_title}, подчинение непосредственному руководителю/руководителю начиная с {start_date} в {workplace_location}. Ожидаемое рабочее время: {days_of_week}.</p>
 
-
                 <p>На этой должности {app_name} предлагает вам начать работу со ставкой заработной платы {salary} за {salary_type}. Вам будут платить на основе {salary_duration}.</p>
-
 
                 <p>В рамках вашего вознаграждения мы также предлагаем, если это применимо, вы описываете свой бонус, распределение прибыли, структуру комиссионных, опционы на акции и правила компенсационного комитета здесь.</p>
 
-
                 <p>Как сотрудник {app_name}, вы будете иметь право на краткосрочные льготы, такие как медицинская страховка, план акций, стоматологическая страховка и т. д.</p>
 
-
                 <p>Пожалуйста, подтвердите свое согласие с этими условиями и примите это предложение, подписав и датировав это соглашение не позднее {offer_expiration_date}.</p>
-
 
                 <p>Искренне,</p>
 
@@ -6116,30 +5326,21 @@ trait _StringTemplating
 
 		'pt-br' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
 
-
                 <p>Prezado {applicant_name},</p>
-
 
                 <p>{app_name} tem o prazer de trazer voc&ecirc; a bordo como {job_title}.</p>
 
-
                 <p>Faltavam apenas algumas formalidades para come&ccedil;ar a trabalhar. Por favor, reserve um tempo para revisar nossa oferta formal. Ele inclui detalhes importantes sobre sua remunera&ccedil;&atilde;o, benef&iacute;cios e os termos e condi&ccedil;&otilde;es de seu emprego previsto com {app_name}.</p>
-
 
                 <p>{app_name} est&aacute; oferecendo um {job_type}. posi&ccedil;&atilde;o para voc&ecirc; como {job_title}, reportando-se ao gerente/supervisor imediato a partir de {start_date} em {workplace_location}. As horas de trabalho previstas s&atilde;o {days_of_week}.</p>
 
-
                 <p>Nesta posi&ccedil;&atilde;o, {app_name} est&aacute; oferecendo para voc&ecirc; come&ccedil;ar com uma taxa de pagamento de {salary} por {salary_type}. Voc&ecirc; ser&aacute; pago em uma base de {salary_duration}.</p>
-
 
                 <p>Como parte de sua remunera&ccedil;&atilde;o, tamb&eacute;m oferecida, se aplic&aacute;vel, voc&ecirc; descrever&aacute; seu b&ocirc;nus, participa&ccedil;&atilde;o nos lucros, estrutura de comiss&otilde;es, op&ccedil;&otilde;es de a&ccedil;&otilde;es e regras do comit&ecirc; de remunera&ccedil;&atilde;o aqui.</p>
 
-
                 <p>Como funcion&aacute;rio de {app_name} , voc&ecirc; se qualificar&aacute; para benef&iacute;cios de nome breve, como seguro sa&uacute;de, plano de a&ccedil;&otilde;es, seguro odontol&oacute;gico etc.</p>
 
-
                 <p>Indique sua concord&acirc;ncia com estes termos e aceite esta oferta assinando e datando este contrato em ou antes de {offer_expiration_date}.</p>
-
 
                 <p>Sinceramente,</p>
 
@@ -6150,26 +5351,19 @@ trait _StringTemplating
 
 		'ar' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>رسالة عرض</strong></span></p>
 
-
                 <p>عزيزي {applicationant_name} ،</p>
-
 
                 <p>{app_name} متحمس لاصطحابك على متن الطائرة بصفتك {job_title}.</p>
 
                 <p>كنت على بعد خطوات قليلة من الشروع في العمل. يرجى أخذ الوقت الكافي لمراجعة عرضنا الرسمي. يتضمن تفاصيل مهمة حول راتبك ومزاياك وبنود وشروط عملك المتوقع مع {app_name}.</p>
 
-
                 <p>{app_name} يقدم {job_type}. المنصب بالنسبة لك كـ {job_title} ، تقديم التقارير إلى [المدير المباشر / المشرف] بدءًا من {start_date} في {workplace_location}. ساعات العمل المتوقعة هي {days_of_week}.</p>
-
 
                 <p>في هذا المنصب ، يعرض عليك {app_name}&nbsp; {salary}أن تبدأ لك بمعدل دفع {salary_type} لكل {salary_duration}. سوف يتم الدفع لك على أساس.</p>
 
-
                 <p>كجزء من تعويضك ، إذا كان ذلك ممكنًا ، ستصف مكافأتك ومشاركة الأرباح وهيكل العمولة وخيارات الأسهم وقواعد لجنة التعويضات هنا.</p>
 
-
                 <p>بصفتك موظفًا في {app_name} ، ستكون مؤهلاً للحصول على مزايا الاسم المختصر ، مثل التأمين الصحي ، وخطة الأسهم ، والتأمين على الأسنان ، وما إلى ذلك.</p>
-
 
                 <p>الرجاء توضيح موافقتك على هذه البنود وقبول هذا العرض عن طريق التوقيع على هذه الاتفاقية وتأريخها في أو قبل {offer_expiration_date}.</p>
 
@@ -6199,7 +5393,6 @@ trait _StringTemplating
 
                 <p>{应用名称}</p>',
 
-
 		'da' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Tilbudsbrev</strong></span></p>
 
                 <p>K&aelig;re {applicant_name}</p>
@@ -6210,11 +5403,9 @@ trait _StringTemplating
 
                 <p>{app_name} tilbyder en {job_type}. stilling til dig som {job_title}, der rapporterer til [n&aelig;rmeste leder/supervisor] fra og med {start_date} p&aring;{workplace_location}. Forventet arbejdstid er {days_of_week}.</p>
 
-
                 <p>I denne stilling tilbyder {app_name} at starte dig med en l&oslash;nsats p&aring; {salary} pr. {salary_type}. Du vil blive betalt p&aring; {salary_duration}-basis.</p>
 
                 <p>Som en del af din kompensation, du ogs&aring; tilbyder, hvis det er relevant, vil du beskrive din bonus, overskudsdeling, kommissionsstruktur, aktieoptioner og regler for kompensationsudvalget her.</p>
-
 
                 <p>Som ansat hos {app_name} vil du v&aelig;re berettiget til kort navnefordele, s&aring;som sundhedsforsikring, aktieplan, tandforsikring osv.</p>
 
@@ -6225,31 +5416,21 @@ trait _StringTemplating
                 <p>{app_name}</p>',
 		'de' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Angebotsschreiben</strong></span></p>
 
-
                 <p>Sehr geehrter {applicant_name},</p>
-
 
                 <p>{app_name} freut sich, Sie als {job_title} an Bord zu holen.</p>
 
-
                 <p>Nur noch wenige Formalit&auml;ten bis zur Arbeit. Bitte nehmen Sie sich die Zeit, unser formelles Angebot zu pr&uuml;fen. Es enth&auml;lt wichtige Details zu Ihrer Verg&uuml;tung, Ihren Leistungen und den Bedingungen Ihrer voraussichtlichen Anstellung bei {app_name}.</p>
-
 
                 <p>{app_name} bietet einen {job_type} an. Position f&uuml;r Sie als {job_title}, ab {start_date} am {workplace_location} unterstellt an unmittelbarer Manager/Vorgesetzter. Erwartete Arbeitszeiten sind {days_of_week}.</p>
 
-
                 <p>In dieser Position bietet {app_name} Ihnen an, mit einem Gehaltssatz von {salary} pro {salary_type} zu beginnen. Sie werden auf Basis von {salary_duration} bezahlt.</p>
-
 
                 <p>Als Teil Ihrer Verg&uuml;tung, die Sie gegebenenfalls auch anbieten, beschreiben Sie hier Ihren Bonus, Ihre Gewinnbeteiligung, Ihre Provisionsstruktur, Ihre Aktienoptionen und die Regeln des Verg&uuml;tungsausschusses.</p>
 
-
                 <p>Als Mitarbeiter von {app_name} haben Sie Anspruch auf Kurznamenvorteile wie Krankenversicherung, Aktienplan, Zahnversicherung usw.</p>
 
-
-
                 <p>Bitte erkl&auml;ren Sie Ihr Einverst&auml;ndnis mit diesen Bedingungen und nehmen Sie dieses Angebot an, indem Sie diese Vereinbarung am oder vor dem {offer_expiration_date} unterzeichnen und datieren.</p>
-
 
                 <p>Aufrichtig,</p>
 
@@ -6276,29 +5457,21 @@ trait _StringTemplating
                 <p>{app_name}</p>',
 		'es' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
 
-
                 <p>Estimado {applicant_name},</p>
 
                 <p>{app_name} se complace en incorporarlo como {job_title}.</p>
 
-
                 <p>Faltaban s&oacute;lo unos tr&aacute;mites para ponerse manos a la obra. T&oacute;mese el tiempo para revisar nuestra oferta formal. Incluye detalles importantes sobre su compensaci&oacute;n, beneficios y los t&eacute;rminos y condiciones de su empleo anticipado con {app_name}.</p>
-
 
                 <p>{app_name} est&aacute; ofreciendo {job_type}. posici&oacute;n para usted como {job_title}, reportando al gerente/supervisor inmediato a partir del {start_date} en {workplace_location}. Las horas de trabajo esperadas son {days_of_week}.</p>
 
-
                 <p>En este puesto, {app_name} te ofrece comenzar con una tarifa de pago de {salary} por {salary_type}. Se le pagar&aacute; sobre la base de {salary_duration}.</p>
-
 
                 <p>Como parte de su compensaci&oacute;n, tambi&eacute;n ofrecemos, si corresponde, aqu&iacute; describir&aacute; su bonificaci&oacute;n, participaci&oacute;n en las ganancias, estructura de comisiones, opciones sobre acciones y reglas del comit&eacute; de compensaci&oacute;n.</p>
 
-
                 <p>Como empleado de {app_name}, ser&aacute; elegible para beneficios de nombre breve, como seguro m&eacute;dico, plan de acciones, seguro dental, etc.</p>
 
-
                 <p>Indique su acuerdo con estos t&eacute;rminos y acepte esta oferta firmando y fechando este acuerdo el {offer_expiration_date} o antes.</p>
-
 
                 <p>Sinceramente,</p>
 
@@ -6306,30 +5479,21 @@ trait _StringTemplating
 
 		'fr' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Lettre doffre</strong></span></p>
 
-
                 <p>Cher {applicant_name},</p>
-
 
                 <p>{app_name} est ravi de vous accueillir en tant que {job_title}.</p>
 
-
                 <p>&Eacute;taient juste quelques formalit&eacute;s loin de se mettre au travail. Veuillez prendre le temps dexaminer notre offre formelle. Il comprend des d&eacute;tails importants sur votre r&eacute;mun&eacute;ration, vos avantages et les termes et conditions de votre emploi pr&eacute;vu avec {app_name}.</p>
-
 
                 <p>{app_name} propose un {job_type}. poste pour vous en tant que {job_title}, relevant du directeur/superviseur imm&eacute;diat &agrave; partir du {start_date} &agrave; {workplace_location}. Les heures de travail pr&eacute;vues sont de {days_of_week}.</p>
 
-
                 <p>&Agrave; ce poste, {app_name} vous propose de commencer avec un taux de r&eacute;mun&eacute;ration de {salary} par {salary_type}. Vous serez pay&eacute; sur une base de {salary_duration}.</p>
-
 
                 <p>Dans le cadre de votre r&eacute;mun&eacute;ration, le cas &eacute;ch&eacute;ant, vous d&eacute;crivez ici votre bonus, votre participation aux b&eacute;n&eacute;fices, votre structure de commission, vos options sur actions et les r&egrave;gles du comit&eacute; de r&eacute;mun&eacute;ration.</p>
 
-
                 <p>En tant quemploy&eacute; de {app_name}, vous aurez droit &agrave; des avantages bri&egrave;vement nomm&eacute;s, tels que lassurance maladie, le plan dactionnariat, lassurance dentaire, etc.</p>
 
-
                 <p>Veuillez indiquer votre accord avec ces conditions et accepter cette offre en signant et en datant cet accord au plus tard le {offer_expiration_date}.</p>
-
 
                 <p>Sinc&egrave;rement,</p>
                 <p>{app_name}</p>',
@@ -6356,8 +5520,6 @@ trait _StringTemplating
 
                 <p>{app_name}</p>',
 
-
-
 		'it' => '<p style="text-align: center;"><strong>Lettera di offerta</strong></p>
 
                 <p>Gentile {applicant_name},</p>
@@ -6380,9 +5542,7 @@ trait _StringTemplating
 
                 <p>{app_name}</p>',
 
-
 		'ja' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>内定通知</strong></span></p>
-
 
                 <p>{applicant_name} 様</p>
 
@@ -6406,38 +5566,21 @@ trait _StringTemplating
 
 		'nl' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Aanbiedingsbrief</strong></span></p>
 
-
                 <p>Beste {applicant_name},</p>
-
-
 
                 <p>{app_name} is verheugd je aan boord te mogen verwelkomen als {job_title}.</p>
 
-
-
                 <p>Waren slechts een paar formaliteiten verwijderd om aan het werk te gaan. Neem de tijd om ons formele aanbod te bekijken. Het bevat belangrijke details over uw vergoeding, voordelen en de voorwaarden van uw verwachte dienstverband bij {app_name}.</p>
-
-
 
                 <p>{app_name} biedt een {job_type} aan. functie voor jou als {job_title}, rapporterend aan directe manager/supervisor vanaf {start_date} op {workplace_location}. De verwachte werkuren zijn {days_of_week}.</p>
 
-
-
                 <p>In deze functie biedt {app_name} aan om je te starten tegen een salaris van {salary} per {salary_type}. U wordt betaald op basis van {salary_duration}.</p>
-
-
 
                 <p>Als onderdeel van uw vergoeding, die u, indien van toepassing, ook aanbiedt, beschrijft u hier uw bonus, winstdeling, commissiestructuur, aandelenopties en regels van het vergoedingscomit&eacute;.</p>
 
-
-
                 <p>Als medewerker van {app_name} kom je in aanmerking voor korte naamvoordelen, zoals een ziektekostenverzekering, aandelenplan, tandartsverzekering, enz.</p>
 
-
-
                 <p>Geef aan dat u akkoord gaat met deze voorwaarden en accepteer deze aanbieding door deze overeenkomst op of v&oacute;&oacute;r {offer_expiration_date} te ondertekenen en te dateren.</p>
-
-
 
                 <p>Eerlijk,</p>
 
@@ -6450,15 +5593,11 @@ trait _StringTemplating
 
                 <p>Od rozpoczęcia pracy dzieliło mnie tylko kilka formalności. Prosimy o poświęcenie czasu na zapoznanie się z naszą oficjalną ofertą. Zawiera ważne szczeg&oacute;ły dotyczące Twojego wynagrodzenia, świadczeń oraz warunk&oacute;w Twojego przewidywanego zatrudnienia w {app_name}.</p>
 
-
                 <p>{app_name} oferuje {job_type}. stanowisko dla Ciebie jako {job_title}, raportowanie do bezpośredniego przełożonego/przełożonego począwszy od {start_date} w {workplace_location}. Przewidywane godziny pracy to {days_of_week}.</p>
-
 
                 <p>Na tym stanowisku {app_name} oferuje Ci rozpoczęcie pracy za stawkę {salary} za {salary_type}. Otrzymasz zapłatę na podstawie {salary_duration}.</p>
 
-
                 <p>W ramach wynagrodzenia, kt&oacute;re oferowaliśmy, jeśli dotyczy, opiszesz tutaj swoją premię, podział zysk&oacute;w, strukturę prowizji, opcje na akcje i zasady komitetu ds. Wynagrodzeń.</p>
-
 
                 <p>Jako pracownik {app_name} będziesz mieć prawo do kr&oacute;tkich imiennych świadczeń, takich jak ubezpieczenie zdrowotne, plan akcji, ubezpieczenie dentystyczne itp.</p>
 
@@ -6469,66 +5608,46 @@ trait _StringTemplating
                 <p>{app_name}</p>',
 		'pt' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
 
-
                 <p>Prezado {applicant_name},</p>
-
 
                 <p>{app_name} tem o prazer de trazer voc&ecirc; a bordo como {job_title}.</p>
 
-
                 <p>Faltavam apenas algumas formalidades para come&ccedil;ar a trabalhar. Por favor, reserve um tempo para revisar nossa oferta formal. Ele inclui detalhes importantes sobre sua remunera&ccedil;&atilde;o, benef&iacute;cios e os termos e condi&ccedil;&otilde;es de seu emprego previsto com {app_name}.</p>
-
 
                 <p>{app_name} est&aacute; oferecendo um {job_type}. posi&ccedil;&atilde;o para voc&ecirc; como {job_title}, reportando-se ao gerente/supervisor imediato a partir de {start_date} em {workplace_location}. As horas de trabalho previstas s&atilde;o {days_of_week}.</p>
 
-
                 <p>Nesta posi&ccedil;&atilde;o, {app_name} est&aacute; oferecendo para voc&ecirc; come&ccedil;ar com uma taxa de pagamento de {salary} por {salary_type}. Voc&ecirc; ser&aacute; pago em uma base de {salary_duration}.</p>
-
 
                 <p>Como parte de sua remunera&ccedil;&atilde;o, tamb&eacute;m oferecida, se aplic&aacute;vel, voc&ecirc; descrever&aacute; seu b&ocirc;nus, participa&ccedil;&atilde;o nos lucros, estrutura de comiss&otilde;es, op&ccedil;&otilde;es de a&ccedil;&otilde;es e regras do comit&ecirc; de remunera&ccedil;&atilde;o aqui.</p>
 
-
                 <p>Como funcion&aacute;rio de {app_name} , voc&ecirc; se qualificar&aacute; para benef&iacute;cios de nome breve, como seguro sa&uacute;de, plano de a&ccedil;&otilde;es, seguro odontol&oacute;gico etc.</p>
 
-
                 <p>Indique sua concord&acirc;ncia com estes termos e aceite esta oferta assinando e datando este contrato em ou antes de {offer_expiration_date}.</p>
-
 
                 <p>Sinceramente,</p>
 
                 <p>{app_name}</p>',
 		'ru' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Письмо с предложением</strong></span></p>
 
-
                 <p>Уважаемый {applicant_name!</p>
-
 
                 <p>{app_name} рад предложить вам присоединиться к нам в качестве {job_title}.</p>
 
-
                 <p>Осталось всего несколько формальностей, чтобы приступить к работе. Пожалуйста, найдите время, чтобы ознакомиться с нашим официальным предложением. В нем содержится важная информация о вашем вознаграждении, льготах и ​​условиях вашего предполагаемого трудоустройства в {app_name}.</p>
-
 
                 <p>{app_name} предлагает {job_type}. должность для вас как {job_title}, подчинение непосредственному руководителю/руководителю начиная с {start_date} в {workplace_location}. Ожидаемое рабочее время: {days_of_week}.</p>
 
-
                 <p>На этой должности {app_name} предлагает вам начать работу со ставкой заработной платы {salary} за {salary_type}. Вам будут платить на основе {salary_duration}.</p>
-
 
                 <p>В рамках вашего вознаграждения мы также предлагаем, если это применимо, вы описываете свой бонус, распределение прибыли, структуру комиссионных, опционы на акции и правила компенсационного комитета здесь.</p>
 
-
                 <p>Как сотрудник {app_name}, вы будете иметь право на краткосрочные льготы, такие как медицинская страховка, план акций, стоматологическая страховка и т. д.</p>
-
 
                 <p>Пожалуйста, подтвердите свое согласие с этими условиями и примите это предложение, подписав и датировав это соглашение не позднее {offer_expiration_date}.</p>
 
-
                 <p>Искренне,</p>
 
-
                 <p>{app_name}</p>',
-
 
 		'tr' => '<p style="text-align: center;"><strong>Teklif Mektubu</strong></p>
 
@@ -6554,30 +5673,21 @@ trait _StringTemplating
 
 		'pt-br' => '<p style="text-align: center;"><span style="font-size: 18pt;"><strong>Carta de oferta</strong></span></p>
 
-
                 <p>Prezado {applicant_name},</p>
-
 
                 <p>{app_name} tem o prazer de trazer voc&ecirc; a bordo como {job_title}.</p>
 
-
                 <p>Faltavam apenas algumas formalidades para come&ccedil;ar a trabalhar. Por favor, reserve um tempo para revisar nossa oferta formal. Ele inclui detalhes importantes sobre sua remunera&ccedil;&atilde;o, benef&iacute;cios e os termos e condi&ccedil;&otilde;es de seu emprego previsto com {app_name}.</p>
-
 
                 <p>{app_name} est&aacute; oferecendo um {job_type}. posi&ccedil;&atilde;o para voc&ecirc; como {job_title}, reportando-se ao gerente/supervisor imediato a partir de {start_date} em {workplace_location}. As horas de trabalho previstas s&atilde;o {days_of_week}.</p>
 
-
                 <p>Nesta posi&ccedil;&atilde;o, {app_name} est&aacute; oferecendo para voc&ecirc; come&ccedil;ar com uma taxa de pagamento de {salary} por {salary_type}. Voc&ecirc; ser&aacute; pago em uma base de {salary_duration}.</p>
-
 
                 <p>Como parte de sua remunera&ccedil;&atilde;o, tamb&eacute;m oferecida, se aplic&aacute;vel, voc&ecirc; descrever&aacute; seu b&ocirc;nus, participa&ccedil;&atilde;o nos lucros, estrutura de comiss&otilde;es, op&ccedil;&otilde;es de a&ccedil;&otilde;es e regras do comit&ecirc; de remunera&ccedil;&atilde;o aqui.</p>
 
-
                 <p>Como funcion&aacute;rio de {app_name} , voc&ecirc; se qualificar&aacute; para benef&iacute;cios de nome breve, como seguro sa&uacute;de, plano de a&ccedil;&otilde;es, seguro odontol&oacute;gico etc.</p>
 
-
                 <p>Indique sua concord&acirc;ncia com estes termos e aceite esta oferta assinando e datando este contrato em ou antes de {offer_expiration_date}.</p>
-
 
                 <p>Sinceramente,</p>
 
@@ -6588,23 +5698,13 @@ trait _StringTemplating
 
 		'ar' => '<h3 style="text-align: center;">شهادة عدم ممانعة</h3>
 
-
-
         <p>التاريخ: {date}</p>
-
-
 
         <p>إلى من يهمه الأمر</p>
 
-
-
         <p>هذه الشهادة مخصصة للمطالبة بشهادة عدم ممانعة (NoC) للسيدة / السيد {employee_name} إذا انضمت إلى أي مؤسسة أخرى وقدمت خدماتها / خدماتها. يتم إبلاغه لأنه قام بتصفية جميع أرصدته واستلام أمانه من شركة {app_name}.</p>
 
-
-
         <p>نتمنى لها / لها التوفيق في المستقبل.</p>
-
-
 
         <p>بإخلاص،</p>
 
@@ -6632,26 +5732,15 @@ trait _StringTemplating
         <p>签名</p>
         <p>{应用名称}</p>',
 
-
 		'da' => '<h3 style="text-align: center;">Ingen indsigelsesattest</h3>
-
-
 
         <p>Dato: {date}</p>
 
-
-
         <p>Til hvem det m&aring;tte vedr&oslash;re</p>
-
-
 
         <p>Dette certifikat er for at g&oslash;re krav p&aring; et No Objection Certificate (NoC) for Ms. / Mr. {employee_name}, hvis hun/han tilslutter sig og leverer sine tjenester til enhver anden organisation. Det informeres, da hun/han har udlignet alle sine saldi og modtaget sin sikkerhed fra {app_name}-virksomheden.</p>
 
-
-
         <p>Vi &oslash;nsker hende/ham held og lykke i fremtiden.</p>
-
-
 
         <p>Med venlig hilsen</p>
 
@@ -6665,23 +5754,13 @@ trait _StringTemplating
 
 		'de' => '<h3 style="text-align: center;">Kein Einwand-Zertifikat</h3>
 
-
-
         <p>Datum {date}</p>
-
-
 
         <p>Wen auch immer es betrifft</p>
 
-
-
         <p>Dieses Zertifikat soll ein Unbedenklichkeitszertifikat (NoC) f&uuml;r Frau / Herrn {employee_name} beanspruchen, wenn sie/er einer anderen Organisation beitritt und ihre/seine Dienste anbietet. Sie wird informiert, da sie/er alle ihre/seine Guthaben ausgeglichen und ihre/seine Sicherheit von der Firma {app_name} erhalten hat.</p>
 
-
-
         <p>Wir w&uuml;nschen ihr/ihm viel Gl&uuml;ck f&uuml;r die Zukunft.</p>
-
-
 
         <p>Aufrichtig,</p>
 
@@ -6711,23 +5790,13 @@ trait _StringTemplating
 
 		'es' => '<h3 style="text-align: center;">Certificado de conformidad</h3>
 
-
-
         <p>Fecha: {date}</p>
-
-
 
         <p>A quien corresponda</p>
 
-
-
         <p>Este certificado es para reclamar un Certificado de No Objeci&oacute;n (NoC) para la Sra. / Sr. {employee_name} si ella / &eacute;l se une y brinda sus servicios a cualquier otra organizaci&oacute;n. Se informa que &eacute;l/ella ha liquidado todos sus saldos y recibido su seguridad de {app_name} Company.</p>
 
-
-
         <p>Le deseamos buena suerte en el futuro.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -6741,18 +5810,13 @@ trait _StringTemplating
 
 		'fr' => '<h3 style="text-align: center;">Aucun certificat dopposition</h3>
 
-
         <p>Date : {date}</p>
-
 
         <p>&Agrave; toute personne concern&eacute;e</p>
 
-
         <p>Ce certificat sert &agrave; r&eacute;clamer un certificat de non-objection (NoC) pour Mme / M. {employee_name} sil rejoint et fournit ses services &agrave; toute autre organisation. Il est inform&eacute; quil a sold&eacute; tous ses soldes et re&ccedil;u sa garantie de la part de la soci&eacute;t&eacute; {app_name}.</p>
 
-
         <p>Nous lui souhaitons bonne chance pour lavenir.</p>
-
 
         <p>Sinc&egrave;rement,</p>
 
@@ -6780,26 +5844,15 @@ trait _StringTemplating
         <p>חתימה</p>
         <p>{app_name}</p>',
 
-
 		'it' => '<h3 style="text-align: center;">Certificato di nulla osta</h3>
-
-
 
         <p>Data: {date}</p>
 
-
-
         <p>A chi pu&ograve; interessare</p>
-
-
 
         <p>Questo certificato serve a richiedere un certificato di non obiezione (NoC) per la signora / il signor {employee_name} se si unisce e fornisce i suoi servizi a qualsiasi altra organizzazione. Viene informato in quanto ha liquidato tutti i suoi saldi e ricevuto la sua sicurezza dalla societ&agrave; {app_name}.</p>
 
-
-
         <p>Le auguriamo buona fortuna per il futuro.</p>
-
-
 
         <p>Cordiali saluti,</p>
 
@@ -6813,23 +5866,13 @@ trait _StringTemplating
 
 		'ja' => '<h3 style="text-align: center;">異議なし証明書</h3>
 
-
-
         <p>日付: {date}</p>
-
-
 
         <p>関係者各位</p>
 
-
-
         <p>この証明書は、Ms. / Mr. {employee_name} が他の組織に参加してサービスを提供する場合に、異議なし証明書 (NoC) を請求するためのものです。彼女/彼/彼がすべての残高を清算し、{app_name} 会社から彼女/彼のセキュリティを受け取ったことが通知されます。</p>
 
-
-
         <p>彼女/彼の今後の幸運を祈っています。</p>
-
-
 
         <p>心から、</p>
 
@@ -6843,23 +5886,13 @@ trait _StringTemplating
 
 		'nl' => '<h3 style="text-align: center;">Geen bezwaarcertificaat</h3>
 
-
-
         <p>Datum: {date}</p>
-
-
 
         <p>Aan wie het ook aangaat</p>
 
-
-
         <p>Dit certificaat is bedoeld om aanspraak te maken op een Geen Bezwaarcertificaat (NoC) voor mevrouw/dhr. {employee_name} als zij/hij lid wordt en haar/zijn diensten verleent aan een andere organisatie. Het wordt ge&iuml;nformeerd als zij/hij al haar/zijn saldos heeft gewist en haar/zijn zekerheid heeft ontvangen van {app_name} Company.</p>
 
-
-
         <p>We wensen haar/hem veel succes in de toekomst.</p>
-
-
 
         <p>Eerlijk,</p>
 
@@ -6873,23 +5906,13 @@ trait _StringTemplating
 
 		'pl' => '<h3 style="text-align: center;">Certyfikat braku sprzeciwu</h3>
 
-
-
         <p>Data: {date}</p>
-
-
 
         <p>Do kogo to może dotyczyć</p>
 
-
-
         <p>Ten certyfikat służy do ubiegania się o Certyfikat No Objection Certificate (NoC) dla Pani/Pana {employee_name}, jeśli ona/ona dołącza i świadczy swoje usługi na rzecz jakiejkolwiek innej organizacji. Jest o tym informowany, ponieważ wyczyścił wszystkie swoje salda i otrzymał swoje zabezpieczenie od firmy {app_name}.</p>
 
-
-
         <p>Życzymy jej/jej powodzenia w przyszłości.</p>
-
-
 
         <p>Z poważaniem,</p>
 
@@ -6903,23 +5926,13 @@ trait _StringTemplating
 
 		'pt' => '<h3 style="text-align: center;">Certificado de n&atilde;o obje&ccedil;&atilde;o</h3>
 
-
-
         <p>Data: {date}</p>
-
-
 
         <p>A quem interessar</p>
 
-
-
         <p>Este certificado &eacute; para reivindicar um Certificado de N&atilde;o Obje&ccedil;&atilde;o (NoC) para a Sra. / Sr. {employee_name} se ela ingressar e fornecer seus servi&ccedil;os a qualquer outra organiza&ccedil;&atilde;o. &Eacute; informado que ela cancelou todos os seus saldos e recebeu sua garantia da empresa {app_name}.</p>
 
-
-
         <p>Desejamos-lhe boa sorte no futuro.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -6933,23 +5946,13 @@ trait _StringTemplating
 
 		'ru' => '<h3 style="text-align: center;">Сертификат об отсутствии возражений</h3>
 
-
-
         <p>Дата: {date}</p>
-
-
 
         <p>Кого бы это ни касалось</p>
 
-
-
         <p>Этот сертификат предназначен для получения Сертификата об отсутствии возражений (NoC) для г-жи / г-на {employee_name}, если она / он присоединяется и предоставляет свои услуги любой другой организации. Сообщается, что она/он очистила все свои балансы и получила свою безопасность от компании {app_name}.</p>
 
-
-
         <p>Мы желаем ей/ему удачи в будущем.</p>
-
-
 
         <p>Искренне,</p>
 
@@ -7002,23 +6005,13 @@ trait _StringTemplating
 
 		'ar' => '<h3 style="text-align: center;">شهادة عدم ممانعة</h3>
 
-
-
         <p>التاريخ: {date}</p>
-
-
 
         <p>إلى من يهمه الأمر</p>
 
-
-
         <p>هذه الشهادة مخصصة للمطالبة بشهادة عدم ممانعة (NoC) للسيدة / السيد {employee_name} إذا انضمت إلى أي مؤسسة أخرى وقدمت خدماتها / خدماتها. يتم إبلاغه لأنه قام بتصفية جميع أرصدته واستلام أمانه من شركة {app_name}.</p>
 
-
-
         <p>نتمنى لها / لها التوفيق في المستقبل.</p>
-
-
 
         <p>بإخلاص،</p>
 
@@ -7046,27 +6039,15 @@ trait _StringTemplating
         <p>签名</p>
         <p>{应用名称}</p>',
 
-
-
 		'da' => '<h3 style="text-align: center;">Ingen indsigelsesattest</h3>
-
-
 
         <p>Dato: {date}</p>
 
-
-
         <p>Til hvem det m&aring;tte vedr&oslash;re</p>
-
-
 
         <p>Dette certifikat er for at g&oslash;re krav p&aring; et No Objection Certificate (NoC) for Ms. / Mr. {employee_name}, hvis hun/han tilslutter sig og leverer sine tjenester til enhver anden organisation. Det informeres, da hun/han har udlignet alle sine saldi og modtaget sin sikkerhed fra {app_name}-virksomheden.</p>
 
-
-
         <p>Vi &oslash;nsker hende/ham held og lykke i fremtiden.</p>
-
-
 
         <p>Med venlig hilsen</p>
 
@@ -7079,23 +6060,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'de' => '<h3 style="text-align: center;">Kein Einwand-Zertifikat</h3>
 
-
-
         <p>Datum {date}</p>
-
-
 
         <p>Wen auch immer es betrifft</p>
 
-
-
         <p>Dieses Zertifikat soll ein Unbedenklichkeitszertifikat (NoC) f&uuml;r Frau / Herrn {employee_name} beanspruchen, wenn sie/er einer anderen Organisation beitritt und ihre/seine Dienste anbietet. Sie wird informiert, da sie/er alle ihre/seine Guthaben ausgeglichen und ihre/seine Sicherheit von der Firma {app_name} erhalten hat.</p>
 
-
-
         <p>Wir w&uuml;nschen ihr/ihm viel Gl&uuml;ck f&uuml;r die Zukunft.</p>
-
-
 
         <p>Aufrichtig,</p>
 
@@ -7123,23 +6094,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'es' => '<h3 style="text-align: center;">Certificado de conformidad</h3>
 
-
-
         <p>Fecha: {date}</p>
-
-
 
         <p>A quien corresponda</p>
 
-
-
         <p>Este certificado es para reclamar un Certificado de No Objeci&oacute;n (NoC) para la Sra. / Sr. {employee_name} si ella / &eacute;l se une y brinda sus servicios a cualquier otra organizaci&oacute;n. Se informa que &eacute;l/ella ha liquidado todos sus saldos y recibido su seguridad de {app_name} Company.</p>
 
-
-
         <p>Le deseamos buena suerte en el futuro.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -7153,18 +6114,13 @@ trait _StringTemplating
 
 		'fr' => '<h3 style="text-align: center;">Aucun certificat dopposition</h3>
 
-
         <p>Date : {date}</p>
-
 
         <p>&Agrave; toute personne concern&eacute;e</p>
 
-
         <p>Ce certificat sert &agrave; r&eacute;clamer un certificat de non-objection (NoC) pour Mme / M. {employee_name} sil rejoint et fournit ses services &agrave; toute autre organisation. Il est inform&eacute; quil a sold&eacute; tous ses soldes et re&ccedil;u sa garantie de la part de la soci&eacute;t&eacute; {app_name}.</p>
 
-
         <p>Nous lui souhaitons bonne chance pour lavenir.</p>
-
 
         <p>Sinc&egrave;rement,</p>
 
@@ -7192,26 +6148,15 @@ trait _StringTemplating
         <p>חתימה</p>
         <p>{app_name}</p>',
 
-
 		'it' => '<h3 style="text-align: center;">Certificato di nulla osta</h3>
-
-
 
         <p>Data: {date}</p>
 
-
-
         <p>A chi pu&ograve; interessare</p>
-
-
 
         <p>Questo certificato serve a richiedere un certificato di non obiezione (NoC) per la signora / il signor {employee_name} se si unisce e fornisce i suoi servizi a qualsiasi altra organizzazione. Viene informato in quanto ha liquidato tutti i suoi saldi e ricevuto la sua sicurezza dalla societ&agrave; {app_name}.</p>
 
-
-
         <p>Le auguriamo buona fortuna per il futuro.</p>
-
-
 
         <p>Cordiali saluti,</p>
 
@@ -7225,23 +6170,13 @@ trait _StringTemplating
 
 		'ja' => '<h3 style="text-align: center;">異議なし証明書</h3>
 
-
-
         <p>日付: {date}</p>
-
-
 
         <p>関係者各位</p>
 
-
-
         <p>この証明書は、Ms. / Mr. {employee_name} が他の組織に参加してサービスを提供する場合に、異議なし証明書 (NoC) を請求するためのものです。彼女/彼/彼がすべての残高を清算し、{app_name} 会社から彼女/彼のセキュリティを受け取ったことが通知されます。</p>
 
-
-
         <p>彼女/彼の今後の幸運を祈っています。</p>
-
-
 
         <p>心から、</p>
 
@@ -7254,23 +6189,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'nl' => '<h3 style="text-align: center;">Geen bezwaarcertificaat</h3>
 
-
-
         <p>Datum: {date}</p>
-
-
 
         <p>Aan wie het ook aangaat</p>
 
-
-
         <p>Dit certificaat is bedoeld om aanspraak te maken op een Geen Bezwaarcertificaat (NoC) voor mevrouw/dhr. {employee_name} als zij/hij lid wordt en haar/zijn diensten verleent aan een andere organisatie. Het wordt ge&iuml;nformeerd als zij/hij al haar/zijn saldos heeft gewist en haar/zijn zekerheid heeft ontvangen van {app_name} Company.</p>
 
-
-
         <p>We wensen haar/hem veel succes in de toekomst.</p>
-
-
 
         <p>Eerlijk,</p>
 
@@ -7283,23 +6208,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'pl' => '<h3 style="text-align: center;">Certyfikat braku sprzeciwu</h3>
 
-
-
         <p>Data: {date}</p>
-
-
 
         <p>Do kogo to może dotyczyć</p>
 
-
-
         <p>Ten certyfikat służy do ubiegania się o Certyfikat No Objection Certificate (NoC) dla Pani/Pana {employee_name}, jeśli ona/ona dołącza i świadczy swoje usługi na rzecz jakiejkolwiek innej organizacji. Jest o tym informowany, ponieważ wyczyścił wszystkie swoje salda i otrzymał swoje zabezpieczenie od firmy {app_name}.</p>
 
-
-
         <p>Życzymy jej/jej powodzenia w przyszłości.</p>
-
-
 
         <p>Z poważaniem,</p>
 
@@ -7312,23 +6227,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'pt' => '<h3 style="text-align: center;">Certificado de n&atilde;o obje&ccedil;&atilde;o</h3>
 
-
-
         <p>Data: {date}</p>
-
-
 
         <p>A quem interessar</p>
 
-
-
         <p>Este certificado &eacute; para reivindicar um Certificado de N&atilde;o Obje&ccedil;&atilde;o (NoC) para a Sra. / Sr. {employee_name} se ela ingressar e fornecer seus servi&ccedil;os a qualquer outra organiza&ccedil;&atilde;o. &Eacute; informado que ela cancelou todos os seus saldos e recebeu sua garantia da empresa {app_name}.</p>
 
-
-
         <p>Desejamos-lhe boa sorte no futuro.</p>
-
-
 
         <p>Sinceramente,</p>
 
@@ -7341,23 +6246,13 @@ trait _StringTemplating
         <p>{app_name}</p>',
 		'ru' => '<h3 style="text-align: center;">Сертификат об отсутствии возражений</h3>
 
-
-
         <p>Дата: {date}</p>
-
-
 
         <p>Кого бы это ни касалось</p>
 
-
-
         <p>Этот сертификат предназначен для получения Сертификата об отсутствии возражений (NoC) для г-жи / г-на {employee_name}, если она / он присоединяется и предоставляет свои услуги любой другой организации. Сообщается, что она/он очистила все свои балансы и получила свою безопасность от компании {app_name}.</p>
 
-
-
         <p>Мы желаем ей/ему удачи в будущем.</p>
-
-
 
         <p>Искренне,</p>
 

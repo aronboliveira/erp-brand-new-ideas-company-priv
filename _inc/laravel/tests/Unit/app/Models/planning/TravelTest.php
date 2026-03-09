@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Travel;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TravelTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,14 @@ class TravelTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Travel::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'employee_id',
+			'start_date',
+			'end_date',
+			'purpose_of_visit',
+			'place_of_visit',
+			'description',
+		];
 
 		$this->assertSame($expected, (new Travel)->getFillable());
 	}
@@ -30,7 +42,7 @@ class TravelTest extends TestCase
 		$rel = (new Travel)->employee();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
 	}

@@ -1,75 +1,14 @@
 (function () {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    return;
+  }
+
   const L1 = "data-client-toggle-listener";
   const L2 = "data-guard-listener";
-  const DCL = "data-client-localized";
-  const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
-  const ERR = "# ERROR";
-  function hasBootstrapCss() {
-    try {
-      return !!document.querySelector(
-        'link[rel~="stylesheet"][href*="bootstrap"]',
-      );
-    } catch (_) {
-      return false;
-    }
-  }
-  function toast(msg) {
-    try {
-      if (hasBootstrapCss() && window.bootstrap && window.bootstrap.Toast) {
-        let c = document.getElementById("toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "toast-container";
-          document.body.appendChild(c);
-        }
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = msg;
-        t.appendChild(b);
-        c.appendChild(t);
-        window.bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(msg);
-      }
-    } catch (_) {
-      alert(msg);
-    }
-  }
-  function getMsg(el, key) {
-    try {
-      let msg = ERR;
-      if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
-        msg = el.getAttribute(DGM) || ERR;
-      else {
-        let lang = (
-          window.sessionStorage.getItem("erp-np-lang") ||
-          document.documentElement.lang ||
-          "en"
-        )
-          .toLowerCase()
-          .replace(/_/g, "-");
-        lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-        msg =
-          window.translations?.[lang]?.[key] ||
-          el.getAttribute(DGM) ||
-          window.translations?.["en"]?.[key] ||
-          ERR;
-        if (msg !== ERR) {
-          el.setAttribute(DGM, msg);
-          el.setAttribute(DCL, "true");
-        }
-      }
-      return msg || ERR;
-    } catch (_) {
-      return ERR;
-    }
-  }
+
   function toggleBlocks(isExist) {
     try {
       const $ = window.jQuery;
@@ -103,7 +42,7 @@
           toggleBlocks(this.value === "exist");
         } catch (_) {}
       });
-      const obs = new MutationObserver(function () {
+      let obs = new MutationObserver(function () {
         if (!document.body.contains(el)) {
           try {
             $radios.off("click.convertDeal");
@@ -140,22 +79,28 @@
             const href = form.action;
             if ((!url || url === "#") && (!href || href === "#")) {
               e.preventDefault();
-              toast(getMsg(form, "action_unavailable"));
+              const msg =
+                form.getAttribute("data-guard-msg") ||
+                getMsg("action_unavailable");
+              scheduleError(msg, "click");
             }
           } catch (_) {
             e.preventDefault();
-            toast(getMsg(form, "action_unavailable"));
+            const msg =
+              form.getAttribute("data-guard-msg") ||
+              getMsg("action_unavailable");
+            scheduleError(msg, "click");
           }
         });
-      const obs2 = new MutationObserver(function () {
+      let obs = new MutationObserver(function () {
         if (!document.body.contains(form) || !document.body.contains(btn)) {
           try {
             $(btn).off("click.convertDealGuard");
           } catch (_) {}
-          obs2.disconnect();
+          obs.disconnect();
         }
       });
-      obs2.observe(document.body, { childList: true, subtree: true });
+      obs.observe(document.body, { childList: true, subtree: true });
     } catch (_) {}
   }
   try {

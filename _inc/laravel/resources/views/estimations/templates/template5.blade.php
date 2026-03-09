@@ -1,13 +1,5 @@
 @php
-    # Template 5
-    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-    use App\Models\{Utility};
-    use Illuminate\Support\Facades\{Auth, Log};
-    use InvalidArgumentException;
-    use RuntimeException;
-    use TypeError;
-
-    $usr ??= null;
+$usr ??= null;
     $lang ??= (string)'';
     $siteRtl ??= (string)'';
     $color ??= (string)'#ffffff';
@@ -132,7 +124,7 @@
                                                 <tbody data-v-e23d9750>
                                                     <tr data-v-e23d9750>
                                                         <td data-v-e23d9750 class="tu fwb">{{ __('Number') }}:</td>
-                                                        <td data-v-e23d9750 class="text-end">
+                                                        <td data-v-e23d9750 class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->estimation_id))
                                                                 {{ $hasEstimateNumberFormat ? (string)$usr->estimateNumberFormat($estimation->estimation_id) : (string)$estimation->estimation_id }}
                                                             @else
@@ -142,7 +134,7 @@
                                                     </tr>
                                                     <tr data-v-e23d9750>
                                                         <td data-v-e23d9750 class="tu fwb">{{ __('Issue Date') }}:</td>
-                                                        <td data-v-e23d9750 class="text-end">
+                                                        <td data-v-e23d9750 class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->issue_date) && $estimation->issue_date !== '')
                                                                 {{ $hasDateFormat ? (string)$usr->dateFormat($estimation->issue_date) : (string)$estimation->issue_date }}
                                                             @else
@@ -162,16 +154,20 @@
                                                 <div data-v-e23d9750 class="d-table-th w-13">{{ __('Item description') }}</div>
                                                 <div data-v-e23d9750 class="d-table-th w-3">{{ __('Price') }}</div>
                                                 <div data-v-e23d9750 class="d-table-th w-2">{{ __('Qty') }}</div>
-                                                <div data-v-e23d9750 class="d-table-th w-3 text-end">{{ __('Amount') }}</div>
+                                                <div data-v-e23d9750 class="d-table-th w-3 {{ VC::TX_END }}">{{ __('Amount') }}</div>
                                             </div>
                                             <div data-v-e23d9750 class="d-table-body" style="border-bottom:2px solid {{ $color }}">
                                                 @if(!empty($items))
                                                     @foreach($items as $key => $item)
                                                         @php
-                                                            $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
-                                                            $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
-                                                            $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
-                                                        @endphp
+                                                            try {
+                                                                $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
+                                                                $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
+                                                                $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('estimations/templates/template5 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div data-v-e23d9750 class="d-table-tr">
                                                             <div data-v-e23d9750 class="d-table-td w-2"><span>{{ (int)$key + 1 }}</span></div>
                                                             <div data-v-e23d9750 class="d-table-td w-13">
@@ -187,7 +183,7 @@
                                                                 </span>
                                                             </div>
                                                             <div data-v-e23d9750 class="d-table-td w-2"><span data-v-e23d9750>{{ !is_null($q) ? $q : __('No quantity available') }}</span></div>
-                                                            <div data-v-e23d9750 class="d-table-td w-3 text-end">
+                                                            <div data-v-e23d9750 class="d-table-td w-3 {{ VC::TX_END }}">
                                                                 <span data-v-e23d9750>
                                                                     @if(!is_null($lt))
                                                                         {{ $hasPriceFormat ? (string)$usr->priceFormat($lt) : number_format($lt, 2) }}
@@ -204,7 +200,7 @@
                                                         <div data-v-e23d9750 class="d-table-td w-13"><pre data-v-e23d9750>-<br data-v-e23d9750></pre></div>
                                                         <div data-v-e23d9750 class="d-table-td w-3"><span>-</span></div>
                                                         <div data-v-e23d9750 class="d-table-td w-2"><span>-</span></div>
-                                                        <div data-v-e23d9750 class="d-table-td w-3 text-end"><span>-</span></div>
+                                                        <div data-v-e23d9750 class="d-table-td w-3 {{ VC::TX_END }}"><span>-</span></div>
                                                     </div>
                                                 @endif
                                             </div>

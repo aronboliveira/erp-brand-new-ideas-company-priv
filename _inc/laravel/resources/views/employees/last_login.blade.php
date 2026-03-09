@@ -1,11 +1,5 @@
 @php
-	use App.Config.Constants\{ExtendingLayoutsConstants, StacksConstants, UsersConstants, YieldingConstants};
-	use Illuminate\Support\{Collection};
-	use Illuminate\Support\Facades\{Auth, Log};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$authUser ??= null;
+$authUser ??= null;
 	$users ??= [];
 	$list ??= [];
 	try {
@@ -39,10 +33,10 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
 	<div class="row">
-		<div class="col-md-12">
+		<div class="{{ VC::CM12 }}">
 			<div class="card">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="table datatable">
 							<thead>
 								<tr>
@@ -66,7 +60,7 @@
 									</tr>
 								@empty
 									<tr>
-										<td colspan="4" class="text-center">{{ __('No users available') }}</td>
+										<td colspan="4" class="{{ VC::TXCT }}">{{ __('No users available') }}</td>
 									</tr>
 								@endforelse
 							</tbody>

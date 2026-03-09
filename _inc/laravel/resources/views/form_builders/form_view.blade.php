@@ -1,18 +1,5 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants as DB,
-        ExtendingLayoutsConstants as EL,
-        SettingsConstants as STG,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Log, Route};
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Collection;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
     $data             ??= [];
     $colorSettings    ??= [];
     $logo             ??= '';
@@ -79,24 +66,24 @@
         @include('fragments.stylesheets', ['settings' => $colorSettings])
     </head>
     <body class="theme-4">
-        <div class="dash-content">
-            <div class="min-vh-100 py-5 d-flex align-items-center">
-                <div class="w-100">
-                    <div class="row justify-content-center">
-                        <div class="col-sm-8 col-lg-5">
-                            <div class="row justify-content-center mb-3">
+        <div class="{{ VC::DSH_CTT }}">
+            <div class="min-vh-100 py-5 {{ VC::DFL_AIC }}">
+                <div class="{{ VC::W100 }}">
+                    <div class="row {{ VC::JCC }}">
+                        <div class="col-sm-8 {{ VC::CL5 }}">
+                            <div class="row {{ VC::JCC }} {{ VC::MB3 }}">
                                 <a class="{{ VC::NVB_BR }}" href="#">
                                     <img src="{{ asset(Storage::url('uploads/logo/'.STG::CPN_LG_DK_DEF)) }}" class="navbar-brand-img big-logo" alt="{{ __('Company logo') ?: 'Company logo' }}">
                                 </a>
                             </div>
 
-                            <div class="card shadow zindex-100 mb-0">
+                            <div class="card shadow zindex-100 {{ VC::MB0 }}">
                                 @if(!$hasForm)
-                                    <div class="card-body px-md-5 py-5">
+                                    <div class="{{ VC::CD_BD }} px-md-5 py-5">
                                         <div class="page-title"><h5>{{ __('The requested form was not found or is unavailable.') }}</h5></div>
                                     </div>
                                 @elseif(!$formIsActive)
-                                    <div class="card-body px-md-5 py-5">
+                                    <div class="{{ VC::CD_BD }} px-md-5 py-5">
                                         <div class="page-title"><h5>{{ __('Form is not active.') ?: 'Form is not active.' }}</h5></div>
                                     </div>
                                 @else
@@ -108,8 +95,8 @@
                                         'data-guard-msg'    => $storeGuardMsg,
                                         'data-sv-localized' => 'true'
                                     ]) }}
-                                        <div class="card-body px-md-5 py-5">
-                                            <div class="mb-4">
+                                        <div class="{{ VC::CD_BD }} px-md-5 py-5">
+                                            <div class="{{ VC::MB4 }}">
                                                 <h6 class="h3">{{ $formName }}</h6>
                                             </div>
 
@@ -117,49 +104,53 @@
                                             @if($fieldsIsList ?? false)
                                                 @foreach($objFields as $objField)
                                                     @php
-                                                        $fldId    = data_get($objField, 'id');
-                                                        $fldType  = data_get($objField, 'type', 'text');
-                                                        $fldName  = data_get($objField, 'name', __('Unnamed field'));
-                                                        $inputId  = 'field-' . $fldId;
-                                                    @endphp
+                                                        try {
+                                                            $fldId    = data_get($objField, 'id');
+                                                            $fldType  = data_get($objField, 'type', 'text');
+                                                            $fldName  = data_get($objField, 'name', __('Unnamed field'));
+                                                            $inputId  = 'field-' . $fldId;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('form_builders/form_view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
 
                                                     @if($fldType === 'text')
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::text("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId, 'placeholder'=>__('Enter value') ?: 'Enter value']) }}
                                                         </div>
                                                     @elseif($fldType === 'email')
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::email("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId, 'placeholder'=>__('Enter email') ?: 'Enter email']) }}
                                                         </div>
                                                     @elseif($fldType === 'number')
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::number("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId, 'step'=>'any', 'placeholder'=>__('Enter number') ?: 'Enter number']) }}
                                                         </div>
                                                     @elseif($fldType === 'date')
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::date("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId]) }}
                                                         </div>
                                                     @elseif($fldType === 'textarea')
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::textarea("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId, 'rows'=>3, 'placeholder'=>__('Enter text') ?: 'Enter text']) }}
                                                         </div>
                                                     @else
-                                                        <div class="form-group">
+                                                        <div class="{{ VC::FM_G }}">
                                                             {{ Form::label($inputId, __($fldName) ?: __('Failed to get label: Field'), ['class'=>'form-label']) }}
                                                             {{ Form::text("field[$fldId]", null, ['class'=>'form-control','required'=>'required','id'=>$inputId, 'placeholder'=>__('Enter value') ?: 'Enter value']) }}
                                                         </div>
                                                     @endif
                                                 @endforeach
                                             @else
-                                                <div class="alert alert-info mb-0" role="alert">{{ __('No fields are available for this form.') }}</div>
+                                                <div class="{{ VC::ALT_INF_MB0 }}" role="alert">{{ __('No fields are available for this form.') }}</div>
                                             @endif
 
-                                            <div class="mt-4 text-end">
+                                            <div class="{{ VC::MT4 }} {{ VC::TX_END }}">
                                                 {{ Form::submit(__('Submit') ?: 'Submit', ['class'=>'btn btn-primary']) }}
                                             </div>
                                         </div>

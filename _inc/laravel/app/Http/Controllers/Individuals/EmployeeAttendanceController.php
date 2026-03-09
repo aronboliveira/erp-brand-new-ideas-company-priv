@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-  CompaniesConstants,
-  DatabaseConstants,
-  PermissionsConstants,
-  UsersConstants,
-  ViewsConstants
+  CompaniesConstants as CPC,
+  DatabaseConstants as DC,
+  PermissionsConstants as PMC,
+  UsersConstants as UC,
+  ViewsConstants as VW
 };
 use App\Imports\AttendanceImport;
 use App\Models\{
@@ -36,6 +38,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 final class EmployeeAttendanceController extends Controller
 {
@@ -45,7 +48,7 @@ final class EmployeeAttendanceController extends Controller
   public function index(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@index';
-    $view = ViewsConstants::EMP_ATD . '.index';
+    $view = VW::EMP_ATD . '.index';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       // login check
@@ -54,7 +57,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::MNG_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::MNG_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -62,24 +65,24 @@ final class EmployeeAttendanceController extends Controller
 
       // dropdown data
       $t = microtime(true);
-      $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-      $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
+      $branches = Branch::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->pluck(CPC::COL_BRC_NM, 'id')->prepend('Select Branch', '');
+      $departments = Department::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->pluck(CPC::COL_DEP_NM, 'id')->prepend('Select Department', '');
       $this->logExecutionTime($t, $action . '::loadFilters', 'branches:' . $branches->count() . ', departments:' . $departments->count());
 
       // query attendances
       $t = microtime(true);
       $query = EmployeeAttendance::query();
-      if (!in_array($user[UsersConstants::COL_TP], [PermissionsConstants::CL, PermissionsConstants::CPN])) {
+      if (!in_array($user[UC::COL_TP], [PMC::CL, PMC::CPN])) {
         $empId = $user?->employee->id ?? 0;
-        $query->where(UsersConstants::COL_EMP_ID, $empId);
+        $query->where(UC::COL_EMP_ID, $empId);
       } else {
-        $empIds = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-          ->when($req->branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
-          ->when($req->department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
+        $empIds = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+          ->when($req->branch, fn($q) => $q->where(CPC::COL_BRC_ID, $req->branch))
+          ->when($req->department, fn($q) => $q->where(CPC::COL_DEP_ID, $req->department))
           ->pluck('id');
-        $query->whereIn(UsersConstants::COL_EMP_ID, $empIds);
+        $query->whereIn(UC::COL_EMP_ID, $empIds);
       }
 
       $query->when($req->type === 'monthly' && $req->month, function ($q) use ($req) {
@@ -110,14 +113,14 @@ final class EmployeeAttendanceController extends Controller
   public function create(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@create';
-    $view = ViewsConstants::EMP_ATD . '.create';
+    $view = VW::EMP_ATD . '.create';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
 
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -125,9 +128,9 @@ final class EmployeeAttendanceController extends Controller
 
       // load employees
       $t = microtime(true);
-      $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->where(UsersConstants::COL_TP, 'employee')
-        ->pluck(UsersConstants::COL_NM, 'id');
+      $employees = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->where(UC::COL_TP, 'employee')
+        ->pluck(UC::COL_NM, 'id');
       $this->logExecutionTime($t, $action . '::loadEmployees', 'count: ' . $employees->count());
 
       // view check
@@ -152,7 +155,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -161,7 +164,7 @@ final class EmployeeAttendanceController extends Controller
       // validate
       $t = microtime(true);
       if ($c = self::v($req, [
-        UsersConstants::COL_EMP_ID => 'required',
+        UC::COL_EMP_ID => 'required',
         'date' => 'required|date',
         'clock_in' => 'required',
         'clock_out' => 'required'
@@ -178,13 +181,13 @@ final class EmployeeAttendanceController extends Controller
         $end = Utility::getValByName('company_end_time');
 
         $exists = EmployeeAttendance::where([
-          [UsersConstants::COL_EMP_ID, $req[UsersConstants::COL_EMP_ID]],
+          [UC::COL_EMP_ID, $req[UC::COL_EMP_ID]],
           ['date', $req->date],
           ['clock_out', '00:00:00']
         ])->exists();
         if ($exists) {
           $this->logExecutionTime($t, $action . '::precheck', 'duplicate');
-          return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+          return redirect()->route(VW::EMP_ATD . '.index')
             ->with('error', __('Employee Attendance Already Created.'));
         }
 
@@ -197,7 +200,7 @@ final class EmployeeAttendanceController extends Controller
           : '00:00:00';
 
         EmployeeAttendance::create([
-          UsersConstants::COL_EMP_ID => $req[UsersConstants::COL_EMP_ID],
+          UC::COL_EMP_ID => $req[UC::COL_EMP_ID],
           'date' => $req->date,
           'status' => 'Present',
           'clock_in' => "{$req->clock_in}:00",
@@ -206,11 +209,11 @@ final class EmployeeAttendanceController extends Controller
           'early_leaving' => $early,
           'overtime' => $overtime,
           'total_rest' => '00:00:00',
-          DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+          DC::COL_TABLE_CREATOR => $user?->creatorId(),
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'created');
 
-        return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+        return redirect()->route(VW::EMP_ATD . '.index')
           ->with('success', __('Employee attendance successfully created.'));
       } catch (\Throwable $e) {
         Log::error($action . ' ' . $e->getMessage());
@@ -222,13 +225,13 @@ final class EmployeeAttendanceController extends Controller
   public function show(): RedirectResponse
   {
     // simple redirect; no profiling necessary
-    return redirect()->route(ViewsConstants::EMP_ATD . '.index');
+    return redirect()->route(VW::EMP_ATD . '.index');
   }
 
   public function edit(Request $req, int|string $id): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@edit';
-    $view = ViewsConstants::EMP_ATD . '.edit';
+    $view = VW::EMP_ATD . '.edit';
 
     return $this->measureProfile($action, function () use ($req, $id, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -245,8 +248,8 @@ final class EmployeeAttendanceController extends Controller
       // load data
       $t = microtime(true);
       $attendance = EmployeeAttendance::findOrFail($id);
-      $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->pluck(UsersConstants::COL_NM, 'id');
+      $employees = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->pluck(UC::COL_NM, 'id');
       $this->logExecutionTime($t, $action . '::loadData', 'employees: ' . $employees->count());
 
       // view check
@@ -299,7 +302,7 @@ final class EmployeeAttendanceController extends Controller
       $attendance->save();
       $this->logExecutionTime($t, $action . '::persist', 'updated');
 
-      return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+      return redirect()->route(VW::EMP_ATD . '.index')
         ->with('success', __('Employee attendance successfully updated.'));
     }, ['uri' => $req->getRequestUri(), 'id' => $id]);
   }
@@ -312,7 +315,7 @@ final class EmployeeAttendanceController extends Controller
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 
       $t = microtime(true);
-      if ($c = self::guard(request(), 'delete attendance', self::REDIRECT_INDEX)) {
+      if (($c = self::guard(request(), 'delete attendance', self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -322,7 +325,7 @@ final class EmployeeAttendanceController extends Controller
       EmployeeAttendance::whereKey($id)->delete();
       $this->logExecutionTime($t, $action . '::delete', 'id: ' . $id);
 
-      return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+      return redirect()->route(VW::EMP_ATD . '.index')
         ->with('success', __('Attendance successfully deleted.'));
     }, ['id' => $id]);
   }
@@ -343,7 +346,7 @@ final class EmployeeAttendanceController extends Controller
       $t = microtime(true);
       if (
         $settings['ip_restrict'] === 'on' &&
-        IpRestrict::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+        IpRestrict::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
         ->where('ip', request()->ip())->exists()
       ) {
         $this->logExecutionTime($t, $action . '::ipCheck', 'blocked');
@@ -359,7 +362,7 @@ final class EmployeeAttendanceController extends Controller
         $empId = $user?->employee->id ?? 0;
 
         $last = EmployeeAttendance::where([
-          [UsersConstants::COL_EMP_ID, $empId],
+          [UC::COL_EMP_ID, $empId],
           ['clock_out', '00:00:00']
         ])->latest('id')->first();
         if ($last) $last->update(['clock_out' => $end]);
@@ -369,7 +372,7 @@ final class EmployeeAttendanceController extends Controller
         $late = gmdate('H:i:s', max(time() - strtotime("{$date}{$start}"), 0));
 
         EmployeeAttendance::create([
-          UsersConstants::COL_EMP_ID => $empId,
+          UC::COL_EMP_ID => $empId,
           'date' => $date,
           'status' => 'Present',
           'clock_in' => $time,
@@ -378,7 +381,7 @@ final class EmployeeAttendanceController extends Controller
           'early_leaving' => '00:00:00',
           'overtime' => '00:00:00',
           'total_rest' => '00:00:00',
-          DatabaseConstants::COL_TABLE_CREATOR => $user?->id,
+          DC::COL_TABLE_CREATOR => $user?->id,
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'clock-in');
 
@@ -394,7 +397,9 @@ final class EmployeeAttendanceController extends Controller
   public function bulkAttendance(Request $req): View|RedirectResponse
   {
     $action = 'EmployeeAttendanceController@bulkAttendance';
-    $view = ViewsConstants::EMP_ATD . '.bulk';
+    // The bulk-attendance view lives under resources/views/attendances/,
+    // not under employee_attendances/ (which only has index, create, import).
+    $view = VW::ATD . '.bulk';
 
     return $this->measureProfile($action, function () use ($req, $action, $view) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -402,7 +407,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -410,13 +415,13 @@ final class EmployeeAttendanceController extends Controller
 
       // load data
       $t = microtime(true);
-      $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-      $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
-      $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-        ->when($req->branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
-        ->when($req->department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
+      $branch = Branch::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->pluck(CPC::COL_BRC_NM, 'id')->prepend('Select Branch', '');
+      $department = Department::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->pluck(CPC::COL_DEP_NM, 'id')->prepend('Select Department', '');
+      $employees = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+        ->when($req->branch, fn($q) => $q->where(CPC::COL_BRC_ID, $req->branch))
+        ->when($req->department, fn($q) => $q->where(CPC::COL_DEP_ID, $req->department))
         ->get();
       $this->logExecutionTime($t, $action . '::loadData', 'employees: ' . $employees->count());
 
@@ -428,11 +433,19 @@ final class EmployeeAttendanceController extends Controller
       }
       $this->logExecutionTime($t, $action . '::viewCheck', 'exists');
 
-      return view($view, compact('employees', 'branches', 'departments'));
+      return view($view, compact('employees', 'branch', 'department'));
     }, ['uri' => $req->getRequestUri()]);
   }
 
   public const BK_ATD_DT = 'bulkAttendanceData';
+  public const IDX = 'index';
+  public const CRT = 'create';
+  public const STR = 'store';
+  public const SHW = 'show';
+  public const EDT = 'edit';
+  public const UPD = 'update';
+  public const DEL = 'destroy';
+
   public function bulkAttendanceData(Request $req): RedirectResponse
   {
     $action = 'EmployeeAttendanceController@bulkAttendanceData';
@@ -443,7 +456,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -454,7 +467,7 @@ final class EmployeeAttendanceController extends Controller
       $start = Utility::getValByName('company_start_time');
       $end = Utility::getValByName('company_end_time');
 
-      foreach ($req[UsersConstants::COL_EMP_ID] as $emp) {
+      foreach ($req[UC::COL_EMP_ID] as $emp) {
         $present = $req->input("present-{$emp}") === 'on';
         $date = $req->date;
 
@@ -470,11 +483,11 @@ final class EmployeeAttendanceController extends Controller
         }
 
         $attendance = EmployeeAttendance::where([
-          [UsersConstants::COL_EMP_ID, $emp],
+          [UC::COL_EMP_ID, $emp],
           ['date', $date],
         ])->first() ?? new EmployeeAttendance();
 
-        $attendance[UsersConstants::COL_EMP_ID] = $emp;
+        $attendance[UC::COL_EMP_ID] = $emp;
         $attendance->date = $date;
         $attendance->status = $status;
         $attendance->clock_in = $in;
@@ -495,7 +508,7 @@ final class EmployeeAttendanceController extends Controller
   public function importFile(): View
   {
     $action = 'EmployeeAttendanceController@importFile';
-    $view = ViewsConstants::EMP_ATD . '.import';
+    $view = VW::EMP_ATD . '.import';
 
     // this one is trivial, but we still validate the view and profile it for consistency
     return $this->measureProfile($action, function () use ($view, $action) {
@@ -520,7 +533,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
+      if (($c = self::guard($req, PMC::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -545,7 +558,7 @@ final class EmployeeAttendanceController extends Controller
         foreach ($rows as $i => $row) if ($i) {
           [$email, $date, $inRaw, $outRaw] = $row;
           $emp = Employee::where('email', $email)
-            ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->first();
           if (!$emp) {
             $errors[] = $email;
@@ -557,11 +570,11 @@ final class EmployeeAttendanceController extends Controller
             = self::computeDurations($in, $out, $date, $start, $end);
 
           $attendance = EmployeeAttendance::where([
-            [UsersConstants::COL_EMP_ID, $emp->id],
+            [UC::COL_EMP_ID, $emp->id],
             ['date', $date],
           ])->first() ?? new EmployeeAttendance();
 
-          $attendance[UsersConstants::COL_EMP_ID] = $emp->id;
+          $attendance[UC::COL_EMP_ID] = $emp->id;
           $attendance->date = $date;
           $attendance->status = 'Present';
           $attendance->clock_in = $in;

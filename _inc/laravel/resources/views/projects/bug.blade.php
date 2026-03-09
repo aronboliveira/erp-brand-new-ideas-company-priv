@@ -1,13 +1,26 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        YieldingConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Illuminate\Support\Facades\{Auth, Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+
+            function resolveBugRoute($baseName) {
+            $kebab = Str::kebab($baseName);
+            return Route::has($baseName) ? $baseName : (Route::has($kebab) ? $kebab : null);
+        }
+
+            function safeBugRoute($routeName, $params = []) {
+            return $routeName ? route($routeName, $params) : '#';
+        }
+
+            $guardMessages = [
+            'project_index' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.',
+            'project_show' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.',
+            'bug_list' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'list_bug_route_unavailable') ?? 'List bug route is unavailable. Please contact technical support or your domain administrator.',
+            'bug_create' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.',
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('projects/bug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @if(isset($project) && !empty($project))
@@ -17,279 +30,161 @@
     @push(StacksConstants::ADM_SCR_PG)
     @endpush
     @php
-        $projectIndexBaseName = ViewsConstants::PRJ . '.index';
-        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+        $projectIndexRouteName = resolveBugRoute(ViewsConstants::PRJ . '.index');
+        $projectIndexUrl = safeBugRoute($projectIndexRouteName);
+@endphp
     @section(YieldingConstants::ADM_BDC)
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
             {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
                 {{ __('Dashboard') }}
             </a>
         </li>
-        <li class="breadcrumb-item">
-            <a
-                id="project-index-link"
-                href="{{ $projectIndexUrl }}"
-                data-url="{{ $projectIndexUrl }}"
-                data-guard-msg="{{ $projectIndexGuardMsg }}"
-            >
+        <li class="{{ VC::BCI }}">
+            <a href="{{ $projectIndexUrl }}" data-route-guard data-url="{{ $projectIndexUrl }}" data-guard-msg="{{ base64_encode($guardMessages['project_index']) }}">
                 {{ __('Project') }}
             </a>
         </li>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const link = document.getElementById('project-index-link');
-                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                    link.setAttribute('data-listener-active', 'true');
-                    link.addEventListener('click', e => {
-                        try {
-                            const url = link.getAttribute('data-url') || '#';
-                            if (url !== '#') return;
-                            e.preventDefault();
-                            const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            link.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                })();
-            </script>
-        @endpush
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             @php
-                $projectShowBaseName     = ViewsConstants::PRJ.'.show';
-                $projectShowKebabName    = Str::kebab($projectShowBaseName);
-                $projectShowResolvedName = Route::has($projectShowBaseName)
-                    ? $projectShowBaseName
-                    : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
-                $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
-                $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
-                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                $projectShowLinkId       = 'project-show-link';
-                $projectNameText         = ($project->project_name ?? null) ? ucwords($project->project_name) : __('No name found for project');
-            @endphp
-            <a href="{{ $projectShowUrl }}"
-            id="{{ $projectShowLinkId }}"
-            data-url="{{ $projectShowUrl }}"
-            data-guard-msg="{{ $projectShowGuardMsg }}">
+                try {
+                    $projectId = isset($project) && !empty($project->id) ? $project->id : null;
+                    $projectShowRouteName = resolveBugRoute(ViewsConstants::PRJ.'.show');
+                    $projectShowUrl = $projectShowRouteName && $projectId ? safeBugRoute($projectShowRouteName, $projectId) : '#';
+                    $projectNameText = ($project->project_name ?? null) ? ucwords($project->project_name) : __('No name found for project');
+                } catch (\Throwable $e) {
+                    \Log::error('projects/bug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <a href="{{ $projectShowUrl }}" data-route-guard data-url="{{ $projectShowUrl }}" data-guard-msg="{{ base64_encode($guardMessages['project_show']) }}">
                 {{ $projectNameText }}
             </a>
-            @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        try {
-                            const l = document.getElementById('{{ $projectShowLinkId }}');
-                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                            l.setAttribute('data-listener-active', 'true');
-                            l.addEventListener('click', e => {
-                                try {
-                                    const href = l.getAttribute('href') || '#';
-                                    const url = l.getAttribute('data-url') || href || '#';
-                                    if (href !== '#' || url !== '#') return;
-                                    e.preventDefault();
-                                    const msg = l.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role', 'alert');
-                                        toast.setAttribute('aria-live', 'assertive');
-                                        toast.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    l.setAttribute('data-failed-route', 'true');
-                                } catch (err) {}
-                            });
-                        } catch (error) {}
-                    })();
-                </script>
-            @endpush
         </li>
-        <li class="breadcrumb-item">{{__('Bug Report')}}</li>
+        <li class="{{ VC::BCI }}">{{__('Bug Report')}}</li>
+        <script>
+        if (typeof window.BugBreadcrumbHandler === 'undefined') {
+            window.BugBreadcrumbHandler = {
+                debounceMap: new Map(),
+
+                init() {
+                    document.querySelectorAll('[data-route-guard]').forEach(el => this.attachClickHandler(el));
+                },
+
+                attachClickHandler(el) {
+                    const elId = el.getAttribute('data-url') || el.href;
+                    el.addEventListener('click', (e) => {
+                        if (this.debounceMap.has(elId)) { e.preventDefault(); return; }
+                        const href = el.getAttribute('href') || '#';
+                        const url = el.getAttribute('data-url') || href || '#';
+                        if (href !== '#' && url !== '#') return;
+                        e.preventDefault();
+                        this.showToast(el.getAttribute('data-guard-msg') || 'Route unavailable');
+                        this.debounceMap.set(elId, true);
+                        setTimeout(() => this.debounceMap.delete(elId), 800);
+                    }, { passive: false });
+                },
+
+                showToast(msg) {
+                    const container = document.getElementById('toast-container') || (() => {
+                        const c = document.createElement('div');
+                        c.id = 'toast-container';
+                        c.className = 'position-fixed top-0 end-0 p-3';
+                        document.body.appendChild(c);
+                        return c;
+                    })();
+                    const toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    container.appendChild(toast);
+                    window.bootstrap?.Toast?.getOrCreateInstance(toast)?.show() || alert(msg);
+                    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+                }
+            };
+            document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.BugBreadcrumbHandler.init()) : window.BugBreadcrumbHandler.init();
+        }
+        </script>
     @endsection
     @section(YieldingConstants::ADM_ACT_BTN)
-        <div class="float-end">
+        <div class="{{ VC::FEND }}">
             @can('manage bug report')
                 @php
-                    $bugListBaseName     = ViewsConstants::PRJ_TSK_BUG;
-                    $bugListKebabName    = Str::kebab($bugListBaseName);
-                    $bugListResolvedName = Route::has($bugListBaseName)
-                        ? $bugListBaseName
-                        : (Route::has($bugListKebabName) ? $bugListKebabName : null);
-                    $projectId           = isset($project) && !empty($project->id) ? $project->id : null;
-                    $bugListUrl          = ($bugListResolvedName && $projectId) ? route($bugListResolvedName, $projectId) : '#';
-                    $bugListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'list_bug_route_unavailable') ?? 'List bug route is unavailable. Please contact technical support or your domain administrator.';
-                    $bugListLinkId       = 'bug-list-link-'.($projectId ?? 'x');
-                    $bugListTitle        = __('List');
-                @endphp
-                <a href="{{ $bugListUrl }}"
-                id="{{ $bugListLinkId }}"
-                class="{{ VC::BT_SM_PM }}"
-                data-url="{{ $bugListUrl }}"
-                data-guard-msg="{{ $bugListGuardMsg }}"
-                data-bs-toggle="tooltip"
-                title="{{ $bugListTitle }}">
+                    try {
+                        $projectId = isset($project) && !empty($project->id) ? $project->id : null;
+                        $bugListRouteName = resolveBugRoute(ViewsConstants::PRJ_TSK_BUG);
+                        $bugListUrl = $bugListRouteName && $projectId ? safeBugRoute($bugListRouteName, $projectId) : '#';
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/bug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $bugListUrl }}" class="{{ VC::BT_SM_PM }}" data-route-guard data-url="{{ $bugListUrl }}" data-guard-msg="{{ base64_encode($guardMessages['bug_list']) }}" data-bs-toggle="tooltip" title="{{ __('List') }}">
                     <i class="{{ VC::TI_LT }}"></i>
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $bugListLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'List bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
             @endcan
             @can('create bug report')
                 @php
-                    $bugCreateBaseName     = ViewsConstants::PRJ_TSK_BUG.'.create';
-                    $bugCreateKebabName    = Str::kebab($bugCreateBaseName);
-                    $bugCreateResolvedName = Route::has($bugCreateBaseName)
-                        ? $bugCreateBaseName
-                        : (Route::has($bugCreateKebabName) ? $bugCreateKebabName : null);
-                    $projectId             = isset($project) && !empty($project->id) ? $project->id : null;
-                    $bugCreateUrl          = ($bugCreateResolvedName && $projectId) ? route($bugCreateResolvedName, $projectId) : '#';
-                    $bugCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                    $bugCreateLinkId       = 'bug-create-link-'.($projectId ?? 'x');
-                    $bugCreateTitle        = __('Create New Bug');
-                @endphp
-                <a href="{{ $bugCreateUrl }}"
-                id="{{ $bugCreateLinkId }}"
-                data-size="lg"
-                data-url="{{ $bugCreateUrl }}"
-                data-ajax-popup="true"
-                data-guard-msg="{{ $bugCreateGuardMsg }}"
-                data-bs-toggle="tooltip"
-                data-title="{{ $bugCreateTitle }}"
-                title="{{ $bugCreateTitle }}"
-                class="{{ VC::BT_SM_PM }}">
+                    $bugCreateRouteName = resolveBugRoute(ViewsConstants::PRJ_TSK_BUG.'.create');
+                    $bugCreateUrl = $bugCreateRouteName && $projectId ? safeBugRoute($bugCreateRouteName, $projectId) : '#';
+@endphp
+                <a href="{{ $bugCreateUrl }}" data-size="lg" data-url="{{ $bugCreateUrl }}" data-ajax-popup="true" data-route-guard data-guard-msg="{{ base64_encode($guardMessages['bug_create']) }}" data-bs-toggle="tooltip" data-title="{{ __('Create New Bug') }}" title="{{ __('Create New Bug') }}" class="{{ VC::BT_SM_PM }}">
                     <i class="{{ VC::TI_PLS }}"></i>
                 </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            try {
-                                const l = document.getElementById('{{ $bugCreateLinkId }}');
-                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                l.setAttribute('data-listener-active', 'true');
-                                l.addEventListener('click', e => {
-                                    try {
-                                        const href = l.getAttribute('href') || '#';
-                                        const url = l.getAttribute('data-url') || href || '#';
-                                        if (href !== '#' || url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = l.getAttribute('data-guard-msg') || 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role', 'alert');
-                                            toast.setAttribute('aria-live', 'assertive');
-                                            toast.setAttribute('aria-atomic', 'true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        l.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            } catch (error) {}
-                        })();
-                    </script>
-                @endpush
             @endcan
         </div>
+        <script>
+        if (typeof window.BugActionHandler === 'undefined') {
+            window.BugActionHandler = {
+                debounceMap: new Map(),
+
+                init() {
+                    document.querySelectorAll('[data-route-guard]').forEach(el => this.attachClickHandler(el));
+                },
+
+                attachClickHandler(el) {
+                    const elId = el.getAttribute('data-url') || el.href;
+                    el.addEventListener('click', (e) => {
+                        if (this.debounceMap.has(elId)) { e.preventDefault(); return; }
+                        const href = el.getAttribute('href') || '#';
+                        const url = el.getAttribute('data-url') || href || '#';
+                        if (href !== '#' && url !== '#') return;
+                        e.preventDefault();
+                        this.showToast(el.getAttribute('data-guard-msg') || 'Route unavailable');
+                        this.debounceMap.set(elId, true);
+                        setTimeout(() => this.debounceMap.delete(elId), 800);
+                    }, { passive: false });
+                },
+
+                showToast(msg) {
+                    const container = document.getElementById('toast-container') || (() => {
+                        const c = document.createElement('div');
+                        c.id = 'toast-container';
+                        c.className = 'position-fixed top-0 end-0 p-3';
+                        document.body.appendChild(c);
+                        return c;
+                    })();
+                    const toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    container.appendChild(toast);
+                    window.bootstrap?.Toast?.getOrCreateInstance(toast)?.show() || alert(msg);
+                    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+                }
+            };
+            document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.BugActionHandler.init()) : window.BugActionHandler.init();
+        }
+        </script>
     @endsection
     @section(YieldingConstants::ADM_CTT)
         <div class="row">
-            <div class="col-xl-12">
+            <div class="{{ VC::CXL12 }}">
                 <div class="card">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="table datatable">
                                 <thead>
                                 <tr>
@@ -367,7 +262,7 @@
                                                         $creatorName = data_get($createdBy, 'name', '');
                                                     }
                                                     $displayCreator = !empty($creatorName) ? e($creatorName) : __('Unknown User');
-                                                @endphp
+@endphp
                                                 <tr>
                                                     <td>{{ $formattedBugId }}</td>
                                                     <td>{{ $displayAssignee }}</td>
@@ -381,22 +276,26 @@
                                                         @if(!empty($projectId) && !empty($bugObjectId))
                                                             @can('edit bug report')
                                                                 @php
-                                                                    $bugEditBaseName     = ViewsConstants::PRJ_TSK_BUG.'.edit';
-                                                                    $bugEditKebabName    = Str::kebab($bugEditBaseName);
-                                                                    $bugEditResolvedName = Route::has($bugEditBaseName)
-                                                                        ? $bugEditBaseName
-                                                                        : (Route::has($bugEditKebabName) ? $bugEditKebabName : null);
-                                                                    $projectIdValue      = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
-                                                                    $bugObjectIdValue    = isset($bugObjectId) && !empty($bugObjectId) ? $bugObjectId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
-                                                                    $bugEditUrl          = ($bugEditResolvedName && $projectIdValue && $bugObjectIdValue) ? route($bugEditResolvedName, [$projectIdValue, $bugObjectIdValue]) : '#';
-                                                                    $bugEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'edit_bug_route_unavailable') ?? 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $bugEditLinkId       = 'bug-edit-link-'.($bugObjectIdValue ?? 'x');
-                                                                    $bugEditTitle        = __('Edit Bug');
-                                                                    $bugEditTooltip      = __('Edit');
-                                                                @endphp
+                                                                    try {
+                                                                        $bugEditBaseName     = ViewsConstants::PRJ_TSK_BUG.'.edit';
+                                                                        $bugEditKebabName    = Str::kebab($bugEditBaseName);
+                                                                        $bugEditResolvedName = Route::has($bugEditBaseName)
+                                                                            ? $bugEditBaseName
+                                                                            : (Route::has($bugEditKebabName) ? $bugEditKebabName : null);
+                                                                        $projectIdValue      = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
+                                                                        $bugObjectIdValue    = isset($bugObjectId) && !empty($bugObjectId) ? $bugObjectId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
+                                                                        $bugEditUrl          = ($bugEditResolvedName && $projectIdValue && $bugObjectIdValue) ? route($bugEditResolvedName, [$projectIdValue, $bugObjectIdValue]) : '#';
+                                                                        $bugEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'edit_bug_route_unavailable') ?? 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $bugEditLinkId       = 'bug-edit-link-'.($bugObjectIdValue ?? 'x');
+                                                                        $bugEditTitle        = __('Edit Bug');
+                                                                        $bugEditTooltip      = __('Edit');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('projects/bug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_INF }}">
                                                                     <a href="{{ $bugEditUrl }}"
-                                                                    id="{{ $bugEditLinkId }}"
+                                                                    data-route-guard
                                                                     class="{{ VC::BT_SM_CT }}"
                                                                     data-url="{{ $bugEditUrl }}"
                                                                     data-ajax-popup="true"
@@ -404,70 +303,31 @@
                                                                     data-bs-toggle="tooltip"
                                                                     title="{{ $bugEditTooltip }}"
                                                                     data-title="{{ $bugEditTitle }}"
-                                                                    data-guard-msg="{{ $bugEditGuardMsg }}">
+                                                                    data-guard-msg="{{ base64_encode($bugEditGuardMsg) }}">
                                                                         <i class="{{ VC::TI_PC_WT }}"></i>
                                                                     </a>
                                                                 </div>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            try {
-                                                                                const l = document.getElementById('{{ $bugEditLinkId }}');
-                                                                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                                                                l.setAttribute('data-listener-active', 'true');
-                                                                                l.addEventListener('click', e => {
-                                                                                    try {
-                                                                                        const href = l.getAttribute('href') || '#';
-                                                                                        const url = l.getAttribute('data-url') || href || '#';
-                                                                                        if (href !== '#' || url !== '#') return;
-                                                                                        e.preventDefault();
-                                                                                        const msg = l.getAttribute('data-guard-msg') || 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role', 'alert');
-                                                                                            toast.setAttribute('aria-live', 'assertive');
-                                                                                            toast.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        l.setAttribute('data-failed-route', 'true');
-                                                                                    } catch (err) {}
-                                                                                });
-                                                                            } catch (error) {}
-                                                                        })();
-                                                                    </script>
-                                                                @endpush
                                                             @endcan
                                                             @can('delete bug report')
                                                                 @php
-                                                                    $bugDestroyBaseName     = ViewsConstants::PRJ_TSK_BUG.'.destroy';
-                                                                    $bugDestroyKebabName    = Str::kebab($bugDestroyBaseName);
-                                                                    $bugDestroyResolvedName = Route::has($bugDestroyBaseName)
-                                                                        ? $bugDestroyBaseName
-                                                                        : (Route::has($bugDestroyKebabName) ? $bugDestroyKebabName : null);
-                                                                    $projectIdValue         = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
-                                                                    $bugObjectIdValue       = isset($bugObjectId) && !empty($bugObjectId) ? $bugObjectId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
-                                                                    $bugDestroyRouteArray   = ($bugDestroyResolvedName && $projectIdValue && $bugObjectIdValue) ? [$bugDestroyResolvedName, [$projectIdValue, $bugObjectIdValue]] : ['#'];
-                                                                    $bugDestroyUrl          = ($bugDestroyResolvedName && $projectIdValue && $bugObjectIdValue) ? route($bugDestroyResolvedName, [$projectIdValue, $bugObjectIdValue]) : '#';
-                                                                    $bugDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'delete_bug_route_unavailable') ?? 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $bugDestroyFormId       = 'bug-destroy-form-'.($bugObjectIdValue ?? 'x');
-                                                                    $bugDestroyLinkId       = 'bug-destroy-link-'.($bugObjectIdValue ?? 'x');
-                                                                    $bugDestroyTitle        = __('Delete');
-                                                                @endphp
+                                                                    try {
+                                                                        $bugDestroyBaseName     = ViewsConstants::PRJ_TSK_BUG.'.destroy';
+                                                                        $bugDestroyKebabName    = Str::kebab($bugDestroyBaseName);
+                                                                        $bugDestroyResolvedName = Route::has($bugDestroyBaseName)
+                                                                            ? $bugDestroyBaseName
+                                                                            : (Route::has($bugDestroyKebabName) ? $bugDestroyKebabName : null);
+                                                                        $projectIdValue         = isset($projectId) && !empty($projectId) ? $projectId : (isset($bug) && !empty($bug->project_id) ? $bug->project_id : null);
+                                                                        $bugObjectIdValue       = isset($bugObjectId) && !empty($bugObjectId) ? $bugObjectId : (isset($bug) && !empty($bug->id) ? $bug->id : null);
+                                                                        $bugDestroyRouteArray   = ($bugDestroyResolvedName && $projectIdValue && $bugObjectIdValue) ? [$bugDestroyResolvedName, [$projectIdValue, $bugObjectIdValue]] : ['#'];
+                                                                        $bugDestroyUrl          = ($bugDestroyResolvedName && $projectIdValue && $bugObjectIdValue) ? route($bugDestroyResolvedName, [$projectIdValue, $bugObjectIdValue]) : '#';
+                                                                        $bugDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'delete_bug_route_unavailable') ?? 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $bugDestroyFormId       = 'bug-destroy-form-'.($bugObjectIdValue ?? 'x');
+                                                                        $bugDestroyLinkId       = 'bug-destroy-link-'.($bugObjectIdValue ?? 'x');
+                                                                        $bugDestroyTitle        = __('Delete');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('projects/bug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'method'         => 'DELETE',
@@ -478,67 +338,17 @@
                                                                     ]) !!}
                                                                         @csrf
                                                                         <a href="#"
-                                                                        id="{{ $bugDestroyLinkId }}"
+                                                                        data-route-guard
                                                                         class="{{ VC::BT_SM_CT_PR }}"
                                                                         data-form-id="{{ $bugDestroyFormId }}"
                                                                         data-url="{{ $bugDestroyUrl }}"
-                                                                        data-guard-msg="{{ $bugDestroyGuardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($bugDestroyGuardMsg) }}"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ $bugDestroyTitle }}">
                                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                         </a>
                                                                     {!! Collective\Html\FormFacade::close() !!}
                                                                 </div>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            try {
-                                                                                const l = document.getElementById('{{ $bugDestroyLinkId }}');
-                                                                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                                                                                l.setAttribute('data-listener-active', 'true');
-                                                                                l.addEventListener('click', e => {
-                                                                                    try {
-                                                                                        e.preventDefault();
-                                                                                        const formId = l.getAttribute('data-form-id') || '';
-                                                                                        const f = formId ? document.getElementById(formId) : null;
-                                                                                        if (!f) return;
-                                                                                        const url = f.getAttribute('data-url') || '#';
-                                                                                        const action = f.getAttribute('action') || '#';
-                                                                                        if (url === '#' && action === '#') {
-                                                                                            const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                            let container = document.getElementById('toast-container');
-                                                                                            if (!container) {
-                                                                                                container = document.createElement('div');
-                                                                                                container.id = 'toast-container';
-                                                                                                document.body.appendChild(container);
-                                                                                            }
-                                                                                            if (hasBootstrap) {
-                                                                                                const toast = document.createElement('div');
-                                                                                                toast.className = 'toast';
-                                                                                                toast.setAttribute('role', 'alert');
-                                                                                                toast.setAttribute('aria-live', 'assertive');
-                                                                                                toast.setAttribute('aria-atomic', 'true');
-                                                                                                const body = document.createElement('div');
-                                                                                                body.className = 'toast-body';
-                                                                                                body.textContent = msg;
-                                                                                                toast.appendChild(body);
-                                                                                                container.appendChild(toast);
-                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                            } else {
-                                                                                                alert(msg);
-                                                                                            }
-                                                                                            l.setAttribute('data-failed-route', 'true');
-                                                                                            f.setAttribute('data-failed-route', 'true');
-                                                                                            return;
-                                                                                        }
-                                                                                        f.submit();
-                                                                                    } catch (err) {}
-                                                                                });
-                                                                            } catch (error) {}
-                                                                        })();
-                                                                    </script>
-                                                                @endpush
                                                             @endcan
                                                         @endif
                                                     </td>
@@ -547,7 +357,7 @@
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="9" class="text-center">
+                                            <td colspan="9" class="{{ VC::TXCT }}">
                                                 {{ __('No bugs found') }}
                                             </td>
                                         </tr>
@@ -559,7 +369,70 @@
                 </div>
             </div>
         </div>
+        @push(StacksConstants::ADM_SCR_PG)
+            <script>
+            if (typeof window.BugTableHandler === 'undefined') {
+                window.BugTableHandler = {
+                    debounceMap: new Map(),
+
+                    init() {
+                        document.querySelectorAll('[data-route-guard]').forEach(el => this.attachClickHandler(el));
+                    },
+
+                    attachClickHandler(el) {
+                        const elId = el.getAttribute('data-url') || el.getAttribute('data-form-id') || Math.random();
+                        el.addEventListener('click', (e) => {
+                            if (this.debounceMap.has(elId)) { e.preventDefault(); return; }
+
+                            const formId = el.getAttribute('data-form-id');
+                            if (formId) {
+                                e.preventDefault();
+                                const form = document.getElementById(formId);
+                                if (!form) return;
+                                const url = form.getAttribute('data-url') || '#';
+                                const action = form.getAttribute('action') || '#';
+                                if (url === '#' && action === '#') {
+                                    this.showToast(el.getAttribute('data-guard-msg') || form.getAttribute('data-guard-msg') || 'Route unavailable');
+                                    return;
+                                }
+                                form.submit();
+                                return;
+                            }
+
+                            const href = el.getAttribute('href') || '#';
+                            const url = el.getAttribute('data-url') || href || '#';
+                            if (href !== '#' && url !== '#') return;
+                            e.preventDefault();
+                            this.showToast(el.getAttribute('data-guard-msg') || 'Route unavailable');
+                            this.debounceMap.set(elId, true);
+                            setTimeout(() => this.debounceMap.delete(elId), 800);
+                        }, { passive: false });
+                    },
+
+                    showToast(msg) {
+                        const container = document.getElementById('toast-container') || (() => {
+                            const c = document.createElement('div');
+                            c.id = 'toast-container';
+                            c.className = 'position-fixed top-0 end-0 p-3';
+                            document.body.appendChild(c);
+                            return c;
+                        })();
+                        const toast = document.createElement('div');
+                        toast.className = 'toast';
+                        toast.setAttribute('role', 'alert');
+                        toast.setAttribute('aria-live', 'assertive');
+                        toast.setAttribute('aria-atomic', 'true');
+                        toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                        container.appendChild(toast);
+                        window.bootstrap?.Toast?.getOrCreateInstance(toast)?.show() || alert(msg);
+                        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+                    }
+                };
+                document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.BugTableHandler.init()) : window.BugTableHandler.init();
+            }
+            </script>
+        @endpush
     @endsection
 @else
-    <div class="alert alert-warning">{{ __('No Project Found') }}</div>
+    <div class="{{ VC::ALT_WRN }}">{{ __('No Project Found') }}</div>
 @endif

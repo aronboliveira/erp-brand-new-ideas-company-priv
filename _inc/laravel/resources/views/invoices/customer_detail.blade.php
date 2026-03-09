@@ -24,10 +24,10 @@
 				</small>
 			</div>
 		</div>
-		<div class="col-md-2">
-			<a href="#" id="remove" class="text-sm">{{ __(' Remove') }}</a>
+		<div class="{{ VC::CM2 }}">
+			<a href="#" id="remove" class="{{ VC::TXSM }}">{{ __(' Remove') }}</a>
 		</div>
 	</div>
 @else
-	<div class="row"><div class="col-12 text-center">{{ __('No customer data available') }}</div></div>
+	<div class="row"><div class="{{ VC::C12 }} {{ VC::TXCT }}">{{ __('No customer data available') }}</div></div>
 @endif

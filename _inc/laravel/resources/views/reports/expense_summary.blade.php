@@ -1,17 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    $chartExpenseArr ??= [];
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +14,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Expense Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Expense Summary')}}</li>
 @endsection
 
 @push('theme-script')
@@ -70,7 +65,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -102,7 +97,7 @@
             const target = qs("#chart-sales");
             if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
             target.setAttribute(dataChartGuard, "true");
-            if (typeof window.ApexCharts !== "function") { try { 
+            if (typeof window.ApexCharts !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -132,7 +127,7 @@
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             if (!area) { scheduleInteractiveError(getMsg(document.body, "pdf_unavailable")); return; }
             try {
-                if (typeof window.html2pdf !== "function") { try { 
+                if (typeof window.html2pdf !== "function") { try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -148,19 +143,19 @@
         })();
     </script>
 @endpush
-{{--            <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--            <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--                <i class="ti ti-filter"></i>--}}
 {{--            </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_expenses_summary_unavailable') ?? 'Download function for expenses summaries report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-expenses-summary-link"
         class="{{ VC::BT_SM_PM }} download-expenses-summary"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -174,18 +169,23 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $expenseSummaryBase       = ViewsConstants::RPT.'.expense.summary';
-                            $expenseSummaryKebab      = Str::kebab($expenseSummaryBase);
-                            $expenseSummaryResolved   = Route::has($expenseSummaryBase) ? $expenseSummaryBase : (Route::has($expenseSummaryKebab) ? $expenseSummaryKebab : null);
-                            $expenseSummaryUrl        = $expenseSummaryResolved ? route($expenseSummaryResolved) : '#';
-                            $expenseSummaryGuardMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'expense_summary_report_unavailable') ?? 'Expense summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $expenseSummaryBase       = ViewsConstants::RPT.'.expense.summary';
+                                $expenseSummaryKebab      = Str::kebab($expenseSummaryBase);
+                                $expenseSummaryResolved   = Route::has($expenseSummaryBase) ? $expenseSummaryBase : (Route::has($expenseSummaryKebab) ? $expenseSummaryKebab : null);
+                                $expenseSummaryUrl        = $expenseSummaryResolved ? route($expenseSummaryResolved) : '#';
+                                $expenseSummaryGuardMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'expense_summary_report_unavailable') ?? 'Expense summary report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $expenseSummaryUrl,
@@ -195,7 +195,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box"></div>
@@ -226,7 +226,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-expense-summary"
                                             data-form-id="report_expense_summary"
-                                            data-guard-msg="{{ $expenseSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($expenseSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -236,7 +236,7 @@
                                             <a href="{{ $expenseSummaryUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-expense-summary"
                                             data-url="{{ $expenseSummaryUrl }}"
-                                            data-guard-msg="{{ $expenseSummaryGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($expenseSummaryGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -258,6 +258,27 @@
         </div>
     </div>
     <div id="printableArea">
+        {{-- ── KPI Aggregation Cards ── --}}
+        @php
+            $grandTotalExpense = is_array($chartExpenseArr) ? array_sum($chartExpenseArr) : 0;
+            $grandTotalPayment = 0;
+            $grandTotalBills = 0;
+            foreach (($expenseArr ?? []) as $_exp) {
+                $grandTotalPayment += array_sum($_exp['data'] ?? []);
+            }
+            foreach (($billArray ?? []) as $_bill) {
+                $grandTotalBills += array_sum($_bill['data'] ?? []);
+            }
+            $fmtExpense = ($user?->priceFormat($grandTotalExpense)) ?? number_format((float)$grandTotalExpense, 2);
+            $fmtPayment = ($user?->priceFormat($grandTotalPayment)) ?? number_format((float)$grandTotalPayment, 2);
+            $fmtBills   = ($user?->priceFormat($grandTotalBills))   ?? number_format((float)$grandTotalBills, 2);
+        @endphp
+        @include('reports.partials._kpi_cards', ['kpiHeading' => __('Expense Overview'), 'kpis' => [
+            ['label' => __('Total Payments'),     'value' => $fmtPayment, 'tone' => 'negative'],
+            ['label' => __('Total Bills'),        'value' => $fmtBills,   'tone' => 'negative'],
+            ['label' => __('Grand Total Expense'), 'value' => $fmtExpense, 'tone' => 'negative'],
+        ]])
+
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="col">
                 <input type="hidden" value="{{ (data_get($filter,'category',__('All'))).' '.__('Expense Summary').' '.__('Report of').' '.(data_get($filter,'startDateRange',__('No starting data available'))).' '.__('to').' '.(data_get($filter,'endDateRange',__('No ending data available'))) }}" id="filename">
@@ -293,7 +314,7 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}" id="chart-container">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="scrollbar-inner">
                         <div id="chart-sales" data-color="primary" data-height="300"></div>
                     </div>
@@ -303,34 +324,41 @@
 
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         @php
-                            $months = $monthList ?? [];
-                            $colspan = (count($months) + 1);
-                            $hasPaymentRows = !empty($expenseArr);
-                            $hasBillRows = !empty($billArray);
-                            $hasTotal = !empty($chartExpenseArr);
-                        @endphp
-                        <table class="{{ VC::TB }}">
+                            try {
+                                $months = $monthList ?? [];
+                                $colspan = (count($months) + 1);
+                                $hasPaymentRows = !empty($expenseArr);
+                                $hasBillRows = !empty($billArray);
+                                $hasTotal = !empty($chartExpenseArr);
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
+                        <table class="{{ VC::TB }} rpt-table" role="table" aria-label="{{ __('Expense Summary') }}">
+                            <caption class="sr-only">{{ __('Expense summary report broken down by category and month') }}</caption>
                             <thead>
                             <tr>
-                                <th>{{ __('Category') }}</th>
+                                <th scope="col">{{ __('Category') }}</th>
                                 @forelse($months as $month)
-                                    <th>{{ $month }}</th>
+                                    <th scope="col">{{ $month }}</th>
                                 @empty
                                     <th>{{ __('No Months') }}</th>
                                 @endforelse
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Payment :') }}</span></td>
+                            <tr class="rpt-section-header">
+                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Payment :') }}</span></td>
                             </tr>
                             @forelse($expenseArr ?? [] as $expense)
                                 <tr>
                                     <td>{{ data_get($expense,'category',__('No category available')) }}</td>
-                                    @php $rowData = data_get($expense,'data',[]); @endphp
+                                    @php
+ $rowData = data_get($expense,'data',[]);
+@endphp
                                     @if(!empty($months))
                                         @foreach($months as $idx => $m)
                                             <td>{{ $user?->priceFormat($rowData[$idx] ?? 0) }}</td>
@@ -341,17 +369,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No payments found for the selected filters') }}</td>
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No payments found for the selected filters') }}</td>
                                 </tr>
                             @endforelse
 
-                            <tr>
-                                <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Bill :') }}</span></td>
+                            <tr class="rpt-section-header">
+                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Bill :') }}</span></td>
                             </tr>
                             @forelse($billArray ?? [] as $bill)
                                 <tr>
                                     <td>{{ data_get($bill,'category',__('No category available')) }}</td>
-                                    @php $rowData = data_get($bill,'data',[]); @endphp
+                                    @php
+ $rowData = data_get($bill,'data',[]);
+@endphp
                                     @if(!empty($months))
                                         @foreach($months as $idx => $m)
                                             <td>{{ $user?->priceFormat($rowData[$idx] ?? 0) }}</td>
@@ -362,15 +392,15 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No bills found for the selected filters') }}</td>
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No bills found for the selected filters') }}</td>
                                 </tr>
                             @endforelse
 
-                            <tr>
-                                <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Expense = Payment + Bill :') }}</span></td>
+                            <tr class="rpt-section-header">
+                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Expense = Payment + Bill :') }}</span></td>
                             </tr>
-                            <tr>
-                                <td class="text-dark"><h6>{{ __('Total') }}</h6></td>
+                            <tr class="rpt-total-row">
+                                <td class="{{ VC::TX_DK }}"><h6>{{ __('Total') }}</h6></td>
                                 @if(!empty($months))
                                     @foreach($months as $idx => $m)
                                         <td>{{ $user?->priceFormat(($chartExpenseArr[$idx] ?? 0)) }}</td>
@@ -382,7 +412,7 @@
                             </tbody>
                         </table>
                         @if(!$hasPaymentRows && !$hasBillRows && !$hasTotal)
-                            <div class="text-center text-muted py-3">{{ __('No data available for the selected filters') }}</div>
+                            <div class="{{ VC::TXCT_MT }} py-3">{{ __('No data available for the selected filters') }}</div>
                         @endif
                     </div>
                 </div>
@@ -390,4 +420,3 @@
         </div>
     </div>
 @endsection
-

@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -135,4 +136,3 @@
       );
     });
   })();
-})();

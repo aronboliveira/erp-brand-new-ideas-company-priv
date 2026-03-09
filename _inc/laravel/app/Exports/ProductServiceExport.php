@@ -2,81 +2,189 @@
 
 namespace App\Exports;
 
-use App\Traits\ChecksLogin;
 use App\Models\ProductService;
+use App\Traits\ChecksLogin;
+use App\Traits\DelegatesPythonExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\{Auth, Log};
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithHeadings};
 
 final class ProductServiceExport implements FromCollection, WithHeadings
 {
     use ChecksLogin;
+    use DelegatesPythonExport;
 
     private const HEADINGS = [
-        'ID', 'Name', 'SKU', 'Sale Price', 'Purchase Price',
-        'Tax', 'Category', 'Unit', 'Type', 'Description'
+        'ID',
+        'Name',
+        'SKU',
+        'Sale Price',
+        'Purchase Price',
+        'Tax',
+        'Category',
+        'Unit',
+        'Type',
+        'Description'
     ];
+    private const PYTHON_EXPORTER = 'ProductServiceExport';
     private const SELECT_FIELDS = [
-        'product_services.id', 'product_services.name as item',
-        'sku', 'sale_price', 'purchase_price', 'tax_id as tax',
+        'product_services.description',
         'product_service_categories.name as category',
-        'product_service_units.name as unit', 'product_services.type',
-        'description'
+        'product_service_units.name as unit',
+        'product_services.id',
+        'product_services.name as item',
+        'product_services.type',
+        'purchase_price',
+        'sale_price',
+        'sku',
+        'tax_id as tax'
     ];
 
     public function collection(): Collection
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return collect();
-        $user = $userOrRedirect;
-        Log::info(__METHOD__ . ' started', ['user_id' => $user?->id]);
-
-        $query = ProductService::select(self::SELECT_FIELDS)
-            ->leftJoin(
-                'product_service_categories',
-                'product_services.category_id',
-                '=',
-                'product_service_categories.id'
-            )
-            ->leftJoin(
-                'product_service_units',
-                'product_services.unit_id',
-                '=',
-                'product_service_units.id'
-            )
-            ->where(
-                'product_services.created_by',
-                $user?->creatorId()
-            );
-        $items = $query->get();
-        Log::info(__METHOD__ . ' fetched', ['count' => $items->count()]);
-
-        $rows = [];
-        foreach ($items as $item) {
-            $taxData = ProductService::taxData($item->tax);
-            $rows[] = [
-                $item->id,
-                $item->item,
-                $item->sku,
-                $user?->priceFormat($item->sale_price),
-                $user?->priceFormat($item->purchase_price),
-                $taxData,
-                $item->category,
-                $item->unit,
-                $item->type,
-                $item->description
-            ];
+        $rows ??= collect();
+        $user ??= null;
+        $userOrRedirect ??= null;
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if ($userOrRedirect instanceof RedirectResponse) {
+                Log::warning(__METHOD__ . ' auth redirect', [
+                    'class' => static::class
+                ]);
+                return collect();
+            }
+            $user = $userOrRedirect;
+            if (empty($user)) {
+                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return collect();
+            }
+            Log::info(__METHOD__ . ' started', [
+                'user_id' => $user->id ?? null,
+                'class' => static::class
+            ]);
+            $query = ProductService::select(self::SELECT_FIELDS)
+                ->leftJoin(
+                    'product_service_categories',
+                    'product_services.category_id',
+                    '=',
+                    'product_service_categories.id'
+                )
+                ->leftJoin(
+                    'product_service_units',
+                    'product_services.unit_id',
+                    '=',
+                    'product_service_units.id'
+                )
+                ->where('product_services.created_by', $user->creatorId());
+            $items = $query->get();
+            Log::info(__METHOD__ . ' fetched', [
+                'count' => $items->count(),
+                'class' => static::class
+            ]);
+            $rowsArray = [];
+            foreach ($items as $item) {
+                $taxData = ProductService::taxData((string)($item->tax ?? ''));
+                $rowsArray[] = [
+                    $item->id ?? 0,
+                    $item->item ?? '',
+                    $item->sku ?? '',
+                    $user->priceFormat($item->sale_price ?? 0),
+                    $user->priceFormat($item->purchase_price ?? 0),
+                    $taxData ?? '',
+                    $item->category ?? '',
+                    $item->unit ?? '',
+                    $item->type ?? '',
+                    $item->description ?? ''
+                ];
+            }
+            $rows = Collection::make($rowsArray);
+            Log::info(__METHOD__ . ' completed', [
+                'count' => $rows->count(),
+                'class' => static::class
+            ]);
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
+            $rows = collect();
         }
-        Log::info(__METHOD__ . ' completed', ['count' => count($rows)]);
-
-        return Collection::make($rows);
+        return $rows;
     }
 
     public function headings(): array
     {
         return self::HEADINGS;
+    }
+
+    public function exportViaPython(?string $outputPath = null): string
+    {
+        $result ??= '';
+        $user ??= null;
+        $userOrRedirect ??= null;
+        $data ??= [];
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if ($userOrRedirect instanceof RedirectResponse) {
+                Log::warning(__METHOD__ . ' auth redirect', [
+                    'class' => static::class
+                ]);
+                return '';
+            }
+            $user = $userOrRedirect;
+            if (empty($user)) {
+                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return '';
+            }
+            $query = ProductService::select(self::SELECT_FIELDS)
+                ->leftJoin(
+                    'product_service_categories',
+                    'product_services.category_id',
+                    '=',
+                    'product_service_categories.id'
+                )
+                ->leftJoin(
+                    'product_service_units',
+                    'product_services.unit_id',
+                    '=',
+                    'product_service_units.id'
+                )
+                ->where('product_services.created_by', $user->creatorId());
+            $items = $query->get();
+            $data = [
+                'products' => $items->map(fn($item) => [
+                    'id' => $item->id ?? 0,
+                    'name' => $item->item ?? '',
+                    'sku' => $item->sku ?? '',
+                    'sale_price' => $item->sale_price ?? 0,
+                    'purchase_price' => $item->purchase_price ?? 0,
+                    'tax' => ProductService::taxData((string)($item->tax ?? '')) ?? '',
+                    'category' => $item->category ?? '',
+                    'unit' => $item->unit ?? '',
+                    'type' => $item->type ?? '',
+                    'description' => $item->description ?? '',
+                ])->toArray(),
+                'currency_symbol' => self::_prepareCurrencySymbol($user),
+                'headings' => self::HEADINGS,
+            ];
+            if (empty($outputPath)) {
+                $outputPath = self::_generateOutputPath('products_services');
+            }
+            $result = self::_executePythonExporter(
+                self::PYTHON_EXPORTER,
+                $data,
+                $outputPath
+            );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
+            $result = '';
+        }
+        return $result;
     }
 }

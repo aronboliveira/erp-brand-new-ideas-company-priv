@@ -1,13 +1,19 @@
 <?php
 
-namespace Tests\Unit\Models\Apr;
+namespace Tests\Unit\app\Models\Apr;
 
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class LeadEmailLangTest extends TestCase
 {
-    public function test_placeholder(): void
+    protected function setUp(): void
     {
-        $this->markTestSkipped('Stub — no test logic implemented yet.');
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
+/** @test */
+public function model_class_pending_implementation(): void
+{
+$this->markTestSkipped("LeadEmailLang model not yet implemented — stub placeholder.");
+}
 }

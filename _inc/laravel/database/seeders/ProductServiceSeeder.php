@@ -458,7 +458,8 @@ final class ProductServiceSeeder extends Seeder
 			$units = ['unit', 'hour', 'day', 'month', 'year', 'kg', 'g', 'l', 'ml', 'm²', 'm³', 'package', 'set', 'pair', 'dozen'];
 
 			$currentCount = count($catalog);
-			while ($currentCount < 2056) {
+			// while ($currentCount < 2056) {
+			while ($currentCount < 4) {
 				$categoryCode = $faker->randomElement($allCategoryCodes);
 				$unit = $faker->randomElement($units);
 
@@ -498,17 +499,18 @@ final class ProductServiceSeeder extends Seeder
 			}
 
 			// Ensure exactly 2056 products
-			$catalog = array_slice($catalog, 0, 2056);
+			// $catalog = array_slice($catalog, 0, 2056);
+			$catalog = array_slice($catalog, 0, 4);
 
-			echo "Total de produtos no catálogo: " . count($catalog) . "\n";
-			echo "Primeiros 5 produtos:\n";
-			for ($i = 0; $i < 5; $i++) {
-				echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
-			}
-			echo "\nÚltimos 5 produtos:\n";
-			for ($i = 2051; $i < 2056; $i++) {
-				echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
-			}
+			// echo "Total de produtos no catálogo: " . count($catalog) . "\n";
+			// echo "Primeiros 5 produtos:\n";
+			// for ($i = 0; $i < 5; $i++) {
+			// 	echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
+			// }
+			// echo "\nÚltimos 5 produtos:\n";
+			// for ($i = 2051; $i < 2056; $i++) {
+			// 	echo ($i + 1) . ". " . $catalog[$i][0] . " (" . $catalog[$i][2] . ")\n";
+			// }
 
 
 			// Unidades aceitas por tipo
@@ -607,8 +609,8 @@ final class ProductServiceSeeder extends Seeder
 						$payload['attributes'],
 						fn($v) => $v !== null
 					);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Produto/Serviço: {$payload['name']}, SKU: {$payload['sku']}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Produto/Serviço: {$payload['name']}, SKU: {$payload['sku']}");
 					$existing = ProductService::query()->where('name', $name)->first();
 					if ($existing) {
 						$existing->fill($payload)->save();

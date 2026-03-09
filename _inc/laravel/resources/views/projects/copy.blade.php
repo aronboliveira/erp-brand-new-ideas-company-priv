@@ -1,17 +1,16 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang                                 = Utility::fetchUserLang();
-    $projectCopyStoreBaseName             = ViewsConstants::PRJ.'.copy.store';
-    $projectCopyStoreKebabName            = Str::kebab($projectCopyStoreBaseName);
-    $projectCopyStoreResolvedName         = Route::has($projectCopyStoreBaseName) ? $projectCopyStoreBaseName : (Route::has($projectCopyStoreKebabName) ? $projectCopyStoreKebabName : null);
-    $projectCopyStoreRouteArray           = $projectCopyStoreResolvedName ? [$projectCopyStoreResolvedName, $project->id] : ['#'];
-    $projectCopyStoreUrl                  = $projectCopyStoreResolvedName ? route($projectCopyStoreResolvedName, $project->id) : '#';
-    $projectCopyStoreGuardMsg             = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_copy_store_route_unavailable') ?? 'Project copy store route is unavailable. Please contact technical support or your domain administrator.';
-    $projectCopyStoreFormId               = 'project-copy-store-form-' . $project->id;
+    try {
+$lang                                 = Utility::fetchUserLang();
+        $projectCopyStoreBaseName             = ViewsConstants::PRJ.'.copy.store';
+        $projectCopyStoreKebabName            = Str::kebab($projectCopyStoreBaseName);
+        $projectCopyStoreResolvedName         = Route::has($projectCopyStoreBaseName) ? $projectCopyStoreBaseName : (Route::has($projectCopyStoreKebabName) ? $projectCopyStoreKebabName : null);
+        $projectCopyStoreRouteArray           = $projectCopyStoreResolvedName ? [$projectCopyStoreResolvedName, $project->id] : ['#'];
+        $projectCopyStoreUrl                  = $projectCopyStoreResolvedName ? route($projectCopyStoreResolvedName, $project->id) : '#';
+        $projectCopyStoreGuardMsg             = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_copy_store_route_unavailable') ?? 'Project copy store route is unavailable. Please contact technical support or your domain administrator.';
+        $projectCopyStoreFormId               = 'project-copy-store-form-' . $project->id;
+    } catch (\Throwable $e) {
+        \Log::error('projects/copy — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::model($project, [
     'route'          => $projectCopyStoreRouteArray,
@@ -120,7 +119,7 @@
     </div>
 {{ Form::close() }}
     <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -149,7 +148,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
- 
+
           })();
     </script>
 <script defer>
@@ -181,7 +180,7 @@ Object.keys(t).forEach(
             t.id='error-toast';
             t.className='toast align-items-center text-bg-danger border-0';
             t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-            t.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+            t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${message}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
             document.body.appendChild(t);
         }
         new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -198,12 +197,12 @@ Object.keys(t).forEach(
     };
 
     try{
-        if (typeof $==="undefined"){ 
+        if (typeof $==="undefined"){
             if (
                 window.location.hostname === "localhost" ||
                 window.location.hostname === "127.0.0.1"
-            ) console.error("jQuery unavailable");     
-            return; 
+            ) console.error("jQuery unavailable");
+            return;
         }
 
         $(document).on('click','#all',function(){
@@ -228,7 +227,7 @@ Object.keys(t).forEach(
         try{ $('.bug').prop('checked',false); }catch{ attachGuardOnce(this,'cascade_bug_unavailable'); }
         });
 
-    }catch(e){ 
+    }catch(e){
         if (
             window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1"
@@ -239,41 +238,28 @@ Object.keys(t).forEach(
     })();
 </script>
 <script defer>
-    (() => {
-        const form = document.getElementById('{{ $projectCopyStoreFormId }}');
-        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-        form.setAttribute('data-listener-active', 'true');
-        form.addEventListener('submit', e => {
-            try {
-                const url = form.getAttribute('data-url') || '#';
-                const action = form.getAttribute('action') || '#';
-                if (url !== '#' || action !== '#') return;
-                e.preventDefault();
-                const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                let container = document.getElementById('toast-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toast-container';
-                    document.body.appendChild(container);
-                }
-                if (hasBootstrap) {
-                    const toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.setAttribute('role','alert');
-                    toast.setAttribute('aria-live','assertive');
-                    toast.setAttribute('aria-atomic','true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    body.textContent = msg;
-                    toast.appendChild(body);
-                    container.appendChild(toast);
-                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                } else {
-                    alert(msg);
-                }
-                form.setAttribute('data-failed-route', 'true');
-            } catch (err) {}
-        });
-    })();
+    if (typeof window.ProjectCopyHandler === 'undefined') {
+        window.ProjectCopyHandler = {
+            init() {
+                const form = document.getElementById('{{ $projectCopyStoreFormId }}');
+                if (form) this.attachFormGuard(form);
+            },
+            attachFormGuard(form) {
+                form.addEventListener('submit', e => {
+                    try {
+                        const url = form.getAttribute('data-url') || '#';
+                        const action = form.getAttribute('action') || '#';
+                        if (url !== '#' && action !== '#') return;
+                        e.preventDefault();
+                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                        this.showToast(msg);
+                    } catch (err) {}
+                });
+            },
+            showToast(msg) {
+                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+            }
+        };
+        document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.ProjectCopyHandler.init()) : window.ProjectCopyHandler.init();
+    }
 </script>

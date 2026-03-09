@@ -4,7 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsToMany, HasMany};
+use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsTo, BelongsToMany, HasMany};
 use App\Models\{
 	Deal,
 	Pipeline,
@@ -21,6 +21,11 @@ use App\Models\{
 
 class DealTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -44,15 +49,12 @@ class DealTest extends TestCase
 			'permissions' => 'foo,bar',
 			'status'      => 'Active',
 			'order'       => 10,
-			'created_by'  => 'user1',
 			'is_active'   => true,
 		];
 
 		$deal = Deal::create($data);
 
-		foreach ($data as $key => $value) {
-			$this->assertEquals($value, $deal->$key);
-		}
+		$this->assertFillableMatches($data, $deal);
 	}
 
 	/**
@@ -82,10 +84,10 @@ class DealTest extends TestCase
 	{
 		$relation = (new Deal)->pipeline();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Pipeline::class,    get_class($relation->getRelated()));
-		$this->assertSame('id',               $relation->getForeignKeyName());
-		$this->assertSame('pipeline_id',      $relation->getLocalKeyName());
+		$this->assertSame('pipeline_id',               $relation->getForeignKeyName());
+		$this->assertSame('id',      $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -97,10 +99,10 @@ class DealTest extends TestCase
 	{
 		$relation = (new Deal)->stage();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Stage::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',               $relation->getForeignKeyName());
-		$this->assertSame('stage_id',         $relation->getLocalKeyName());
+		$this->assertSame('stage_id',               $relation->getForeignKeyName());
+		$this->assertSame('id',         $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -172,11 +174,11 @@ class DealTest extends TestCase
 	 **/
 	public function completeTasks_scope_filters_status()
 	{
-		$query = (new Deal)->completeTasks()->getQuery();
+		$query = (new Deal)->completeTasks()->getQuery()->getQuery();
 		$wheres = collect($query->wheres);
 		$this->assertTrue(
 			$wheres->contains(
-				fn ($w) =>
+				fn($w) =>
 				$w['type'] === 'Basic' && $w['column'] === 'status' && $w['value'] === 1
 			)
 		);
@@ -225,7 +227,7 @@ class DealTest extends TestCase
 		$this->assertSame(DealEmail::class,          get_class($relation->getRelated()));
 		$this->assertSame('deal_id',                 $relation->getForeignKeyName());
 		// check that ordering is applied
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 
@@ -241,7 +243,7 @@ class DealTest extends TestCase
 		$this->assertInstanceOf(HasMany::class,      $relation);
 		$this->assertSame(ActivityLog::class,        get_class($relation->getRelated()));
 		$this->assertSame('deal_id',                 $relation->getForeignKeyName());
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 
@@ -257,7 +259,7 @@ class DealTest extends TestCase
 		$this->assertInstanceOf(HasMany::class,      $relation);
 		$this->assertSame(DealDiscussion::class,     get_class($relation->getRelated()));
 		$this->assertSame('deal_id',                 $relation->getForeignKeyName());
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 }

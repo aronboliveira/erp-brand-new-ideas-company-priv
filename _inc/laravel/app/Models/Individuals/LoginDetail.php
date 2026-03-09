@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
+use App\Traits\{UsesUuids};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{HasOne};
 
 class LoginDetail extends Model
 {
@@ -11,13 +13,12 @@ class LoginDetail extends Model
 
     private const FILLABLE_FIELDS = [
         'user_id', 'ip', 'date', 'Details', 'created_by'
-    ];                                     // ! CHANGED
+    ];
 
-    protected $fillable = self::FILLABLE_FIELDS; // ! CHANGED
+    protected $fillable = self::FILLABLE_FIELDS;
 
     public function createdBy(): HasOne
     {
-        return $this->hasOne('App\Models\user', 'id', 'ticket_created'); // ! CHANGED
-        // * consider using created_by as foreign key or belongsTo(User::class,'created_by')
-    }
+        return $this->hasOne('App\Models\user', 'id', 'ticket_created');
+            }
 }

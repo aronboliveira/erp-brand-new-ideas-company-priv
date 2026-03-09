@@ -1,29 +1,51 @@
 @php
-	use App\Config\Constants\{
-		PlansConstants,
-		StacksConstants,
-		ViewsConstants as VW,
-		ViewClassNamesConstants as VC
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\Route;
-	use Illuminate\Support\Str;
-
-	$lang = Utility::fetchUserLang();
-
-	$editFormId = 'edit_transfer';
-	$updateBase = VW::TRF . '.update';
-	$updateKebab = Str::kebab($updateBase);
-	$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-	$updateActionUrl = ($updateResolved && !empty($transfer?->id)) ? route($updateResolved, [$transfer->id]) : '#';
-	$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::TRF, 'update_transfer_route_unavailable') ?? 'Update transfer route is unavailable. Please contact technical support or your domain administrator.';
-
-	$genBase = 'generate';
-	$genKebab = Str::kebab($genBase);
-	$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
-	$genUrl = $genResolved ? route($genResolved, ['transfer']) : '#';
-	$genGuardMsg = Utility::fetchLinkMessage($lang, VW::TRF, 'generate_transfer_edit_route_unavailable') ?? 'Generate transfer content for editing route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$editFormId ??= 'edit_transfer';
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateActionUrl ??= '#';
+	$updateGuardMsg ??= '';
+	$genBase ??= 'generate';
+	$genKebab ??= '';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$updateBase = VW::TRF . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateActionUrl = ($updateResolved && !empty($transfer?->id)) ? (route($updateResolved, [$transfer->id]) ?? '#') : '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::TRF, 'update_transfer_route_unavailable')
+			?? 'Update transfer route is unavailable. Please contact technical support or your domain administrator.';
+		$genKebab = Str::kebab($genBase);
+		$genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+		$genUrl = $genResolved ? (route($genResolved, ['transfer']) ?? '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, VW::TRF, 'generate_transfer_edit_route_unavailable')
+			?? 'Generate transfer content for editing route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in transfers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in transfers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in transfers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($transfer, [
@@ -37,13 +59,13 @@
 	<div class="modal-body">
 		@php($plan = Utility::getChatGPTSettings())
 		@if($plan?->{PlansConstants::COL_GPT} == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a href="#"
 				   data-size="md"
 				   class="{{ VC::BT_SM_PM }} btn-icon"
 				   data-ajax-popup-over="true"
 				   data-url="{{ $genUrl }}"
-				   data-guard-msg="{{ $genGuardMsg }}"
+				   data-guard-msg="{{ base64_encode($genGuardMsg) }}"
 				   data-sv-localized="true"
 				   data-bs-placement="top"
 				   data-title="{{ __('Generate content with AI') }}">
@@ -88,4 +110,3 @@
     <script defer src="{{ asset('assets/js/routes/transfers/update.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/transfers/generateEdit.js') }}"></script>
 {!! Form::close() !!}
-

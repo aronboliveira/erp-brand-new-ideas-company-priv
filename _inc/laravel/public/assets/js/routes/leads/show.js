@@ -1,158 +1,81 @@
-(function () {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataGuardListener = "data-guard-listener";
-  const msgKey = "leads_unavailable";
-  const getMsg = el => {
-    let msg = errFb;
-    try {
-      if (!el) return msg;
-      if (
-        el.getAttribute("data-sv-localized") === "true" ||
-        el.getAttribute(dataClientLocalized) === "true"
-      ) {
-        msg = el.getAttribute(dataGuardMsg) || errFb;
-      } else {
-        let lang = (
-          window.sessionStorage.getItem("erp-np-lang") ||
-          document.documentElement.lang ||
-          "en"
-        )
-          .toLowerCase()
-          .replace(/_/g, "-");
-        lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-        msg =
-          window.translations?.[lang]?.[msgKey] ||
-          el.getAttribute(dataGuardMsg) ||
-          window.translations?.en?.[msgKey] ||
-          errFb;
-        if (msg !== errFb) {
-          el.setAttribute(dataGuardMsg, msg);
-          el.setAttribute(dataClientLocalized, "true");
-        }
-      }
-      return msg;
-    } catch {
-      return errFb;
-    }
-  };
-  const hasBootstrapCss = () =>
-    !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-  const showError = el => {
-    try {
-      const message = getMsg(el);
-      if (hasBootstrapCss() && window.bootstrap?.Toast) {
-        let wrap = document.getElementById("toast-container");
-        if (!wrap) {
-          wrap = document.createElement("div");
-          wrap.id = "toast-container";
-          document.body.appendChild(wrap);
-        }
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = message;
-        t.appendChild(b);
-        wrap.appendChild(t);
-        window.bootstrap.Toast.getOrCreateInstance(t, {
-          autohide: true,
-          delay: 4000,
-        }).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(errFb);
-    }
-  };
-  try {
-    const jq = window.jQuery || (window.$?.fn ? window.$ : null);
-    if (!jq) {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      )
-        console.error("jQuery not found for leads show");
-      return;
-    }
-    jq(() => {
-      const bindClick = el => {
-        if (!el || el.getAttribute(dataGuardListener) === "true") return;
-        el.setAttribute(dataGuardListener, "true");
-        const $el = jq(el);
-        const onClick = e => {
-          try {
-            const url = el.getAttribute("data-url");
-            const href = el.getAttribute("href");
-            if ((!url || url === "#") && (!href || href === "#")) {
-              e.preventDefault();
-              showError(el);
-            }
-          } catch {
+(() => {
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  const $ = window.jQuery;
+  if (!guard || !utils || !$) return;
+
+  const getMsg = key => utils.getTranslation(key) || "# ERROR";
+  const showError = msg => guard.showToast(msg);
+
+  const listenerAttr = "data-leads-show-listener";
+  $(() => {
+    const bindClick = el => {
+      if (!el || el.getAttribute(listenerAttr) === "true") return;
+      el.setAttribute(listenerAttr, "true");
+      const $el = $(el);
+      const onClick = e => {
+        try {
+          const url = el.getAttribute("data-url");
+          const href = el.getAttribute("href");
+          if ((!url || url === "#") && (!href || href === "#")) {
             e.preventDefault();
-            showError(el);
+            showError(getMsg("leads_unavailable"));
           }
-        };
-        $el.on("click.leadsShowGuard", onClick);
-        const obs = new MutationObserver(() => {
-          if (!document.body.contains(el)) {
-            try {
-              $el.off("click.leadsShowGuard", onClick);
-            } catch {}
-            obs.disconnect();
-          }
-        });
-        obs.observe(document.body, { childList: true, subtree: true });
+        } catch {
+          e.preventDefault();
+          showError(getMsg("leads_unavailable"));
+        }
       };
-      const bindPointerUp = el => {
-        if (!el || el.getAttribute(dataGuardListener) === "true") return;
-        el.setAttribute(dataGuardListener, "true");
-        const $el = jq(el);
-        const onPointerUp = e => {
+      $el.on("click.leadsShowGuard", onClick);
+      const obs = new MutationObserver(() => {
+        if (!document.body.contains(el)) {
           try {
-            const url = el.getAttribute("data-url");
-            const href = el.form
-              ? el.form.getAttribute("action")
-              : el.getAttribute("action");
-            if ((!url || url === "#") && (!href || href === "#")) {
-              e.preventDefault();
-              showError(el);
-            }
-          } catch {
+            $el.off("click.leadsShowGuard", onClick);
+          } catch {}
+          obs.disconnect();
+        }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    };
+    const bindPointerUp = el => {
+      if (!el || el.getAttribute(listenerAttr) === "true") return;
+      el.setAttribute(listenerAttr, "true");
+      const $el = $(el);
+      const onPointerUp = e => {
+        try {
+          const url = el.getAttribute("data-url");
+          const href = el.form
+            ? el.form.getAttribute("action")
+            : el.getAttribute("action");
+          if ((!url || url === "#") && (!href || href === "#")) {
             e.preventDefault();
-            showError(el);
+            showError(getMsg("leads_unavailable"));
           }
-        };
-        $el.on("pointerup.leadsDeleteGuard", onPointerUp);
-        const obs = new MutationObserver(() => {
-          if (!document.body.contains(el)) {
-            try {
-              $el.off("pointerup.leadsDeleteGuard", onPointerUp);
-            } catch {}
-            obs.disconnect();
-          }
-        });
-        obs.observe(document.body, { childList: true, subtree: true });
+        } catch {
+          e.preventDefault();
+          showError(getMsg("leads_unavailable"));
+        }
       };
-      try {
-        document.querySelectorAll(".lead-route-guard").forEach(bindClick);
-      } catch {
-        jq(".lead-route-guard").toArray().forEach(bindClick);
-      }
-      try {
-        document.querySelectorAll(".lead-delete-guard").forEach(bindPointerUp);
-      } catch {
-        jq(".lead-delete-guard").toArray().forEach(bindPointerUp);
-      }
-    });
-  } catch {
+      $el.on("pointerup.leadsDeleteGuard", onPointerUp);
+      const obs = new MutationObserver(() => {
+        if (!document.body.contains(el)) {
+          try {
+            $el.off("pointerup.leadsDeleteGuard", onPointerUp);
+          } catch {}
+          obs.disconnect();
+        }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    };
     try {
-      alert(errFb);
-    } catch {}
-  }
+      document.querySelectorAll(".lead-route-guard").forEach(bindClick);
+    } catch {
+      $(".lead-route-guard").toArray().forEach(bindClick);
+    }
+    try {
+      document.querySelectorAll(".lead-delete-guard").forEach(bindPointerUp);
+    } catch {
+      $(".lead-delete-guard").toArray().forEach(bindPointerUp);
+    }
+  });
 })();

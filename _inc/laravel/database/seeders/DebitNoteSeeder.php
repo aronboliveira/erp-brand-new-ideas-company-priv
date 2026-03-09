@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 class DebitNoteSeeder extends Seeder
 {
 	// --- Parâmetros fixos (sem env) ---
-	private const COUNT            = 120;
+	private const COUNT            = 2; // was 120
 	private const OPTIONALITY      = 0.92;
 	private const BILL_RATIO       = 0.70; // viés para bill (débito)
 	private const CARD_RATIO       = 0.95;
@@ -36,7 +36,14 @@ class DebitNoteSeeder extends Seeder
 		$customers  = $this->pluckIds(DC::TABLE_CUSTOMERS ?? 'customers');
 		$vendors    = $this->pluckIds(DC::TABLE_VENDORS ?? 'vendors');
 		$invoices   = Invoice::pluck('id')->all();
-		$bills      = Bill::pluck('id')->all();
+		$bills      = Bill::where('type', 'bill')
+			->where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
+			->pluck('id')
+			->all()
+			?: Bill::where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
+			->pluck('id')
+			->all()
+			?: Bill::pluck('id')->all();
 		$accounts   = $this->pluckIds(DC::TABLE_BANK_ACC ?? 'bank_accounts');
 		$categories = $this->pluckIds(DC::TABLE_PROD_SERV_CATS ?? 'product_service_categories');
 		$users      = $this->pluckIds(DC::TABLE_USERS ?? 'users');
@@ -102,16 +109,18 @@ class DebitNoteSeeder extends Seeder
 					$invoiceId = null;
 					$billId = null;
 
+					// Always assign a bill — the debit_notes index view requires
+					// the parent bill relationship to display rows.
+					if (!empty($bills)) {
+						$billId = Arr::random($bills);
+					}
+
 					if (!empty($invoices) && fake()->boolean((int) round(self::BILL_RATIO * 100))) {
 						$invoiceId = Arr::random($invoices);
 					}
 
-					if (!$invoiceId && !empty($bills)) {
-						$billId = Arr::random($bills);
-					}
-
-					if (!$invoiceId && !$billId && !empty($invoices)) {
-						$invoiceId = Arr::random($invoices);
+					if (!$billId && !empty($invoices)) {
+						$invoiceId = $invoiceId ?: Arr::random($invoices);
 					}
 
 					if (!$invoiceId && !$billId) {
@@ -220,8 +229,8 @@ class DebitNoteSeeder extends Seeder
 
 						\App\Config\Constants\UsersConstants::COL_VD_ID => $vendorId,
 					];
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Nota de Débito para Cliente {$customerId} com conta {$accountId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Nota de Débito para Cliente {$customerId} com conta {$accountId}");
 					$note = DebitNote::create($payload);
 					if ($card) {
 						$note->{BC::COL_CD_FLG} = $card['flag'];
@@ -233,11 +242,11 @@ class DebitNoteSeeder extends Seeder
 					}
 
 					// Novos nomes de coluna
-					if (Schema::hasColumn(DC::TABLE_DB_NOTES, DC::COL_TABLE_CREATOR) && $users) {
-						$note->{DC::COL_TABLE_CREATOR} = Arr::random($users);
+					if (Schema::hasColumn(DC::TABLE_DB_NOTES, DC::COL_TABLE_CREATOR)) {
+						$note->{DC::COL_TABLE_CREATOR} = DC::DEFAULT_UUID;
 					}
-					if (Schema::hasColumn(DC::TABLE_DB_NOTES, DC::COL_TABLE_UPDATER) && $users) {
-						$note->{DC::COL_TABLE_UPDATER} = Arr::random($users);
+					if (Schema::hasColumn(DC::TABLE_DB_NOTES, DC::COL_TABLE_UPDATER)) {
+						$note->{DC::COL_TABLE_UPDATER} = DC::DEFAULT_UUID;
 					}
 
 					$note->save();

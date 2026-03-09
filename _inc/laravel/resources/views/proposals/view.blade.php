@@ -1,24 +1,16 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Proposal,Utility};
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $settings = Utility::settings();
-    $proposalIndexBaseName = VW::PPS . '.index';
-    $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
-    $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
-    $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
-    $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $settings = Utility::settings();
+        $proposalIndexBaseName = VW::PPS . '.index';
+        $proposalIndexKebabName = Str::kebab($proposalIndexBaseName);
+        $proposalIndexResolvedName = Route::has($proposalIndexBaseName) ? $proposalIndexBaseName : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
+        $proposalIndexUrl = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
+        $proposalIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PPS, 'proposal_index_route_unavailable') ?? 'Proposal index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -26,7 +18,7 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -55,7 +47,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
@@ -91,7 +83,7 @@ Object.keys(t).forEach(
                     toast.id="np-error-toast";
                     toast.className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
                     toast.setAttribute("role","alert"); toast.setAttribute("aria-live","assertive"); toast.setAttribute("aria-atomic","true");
-                    toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                    toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                     document.body.appendChild(toast);
                 }
                 new bootstrap.Toast(toast).show();
@@ -112,12 +104,12 @@ Object.keys(t).forEach(
             };
 
             try{
-            if(typeof $==="undefined"){ 
+            if(typeof $==="undefined"){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
-                ) console.error("jQuery unavailable");     
-                return; 
+                ) console.error("jQuery unavailable");
+                return;
             }
             $(document).on("change",".status_change",function(){
                 const el=this;
@@ -159,48 +151,52 @@ Object.keys(t).forEach(
     </script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="proposal-index-link"
             href="{{ $proposalIndexUrl }}"
             data-url="{{ $proposalIndexUrl }}"
-            data-guard-msg="{{ $proposalIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($proposalIndexGuardMsg) }}"
         >
             {{ __('Proposal') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Proposal Details')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Proposal Details')}}</li>
 @endsection
 @section('content')
     @can('send proposal')
         @php
-            $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
-            $pid = $proposalValid ? data_get($proposal,'id') : null;
-            $statusVal = $proposalValid ? data_get($proposal,'status') : null;
-            $issueDate = $proposalValid ? data_get($proposal,'issue_date') : null;
-            $sendDate = $proposalValid ? data_get($proposal,'send_date') : null;
-            $issueDateText = ($user && method_exists($user,'dateFormat') && $issueDate) ? ($user->dateFormat($issueDate) ?? __('No issue date available')) : __('No issue date available');
-            $sendDateText = ($user && method_exists($user,'dateFormat') && $sendDate) ? ($user->dateFormat($sendDate) ?? __('No send date available')) : __('No send date available');
-            $badgeByStatus = [0=>'bg-primary',1=>'bg-info',2=>'bg-success',3=>'bg-warning',4=>'bg-danger'];
-            $statusLabels = (isset(Proposal::$statuses) && is_array(Proposal::$statuses)) ? Proposal::$statuses : [];
-            $validSt = isset($statusVal) && is_numeric($statusVal) && $statusVal >= 0 && $statusVal <= 4;
-            $statusBadgeClasses = $validSt ? ($badgeByStatus[(int)$statusVal] ?? 'bg-secondary') : 'bg-secondary';
-            $statusText = $validSt ? __($statusLabels[(int)$statusVal] ?? __('Unknown status')) : __('Unknown status');
-            $statusOptions = (isset($status) && (is_array($status) || $status instanceof \Illuminate\Support\Collection)) ? (array) $status : [];
-        @endphp
+            try {
+                $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
+                $pid = $proposalValid ? data_get($proposal,'id') : null;
+                $statusVal = $proposalValid ? data_get($proposal,'status') : null;
+                $issueDate = $proposalValid ? data_get($proposal,'issue_date') : null;
+                $sendDate = $proposalValid ? data_get($proposal,'send_date') : null;
+                $issueDateText = ($user && method_exists($user,'dateFormat') && $issueDate) ? ($user->dateFormat($issueDate) ?? __('No issue date available')) : __('No issue date available');
+                $sendDateText = ($user && method_exists($user,'dateFormat') && $sendDate) ? ($user->dateFormat($sendDate) ?? __('No send date available')) : __('No send date available');
+                $badgeByStatus = [0=>'bg-primary',1=>'bg-info',2=>'bg-success',3=>'bg-warning',4=>'bg-danger'];
+                $statusLabels = (isset(Proposal::$statuses) && is_array(Proposal::$statuses)) ? Proposal::$statuses : [];
+                $validSt = isset($statusVal) && is_numeric($statusVal) && $statusVal >= 0 && $statusVal <= 4;
+                $statusBadgeClasses = $validSt ? ($badgeByStatus[(int)$statusVal] ?? 'bg-secondary') : 'bg-secondary';
+                $statusText = $validSt ? __($statusLabels[(int)$statusVal] ?? __('Unknown status')) : __('Unknown status');
+                $statusOptions = (isset($status) && (is_array($status) || $status instanceof \Illuminate\Support\Collection)) ? (array) $status : [];
+            } catch (\Throwable $e) {
+                \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         @if($proposalValid && ((int)($statusVal ?? -1) !== 4))
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::CD }} {{ VC::MB3 }}">
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="row timeline-wrapper">
-                                <div class="col-md-6 col-lg-4 col-xl-4">
+                                <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                     <div class="timeline-icons">
                                         <span class="timeline-dots"></span>
                                         <i class="{{ VC::TI_PLS }} text-primary"></i>
@@ -211,7 +207,7 @@ Object.keys(t).forEach(
                                         <a href="{{ $pid ? route(VW::PPS.'.edit', Crypt::encrypt($pid)) : '#' }}" class="{{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" data-original-title="{{ __('Edit') }}"><i class="{{ VC::TI_PC }} {{ VC::MR2 }}"></i>{{ __('Edit') }}</a>
                                     @endcan
                                 </div>
-                                <div class="col-md-6 col-lg-4 col-xl-4">
+                                <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                     <div class="timeline-icons">
                                         <span class="timeline-dots"></span>
                                         <i class="ti ti-mail text-warning"></i>
@@ -232,14 +228,14 @@ Object.keys(t).forEach(
                                         @endcan
                                     @endif
                                 </div>
-                                <div class="col-md-6 col-lg-4 col-xl-4">
+                                <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                     <div class="timeline-icons">
                                         <span class="timeline-dots"></span>
-                                        <i class="ti ti-report-money text-info"></i>
+                                        <i class="{{ VC::TI_RPT_MN }} text-info"></i>
                                     </div>
                                     <h6 class="text-info {{ VC::MY3 }}">{{ __('Proposal Status') }}</h6>
                                     <small>
-                                        <span class="badge {{ $statusBadgeClasses }} p-2 px-3 rounded">{{ $statusText }}</span>
+                                        <span class="badge {{ $statusBadgeClasses }} p-2 {{ VC::PX3 }} rounded">{{ $statusText }}</span>
                                     </small>
                                     <br>
                                     <div class="float-right {{ VC::MT3 }} col-md-3 {{ VC::FEND }} ml-5" data-bs-toggle="tooltip" data-original-title="{{ __('Click to change status') }}">
@@ -262,43 +258,51 @@ Object.keys(t).forEach(
         @endif
     @endcan
     @php
-        $isCompanyUser = (data_get($user ?? null, UsersConstants::COL_TP) === PermissionsConstants::CPN);
-        $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
-        $pid = $proposalValid ? data_get($proposal,'id') : null;
-        $statusVal = $proposalValid ? data_get($proposal,'status') : null;
-        $notZeroStatus = isset($statusVal) && is_numeric($statusVal) && (int)$statusVal !== 0;
-        $proposalPdfBaseName     = ViewsConstants::PPS.'.pdf';
-        $proposalPdfKebabName    = Str::kebab($proposalPdfBaseName);
-        $proposalPdfResolvedName = Route::has($proposalPdfBaseName)
-            ? $proposalPdfBaseName
-            : (Route::has($proposalPdfKebabName) ? $proposalPdfKebabName : null);
-        $proposalIdValue         = isset($pid) && !empty($pid) ? $pid : null;
-        $encryptedProposalId     = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
-        $proposalPdfUrl          = ($proposalPdfResolvedName && $encryptedProposalId) ? route($proposalPdfResolvedName, $encryptedProposalId) : '#';
-        $proposalPdfGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'download_proposal_pdf_route_unavailable') ?? 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
-        $proposalPdfLinkId       = 'proposal-pdf-download-link-'.($proposalIdValue ?? 'x');
-    @endphp
+        try {
+            $isCompanyUser = (data_get($user ?? null, UsersConstants::COL_TP) === PermissionsConstants::CPN);
+            $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
+            $pid = $proposalValid ? data_get($proposal,'id') : null;
+            $statusVal = $proposalValid ? data_get($proposal,'status') : null;
+            $notZeroStatus = isset($statusVal) && is_numeric($statusVal) && (int)$statusVal !== 0;
+            $proposalPdfBaseName     = ViewsConstants::PPS.'.pdf';
+            $proposalPdfKebabName    = Str::kebab($proposalPdfBaseName);
+            $proposalPdfResolvedName = Route::has($proposalPdfBaseName)
+                ? $proposalPdfBaseName
+                : (Route::has($proposalPdfKebabName) ? $proposalPdfKebabName : null);
+            $proposalIdValue         = isset($pid) && !empty($pid) ? $pid : null;
+            $encryptedProposalId     = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
+            $proposalPdfUrl          = ($proposalPdfResolvedName && $encryptedProposalId) ? route($proposalPdfResolvedName, $encryptedProposalId) : '#';
+            $proposalPdfGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'download_proposal_pdf_route_unavailable') ?? 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
+            $proposalPdfLinkId       = 'proposal-pdf-download-link-'.($proposalIdValue ?? 'x');
+        } catch (\Throwable $e) {
+            \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     @if($isCompanyUser)
         @if($proposalValid && $notZeroStatus)
             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }} {{ VC::MB3 }}">
                 <div class="col-md-12 {{ VC::DFL }} {{ VC::ALC }} {{ VC::JCB }} justify-content-md-end">
                     <div class="all-button-box mx-2">
                         @php
-                            $proposalResendBaseName     = ViewsConstants::PPS.'.resent';
-                            $proposalResendKebabName    = Str::kebab($proposalResendBaseName);
-                            $proposalResendResolvedName = Route::has($proposalResendBaseName)
-                                ? $proposalResendBaseName
-                                : (Route::has($proposalResendKebabName) ? $proposalResendKebabName : null);
-                            $proposalIdValue            = isset($pid) && !empty($pid) ? $pid : null;
-                            $proposalResendUrl          = ($proposalResendResolvedName && $proposalIdValue) ? route($proposalResendResolvedName, $proposalIdValue) : '#';
-                            $proposalResendGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'resend_proposal_route_unavailable') ?? 'Resend proposal route is unavailable. Please contact technical support or your domain administrator.';
-                            $proposalResendLinkId       = 'proposal-resend-link-'.($proposalIdValue ?? 'x');
-                        @endphp
+                            try {
+                                $proposalResendBaseName     = ViewsConstants::PPS.'.resent';
+                                $proposalResendKebabName    = Str::kebab($proposalResendBaseName);
+                                $proposalResendResolvedName = Route::has($proposalResendBaseName)
+                                    ? $proposalResendBaseName
+                                    : (Route::has($proposalResendKebabName) ? $proposalResendKebabName : null);
+                                $proposalIdValue            = isset($pid) && !empty($pid) ? $pid : null;
+                                $proposalResendUrl          = ($proposalResendResolvedName && $proposalIdValue) ? route($proposalResendResolvedName, $proposalIdValue) : '#';
+                                $proposalResendGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'resend_proposal_route_unavailable') ?? 'Resend proposal route is unavailable. Please contact technical support or your domain administrator.';
+                                $proposalResendLinkId       = 'proposal-resend-link-'.($proposalIdValue ?? 'x');
+                            } catch (\Throwable $e) {
+                                \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         <a href="{{ $proposalResendUrl }}"
                         id="{{ $proposalResendLinkId }}"
                         class="{{ VC::BT_PRM }}"
                         data-url="{{ $proposalResendUrl }}"
-                        data-guard-msg="{{ $proposalResendGuardMsg }}">
+                        data-guard-msg="{{ base64_encode($proposalResendGuardMsg) }}">
                             {{ __('Resend Proposal') }}
                         </a>
                         @push(StacksConstants::ADM_SCR_PG)
@@ -315,28 +319,7 @@ Object.keys(t).forEach(
                                                 if (href !== '#' || url !== '#') return;
                                                 e.preventDefault();
                                                 const msg = l.getAttribute('data-guard-msg') || 'Resend proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
+                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                 l.setAttribute('data-failed-route', 'true');
                                             } catch (err) {}
                                         });
@@ -351,7 +334,7 @@ Object.keys(t).forEach(
                         class="{{ VC::BT_PRM }}"
                         target="_blank"
                         data-url="{{ $proposalPdfUrl }}"
-                        data-guard-msg="{{ $proposalPdfGuardMsg }}">
+                        data-guard-msg="{{ base64_encode($proposalPdfGuardMsg) }}">
                             {{ __('Download') }}
                         </a>
                     </div>
@@ -365,7 +348,7 @@ Object.keys(t).forEach(
                     <a href="{{ $proposalPdfUrl }}"
                         id="{{ $proposalPdfLinkId }}" class="{{ VC::BT_XS }} btn-white btn-icon-only width-auto" target="_blank"
                         data-url="{{ $proposalPdfUrl }}"
-                        data-guard-msg="{{ $proposalPdfGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($proposalPdfGuardMsg) }}"
                         >{{ __('Download') }}</a>
                 </div>
             </div>
@@ -385,28 +368,7 @@ Object.keys(t).forEach(
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = l.getAttribute('data-guard-msg') || 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             l.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     });
@@ -415,35 +377,39 @@ Object.keys(t).forEach(
         </script>
     @endpush
     @php
-        $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
-        $userValid = isset($user) && is_object($user);
-        $fmtDate = function($v) use($userValid,$user){ return $v ? (($userValid && method_exists($user,'dateFormat')) ? ($user->dateFormat($v) ?? null) : null) : null; };
-        $fmtPrice = function($v) use($userValid,$user){ return ($userValid && method_exists($user,'priceFormat')) ? ($user->priceFormat($v) ?? number_format((float)$v,2)) : number_format((float)$v,2); };
-        $pid = $proposalValid ? data_get($proposal,'id') : null;
-        $proposalNum = $proposalValid ? (($userValid && method_exists($user,'proposalNumberFormat')) ? ($user->proposalNumberFormat(data_get($proposal,'proposal_id')) ?? null) : null) : null;
-        $proposalNum = $proposalNum ?? __('Failed to get proposal number');
-        $issueDateText = $fmtDate($proposalValid ? data_get($proposal,'issue_date') : null) ?? __('No issue date available');
-        $statusVal = $proposalValid ? data_get($proposal,'status') : null;
-        $statusMap = [0=>'bg-primary',1=>'bg-info',2=>'bg-success',3=>'bg-warning',4=>'bg-danger'];
-        $statusLabels = (isset(\App\Models\Proposal::$statuses) && is_array(\App\Models\Proposal::$statuses)) ? \App\Models\Proposal::$statuses : [];
-        $stValid = isset($statusVal) && is_numeric($statusVal) && (int)$statusVal>=0 && (int)$statusVal<=4;
-        $statusClass = $stValid ? ($statusMap[(int)$statusVal] ?? 'bg-secondary') : 'bg-secondary';
-        $statusText = $stValid ? __($statusLabels[(int)$statusVal] ?? __('Unknown status')) : __('Unknown status');
-        $customerValid = isset($customer) && (is_array($customer) || is_object($customer));
-        $customFieldsSafe = (isset($customFields) && (is_array($customFields) || $customFields instanceof \Illuminate\Support\Collection)) ? $customFields : [];
-        $itemsSafe = (isset($items) && (is_array($items) || $items instanceof \Illuminate\Support\Collection)) ? $items : [];
-        $totalQuantity = 0; $totalRate = 0; $grandTaxTotal = 0; $totalDiscount = 0; $taxesData = [];
-        $vatOn = (isset($settings) && is_array($settings) && (data_get($settings,'vat_gst_number_switch') === 'on'));
-        $footerTitle = (isset($settings) && is_array($settings) ? (data_get($settings,'footer_title') ?? __('No footer title available')) : __('No footer title available'));
-        $footerNotes = (isset($settings) && is_array($settings) ? (data_get($settings,'footer_notes') ?? __('No footer notes available')) : __('No footer notes available'));
-    @endphp
+        try {
+            $proposalValid = isset($proposal) && !empty($proposal) && (is_array($proposal) || is_object($proposal));
+            $userValid = isset($user) && is_object($user);
+            $fmtDate = function($v) use($userValid,$user){ return $v ? (($userValid && method_exists($user,'dateFormat')) ? ($user->dateFormat($v) ?? null) : null) : null; };
+            $fmtPrice = function($v) use($userValid,$user){ return ($userValid && method_exists($user,'priceFormat')) ? ($user->priceFormat($v) ?? number_format((float)$v,2)) : number_format((float)$v,2); };
+            $pid = $proposalValid ? data_get($proposal,'id') : null;
+            $proposalNum = $proposalValid ? (($userValid && method_exists($user,'proposalNumberFormat')) ? ($user->proposalNumberFormat(data_get($proposal,'proposal_id')) ?? null) : null) : null;
+            $proposalNum = $proposalNum ?? __('Failed to get proposal number');
+            $issueDateText = $fmtDate($proposalValid ? data_get($proposal,'issue_date') : null) ?? __('No issue date available');
+            $statusVal = $proposalValid ? data_get($proposal,'status') : null;
+            $statusMap = [0=>'bg-primary',1=>'bg-info',2=>'bg-success',3=>'bg-warning',4=>'bg-danger'];
+            $statusLabels = (isset(\App\Models\Proposal::$statuses) && is_array(\App\Models\Proposal::$statuses)) ? \App\Models\Proposal::$statuses : [];
+            $stValid = isset($statusVal) && is_numeric($statusVal) && (int)$statusVal>=0 && (int)$statusVal<=4;
+            $statusClass = $stValid ? ($statusMap[(int)$statusVal] ?? 'bg-secondary') : 'bg-secondary';
+            $statusText = $stValid ? __($statusLabels[(int)$statusVal] ?? __('Unknown status')) : __('Unknown status');
+            $customerValid = isset($customer) && (is_array($customer) || is_object($customer));
+            $customFieldsSafe = (isset($customFields) && (is_array($customFields) || $customFields instanceof \Illuminate\Support\Collection)) ? $customFields : [];
+            $itemsSafe = (isset($items) && (is_array($items) || $items instanceof \Illuminate\Support\Collection)) ? $items : [];
+            $totalQuantity = 0; $totalRate = 0; $grandTaxTotal = 0; $totalDiscount = 0; $taxesData = [];
+            $vatOn = (isset($settings) && is_array($settings) && (data_get($settings,'vat_gst_number_switch') === 'on'));
+            $footerTitle = (isset($settings) && is_array($settings) ? (data_get($settings,'footer_title') ?? __('No footer title available')) : __('No footer title available'));
+            $footerNotes = (isset($settings) && is_array($settings) ? (data_get($settings,'footer_notes') ?? __('No footer notes available')) : __('No footer notes available'));
+        } catch (\Throwable $e) {
+            \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="invoice">
                         <div class="invoice-print">
-                            <div class="row invoice-title mt-2">
+                            <div class="row invoice-title {{ VC::MT2 }}">
                                 <div class="{{ VC::CLM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
                                     <h4>{{ __('Proposal') }}</h4>
                                 </div>
@@ -455,7 +421,7 @@ Object.keys(t).forEach(
                                 </div>
                             </div>
                             <div class="{{ VC::RW }}">
-                                <div class="col text-end">
+                                <div class="col {{ VC::TX_END }}">
                                     <div class="{{ VC::DFL }} {{ VC::ALC }} {{ VC::JCE }}">
                                         <div class="me-4">
                                             <small>
@@ -508,22 +474,26 @@ Object.keys(t).forEach(
                                     <div class="{{ VC::FEND }} {{ VC::MT3 }}">
                                         @if($pid)
                                             @php
-                                                $proposalLinkCopyBaseName     = ViewsConstants::PPS.'.link.copy';
-                                                $proposalLinkCopyKebabName    = Str::kebab($proposalLinkCopyBaseName);
-                                                $proposalLinkCopyResolvedName = Route::has($proposalLinkCopyBaseName)
-                                                    ? $proposalLinkCopyBaseName
-                                                    : (Route::has($proposalLinkCopyKebabName) ? $proposalLinkCopyKebabName : null);
-                                                $proposalIdValue              = isset($pid) && !empty($pid) ? $pid : null;
-                                                $encryptedProposalId          = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
-                                                $proposalLinkCopyUrl          = ($proposalLinkCopyResolvedName && $encryptedProposalId) ? route($proposalLinkCopyResolvedName, $encryptedProposalId) : '#';
-                                                $proposalLinkCopyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'copy_proposal_link_route_unavailable') ?? 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
-                                                $proposalLinkCopyQrId         = 'proposal-link-copy-qr-'.($proposalIdValue ?? 'x');
-                                            @endphp
+                                                try {
+                                                    $proposalLinkCopyBaseName     = ViewsConstants::PPS.'.link.copy';
+                                                    $proposalLinkCopyKebabName    = Str::kebab($proposalLinkCopyBaseName);
+                                                    $proposalLinkCopyResolvedName = Route::has($proposalLinkCopyBaseName)
+                                                        ? $proposalLinkCopyBaseName
+                                                        : (Route::has($proposalLinkCopyKebabName) ? $proposalLinkCopyKebabName : null);
+                                                    $proposalIdValue              = isset($pid) && !empty($pid) ? $pid : null;
+                                                    $encryptedProposalId          = $proposalIdValue ? Crypt::encrypt($proposalIdValue) : null;
+                                                    $proposalLinkCopyUrl          = ($proposalLinkCopyResolvedName && $encryptedProposalId) ? route($proposalLinkCopyResolvedName, $encryptedProposalId) : '#';
+                                                    $proposalLinkCopyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'copy_proposal_link_route_unavailable') ?? 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $proposalLinkCopyQrId         = 'proposal-link-copy-qr-'.($proposalIdValue ?? 'x');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <div id="{{ $proposalLinkCopyQrId }}"
                                                 class="{{ VC::DBL }}"
                                                 data-url="{{ $proposalLinkCopyUrl }}"
-                                                data-guard-msg="{{ $proposalLinkCopyGuardMsg }}">
-                                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
+                                                data-guard-msg="{{ base64_encode($proposalLinkCopyGuardMsg) }}">
+                                                {!! DNS2D::getBarcodeHTML($proposalLinkCopyUrl, 'QRCODE', 2, 2) !!}
                                             </div>
                                             @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>
@@ -538,28 +508,7 @@ Object.keys(t).forEach(
                                                                     if (url !== '#') return;
                                                                     e.preventDefault();
                                                                     const msg = c.getAttribute('data-guard-msg') || 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (hasBootstrap) {
-                                                                        const toast = document.createElement('div');
-                                                                        toast.className = 'toast';
-                                                                        toast.setAttribute('role', 'alert');
-                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toast.appendChild(body);
-                                                                        container.appendChild(toast);
-                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
+                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                     c.setAttribute('data-failed-route', 'true');
                                                                 } catch (err) {}
                                                             });
@@ -577,18 +526,22 @@ Object.keys(t).forEach(
                                 <div class="col">
                                     <small>
                                         <strong>{{ __('Status') }}:</strong><br>
-                                        <span class="badge {{ $statusClass }} p-2 px-3 rounded">{{ $statusText }}</span>
+                                        <span class="badge {{ $statusClass }} p-2 {{ VC::PX3 }} rounded">{{ $statusText }}</span>
                                     </small>
                                 </div>
                             </div>
                             @if(!empty($customFieldsSafe) && !empty(data_get($proposal,'customField')))
                                 @foreach($customFieldsSafe as $field)
                                     @php
-                                        $fid = data_get($field,'id');
-                                        $fname = data_get($field,'name') ?? __('No field name available');
-                                        $fval = data_get($proposal,'customField.'.$fid) ?? '-';
-                                    @endphp
-                                    <div class="col text-end">
+                                        try {
+                                            $fid = data_get($field,'id');
+                                            $fname = data_get($field,'name') ?? __('No field name available');
+                                            $fval = data_get($proposal,'customField.'.$fid) ?? '-';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
+                                    <div class="col {{ VC::TX_END }}">
                                         <small>
                                             <strong>{{ $fname }} :</strong><br>
                                             {{ $fval }}<br><br>
@@ -600,50 +553,54 @@ Object.keys(t).forEach(
                                 <div class="{{ VC::CM12 }}">
                                     <div class="font-weight-bold">{{ __('Product Summary') }}</div>
                                     <small>{{ __('All items here cannot be deleted.') }}</small>
-                                    <div class="table-responsive mt-2">
+                                    <div class="{{ VC::TB_RSP }} {{ VC::MT2 }}">
                                         <table class="{{ VC::TB }} {{ VC::MB0 }} invoice-body">
                                             <thead>
                                                 <tr>
-                                                    <th class="text-dark" data-width="40">#</th>
-                                                    <th class="text-dark">{{ __('Product') }}</th>
-                                                    <th class="text-dark">{{ __('Quantity') }}</th>
-                                                    <th class="text-dark">{{ __('Rate') }}</th>
-                                                    <th class="text-dark">{{ __('Discount') }}</th>
-                                                    <th class="text-dark">{{ __('Tax') }}</th>
-                                                    <th class="text-dark">{{ __('Description') }}</th>
-                                                    <th class="text-end text-dark" width="12%">{{ __('Price') }}<br><small class="text-danger font-weight-bold">{{ __('after tax & discount') }}</small></th>
+                                                    <th class="{{ VC::TX_DK }}" data-width="40">#</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Product') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Quantity') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Rate') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Discount') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Tax') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                                    <th class="{{ VC::TX_END }} {{ VC::TX_DK }}" width="12%">{{ __('Price') }}<br><small class="{{ VC::TX_DNG }} font-weight-bold">{{ __('after tax & discount') }}</small></th>
                                                 </tr>
                                             </thead>
                                             @foreach($itemsSafe as $key => $item)
                                                 @php
-                                                    $qty = (float)(data_get($item,'quantity') ?? 0);
-                                                    $price = (float)(data_get($item,'price') ?? 0);
-                                                    $disc = (float)(data_get($item,'discount') ?? 0);
-                                                    $totalQuantity += $qty;
-                                                    $totalRate += $price;
-                                                    $totalDiscount += $disc;
-                                                    $rowTaxes = [];
-                                                    $rowTaxTotal = 0;
-                                                    $taxRef = data_get($item,'tax');
-                                                    if(!empty($taxRef)){
-                                                        $taxList = Utility::tax($taxRef);
-                                                        foreach($taxList as $tx){
-                                                            $txName = data_get($tx,'name') ?? __('Unknown tax');
-                                                            $txRate = (float)(data_get($tx,'rate') ?? 0);
-                                                            $txPrice = Utility::taxRate($txRate,$price,$qty,$disc);
-                                                            $rowTaxes[] = ['name'=>$txName,'rate'=>$txRate,'amount'=>$txPrice];
-                                                            $rowTaxTotal += $txPrice;
-                                                            $taxesData[$txName] = ($taxesData[$txName] ?? 0) + $txPrice;
+                                                    try {
+                                                        $qty = (float)(data_get($item,'quantity') ?? 0);
+                                                        $price = (float)(data_get($item,'price') ?? 0);
+                                                        $disc = (float)(data_get($item,'discount') ?? 0);
+                                                        $totalQuantity += $qty;
+                                                        $totalRate += $price;
+                                                        $totalDiscount += $disc;
+                                                        $rowTaxes = [];
+                                                        $rowTaxTotal = 0;
+                                                        $taxRef = data_get($item,'tax');
+                                                        if(!empty($taxRef)){
+                                                            $taxList = Utility::tax($taxRef);
+                                                            foreach($taxList as $tx){
+                                                                $txName = data_get($tx,'name') ?? __('Unknown tax');
+                                                                $txRate = (float)(data_get($tx,'rate') ?? 0);
+                                                                $txPrice = Utility::taxRate($txRate,$price,$qty,$disc);
+                                                                $rowTaxes[] = ['name'=>$txName,'rate'=>$txRate,'amount'=>$txPrice];
+                                                                $rowTaxTotal += $txPrice;
+                                                                $taxesData[$txName] = ($taxesData[$txName] ?? 0) + $txPrice;
+                                                            }
                                                         }
+                                                        $grandTaxTotal += $rowTaxTotal;
+                                                        $prodName = data_get($item,'product.name') ?? __('No product name available');
+                                                        $unitId = data_get($item,'product.unit_id');
+                                                        $unitModel = $unitId ? \App\Models\ProductServiceUnit::find($unitId) : null;
+                                                        $unitName = $unitModel->name ?? __('unit');
+                                                        $desc = data_get($item,'description') ?? '-';
+                                                        $rowTotal = ($price * $qty - $disc) + $rowTaxTotal;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('proposals/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                     }
-                                                    $grandTaxTotal += $rowTaxTotal;
-                                                    $prodName = data_get($item,'product.name') ?? __('No product name available');
-                                                    $unitId = data_get($item,'product.unit_id');
-                                                    $unitModel = $unitId ? \App\Models\ProductServiceUnit::find($unitId) : null;
-                                                    $unitName = $unitModel->name ?? __('unit');
-                                                    $desc = data_get($item,'description') ?? '-';
-                                                    $rowTotal = ($price * $qty - $disc) + $rowTaxTotal;
-                                                @endphp
+@endphp
                                                 <tr>
                                                     <td>{{ $key+1 }}</td>
                                                     <td>{{ $prodName }}</td>
@@ -665,7 +622,7 @@ Object.keys(t).forEach(
                                                         @endif
                                                     </td>
                                                     <td>{{ $desc }}</td>
-                                                    <td class="text-end">{{ $fmtPrice($rowTotal) }}</td>
+                                                    <td class="{{ VC::TX_END }}">{{ $fmtPrice($rowTotal) }}</td>
                                                 </tr>
                                             @endforeach
                                             <tfoot>
@@ -681,27 +638,27 @@ Object.keys(t).forEach(
                                                 </tr>
                                                 <tr>
                                                     <td colspan="6"></td>
-                                                    <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
-                                                    <td class="text-end">{{ $fmtPrice($proposalValid && method_exists($proposal,'getSubTotal') ? $proposal->getSubTotal() : 0) }}</td>
+                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Sub Total') }}</b></td>
+                                                    <td class="{{ VC::TX_END }}">{{ $fmtPrice($proposalValid && method_exists($proposal,'getSubTotal') ? $proposal->getSubTotal() : 0) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="6"></td>
-                                                    <td class="text-end"><b>{{ __('Discount') }}</b></td>
-                                                    <td class="text-end">{{ $fmtPrice($proposalValid && method_exists($proposal,'getTotalDiscount') ? $proposal->getTotalDiscount() : 0) }}</td>
+                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Discount') }}</b></td>
+                                                    <td class="{{ VC::TX_END }}">{{ $fmtPrice($proposalValid && method_exists($proposal,'getTotalDiscount') ? $proposal->getTotalDiscount() : 0) }}</td>
                                                 </tr>
                                                 @if(!empty($taxesData))
                                                     @foreach($taxesData as $taxName => $taxPrice)
                                                         <tr>
                                                             <td colspan="6"></td>
-                                                            <td class="text-end"><b>{{ $taxName }}</b></td>
-                                                            <td class="text-end">{{ $fmtPrice($taxPrice) }}</td>
+                                                            <td class="{{ VC::TX_END }}"><b>{{ $taxName }}</b></td>
+                                                            <td class="{{ VC::TX_END }}">{{ $fmtPrice($taxPrice) }}</td>
                                                         </tr>
                                                     @endforeach
                                                 @endif
                                                 <tr>
                                                     <td colspan="6"></td>
-                                                    <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
-                                                    <td class="blue-text text-end">{{ $fmtPrice($proposalValid && method_exists($proposal,'getTotal') ? $proposal->getTotal() : 0) }}</td>
+                                                    <td class="blue-text {{ VC::TX_END }}"><b>{{ __('Total') }}</b></td>
+                                                    <td class="blue-text {{ VC::TX_END }}">{{ $fmtPrice($proposalValid && method_exists($proposal,'getTotal') ? $proposal->getTotal() : 0) }}</td>
                                                 </tr>
                                             </tfoot>
                                         </table>

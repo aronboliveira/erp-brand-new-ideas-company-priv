@@ -1,24 +1,16 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants as PERM,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-
-    $user = Auth::user();
-    $hasUser = (bool) $user;
-    $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
-    $hasUserTimeFormat = $hasUser && method_exists($user, 'timeFormat');
-    $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-    $settings = Utility::settings();
+    try {
+$user = Auth::user();
+        $hasUser = (bool) $user;
+        $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
+        $hasUserTimeFormat = $hasUser && method_exists($user, 'timeFormat');
+        $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+        $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+        $lang = $hasFetchUserLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $settings = Utility::settings();
+    } catch (\Throwable $e) {
+        \Log::error('interview_schedules/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -31,24 +23,28 @@
 @endpush
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Interview Schedule') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Interview Schedule') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can(PERM::CR_ITV_SCHD)
             @php
-                $createName = VW::ITV_SCD.'.create';
-                $createUrl = Route::has($createName) ? route($createName) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'create_interview_schedule_route_unavailable') : null)
-                    ?? __('Create interview schedule route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $createName = VW::ITV_SCD.'.create';
+                    $createUrl = Route::has($createName) ? route($createName) : '#';
+                    $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'create_interview_schedule_route_unavailable') : null)
+                        ?? __('Create interview schedule route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('interview_schedules/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $createUrl }}"
                data-url="{{ $createUrl }}"
                data-ajax-popup="true"
@@ -57,7 +53,7 @@
                title="{{ __('Create') }}"
                data-title="{{ __('Create New Interview Schedule') }}"
                class="{{ VC::BT_SM_PM }}"
-               data-guard-msg="{{ $createGuardMsg }}"
+               data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -67,17 +63,17 @@
 
 @section(YW::ADM_CTT)
     @if(!$hasUser)
-        <div class="alert alert-warning mb-0" role="alert">{{ __('Failed to load interview schedules for the current user.') }}</div>
+        <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('Failed to load interview schedules for the current user.') }}</div>
     @else
         <div class="row">
-            <div class="col-lg-8">
+            <div class="{{ VC::CL8 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="{{ VC::CL6 }}">
                                 <h5>{{ __('Calendar') }}</h5>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="{{ VC::CL6 }}">
                                 @if (!empty($settings) && !empty($settings['google_calendar_enable']) && $settings['google_calendar_enable'] === 'on')
                                     <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;" onchange="get_data()">
                                         <option value="google_calendar">{{ __('Google calendar') }}</option>
@@ -88,14 +84,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div id="calendar" class="calendar"></div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="{{ VC::CL4 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <h4 class="{{ VC::MB4 }}">{{ __('Schedule List') }}</h4>
                         <ul class="{{ VC::LG_FLSH_W }}">
                             <li class="{{ VC::LGI }} {{ VC::CD }} {{ VC::MB3 }}">
@@ -104,22 +100,26 @@
                                         @if(!$schedules->isEmpty())
                                             @foreach ($schedules as $schedule)
                                                 @php
-                                                    $sid = isset($schedule->id) ? (string) $schedule->id : '';
-                                                    $jobTitle = (isset($schedule->applications) && isset($schedule->applications->jobs) && !empty($schedule->applications->jobs->title))
-                                                        ? $schedule->applications->jobs->title
-                                                        : __('Job title was not available.');
-                                                    $applicant = (isset($schedule->applications) && !empty($schedule->applications->name))
-                                                        ? $schedule->applications->name
-                                                        : __('Applicant name was not available.');
-                                                    $rawDate = $schedule->date ?? null;
-                                                    $rawTime = $schedule->time ?? null;
-                                                    $dateTxt = $rawDate
-                                                        ? ($hasUserDateFormat ? $user->dateFormat($rawDate) : __('Failed to format date.'))
-                                                        : __('Date was not available.');
-                                                    $timeTxt = $rawTime
-                                                        ? ($hasUserTimeFormat ? $user->timeFormat($rawTime) : __('Failed to format time.'))
-                                                        : __('Time was not available.');
-                                                @endphp
+                                                    try {
+                                                        $sid = isset($schedule->id) ? (string) $schedule->id : '';
+                                                        $jobTitle = (isset($schedule->applications) && isset($schedule->applications->jobs) && !empty($schedule->applications->jobs->title))
+                                                            ? $schedule->applications->jobs->title
+                                                            : __('Job title was not available.');
+                                                        $applicant = (isset($schedule->applications) && !empty($schedule->applications->name))
+                                                            ? $schedule->applications->name
+                                                            : __('Applicant name was not available.');
+                                                        $rawDate = $schedule->date ?? null;
+                                                        $rawTime = $schedule->time ?? null;
+                                                        $dateTxt = $rawDate
+                                                            ? ($hasUserDateFormat ? $user->dateFormat($rawDate) : __('Failed to format date.'))
+                                                            : __('Date was not available.');
+                                                        $timeTxt = $rawTime
+                                                            ? ($hasUserTimeFormat ? $user->timeFormat($rawTime) : __('Failed to format time.'))
+                                                            : __('Time was not available.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('interview_schedules/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::CD }} {{ VC::MB3 }} {{ VC::SNN }} {{ VC::BD }}">
                                                     <div class="{{ VC::PX3 }}">
                                                         <div class="row {{ VC::ALC }}">
@@ -127,17 +127,21 @@
                                                                 <h5 class="text-sm {{ VC::MB0 }}">
                                                                     <a href="#!">{{ $jobTitle }}</a>
                                                                 </h5>
-                                                                <p class="card-text small text-muted">{{ $applicant }}</p>
-                                                                <p class="card-text small text-muted">{{ $dateTxt }} {{ $timeTxt }}</p>
+                                                                <p class="card-text small {{ VC::TXT_MT }}">{{ $applicant }}</p>
+                                                                <p class="card-text small {{ VC::TXT_MT }}">{{ $dateTxt }} {{ $timeTxt }}</p>
                                                             </div>
                                                             <div class="col-auto text-right {{ VC::DFL }}">
                                                                 @can('edit interview schedule')
                                                                     @php
-                                                                        $editName = VW::ITV_SCD.'.edit';
-                                                                        $editUrl = (Route::has($editName) && $sid !== '') ? route($editName, $sid) : '#';
-                                                                        $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'edit_interview_schedule_route_unavailable') : null)
-                                                                            ?? __('Edit interview schedule route is unavailable. Please contact technical support or your domain administrator.');
-                                                                    @endphp
+                                                                        try {
+                                                                            $editName = VW::ITV_SCD.'.edit';
+                                                                            $editUrl = (Route::has($editName) && $sid !== '') ? route($editName, $sid) : '#';
+                                                                            $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'edit_interview_schedule_route_unavailable') : null)
+                                                                                ?? __('Edit interview schedule route is unavailable. Please contact technical support or your domain administrator.');
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('interview_schedules/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                         <a href="{{ $editUrl }}"
                                                                            data-url="{{ $editUrl }}"
@@ -146,7 +150,7 @@
                                                                            class="{{ VC::BT_SM_CT }}"
                                                                            data-bs-toggle="tooltip"
                                                                            title="{{ __('Edit') }}"
-                                                                           data-guard-msg="{{ $editGuardMsg }}"
+                                                                           data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                            data-sv-localized="true">
                                                                             <i class="{{ VC::TI_PC_WT }}"></i>
                                                                         </a>
@@ -154,14 +158,18 @@
                                                                 @endcan
                                                                 @can('delete interview schedule')
                                                                     @php
-                                                                        $destroyName = VW::ITV_SCD.'.destroy';
-                                                                        $destroyUrl = (Route::has($destroyName) && $sid !== '') ? route($destroyName, $sid) : '#';
-                                                                        $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'destroy_interview_schedule_route_unavailable') : null)
-                                                                            ?? __('Delete interview schedule route is unavailable. Please contact technical support or your domain administrator.');
-                                                                        $delFormId = 'delete-form-'.($sid === '' ? 'x' : $sid);
-                                                                        $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
-                                                                        $confirmBody  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
-                                                                    @endphp
+                                                                        try {
+                                                                            $destroyName = VW::ITV_SCD.'.destroy';
+                                                                            $destroyUrl = (Route::has($destroyName) && $sid !== '') ? route($destroyName, $sid) : '#';
+                                                                            $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::ITV_SCD, 'destroy_interview_schedule_route_unavailable') : null)
+                                                                                ?? __('Delete interview schedule route is unavailable. Please contact technical support or your domain administrator.');
+                                                                            $delFormId = 'delete-form-'.($sid === '' ? 'x' : $sid);
+                                                                            $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                                            $confirmBody  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                                        } catch (\Throwable $e) {
+                                                                            \Log::error('interview_schedules/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                        }
+@endphp
                                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                         {!! Form::open([
                                                                             'method'            => 'DELETE',
@@ -188,7 +196,7 @@
                                                 </div>
                                             @endforeach
                                         @else
-                                            <div class="text-center">{{ __('No interview schedules were available to display.') }}</div>
+                                            <div class="{{ VC::TXCT }}">{{ __('No interview schedules were available to display.') }}</div>
                                         @endif
                                     </div>
                                 </div>
@@ -206,6 +214,8 @@
     <script async src="{{ asset('assets/js/routes/interviewSchedules/lang/index.js') }}"></script>
     <script defer>
         (() => {
+        const RG = window.RouteGuard || {};
+        const toast = RG.showToast || (m => alert(m));
         const csrf='{{ csrf_token() }}';
         const msgCalendarUnavailable='{{ __("Interview schedule calendar data was not available.") }}';
         const msgRouteUnavailable='{{ __("Requested route is unavailable. Please contact technical support or your domain administrator.") }}';
@@ -213,26 +223,6 @@
         const weekTxt='{{ __("Week") }}';
         const monthTxt='{{ __("Month") }}';
         const dataListenerAdded='data-listener-added';
-
-        const toast=(message)=>{
-            const text=message||msgRouteUnavailable;
-            const hasBs=!!(document.querySelector('link[rel="stylesheet"][href*="bootstrap"]')&&window.bootstrap);
-            let box=document.getElementById('toast-container');
-            if(!box){box=document.createElement('div');box.id='toast-container';document.body.appendChild(box);}
-            if(hasBs){
-            const t=document.createElement('div');
-            t.className='toast';
-            t.setAttribute('role','alert');
-            t.setAttribute('aria-live','assertive');
-            t.setAttribute('aria-atomic','true');
-            const b=document.createElement('div');
-            b.className='toast-body';
-            b.textContent=text;
-            t.appendChild(b);
-            box.appendChild(t);
-            bootstrap.Toast.getOrCreateInstance(t).show();
-            }else{alert(text);}
-        };
 
         const bindLinkGuard=(el)=>{
             if(!el||el.getAttribute('data-listener-active')==='true')return;

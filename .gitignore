@@ -36,9 +36,16 @@ build/
 !_inc/django/env/**
 pyvenv.cfg
 
+# ide / editor
+
+.vscode/
+.vscode/**
+**/.vscode/
+**/.vscode/**
+/.idea
+
 # etc
 
-/.idea
 /vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
 /vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf
 
@@ -46,48 +53,101 @@ pyvenv.cfg
 
 **/*.log
 
-# temporary / deprecated — do NOT remove these entries
-
-.tmp/
-**/.tmp/
-tmp/
-**/tmp/
-**/tmp2/
-.deprecated/
-**/.deprecated/
-.backup/
-.backup/**
-.notes/.history/
-.notes/.history/**
-.notes/NEXT_STEPS*
-.notes/TODO_LATER*
-
-# caches & generated files
+# caches & artifacts
 
 **/__pycache__/
 **/*.pyc
-.phpunit.result.cache
+**/.phpunit.cache/
 **/.phpunit.result.cache
+**/playwright-report/
+**/coverage/
+**/test-results/
+**/.pytest_cache/
+**/nohup.out
+*.png
+*.webm
+
+# ide helpers
+
+.phpstorm.meta.php
+_ide_helper.php
+**/next-env.d.ts
+
+# storage (sessions, views cache, exports, logs, etc.)
+
 **/storage/framework/sessions/
 **/storage/framework/views/
 **/storage/phpstan/
 **/storage/debugbar/
+**/storage/exports/
 **/storage/logs/
-**/tests/playwright-report/
-**/tests/e2e/test-results/
-**/tests/frontend/js/test-results/
-**/tests/frontend/js/playwright-report/
-**/tests/auth-error.png
-**/.notes/
-!.notes/
-_inc/laravel/.notes/
-composer.lock
-.notes/TODO_LATER*
+**/storage/tmp/
 
-.vscode/
-.vscode/**
+# deprecated folders — every naming variant + wildcard suffix
 
-# root-level orphan artifacts (real app lives in _inc/laravel/)
-/composer.json
-/composer.lock
-/.env.example
+._DEPRECATED/
+._DEPRECATED/**
+**/._DEPRECATED/
+**/._DEPRECATED/**
+
+._DEPRECATED_*/
+._DEPRECATED_*/**
+**/._DEPRECATED_*/
+**/._DEPRECATED_*/**
+
+_DEPRECATED/
+_DEPRECATED/**
+**/_DEPRECATED/
+**/_DEPRECATED/**
+
+_DEPRECATED_*/
+_DEPRECATED_*/**
+**/_DEPRECATED_*/
+**/_DEPRECATED_*/**
+
+._deprecated/
+._deprecated/**
+**/._deprecated/
+**/._deprecated/**
+
+._deprecated_*/
+._deprecated_*/**
+**/._deprecated_*/
+**/._deprecated_*/**
+
+_deprecated/
+_deprecated/**
+**/_deprecated/
+**/_deprecated/**
+
+_deprecated_*/
+_deprecated_*/**
+**/_deprecated_*/
+**/_deprecated_*/**
+
+# flutter (deprecated)
+
+_inc/flutter/
+_inc/flutter/**
+
+# old / archive
+
+_old/
+_old/**
+**/_deprecated_*/**
+origin/
+origin/**
+.deprecated/
+.deprecated/**
+
+.tmp/
+.tmp/**
+_inc/laravel/.tmp/
+_inc/laravel/.tmp/**_inc/_DEPRECATED_django/
+_inc/_DEPRECATED_erp-prestech-frontend/
+_inc/flutter/
+
+.gh/
+.gh/**
+
+**/storage/tmp/

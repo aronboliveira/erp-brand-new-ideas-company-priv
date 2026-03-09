@@ -1,42 +1,122 @@
 @php
-    use App\Config\Constants\{PermissionsConstants, PlansConstants, UsersConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Config\Constants\{PermissionsConstants, PlansConstants, UsersConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Auth, Facades\Route, Str};
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $storeBase       = VW::LV;
-    $storeKebab      = Str::kebab($storeBase);
-    $storeResolved   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-    $storeUrl        = $storeResolved ? route($storeResolved) : '#';
-    $formId          = 'store_leave';
-    $formGuardMsg    = Utility::fetchLinkMessage($lang, VW::LV, 'store_leave_unavailable') ?? 'Store leave route is unavailable. Please contact technical support or your domain administrator.';
-    $grammarBase     = 'grammar';
-    $grammarKebab    = Str::kebab($grammarBase);
-    $grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
-    $grammarParams   = ['grammar'];
-    $grammarUrl      = $grammarResolved ? route($grammarResolved, $grammarParams) : '#';
-    $grammarLinkId   = 'grammar-check-link';
-    $grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable') ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$storeBase ??= '';
+	$storeKebab ??= '';
+	$storeResolved ??= null;
+	$storeUrl ??= '#';
+	$formId ??= 'store_leave';
+	$formGuardMsg ??= '';
+	$grammarBase ??= 'grammar';
+	$grammarKebab ??= '';
+	$grammarResolved ??= null;
+	$grammarParams ??= ['grammar'];
+	$grammarUrl ??= '#';
+	$grammarLinkId ??= 'grammar-check-link';
+	$grammarGuardMsg ??= '';
+	$grammarTitle ??= __('Check Grammar');
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$storeBase = VW::LV;
+		$storeKebab = Str::kebab($storeBase);
+		$storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+		$storeUrl = $storeResolved ? (route($storeResolved) ?? '#') : '#';
+		$formGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'store_leave_unavailable') ?? 'Store leave route is unavailable. Please contact technical support or your domain administrator.';
+		$grammarKebab = Str::kebab($grammarBase);
+		$grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
+		$grammarUrl = $grammarResolved ? (route($grammarResolved, $grammarParams) ?? '#') : '#';
+		$grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable') ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in leaves/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in leaves/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in leaves/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {{ Form::open(array('url'=>ViewsConstants::LV,'method'=>'post'))}}
     <div class="modal-body">
         @php
-            $plan = Utility::getChatGPTSettings();
-        @endphp
+			$plan ??= null;
+			try {
+				$plan = Utility::getChatGPTSettings();
+			} catch (\Error $e) {
+				Log::error('Error fetching ChatGPT settings in leaves/create.blade.php', [
+					'exception_class' => get_class($e),
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+			} catch (\Exception $e) {
+				Log::error('Exception fetching ChatGPT settings in leaves/create.blade.php', [
+					'exception_class' => get_class($e),
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+			} catch (\Throwable $e) {
+				Log::error('Throwable fetching ChatGPT settings in leaves/create.blade.php', [
+					'exception_class' => get_class($e),
+					'message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+				]);
+			}
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             @php
-                $aiBase       = 'generate';
-                $aiKebab      = Str::kebab($aiBase);
-                $aiResolved   = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
-                $aiParams     = ['leave'];
-                $aiUrl        = $aiResolved ? route($aiResolved, $aiParams) : '#';
-                $aiLinkId     = 'leave-ai-generate-link';
-                $aiGuardMsg   = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable') ?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <div class="text-end">
+				$aiBase ??= 'generate';
+				$aiKebab ??= '';
+				$aiResolved ??= null;
+				$aiParams ??= ['leave'];
+				$aiUrl ??= '#';
+				$aiLinkId ??= 'leave-ai-generate-link';
+				$aiGuardMsg ??= '';
+				try {
+					$aiKebab = Str::kebab($aiBase);
+					$aiResolved = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
+					$aiUrl = $aiResolved ? (route($aiResolved, $aiParams) ?? '#') : '#';
+					$aiGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable') ?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
+				} catch (\Error $e) {
+					Log::error('Error in leaves/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Exception $e) {
+					Log::error('Exception in leaves/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Throwable $e) {
+					Log::error('Throwable in leaves/create.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				}
+@endphp
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $aiUrl }}"
                    id="{{ $aiLinkId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -45,13 +125,13 @@
                    data-url="{{ $aiUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $aiGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
         @endif
 
-        @if($user?->{UsersConstants::COL_TP} === UsersConstants::CPN || strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR)
+        @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN || strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR)
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CM12 }}">
                     <div class="{{ VC::FM_G }}">
@@ -61,15 +141,20 @@
                 </div>
             </div>
         @endif
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Form::label('leave_type_id',__('Leave Type') ,['class'=>'form-label'])}}
-                    <select name="leave_type_id" id="leave_type_id" class="form-control select">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('leave_type_id', __('Leave Type'), ['class' => VC::FM_LB]) }}
+                    <select name="leave_type_id" id="leave_type_id" class="{{ VC::FM_CT_SL }}">
                         <option value="">{{ __('Select Leave Type') }}</option>
-                        @foreach($leavetypes as $leave)
-                            <option value="{{ $leave->id }}">{{ $leave->title }} (<p class="float-right pr-5">{{ $leave->days }}</p>)</option>
-                        @endforeach
+                        @forelse($leavetypes ?? [] as $leave)
+                            <option value="{{ $leave->id ?? '' }}">
+                                {{ $leave->title ?? __('Untitled') }}
+                                (<span class="float-right pr-5">{{ $leave->days ?? 0 }}</span>)
+                            </option>
+                        @empty
+                            <option value="" disabled>{{ __('No leave types available') }}</option>
+                        @endforelse
                     </select>
                 </div>
             </div>
@@ -90,15 +175,15 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
                     {{ Form::label('leave_reason',__('Leave Reason') ,['class'=>'form-label'])}}
                     {{ Form::textarea('leave_reason',null,array('class'=>'form-control','placeholder'=>__('Leave Reason')))}}
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12 text-end">
+            <div class="{{ VC::CM12 }} {{ VC::TX_END }}">
                 <a href="{{ $grammarUrl }}"
                    data-size="md"
                    class="{{ VC::BT_SM_PM }} btn-icon text-right"
@@ -107,12 +192,12 @@
                    data-url="{{ $grammarUrl }}"
                    data-bs-placement="top"
                    data-title="{{ $grammarTitle }}"
-                   data-guard-msg="{{ $grammarGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($grammarGuardMsg) }}">
                     <i class="ti ti-rotate"></i> <span>{{ $grammarTitle }}</span>
                 </a>
             </div>
-            <div class="col-md-12">
-                <div class="form-group">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
                     {{ Form::label('remark',__('Remark'),['class'=>'form-label'])}}
                     {{ Form::textarea('remark',null,array('class'=>'form-control grammer_textarea','placeholder'=>__('Leave Remark')))}}
                 </div>

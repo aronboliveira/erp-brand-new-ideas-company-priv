@@ -1,54 +1,52 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{User, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $authUser = $user?->creatorId() ?? null;
-    $creatorUser = User::find($authUser);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $authUser = $user?->creatorId() ?? null;
+        $creatorUser = User::find($authUser);
+    } catch (\Throwable $e) {
+        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Profit & Loss') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Profit & Loss') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Profit & Loss') }}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script async src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/lang/toggle.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/toggle.js') }}"></script>
 @endpush
-{{-- <div class="float-end">
-    <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()"data-bs-toggle="tooltip"
+{{-- <div class="{{ VC::FEND }}">
+    <a href="#" class="{{ VC::BT_SM_PM }}" onclick="saveAsPDF()"data-bs-toggle="tooltip"
         title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
-        <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
+        <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
     </a>
 </div> --}}
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
-            $printBase = VW::RPT.'.profit.loss.print';
-            $printKebab = Str::kebab($printBase);
-            $printResolved = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
-            $actionRoute = $printResolved ? [$printResolved, 'horizontal'] : ['#'];
-            $actionUrl = $printResolved ? route($printResolved, 'horizontal') : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'print_profit_loss_route_unavailable') ?? 'Print profit and loss route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $printBase = VW::RPT.'.profit.loss.print';
+                $printKebab = Str::kebab($printBase);
+                $printResolved = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
+                $actionRoute = $printResolved ? [$printResolved, 'horizontal'] : ['#'];
+                $actionUrl = $printResolved ? route($printResolved, 'horizontal') : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'print_profit_loss_route_unavailable') ?? 'Print profit and loss route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         {{ Form::open(['route' => $actionRoute, 'method' => 'POST', 'id' => 'profit-loss-print-horizontal', 'data-url' => $actionUrl, 'data-guard-msg' => $guardMsg, 'data-sv-localized' => 'true']) }}
             <input type="hidden" name="start_date" class="start_date">
             <input type="hidden" name="end_date" class="end_date">
@@ -62,14 +60,18 @@
     </div>
     <div class="{{ VC::FEND }} me-2">
         @php
-            $exportBase = VW::RPT.'.profit.loss.export';
-            $exportKebab = Str::kebab($exportBase);
-            $exportResolved = Route::has($exportBase) ? $exportBase : (Route::has($exportKebab) ? $exportKebab : null);
-            $actionRoute = $exportResolved ? [$exportResolved] : ['#'];
-            $actionUrl = $exportResolved ? route($exportResolved) : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'export_profit_loss_route_unavailable') ?? 'Export profit and loss route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $exportBase = VW::RPT.'.profit.loss.export';
+                $exportKebab = Str::kebab($exportBase);
+                $exportResolved = Route::has($exportBase) ? $exportBase : (Route::has($exportKebab) ? $exportKebab : null);
+                $actionRoute = $exportResolved ? [$exportResolved] : ['#'];
+                $actionUrl = $exportResolved ? route($exportResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'export_profit_loss_route_unavailable') ?? 'Export profit and loss route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         {{ Form::open(['route' => $actionRoute, 'method' => 'POST', 'id' => 'profit-loss-export', 'data-url' => $actionUrl, 'data-guard-msg' => $guardMsg, 'data-sv-localized' => 'true']) }}
             <input type="hidden" name="start_date" class="start_date">
             <input type="hidden" name="end_date" class="end_date">
@@ -88,18 +90,22 @@
     </div>
     <div class="{{ VC::FEND }} me-2">
         @php
-            $profitLossBase = ViewsConstants::RPT.'.profit.loss';
-            $profitLossKebab = Str::kebab($profitLossBase);
-            $profitLossResolved = Route::has($profitLossBase) ? $profitLossBase : (Route::has($profitLossKebab) ? $profitLossKebab : null);
-            $verticalUrl = $profitLossResolved ? route($profitLossResolved, 'vertical') : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $verticalGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'open_profit_loss_vertical_route_unavailable') ?? 'Vertical profit & loss view route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $profitLossBase = ViewsConstants::RPT.'.profit.loss';
+                $profitLossKebab = Str::kebab($profitLossBase);
+                $profitLossResolved = Route::has($profitLossBase) ? $profitLossBase : (Route::has($profitLossKebab) ? $profitLossKebab : null);
+                $verticalUrl = $profitLossResolved ? route($profitLossResolved, 'vertical') : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $verticalGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'open_profit_loss_vertical_route_unavailable') ?? 'Vertical profit & loss view route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a id="profit-loss-vertical-view"
         href="{{ $verticalUrl }}"
         class="{{ VC::BT_SM_PM }}"
         data-url="{{ $verticalUrl }}"
-        data-guard-msg="{{ $verticalGuardMsg }}"
+        data-guard-msg="{{ base64_encode($verticalGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Vertical View') }}"
@@ -115,20 +121,24 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }} justify-content-center">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}" id="show_filter" style="display:none;">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $profitLossBase = ViewsConstants::RPT.'.profit.loss';
-                            $profitLossKebab = Str::kebab($profitLossBase);
-                            $profitLossResolved = Route::has($profitLossBase) ? $profitLossBase : (Route::has($profitLossKebab) ? $profitLossKebab : null);
-                            $actionRoute = $profitLossResolved ? [$profitLossResolved] : ['#'];
-                            $actionUrl = $profitLossResolved ? route($profitLossResolved) : '#';
-                            $resetUrl = $profitLossResolved ? route($profitLossResolved, 'horizontal') : '#';
-                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_profit_loss_route_unavailable') ?? 'Apply profit & loss route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_profit_loss_route_unavailable') ?? 'Reset profit & loss route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $profitLossBase = ViewsConstants::RPT.'.profit.loss';
+                                $profitLossKebab = Str::kebab($profitLossBase);
+                                $profitLossResolved = Route::has($profitLossBase) ? $profitLossBase : (Route::has($profitLossKebab) ? $profitLossKebab : null);
+                                $actionRoute = $profitLossResolved ? [$profitLossResolved] : ['#'];
+                                $actionUrl = $profitLossResolved ? route($profitLossResolved) : '#';
+                                $resetUrl = $profitLossResolved ? route($profitLossResolved, 'horizontal') : '#';
+                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_profit_loss_route_unavailable') ?? 'Apply profit & loss route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_profit_loss_route_unavailable') ?? 'Reset profit & loss route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'route'             => $actionRoute,
                             'method'            => 'GET',
@@ -138,7 +148,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -164,7 +174,7 @@
                                             href="#"
                                             class="{{ VC::BT_SM_PM }}"
                                             data-form-id="report_profit_loss_horizontal"
-                                            data-guard-msg="{{ $applyGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -175,7 +185,7 @@
                                             href="{{ $resetUrl }}"
                                             class="{{ VC::BT_SM_DG }}"
                                             data-url="{{ $resetUrl }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -199,7 +209,7 @@
     <div class="{{ VC::RW }} justify-content-center" id="printableArea">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="account-main-title {{ VC::MB4 }}">
                         <h5>
                             {{ __('Profit & Loss') }}
@@ -211,51 +221,63 @@
                         </h5>
                     </div>
                     @php
-                        $totalIncome = 0;
-                        $totalCosts  = 0;
-                        $grossProfit = 0;
-                    @endphp
+                        $totalIncome ??= 0;
+                        $totalCosts  ??= 0;
+                        $grossProfit ??= 0;
+@endphp
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::CM6 }}">
                             <div class="aacount-title {{ VC::DFL_AIC_JCB }} border py-2">
                                 <h5 class="{{ VC::MB0 }} ms-3">{{ __('Expenses') }}</h5>
                             </div>
                             <div class="border-start border-end">
-                                @php $hasExpenseRows = false; @endphp
+                                @php
+ $hasExpenseRows ??= false;
+@endphp
                                 @foreach ($chartAccounts as $accounts)
                                     @if (isset($accounts['Type']) && ($accounts['Type'] === 'Expenses' || $accounts['Type'] === 'Costs of Goods Sold'))
-                                        @php $hasExpenseRows = true; @endphp
-                                        <div class="account-main-inner border-bottom py-2">
+                                        @php
+ $hasExpenseRows ??= true;
+@endphp
+                                        <div class="account-main-inner border-bottom {{ VC::PY2 }}">
                                             <p class="fw-bold {{ VC::MB1 }} ms-3">{{ $accounts['Type'] }}</p>
                                             @foreach ($accounts['account'] as $record)
                                                 @php
-                                                    $accName   = $record['account_name'] ?? __('Account name not available');
-                                                    $accCode   = $record['account_code'] ?? __('Account code not available');
-                                                    $accId     = $record['account_id'] ?? null;
-                                                    $rawNet    = $record['netAmount'] ?? 0;
-                                                    $netAmount = $rawNet > 0 ? $rawNet : -$rawNet;
-                                                @endphp
+                                                    try {
+                                                        $accName   = $record['account_name'] ?? __('Account name not available');
+                                                        $accCode   = $record['account_code'] ?? __('Account code not available');
+                                                        $accId     = $record['account_id'] ?? null;
+                                                        $rawNet    = $record['netAmount'] ?? 0;
+                                                        $netAmount = $rawNet > 0 ? $rawNet : -$rawNet;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="account-inner {{ VC::DFL_AIC_JCB }}">
                                                     @if (!preg_match('/\btotal\b/i', (string)$accName))
                                                         <p class="{{ VC::MB1 }} ps-3 ms-3">
                                                             @if(!empty($accId))
                                                                 @php
-                                                                    $ledgerBase = ViewsConstants::RPT.'.ledger';
-                                                                    $ledgerKebab = Str::kebab($ledgerBase);
-                                                                    $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                                                    $accIdValue = isset($accId) ? $accId : null;
-                                                                    $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
-                                                                    $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
-                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
-                                                                    $accLabel = $accName ?? __('No account name available');
-                                                                @endphp
+                                                                    try {
+                                                                        $ledgerBase = ViewsConstants::RPT.'.ledger';
+                                                                        $ledgerKebab = Str::kebab($ledgerBase);
+                                                                        $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                                                        $accIdValue = isset($accId) ? $accId : null;
+                                                                        $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
+                                                                        $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
+                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                        $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
+                                                                        $accLabel = $accName ?? __('No account name available');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a id="{{ $anchorId }}"
                                                                 href="{{ $ledgerHref }}"
-                                                                class="text-primary"
+                                                                class="{{ VC::TX_PM }}"
                                                                 data-url="{{ $ledgerHref }}"
-                                                                data-guard-msg="{{ $ledgerGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
@@ -274,28 +296,7 @@
                                                                                         if (url !== '#' && href !== '#') { return; }
                                                                                         e.preventDefault();
                                                                                         const msg = el.getAttribute('data-guard-msg') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role', 'alert');
-                                                                                            toast.setAttribute('aria-live', 'assertive');
-                                                                                            toast.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         el.setAttribute('data-failed-route', 'true');
                                                                                     } catch (err) {}
                                                                                 });
@@ -311,22 +312,26 @@
                                                         <p class="fw-bold {{ VC::MB1 }} ms-3">
                                                             @if(!empty($accId))
                                                                 @php
-                                                                    $ledgerBase = ViewsConstants::RPT.'.ledger';
-                                                                    $ledgerKebab = Str::kebab($ledgerBase);
-                                                                    $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                                                    $accIdValue = isset($accId) ? $accId : null;
-                                                                    $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
-                                                                    $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
-                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
-                                                                    $accLabel = $accName ?? __('No account name available');
-                                                                @endphp
+                                                                    try {
+                                                                        $ledgerBase = ViewsConstants::RPT.'.ledger';
+                                                                        $ledgerKebab = Str::kebab($ledgerBase);
+                                                                        $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                                                        $accIdValue = isset($accId) ? $accId : null;
+                                                                        $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
+                                                                        $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
+                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                        $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
+                                                                        $accLabel = $accName ?? __('No account name available');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a id="{{ $anchorId }}"
                                                                 href="{{ $ledgerHref }}"
-                                                                class="text-dark"
+                                                                class="{{ VC::TX_DK }}"
                                                                 data-url="{{ $ledgerHref }}"
-                                                                data-guard-msg="{{ $ledgerGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
@@ -345,28 +350,7 @@
                                                                                         if (url !== '#' && href !== '#') { return; }
                                                                                         e.preventDefault();
                                                                                         const msg = el.getAttribute('data-guard-msg') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role', 'alert');
-                                                                                            toast.setAttribute('aria-live', 'assertive');
-                                                                                            toast.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         el.setAttribute('data-failed-route', 'true');
                                                                                     } catch (err) {}
                                                                                 });
@@ -387,12 +371,16 @@
                                                     @endif
                                                 </div>
                                                 @php
-                                                    if ($accName === 'Total Income')
-                                                        $totalIncome = $rawNet ?? 0;
-                                                    if ($accName === 'Total Costs of Goods Sold')
-                                                        $totalCosts = $netAmount ?? 0;
-                                                    $grossProfit = $totalIncome - $totalCosts;
-                                                @endphp
+                                                    try {
+                                                        if ($accName === 'Total Income')
+                                                            $totalIncome = $rawNet ?? 0;
+                                                        if ($accName === 'Total Costs of Goods Sold')
+                                                            $totalCosts = $netAmount ?? 0;
+                                                        $grossProfit = $totalIncome - $totalCosts;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                             @endforeach
                                         </div>
                                     @endif
@@ -407,40 +395,52 @@
                                 <h5 class="{{ VC::MB0 }} ms-3">{{ __('Income') }}</h5>
                             </div>
                             <div class="border-start border-end">
-                                @php $hasIncomeRows = false; @endphp
+                                @php
+ $hasIncomeRows ??= false;
+@endphp
                                 @foreach ($chartAccounts as $accounts)
                                     @if (isset($accounts['Type']) && $accounts['Type'] === 'Income')
-                                        @php $hasIncomeRows = true; @endphp
-                                        <div class="account-main-inner border-bottom py-2">
+                                        @php
+ $hasIncomeRows ??= true;
+@endphp
+                                        <div class="account-main-inner border-bottom {{ VC::PY2 }}">
                                             <p class="fw-bold {{ VC::MB1 }} ms-3">{{ $accounts['Type'] }}</p>
                                             @foreach ($accounts['account'] as $record)
                                                 @php
-                                                    $accName = $record['account_name'] ?? __('Account name not available');
-                                                    $accCode = $record['account_code'] ?? __('Account code not available');
-                                                    $accId   = $record['account_id'] ?? null;
-                                                    $amount  = $record['netAmount'] ?? 0;
-                                                @endphp
+                                                    try {
+                                                        $accName = $record['account_name'] ?? __('Account name not available');
+                                                        $accCode = $record['account_code'] ?? __('Account code not available');
+                                                        $accId   = $record['account_id'] ?? null;
+                                                        $amount  = $record['netAmount'] ?? 0;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="account-inner {{ VC::DFL_AIC_JCB }}">
                                                     @if (!preg_match('/\btotal\b/i', (string)$accName))
                                                         <p class="{{ VC::MB1 }} ps-3 ms-3">
                                                             @if(!empty($accId))
                                                                 @php
-                                                                    $ledgerBase = ViewsConstants::RPT.'.ledger';
-                                                                    $ledgerKebab = Str::kebab($ledgerBase);
-                                                                    $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                                                    $accIdValue = isset($accId) ? $accId : null;
-                                                                    $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
-                                                                    $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
-                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
-                                                                    $accLabel = $accName ?? __('No account name available');
-                                                                @endphp
+                                                                    try {
+                                                                        $ledgerBase = ViewsConstants::RPT.'.ledger';
+                                                                        $ledgerKebab = Str::kebab($ledgerBase);
+                                                                        $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                                                        $accIdValue = isset($accId) ? $accId : null;
+                                                                        $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
+                                                                        $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
+                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                        $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
+                                                                        $accLabel = $accName ?? __('No account name available');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a id="{{ $anchorId }}"
                                                                 href="{{ $ledgerHref }}"
-                                                                class="text-primary"
+                                                                class="{{ VC::TX_PM }}"
                                                                 data-url="{{ $ledgerHref }}"
-                                                                data-guard-msg="{{ $ledgerGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
@@ -459,28 +459,7 @@
                                                                                         if (url !== '#' && href !== '#') { return; }
                                                                                         e.preventDefault();
                                                                                         const msg = el.getAttribute('data-guard-msg') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role', 'alert');
-                                                                                            toast.setAttribute('aria-live', 'assertive');
-                                                                                            toast.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         el.setAttribute('data-failed-route', 'true');
                                                                                     } catch (err) {}
                                                                                 });
@@ -496,22 +475,26 @@
                                                         <p class="fw-bold {{ VC::MB1 }} ms-3">
                                                             @if(!empty($accId))
                                                                 @php
-                                                                    $ledgerBase = ViewsConstants::RPT.'.ledger';
-                                                                    $ledgerKebab = Str::kebab($ledgerBase);
-                                                                    $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
-                                                                    $accIdValue = isset($accId) ? $accId : null;
-                                                                    $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
-                                                                    $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
-                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
-                                                                    $accLabel = $accName ?? __('No account name available');
-                                                                @endphp
+                                                                    try {
+                                                                        $ledgerBase = ViewsConstants::RPT.'.ledger';
+                                                                        $ledgerKebab = Str::kebab($ledgerBase);
+                                                                        $ledgerResolved = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                                                        $accIdValue = isset($accId) ? $accId : null;
+                                                                        $ledgerUrl = ($ledgerResolved && $accIdValue !== null) ? route($ledgerResolved, $accIdValue) : '#';
+                                                                        $ledgerHref = ($ledgerUrl !== '#' && $accIdValue !== null) ? ($ledgerUrl.'?account='.$accIdValue) : '#';
+                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                        $ledgerGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'view_ledger_unavailable') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $anchorId = 'ledger-open-'.($accIdValue ?? 'x');
+                                                                        $accLabel = $accName ?? __('No account name available');
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <a id="{{ $anchorId }}"
                                                                 href="{{ $ledgerHref }}"
-                                                                class="text-dark"
+                                                                class="{{ VC::TX_DK }}"
                                                                 data-url="{{ $ledgerHref }}"
-                                                                data-guard-msg="{{ $ledgerGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($ledgerGuardMsg) }}"
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
@@ -530,28 +513,7 @@
                                                                                         if (url !== '#' && href !== '#') { return; }
                                                                                         e.preventDefault();
                                                                                         const msg = el.getAttribute('data-guard-msg') ?? 'Ledger route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role', 'alert');
-                                                                                            toast.setAttribute('aria-live', 'assertive');
-                                                                                            toast.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         el.setAttribute('data-failed-route', 'true');
                                                                                     } catch (err) {}
                                                                                 });
@@ -572,12 +534,16 @@
                                                     @endif
                                                 </div>
                                                 @php
-                                                    if ($accName === 'Total Income')
-                                                        $totalIncome = $amount ?? 0;
-                                                    if ($accName === 'Total Costs of Goods Sold')
-                                                        $totalCosts = ($amount ?? 0) > 0 ? $amount : -($amount ?? 0);
-                                                    $grossProfit = $totalIncome - $totalCosts;
-                                                @endphp
+                                                    try {
+                                                        if ($accName === 'Total Income')
+                                                            $totalIncome = $amount ?? 0;
+                                                        if ($accName === 'Total Costs of Goods Sold')
+                                                            $totalCosts = ($amount ?? 0) > 0 ? $amount : -($amount ?? 0);
+                                                        $grossProfit = $totalIncome - $totalCosts;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('reports/profit_loss_horizontal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                             @endforeach
                                         </div>
                                     @endif
@@ -591,7 +557,7 @@
 
                     @php
                         $summaryAvailable = ($totalIncome !== 0 || $totalCosts !== 0);
-                    @endphp
+@endphp
                     @if($summaryAvailable)
                         <div class="{{ VC::RW }} mt-3">
                             <div class="{{ VC::CM12 }}">
@@ -602,7 +568,7 @@
                             </div>
                         </div>
                     @else
-                        <div class="mt-3 px-3">{{ __('No profit and loss summary available for this period') }}</div>
+                        <div class="{{ VC::MT3 }} {{ VC::PX3 }}">{{ __('No profit and loss summary available for this period') }}</div>
                     @endif
                 </div>
             </div>

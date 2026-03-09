@@ -1,17 +1,45 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $leadstageId   = isset($leadstages) && !empty(data_get($leadstages, 'id')) ? data_get($leadstages, 'id') : null;
-    $updateBase    = VW::PRJ_STG . '.update';
-    $updateKebab   = Str::kebab($updateBase);
-    $updateResolved= Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateParams  = $leadstageId ? [$leadstageId] : ['#'];
-    $updateUrl     = ($updateResolved && $leadstageId) ? route($updateResolved, $updateParams) : '#';
-    $formId        = 'update-project-stage-form';
-    $formGuardMsg  = Utility::fetchLinkMessage($lang, VW::PRJ_STG, 'update_project_stage_unavailable') ?? 'Update project stage route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$leadstageId ??= null;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateParams ??= ['#'];
+	$updateUrl ??= '#';
+	$formId ??= 'update-project-stage-form';
+	$formGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$leadstageId = isset($leadstages) && !empty(data_get($leadstages, 'id')) ? data_get($leadstages, 'id') : null;
+		$updateBase = VW::PRJ_STG . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateParams = $leadstageId ? [$leadstageId] : ['#'];
+		$updateUrl = ($updateResolved && $leadstageId) ? (route($updateResolved, $updateParams) ?? '#') : '#';
+		$formId = 'update-project-stage-form';
+		$formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_STG, 'update_project_stage_unavailable') ?? 'Update project stage route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in project_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in project_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in project_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($leadstages) && !empty(data_get($leadstages, 'id')))
     <div class="{{ VC::CD }} bg-none card-box">

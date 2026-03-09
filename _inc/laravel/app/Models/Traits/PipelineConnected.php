@@ -3,27 +3,31 @@
 namespace App\Traits;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\{Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 trait PipelineConnected
 {
   protected function addPipelineColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
-    $unique ? ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->unique() : $table->uuid(PJC::COL_PPL_ID)->index()) : ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index());
-    $nullable ?
-      $table->foreign(PJC::COL_PPL_ID)
-      ->references('id')
-      ->on(DC::TABLE_PIPELINES)
-      ->nullOnDelete() : ($cascade ?
-        $table->foreign(PJC::COL_PPL_ID)
-        ->references('id')
-        ->on(DC::TABLE_PIPELINES)
-        ->cascadeOnDelete() :
-        $table->foreign(PJC::COL_PPL_ID)
-        ->references('id')
-        ->on(DC::TABLE_PIPELINES)
-        ->restrictOnDelete());
+      try {
+        $unique ? ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->unique() : $table->uuid(PJC::COL_PPL_ID)->index()) : ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index());
+        $nullable ?
+          $table->foreign(PJC::COL_PPL_ID)
+          ->references('id')
+          ->on(DC::TABLE_PIPELINES)
+          ->nullOnDelete() : ($cascade ?
+            $table->foreign(PJC::COL_PPL_ID)
+            ->references('id')
+            ->on(DC::TABLE_PIPELINES)
+            ->cascadeOnDelete() :
+            $table->foreign(PJC::COL_PPL_ID)
+            ->references('id')
+            ->on(DC::TABLE_PIPELINES)
+            ->restrictOnDelete());
+      } catch (\Throwable $e) {
+          Log::error(static::class . '::addPipelineColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+      }
   }
   protected function dropPipelineColumnForeign(Blueprint $table, string $tableName): void
   {

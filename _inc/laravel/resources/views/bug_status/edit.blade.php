@@ -1,27 +1,47 @@
 @php
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang                    = Utility::fetchUserLang();
-    $routeName               = ViewsConstants::BUG_STT . '.update';
-    $updateRoute             = Route::has($routeName)
-        ? route($routeName, $bug_status->id)
-        : (Route::has(Str::kebab($routeName))
-            ? route(Str::kebab($routeName), $bug_status->id)
-            : '#');
-    $formId                  = 'bugstatus-update-form-' . $bug_status->id;
-    $guardMsg                = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BUG_STT,
-        'bug_status_update_route_unavailable'
-    ) ?? 'Bug Status update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$routeName ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'bugstatus-update-form-unknown';
+	$guardMsg ??= '';
+	$bugStatusId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$bugStatusId = data_get($bug_status ?? null, 'id');
+		$routeName = ViewsConstants::BUG_STT . '.update';
+		$updateRoute = ($bugStatusId && Route::has($routeName))
+			? (route($routeName, $bugStatusId) ?? '#')
+			: (($bugStatusId && Route::has(Str::kebab($routeName)))
+				? (route(Str::kebab($routeName), $bugStatusId) ?? '#')
+				: '#');
+		$formId = 'bugstatus-update-form-' . ($bugStatusId ?? 'unknown');
+		$guardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::BUG_STT,
+			'bug_status_update_route_unavailable'
+		) ?? 'Bug Status update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in bug_status/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in bug_status/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in bug_status/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {{ Form::model($bug_status, [
     'route'            => [$updateRoute],

@@ -1,25 +1,42 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
-    use Illuminate\Support\Str;
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $dashBase   = 'dashboard';
-    $dashKebab  = Str::kebab($dashBase);
-    $dashName   = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
-    $dashUrl    = $dashName ? route($dashName) : '#';
-    $dashGuard  = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
-    $dashId     = 'dashboard-link';
+$user ??= null;
+	$lang ??= 'en';
+	$dashBase ??= 'dashboard';
+	$dashKebab ??= '';
+	$dashName ??= null;
+	$dashUrl ??= '#';
+	$dashGuard ??= '';
+	$dashId ??= 'dashboard-link';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$dashKebab = Str::kebab($dashBase);
+		$dashName = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
+		$dashUrl = $dashName ? (route($dashName) ?? '#') : '#';
+		$dashGuard = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable')
+			?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in travels/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in travels/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in travels/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -28,28 +45,32 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a id="{{ $dashId }}"
            href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            data-sv-localized="true"
            {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Trip') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Trip') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $createBase     = VW::TRV . '.create';
-        $createKebab    = Str::kebab($createBase);
-        $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-        $createUrl      = $createResolved ? route($createResolved) : '#';
-        $createGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'create_travel_route_unavailable') ?? 'Create travel route is unavailable. Please contact technical support or your domain administrator.';
-        $createId       = 'travel-create-link';
-    @endphp
+        try {
+            $createBase     = VW::TRV . '.create';
+            $createKebab    = Str::kebab($createBase);
+            $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+            $createUrl      = $createResolved ? route($createResolved) : '#';
+            $createGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'create_travel_route_unavailable') ?? 'Create travel route is unavailable. Please contact technical support or your domain administrator.';
+            $createId       = 'travel-create-link';
+        } catch (\Throwable $e) {
+            \Log::error('travels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::FEND }}">
         @can('create travel')
             <a id="{{ $createId }}"
@@ -60,7 +81,7 @@
                data-bs-toggle="tooltip"
                title="{{ __('Create') }}"
                data-title="{{ __('Create New Trip') }}"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="{{ base64_encode($createGuard) }}"
                data-sv-localized="true"
                class="{{ VC::BT_SM_PM }}">
                 <i class="{{ VC::TI_PLS }}"></i>
@@ -74,8 +95,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -96,7 +117,7 @@
                                 @foreach(($travels ?? []) as $travel)
                                     @php
                                         $tid = data_get($travel, 'id');
-                                    @endphp
+@endphp
                                     <tr>
                                         @role('company')
                                             <td>{{ optional($travel->employee)->name ?? __('No employee available') }}</td>
@@ -111,13 +132,17 @@
                                             <td class="{{ VC::DFL }}">
                                                 @can('edit travel')
                                                     @php
-                                                        $editBase     = VW::TRV . '.edit';
-                                                        $editKebab    = Str::kebab($editBase);
-                                                        $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
-                                                        $editUrl      = ($editResolved && $tid) ? route($editResolved, [$tid]) : '#';
-                                                        $editGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'edit_travel_route_unavailable') ?? 'Edit travel route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $editId       = 'travel-edit-link-' . $tid;
-                                                    @endphp
+                                                        try {
+                                                            $editBase     = VW::TRV . '.edit';
+                                                            $editKebab    = Str::kebab($editBase);
+                                                            $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
+                                                            $editUrl      = ($editResolved && $tid) ? route($editResolved, [$tid]) : '#';
+                                                            $editGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'edit_travel_route_unavailable') ?? 'Edit travel route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $editId       = 'travel-edit-link-' . $tid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('travels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                         <a id="{{ $editId }}"
                                                            href="{{ $editUrl }}"
@@ -129,7 +154,7 @@
                                                            data-bs-toggle="tooltip"
                                                            title="{{ __('Edit') }}"
                                                            data-original-title="{{ __('Edit') }}"
-                                                           data-guard-msg="{{ $editGuard }}"
+                                                           data-guard-msg="{{ base64_encode($editGuard) }}"
                                                            data-sv-localized="true">
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
                                                         </a>
@@ -184,14 +209,18 @@
 
                                                 @can('delete travel')
                                                     @php
-                                                        $delBase      = VW::TRV . '.destroy';
-                                                        $delKebab     = Str::kebab($delBase);
-                                                        $delResolved  = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
-                                                        $delUrl       = ($delResolved && $tid) ? route($delResolved, [$tid]) : '#';
-                                                        $delGuard     = Utility::fetchLinkMessage($lang, VW::TRV, 'delete_travel_route_unavailable') ?? 'Delete travel route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $delFormId    = 'delete-form-' . $tid;
-                                                        $delLinkId    = 'travel-delete-link-' . $tid;
-                                                    @endphp
+                                                        try {
+                                                            $delBase      = VW::TRV . '.destroy';
+                                                            $delKebab     = Str::kebab($delBase);
+                                                            $delResolved  = Route::has($delBase) ? $delBase : (Route::has($delKebab) ? $delKebab : null);
+                                                            $delUrl       = ($delResolved && $tid) ? route($delResolved, [$tid]) : '#';
+                                                            $delGuard     = Utility::fetchLinkMessage($lang, VW::TRV, 'delete_travel_route_unavailable') ?? 'Delete travel route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $delFormId    = 'delete-form-' . $tid;
+                                                            $delLinkId    = 'travel-delete-link-' . $tid;
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('travels/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Form::open([
                                                             'method'               => 'DELETE',

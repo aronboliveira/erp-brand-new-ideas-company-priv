@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
     PlansConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants
+    SettingsConstants as SC,
+    UsersConstants as UC,
+    ViewsConstants as VW
 };
 use App\Exports\CustomerExport;
 use App\Imports\CustomerImport;
@@ -38,6 +40,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class CustomerController extends Controller
 {
@@ -45,12 +48,12 @@ class CustomerController extends Controller
     /** Cache TTL in seconds — 2 minutes */
     private const CACHE_TTL = 120;
 
-    private const PERM_MANAGE = PermissionsConstants::MNG_CST;
+    private const PERM_MANAGE = PMC::MNG_CST;
     private const PERM_CREATE = 'create customer';
     private const PERM_EDIT  = 'edit customer';
     private const PERM_DELETE = 'delete customer';
     private const PERM_PAYMENT = 'manage customer payment';
-    private const REDIRECT_INDEX = ViewsConstants::JB . '.index';
+    private const REDIRECT_INDEX = VW::JB . '.index';
 
     public function dashboard(Request $req): RedirectResponse|View
     {
@@ -63,7 +66,7 @@ class CustomerController extends Controller
                 $data['invoiceChartData'] = $user->invoiceChartData();
                 $this->logExecutionTime($t, $action . '::invoiceChartData', 'completed');
 
-                $view = ViewsConstants::CST . '.dashboard';
+                $view = VW::CST . '.dashboard';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, $data);
             } catch (\Throwable $e) {
@@ -86,12 +89,13 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
+                $creatorId = $user->creatorId();
+                $customers = Cache::remember("cust.list.{$creatorId}", self::CACHE_TTL, fn() => Customer::where(DC::COL_TABLE_CREATOR, $creatorId)->get());
                 $this->logExecutionTime($t, $action . '::query', 'completed');
 
-                $view = ViewsConstants::CST . '.index';
+                $view = VW::CST . '.index';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
-                return view($view, compact(DatabaseConstants::TABLE_CUSTOMERS));
+                return view($view, compact(DC::TABLE_CUSTOMERS));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
                 return defaultUndefinedException($req, $e, $action);
@@ -112,11 +116,11 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
+                $customFields = CustomField::where(DC::COL_TABLE_CREATOR, $user->creatorId())
                     ->where('module', 'customer')->get();
                 $this->logExecutionTime($t, $action . '::loadCustomFields', 'completed');
 
-                $view = ViewsConstants::CST . '.create';
+                $view = VW::CST . '.create';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, compact('customFields'));
             } catch (\Throwable $e) {
@@ -144,13 +148,13 @@ class CustomerController extends Controller
                 'contact' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/',
                 'email'   => [
                     'required',
-                    Rule::unique(DatabaseConstants::TABLE_CUSTOMERS)
-                        ->where(fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId()))
+                    Rule::unique(DC::TABLE_CUSTOMERS)
+                        ->where(fn($q) => $q->where(DC::COL_TABLE_CREATOR, $u->creatorId()))
                 ]
             ]);
             $this->logExecutionTime($t, $action . '::validate', $v->fails() ? 'failed' : 'completed');
             if ($v->fails()) {
-                return redirect()->route(ViewsConstants::CST . '.index')
+                return redirect()->route(VW::CST . '.index')
                     ->with('error', $v->errors()->first());
             }
 
@@ -170,7 +174,7 @@ class CustomerController extends Controller
                 CustomField::saveData($customer, $req->input('customField', []));
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
-                return redirect()->route(ViewsConstants::CST . '.index')
+                return redirect()->route(VW::CST . '.index')
                     ->with('success', __('Customer successfully created.'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
@@ -190,12 +194,12 @@ class CustomerController extends Controller
                 $customer = Customer::findOrFail($id);
                 $this->logExecutionTime($t, $action . '::loadCustomer', 'completed');
 
-                $view = ViewsConstants::CST . '.show';
+                $view = VW::CST . '.show';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, compact('customer'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
-                return defaultUndefinedException($req, $e, $action, route(ViewsConstants::CST . '.index'));
+                return defaultUndefinedException($req, $e, $action, route(VW::CST . '.index'));
             }
         }, ['customer_id_encrypted' => $ids]);
     }
@@ -214,11 +218,11 @@ class CustomerController extends Controller
             try {
                 $t = microtime(true);
                 $customer->customField = CustomField::getData($customer, 'customer');
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
+                $customFields = CustomField::where(DC::COL_TABLE_CREATOR, $user->creatorId())
                     ->where('module', 'customer')->get();
                 $this->logExecutionTime($t, $action . '::loadFormData', 'completed');
 
-                $view = ViewsConstants::CST . '.edit';
+                $view = VW::CST . '.edit';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, compact('customer', 'customFields'));
             } catch (\Throwable $e) {
@@ -246,7 +250,7 @@ class CustomerController extends Controller
             ]);
             $this->logExecutionTime($t, $action . '::validate', $v->fails() ? 'failed' : 'completed');
             if ($v->fails()) {
-                return redirect()->route(ViewsConstants::CST . '.index')->with('error', $v->errors()->first());
+                return redirect()->route(VW::CST . '.index')->with('error', $v->errors()->first());
             }
 
             try {
@@ -255,7 +259,7 @@ class CustomerController extends Controller
                 CustomField::saveData($customer, $req->input('customField', []));
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
-                return redirect()->route(ViewsConstants::CST . '.index')
+                return redirect()->route(VW::CST . '.index')
                     ->with('success', __('Customer successfully updated.'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
@@ -280,7 +284,7 @@ class CustomerController extends Controller
                 $customer->delete();
                 $this->logExecutionTime($t, $action . '::delete', 'completed');
 
-                return redirect()->route(ViewsConstants::CST . '.index')
+                return redirect()->route(VW::CST . '.index')
                     ->with('success', __('Customer successfully deleted.'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
@@ -301,7 +305,7 @@ class CustomerController extends Controller
                 $req->session()->invalidate();
                 $this->logExecutionTime($t, $action . '::logout', 'completed');
 
-                return redirect()->route(ViewsConstants::CST . '.login');
+                return redirect()->route(VW::CST . '.login');
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
                 return defaultUndefinedException($req, $e, $action);
@@ -324,7 +328,7 @@ class CustomerController extends Controller
                 $category = ['Invoice' => 'Invoice', 'Deposit' => 'Deposit', 'Sales' => 'Sales'];
 
                 $t = microtime(true);
-                $query = Transaction::where(UsersConstants::COL_USER_ID, $u->id)
+                $query = Transaction::where(UC::COL_USER_ID, $u->id)
                     ->where('user_type', 'Customer')->where('type', 'Payment');
 
                 if ($req->filled('date')) {
@@ -337,12 +341,12 @@ class CustomerController extends Controller
                 $payments = $query->get();
                 $this->logExecutionTime($t, $action . '::query', 'completed');
 
-                $view = ViewsConstants::CST . '.payment';
+                $view = VW::CST . '.payment';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, compact('payments', 'category'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
-                return defaultUndefinedException($req, $e, $action, route(ViewsConstants::CST . '.index'));
+                return defaultUndefinedException($req, $e, $action, route(VW::CST . '.index'));
             }
         }, ['uri' => $req->getRequestUri()]);
     }
@@ -362,7 +366,7 @@ class CustomerController extends Controller
                 $category = ['Invoice' => 'Invoice', 'Deposit' => 'Deposit', 'Sales' => 'Sales'];
 
                 $t = microtime(true);
-                $query = Transaction::where(UsersConstants::COL_USER_ID, $u->id)
+                $query = Transaction::where(UC::COL_USER_ID, $u->id)
                     ->where('user_type', 'Customer');
 
                 if ($req->filled('date')) {
@@ -375,12 +379,12 @@ class CustomerController extends Controller
                 $transactions = $query->get();
                 $this->logExecutionTime($t, $action . '::query', 'completed');
 
-                $view = ViewsConstants::CST . '.transaction';
+                $view = VW::CST . '.transaction';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view, compact('transactions', 'category'));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
-                return defaultUndefinedException($req, $e, $action, route(ViewsConstants::CST . '.index'));
+                return defaultUndefinedException($req, $e, $action, route(VW::CST . '.index'));
             }
         }, ['uri' => $req->getRequestUri()]);
     }
@@ -398,12 +402,12 @@ class CustomerController extends Controller
                 $t = microtime(true);
                 $userDetail = $u;
                 $userDetail->customField = CustomField::getData($u, 'customer');
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
+                $customFields = CustomField::where(DC::COL_TABLE_CREATOR, $u->creatorId())
                     ->where('module', 'customer')
                     ->get();
                 $this->logExecutionTime($t, $action . '::loadProfileData', 'completed');
 
-                $view = ViewsConstants::CST . '.profile';
+                $view = VW::CST . '.profile';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
 
                 return view($view, compact('userDetail', 'customFields'));
@@ -442,7 +446,7 @@ class CustomerController extends Controller
                     $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)
                         . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/avatar/');
-                    if (!is_dir($dir)) mkdir($dir, 0755, true);
+                    if (!is_dir($dir)) mkdir($dir, 0777, true);
                     if ($user->avatar && file_exists($dir . $user->avatar)) @unlink($dir . $user->avatar);
                     // store on local disk under storage/app/uploads/avatar
                     $file->storeAs('uploads/avatar/', $name);
@@ -451,7 +455,7 @@ class CustomerController extends Controller
                 }
 
                 $t = microtime(true);
-                $user->fill($req->only(UsersConstants::COL_NM, UsersConstants::COL_EM, 'contact'))->save();
+                $user->fill($req->only(UC::COL_NM, UC::COL_EM, 'contact'))->save();
                 CustomField::saveData($user, $req->input('customField', []));
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
@@ -614,7 +618,7 @@ class CustomerController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 
             try {
-                $view = ViewsConstants::CST . '.import';
+                $view = VW::CST . '.import';
                 if (!ViewFacade::exists($view)) abort(404, "View [$view] not found");
                 return view($view);
             } catch (\Throwable $e) {
@@ -705,6 +709,14 @@ class CustomerController extends Controller
      * AJAX search for customers.
      */
     public const SRC_CTM = 'searchCustomers';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function searchCustomers(Request $req): JsonResponse|RedirectResponse
     {
         $action = 'CustomerController@searchCustomers';
@@ -724,14 +736,14 @@ class CustomerController extends Controller
                     $t = microtime(true);
                     $qb = Customer::select(
                         'id as value',
-                        UsersConstants::COL_NM . ' as label',
-                        UsersConstants::COL_EM
+                        UC::COL_NM . ' as label',
+                        UC::COL_EM
                     )
-                        ->where(UsersConstants::COL_IA, 1)
-                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
+                        ->where(UC::COL_IA, 1)
+                        ->where(DC::COL_TABLE_CREATOR, $u->creatorId())
                         ->where(function ($qr) use ($term) {
-                            $qr->where(UsersConstants::COL_NM, 'like', "%{$term}%")
-                                ->orWhere(UsersConstants::COL_EM, 'like', "%{$term}%");
+                            $qr->where(UC::COL_NM, 'like', "%{$term}%")
+                                ->orWhere(UC::COL_EM, 'like', "%{$term}%");
                         });
                     $this->logExecutionTime($t, $action . '::buildQuery', 'ok');
                     $t = microtime(true);
@@ -783,8 +795,8 @@ class CustomerController extends Controller
         ];
         $data = [
             'customer_id' => self::nextCustomerId($creator),
-            DatabaseConstants::COL_TABLE_CREATOR  => $creator,
-            'lang'        => Utility::settingsById($creator)[SettingsConstants::DEF_LNG] ?? ''
+            DC::COL_TABLE_CREATOR  => $creator,
+            'lang'        => Utility::settingsById($creator)[SC::DEF_LNG] ?? ''
         ];
         foreach ($fields as $f) $data[$f] = $req->input($f, '');
         return $data;
@@ -792,7 +804,7 @@ class CustomerController extends Controller
 
     private static function nextCustomerId(int|string $creator): int|string // ! CHANGED
     {
-        $last = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->latest()->first();
+        $last = Customer::where(DC::COL_TABLE_CREATOR, $creator)->latest()->first();
         if (!$last) return 1;
         $cid = $last->customer_id;
         return is_numeric($cid)
@@ -809,7 +821,7 @@ class CustomerController extends Controller
         $user = $userOrRedirect;
         try {
             $creator = $user?->creatorId();
-            $latest = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->latest()->first();
+            $latest = Customer::where(DC::COL_TABLE_CREATOR, $creator)->latest()->first();
             if (!$latest) return 0;
             return is_numeric($latest->customer_id) ? $latest->customer_id + 1 : $latest->customer_id;
         } catch (\Throwable $e) {

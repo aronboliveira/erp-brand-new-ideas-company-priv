@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Products;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    ViewsConstants,
-    ViewClassNamesConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ViewsConstants as VW,
+    ViewClassNamesConstants as VC
 };
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{
     Bill,
     ChartOfAccount,
@@ -27,25 +28,26 @@ use Illuminate\Support\Facades\{
     Validator
 };
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 final class ProductServiceCategoryController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = ViewsConstants::PRD_SV_CAT . '.index';
+    private const REDIRECT_INDEX = VW::PRD_SV_CAT . '.index';
 
     public function index(Request $request): View|RedirectResponse
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_CAT . '.' . $fn;
+        $view = VW::PRD_SV_CAT . '.' . $fn;
 
         return $this->measureProfile($action, function () use ($request, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
-            $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+            if (($c = self::guard($request, PMC::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
+            $categories = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
             return view($view, compact('categories'));
         });
     }
@@ -55,7 +57,7 @@ final class ProductServiceCategoryController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_CAT . '.' . $fn;
+        $view = VW::PRD_SV_CAT . '.' . $fn;
 
         return $this->measureProfile($action, function () use ($request, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -63,7 +65,7 @@ final class ProductServiceCategoryController extends Controller
             if (($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $types = ['' => __('Select Category Type')] + ProductServiceCategory::$catTypes;
             $chartAccounts = ChartOfAccount::select(DB::raw('CONCAT(code," - ",name) AS code_name'), 'id')
-                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('code_name', 'id')
                 ->prepend(__('Select Account'), '');
             return view($view, compact('types', 'chartAccounts'));
@@ -104,7 +106,7 @@ final class ProductServiceCategoryController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_CAT . '.' . $fn;
+        $view = VW::PRD_SV_CAT . '.' . $fn;
 
         return $this->measureProfile($action, function () use ($request, $id, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -180,10 +182,10 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
+            if (($c = self::guard($request, PMC::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
 
             $html = '<div class="mb-3 mr-2 zoom-in ">
-        <div class="' . ViewClassNamesConstants::CD . ' rounded-10 card-stats mb-0 cat-active overflow-hidden" data-id="0">
+        <div class="' . VC::CD . ' rounded-10 card-stats mb-0 cat-active overflow-hidden" data-id="0">
             <div class="category-select" data-cat-id="0">
                     <button type="button" class="btn tab-btns btn-primary">'
                 . __("All Categories") .
@@ -192,9 +194,9 @@ final class ProductServiceCategoryController extends Controller
             </div>
         </div>';
 
-            foreach (ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get() as $c) {
+            foreach (ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get() as $c) {
                 $html .= '<div class="mb-3 mr-2 zoom-in cat-list-btn">
-            <div class="' . ViewClassNamesConstants::CD . ' rounded-10 card-stats mb-0 overflow-hidden" data-id="'
+            <div class="' . VC::CD . ' rounded-10 card-stats mb-0 overflow-hidden" data-id="'
                     . $c->id . '">
             <div class="category-select" data-cat-id="'
                     . $c->id . '">
@@ -211,6 +213,13 @@ final class ProductServiceCategoryController extends Controller
     }
 
     public const GET_ACC = 'getAccount';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function getAccount(Request $request): JsonResponse|RedirectResponse
     {
         $cls = __CLASS__;
@@ -220,7 +229,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
+            if (($c = self::guard($request, PMC::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
 
             $map = [
                 'income'             => 'Income',
@@ -241,6 +250,34 @@ final class ProductServiceCategoryController extends Controller
                 : [];
 
             return response()->json($chartAccounts);
+        });
+    }
+
+    /**
+     * Show a single product/service category.
+     */
+    public function show(Request $request, int|string $id): View|RedirectResponse|JsonResponse
+    {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = VW::PRD_SV_CAT . '.' . $fn;
+        return $this->measureProfile($action, function () use ($request, $id, $view, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($c = self::guard($request, PMC::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
+            try {
+                $category = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                if ($request->wantsJson()) return response()->json($category);
+                if (!\Illuminate\Support\Facades\View::exists($view)) {
+                    return redirect()->route(self::REDIRECT_INDEX)->with('info', __('Category detail view not available.'));
+                }
+                return view($view, compact('category'));
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Category not found.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($request, $e, "$action");
+            }
         });
     }
 }

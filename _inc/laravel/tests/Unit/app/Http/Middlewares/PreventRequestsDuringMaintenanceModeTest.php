@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\app\Http\Middlewares;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\{Artisan, Log, Route};
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use Illuminate\Http\Request;
 
-class PreventRequestsDuringTest extends TestCase
+class PreventRequestsDuringMaintenanceModeTest extends TestCase
 {
 	protected function setUp(): void
 	{
@@ -17,6 +17,12 @@ class PreventRequestsDuringTest extends TestCase
 		Route::get('/test-prevent', function (Request $request) {
 			return response('OK', 200);
 		})->middleware(PreventRequestsDuringMaintenance::class);
+	}
+
+	protected function tearDown(): void
+	{
+		Artisan::call('up');
+		parent::tearDown();
 	}
 
 	/**

@@ -8,6 +8,11 @@ use App\Models\Tax;
 
 class TaxTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -20,14 +25,11 @@ class TaxTest extends TestCase
 		$data = [
 			'name'       => 'VAT',
 			'rate'       => 12.5,
-			'created_by' => 'user-123',
 		];
 
 		$tax = Tax::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $tax->$field);
-		}
+		$this->assertFillableMatches($data, $tax);
 	}
 
 	/**
@@ -40,7 +42,6 @@ class TaxTest extends TestCase
 		$tax = Tax::create([
 			'name'       => 'Service Tax',
 			'rate'       => 5.0,
-			'created_by' => 'user-456',
 		]);
 
 		$key = $tax->getKey();

@@ -13,7 +13,9 @@ use Illuminate\Support\Str;
 class JobStageSeeder extends Seeder
 {
 	private const MIN_PER_STAGE = 2;
-	private const MIN_ROWS = 800;
+	// private const MIN_ROWS = 800;
+	private const MIN_ROWS = 4; /* original: 800 */
+	private const HARD_CAP = 4;
 
 	public function run(): void
 	{
@@ -57,6 +59,7 @@ class JobStageSeeder extends Seeder
 		$created = 0;
 
 		foreach (JobStageEnum::cases() as $case) {
+			if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 			$need = 0;
 
 			try {
@@ -71,6 +74,7 @@ class JobStageSeeder extends Seeder
 			}
 
 			for ($i = 1; $i <= $need; $i++) {
+				if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 				$title = $this->uniqueTitleForCase($case, $i, $usedTitles);
 				$order = random_int(0, 5000);
 				$depth = random_int(0, 8);
@@ -97,7 +101,7 @@ class JobStageSeeder extends Seeder
 						'updated_at' => $now,
 					]);
 
-					$output->writeln("Created job stage: {$title}, order {$order}, depth {$depth} (status: {$case->value})");
+					// $output->writeln("Created job stage: {$title}, order {$order}, depth {$depth} (status: {$case->value})");
 					$created++;
 				} catch (\Throwable $e) {
 					Log::error(static::class . ' create failed (baseline)', [
@@ -123,6 +127,7 @@ class JobStageSeeder extends Seeder
 		$cases = JobStageEnum::cases();
 
 		for ($n = 1; $n <= $missing; $n++) {
+			if ($created >= self::HARD_CAP) break; /* HARD_CAP guard */
 			$case = $cases[array_rand($cases)];
 			$title = $this->uniqueTitleForCase($case, $n + 1000, $usedTitles);
 

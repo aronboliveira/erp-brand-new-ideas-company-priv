@@ -1,17 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(auth: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/income_vs_expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,13 +13,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Income vs Expense Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Income vs Expense Summary')}}</li>
 @endsection
 
 @push('theme-script')
@@ -74,7 +68,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -129,7 +123,7 @@
             if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
             target.setAttribute(dataChartGuard, "true");
             if (typeof window.ApexCharts !== "function") {
-                try { 
+                try {
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -204,19 +198,19 @@
         })();
     </script>
 @endpush
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_income_vs_expense_summary_unavailable') ?? 'Download function for income vs expense summary is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-income-vs-expense-summary-link"
         class="{{ VC::BT_SM_PM }} download-income-vs-expense-summary"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -230,19 +224,24 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $lang                              = Utility::fetchUserLang();
-                            $ivsBase                           = VW::RPT.'.income.vs.expense.summary';
-                            $ivsKebab                          = Str::kebab($ivsBase);
-                            $ivsResolved                       = Route::has($ivsBase) ? $ivsBase : (Route::has($ivsKebab) ? $ivsKebab : null);
-                            $ivsUrl                            = $ivsResolved ? route($ivsResolved) : '#';
-                            $ivsGuardMsg                       = Utility::fetchLinkMessage($lang, VW::RPT, 'income_vs_expense_summary_report_route_unavailable') ?? 'Income vs expense summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $lang                              = Utility::fetchUserLang();
+                                $ivsBase                           = VW::RPT.'.income.vs.expense.summary';
+                                $ivsKebab                          = Str::kebab($ivsBase);
+                                $ivsResolved                       = Route::has($ivsBase) ? $ivsBase : (Route::has($ivsKebab) ? $ivsKebab : null);
+                                $ivsUrl                            = $ivsResolved ? route($ivsResolved) : '#';
+                                $ivsGuardMsg                       = Utility::fetchLinkMessage($lang, VW::RPT, 'income_vs_expense_summary_report_route_unavailable') ?? 'Income vs expense summary report route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/income_vs_expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $ivsUrl,
@@ -252,7 +251,7 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box">
@@ -286,7 +285,7 @@
                                             <a href="#"
                                             class="{{ VC::BT_SM_PM }} apply-income-vs-expense-summary"
                                             data-form-id="income_vs_expense_summary"
-                                            data-guard-msg="{{ $ivsGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($ivsGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Apply') }}"
@@ -296,7 +295,7 @@
                                             <a href="{{ $ivsUrl }}"
                                             class="{{ VC::BT_SM_DG }} reset-income-vs-expense-summary"
                                             data-url="{{ $ivsUrl }}"
-                                            data-guard-msg="{{ $ivsGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($ivsGuardMsg) }}"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}"
@@ -318,31 +317,55 @@
         </div>
     </div>
     @php
-        $catLabel     = data_get($filter,'category');
-        $catText      = $catLabel ? $catLabel : __('No category available');
-        $custLabel    = data_get($filter,'customer');
-        $custText     = $custLabel ? $custLabel : __('No customer available');
-        $vendLabel    = data_get($filter,'vendor');
-        $vendText     = $vendLabel ? $vendLabel : __('No vendor available');
-        $startRange   = data_get($filter,'startDateRange');
-        $endRange     = data_get($filter,'endDateRange');
-        $startText    = $startRange ? $startRange : __('Could not find start date');
-        $endText      = $endRange ? $endRange : __('Could not find end date');
+        try {
+            $catLabel     = data_get($filter,'category');
+            $catText      = $catLabel ? $catLabel : __('No category available');
+            $custLabel    = data_get($filter,'customer');
+            $custText     = $custLabel ? $custLabel : __('No customer available');
+            $vendLabel    = data_get($filter,'vendor');
+            $vendText     = $vendLabel ? $vendLabel : __('No vendor available');
+            $startRange   = data_get($filter,'startDateRange');
+            $endRange     = data_get($filter,'endDateRange');
+            $startText    = $startRange ? $startRange : __('Could not find start date');
+            $endText      = $endRange ? $endRange : __('Could not find end date');
 
-        $months       = is_array($monthList ?? null) ? $monthList : [];
-        $colspan      = max(2, count($months) + 1);
+            $months       = is_array($monthList ?? null) ? $monthList : [];
+            $colspan      = max(2, count($months) + 1);
 
-        $revTotals    = is_array($revenueIncomeTotal ?? null) ? $revenueIncomeTotal : [];
-        $invTotals    = is_array($invoiceIncomeTotal ?? null) ? $invoiceIncomeTotal : [];
-        $payTotals    = is_array($paymentExpenseTotal ?? null) ? $paymentExpenseTotal : [];
-        $billTotals   = is_array($billExpenseTotal ?? null) ? $billExpenseTotal : [];
-        $profitTotals = is_array($profit ?? null) ? $profit : [];
+            $revTotals    = is_array($revenueIncomeTotal ?? null) ? $revenueIncomeTotal : [];
+            $invTotals    = is_array($invoiceIncomeTotal ?? null) ? $invoiceIncomeTotal : [];
+            $payTotals    = is_array($paymentExpenseTotal ?? null) ? $paymentExpenseTotal : [];
+            $billTotals   = is_array($billExpenseTotal ?? null) ? $billExpenseTotal : [];
+            $profitTotals = is_array($profit ?? null) ? $profit : [];
 
-        $hasIncome    = !empty($revTotals) || !empty($invTotals);
-        $hasExpense   = !empty($payTotals) || !empty($billTotals);
-        $hasProfit    = !empty($profitTotals);
-    @endphp
+            $hasIncome    = !empty($revTotals) || !empty($invTotals);
+            $hasExpense   = !empty($payTotals) || !empty($billTotals);
+            $hasProfit    = !empty($profitTotals);
+        } catch (\Throwable $e) {
+            \Log::error('reports/income_vs_expense_summary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div id="printableArea">
+        {{-- ── KPI Aggregation Cards ── --}}
+        @php
+            $totalRevSum = is_array($revTotals) ? array_sum($revTotals) : 0;
+            $totalInvSum = is_array($invTotals) ? array_sum($invTotals) : 0;
+            $totalPaySum = is_array($payTotals) ? array_sum($payTotals) : 0;
+            $totalBilSum = is_array($billTotals) ? array_sum($billTotals) : 0;
+            $totalPftSum = is_array($profitTotals) ? array_sum($profitTotals) : 0;
+            $totalIncSum = $totalRevSum + $totalInvSum;
+            $totalExpSum = $totalPaySum + $totalBilSum;
+            $fmtTotInc = ($user?->priceFormat($totalIncSum)) ?? number_format((float)$totalIncSum, 2);
+            $fmtTotExp = ($user?->priceFormat($totalExpSum)) ?? number_format((float)$totalExpSum, 2);
+            $fmtTotPft = ($user?->priceFormat($totalPftSum)) ?? number_format((float)$totalPftSum, 2);
+            $profitTone = $totalPftSum >= 0 ? 'positive' : 'negative';
+        @endphp
+        @include('reports.partials._kpi_cards', ['kpiHeading' => __('Income vs Expense Overview'), 'kpis' => [
+            ['label' => __('Total Income'),  'value' => $fmtTotInc, 'tone' => 'positive'],
+            ['label' => __('Total Expense'), 'value' => $fmtTotExp, 'tone' => 'negative'],
+            ['label' => __('Net Profit'),    'value' => $fmtTotPft, 'tone' => $profitTone],
+        ]])
+
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="col">
                 <input type="hidden" value="{{ $catText.' '.__('Income Vs Expense Summary').' '.__('Report of').' '.$startText.' '.__('to').' '.$endText }}" id="filename">
@@ -386,7 +409,7 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}" id="chart-container">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <div class="scrollbar-inner">
                         <div id="chart-sales" data-color="primary" data-height="300"></div>
                     </div>
@@ -396,15 +419,16 @@
 
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="{{ VC::TB }}">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
+                        <table class="{{ VC::TB }} rpt-table" role="table" aria-label="{{ __('Income vs Expense Summary') }}">
+                            <caption class="sr-only">{{ __('Income versus expense comparison by month') }}</caption>
                             <thead>
                                 <tr>
-                                    <th>{{__('Type')}}</th>
+                                    <th scope="col">{{__('Type')}}</th>
                                     @if(count($months))
                                         @foreach($months as $m)
-                                            <th>{{ $m }}</th>
+                                            <th scope="col">{{ $m }}</th>
                                         @endforeach
                                     @else
                                         <th>{{ __('No months available') }}</th>
@@ -412,15 +436,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{__('Income : ')}}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{__('Income : ')}}</span></td>
                                 </tr>
                                 @if($hasIncome)
                                     <tr>
                                         <td>{{ __('Revenue') }}</td>
                                         @if(count($months))
                                             @foreach($months as $i => $m)
-                                                @php $val = $revTotals[$i] ?? 0; @endphp
+                                                @php
+ $val = $revTotals[$i] ?? 0;
+@endphp
                                                 <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                             @endforeach
                                         @else
@@ -431,7 +457,9 @@
                                         <td>{{ __('Invoice') }}</td>
                                         @if(count($months))
                                             @foreach($months as $i => $m)
-                                                @php $val = $invTotals[$i] ?? 0; @endphp
+                                                @php
+ $val = $invTotals[$i] ?? 0;
+@endphp
                                                 <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                             @endforeach
                                         @else
@@ -440,19 +468,21 @@
                                     </tr>
                                 @else
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No income data available for the selected filters') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No income data available for the selected filters') }}</td>
                                     </tr>
                                 @endif
 
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{__('Expense : ')}}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{__('Expense : ')}}</span></td>
                                 </tr>
                                 @if($hasExpense)
                                     <tr>
                                         <td>{{ __('Payment') }}</td>
                                         @if(count($months))
                                             @foreach($months as $i => $m)
-                                                @php $val = $payTotals[$i] ?? 0; @endphp
+                                                @php
+ $val = $payTotals[$i] ?? 0;
+@endphp
                                                 <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                             @endforeach
                                         @else
@@ -463,7 +493,9 @@
                                         <td>{{ __('Bill') }}</td>
                                         @if(count($months))
                                             @foreach($months as $i => $m)
-                                                @php $val = $billTotals[$i] ?? 0; @endphp
+                                                @php
+ $val = $billTotals[$i] ?? 0;
+@endphp
                                                 <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                             @endforeach
                                         @else
@@ -472,19 +504,21 @@
                                     </tr>
                                 @else
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No expense data available for the selected filters') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No expense data available for the selected filters') }}</td>
                                     </tr>
                                 @endif
 
-                                <tr>
-                                    <td colspan="{{ $colspan }}" class="text-dark"><span>{{__('Profit = Income - Expense ')}}</span></td>
+                                <tr class="rpt-section-header">
+                                    <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{__('Profit = Income - Expense ')}}</span></td>
                                 </tr>
                                 @if($hasProfit)
                                     <tr>
                                         <td><h6>{{ __('Profit') }}</h6></td>
                                         @if(count($months))
                                             @foreach($months as $i => $m)
-                                                @php $val = $profitTotals[$i] ?? 0; @endphp
+                                                @php
+ $val = $profitTotals[$i] ?? 0;
+@endphp
                                                 <td>{{ ($user?->priceFormat($val)) ?? number_format((float)$val, 2) }}</td>
                                             @endforeach
                                         @else
@@ -493,13 +527,13 @@
                                     </tr>
                                 @else
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No profit data available for the selected filters') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No profit data available for the selected filters') }}</td>
                                     </tr>
                                 @endif
 
                                 @if(!$hasIncome && !$hasExpense && !$hasProfit)
                                     <tr>
-                                        <td colspan="{{ $colspan }}" class="text-center text-muted">{{ __('No data available for the selected filters') }}</td>
+                                        <td colspan="{{ $colspan }}" class="{{ VC::TXCT_MT }}">{{ __('No data available for the selected filters') }}</td>
                                     </tr>
                                 @endif
                             </tbody>

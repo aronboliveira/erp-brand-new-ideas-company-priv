@@ -1,5 +1,6 @@
 @php
-    use Modules\LandingPage\Constants\RoutesResourcesConstants;
+    $key ??= '';
+    $screenshot ??= [];
 @endphp
 {{Collective\Html\FormFacade::model(null, array('route' => array(RoutesResourcesConstants::SST.'.update', $key), 'method' => 'POST','enctype' => "multipart/form-data")) }}
 <div class="modal-body">
@@ -8,7 +9,7 @@
         <div class="col-md-12">
             <div class="form-group">
                 {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                {{ Collective\Html\FormFacade::text('screenshots_heading',$screenshot['screenshots_heading'], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                {{ Collective\Html\FormFacade::text('screenshots_heading',$screenshot['screenshots_heading'] ?? '', ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
             </div>
         </div>
 

@@ -8,6 +8,11 @@ use App\Models\EmailTemplateLang;
 
 class EmailTemplateLangTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -17,7 +22,16 @@ class EmailTemplateLangTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['parent_id', 'lang', 'subject', 'content'];
+		$expected = [
+			'parent_id',
+			'lang',
+			'subject',
+			'content',
+			'translator',
+			'translator_id',
+			'variables',
+			'metadata',
+		];
 		$this->assertEquals($expected, (new EmailTemplateLang())->getFillable());
 	}
 }

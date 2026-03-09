@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\CustomFieldValue;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomFieldValueTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -15,8 +21,12 @@ class CustomFieldValueTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$ref     = new \ReflectionClass(CustomFieldValue::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'record_id',
+			'field_id',
+			'value',
+			'checked',
+		];
 
 		$this->assertSame($expected, (new CustomFieldValue)->getFillable());
 	}

@@ -13,6 +13,8 @@ class InvoiceBankTransferSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
+	private const HARD_CAP = 2;
+
 	public function __construct()
 	{
 		$this->out = new ConsoleOutput();
@@ -41,6 +43,7 @@ class InvoiceBankTransferSeeder extends Seeder
 			if ($rawBase < 1) $rawBase = 1;
 
 			$target = $this->ceilToMultipleOf64($rawBase);
+			$target = min(self::HARD_CAP, $target); /* original: ceilToMultipleOf64(rawBase) */
 
 			$invoiceCap = (int) floor(count($invoices) * 0.25);
 			if ($invoiceCap < 1) $invoiceCap = 1;
@@ -143,17 +146,17 @@ class InvoiceBankTransferSeeder extends Seeder
 				$m->setAttribute(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID);
 				$m->setAttribute(DC::COL_TABLE_UPDATER, DC::DEFAULT_UUID);
 
-				$this->out->writeln(sprintf(
-					'<info>Create #%d</info> bank_transfer=%s invoice=%s order=%s amount=%s status=%s date=%s receipt=%s',
-					$created + 1,
-					$bankTransferId,
-					$invoiceId,
-					$orderId ?? 'null',
-					$amount !== null ? number_format((float) $amount, 2, '.', '') : 'null',
-					$status ?? 'null',
-					$date ?? 'null',
-					$receipt ?? 'null'
-				));
+				// $this->out->writeln(sprintf(
+				// 	'<info>Create #%d</info> bank_transfer=%s invoice=%s order=%s amount=%s status=%s date=%s receipt=%s',
+				// 	$created + 1,
+				// 	$bankTransferId,
+				// 	$invoiceId,
+				// 	$orderId ?? 'null',
+				// 	$amount !== null ? number_format((float) $amount, 2, '.', '') : 'null',
+				// 	$status ?? 'null',
+				// 	$date ?? 'null',
+				// 	$receipt ?? 'null'
+				// ));
 
 				try {
 					$m->save();

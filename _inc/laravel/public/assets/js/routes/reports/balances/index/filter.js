@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
   try {
     const btn = document.querySelector("button#filter");
     if (!btn) return;
@@ -20,7 +28,7 @@
           document.dispatchEvent(ev);
         } catch (_) {}
       },
-      { passive: false }
+      { passive: false },
     );
   } catch (_) {}
 })();

@@ -63,7 +63,7 @@ enum MessagingPlatform: string
 		if ($value === null)
 			return self::Email;
 
-		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Core messaging platforms
 			'email', 'mail', 'e-mail' => self::Email,

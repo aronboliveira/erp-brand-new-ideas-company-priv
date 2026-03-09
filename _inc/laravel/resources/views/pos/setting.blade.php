@@ -1,29 +1,27 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $barcodeBase     = VW::POS . '.barcode.setting';
+        $barcodeKebab    = Str::kebab($barcodeBase);
+        $barcodeResolved = Route::has($barcodeBase) ? $barcodeBase : (Route::has($barcodeKebab) ? $barcodeKebab : null);
+        $actionUrl       = $barcodeResolved ? route($barcodeResolved) : '#';
 
-    $barcodeBase     = VW::POS . '.barcode.setting';
-    $barcodeKebab    = Str::kebab($barcodeBase);
-    $barcodeResolved = Route::has($barcodeBase) ? $barcodeBase : (Route::has($barcodeKebab) ? $barcodeKebab : null);
-    $actionUrl       = $barcodeResolved ? route($barcodeResolved) : '#';
+        $guardMsg = Utility::fetchLinkMessage($lang, VW::POS, 'barcode_setting_route_unavailable')
+            ?? __('Barcode settings route is unavailable. Please contact technical support or your domain administrator.');
 
-    $guardMsg = Utility::fetchLinkMessage($lang, VW::POS, 'barcode_setting_route_unavailable')
-        ?? __('Barcode settings route is unavailable. Please contact technical support or your domain administrator.');
-
-    $settings      = $settings ?? Utility::settings();
-    $barcodeType   = $settings['barcode_type']   ?? 'code128';
-    $barcodeFormat = $settings['barcode_format'] ?? 'css';
+        $settings      = $settings ?? Utility::settings();
+        $barcodeType   = $settings['barcode_type']   ?? 'code128';
+        $barcodeFormat = $settings['barcode_format'] ?? 'css';
+    } catch (\Throwable $e) {
+        \Log::error('pos/setting — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <form method="POST"
       action="{{ $actionUrl }}"
       id="pos-barcode-setting-form"
       data-url="{{ $actionUrl }}"
-      data-guard-msg="{{ $guardMsg }}"
+      data-guard-msg="{{ base64_encode($guardMsg) }}"
       data-sv-localized="true">
     @csrf
 

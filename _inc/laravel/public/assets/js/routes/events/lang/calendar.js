@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -33,11 +34,6 @@
       department_fetch_unavailable:
         "Échec de la récupération des départements.",
       employee_fetch_unavailable: "Échec de la récupération des employés.",
-    },
-    he: {
-      calendar_data_unavailable: "טעינת נתוני היומן נכשלה.",
-      department_fetch_unavailable: "לא ניתן לאחזר מחלקות.",
-      employee_fetch_unavailable: "לא ניתן לאחזר עובדים.",
     },
     it: {
       calendar_data_unavailable: "Impossibile caricare il calendario.",

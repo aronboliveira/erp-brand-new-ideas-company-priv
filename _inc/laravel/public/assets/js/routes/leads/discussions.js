@@ -2,77 +2,26 @@
   const $ = window.jQuery;
   if (!$) {
     try {
-            if (
+      if (
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1"
-      )console.error("jQuery not found for discussionGuard.js");
+      )
+        console.error("jQuery not found for discussionGuard.js");
     } catch (_) {}
     return;
   }
 
-  const ERR_FB = "# ERROR";
-  const DCL = "data-client-localized";
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   const DGM = "data-guard-msg";
-  const DSL = "data-sv-localized";
   const DPL = "data-pointer-listener";
   const FORM_ID = "leads-discussion-form";
-  const MSG_KEY = "leads_discussion_route_unavailable";
-
-  const hasBootstrapCss = () =>
-    !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-
-  const getMsg = el => {
-    let msg = ERR_FB;
-    if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
-      msg = el.getAttribute(DGM) || ERR_FB;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[MSG_KEY] ||
-        el.getAttribute(DGM) ||
-        window.translations?.en?.[MSG_KEY] ||
-        ERR_FB;
-      if (msg !== ERR_FB) {
-        el.setAttribute(DGM, msg);
-        el.setAttribute(DCL, "true");
-      }
-    }
-    return msg;
-  };
-
-  const showError = el => {
-    const msg = getMsg(el);
-    if (hasBootstrapCss() && window.bootstrap) {
-      let wrap = document.getElementById("toast-wrap-leads-discussion");
-      if (!wrap) {
-        wrap = document.createElement("div");
-        wrap.id = "toast-wrap-leads-discussion";
-        wrap.className = "position-fixed top-0 end-0 p-3";
-        wrap.style.zIndex = "1080";
-        document.body.appendChild(wrap);
-      }
-      const t = document.createElement("div");
-      t.className = "toast align-items-center text-bg-danger border-0";
-      t.setAttribute("role", "alert");
-      t.setAttribute("aria-live", "assertive");
-      t.setAttribute("aria-atomic", "true");
-      t.innerHTML =
-        '<div class="d-flex"><div class="toast-body">' +
-        msg +
-        '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
-      wrap.appendChild(t);
-      new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-    } else {
-      alert(msg);
-    }
-  };
 
   const handlersPointer = new WeakMap();
 
@@ -88,7 +37,10 @@
         if ((!url || url === "#") && (!action || action === "#")) {
           e.preventDefault();
           e.stopPropagation();
-          showError(form);
+          const msg =
+            form.getAttribute(DGM) ||
+            getMsg("leads_discussion_route_unavailable");
+          scheduleError(msg, "pointerup");
         }
       } catch (_) {}
     };

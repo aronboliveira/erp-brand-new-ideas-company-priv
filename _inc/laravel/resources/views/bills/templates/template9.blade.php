@@ -3,7 +3,6 @@
 use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
-use App\Helpers\TemplateHelper;
 
 if (!function_exists('e')) {
     function e($v)
@@ -43,7 +42,7 @@ try {
 }
 
 if (empty($bill)) {
-    echo TemplateHelper::getNoDataHtml('bill', $docLang);
+    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BILL</title></head><body><div class="{{ VC::ALT_WRN }}">No BILL data available.</div></body></html>';
     return;
 }
 
@@ -250,11 +249,11 @@ try {
                     <tr>
                         <td>
                             <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;color:var(--theme-color);margin-bottom:10px;"><?= e(__('BILL')) ?></h3>
-                            <table class="no-space" style="width:70%;">
+                            <table class="{{ VC::NO_SPC }}" style="width:70%;">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="text-right"><?php try {
+                                        <td class="{{ VC::TX_RT }}"><?php try {
                                                                     echo e(\App\Models\Utility::billNumberFormat($settings, data_get($bill, 'bill_id')));
                                                                 } catch (\Throwable $e) {
                                                                     Log::error('Bill num fmt: ' . $e->getMessage());
@@ -263,7 +262,7 @@ try {
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Bill Date')) ?>:</td>
-                                        <td class="text-right"><?php try {
+                                        <td class="{{ VC::TX_RT }}"><?php try {
                                                                     echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'issue_date')));
                                                                 } catch (\Throwable $e) {
                                                                     Log::error('Issue date fmt: ' . $e->getMessage());
@@ -272,7 +271,7 @@ try {
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Due Date')) ?>:</td>
-                                        <td class="text-right"><?php try {
+                                        <td class="{{ VC::TX_RT }}"><?php try {
                                                                     echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'due_date')));
                                                                 } catch (\Throwable $e) {
                                                                     Log::error('Due date fmt: ' . $e->getMessage());
@@ -282,14 +281,14 @@ try {
                                 </tbody>
                             </table>
                         </td>
-                        <td class="text-right">
+                        <td class="{{ VC::TX_RT }}">
                             <img class="bill-logo" src="<?= e($img) ?>" alt="">
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         <td>
@@ -314,13 +313,13 @@ try {
                             </p>
                         </td>
                         <td>
-                            <table class="no-space">
+                            <table class="{{ VC::NO_SPC }}">
                                 <tbody>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="view-qrcode" style="margin-top:0;">
+                                            <div class="{{ VC::VW_QR }}" style="margin-top:0;">
                                                 <?php try {
-                                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
+                                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
                                                 } catch (\Throwable $e) {
                                                     Log::error('QR gen Throwable: ' . $e->getMessage());
                                                 } ?>
@@ -350,7 +349,7 @@ try {
                             </p>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="text-right">
+                            <td class="{{ VC::TX_RT }}">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <p>
                                     <?= e(data_get($vendor, 'shipping_name', __('No name for shipping available.'))) ?><br>
@@ -369,7 +368,7 @@ try {
         </div>
 
         <div class="bill-body" style="padding-right:0;">
-            <table class="add-border bill-summary">
+            <table class="{{ VC::BDR_BIL_SM }}">
                 <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                     <tr>
                         <th><?= e(__('Item')) ?></th>
@@ -425,7 +424,7 @@ try {
                                     } ?></td>
                             </tr>
                             <?php if (!empty(data_get($item, 'description'))): ?>
-                                <tr class="border-0 itm-description">
+                                <tr class="{{ VC::BD0_ITM_DSC }}">
                                     <td colspan="6" style="border-bottom:1px solid <?= e($color) ?>"> <?= e((string) $item->description) ?></td>
                                 </tr>
                             <?php endif; ?>
@@ -463,8 +462,8 @@ try {
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
+                        <td colspan="2" class="{{ VC::SUB_TTL }}">
+                            <table class="{{ VC::TTL_TB }}">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
                                     <td><?php try {

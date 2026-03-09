@@ -1,26 +1,24 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
+$lang = Utility::fetchUserLang();
+        $hasLead = !empty($lead ?? null) && data_get($lead, 'id');
 
-    $lang = Utility::fetchUserLang();
-    $hasLead = !empty($lead ?? null) && data_get($lead, 'id');
+        $convertBase     = VW::LD.'.convert.to.deal';
+        $convertKebab    = Str::kebab($convertBase);
+        $convertResolved = Route::has($convertBase) ? $convertBase : (Route::has($convertKebab) ? $convertKebab : null);
+        $convertUrl      = ($convertResolved && $hasLead) ? route($convertResolved, $lead->id) : '#';
+        $convertGuard    = Utility::fetchLinkMessage($lang, VW::LD, 'convert_to_deal_route_unavailable') ?? __('Convert to Deal route is unavailable. Please contact technical support or your domain administrator.');
 
-    $convertBase     = VW::LD.'.convert.to.deal';
-    $convertKebab    = Str::kebab($convertBase);
-    $convertResolved = Route::has($convertBase) ? $convertBase : (Route::has($convertKebab) ? $convertKebab : null);
-    $convertUrl      = ($convertResolved && $hasLead) ? route($convertResolved, $lead->id) : '#';
-    $convertGuard    = Utility::fetchLinkMessage($lang, VW::LD, 'convert_to_deal_route_unavailable') ?? __('Convert to Deal route is unavailable. Please contact technical support or your domain administrator.');
-
-    $leadName   = data_get($lead ?? [], 'subject', __('No subject available for lead'));
-    $leadClient = data_get($lead ?? [], 'name', __('No client name available for lead'));
-    $leadEmail  = data_get($lead ?? [], 'email', __('No email available for lead'));
+        $leadName   = data_get($lead ?? [], 'subject', __('No subject available for lead'));
+        $leadClient = data_get($lead ?? [], 'name', __('No client name available for lead'));
+        $leadEmail  = data_get($lead ?? [], 'email', __('No email available for lead'));
+    } catch (\Throwable $e) {
+        \Log::error('leads/convert — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if(!$hasLead)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested lead was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested lead was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($lead, [
         'url'               => $convertUrl,
@@ -42,7 +40,7 @@
                 </div>
 
                 <div class="{{ VC::C12 }}">
-                    <div class="d-flex radio-check">
+                    <div class="{{ VC::DFL }} radio-check">
                         <div class="form-check form-check-inline {{ VC::FM_GCB6 }}">
                             <input type="radio" name="client_check" value="new" id="new_client" class="form-check-input" @if(empty($exist_client)) checked @endif/>
                             <label class="form-check-label {{ VC::FM_LB }}" for="new_client">{{ __('New Client') }}</label>
@@ -81,31 +79,31 @@
             <div class="{{ VC::RW }} px-3 text-sm">
                 <div class="{{ VC::C12 }} pl-0 pb-2 fw-bold text-dark">{{ __('Copy To') }}</div>
 
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','products',true,['class' => 'form-check-input','id'=>'is_transfer_products']) }}
                     {{ Form::label('is_transfer_products', __('Products'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','sources',true,['class' => 'form-check-input','id'=>'is_transfer_sources']) }}
                     {{ Form::label('is_transfer_sources', __('Sources'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','files',true,['class' => 'form-check-input','id'=>'is_transfer_files']) }}
                     {{ Form::label('is_transfer_files', __('Files'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','discussion',true,['class' => 'form-check-input','id'=>'is_transfer_discussion']) }}
                     {{ Form::label('is_transfer_discussion', __('Discussion'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','notes',true,['class' => 'form-check-input','id'=>'is_transfer_notes']) }}
                     {{ Form::label('is_transfer_notes', __('Notes'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','calls',true,['class' => 'form-check-input','id'=>'is_transfer_calls']) }}
                     {{ Form::label('is_transfer_calls', __('Calls'),['class'=>'custom-control-label']) }}
                 </div>
-                <div class="col-3 custom-control custom-checkbox form-switch">
+                <div class="{{ VC::C3 }} {{ VC::CST_CT_CB }} form-switch">
                     {{ Form::checkbox('is_transfer[]','emails',true,['class' => 'form-check-input','id'=>'is_transfer_emails']) }}
                     {{ Form::label('is_transfer_emails', __('Emails'),['class'=>'custom-control-label']) }}
                 </div>
@@ -184,4 +182,3 @@
         </script>
     {{ Form::close() }}
 @endif
-

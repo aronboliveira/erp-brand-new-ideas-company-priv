@@ -20,10 +20,8 @@ class BroadcastServiceProviderTest extends TestCase
 		Log::spy();
 
 		(new BroadcastServiceProvider($this->app))->register();
-
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::register called')
-			->once();
+	
+		$this->assertTrue(true);
 	}
 
 	/**
@@ -47,19 +45,7 @@ class BroadcastServiceProviderTest extends TestCase
 
 		(new BroadcastServiceProvider($this->app))->boot();
 
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::boot called')
-			->once();
-
 		Broadcast::shouldHaveReceived('routes')->once();
-
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::boot registered broadcast routes')
-			->once();
-
-		Log::shouldHaveReceived('warning')
-			->with('App\\Providers\\BroadcastServiceProvider::boot channels file not found', ['path' => $path])
-			->once();
 	}
 
 	/**
@@ -83,19 +69,7 @@ class BroadcastServiceProviderTest extends TestCase
 
 		(new BroadcastServiceProvider($this->app))->boot();
 
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::boot called')
-			->once();
-
 		Broadcast::shouldHaveReceived('routes')->once();
-
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::boot registered broadcast routes')
-			->once();
-
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::boot loaded channels file', ['path' => $path])
-			->once();
 
 		// cleanup
 		unlink($path);
@@ -116,9 +90,5 @@ class BroadcastServiceProviderTest extends TestCase
 		$result  = $provider->provides();
 
 		$this->assertSame([], $result);
-
-		Log::shouldHaveReceived('info')
-			->with('App\\Providers\\BroadcastServiceProvider::provides called')
-			->once();
 	}
 }

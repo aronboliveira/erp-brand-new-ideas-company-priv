@@ -16,9 +16,6 @@ const domTypes = {
   Event: "readonly",
   CustomEvent: "readonly",
   Response: "readonly",
-  DOMParser: "readonly",
-  Range: "readonly",
-  DocumentFragment: "readonly",
 };
 
 /** Standard browser globals shared by the IIFE route files. */
@@ -89,7 +86,6 @@ const browserGlobals = {
   taskCheckbox: "readonly",
   common_bind: "readonly",
   commonLoader: "readonly",
-  safeSethtmlContent: "readonly",
 };
 
 /**
@@ -181,28 +177,7 @@ export default [
     ignores: [
       "node_modules/**",
       "vendor/**",
-      "frontend/**",
-      "Modules/**",
-      /* TypeScript migration folder - has its own eslint config */
-      "ts/**",
-      ".venv/**",
-      "tailwind.config.js",
-      "webpack.mix.js",
-      "webpack.mix.cjs",
-      "babel.config.cjs",
-      "jest.config.cjs",
-      "playwright.config.cjs",
-      "tests/**",
-      "utils/**",
       "public/assets/js/core/erp-bootstrap.min.js",
-      "public/assets/js/plugins/**",
-      "public/assets/js/pages/**",
-      "public/assets/js/dash.js",
-      "public/assets/js/generic/**",
-      "public/assets/js/*.min.js",
-      "public/assets/js/vendor-all.js",
-      "public/assets/js/jquery*",
-      "public/css/**",
       "public/js/**",
       "public/Modules/**",
       "storage/**",

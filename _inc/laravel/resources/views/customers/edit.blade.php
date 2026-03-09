@@ -1,47 +1,78 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    $basicFields = [
-        ['name'=>'name','type'=>'text','label'=>__('Name'),'cols'=>4,'attrs'=>['required'=>'required']],
-        ['name'=>'contact','type'=>'number','label'=>__('Contact'),'cols'=>4,'attrs'=>['required'=>'required']],
-        ['name'=>'email','type'=>'text','label'=>__('Email'),'cols'=>4],
-        ['name'=>'tax_number','type'=>'text','label'=>__('Tax Number'),'cols'=>4],
-    ];
-    $billingFields = [
-        ['name'=>'billing_name','type'=>'text','label'=>__('Name'),'cols'=>6],
-        ['name'=>'billing_phone','type'=>'text','label'=>__('Phone'),'cols'=>6],
-        ['name'=>'billing_address','type'=>'textarea','label'=>__('Address'),'cols'=>12,'attrs'=>['rows'=>3]],
-        ['name'=>'billing_city','type'=>'text','label'=>__('City'),'cols'=>6],
-        ['name'=>'billing_state','type'=>'text','label'=>__('State'),'cols'=>6],
-        ['name'=>'billing_country','type'=>'text','label'=>__('Country'),'cols'=>6],
-        ['name'=>'billing_zip','type'=>'text','label'=>__('Zip Code'),'cols'=>6],
-    ];
-    $shippingFields = [
-        ['name'=>'shipping_name','type'=>'text','label'=>__('Name'),'cols'=>6],
-        ['name'=>'shipping_phone','type'=>'text','label'=>__('Phone'),'cols'=>6],
-        ['name'=>'shipping_address','type'=>'textarea','label'=>__('Address'),'cols'=>12,'attrs'=>['rows'=>3]],
-        ['name'=>'shipping_city','type'=>'text','label'=>__('City'),'cols'=>6],
-        ['name'=>'shipping_state','type'=>'text','label'=>__('State'),'cols'=>6],
-        ['name'=>'shipping_country','type'=>'text','label'=>__('Country'),'cols'=>6],
-        ['name'=>'shipping_zip','type'=>'text','label'=>__('Zip Code'),'cols'=>6],
-    ];
-    $customersUpdateBaseRouteName   = ViewsConstants::CST.'.update';
-    $customersUpdateKebabRouteName  = Str::kebab($customersUpdateBaseRouteName);
-    $customerIdValue                = (string) data_get($customer, 'id', '');
-    $customersUpdateResolvedName    = Route::has($customersUpdateBaseRouteName)
-        ? $customersUpdateBaseRouteName
-        : (Route::has($customersUpdateKebabRouteName) ? $customersUpdateKebabRouteName : null);
-    $customersUpdateUrl             = ($customersUpdateResolvedName && $customerIdValue !== '')
-        ? route($customersUpdateResolvedName, $customerIdValue)
-        : '#';
-    $customersUpdateFormId          = 'customers-update-form-'.($customerIdValue === '' ? 'x' : $customerIdValue);
-    $userLang                       = Utility::fetchUserLang();
-    $customersUpdateGuardMessage    = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'update_customer_route_unavailable')
-        ?? 'Update customer route is unavailable. Please contact technical support or your domain administrator.';
+$basicFields ??= [];
+	$billingFields ??= [];
+	$shippingFields ??= [];
+	$customersUpdateBaseRouteName ??= '';
+	$customersUpdateKebabRouteName ??= '';
+	$customerIdValue ??= '';
+	$customersUpdateResolvedName ??= null;
+	$customersUpdateUrl ??= '#';
+	$customersUpdateFormId ??= 'customers-update-form-x';
+	$userLang ??= 'en';
+	$customersUpdateGuardMessage ??= '';
+	try {
+		$basicFields = [
+			['name'=>'name','type'=>'text','label'=>__('Name'),'cols'=>4,'attrs'=>['required'=>'required']],
+			['name'=>'contact','type'=>'number','label'=>__('Contact'),'cols'=>4,'attrs'=>['required'=>'required']],
+			['name'=>'email','type'=>'text','label'=>__('Email'),'cols'=>4],
+			['name'=>'tax_number','type'=>'text','label'=>__('Tax Number'),'cols'=>4],
+		];
+		$billingFields = [
+			['name'=>'billing_name','type'=>'text','label'=>__('Name'),'cols'=>6],
+			['name'=>'billing_phone','type'=>'text','label'=>__('Phone'),'cols'=>6],
+			['name'=>'billing_address','type'=>'textarea','label'=>__('Address'),'cols'=>12,'attrs'=>['rows'=>3]],
+			['name'=>'billing_city','type'=>'text','label'=>__('City'),'cols'=>6],
+			['name'=>'billing_state','type'=>'text','label'=>__('State'),'cols'=>6],
+			['name'=>'billing_country','type'=>'text','label'=>__('Country'),'cols'=>6],
+			['name'=>'billing_zip','type'=>'text','label'=>__('Zip Code'),'cols'=>6],
+		];
+		$shippingFields = [
+			['name'=>'shipping_name','type'=>'text','label'=>__('Name'),'cols'=>6],
+			['name'=>'shipping_phone','type'=>'text','label'=>__('Phone'),'cols'=>6],
+			['name'=>'shipping_address','type'=>'textarea','label'=>__('Address'),'cols'=>12,'attrs'=>['rows'=>3]],
+			['name'=>'shipping_city','type'=>'text','label'=>__('City'),'cols'=>6],
+			['name'=>'shipping_state','type'=>'text','label'=>__('State'),'cols'=>6],
+			['name'=>'shipping_country','type'=>'text','label'=>__('Country'),'cols'=>6],
+			['name'=>'shipping_zip','type'=>'text','label'=>__('Zip Code'),'cols'=>6],
+		];
+		$customersUpdateBaseRouteName = ViewsConstants::CST . '.update';
+		$customersUpdateKebabRouteName = Str::kebab($customersUpdateBaseRouteName);
+		$customerIdValue = (string) data_get($customer ?? null, 'id', '');
+		$customersUpdateResolvedName = Route::has($customersUpdateBaseRouteName)
+			? $customersUpdateBaseRouteName
+			: (Route::has($customersUpdateKebabRouteName) ? $customersUpdateKebabRouteName : null);
+		$customersUpdateUrl = ($customersUpdateResolvedName && $customerIdValue !== '')
+			? (route($customersUpdateResolvedName, $customerIdValue) ?? '#')
+			: '#';
+		$customersUpdateFormId = 'customers-update-form-' . ($customerIdValue === '' ? 'x' : $customerIdValue);
+		$userLang = Utility::fetchUserLang() ?? 'en';
+		$customersUpdateGuardMessage = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'update_customer_route_unavailable')
+			?? 'Update customer route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in customers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in customers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in customers/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(empty($customer) || !isset($customer->id))
-    <div class="alert alert-danger">
+    <div class="{{ VC::ALT_DNG }}">
         {{ __('Customer data is not available. Please contact technical support or your domain administrator.') }}
     </div>
 @else
@@ -60,7 +91,9 @@
                     <div class="{{ VC::CLMS4 }}">
                         <div class="{{ VC::FM_G }}">
                             {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                            @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
+                            @php
+ $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? [])
+@endphp
                             @if($f['type'] === 'textarea')
                                 {{ Form::textarea($f['name'], null, $attrs) }}
                             @else
@@ -71,7 +104,7 @@
                 @endforeach
                 @if(!$customFields->isEmpty())
                     <div class="{{ VC::CLMS4 }}">
-                        <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                        <div class="{{ VC::TAB_FD_SH }}" id="tab-2" role="tabpanel">
                             @include(ViewsConstants::CST_FD . '.formBuilder')
                         </div>
                     </div>
@@ -84,7 +117,9 @@
                     <div class="{{ VC::CLM6 }}">
                         <div class="{{ VC::FM_G }}">
                             {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                            @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
+                            @php
+ $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? [])
+@endphp
                             @if($f['type'] === 'textarea')
                                 {{ Form::textarea($f['name'], null, $attrs) }}
                             @else
@@ -106,7 +141,9 @@
                         <div class="{{ VC::CLM6 }}">
                             <div class="{{ VC::FM_G }}">
                                 {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                                @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
+                                @php
+ $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? [])
+@endphp
                                 @if($f['type'] === 'textarea')
                                     {{ Form::textarea($f['name'], null, $attrs) }}
                                 @else
@@ -138,32 +175,7 @@
                             e.preventDefault();
 
                             const msg = formEl.getAttribute('data-guard-msg') ?? 'Update customer route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
 
                             formEl.setAttribute('data-failed-route','true');
                         } catch (err) {}

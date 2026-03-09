@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Products;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    ViewsConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ViewsConstants as VW
 };
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{ProductService, ProductServiceUnit};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
@@ -18,29 +19,38 @@ use Illuminate\Support\Facades\{
     Log,
     Validator
 };
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class ProductServiceUnitController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const PERM_MANAGE = PermissionsConstants::MNG_CT_UNT;
+    private const PERM_MANAGE = PMC::MNG_CT_UNT;
     private const PERM_CREATE = 'create constant unit';
     private const PERM_EDIT  = 'edit constant unit';
     private const PERM_DELETE = 'delete constant unit';
     private const REDIRECT_INDEX = '/';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $req)
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+        $view = VW::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if (($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $resp;
         try {
             return $this->measureProfile($action, function () use ($userOrRedirect, $view) {
-                $units = ProductServiceUnit::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->get();
+                $units = ProductServiceUnit::where(DC::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->get();
                 return view($view, compact('units'));
             });
         } catch (\Throwable $e) {
@@ -54,7 +64,7 @@ class ProductServiceUnitController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+        $view = VW::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if (($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $resp;
@@ -75,9 +85,9 @@ class ProductServiceUnitController extends Controller
             return $this->measureProfile($action, function () use ($req, $userOrRedirect) {
                 ProductServiceUnit::create([
                     'name'       => $req->input('name'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $userOrRedirect->creatorId()
+                    DC::COL_TABLE_CREATOR => $userOrRedirect->creatorId()
                 ]);
-                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully created.'));
+                return redirect()->route(VW::PRD_SV_UNT . '.index')->with('success', __('Unit successfully created.'));
             });
         } catch (\Throwable $e) {
             Log::error($action . ' failed: ' . $e->getMessage());
@@ -90,11 +100,11 @@ class ProductServiceUnitController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+        $view = VW::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if (($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $resp;
-        return $this->measureProfile($action, fn() => view($view, compact('unit')));
+        return $this->measureProfile($action, fn() => view($view, ['unit' => $unit]));
     }
 
     public function edit(Request $req, ProductServiceUnit $unit)
@@ -102,11 +112,11 @@ class ProductServiceUnitController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+        $view = VW::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if (($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $resp;
-        return $this->measureProfile($action, fn() => view($view, compact('unit')));
+        return $this->measureProfile($action, fn() => view($view, ['unit' => $unit]));
     }
 
     public function update(Request $req, ProductServiceUnit $unit): RedirectResponse
@@ -122,7 +132,7 @@ class ProductServiceUnitController extends Controller
         try {
             return $this->measureProfile($action, function () use ($req, $unit) {
                 $unit->update(['name' => $req->input('name')]);
-                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully updated.'));
+                return redirect()->route(VW::PRD_SV_UNT . '.index')->with('success', __('Unit successfully updated.'));
             });
         } catch (\Throwable $e) {
             Log::error($action . ' failed: ' . $e->getMessage());
@@ -145,7 +155,7 @@ class ProductServiceUnitController extends Controller
                 if (ProductService::where('unit_id', $unit->id)->exists())
                     return redirect()->back()->with('error', __('This unit is already assigned; please reassign or remove related data.'));
                 $unit->delete();
-                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully deleted.'));
+                return redirect()->route(VW::PRD_SV_UNT . '.index')->with('success', __('Unit successfully deleted.'));
             });
         } catch (\Throwable $e) {
             Log::error($action . ' failed: ' . $e->getMessage());

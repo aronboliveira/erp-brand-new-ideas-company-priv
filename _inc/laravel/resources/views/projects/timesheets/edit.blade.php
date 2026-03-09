@@ -1,25 +1,24 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
-    $timesheetUpdateBaseName     = ViewsConstants::TMS . '.update';
-    $timesheetUpdateKebabName    = Str::kebab($timesheetUpdateBaseName);
-    $timesheetUpdateResolvedName = Route::has($timesheetUpdateBaseName)
-        ? $timesheetUpdateBaseName
-        : (Route::has($timesheetUpdateKebabName) ? $timesheetUpdateKebabName : null);
-    $timesheetId = $timesheet->id ?? null;
-    $timesheetUpdateRouteArray = ($timesheetUpdateResolvedName && $timesheetId)
-        ? [$timesheetUpdateResolvedName, $timesheetId]
-        : ['#'];
-    $timesheetUpdateUrl = ($timesheetUpdateResolvedName && $timesheetId)
-        ? route($timesheetUpdateResolvedName, $timesheetId)
-        : '#';
-    $timesheetUpdateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'update_timesheet_route_unavailable')
-        ?? 'Update timesheet route is unavailable. Please contact technical support or your domain administrator.';
-    $timesheetUpdateFormId = 'timesheet_update_form_' . ($timesheetId ?? 'unknown');
+    try {
+$lang = Utility::fetchUserLang();
+        $timesheetUpdateBaseName     = ViewsConstants::TMS . '.update';
+        $timesheetUpdateKebabName    = Str::kebab($timesheetUpdateBaseName);
+        $timesheetUpdateResolvedName = Route::has($timesheetUpdateBaseName)
+            ? $timesheetUpdateBaseName
+            : (Route::has($timesheetUpdateKebabName) ? $timesheetUpdateKebabName : null);
+        $timesheetId = $timesheet->id ?? null;
+        $timesheetUpdateRouteArray = ($timesheetUpdateResolvedName && $timesheetId)
+            ? [$timesheetUpdateResolvedName, $timesheetId]
+            : ['#'];
+        $timesheetUpdateUrl = ($timesheetUpdateResolvedName && $timesheetId)
+            ? route($timesheetUpdateResolvedName, $timesheetId)
+            : '#';
+        $timesheetUpdateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMS, 'update_timesheet_route_unavailable')
+            ?? 'Update timesheet route is unavailable. Please contact technical support or your domain administrator.';
+        $timesheetUpdateFormId = 'timesheet_update_form_' . ($timesheetId ?? 'unknown');
+    } catch (\Throwable $e) {
+        \Log::error('projects/timesheets/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::model($timesheet, [
@@ -106,7 +105,7 @@
         </div>
     @else
         <div class="modal-body">
-            <div class="alert alert-warning">
+            <div class="{{ VC::ALT_WRN }}">
                 {{ __('No data available to update timesheet') }}
             </div>
         </div>
@@ -114,52 +113,50 @@
 {{ Form::close() }}
 
 <script defer>
-(() => {
-    try {
-        const f = document.getElementById('{{ $timesheetUpdateFormId }}');
-        if (!f || f.getAttribute('data-listener-active') === 'true') return;
-        f.setAttribute('data-listener-active', 'true');
-
-        f.addEventListener('submit', (e) => {
-            try {
-                const url    = f.getAttribute('data-url') || '#';
-                const action = f.getAttribute('action') || '#';
-                if (url !== '#' || action !== '#') return;
-
-                e.preventDefault();
-
-                const msg = f.getAttribute('data-guard-msg') ||
-                    'Update timesheet route is unavailable. Please contact technical support or your domain administrator.';
-
-                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                let container = document.getElementById('toast-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toast-container';
-                    document.body.appendChild(container);
-                }
-
-                if (hasBootstrap) {
-                    const toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    body.textContent = msg;
-
-                    toast.appendChild(body);
-                    container.appendChild(toast);
-                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                } else {
-                    alert(msg);
-                }
-
-                f.setAttribute('data-failed-route', 'true');
-            } catch (_) {}
-        });
-    } catch (_) {}
-})();
+if (typeof window.TimesheetEditHandler === 'undefined') {
+    window.TimesheetEditHandler = {
+        init() {
+            const f = document.getElementById('{{ $timesheetUpdateFormId }}');
+            if (f) this.attachFormGuard(f);
+        },
+        attachFormGuard(f) {
+            f.addEventListener('submit', (e) => {
+                try {
+                    const url    = f.getAttribute('data-url') || '#';
+                    const action = f.getAttribute('action') || '#';
+                    if (url !== '#' && action !== '#') return;
+                    e.preventDefault();
+                    const msg = f.getAttribute('data-guard-msg') ||
+                        'Update timesheet route is unavailable. Please contact technical support or your domain administrator.';
+                    this.showToast(msg);
+                } catch (_) {}
+            });
+        },
+        showToast(msg) {
+            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            if (hasBootstrap) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                const body = document.createElement('div');
+                body.className = 'toast-body';
+                body.textContent = msg;
+                toast.appendChild(body);
+                container.appendChild(toast);
+                bootstrap.Toast.getOrCreateInstance(toast).show();
+            } else {
+                alert(msg);
+            }
+        }
+    };
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.TimesheetEditHandler.init()) : window.TimesheetEditHandler.init();
+}
 </script>

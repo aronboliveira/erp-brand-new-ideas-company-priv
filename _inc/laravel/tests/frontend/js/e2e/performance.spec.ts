@@ -104,11 +104,6 @@ async function getResourceTimings(page: Page): Promise<{
 // ============================================================================
 
 test.describe("Performance Optimization", () => {
-  test.skip(
-    !process.env.APP_URL,
-    "Requires APP_URL to probe a running Laravel frontend.",
-  );
-
   // ════════════════════════════════════════════════════════════════════════
   // SECTION 1: PAGE LOAD PERFORMANCE
   // ════════════════════════════════════════════════════════════════════════
@@ -371,7 +366,7 @@ test.describe("Performance Optimization", () => {
   test.describe("JavaScript Execution", () => {
     test("no long-running synchronous operations", async ({ page }) => {
       // Catch long tasks
-      const _longTasks: number[] = [];
+      const longTasks: number[] = [];
 
       await page.goto(`${BASE}/login`);
 

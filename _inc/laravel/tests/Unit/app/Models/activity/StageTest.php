@@ -9,10 +9,16 @@ use Illuminate\{
 	Support\Collection
 };
 use Illuminate\Support\Facades\{Auth, DB};
+use Illuminate\Support\Str;
 use App\Models\{Deal, Stage, User};
 
 class StageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -31,9 +37,7 @@ class StageTest extends TestCase
 
 		$stage = Stage::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $stage->$field);
-		}
+		$this->assertFillableMatches($data, $stage);
 	}
 
 	/**
@@ -94,8 +98,8 @@ class StageTest extends TestCase
 
 		// attach in client_deals pivot
 		DB::table('client_deals')->insert([
-			['deal_id' => $high->id, 'client_id' => $client->id],
-			['deal_id' => $low->id,  'client_id' => $client->id],
+			['id' => (string) Str::uuid(), 'deal_id' => $high->id, 'client_id' => $client->id],
+			['id' => (string) Str::uuid(), 'deal_id' => $low->id,  'client_id' => $client->id],
 		]);
 
 		$result = $stage->deals();
@@ -128,8 +132,8 @@ class StageTest extends TestCase
 		]);
 
 		DB::table('user_deals')->insert([
-			['deal_id' => $a->id, 'user_id' => $user?->id],
-			['deal_id' => $b->id, 'user_id' => $user?->id],
+			['id' => (string) Str::uuid(), 'deal_id' => $a->id, 'user_id' => $user?->id],
+			['id' => (string) Str::uuid(), 'deal_id' => $b->id, 'user_id' => $user?->id],
 		]);
 
 		$result = $stage->deals();

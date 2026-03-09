@@ -1,40 +1,32 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
+    try {
+$profile = Utility::getFile('uploads/avatar');
+        $user   = auth()->user();
+        $lang = Utility::fetchUserLang();
 
-    $profile = Utility::getFile('uploads/avatar');
-    $user   = auth()->user();
-    $lang = Utility::fetchUserLang();
+        $dashBase  = 'dashboard';
+        $dashKebab = Str::kebab($dashBase);
+        $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
+        $dashUrl   = $dashName ? route($dashName) : '#';
 
-    $dashBase  = 'dashboard';
-    $dashKebab = Str::kebab($dashBase);
-    $dashName  = Route::has($dashBase) ? $dashBase : (Route::has($dashKebab) ? $dashKebab : null);
-    $dashUrl   = $dashName ? route($dashName) : '#';
+        $accBase   = VW::USR . '.account.update';
+        $accKebab  = Str::kebab($accBase);
+        $accName   = Route::has($accBase) ? $accBase : (Route::has($accKebab) ? $accKebab : null);
+        $accUrl    = $accName ? route($accName) : '#';
+        $accGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_account_route_unavailable')
+                     ?? 'Update account route is unavailable. Please contact technical support or your domain administrator.';
+        $accFormId = 'profile-account-update-form';
 
-    $accBase   = VW::USR . '.account.update';
-    $accKebab  = Str::kebab($accBase);
-    $accName   = Route::has($accBase) ? $accBase : (Route::has($accKebab) ? $accKebab : null);
-    $accUrl    = $accName ? route($accName) : '#';
-    $accGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_account_route_unavailable')
-                 ?? 'Update account route is unavailable. Please contact technical support or your domain administrator.';
-    $accFormId = 'profile-account-update-form';
-
-    $pwdBase   = VW::USR . '.password.update';
-    $pwdKebab  = Str::kebab($pwdBase);
-    $pwdName   = Route::has($pwdBase) ? $pwdBase : (Route::has($pwdKebab) ? $pwdKebab : null);
-    $pwdUrl    = $pwdName ? route($pwdName, [$user?->id]) : '#';
-    $pwdGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_password_route_unavailable')
-                 ?? 'Update password route is unavailable. Please contact technical support or your domain administrator.';
-    $pwdFormId = 'profile-password-update-form';
+        $pwdBase   = VW::USR . '.password.update';
+        $pwdKebab  = Str::kebab($pwdBase);
+        $pwdName   = Route::has($pwdBase) ? $pwdBase : (Route::has($pwdKebab) ? $pwdKebab : null);
+        $pwdUrl    = $pwdName ? route($pwdName, [$user?->id]) : '#';
+        $pwdGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_password_route_unavailable')
+                     ?? 'Update password route is unavailable. Please contact technical support or your domain administrator.';
+        $pwdFormId = 'profile-password-update-form';
+    } catch (\Throwable $e) {
+        \Log::error('users/profile — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -51,23 +43,27 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Profile') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Profile') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CXL3 }}">
             @php
-                $sections = [
-                    ['id' => 'personal_info',   'label' => __('Personal Info')],
-                    ['id' => 'change_password', 'label' => __('Change Password')],
-                ];
-            @endphp
+                try {
+                    $sections = [
+                        ['id' => 'personal_info',   'label' => __('Personal Info')],
+                        ['id' => 'change_password', 'label' => __('Change Password')],
+                    ];
+                } catch (\Throwable $e) {
+                    \Log::error('users/profile — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <div class="{{ VC::CD_STK }}" style="top:30px">
                 <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                     @foreach (($sections ?? []) as $section)
@@ -84,10 +80,10 @@
 
         <div class="col-xl-9 {{ VC::CLMS9 }}">
             <div id="personal_info" class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <h5>{{ __('Personal Info') }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     {!! Form::model(
                         $userDetail ?? null,
                         [
@@ -103,9 +99,9 @@
                         @csrf
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CLM6 }}">
-                                <div class="form-group">
-                                    <label class="col-form-label text-dark">{{ __('Name') }}</label>
-                                    <input class="form-control"
+                                <div class="{{ VC::FM_G }}">
+                                    <label class="{{ VC::FM_LB_DK }}">{{ __('Name') }}</label>
+                                    <input class="{{ VC::FM_CT }}"
                                            name="name"
                                            type="text"
                                            id="name"
@@ -116,9 +112,9 @@
                                 </div>
                             </div>
                             <div class="{{ VC::CLM6 }}">
-                                <div class="form-group">
-                                    <label for="email" class="col-form-label text-dark">{{ __('Email') }}</label>
-                                    <input class="form-control"
+                                <div class="{{ VC::FM_G }}">
+                                    <label for="email" class="{{ VC::FM_LB_DK }}">{{ __('Email') }}</label>
+                                    <input class="{{ VC::FM_CT }}"
                                            name="email"
                                            type="text"
                                            id="email"
@@ -129,14 +125,14 @@
                                 </div>
                             </div>
                             <div class="{{ VC::CLM6 }}">
-                                <div class="form-group">
+                                <div class="{{ VC::FM_G }}">
                                     <div class="choose-files">
                                         <label for="avatar">
                                             <div class="{{ VC::BG_P }} profile_update">
                                                 <i class="ti ti-upload {{ VC::PX3 }}" style="padding-left: 0 !important;"></i>{{ __('Choose file here') }}
                                             </div>
                                             <input type="file"
-                                                   class="form-control file"
+                                                   class="{{ VC::FM_CT }} file"
                                                    name="profile"
                                                    id="avatar"
                                                    data-filename="profile_update">
@@ -147,7 +143,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-lg-12 text-end">
+                            <div class="{{ VC::CL12 }} {{ VC::TX_END }}">
                                 <input type="submit" value="{{ __('Save Changes') }}" class="{{ VC::BT_PR_PRM10 }}">
                             </div>
                         </div>
@@ -156,10 +152,10 @@
             </div>
 
             <div id="change_password" class="{{ VC::CD }}">
-                <div class="card-header">
+                <div class="{{ VC::CD_HD }}">
                     <h5>{{ __('Change Password') }}</h5>
                 </div>
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     {!! Form::open([
                         'url'                  => $pwdUrl,
                         'method'               => 'POST',
@@ -171,8 +167,8 @@
                         @csrf
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CLM6 }} form-group">
-                                <label for="old_password" class="col-form-label text-dark">{{ __('Old Password') }}</label>
-                                <input class="form-control"
+                                <label for="old_password" class="{{ VC::FM_LB_DK }}">{{ __('Old Password') }}</label>
+                                <input class="{{ VC::FM_CT }}"
                                        name="old_password"
                                        type="password"
                                        id="old_password"
@@ -181,8 +177,8 @@
                                        placeholder="{{ __('Enter Old Password') }}">
                             </div>
                             <div class="{{ VC::CLM6 }} form-group">
-                                <label for="password" class="col-form-label text-dark">{{ __('New Password') }}</label>
-                                <input class="form-control"
+                                <label for="password" class="{{ VC::FM_LB_DK }}">{{ __('New Password') }}</label>
+                                <input class="{{ VC::FM_CT }}"
                                        name="password"
                                        type="password"
                                        id="password"
@@ -191,8 +187,8 @@
                                        placeholder="{{ __('Enter Your Password') }}">
                             </div>
                             <div class="{{ VC::CLM6 }} form-group">
-                                <label for="password_confirmation" class="col-form-label text-dark">{{ __('New Confirm Password') }}</label>
-                                <input class="form-control"
+                                <label for="password_confirmation" class="{{ VC::FM_LB_DK }}">{{ __('New Confirm Password') }}</label>
+                                <input class="{{ VC::FM_CT }}"
                                        name="password_confirmation"
                                        type="password"
                                        id="password_confirmation"
@@ -200,7 +196,7 @@
                                        autocomplete="new-password"
                                        placeholder="{{ __('Enter Your Password') }}">
                             </div>
-                            <div class="col-lg-12 text-end">
+                            <div class="{{ VC::CL12 }} {{ VC::TX_END }}">
                                 <input type="submit" value="{{ __('Change Password') }}" class="{{ VC::BT_PR_PRM10 }}">
                             </div>
                         </div>
@@ -211,21 +207,19 @@
     </div>
 @endsection
 
-
-
                                     {{-- @error('name')
-                                    <span class="invalid-feedback text-danger text-xs" role="alert">{{ $message }}</span>
+                                    <span class="{{ VC::INV_FB_DNG_XS }}" role="alert">{{ $message }}</span>
                                     @enderror --}}
                                     {{-- @error('email')
-                                    <span class="invalid-feedback text-danger text-xs" role="alert">{{ $message }}</span>
+                                    <span class="{{ VC::INV_FB_DNG_XS }}" role="alert">{{ $message }}</span>
                                     @enderror --}}
                                     {{-- @error('avatar')
-                                    <span class="invalid-feedback text-danger text-xs" role="alert">{{ $message }}</span>
+                                    <span class="{{ VC::INV_FB_DNG_XS }}" role="alert">{{ $message }}</span>
                                     @enderror --}}
-        
+
                                 {{-- @error('old_password')
-                                <span class="invalid-feedback text-danger text-xs" role="alert">{{ $message }}</span>
+                                <span class="{{ VC::INV_FB_DNG_XS }}" role="alert">{{ $message }}</span>
                                 @enderror --}}
         {{-- @error('password')
-        <span class="invalid-feedback text-danger text-xs" role="alert">{{ $message }}</span>
+        <span class="{{ VC::INV_FB_DNG_XS }}" role="alert">{{ $message }}</span>
         @enderror --}}

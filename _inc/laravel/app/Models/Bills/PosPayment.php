@@ -78,22 +78,26 @@ class PosPayment extends Model
 
     protected function sanitizeFields(): void
     {
-        foreach (['amount', 'discount', BC::COL_DSC_AMT] as $field) {
-            $raw = $this->getAttribute($field);
+        try {
+            foreach (['amount', 'discount', BC::COL_DSC_AMT] as $field) {
+                $raw = $this->getAttribute($field);
 
-            if ($raw === null) {
-                if ($field === 'amount') $this->setAttribute($field, 0.0);
-                continue;
+                if ($raw === null) {
+                    if ($field === 'amount') $this->setAttribute($field, 0.0);
+                    continue;
+                }
+
+                $val = (float) $raw;
+                if ($val < 0.0) $val = 0.0;
+
+                $this->setAttribute($field, $val);
             }
 
-            $val = (float) $raw;
-            if ($val < 0.0) $val = 0.0;
-
-            $this->setAttribute($field, $val);
+            $date = $this->getAttribute('date');
+            if ($date === null) $this->setAttribute('date', now()->toDateString());
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeFields — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
-
-        $date = $this->getAttribute('date');
-        if ($date === null) $this->setAttribute('date', now()->toDateString());
     }
 
     /**
@@ -102,27 +106,32 @@ class PosPayment extends Model
      */
     protected function syncPaymentTableSafe(): bool
     {
-        $paymentId = $this->getAttribute('payment');
-        if (empty($paymentId)) return false;
-
         try {
-            if (!self::$paymentSyncInitialized)
-                $this->setupPaymentSync();
+            $paymentId = $this->getAttribute('payment');
+            if (empty($paymentId)) return false;
 
-            if (empty(self::$paymentSyncTable)) return false;
+            try {
+                if (!self::$paymentSyncInitialized)
+                    $this->setupPaymentSync();
 
-            return $this->synchronizeExtendsBaseTableColumns(
-                self::$paymentSyncTable,
-                'payment',
-                $paymentId
-            );
+                if (empty(self::$paymentSyncTable)) return false;
+
+                return $this->synchronizeExtendsBaseTableColumns(
+                    self::$paymentSyncTable,
+                    'payment',
+                    $paymentId
+                );
+            } catch (\Throwable $e) {
+                Log::error(static::class . ' failed syncing Payment table: ' . $e->getMessage(), [
+                    'pos_payment_id' => $this->getAttribute('id'),
+                    'payment_id'     => $paymentId,
+                    'file'           => $e->getFile(),
+                    'line'           => $e->getLine(),
+                ]);
+                return false;
+            }
         } catch (\Throwable $e) {
-            Log::error(static::class . ' failed syncing Payment table: ' . $e->getMessage(), [
-                'pos_payment_id' => $this->getAttribute('id'),
-                'payment_id'     => $paymentId,
-                'file'           => $e->getFile(),
-                'line'           => $e->getLine(),
-            ]);
+            Log::error(static::class . '::syncPaymentTableSafe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return false;
         }
     }
@@ -178,19 +187,29 @@ class PosPayment extends Model
 
     public function getTotalDiscountAttribute(): float
     {
-        $discount = (float) ($this->getAttribute('discount') ?? 0.0);
-        $discountAmt = (float) ($this->getAttribute(BC::COL_DSC_AMT) ?? 0.0);
-        $total = $discount + $discountAmt;
+        try {
+            $discount = (float) ($this->getAttribute('discount') ?? 0.0);
+            $discountAmt = (float) ($this->getAttribute(BC::COL_DSC_AMT) ?? 0.0);
+            $total = $discount + $discountAmt;
 
-        return $total < 0.0 ? 0.0 : $total;
+            return $total < 0.0 ? 0.0 : $total;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getTotalDiscountAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return 0.0;
+        }
     }
 
     public function getNetAmountAttribute(): float
     {
-        $amount = (float) ($this->getAttribute('amount') ?? 0.0);
-        $net = $amount - (float) $this->getAttribute('total_discount');
+        try {
+            $amount = (float) ($this->getAttribute('amount') ?? 0.0);
+            $net = $amount - (float) $this->getAttribute('total_discount');
 
-        return $net < 0.0 ? 0.0 : $net;
+            return $net < 0.0 ? 0.0 : $net;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getNetAmountAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return 0.0;
+        }
     }
 
     public function getHasDiscountAttribute(): bool
@@ -205,32 +224,37 @@ class PosPayment extends Model
 
     public static function totalNetByPos(string $posId, ?string $fromDate = null, ?string $toDate = null): float
     {
-        $posId = trim((string) $posId);
-        if ($posId === '') return 0.0;
+        try {
+            $posId = trim((string) $posId);
+            if ($posId === '') return 0.0;
 
-        $key = implode('|', [
-            'netByPos',
-            $posId,
-            (string) $fromDate,
-            (string) $toDate,
-        ]);
+            $key = implode('|', [
+                'netByPos',
+                $posId,
+                (string) $fromDate,
+                (string) $toDate,
+            ]);
 
-        if (array_key_exists($key, self::$aggregateCache))
-            return (float) self::$aggregateCache[$key];
+            if (array_key_exists($key, self::$aggregateCache))
+                return (float) self::$aggregateCache[$key];
 
-        $q = DB::table(DC::TABLE_POS_PAY)
-            ->where(BC::COL_POS_ID, $posId);
+            $q = DB::table(DC::TABLE_POS_PAY)
+                ->where(BC::COL_POS_ID, $posId);
 
-        if (!empty($fromDate)) $q->whereDate('date', '>=', $fromDate);
-        if (!empty($toDate)) $q->whereDate('date', '<=', $toDate);
+            if (!empty($fromDate)) $q->whereDate('date', '>=', $fromDate);
+            if (!empty($toDate)) $q->whereDate('date', '<=', $toDate);
 
-        $row = $q->selectRaw(
-            'COALESCE(SUM(amount - COALESCE(discount,0) - COALESCE(' . BC::COL_DSC_AMT . ',0)), 0) AS total'
-        )->first();
+            $row = $q->selectRaw(
+                'COALESCE(SUM(amount - COALESCE(discount,0) - COALESCE(' . BC::COL_DSC_AMT . ',0)), 0) AS total'
+            )->first();
 
-        $total = (float) ($row->total ?? 0.0);
-        self::$aggregateCache[$key] = $total;
+            $total = (float) ($row->total ?? 0.0);
+            self::$aggregateCache[$key] = $total;
 
-        return $total;
+            return $total;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::totalNetByPos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return 0.0;
+        }
     }
 }

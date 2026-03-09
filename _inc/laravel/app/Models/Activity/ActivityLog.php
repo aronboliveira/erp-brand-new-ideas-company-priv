@@ -103,20 +103,24 @@ class ActivityLog extends Model
 
     protected function enforceDefaults(): void
     {
-        $rawType = $this->getAttribute(AC::COL_LOG_TP);
+        try {
+            $rawType = $this->getAttribute(AC::COL_LOG_TP);
 
-        $enum = ActivityType::normalize($rawType)
-            ?? ActivityType::normalize(Str::snake((string) ($rawType ?? '')))
-            ?? ActivityType::Other;
+            $enum = ActivityType::normalize($rawType)
+                ?? ActivityType::normalize(Str::snake((string) ($rawType ?? '')))
+                ?? ActivityType::Other;
 
-        $this->setAttribute(AC::COL_LOG_TP, $enum->value);
+            $this->setAttribute(AC::COL_LOG_TP, $enum->value);
 
-        if ($this->getAttribute('timestamp') === null)
-            $this->setAttribute('timestamp', now());
+            if ($this->getAttribute('timestamp') === null)
+                $this->setAttribute('timestamp', now());
 
-        $retryCount = $this->getAttribute(DC::COL_RTR_CT);
-        if (!is_int($retryCount))
-            $this->setAttribute(DC::COL_RTR_CT, (int) ($retryCount ?? 0));
+            $retryCount = $this->getAttribute(DC::COL_RTR_CT);
+            if (!is_int($retryCount))
+                $this->setAttribute(DC::COL_RTR_CT, (int) ($retryCount ?? 0));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::enforceDefaults — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     public function setMetadataAttribute(mixed $value): void
@@ -145,10 +149,15 @@ class ActivityLog extends Model
 
     public function activityTypeEnum(): ActivityType
     {
-        $raw = $this->getAttribute(AC::COL_LOG_TP);
-        return ActivityType::normalize($raw)
-            ?? ActivityType::normalize(Str::snake((string) ($raw ?? '')))
-            ?? ActivityType::Other;
+        try {
+            $raw = $this->getAttribute(AC::COL_LOG_TP);
+            return ActivityType::normalize($raw)
+                ?? ActivityType::normalize(Str::snake((string) ($raw ?? '')))
+                ?? ActivityType::Other;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::activityTypeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     protected function metadataArray(): array
@@ -158,42 +167,52 @@ class ActivityLog extends Model
 
     protected function legacyRemarkPayload(): array
     {
-        $remark = $this->getAttribute('remark');
-
-        if (!is_string($remark) || trim($remark) === '')
-            return [];
-
-        $trimmed = trim($remark);
-        if (!self::looksLikeJson($trimmed))
-            return [];
-
         try {
-            $decoded = json_decode($trimmed, true, 512, JSON_THROW_ON_ERROR);
-            return is_array($decoded) ? $decoded : [];
+            $remark = $this->getAttribute('remark');
+
+            if (!is_string($remark) || trim($remark) === '')
+                return [];
+
+            $trimmed = trim($remark);
+            if (!self::looksLikeJson($trimmed))
+                return [];
+
+            try {
+                $decoded = json_decode($trimmed, true, 512, JSON_THROW_ON_ERROR);
+                return is_array($decoded) ? $decoded : [];
+            } catch (\Throwable $e) {
+                Log::debug(self::class . ' failed decoding legacy remark JSON: ' . $e->getMessage(), [
+                    'id' => $this->getKey(),
+                ]);
+                return [];
+            }
         } catch (\Throwable $e) {
-            Log::debug(self::class . ' failed decoding legacy remark JSON: ' . $e->getMessage(), [
-                'id' => $this->getKey(),
-            ]);
+            Log::error(static::class . '::legacyRemarkPayload — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return [];
         }
     }
 
     public function getRemark(): string
     {
-        $key = (string) ($this->getKey() ?? spl_object_id($this));
+        try {
+            $key = (string) ($this->getKey() ?? spl_object_id($this));
 
-        if (!array_key_exists($key, self::$userData))
-            self::$userData[$key] = $this->fetchGetRemark();
+            if (!array_key_exists($key, self::$userData))
+                self::$userData[$key] = $this->fetchGetRemark();
 
-        return (string) self::$userData[$key];
+            return (string) self::$userData[$key];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getRemark — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', UC::COL_USER_ID);
+        return $this->belongsTo(User::class, UC::COL_USER_ID, 'id');
     }
 
-    public function userDetail(): HasOne
+    public function userDetail(): BelongsTo
     {
         $id = UC::COL_USER_ID;
         $cls = get_class($this);
@@ -237,308 +256,335 @@ class ActivityLog extends Model
 
     public function fetchGetRemark(): string
     {
-        $data = $this->metadataArray();
-        if (!$data)
-            $data = $this->legacyRemarkPayload();
-
-        $name = (string) ($this->user?->name ?? '');
-        $rawType = (string) ($this->getAttribute(AC::COL_LOG_TP) ?? '');
-
-        $enum = ActivityType::normalize($rawType)
-            ?? ActivityType::normalize(Str::snake($rawType))
-            ?? null;
-
-        if (!$enum) {
-            $legacyMap = [
-                'Invite User' => ActivityType::InviteUser,
-                'User Assigned to the Task' => ActivityType::UserAssignedToTask,
-                'User Assigned To Task' => ActivityType::UserAssignedToTask,
-                'User Removed from the Task' => ActivityType::UserRemovedFromTask,
-                'User Removed From Task' => ActivityType::UserRemovedFromTask,
-                'Upload File' => ActivityType::UploadFile,
-                'Create Bug' => ActivityType::CreateBug,
-                'Create Milestone' => ActivityType::CreateMilestone,
-                'Create Task' => ActivityType::CreateTask,
-                'Move Task' => ActivityType::MoveTask,
-                'Create Expense' => ActivityType::CreateExpense,
-                'Add Product' => ActivityType::AddProduct,
-                'Update Sources' => ActivityType::UpdateSources,
-                'Create Deal Call' => ActivityType::CreateDealCall,
-                'Create Deal Email' => ActivityType::CreateDealEmail,
-                'Move' => ActivityType::Move,
-            ];
-
-            $enum = $legacyMap[$rawType] ?? null;
-        }
-
         try {
-            $actor = trim($name) !== '' ? e($name) : e((string) __('Someone'));
+            $data = $this->metadataArray();
+            if (!$data)
+                $data = $this->legacyRemarkPayload();
 
-            $action = $enum?->getAction() ?? '';
-            $entity = $enum?->getEntity() ?? '';
+            $name = (string) ($this->user?->name ?? '');
+            $rawType = (string) ($this->getAttribute(AC::COL_LOG_TP) ?? '');
 
-            $actionVariant = match ($action) {
-                'move' => 'primary',
-                'add', 'create' => 'success',
-                'upload' => 'info',
-                'delete' => 'danger',
-                'update' => 'warning',
-                default => 'secondary',
-            };
+            $enum = ActivityType::normalize($rawType)
+                ?? ActivityType::normalize(Str::snake($rawType))
+                ?? null;
 
-            $actionLabel = match ($action) {
-                'move' => (string) __('moved'),
-                'add' => (string) __('added'),
-                'upload' => (string) __('uploaded'),
-                'create' => (string) __('created'),
-                'delete' => (string) __('deleted'),
-                'update' => (string) __('updated'),
-                default => (string) __('activity'),
-            };
+            if (!$enum) {
+                $legacyMap = [
+                    'Invite User' => ActivityType::InviteUser,
+                    'User Assigned to the Task' => ActivityType::UserAssignedToTask,
+                    'User Assigned To Task' => ActivityType::UserAssignedToTask,
+                    'User Removed from the Task' => ActivityType::UserRemovedFromTask,
+                    'User Removed From Task' => ActivityType::UserRemovedFromTask,
+                    'Upload File' => ActivityType::UploadFile,
+                    'Create Bug' => ActivityType::CreateBug,
+                    'Create Milestone' => ActivityType::CreateMilestone,
+                    'Create Task' => ActivityType::CreateTask,
+                    'Move Task' => ActivityType::MoveTask,
+                    'Create Expense' => ActivityType::CreateExpense,
+                    'Add Product' => ActivityType::AddProduct,
+                    'Update Sources' => ActivityType::UpdateSources,
+                    'Create Deal Call' => ActivityType::CreateDealCall,
+                    'Create Deal Email' => ActivityType::CreateDealEmail,
+                    'Move' => ActivityType::Move,
+                ];
 
-            $entityLabel = $entity !== ''
-                ? Str::headline(str_replace('_', ' ', $entity))
-                : ($enum ? Str::headline($enum->value) : (trim($rawType) !== '' ? Str::headline($rawType) : (string) __('Activity')));
-
-            $iconCls = trim((string) $this->logIcon());
-            $iconHtml = $iconCls !== ''
-                ? '<i class="' . e($iconCls) . '"></i>'
-                : '<span class="fw-semibold small">•</span>';
-
-            $title = (string) ($data['title'] ?? $data['name'] ?? $data['task_name'] ?? $data['file_name'] ?? $data['subject'] ?? '');
-            $memberName = (string) ($data['member_name'] ?? $data['assignee_name'] ?? $data['user_name'] ?? '');
-            $fileName = (string) ($data['file_name'] ?? $data['filename'] ?? '');
-            $oldStage = (string) ($data['old_stage'] ?? $data['from_stage'] ?? '');
-            $newStage = (string) ($data['new_stage'] ?? $data['to_stage'] ?? '');
-            $oldStatus = (string) ($data['old_status'] ?? $data['from_status'] ?? '');
-            $newStatus = (string) ($data['new_status'] ?? $data['to_status'] ?? '');
-
-            $fromValue = $oldStage !== '' ? $oldStage : $oldStatus;
-            $toValue = $newStage !== '' ? $newStage : $newStatus;
-
-            $badge = static fn(string $text, string $variant, string $extra = ''): string
-            => '<span class="badge text-bg-' . e($variant) . ' ' . $extra . '">' . e($text) . '</span>';
-
-            $pill = static fn(string $label, string $value, string $variant = 'secondary'): string
-            => '<span class="badge rounded-pill text-bg-' . e($variant) . '">'
-                . e($label) . ': <span class="fw-semibold">' . e($value) . '</span></span>';
-
-            $uuidChip = static function (string $label, mixed $value, string $variant = 'secondary'): ?string {
-                if (!is_scalar($value)) return null;
-                $v = trim((string) $value);
-                if ($v === '') return null;
-                $short = Str::length($v) > 10 ? (Str::substr($v, 0, 8) . '…') : $v;
-                return '<span class="badge rounded-pill text-bg-' . e($variant) . '" title="' . e($v) . '">'
-                    . e($label) . ': <span class="font-monospace">' . e($short) . '</span></span>';
-            };
-
-            $ts = $this->getAttribute('timestamp');
-            $timeHtml = '';
-            if ($ts instanceof \Carbon\CarbonInterface) {
-                $timeHtml = '<span class="text-muted small" title="' . e($ts->toDateTimeString()) . '">'
-                    . e($ts->diffForHumans())
-                    . '</span>';
+                $enum = $legacyMap[$rawType] ?? null;
             }
 
-            $chips = [];
+            try {
+                $actor = trim($name) !== '' ? e($name) : e((string) __('Someone'));
 
-            $chip = $uuidChip('PJ', $this->getAttribute(PJC::COL_PJ_ID), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $action = $enum?->getAction() ?? '';
+                $entity = $enum?->getEntity() ?? '';
 
-            $chip = $uuidChip('CTC', $this->getAttribute(PJC::COL_CTC_ID), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $actionVariant = match ($action) {
+                    'move' => 'primary',
+                    'add', 'create' => 'success',
+                    'upload' => 'info',
+                    'delete' => 'danger',
+                    'update' => 'warning',
+                    default => 'secondary',
+                };
 
-            $chip = $uuidChip('LD', $this->getAttribute(PJC::COL_LD_ID), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $actionLabel = match ($action) {
+                    'move' => (string) __('moved'),
+                    'add' => (string) __('added'),
+                    'upload' => (string) __('uploaded'),
+                    'create' => (string) __('created'),
+                    'delete' => (string) __('deleted'),
+                    'update' => (string) __('updated'),
+                    default => (string) __('activity'),
+                };
 
-            $chip = $uuidChip('TSK', $this->getAttribute(AC::COL_TSK_ID), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $entityLabel = $entity !== ''
+                    ? Str::headline(str_replace('_', ' ', $entity))
+                    : ($enum ? Str::headline($enum->value) : (trim($rawType) !== '' ? Str::headline($rawType) : (string) __('Activity')));
 
-            $chip = $uuidChip('DL', $this->getAttribute(AC::COL_DL), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $iconCls = trim((string) $this->logIcon());
+                $iconHtml = $iconCls !== ''
+                    ? '<i class="' . e($iconCls) . '"></i>'
+                    : '<span class="fw-semibold small">•</span>';
 
-            $chip = $uuidChip('DOC', $this->getAttribute('document'), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $title = (string) ($data['title'] ?? $data['name'] ?? $data['task_name'] ?? $data['file_name'] ?? $data['subject'] ?? '');
+                $memberName = (string) ($data['member_name'] ?? $data['assignee_name'] ?? $data['user_name'] ?? '');
+                $fileName = (string) ($data['file_name'] ?? $data['filename'] ?? '');
+                $oldStage = (string) ($data['old_stage'] ?? $data['from_stage'] ?? '');
+                $newStage = (string) ($data['new_stage'] ?? $data['to_stage'] ?? '');
+                $oldStatus = (string) ($data['old_status'] ?? $data['from_status'] ?? '');
+                $newStatus = (string) ($data['new_status'] ?? $data['to_status'] ?? '');
 
-            $chip = $uuidChip('TSK-FL', $this->getAttribute(AC::COL_TSK_FL), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $fromValue = $oldStage !== '' ? $oldStage : $oldStatus;
+                $toValue = $newStage !== '' ? $newStage : $newStatus;
 
-            $chip = $uuidChip('LD-FL', $this->getAttribute(AC::COL_LD_FL), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $badge = static fn(string $text, string $variant, string $extra = ''): string
+                => '<span class="badge text-bg-' . e($variant) . ' ' . $extra . '">' . e($text) . '</span>';
 
-            $chip = $uuidChip('DL-FL', $this->getAttribute(AC::COL_DL_FL), 'secondary');
-            if ($chip) $chips[] = $chip;
+                $pill = static fn(string $label, string $value, string $variant = 'secondary'): string
+                => '<span class="badge rounded-pill text-bg-' . e($variant) . '">'
+                    . e($label) . ': <span class="fw-semibold">' . e($value) . '</span></span>';
 
-            $chipsHtml = $chips
-                ? '<div class="d-flex flex-wrap gap-1 mt-2">' . implode('', $chips) . '</div>'
-                : '';
+                $uuidChip = static function (string $label, mixed $value, string $variant = 'secondary'): ?string {
+                    if (!is_scalar($value)) return null;
+                    $v = trim((string) $value);
+                    if ($v === '') return null;
+                    $short = Str::length($v) > 10 ? (Str::substr($v, 0, 8) . '…') : $v;
+                    return '<span class="badge rounded-pill text-bg-' . e($variant) . '" title="' . e($v) . '">'
+                        . e($label) . ': <span class="font-monospace">' . e($short) . '</span></span>';
+                };
 
-            $detailBadges = [];
+                $ts = $this->getAttribute('timestamp');
+                $timeHtml = '';
+                if ($ts instanceof \Carbon\CarbonInterface) {
+                    $timeHtml = '<span class="text-muted small" title="' . e($ts->toDateTimeString()) . '">'
+                        . e($ts->diffForHumans())
+                        . '</span>';
+                }
 
-            if (trim($title) !== '')
-                $detailBadges[] = $pill((string) __('Title'), $title, 'light');
+                $chips = [];
 
-            if (trim($fileName) !== '')
-                $detailBadges[] = $pill((string) __('File'), $fileName, 'light');
+                $chip = $uuidChip('PJ', $this->getAttribute(PJC::COL_PJ_ID), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-            if (trim($memberName) !== '')
-                $detailBadges[] = $pill((string) __('Member'), $memberName, 'light');
+                $chip = $uuidChip('CTC', $this->getAttribute(PJC::COL_CTC_ID), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-            if (trim($fromValue) !== '')
-                $detailBadges[] = $pill((string) __('From'), (string) __(ucwords($fromValue)), 'light');
+                $chip = $uuidChip('LD', $this->getAttribute(PJC::COL_LD_ID), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-            if (trim($toValue) !== '')
-                $detailBadges[] = $pill((string) __('To'), (string) __(ucwords($toValue)), 'light');
+                $chip = $uuidChip('TSK', $this->getAttribute(AC::COL_TSK_ID), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-            $detailsHtml = $detailBadges
-                ? '<div class="d-flex flex-wrap gap-1 mt-2">' . implode('', $detailBadges) . '</div>'
-                : '';
+                $chip = $uuidChip('DL', $this->getAttribute(AC::COL_DL), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-            $sentence = match ($enum) {
-                ActivityType::InviteUser =>
-                '<span class="text-muted">' . e((string) __('has invited')) . '</span> '
-                    . '<span class="fw-semibold">' . e((string) ($data['title'] ?? $data['name'] ?? '')) . '</span>',
+                $chip = $uuidChip('DOC', $this->getAttribute('document'), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-                ActivityType::UserAssignedToTask =>
-                '<span class="text-muted">' . e((string) __('has assigned task')) . '</span> '
-                    . '<span class="fw-semibold">' . e((string) ($data['task_name'] ?? $data['title'] ?? '')) . '</span> '
-                    . '<span class="text-muted">' . e((string) __('to')) . '</span> '
-                    . '<span class="fw-semibold">' . e((string) ($data['member_name'] ?? $data['assignee_name'] ?? '')) . '</span>',
+                $chip = $uuidChip('TSK-FL', $this->getAttribute(AC::COL_TSK_FL), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-                ActivityType::UserRemovedFromTask =>
-                '<span class="text-muted">' . e((string) __('has removed')) . '</span> '
-                    . '<span class="fw-semibold">' . e((string) ($data['member_name'] ?? $data['assignee_name'] ?? '')) . '</span> '
-                    . '<span class="text-muted">' . e((string) __('from task')) . '</span> '
-                    . '<span class="fw-semibold">' . e((string) ($data['task_name'] ?? $data['title'] ?? '')) . '</span>',
+                $chip = $uuidChip('LD-FL', $this->getAttribute(AC::COL_LD_FL), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-                ActivityType::MoveTask, ActivityType::MoveLeadStage =>
-                '<span class="text-muted">' . e((string) __('moved')) . '</span> '
-                    . '<span class="fw-semibold">' . e($title !== '' ? $title : $entityLabel) . '</span>'
-                    . (trim($fromValue) !== '' ? ' <span class="text-muted">' . e((string) __('from')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($fromValue))) . '</span>' : '')
-                    . (trim($toValue) !== '' ? ' <span class="text-muted">' . e((string) __('to')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($toValue))) . '</span>' : ''),
+                $chip = $uuidChip('DL-FL', $this->getAttribute(AC::COL_DL_FL), 'secondary');
+                if ($chip) $chips[] = $chip;
 
-                ActivityType::Move =>
-                '<span class="text-muted">' . e((string) __('moved')) . '</span> '
-                    . '<span class="fw-semibold">' . e($title !== '' ? $title : $entityLabel) . '</span>'
-                    . (trim($fromValue) !== '' ? ' <span class="text-muted">' . e((string) __('from')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($fromValue))) . '</span>' : '')
-                    . (trim($toValue) !== '' ? ' <span class="text-muted">' . e((string) __('to')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($toValue))) . '</span>' : ''),
+                $chipsHtml = $chips
+                    ? '<div class="d-flex flex-wrap gap-1 mt-2">' . implode('', $chips) . '</div>'
+                    : '';
 
-                default =>
-                '<span class="text-muted">' . e($actionLabel) . '</span> '
-                    . '<span class="fw-semibold">' . e($entityLabel) . '</span>'
-                    . ($title !== '' ? ' <span class="text-muted">—</span> <span class="fw-semibold">' . e($title) . '</span>' : ''),
-            };
+                $detailBadges = [];
 
-            $border = ($enum && method_exists($enum, 'isDestructive') && $enum->isDestructive())
-                ? 'border-danger-subtle'
-                : 'border-secondary-subtle';
+                if (trim($title) !== '')
+                    $detailBadges[] = $pill((string) __('Title'), $title, 'light');
 
-            $headerBadges =
-                '<div class="d-flex flex-wrap align-items-center gap-2">'
-                . $badge(Str::upper($action !== '' ? $action : 'log'), $actionVariant, 'text-uppercase fw-semibold')
-                . '<span class="text-muted small">' . e($entityLabel) . '</span>'
-                . '</div>';
+                if (trim($fileName) !== '')
+                    $detailBadges[] = $pill((string) __('File'), $fileName, 'light');
 
-            return
-                '<div class="d-flex align-items-start gap-2 p-2 p-sm-3 border ' . e($border) . ' rounded-3 bg-body">'
-                . '<div class="flex-shrink-0">'
-                . '<span class="d-inline-flex align-items-center justify-content-center rounded-circle border bg-body-tertiary text-body-secondary" style="width:28px;height:28px;">'
-                . $iconHtml
-                . '</span>'
-                . '</div>'
-                . '<div class="flex-grow-1">'
-                . '<div class="d-flex justify-content-between align-items-start gap-2">'
-                . '<div>'
-                . $headerBadges
-                . '<div class="mt-1">'
-                . '<span class="fw-semibold">' . $actor . '</span> '
-                . $sentence
-                . '</div>'
-                . '</div>'
-                . ($timeHtml !== '' ? '<div class="text-end">' . $timeHtml . '</div>' : '')
-                . '</div>'
-                . $detailsHtml
-                . $chipsHtml
-                . '</div>'
-                . '</div>';
+                if (trim($memberName) !== '')
+                    $detailBadges[] = $pill((string) __('Member'), $memberName, 'light');
+
+                if (trim($fromValue) !== '')
+                    $detailBadges[] = $pill((string) __('From'), (string) __(ucwords($fromValue)), 'light');
+
+                if (trim($toValue) !== '')
+                    $detailBadges[] = $pill((string) __('To'), (string) __(ucwords($toValue)), 'light');
+
+                $detailsHtml = $detailBadges
+                    ? '<div class="d-flex flex-wrap gap-1 mt-2">' . implode('', $detailBadges) . '</div>'
+                    : '';
+
+                $sentence = match ($enum) {
+                    ActivityType::InviteUser =>
+                    '<span class="text-muted">' . e((string) __('has invited')) . '</span> '
+                        . '<span class="fw-semibold">' . e((string) ($data['title'] ?? $data['name'] ?? '')) . '</span>',
+
+                    ActivityType::UserAssignedToTask =>
+                    '<span class="text-muted">' . e((string) __('has assigned task')) . '</span> '
+                        . '<span class="fw-semibold">' . e((string) ($data['task_name'] ?? $data['title'] ?? '')) . '</span> '
+                        . '<span class="text-muted">' . e((string) __('to')) . '</span> '
+                        . '<span class="fw-semibold">' . e((string) ($data['member_name'] ?? $data['assignee_name'] ?? '')) . '</span>',
+
+                    ActivityType::UserRemovedFromTask =>
+                    '<span class="text-muted">' . e((string) __('has removed')) . '</span> '
+                        . '<span class="fw-semibold">' . e((string) ($data['member_name'] ?? $data['assignee_name'] ?? '')) . '</span> '
+                        . '<span class="text-muted">' . e((string) __('from task')) . '</span> '
+                        . '<span class="fw-semibold">' . e((string) ($data['task_name'] ?? $data['title'] ?? '')) . '</span>',
+
+                    ActivityType::MoveTask, ActivityType::MoveLeadStage =>
+                    '<span class="text-muted">' . e((string) __('moved')) . '</span> '
+                        . '<span class="fw-semibold">' . e($title !== '' ? $title : $entityLabel) . '</span>'
+                        . (trim($fromValue) !== '' ? ' <span class="text-muted">' . e((string) __('from')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($fromValue))) . '</span>' : '')
+                        . (trim($toValue) !== '' ? ' <span class="text-muted">' . e((string) __('to')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($toValue))) . '</span>' : ''),
+
+                    ActivityType::Move =>
+                    '<span class="text-muted">' . e((string) __('moved')) . '</span> '
+                        . '<span class="fw-semibold">' . e($title !== '' ? $title : $entityLabel) . '</span>'
+                        . (trim($fromValue) !== '' ? ' <span class="text-muted">' . e((string) __('from')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($fromValue))) . '</span>' : '')
+                        . (trim($toValue) !== '' ? ' <span class="text-muted">' . e((string) __('to')) . '</span> <span class="fw-semibold">' . e((string) __(ucwords($toValue))) . '</span>' : ''),
+
+                    default =>
+                    '<span class="text-muted">' . e($actionLabel) . '</span> '
+                        . '<span class="fw-semibold">' . e($entityLabel) . '</span>'
+                        . ($title !== '' ? ' <span class="text-muted">—</span> <span class="fw-semibold">' . e($title) . '</span>' : ''),
+                };
+
+                $border = ($enum && method_exists($enum, 'isDestructive') && $enum->isDestructive())
+                    ? 'border-danger-subtle'
+                    : 'border-secondary-subtle';
+
+                $headerBadges =
+                    '<div class="d-flex flex-wrap align-items-center gap-2">'
+                    . $badge(Str::upper($action !== '' ? $action : 'log'), $actionVariant, 'text-uppercase fw-semibold')
+                    . '<span class="text-muted small">' . e($entityLabel) . '</span>'
+                    . '</div>';
+
+                return
+                    '<div class="d-flex align-items-start gap-2 p-2 p-sm-3 border ' . e($border) . ' rounded-3 bg-body">'
+                    . '<div class="flex-shrink-0">'
+                    . '<span class="d-inline-flex align-items-center justify-content-center rounded-circle border bg-body-tertiary text-body-secondary" style="width:28px;height:28px;">'
+                    . $iconHtml
+                    . '</span>'
+                    . '</div>'
+                    . '<div class="flex-grow-1">'
+                    . '<div class="d-flex justify-content-between align-items-start gap-2">'
+                    . '<div>'
+                    . $headerBadges
+                    . '<div class="mt-1">'
+                    . '<span class="fw-semibold">' . $actor . '</span> '
+                    . $sentence
+                    . '</div>'
+                    . '</div>'
+                    . ($timeHtml !== '' ? '<div class="text-end">' . $timeHtml . '</div>' : '')
+                    . '</div>'
+                    . $detailsHtml
+                    . $chipsHtml
+                    . '</div>'
+                    . '</div>';
+            } catch (\Throwable $e) {
+                Log::debug(self::class . ' fetchGetRemark failed: ' . $e->getMessage(), [
+                    'id' => $this->getKey(),
+                    'log_type' => $rawType,
+                ]);
+
+                return (string) ($this->getAttribute('remark') ?? '');
+            }
         } catch (\Throwable $e) {
-            Log::debug(self::class . ' fetchGetRemark failed: ' . $e->getMessage(), [
-                'id' => $this->getKey(),
-                'log_type' => $rawType,
-            ]);
-
-            return (string) ($this->getAttribute('remark') ?? '');
+            Log::error(static::class . '::fetchGetRemark — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
         }
     }
 
     protected function legacyIconKeyFromType(string $rawType): string
     {
-        $key = Str::headline($rawType);
+        try {
+            $key = Str::headline($rawType);
 
-        $special = [
-            'User Assigned To Task' => 'User Assigned to the Task',
-            'User Removed From Task' => 'User Removed from the Task',
-        ];
+            $special = [
+                'User Assigned To Task' => 'User Assigned to the Task',
+                'User Removed From Task' => 'User Removed from the Task',
+            ];
 
-        return $special[$key] ?? $key;
+            return $special[$key] ?? $key;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::legacyIconKeyFromType — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function logIcon(): string
     {
-        $rawType = (string) ($this->getAttribute(AC::COL_LOG_TP) ?? '');
-        if ($rawType === '')
+        try {
+            $rawType = (string) ($this->getAttribute(AC::COL_LOG_TP) ?? '');
+            if ($rawType === '')
+                return '';
+
+            $legacyKey = $this->legacyIconKeyFromType($rawType);
+            if (array_key_exists($legacyKey, self::ICONS))
+                return (string) self::ICONS[$legacyKey];
+
+            $enum = ActivityType::normalize($rawType)
+                ?? ActivityType::normalize(Str::snake($rawType))
+                ?? null;
+
+            if (!$enum)
+                return '';
+
+            $legacyKey = $this->legacyIconKeyFromType($enum->value);
+            if (array_key_exists($legacyKey, self::ICONS))
+                return (string) self::ICONS[$legacyKey];
+
+            return match ($enum->getAction()) {
+                'move' => 'ti-arrows-maximize',
+                'add' => 'ti-plus',
+                'upload' => 'ti-cloud-upload',
+                'create' => 'ti-square-plus',
+                'delete' => 'ti-trash',
+                'update' => 'ti-edit',
+                default => '',
+            };
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::logIcon — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return '';
-
-        $legacyKey = $this->legacyIconKeyFromType($rawType);
-        if (array_key_exists($legacyKey, self::ICONS))
-            return (string) self::ICONS[$legacyKey];
-
-        $enum = ActivityType::normalize($rawType)
-            ?? ActivityType::normalize(Str::snake($rawType))
-            ?? null;
-
-        if (!$enum)
-            return '';
-
-        $legacyKey = $this->legacyIconKeyFromType($enum->value);
-        if (array_key_exists($legacyKey, self::ICONS))
-            return (string) self::ICONS[$legacyKey];
-
-        return match ($enum->getAction()) {
-            'move' => 'ti-arrows-maximize',
-            'add' => 'ti-plus',
-            'upload' => 'ti-cloud-upload',
-            'create' => 'ti-square-plus',
-            'delete' => 'ti-trash',
-            'update' => 'ti-edit',
-            default => '',
-        };
+        }
     }
 
     public function markFailed(?string $reason = null, mixed $errorLog = null): void
     {
-        $this->setAttribute(DC::COL_FL_AT, now());
-        $this->setAttribute(DC::COL_FLD_RS, $reason !== null ? trim((string) $reason) : null);
+        try {
+            $this->setAttribute(DC::COL_FL_AT, now());
+            $this->setAttribute(DC::COL_FLD_RS, $reason !== null ? trim((string) $reason) : null);
 
-        if ($errorLog !== null)
-            $this->setAttribute(DC::COL_ER_LG, self::normalizeArrayField($errorLog));
+            if ($errorLog !== null)
+                $this->setAttribute(DC::COL_ER_LG, self::normalizeArrayField($errorLog));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::markFailed — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     public function markRetried(mixed $errorLog = null): void
     {
-        $curr = (int) ($this->getAttribute(DC::COL_RTR_CT) ?? 0);
-        $this->setAttribute(DC::COL_RTR_CT, $curr + 1);
-        $this->setAttribute(DC::COL_LST_RTR_AT, now());
+        try {
+            $curr = (int) ($this->getAttribute(DC::COL_RTR_CT) ?? 0);
+            $this->setAttribute(DC::COL_RTR_CT, $curr + 1);
+            $this->setAttribute(DC::COL_LST_RTR_AT, now());
 
-        if ($errorLog !== null)
-            $this->setAttribute(DC::COL_ER_LG, self::normalizeArrayField($errorLog));
+            if ($errorLog !== null)
+                $this->setAttribute(DC::COL_ER_LG, self::normalizeArrayField($errorLog));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::markRetried — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     public function clearFailure(): void
     {
-        $this->setAttribute(DC::COL_FL_AT, null);
-        $this->setAttribute(DC::COL_FLD_RS, null);
-        $this->setAttribute(DC::COL_ER_LG, null);
+        try {
+            $this->setAttribute(DC::COL_FL_AT, null);
+            $this->setAttribute(DC::COL_FLD_RS, null);
+            $this->setAttribute(DC::COL_ER_LG, null);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::clearFailure — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     public function scopeForProject(Builder $q, string $projectId): Builder

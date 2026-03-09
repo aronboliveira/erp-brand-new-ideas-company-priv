@@ -82,7 +82,8 @@ class NotificationsLateSeeder extends Seeder
 			? max(1, (int) $this->command->option('count'))
 			: max(1, $baseTypesCount);
 
-		$targetTotal = 4 * $multiplier;
+		// $targetTotal = 4 * $multiplier; // ORIGINAL — unbounded
+		$targetTotal = min(2, 4 * $multiplier); // HARD CAP
 
 		$faker   = fake();
 		$created = 0;
@@ -186,7 +187,7 @@ class NotificationsLateSeeder extends Seeder
 						);
 
 						// -------- Criação via Model (respeita casts + booted) --------
-						(new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification for user {$recipientId} of type {$typeEnum->value} via {$platformEnum->value}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification for user {$recipientId} of type {$typeEnum->value} via {$platformEnum->value}");
 						Notification::query()->create([
 							UC::COL_USER_ID => $recipientId,
 							'type'          => $typeEnum->value,

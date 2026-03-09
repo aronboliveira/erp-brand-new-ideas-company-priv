@@ -34,7 +34,9 @@ class TaskStageSeeder extends Seeder
 		$allTaskIds = $this->pluckIdsSafe(DC::TABLE_TASKS);
 		$userIds    = $this->pluckIdsSafe(DC::TABLE_USERS);
 
-		$target = $this->resolveDesiredCount(count($projectIds));
+		// original: $target = $this->resolveDesiredCount(count($projectIds));
+		$HARD_CAP = 2;
+		$target = min($HARD_CAP, $this->resolveDesiredCount(count($projectIds)));
 		$made   = 0;
 
 		$priorityCounts = [];
@@ -114,7 +116,7 @@ class TaskStageSeeder extends Seeder
 								strtolower($requestedPriority),
 								strtolower($requestedStatus),
 							]);
-							$output->writeln('Creating TaskStage for project ' . $projectId . ', task ' . ($taskId ?? 'null') . ', priority ' . $requestedPriority . ', status ' . $requestedStatus);
+							// $output->writeln('Creating TaskStage for project ' . $projectId . ', task ' . ($taskId ?? 'null') . ', priority ' . $requestedPriority . ', status ' . $requestedStatus);
 							$stage->save();
 							$made++;
 

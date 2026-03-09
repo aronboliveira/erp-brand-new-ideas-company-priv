@@ -1,25 +1,54 @@
 @php
-    use App\Config\Constants\{PlansConstants, UsersConstants, ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    use Illuminate\Support\Facades\Auth;
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $genBaseName = 'generate';
-    $genKebabName = Str::kebab($genBaseName);
-    $genResolvedName = Route::has($genBaseName) ? $genBaseName : (Route::has($genKebabName) ? $genKebabName : null);
-    $genUrl = $genResolvedName ? route($genResolvedName, ['resignation']) : '#';
-    $genLinkId = 'resignation-generate-link';
-    $genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'generate_resignation_route_unavailable') ?? 'Generate resignation route is unavailable. Please contact technical support or your domain administrator.';
-    $updateBaseName = ViewsConstants::RSG . '.update';
-    $updateKebabName = Str::kebab($updateBaseName);
-    $updateResolvedName = Route::has($updateBaseName) ? $updateBaseName : (Route::has($updateKebabName) ? $updateKebabName : null);
-    $updateUrl = $updateResolvedName ? route($updateResolvedName, [$resignation->id]) : '#';
-    $formId = 'edit_resignation';
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'update_resignation_route_unavailable') ?? 'Update resignation route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$genBaseName ??= 'generate';
+	$genKebabName ??= '';
+	$genResolvedName ??= null;
+	$genUrl ??= '#';
+	$genLinkId ??= 'resignation-generate-link';
+	$genGuardMsg ??= '';
+	$updateBaseName ??= '';
+	$updateKebabName ??= '';
+	$updateResolvedName ??= null;
+	$updateUrl ??= '#';
+	$formId ??= 'edit_resignation';
+	$updateGuardMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$genKebabName = Str::kebab($genBaseName);
+		$genResolvedName = Route::has($genBaseName) ? $genBaseName : (Route::has($genKebabName) ? $genKebabName : null);
+		$genUrl = $genResolvedName ? (route($genResolvedName, ['resignation']) ?? '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'generate_resignation_route_unavailable')
+			?? 'Generate resignation route is unavailable. Please contact technical support or your domain administrator.';
+		$updateBaseName = ViewsConstants::RSG . '.update';
+		$updateKebabName = Str::kebab($updateBaseName);
+		$updateResolvedName = Route::has($updateBaseName) ? $updateBaseName : (Route::has($updateKebabName) ? $updateKebabName : null);
+		$updateUrl = ($updateResolvedName && !empty($resignation?->id)) ? (route($updateResolvedName, [$resignation->id]) ?? '#') : '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'update_resignation_route_unavailable')
+			?? 'Update resignation route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in resignations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in resignations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in resignations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($resignation, [
@@ -33,7 +62,7 @@
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
         @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $genUrl }}"
                    id="{{ $genLinkId }}"
                    data-size="md"
@@ -42,7 +71,7 @@
                    data-url="{{ $genUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $genGuardMsg }}"
+                   data-guard-msg="{{ base64_encode($genGuardMsg) }}"
                    data-sv-localized="true"
                    data-bs-toggle="tooltip"
                    title="{{ __('Generate with AI') }}">

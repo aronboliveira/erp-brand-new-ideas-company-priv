@@ -43,7 +43,7 @@ final class BankAccountSeeder extends Seeder
 			// Providers de integração suportados
 			$providers = ['ofx', 'cnab', 'open_banking', 'manual'];
 
-			$total    = 512 - 1;   // quantidade de contas a semear - a do sistema
+			$total    = 2;   /* original: 512 - 1 (511) */
 			$created  = 0;
 			$updated  = 0;
 
@@ -208,8 +208,8 @@ final class BankAccountSeeder extends Seeder
 						BKC::COL_ACC_N => $payload[BKC::COL_ACC_N],
 					];
 
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Conta Bancária: {$payload[BKC::COL_NM]}, Agência: {$payload[BKC::COL_AG_N]}, Conta: {$payload[BKC::COL_ACC_N]}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Conta Bancária: {$payload[BKC::COL_NM]}, Agência: {$payload[BKC::COL_AG_N]}, Conta: {$payload[BKC::COL_ACC_N]}");
 					$model = BankAccount::updateOrCreate($unique, $payload);
 					$model->wasRecentlyCreated ? $created++ : $updated++;
 				} catch (\Exception $e) {

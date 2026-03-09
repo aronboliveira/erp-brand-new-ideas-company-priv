@@ -262,7 +262,7 @@ enum ActivityType: string
 		return array_filter(
 			self::allCombinations(),
 			fn($combination) => str_ends_with($combination, '_' . $entity) ||
-				($entity === '' && !str_contains($combination, '_'))
+				($entity === '' && !str_contains($combination, '_', 1))
 		);
 	}
 

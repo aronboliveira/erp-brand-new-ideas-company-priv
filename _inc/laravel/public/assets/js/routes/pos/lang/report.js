@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   const t = {
     ar: { pos_route_unavailable: "الإجراء غير متاح." },

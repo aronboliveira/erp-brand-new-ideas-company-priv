@@ -3,35 +3,47 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    LandingPageConstants,
-    PermissionsConstants,
-    UsersConstants
+    DatabaseConstants as DC,
+    LandingPageConstants as LPC,
+    PermissionsConstants as PMC,
+    UsersConstants as UC
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Validation\ValidationException;
-use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants as RRC, Entities\LandingPageSetting};
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 class LandingPageController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
-    private const SINGULAR = RoutesResourcesConstants::LP;
+    private const SINGULAR = RRC::LP;
     private const TP = 'topbar';
     private const ROUTE_INDEX = self::SINGULAR . '.index';
 
     /**
      * Show topbar settings.
      */
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function index(Request $request): Renderable|RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request) {
+            $ur = self::_checkLogin(haltRedirect: true);
+            if (!($ur instanceof User) || $ur->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             try {
                 $viewStart = microtime(true);
                 $response = view(self::SINGULAR . '::' . self::SINGULAR . '.' . self::TP);
@@ -48,7 +60,7 @@ class LandingPageController extends AppController
     /**
      * Display a single setting in read-only mode.
      */
-    public function show(Request $request, int $id): Renderable|RedirectResponse|null
+    public function show(Request $request, int|string $id): Renderable|RedirectResponse|null
     {
         $function = __FUNCTION__;
         $method = __METHOD__;
@@ -61,7 +73,7 @@ class LandingPageController extends AppController
             try {
                 $stepStart = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $userId)
+                    ->where(DC::COL_TABLE_CREATOR, $userId)
                     ->firstOrFail();
                 $this->logExecutionTime($stepStart, 'loadSetting', 'completed');
                 Log::info($method . ' loaded setting', ['user_id' => $userId, 'setting_id' => $id]);
@@ -115,34 +127,34 @@ class LandingPageController extends AppController
                         static::TP . '_status'          => $normalizedStatus,
                         static::TP . '_notification_msg' => $payload[static::TP . '_notification_msg' ?? ''] ?? ''
                     ];
-                    Log::notice($settings);
+                    Log::notice("LandingPageController settings loaded", ["count" => is_array($settings) ? count($settings) : 0]);
                     foreach ($settings as $name => $value) {
                         $startUpdate = microtime(true);
                         $existingSetting = LandingPageSetting::where([
-                            LandingPageConstants::COL_LPS_NM => $name,
-                            DatabaseConstants::COL_TABLE_CREATOR => $user?->id
+                            LPC::COL_LPS_NM => $name,
+                            DC::COL_TABLE_CREATOR => $user?->id
                         ])->first();
                         if ($existingSetting)
                             $existingSetting->update([
-                                LandingPageConstants::COL_LPS_V => $value
+                                LPC::COL_LPS_V => $value
                             ]);
                         else
                             LandingPageSetting::create([
-                                LandingPageConstants::COL_LPS_NM => $name,
-                                LandingPageConstants::COL_LPS_V => $value,
-                                DatabaseConstants::COL_TABLE_CREATOR => $user?->id
+                                LPC::COL_LPS_NM => $name,
+                                LPC::COL_LPS_V => $value,
+                                DC::COL_TABLE_CREATOR => $user?->id
                             ]);
                         $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
                         Log::info(ucfirst(static::TP) . ' settings saved', [
-                            UsersConstants::COL_USER_ID => $user?->id,
+                            UC::COL_USER_ID => $user?->id,
                             'setting' => $name,
-                            LandingPageConstants::COL_LPS_V => $value
+                            LPC::COL_LPS_V => $value
                         ]);
                     }
                     DB::commit();
-                    $savedSettings = LandingPageSetting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id);
+                    $savedSettings = LandingPageSetting::where(DC::COL_TABLE_CREATOR, $user?->id);
                     Log::notice('Verified saved settings from DB', [
-                        'saved' => $savedSettings->pluck(LandingPageConstants::COL_LPS_V, LandingPageConstants::COL_LPS_NM)->toArray()
+                        'saved' => $savedSettings->pluck(LPC::COL_LPS_V, LPC::COL_LPS_NM)->toArray()
                     ]);
                     return redirect()->route(static::ROUTE_INDEX)
                         ->with('success', __(ucfirst(static::TP) . ' settings updated successfully'));
@@ -151,7 +163,7 @@ class LandingPageController extends AppController
                     DB::rollBack();
                     $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
                     Log::error($method . ' failed to store ' . static::TP . ' settings', [
-                        UsersConstants::COL_USER_ID => $user?->id,
+                        UC::COL_USER_ID => $user?->id,
                         'payload'                   => $payload,
                         'error'                     => $e->getMessage()
                     ]);
@@ -189,7 +201,7 @@ class LandingPageController extends AppController
     /**
      * Update a single setting by ID.
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int|string $id): RedirectResponse
     {
         $class = static::class;
         $method = __FUNCTION__;
@@ -197,17 +209,17 @@ class LandingPageController extends AppController
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            $payload = $request->validate([LandingPageConstants::COL_LPS_V => 'required|string']);
+            $payload = $request->validate([LPC::COL_LPS_V => 'required|string']);
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
-                $setting = LandingPageSetting::where('id', $id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->firstOrFail();
+                $setting = LandingPageSetting::where('id', $id)->where(DC::COL_TABLE_CREATOR, $user?->id)->firstOrFail();
                 $old = $setting->value;
-                $setting->value = $payload[LandingPageConstants::COL_LPS_V];
+                $setting->value = $payload[LPC::COL_LPS_V];
                 $setting->save();
                 $this->logExecutionTime($stepStart, 'update setting', 'completed');
                 Log::info("$action succeeded", [
-                    UsersConstants::COL_USER_ID => $user?->id,
+                    UC::COL_USER_ID => $user?->id,
                     'setting_id' => $id,
                     'old_value' => $old,
                     'new_value' => $setting->value
@@ -217,12 +229,12 @@ class LandingPageController extends AppController
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 DB::rollBack();
                 Log::debug("$action model not found", [
-                    UsersConstants::COL_USER_ID => $user?->id,
+                    UC::COL_USER_ID => $user?->id,
                     'setting_id' => $id,
                     'exception' => $e->getMessage()
                 ]);
                 Log::warning("$action setting not found", [
-                    UsersConstants::COL_USER_ID => $user?->id,
+                    UC::COL_USER_ID => $user?->id,
                     'setting_id' => $id
                 ]);
                 return redirect()->route(self::ROUTE_INDEX)->with('error', __('Setting not found'));
@@ -230,7 +242,7 @@ class LandingPageController extends AppController
                 DB::rollBack();
                 Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all(), 'setting_id' => $id]);
                 Log::error("$action failed to update setting", [
-                    UsersConstants::COL_USER_ID => $user?->id,
+                    UC::COL_USER_ID => $user?->id,
                     'setting_id' => $id,
                     'error' => $e->getMessage()
                 ]);
@@ -242,7 +254,7 @@ class LandingPageController extends AppController
     /**
      * Remove a single setting by ID.
      */
-    public function destroy(Request $request, int $id): RedirectResponse
+    public function destroy(Request $request, int|string $id): RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $id) {
@@ -255,7 +267,7 @@ class LandingPageController extends AppController
             try {
                 $fetchStart = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)
+                    ->where(DC::COL_TABLE_CREATOR, $user?->id)
                     ->firstOrFail();
                 $this->logExecutionTime($fetchStart, $action . '::fetchSetting', 'completed');
                 $delStart = microtime(true);
@@ -293,7 +305,7 @@ class LandingPageController extends AppController
                 $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
                 $stepStart = microtime(true);
                 $user = $ur;
-                if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::ROUTE_INDEX)) !== true) return $redirect;
+                if (($redirect = self::guard($request, PMC::MNG_LP, self::ROUTE_INDEX)) !== true) return $redirect;
                 $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
                 Log::info($method . ' - rendering create form', ['user_id' => $user?->id]);
                 $stepStart = microtime(true);
@@ -311,24 +323,24 @@ class LandingPageController extends AppController
     /**
      * Show the form for editing a single setting.
      */
-    public function edit(Request $request, int $id): Renderable|RedirectResponse|null
+    public function edit(Request $request, int|string $id): Renderable|RedirectResponse|null
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $id, $function) {
             $method = static::class . '::' . $function;
             if (($ur = static::_checkLogin()) instanceof RedirectResponse) return $ur;
             $user = $ur;
-            if (($redirect = static::guard($request, PermissionsConstants::MNG_LP, static::ROUTE_INDEX)) !== true) {
+            if (($redirect = static::guard($request, PMC::MNG_LP, static::ROUTE_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 return $redirect;
             }
             try {
                 $startFetch = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)
+                    ->where(DC::COL_TABLE_CREATOR, $user?->id)
                     ->firstOrFail();
                 $this->logExecutionTime($startFetch, $function . '::fetchSetting', 'completed');
-                Log::info($method . ' rendering edit form', [UsersConstants::COL_USER_ID => $user?->id, 'setting_id' => $id]);
+                Log::info($method . ' rendering edit form', [UC::COL_USER_ID => $user?->id, 'setting_id' => $id]);
                 $startView = microtime(true);
                 $view = view(static::SINGULAR . '::' . static::SINGULAR . '.edit', ['setting' => $setting]);
                 $this->logExecutionTime($startView, $function . '::view', 'completed');

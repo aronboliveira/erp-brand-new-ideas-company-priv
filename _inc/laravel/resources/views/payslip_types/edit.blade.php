@@ -1,22 +1,41 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang       = Utility::fetchUserLang();
-    $hasModel   = !empty($paysliptype ?? null) && data_get($paysliptype, 'id');
-
-    $updateBase     = VW::PY_SLP_TP . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $paysliptype->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PY_SLP_TP, 'update_route_unavailable')
-                        ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasModel = !empty($paysliptype ?? null) && data_get($paysliptype, 'id');
+		$updateBase = VW::PY_SLP_TP . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasModel) ? (route($updateResolved, data_get($paysliptype ?? null, 'id')) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PY_SLP_TP, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in payslip_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in payslip_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in payslip_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)
@@ -31,12 +50,12 @@
         <div class="modal-body">
             <div class="row">
                 <div class="{{ VC::FM_GCB12 }}">
-                    <div class="form-group">
+                    <div class="{{ VC::FM_G }}">
                         {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                         {{ Form::text('name', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Payslip Type Name')]) }}
                         @error('name')
                             <span class="invalid-name" role="alert">
-                                <strong class="text-danger">{{ $message }}</strong>
+                                <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                             </span>
                         @enderror
                     </div>

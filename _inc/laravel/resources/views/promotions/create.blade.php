@@ -1,21 +1,43 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\Str;
-    
-    $lang = method_exists('Utility', 'fetchUserLang') ? Utility::fetchUserLang() : 'en';
-    $storeBaseName = VW::PRM;
-    $storeKebabName = Str::kebab($storeBaseName);
-    $storeResolvedName = Route::has($storeBaseName) ? $storeBaseName : (Route::has($storeKebabName) ? $storeKebabName : null);
-    $storeUrl = $storeResolvedName ? route($storeResolvedName) : '#';
-    $formId = 'create_promotion';
-    $formGuardMsg = 'Create promotion route is unavailable. Please contact technical support or your domain administrator.';
-    if (method_exists('Utility', 'fetchLinkMessage')) {
-        $fetchedMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'create_promotion_unavailable');
-        $formGuardMsg = $fetchedMsg ?? $formGuardMsg;
-    }
+$lang ??= 'en';
+	$storeBaseName ??= '';
+	$storeKebabName ??= '';
+	$storeResolvedName ??= null;
+	$storeUrl ??= '#';
+	$formId ??= 'create_promotion';
+	$formGuardMsg ??= 'Create promotion route is unavailable. Please contact technical support or your domain administrator.';
+	try {
+		$lang = method_exists(Utility::class, 'fetchUserLang') ? (Utility::fetchUserLang() ?? 'en') : 'en';
+		$storeBaseName = VW::PRM;
+		$storeKebabName = Str::kebab($storeBaseName);
+		$storeResolvedName = Route::has($storeBaseName) ? $storeBaseName : (Route::has($storeKebabName) ? $storeKebabName : null);
+		$storeUrl = $storeResolvedName ? (route($storeResolvedName) ?? '#') : '#';
+		if (method_exists(Utility::class, 'fetchLinkMessage')) {
+			$fetchedMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'create_promotion_unavailable');
+			$formGuardMsg = $fetchedMsg ?? $formGuardMsg;
+		}
+	} catch (\Error $e) {
+		Log::error('Error in promotions/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in promotions/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in promotions/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -26,32 +48,40 @@
 ]) !!}
     <div class="modal-body">
         @php
-            $plan = null;
-            $hasGPT = false;
-            if (method_exists('Utility', 'getChatGPTSettings')) {
-                $plan = Utility::getChatGPTSettings();
-                if (isset($plan) && is_object($plan)) {
-                    $hasGPT = data_get($plan, PlansConstants::COL_GPT) == 1;
+            $plan ??= null;
+            $hasGPT ??= false;
+            try {
+                if (method_exists('Utility', 'getChatGPTSettings')) {
+                    $plan = Utility::getChatGPTSettings();
+                    if (isset($plan) && is_object($plan)) {
+                        $hasGPT = data_get($plan, PlansConstants::COL_GPT) == 1;
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Log::error('promotions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             }
-        @endphp
-        
+@endphp
+
         @if ($hasGPT)
             @php
-                $aiGenBase = 'generate';
-                $aiGenKebab = Str::kebab($aiGenBase);
-                $aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
-                $aiGenParams = ['promotion'];
-                $aiGenUrl = $aiGenResolved ? route($aiGenResolved, $aiGenParams) : '#';
-                $aiLinkId = 'promotion-ai-generate-link';
-                
-                $aiGuardMsg = 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
-                if (method_exists('Utility', 'fetchLinkMessage')) {
-                    $fetchedAiMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'generate_promotion_unavailable');
-                    $aiGuardMsg = $fetchedAiMsg ?? $aiGuardMsg;
+                $aiGenBase ??= 'generate';
+                try {
+                    $aiGenKebab = Str::kebab($aiGenBase);
+                    $aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
+                    $aiGenParams = ['promotion'];
+                    $aiGenUrl = $aiGenResolved ? route($aiGenResolved, $aiGenParams) : '#';
+                    $aiLinkId = 'promotion-ai-generate-link';
+
+                    $aiGuardMsg = 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
+                    if (method_exists('Utility', 'fetchLinkMessage')) {
+                        $fetchedAiMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'generate_promotion_unavailable');
+                        $aiGuardMsg = $fetchedAiMsg ?? $aiGuardMsg;
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('promotions/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                 }
-            @endphp
-            <div class="text-end">
+@endphp
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $aiGenUrl }}"
                    id="{{ $aiLinkId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -60,7 +90,7 @@
                    data-url="{{ $aiGenUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $aiGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
@@ -116,36 +146,6 @@
     <script defer>
         (() => {
             try {
-                const guardToast = (msg) => {
-                    try {
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            container.className = 'position-fixed top-0 end-0 p-3';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg ?? 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                            toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                            inst.show();
-                        } else {
-                            alert(msg ?? 'Requested route is unavailable. Please contact technical support or your domain administrator.');
-                        }
-                    } catch (err) {}
-                };
-
                 const formEl = document.getElementById('{{ $formId }}');
                 if (formEl && !(formEl.hasAttribute('data-submit-listener') && formEl.getAttribute('data-submit-listener') === 'true')) {
                     formEl.setAttribute('data-submit-listener', 'true');
@@ -155,7 +155,7 @@
                             if (action !== '#') return;
                             e.preventDefault();
                             const msg = formEl.getAttribute('data-guard-msg') || 'Create promotion route is unavailable. Please contact technical support or your domain administrator.';
-                            guardToast(msg);
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             formEl.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     }, { passive: false });
@@ -171,7 +171,7 @@
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = ai.getAttribute('data-guard-msg') || 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
-                            guardToast(msg);
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             ai.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     }, { passive: false });

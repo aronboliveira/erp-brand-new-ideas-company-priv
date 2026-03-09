@@ -11,9 +11,19 @@ namespace Tests\Unit\Models;
 use App\Models\ProductService;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductServiceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -22,8 +32,37 @@ class ProductServiceTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(ProductService::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'name',
+			'sku',
+			'sale_price',
+			'purchase_price',
+			'accepted_currencies',
+			'accepted_measurement_units',
+			'description',
+			'attributes',
+			'tags',
+			'pro_image',
+			'icon',
+			'quantity',
+			'tax_id',
+			'category_id',
+			'categories',
+			'related_categories',
+			'unit_id',
+			'units_sold',
+			'units_cancelled',
+			'units_returned',
+			'type',
+			'sale_chart_account_id',
+			'expense_chart_account_id',
+			'available_from',
+			'available_until',
+			'is_active',
+			'on_sale',
+			'is_locked',
+			'is_trashed',
+		];
 
 		$this->assertSame($expected, (new ProductService)->getFillable());
 	}
@@ -39,15 +78,15 @@ class ProductServiceTest extends TestCase
 		$ps = new ProductService;
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$ps->taxes()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
-			$ps->unit()
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+			$ps->legacyUnit()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$ps->category()
 		);
 	}
@@ -63,7 +102,7 @@ class ProductServiceTest extends TestCase
 	public function tax_helpers_work_as_expected(): void
 	{
 		// Stub Tax::find for ids 1 and 2.
-		Mockery::mock('alias:App\Models\Tax')
+		$this->aliasMock('App\Models\Tax')
 			->shouldReceive('find')
 			->withArgs([1])
 			->andReturn((object)['id' => 1, 'rate' => 5, 'name' => 'VAT'])
@@ -87,6 +126,6 @@ class ProductServiceTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

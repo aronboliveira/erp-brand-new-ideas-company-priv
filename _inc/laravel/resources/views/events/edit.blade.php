@@ -1,14 +1,38 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Gate, Route, URL};
-
-    $lang = Utility::fetchUserLang();
-    $canEdit = Gate::check('edit event');
-    $updateName = VW::EVT.'.update';
-    $updateUrl = ($canEdit && Route::has($updateName)) ? route($updateName, $event->id) : '#';
-    $updateGuard = Utility::fetchLinkMessage($lang, VW::EVT, 'update_route_unavailable') ?? 'Event update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$canEdit ??= false;
+	$updateName ??= '';
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$canEdit = Gate::check('edit event');
+		$updateName = VW::EVT . '.update';
+		$eventId = data_get($event ?? null, 'id', '');
+		$updateUrl = ($canEdit && Route::has($updateName) && $eventId) ? (route($updateName, $eventId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::EVT, 'update_route_unavailable') ?? 'Event update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in events/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in events/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in events/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($event) && isset($event->id) && $canEdit)
     {!! Form::model($event, [
@@ -20,14 +44,40 @@
         'data-sv-localized' => 'true',
     ]) !!}
         <div class="modal-body">
-            @php($plan = Utility::getChatGPTSettings())
+            @php
+($plan = Utility::getChatGPTSettings())
             @if($plan?->{PlansConstants::COL_GPT} == 1)
                 @php
-                    $genHref   = Route::has('generate') ? route('generate', ['event']) : '#';
-                    $genMsg    = Utility::fetchLinkMessage($lang, VW::EVT, 'ai_generate_route_unavailable') ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
-                    $genLinkId = 'event-generate-ai-link';
-                @endphp
-                <div class="text-end">
+$genHref ??= '#';
+					$genMsg ??= '';
+					$genLinkId ??= 'event-generate-ai-link';
+					try {
+						$genHref = Route::has('generate') ? (route('generate', ['event']) ?? '#') : '#';
+						$genMsg = Utility::fetchLinkMessage($lang, VW::EVT, 'ai_generate_route_unavailable') ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
+					} catch (\Error $e) {
+						AiLog::error('Error in events/edit.blade.php AI generate @php block', [
+							'exception_class' => get_class($e),
+							'message' => $e->getMessage(),
+							'file' => $e->getFile(),
+							'line' => $e->getLine(),
+						]);
+					} catch (\Exception $e) {
+						AiLog::error('Exception in events/edit.blade.php AI generate @php block', [
+							'exception_class' => get_class($e),
+							'message' => $e->getMessage(),
+							'file' => $e->getFile(),
+							'line' => $e->getLine(),
+						]);
+					} catch (\Throwable $e) {
+						AiLog::error('Throwable in events/edit.blade.php AI generate @php block', [
+							'exception_class' => get_class($e),
+							'message' => $e->getMessage(),
+							'file' => $e->getFile(),
+							'line' => $e->getLine(),
+						]);
+					}
+@endphp
+                <div class="{{ VC::TX_END }}">
                     <a href="#"
                     id="{{ $genLinkId }}"
                     data-size="md"
@@ -35,7 +85,7 @@
                     data-ajax-popup-over="true"
                     data-url="{{ $genHref }}"
                     data-sv-localized="true"
-                    data-guard-msg="{{ $genMsg }}"
+                    data-guard-msg="{{ base64_encode($genMsg) }}"
                     data-bs-placement="top"
                     data-title="{{ __('Generate content with AI') }}">
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
@@ -82,7 +132,7 @@
                             <label class="btn bg-danger p-3 {{ $event->color == 'event-danger' ? 'custom_color_radio_button' : '' }}">
                                 <input type="radio" name="color" class="d-none" value="event-danger" {{ $event->color == 'event-danger' ? 'checked' : '' }}>
                             </label>
-                            <label class="btn bg-primary p-3 {{ $event->color == 'event-success' ? 'custom_color_radio_button' : '' }}">
+                            <label class="btn {{ VC::BG_P }} p-3 {{ $event->color == 'event-success' ? 'custom_color_radio_button' : '' }}">
                                 <input type="radio" name="color" class="d-none" value="event-success" {{ $event->color == 'event-success' ? 'checked' : '' }}>
                             </label>
                             <label class="btn p-3 {{ $event->color == 'event-primary' ? 'custom_color_radio_button' : '' }}" style="background-color:#51459d!important">

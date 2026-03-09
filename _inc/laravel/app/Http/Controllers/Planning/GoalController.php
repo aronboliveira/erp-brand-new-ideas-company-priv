@@ -1,208 +1,556 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    UsersConstants,
-    ViewsConstants
-};
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\Goal;
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, ConsoleOutputs};
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\View as ViewFacade;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class GoalController extends Controller
 {
-    use ChecksLogin;
+    use ChecksLogin, ConsoleOutputs;
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
 
-    private const PERM_MANAGE = PermissionsConstants::MNG_GL;
-    private const PERM_CREATE = 'create goal';
-    private const PERM_EDIT  = 'edit goal';
-    private const PERM_DELETE = 'delete goal';
 
     public function index(Request $request): RedirectResponse|View
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = ViewsConstants::GL . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::GL . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $action, $view) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $viewPath) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $goals ??= collect();
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_MANAGE)) return $resp;
-                $user = $userOrRedirect;
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                $goals = Goal::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
-                return view($view, compact('goals'));
+                if (($redirect = $this->authorizeAction($request, PMC::MNG_GL, $method)) instanceof RedirectResponse)
+                    return $redirect;
+
+                $t = microtime(true);
+                $goals = Goal::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get() ?? $goals;
+                $this->logExecutionTime($t, $action . '::fetchGoals', 'completed');
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('goals'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function create(Request $request): RedirectResponse|View
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = ViewsConstants::GL . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::GL . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $action, $view) {
+        return $this->measureProfile($action, function () use ($request, $action, $method, $viewPath) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $types ??= [];
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_CREATE)) return $resp;
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                $types = Goal::$goalType;
-                return view($view, compact('types'));
+                if (($redirect = $this->authorizeAction($request, 'create goal', $method)) instanceof RedirectResponse)
+                    return $redirect;
+
+                $types = Goal::$goalType ?? $types;
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('types'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $action) {
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                $user = $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_CREATE)) return $resp;
-                $v = Validator::make($request->all(), [
-                    'name'   => 'required',
-                    'type'   => 'required',
-                    'from'   => 'required|date',
-                    'to'     => 'required|date|after_or_equal:from',
+                if (($redirect = $this->authorizeAction($request, 'create goal', $method)) instanceof RedirectResponse)
+                    return $redirect;
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
+                    'name' => 'required',
+                    'type' => 'required',
+                    'from' => 'required|date',
+                    'to' => 'required|date|after_or_equal:from',
                     'amount' => 'required|numeric',
-                ]);
-                if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 Goal::create([
-                    'name'       => $request->input('name'),
-                    'type'       => $request->input('type'),
-                    'from'       => $request->input('from'),
-                    'to'         => $request->input('to'),
-                    'amount'     => $request->input('amount'),
-                    'is_display' => $request->boolean('is_display'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+                    'name' => $data['name'] ?? '',
+                    'type' => $data['type'] ?? '',
+                    'from' => $data['from'] ?? null,
+                    'to' => $data['to'] ?? null,
+                    'amount' => $data['amount'] ?? 0,
+                    'is_display' => (bool) ($request->boolean('is_display') ?? false),
+                    DC::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
-                return redirect()->route(ViewsConstants::GL . '.index')->with('success', __('Goal successfully created.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::GL . '.index')
+                    ->with('success', __('Goal successfully created.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function show(Request $request, Goal $goal): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $goal, $action) {
-            try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                return redirect()->route(ViewsConstants::GL . '.index')->with($goal);
-            } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
-            }
+        return $this->measureProfile($action, function () use ($request, $goal, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            return Redirect::route(VW::GL . '.index')->with($goal);
         });
     }
 
     public function edit(Request $request, Goal $goal): RedirectResponse|View
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        $view = ViewsConstants::GL . '.' . $fn;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $viewPath ??= VW::GL . '.' . $action;
 
-        return $this->measureProfile($action, function () use ($request, $goal, $action, $view) {
+        return $this->measureProfile($action, function () use ($request, $goal, $action, $method, $viewPath) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $types ??= [];
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                $user = $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_EDIT)) return $resp;
-                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                $types = Goal::$goalType;
-                return view($view, compact('goal', 'types'));
+                if (($redirect = $this->authorizeAction($request, 'edit goal', $method)) instanceof RedirectResponse)
+                    return $redirect;
+                if (($goal[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException(), $method);
+
+                $types = Goal::$goalType ?? $types;
+
+                $t = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+                if (!$exists) {
+                    $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+                    Log::error($method . ' view not found', [
+                        'error' => 'view_missing',
+                        'error_class' => \RuntimeException::class,
+                        'file' => __FILE__,
+                        'line' => __LINE__,
+                        'action' => $action,
+                        'view' => $viewPath,
+                        'goal_id' => $goal?->id,
+                        'user_id' => $user?->id,
+                    ]);
+                    return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact('goal', 'types'));
+            } catch (QueryException $e) {
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function update(Request $request, Goal $goal): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $goal, $action) {
+        return $this->measureProfile($action, function () use ($request, $goal, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $data ??= [];
+            $inTransaction ??= false;
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                $user = $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_EDIT)) return $resp;
-                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
-                $v = Validator::make($request->all(), [
-                    'name'   => 'required',
-                    'type'   => 'required',
-                    'from'   => 'required|date',
-                    'to'     => 'required|date|after_or_equal:from',
+                if (($redirect = $this->authorizeAction($request, 'edit goal', $method)) instanceof RedirectResponse)
+                    return $redirect;
+                if (($goal[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException(), $method);
+
+                $t = microtime(true);
+                $data = Validator::make($request->all(), [
+                    'name' => 'required',
+                    'type' => 'required',
+                    'from' => 'required|date',
+                    'to' => 'required|date|after_or_equal:from',
                     'amount' => 'required|numeric',
-                ]);
-                if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
+                ])->validate();
+                $this->logExecutionTime($t, $action . '::validate', 'completed');
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $goal->update([
-                    'name'       => $request->input('name'),
-                    'type'       => $request->input('type'),
-                    'from'       => $request->input('from'),
-                    'to'         => $request->input('to'),
-                    'amount'     => $request->input('amount'),
-                    'is_display' => $request->boolean('is_display'),
+                    'name' => $data['name'] ?? $goal->name,
+                    'type' => $data['type'] ?? $goal->type,
+                    'from' => $data['from'] ?? $goal->from,
+                    'to' => $data['to'] ?? $goal->to,
+                    'amount' => $data['amount'] ?? $goal->amount,
+                    'is_display' => (bool) ($request->boolean('is_display') ?? $goal->is_display),
                 ]);
-                return redirect()->route(ViewsConstants::GL . '.index')->with('success', __('Goal successfully updated.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::GL . '.index')
+                    ->with('success', __('Goal successfully updated.'));
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                    'errors' => $e->errors() ?? [],
+                ]);
+                $this->consoleOutput($method . ' validation failed', 'error');
+                return Redirect::back()->with('error', $e->validator?->errors()->first());
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
     public function destroy(Request $request, Goal $goal): RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
+        $action = __FUNCTION__;
+        $method = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $goal, $action) {
+        return $this->measureProfile($action, function () use ($request, $goal, $action, $method) {
+            $t = microtime(true);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
+
+            $inTransaction ??= false;
             try {
-                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                $user = $userOrRedirect;
-                if ($resp = self::_authorize($request, self::PERM_DELETE)) return $resp;
-                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
+                if (($redirect = $this->authorizeAction($request, 'delete goal', $method)) instanceof RedirectResponse)
+                    return $redirect;
+                if (($goal[DC::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new AuthorizationException(), $method);
+
+                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+                DB::beginTransaction();
+                $inTransaction = true;
                 $goal->delete();
-                return redirect()->route(ViewsConstants::GL . '.index')->with('success', __('Goal successfully deleted.'));
+                DB::commit();
+                $inTransaction = false;
+
+                return Redirect::route(VW::GL . '.index')
+                    ->with('success', __('Goal successfully deleted.'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' query failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' failed', 'error');
+                return defaultUndefinedException($request, $e, $method);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, $action);
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'goal_id' => $goal?->id,
+                    'user_id' => $user?->id,
+                ]);
+                $this->consoleOutput($method . ' throwable', 'error');
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
 
-    private static function _authorize(Request $req, string $perm): ?RedirectResponse
+    private function authorizeAction(Request $request, string $ability, string $method): ?RedirectResponse
     {
-        $cls = __CLASS__;
-        $fn = __FUNCTION__;
-        $action = "$cls::$fn";
-        return $req->user()->can($perm)
-            ? null
-            : defaultPermissionDenial($req, new AuthorizationException(), $action);
+        $user ??= $request->user();
+        if ($user?->can($ability)) return null;
+        Log::warning($method . ' permission denied', [
+            'error' => 'permission_denied',
+            'error_class' => AuthorizationException::class,
+            'file' => __FILE__,
+            'line' => __LINE__,
+            'ability' => $ability,
+            'user_id' => $user?->id,
+        ]);
+        $this->consoleOutput($method . ' permission denied', 'error');
+        return defaultPermissionDenial($request, new AuthorizationException(), $method);
     }
 }

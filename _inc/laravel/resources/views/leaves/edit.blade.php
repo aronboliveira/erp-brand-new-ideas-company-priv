@@ -1,48 +1,86 @@
 @php
-    use App\Config\Constants\{PermissionsConstants, PlansConstants, UsersConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $leaveId        = isset($leave) && !empty(data_get($leave, 'id')) ? data_get($leave, 'id') : null;
-    $updateBase     = VW::LV . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'update_leave_unavailable') ?? 'Update leave route is unavailable. Please contact technical support or your domain administrator.';
-    $formId         = 'edit_leave';
-    $formOpen = [
-        'method'         => 'PUT',
-        'id'             => $formId,
-        'data-guard-msg' => $updateGuardMsg,
-    ];
-    if ($updateResolved && $leaveId)
-        $formOpen['route'] = [$updateResolved, $leaveId];
-    else
-        $formOpen['url'] = '#';
-    $plan = Utility::getChatGPTSettings();
-    if ($plan?->{PlansConstants::COL_GPT} == 1) {
-        $aiBase       = 'generate';
-        $aiKebab      = Str::kebab($aiBase);
-        $aiResolved   = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
-        $aiParams     = ['leave'];
-        $aiUrl        = $aiResolved ? route($aiResolved, $aiParams) : '#';
-        $aiLinkId     = 'leave-ai-generate-link';
-        $aiGuardMsg   = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable') ?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
-    }
-    $grammarBase     = 'grammar';
-    $grammarKebab    = Str::kebab($grammarBase);
-    $grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
-    $grammarParams   = ['grammar'];
-    $grammarUrl      = $grammarResolved ? route($grammarResolved, $grammarParams) : '#';
-    $grammarLinkId   = 'leave-grammar-link';
-    $grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable') ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$leaveId ??= null;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateGuardMsg ??= '';
+	$formId ??= 'edit_leave';
+	$formOpen ??= [];
+	$plan ??= null;
+	$aiBase ??= 'generate';
+	$aiKebab ??= '';
+	$aiResolved ??= null;
+	$aiParams ??= ['leave'];
+	$aiUrl ??= '#';
+	$aiLinkId ??= 'leave-ai-generate-link';
+	$aiGuardMsg ??= '';
+	$grammarBase ??= 'grammar';
+	$grammarKebab ??= '';
+	$grammarResolved ??= null;
+	$grammarParams ??= ['grammar'];
+	$grammarUrl ??= '#';
+	$grammarLinkId ??= 'leave-grammar-link';
+	$grammarGuardMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$leaveId = isset($leave) && !empty(data_get($leave, 'id')) ? data_get($leave, 'id') : null;
+		$updateBase = VW::LV . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'update_leave_unavailable')
+			?? 'Update leave route is unavailable. Please contact technical support or your domain administrator.';
+		$formOpen = [
+			'method' => 'PUT',
+			'id' => $formId,
+			'data-guard-msg' => $updateGuardMsg,
+		];
+		if ($updateResolved && $leaveId)
+			$formOpen['route'] = [$updateResolved, $leaveId];
+		else
+			$formOpen['url'] = '#';
+		$plan = Utility::getChatGPTSettings();
+		if ($plan?->{PlansConstants::COL_GPT} == 1) {
+			$aiKebab = Str::kebab($aiBase);
+			$aiResolved = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
+			$aiUrl = $aiResolved ? (route($aiResolved, $aiParams) ?? '#') : '#';
+			$aiGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable')
+				?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
+		}
+		$grammarKebab = Str::kebab($grammarBase);
+		$grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
+		$grammarUrl = $grammarResolved ? (route($grammarResolved, $grammarParams) ?? '#') : '#';
+		$grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable')
+			?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in leaves/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in leaves/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in leaves/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {!! Form::model($leave, $formOpen) !!}
     <div class="modal-body">
         @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $aiUrl }}"
                    id="{{ $aiLinkId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -51,7 +89,7 @@
                    data-url="{{ $aiUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $aiGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
@@ -86,9 +124,11 @@
                 {{ Form::textarea('leave_reason', null, ['class' => VC::FM_CT, 'placeholder' => __('Leave Reason')]) }}
             </div>
         </div>
-        @php $grammarTitle = __('Grammar check with AI'); @endphp
+        @php
+ $grammarTitle = __('Grammar check with AI');
+@endphp
         <div class="row">
-            <div class="col-md-12 text-end">
+            <div class="{{ VC::CM12 }} {{ VC::TX_END }}">
                 <a href="{{ $grammarUrl }}"
                    id="{{ $grammarLinkId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon text-right"
@@ -97,7 +137,7 @@
                    data-url="{{ $grammarUrl }}"
                    data-bs-placement="top"
                    data-title="{{ $grammarTitle }}"
-                   data-guard-msg="{{ $grammarGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($grammarGuardMsg) }}">
                     <i class="ti ti-rotate"></i> <span>{{ $grammarTitle }}</span>
                 </a>
             </div>

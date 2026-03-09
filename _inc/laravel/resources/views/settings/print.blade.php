@@ -1,16 +1,5 @@
 @php
-	use App\Config\Constants\{
-		BillsConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
-	$data ??= [];
+$data ??= [];
 	$logo ??= '';
 	$company_logo ??= '';
 	$company_favicon ??= '';
@@ -59,17 +48,17 @@
     {{__('Settings')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Print-Settings')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Print-Settings')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -98,78 +87,21 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
         (() => {
-        const errFb = "# ERROR";
-        const dataClientLocalized = "data-client-localized";
-        const dataGuardMsg = "data-guard-msg";
         const DATA_LISTENER_ADDED = "data-listener-added";
-
-        const getMsg = (el, key) => {
-            let msg = errFb;
-            if (
-            el?.getAttribute("data-sv-localized") === "true" ||
-            el?.getAttribute(dataClientLocalized) === "true"
-            ) {
-            msg = el.getAttribute(dataGuardMsg) || errFb;
-            } else {
-            let lang = (
-                window.sessionStorage.getItem("erp-np-lang") ||
-                document.documentElement.lang ||
-                "en"
-            )
-                .toLowerCase()
-                .replace(/_/g, "-");
-            lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[key] ||
-                el?.getAttribute(dataGuardMsg) ||
-                window.translations?.en?.[key] ||
-                errFb;
-            if (msg !== errFb) {
-                el?.setAttribute(dataGuardMsg, msg);
-                el?.setAttribute(dataClientLocalized, "true");
-            }
-            }
-            return msg;
-        };
+        const RG = window.RouteGuard || {};
+        const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '# ERROR');
+        const showToast = RG.showToast || (m => alert(m));
 
         const attachOneTimeFeedback = (el, key, ev = "click") => {
             if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-            const handler = () => {
-            const text = getMsg(el, key);
-            const hasBs =
-                document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap?.Toast;
-            if (hasBs) {
-                let toast = document.querySelector("#np-error-toast");
-                if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "np-error-toast";
-                toast.className = "toast align-items-center text-bg-danger border-0";
-                toast.setAttribute("role", "alert");
-                toast.setAttribute("aria-live", "assertive");
-                toast.setAttribute("aria-atomic", "true");
-                toast.innerHTML = `<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
-                document.body.appendChild(toast);
-                }
-                new bootstrap.Toast(toast).show();
-            } else {
-                alert(text);
-            }
-            };
+            const handler = () => showToast(getMsg(key, el));
             el.addEventListener(ev, handler, { once: true });
             el.setAttribute(DATA_LISTENER_ADDED, "true");
-            const mo = new MutationObserver((_, o) => {
-            if (!document.body.contains(el)) {
-                el.removeEventListener(ev, handler);
-                o.disconnect();
-            }
-            });
-            mo.observe(document.body, { childList: true, subtree: true });
         };
 
         const routeGuard = (element, alt) => {
@@ -312,21 +244,30 @@ Object.keys(t).forEach(
     </script>
 @endpush
 @section(YieldingConstants::ADM_CTT)
-    @php 
-        $templateData = Utility::templateData(); 
-        $templates = $templateData['templates'];
-        $colors = $templateData['colors'];
-    @endphp
+    @php
+
+        try {
+            $templateData = Utility::templateData();
+            $templates = $templateData['templates'];
+            $colors = $templateData['colors'];
+        } catch (\Throwable $e) {
+            \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div class="{{ VC::CS12 }} {{ VC::MT4 }}">
         <div class="{{ VC::CD }}">
-            <div class="card-body">
+            <div class="{{ VC::CD_BD }}">
                 @php
-                    $tabs = [
-                        ['id' => 'proposal', 'label' => __('Proposal Print Setting')],
-                        ['id' => 'invoice',  'label' => __('Invoice Print Setting')],
-                        ['id' => 'bill',     'label' => __('Bill Print Setting')],
-                    ];
-                @endphp
+                    try {
+                        $tabs = [
+                            ['id' => 'proposal', 'label' => __('Proposal Print Setting')],
+                            ['id' => 'invoice',  'label' => __('Invoice Print Setting')],
+                            ['id' => 'bill',     'label' => __('Bill Print Setting')],
+                        ];
+                    } catch (\Throwable $e) {
+                        \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
                     @if(Utility::isFilled($tabs) ?? [])
                         @foreach($tabs as $index => $tab)
@@ -348,26 +289,30 @@ Object.keys(t).forEach(
                 </ul>
                 <div class="tab-content" id="pills-tabContent">
                     {{-- Proposal Setting --}}
-                    <div class="tab-pane fade show active" id="pills-proposal" role="tabpanel" aria-labelledby="pills-proposal-tab">
+                    <div class="{{ VC::TAB_FD_SH }} active" id="pills-proposal" role="tabpanel" aria-labelledby="pills-proposal-tab">
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <h5></h5>
                                         @php
-                                            $proposalTemplateSettingsRouteBase = ViewsConstants::PPS_TMP.'settings';
-                                            $proposalTemplateSettingsRouteKebab = Str::kebab($proposalTemplateSettingsRouteBase);
-                                            $proposalTemplateSettingsRouteResolved = Route::has($proposalTemplateSettingsRouteBase) ? $proposalTemplateSettingsRouteBase : (Route::has($proposalTemplateSettingsRouteKebab) ? $proposalTemplateSettingsRouteKebab : null);
-                                            $proposalTemplateSettingsUrl = $proposalTemplateSettingsRouteResolved ? route($proposalTemplateSettingsRouteResolved) : '#';
-                                            $userLangForProposalTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $proposalTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForProposalTemplate, ViewsConstants::PPS_TMP, 'settings_proposal_template_route_unavailable') ?? 'Proposal template settings route is unavailable. Please contact technical support or your domain administrator.';
-                                            $proposalTemplateSettingsFormId = 'proposal-template-settings-form';
-                                            $proposalTemplateSelectId = 'proposal-template-select';
-                                            $proposalColorRadioName = 'proposal_color';
-                                            $proposalLogoFileInputId = 'proposal-logo-input';
-                                            $proposalLogoPreviewImgId = 'proposal-logo-preview-img';
-                                        @endphp
-                                        <form id="{{ $proposalTemplateSettingsFormId }}" method="post" action="{{ $proposalTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $proposalTemplateSettingsUrl }}" data-guard-msg="{{ $proposalTemplateSettingsGuardMsg }}" data-sv-localized="true">
+                                            try {
+                                                $proposalTemplateSettingsRouteBase = ViewsConstants::PPS_TMP.'settings';
+                                                $proposalTemplateSettingsRouteKebab = Str::kebab($proposalTemplateSettingsRouteBase);
+                                                $proposalTemplateSettingsRouteResolved = Route::has($proposalTemplateSettingsRouteBase) ? $proposalTemplateSettingsRouteBase : (Route::has($proposalTemplateSettingsRouteKebab) ? $proposalTemplateSettingsRouteKebab : null);
+                                                $proposalTemplateSettingsUrl = $proposalTemplateSettingsRouteResolved ? route($proposalTemplateSettingsRouteResolved) : '#';
+                                                $userLangForProposalTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $proposalTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForProposalTemplate, ViewsConstants::PPS_TMP, 'settings_proposal_template_route_unavailable') ?? 'Proposal template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                                $proposalTemplateSettingsFormId = 'proposal-template-settings-form';
+                                                $proposalTemplateSelectId = 'proposal-template-select';
+                                                $proposalColorRadioName = 'proposal_color';
+                                                $proposalLogoFileInputId = 'proposal-logo-input';
+                                                $proposalLogoPreviewImgId = 'proposal-logo-preview-img';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <form id="{{ $proposalTemplateSettingsFormId }}" method="post" action="{{ $proposalTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $proposalTemplateSettingsUrl }}" data-guard-msg="{{ base64_encode($proposalTemplateSettingsGuardMsg) }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="{{ $proposalTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Proposal Template') }}</label>
@@ -413,7 +358,7 @@ Object.keys(t).forEach(
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
                                                         <input type="file" class="{{ VC::FM_CT }} file" name="proposal_logo" id="{{ $proposalLogoFileInputId }}" data-filename="proposal_logo_update">
-                                                        <img id="{{ $proposalLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
+                                                        <img id="{{ $proposalLogoPreviewImgId }}" class="{{ VC::MT2 }}" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
@@ -427,18 +372,22 @@ Object.keys(t).forEach(
                                     </div>
                                 </div>
                                 @php
-                                    $proposalPreviewRouteBase = ViewsConstants::PPS.'.preview';
-                                    $proposalPreviewRouteKebab = Str::kebab($proposalPreviewRouteBase);
-                                    $proposalPreviewRouteResolved = Route::has($proposalPreviewRouteBase) ? $proposalPreviewRouteBase : (Route::has($proposalPreviewRouteKebab) ? $proposalPreviewRouteKebab : null);
-                                    $proposalTemplateValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings[BillsConstants::COL_PPS_TMP] : 'template1';
-                                    $proposalColorValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings['proposal_color'] : 'ffffff';
-                                    $proposalPreviewUrl = $proposalPreviewRouteResolved ? route($proposalPreviewRouteResolved, [$proposalTemplateValue, $proposalColorValue]) : '#';
-                                    $userLangForProposalPreview = isset($lang) ? $lang : Utility::fetchUserLang();
-                                    $proposalPreviewGuardMsg = Utility::fetchLinkMessage($userLangForProposalPreview, ViewsConstants::PPS, 'preview_proposal_route_unavailable') ?? 'Proposal preview route is unavailable. Please contact technical support or your domain administrator.';
-                                    $proposalTemplatePreviewIframeId = 'proposal-template-preview-frame';
-                                @endphp
+                                    try {
+                                        $proposalPreviewRouteBase = ViewsConstants::PPS.'.preview';
+                                        $proposalPreviewRouteKebab = Str::kebab($proposalPreviewRouteBase);
+                                        $proposalPreviewRouteResolved = Route::has($proposalPreviewRouteBase) ? $proposalPreviewRouteBase : (Route::has($proposalPreviewRouteKebab) ? $proposalPreviewRouteKebab : null);
+                                        $proposalTemplateValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings[BillsConstants::COL_PPS_TMP] : 'template1';
+                                        $proposalColorValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings['proposal_color'] : 'ffffff';
+                                        $proposalPreviewUrl = $proposalPreviewRouteResolved ? route($proposalPreviewRouteResolved, [$proposalTemplateValue, $proposalColorValue]) : '#';
+                                        $userLangForProposalPreview = isset($lang) ? $lang : Utility::fetchUserLang();
+                                        $proposalPreviewGuardMsg = Utility::fetchLinkMessage($userLangForProposalPreview, ViewsConstants::PPS, 'preview_proposal_route_unavailable') ?? 'Proposal preview route is unavailable. Please contact technical support or your domain administrator.';
+                                        $proposalTemplatePreviewIframeId = 'proposal-template-preview-frame';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM9 }}">
-                                    <iframe id="{{ $proposalTemplatePreviewIframeId }}" class="w-100 h-100" frameborder="0" src="{{ $proposalPreviewUrl }}" data-url="{{ $proposalPreviewUrl }}" data-guard-msg="{{ $proposalPreviewGuardMsg }}" data-sv-localized="true"></iframe>
+                                    <iframe id="{{ $proposalTemplatePreviewIframeId }}" class="{{ VC::W100 }} h-100" frameborder="0" src="{{ $proposalPreviewUrl }}" data-url="{{ $proposalPreviewUrl }}" data-guard-msg="{{ base64_encode($proposalPreviewGuardMsg) }}" data-sv-localized="true"></iframe>
                                 </div>
                                 @push(StacksConstants::ADM_SCR_PG)
                                     <script defer src="{{ asset('assets/js/routes/settings/proposals/preview.js') }}">
@@ -452,22 +401,26 @@ Object.keys(t).forEach(
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <h5></h5>
                                         @php
-                                            $invoiceTemplateSettingsRouteBase = 'template.setting';
-                                            $invoiceTemplateSettingsRouteKebab = Str::kebab($invoiceTemplateSettingsRouteBase);
-                                            $invoiceTemplateSettingsRouteResolved = Route::has($invoiceTemplateSettingsRouteBase) ? $invoiceTemplateSettingsRouteBase : (Route::has($invoiceTemplateSettingsRouteKebab) ? $invoiceTemplateSettingsRouteKebab : null);
-                                            $invoiceTemplateSettingsUrl = $invoiceTemplateSettingsRouteResolved ? route($invoiceTemplateSettingsRouteResolved) : '#';
-                                            $userLangForInvoiceTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $invoiceTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForInvoiceTemplate, VW::INV, 'settings_invoice_template_route_unavailable') ?? 'Invoice template settings route is unavailable. Please contact technical support or your domain administrator.';
-                                            $invoiceTemplateSettingsFormId = 'invoice-template-settings-form';
-                                            $invoiceTemplateSelectId = 'invoice-template-select';
-                                            $invoiceColorRadioName = 'invoice_color';
-                                            $invoiceLogoFileInputId = 'invoice-logo-input';
-                                            $invoiceLogoPreviewImgId = 'invoice-logo-preview-img';
-                                        @endphp
-                                        <form id="{{ $invoiceTemplateSettingsFormId }}" method="post" action="{{ $invoiceTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $invoiceTemplateSettingsUrl }}" data-guard-msg="{{ $invoiceTemplateSettingsGuardMsg }}" data-sv-localized="true">
+                                            $invoiceTemplateSettingsRouteBase ??= 'template.setting';
+                                            try {
+                                                $invoiceTemplateSettingsRouteKebab = Str::kebab($invoiceTemplateSettingsRouteBase);
+                                                $invoiceTemplateSettingsRouteResolved = Route::has($invoiceTemplateSettingsRouteBase) ? $invoiceTemplateSettingsRouteBase : (Route::has($invoiceTemplateSettingsRouteKebab) ? $invoiceTemplateSettingsRouteKebab : null);
+                                                $invoiceTemplateSettingsUrl = $invoiceTemplateSettingsRouteResolved ? route($invoiceTemplateSettingsRouteResolved) : '#';
+                                                $userLangForInvoiceTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $invoiceTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForInvoiceTemplate, VW::INV, 'settings_invoice_template_route_unavailable') ?? 'Invoice template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                                $invoiceTemplateSettingsFormId = 'invoice-template-settings-form';
+                                                $invoiceTemplateSelectId = 'invoice-template-select';
+                                                $invoiceColorRadioName = 'invoice_color';
+                                                $invoiceLogoFileInputId = 'invoice-logo-input';
+                                                $invoiceLogoPreviewImgId = 'invoice-logo-preview-img';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
+                                        <form id="{{ $invoiceTemplateSettingsFormId }}" method="post" action="{{ $invoiceTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $invoiceTemplateSettingsUrl }}" data-guard-msg="{{ base64_encode($invoiceTemplateSettingsGuardMsg) }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="{{ $invoiceTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Invoice Template') }}</label>
@@ -513,7 +466,7 @@ Object.keys(t).forEach(
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
                                                         <input type="file" class="{{ VC::FM_CT }} file" name="invoice_logo" id="{{ $invoiceLogoFileInputId }}" data-filename="invoice_logo_update">
-                                                        <img id="{{ $invoiceLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
+                                                        <img id="{{ $invoiceLogoPreviewImgId }}" class="{{ VC::MT2 }}" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
@@ -527,18 +480,22 @@ Object.keys(t).forEach(
                                     </div>
                                 </div>
                                 @php
-                                    $invoicePreviewRouteBase = ViewsConstants::INV.'.preview';
-                                    $invoicePreviewRouteKebab = Str::kebab($invoicePreviewRouteBase);
-                                    $invoicePreviewRouteResolved = Route::has($invoicePreviewRouteBase) ? $invoicePreviewRouteBase : (Route::has($invoicePreviewRouteKebab) ? $invoicePreviewRouteKebab : null);
-                                    $invoiceTemplateValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings[BillsConstants::COL_INV_TMP] : 'template1';
-                                    $invoiceColorValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings['invoice_color'] : 'ffffff';
-                                    $invoicePreviewUrl = $invoicePreviewRouteResolved ? route($invoicePreviewRouteResolved, [$invoiceTemplateValue, $invoiceColorValue]) : '#';
-                                    $userLangForInvoicePreview = isset($lang) ? $lang : Utility::fetchUserLang();
-                                    $invoicePreviewGuardMsg = Utility::fetchLinkMessage($userLangForInvoicePreview, ViewsConstants::INV, 'preview_invoice_route_unavailable') ?? 'Invoice preview route is unavailable. Please contact technical support or your domain administrator.';
-                                    $invoiceTemplatePreviewIframeId = 'invoice-template-preview-frame';
-                                @endphp
+                                    try {
+                                        $invoicePreviewRouteBase = ViewsConstants::INV.'.preview';
+                                        $invoicePreviewRouteKebab = Str::kebab($invoicePreviewRouteBase);
+                                        $invoicePreviewRouteResolved = Route::has($invoicePreviewRouteBase) ? $invoicePreviewRouteBase : (Route::has($invoicePreviewRouteKebab) ? $invoicePreviewRouteKebab : null);
+                                        $invoiceTemplateValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings[BillsConstants::COL_INV_TMP] : 'template1';
+                                        $invoiceColorValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings['invoice_color'] : 'ffffff';
+                                        $invoicePreviewUrl = $invoicePreviewRouteResolved ? route($invoicePreviewRouteResolved, [$invoiceTemplateValue, $invoiceColorValue]) : '#';
+                                        $userLangForInvoicePreview = isset($lang) ? $lang : Utility::fetchUserLang();
+                                        $invoicePreviewGuardMsg = Utility::fetchLinkMessage($userLangForInvoicePreview, ViewsConstants::INV, 'preview_invoice_route_unavailable') ?? 'Invoice preview route is unavailable. Please contact technical support or your domain administrator.';
+                                        $invoiceTemplatePreviewIframeId = 'invoice-template-preview-frame';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM9 }}">
-                                    <iframe id="{{ $invoiceTemplatePreviewIframeId }}" class="w-100 h-100" frameborder="0" src="{{ $invoicePreviewUrl }}" data-url="{{ $invoicePreviewUrl }}" data-guard-msg="{{ $invoicePreviewGuardMsg }}" data-sv-localized="true"></iframe>
+                                    <iframe id="{{ $invoiceTemplatePreviewIframeId }}" class="{{ VC::W100 }} h-100" frameborder="0" src="{{ $invoicePreviewUrl }}" data-url="{{ $invoicePreviewUrl }}" data-guard-msg="{{ base64_encode($invoicePreviewGuardMsg) }}" data-sv-localized="true"></iframe>
                                 </div>
                                 @push(StacksConstants::ADM_SCR_PG)
                                     <script defer src="{{ asset('assets/js/routes/settings/invoices/preview.js') }}"></script>
@@ -551,29 +508,33 @@ Object.keys(t).forEach(
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <h5></h5>
                                         @php
-                                            $billTemplateSettingsRouteBase = ViewsConstants::BIL_TMP.'settings';
-                                            $billTemplateSettingsRouteKebab = Str::kebab($billTemplateSettingsRouteBase);
-                                            $billTemplateSettingsRouteResolved = Route::has($billTemplateSettingsRouteBase)
-                                                ? $billTemplateSettingsRouteBase
-                                                : (Route::has($billTemplateSettingsRouteKebab) ? $billTemplateSettingsRouteKebab : null);
-                                            $billTemplateSettingsUrl = $billTemplateSettingsRouteResolved ? route($billTemplateSettingsRouteResolved) : '#';
-                                            $billTemplateSettingsUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
-                                            $billTemplateSettingsGuardMsg = Utility::fetchLinkMessage($billTemplateSettingsUserLang, ViewsConstants::BIL_TMP, 'settings_bill_template_route_unavailable') ?? 'Bill template settings route is unavailable. Please contact technical support or your domain administrator.';
-                                            $billTemplateSettingsFormId   = 'bill-template-settings-form';
-                                            $billTemplateSelectId         = 'bill-template-select';
-                                            $billColorRadioName           = 'bill_color';
-                                            $billLogoFileInputId          = 'bill-logo-input';
-                                            $billLogoPreviewImgId         = 'bill-logo-preview-img';
-                                        @endphp
+                                            try {
+                                                $billTemplateSettingsRouteBase = ViewsConstants::BIL_TMP.'settings';
+                                                $billTemplateSettingsRouteKebab = Str::kebab($billTemplateSettingsRouteBase);
+                                                $billTemplateSettingsRouteResolved = Route::has($billTemplateSettingsRouteBase)
+                                                    ? $billTemplateSettingsRouteBase
+                                                    : (Route::has($billTemplateSettingsRouteKebab) ? $billTemplateSettingsRouteKebab : null);
+                                                $billTemplateSettingsUrl = $billTemplateSettingsRouteResolved ? route($billTemplateSettingsRouteResolved) : '#';
+                                                $billTemplateSettingsUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                $billTemplateSettingsGuardMsg = Utility::fetchLinkMessage($billTemplateSettingsUserLang, ViewsConstants::BIL_TMP, 'settings_bill_template_route_unavailable') ?? 'Bill template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                                $billTemplateSettingsFormId   = 'bill-template-settings-form';
+                                                $billTemplateSelectId         = 'bill-template-select';
+                                                $billColorRadioName           = 'bill_color';
+                                                $billLogoFileInputId          = 'bill-logo-input';
+                                                $billLogoPreviewImgId         = 'bill-logo-preview-img';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <form id="{{ $billTemplateSettingsFormId }}"
                                             method="post"
                                             action="{{ $billTemplateSettingsUrl }}"
                                             enctype="multipart/form-data"
                                             data-url="{{ $billTemplateSettingsUrl }}"
-                                            data-guard-msg="{{ $billTemplateSettingsGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($billTemplateSettingsGuardMsg) }}"
                                             data-sv-localized="true">
                                             @csrf
 
@@ -623,7 +584,7 @@ Object.keys(t).forEach(
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
                                                         <input type="file" class="{{ VC::FM_CT }} file" name="bill_logo" id="{{ $billLogoFileInputId }}" data-filename="bill_logo_update">
-                                                        <img id="{{ $billLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
+                                                        <img id="{{ $billLogoPreviewImgId }}" class="{{ VC::MT2 }}" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
@@ -638,23 +599,27 @@ Object.keys(t).forEach(
                                     </div>
                                 </div>
                                 @php
-                                    $billPreviewRouteBase = ViewsConstants::BIL.'.preview';
-                                    $billPreviewRouteKebab = Str::kebab($billPreviewRouteBase);
-                                    $billPreviewRouteResolved = Route::has($billPreviewRouteBase) ? $billPreviewRouteBase : (Route::has($billPreviewRouteKebab) ? $billPreviewRouteKebab : null);
-                                    $billTemplateValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
-                                    $billColorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings['bill_color'] : 'ffffff';
-                                    $billPreviewUrl = $billPreviewRouteResolved ? route($billPreviewRouteResolved, [$billTemplateValue, $billColorValue]) : '#';
-                                    $billPreviewLang = isset($lang) ? $lang : Utility::fetchUserLang();
-                                    $billPreviewGuardMsg = Utility::fetchLinkMessage($billPreviewLang, ViewsConstants::BIL, 'preview_bill_route_unavailable') ?? 'Bill preview route is unavailable. Please contact technical support or your domain administrator.';
-                                    $billTemplatePreviewIframeId = 'bill-template-preview-frame';
-                                @endphp
+                                    try {
+                                        $billPreviewRouteBase = ViewsConstants::BIL.'.preview';
+                                        $billPreviewRouteKebab = Str::kebab($billPreviewRouteBase);
+                                        $billPreviewRouteResolved = Route::has($billPreviewRouteBase) ? $billPreviewRouteBase : (Route::has($billPreviewRouteKebab) ? $billPreviewRouteKebab : null);
+                                        $billTemplateValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
+                                        $billColorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings['bill_color'] : 'ffffff';
+                                        $billPreviewUrl = $billPreviewRouteResolved ? route($billPreviewRouteResolved, [$billTemplateValue, $billColorValue]) : '#';
+                                        $billPreviewLang = isset($lang) ? $lang : Utility::fetchUserLang();
+                                        $billPreviewGuardMsg = Utility::fetchLinkMessage($billPreviewLang, ViewsConstants::BIL, 'preview_bill_route_unavailable') ?? 'Bill preview route is unavailable. Please contact technical support or your domain administrator.';
+                                        $billTemplatePreviewIframeId = 'bill-template-preview-frame';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('settings/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM9 }}">
                                     <iframe id="{{ $billTemplatePreviewIframeId }}"
-                                            class="w-100 h-100"
+                                            class="{{ VC::W100 }} h-100"
                                             frameborder="0"
                                             src="{{ $billPreviewUrl }}"
                                             data-url="{{ $billPreviewUrl }}"
-                                            data-guard-msg="{{ $billPreviewGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($billPreviewGuardMsg) }}"
                                             data-sv-localized="true"></iframe>
                                 </div>
                                 @push(StacksConstants::ADM_SCR_PG)

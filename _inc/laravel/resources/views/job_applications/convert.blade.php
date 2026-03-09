@@ -1,24 +1,17 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YD
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Collective\Html\FormFacade as Form;
+    try {
+$user = Auth::user() ?? null;
+        $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
 
-    $user = Auth::user() ?? null;
-    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        $convertUrl = route(VW::JB.'.on.board.convert', data_get($jobOnBoard,'id'));
+        $convertGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB, 'onboard_convert_route_unavailable') : 'Convert route is unavailable. Please contact technical support or your domain administrator.') ?? __('Convert route is unavailable. Please contact technical support or your domain administrator.');
 
-    $convertUrl = route(VW::JB.'.on.board.convert', data_get($jobOnBoard,'id'));
-    $convertGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB, 'onboard_convert_route_unavailable') : 'Convert route is unavailable. Please contact technical support or your domain administrator.') ?? __('Convert route is unavailable. Please contact technical support or your domain administrator.');
-
-    $designationUrl = route(VW::DSG.'.byDepartment');
-    $designationGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::DSG, 'designation_by_department_unavailable') : 'Designation list route is unavailable. Please contact technical support or your domain administrator.') ?? __('Designation list route is unavailable. Please contact technical support or your domain administrator.');
+        $designationUrl = route(VW::DSG.'.byDepartment');
+        $designationGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::DSG, 'designation_by_department_unavailable') : 'Designation list route is unavailable. Please contact technical support or your domain administrator.') ?? __('Designation list route is unavailable. Please contact technical support or your domain administrator.');
+    } catch (\Throwable $e) {
+        \Log::error('job_applications/convert — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -34,23 +27,23 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM6 }}">
             <div class="{{ VC::CD }} card-fluid">
-                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Personal Detail') }}</h6></div>
-                <div class="card-body">
+                <div class="{{ VC::CD_HD }}"><h6 class="{{ VC::MB0 }}">{{ __('Personal Detail') }}</h6></div>
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('name', __('Name'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('name', __('Name'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             {!! Form::text('name', data_get($jobOnBoard,'applications.name',__('No name available')), ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('phone', __('Phone'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('phone', __('Phone'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             {!! Form::number('phone', data_get($jobOnBoard,'applications.phone',__('Failed to get phone')), ['class'=>VC::FM_CT]) !!}
                         </div>
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('dob', __('Date of Birth'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('dob', __('Date of Birth'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             {!! Form::date('dob', data_get($jobOnBoard,'applications.dob',''), ['class'=>VC::FM_CT.' datepicker']) !!}
                         </div>
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('gender', __('Gender'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('gender', __('Gender'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             <div class="d-flex radio-check {{ VC::MT2 }}">
                                 <div class="{{ VC::FM_CHK_IL_GP_COLM6 }}">
                                     <input type="radio" id="g_male" value="Male" name="gender" class="form-check-input" {{ data_get($jobOnBoard,'applications.gender')==='Male'?'checked':'' }}>
@@ -63,16 +56,16 @@
                             </div>
                         </div>
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('email', __('Email'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('email', __('Email'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             {!! Form::email('email', old('email'), ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
                         <div class="{{ VC::FM_GCB6 }}">
-                            {!! Form::label('password', __('Password'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('password', __('Password'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                             {!! Form::password('password', ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
                     </div>
                     <div class="{{ VC::FM_G }}">
-                        {!! Form::label('address', __('Address'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                        {!! Form::label('address', __('Address'), ['class'=>VC::FM_LB]) !!}<span class="{{ VC::TX_DNG_PL1 }}">*</span>
                         {!! Form::textarea('address', old('address'), ['class'=>VC::FM_CT,'rows'=>2]) !!}
                     </div>
                 </div>
@@ -80,8 +73,8 @@
         </div>
         <div class="{{ VC::CM6 }}">
             <div class="{{ VC::CD }} card-fluid">
-                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Company Detail') }}</h6></div>
-                <div class="card-body employee-detail-create-body">
+                <div class="{{ VC::CD_HD }}"><h6 class="{{ VC::MB0 }}">{{ __('Company Detail') }}</h6></div>
+                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                     <div class="{{ VC::RW }}">
                         @csrf
                         <div class="{{ VC::FM_GCB12 }}">
@@ -98,7 +91,7 @@
                         </div>
                         <div class="{{ VC::FM_GCB12 }}">
                             {!! Form::label('designation_id', __('Designation'), ['class'=>VC::FM_LB]) !!}
-                            <select class="{{ VC::FM_CT }}" id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}" data-url="{{ $designationUrl }}" data-guard-msg="{{ $designationGuard }}">
+                            <select class="{{ VC::FM_CT }}" id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}" data-url="{{ $designationUrl }}" data-guard-msg="{{ base64_encode($designationGuard) }}">
                                 <option value="">{{ __('Select any Designation') }}</option>
                             </select>
                         </div>
@@ -114,17 +107,17 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM6 }}">
             <div class="{{ VC::CD }} card-fluid">
-                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Document') }}</h6></div>
-                <div class="card-body employee-detail-create-body">
+                <div class="{{ VC::CD_HD }}"><h6 class="{{ VC::MB0 }}">{{ __('Document') }}</h6></div>
+                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                     @php
                         $docs = (is_array($documents??null) && count($documents??[])) ? $documents : ((($documents??null) instanceof \Illuminate\Support\Collection && $documents->isNotEmpty()) ? $documents : []);
-                    @endphp
+@endphp
                     @if(!empty($docs))
                         @foreach($docs as $document)
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::FM_GCB12 }}">
                                     <div class="float-left col-4">
-                                        <label for="document" class="float-left pt-1 {{ VC::FM_LB }}">{{ data_get($document,'name',__('No document name available')) }} @if((int) (data_get($document,'is_required',0))===1) <span class="text-danger">*</span> @endif</label>
+                                        <label for="document" class="float-left pt-1 {{ VC::FM_LB }}">{{ data_get($document,'name',__('No document name available')) }} @if((int) (data_get($document,'is_required',0))===1) <span class="{{ VC::TX_DNG }}">*</span> @endif</label>
                                     </div>
                                     <div class="float-right col-8">
                                         <input type="hidden" name="emp_doc_id[{{ data_get($document,'id','') }}]" value="{{ data_get($document,'id','') }}">
@@ -140,15 +133,15 @@
                             </div>
                         @endforeach
                     @else
-                        <div class="{{ VC::RW }}"><div class="{{ VC::CM12 }}"><h6 class="text-center">{{ __('No documents available') }}</h6></div></div>
+                        <div class="{{ VC::RW }}"><div class="{{ VC::CM12 }}"><h6 class="{{ VC::TXCT }}">{{ __('No documents available') }}</h6></div></div>
                     @endif
                 </div>
             </div>
         </div>
         <div class="{{ VC::CM6 }}">
             <div class="{{ VC::CD }} card-fluid">
-                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Bank Account Detail') }}</h6></div>
-                <div class="card-body employee-detail-create-body">
+                <div class="{{ VC::CD_HD }}"><h6 class="{{ VC::MB0 }}">{{ __('Bank Account Detail') }}</h6></div>
+                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::FM_GCB6 }}">
                             {!! Form::label('account_holder_name', __('Account Holder Name'), ['class'=>VC::FM_LB]) !!}
@@ -186,7 +179,7 @@
         </div>
     </div>
 @endsection
-    
+
 @push(ST::ADM_SCR_PG)
     <script defer src="{{ asset('assets/js/routes/jobs/boards/convert.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/jobs/boards/lang/convert.js') }}"></script>
@@ -242,12 +235,12 @@
                         toast.setAttribute('aria-live', 'assertive');
                         toast.setAttribute('aria-atomic', 'true');
                         toast.innerHTML = `
-                            <div class="d-flex">
+                            <div class="{{ VC::DFL }}">
                                 <div class="toast-body">${message}</div>
                                 <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
+                                        class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }

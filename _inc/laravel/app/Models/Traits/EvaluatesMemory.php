@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\Log;
+
 trait EvaluatesMemory
 {
 	protected const MEMORY_THRESHOLD = 0.5;
@@ -9,7 +11,7 @@ trait EvaluatesMemory
 	protected function checkMemoryUsage(): void
 	{
 		try {
-			$output = \App\Helpers\SafeConsoleOutput::make();
+			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			$memoryLimit = $this->getMemoryLimit();
 			if (!function_exists('memory_get_usage') || (!is_int($memoryLimit) && !is_float($memoryLimit)) || $memoryLimit <= 0) {
 				return;
@@ -19,7 +21,7 @@ trait EvaluatesMemory
 			if ($usagePercent > self::MEMORY_THRESHOLD) {
 				$output->writeln(static::class . sprintf(': high memory usage detected (%.1f%%), initiating sleep.', $usagePercent * 100));
 				$excessPercent = ($usagePercent - self::MEMORY_THRESHOLD) * 100;
-				$sleepMicroseconds = (int) min(1000000, $excessPercent * 10000); // Max 1 second
+				$sleepMicroseconds = (int) min(1000000, $excessPercent * 10000);
 
 				$this->command?->warn(
 					static::class . sprintf(
@@ -30,29 +32,33 @@ trait EvaluatesMemory
 				);
 
 				usleep($sleepMicroseconds);
-				gc_collect_cycles(); // Force garbage collection
+				gc_collect_cycles();
 			}
 		} catch (\Exception $e) {
-			// Silently continue if memory check fails
 		}
 	}
 
 	protected function getMemoryLimit(): int
 	{
-		$memoryLimit = ini_get('memory_limit');
+		try {
+			$memoryLimit = ini_get('memory_limit');
 
-		if ($memoryLimit === '-1') {
-			return -1; // Unlimited
+			if ($memoryLimit === '-1') {
+				return -1;
+			}
+
+			$unit = strtolower(substr($memoryLimit, -1));
+			$value = (int) substr($memoryLimit, 0, -1);
+
+			return match ($unit) {
+				'g' => $value * 1024 * 1024 * 1024,
+				'm' => $value * 1024 * 1024,
+				'k' => $value * 1024,
+				default => (int) $memoryLimit,
+			};
+		} catch (\Throwable $e) {
+			Log::error(static::class . '::getMemoryLimit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+			return 0;
 		}
-
-		$unit = strtolower(substr($memoryLimit, -1));
-		$value = (int) substr($memoryLimit, 0, -1);
-
-		return match ($unit) {
-			'g' => $value * 1024 * 1024 * 1024,
-			'm' => $value * 1024 * 1024,
-			'k' => $value * 1024,
-			default => (int) $memoryLimit,
-		};
 	}
 }

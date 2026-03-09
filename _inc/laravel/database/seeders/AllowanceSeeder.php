@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\{DB, Log};
 final class AllowanceSeeder extends Seeder
 {
 	use EnsuresSystemUser;
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		DB::transaction(function () {
@@ -29,9 +30,11 @@ final class AllowanceSeeder extends Seeder
 				->select(['id', 'name'])
 				->get();
 
+			$HARD_CAP = 2;
 			$created = 0;
 			$updated = 0;
 			foreach ($employees as $emp) {
+				if ($created >= $HARD_CAP) break;
 				try {
 					// cada funcionário pode receber de 1 a 3 allowances
 					$count = random_int(1, 3);
@@ -48,8 +51,8 @@ final class AllowanceSeeder extends Seeder
 								return;
 							}
 							$ref = $emp instanceof Employee ? ($emp->name ?? $emp->id) : (Employee::query()->where('id', $emp)->value('name') ?? $emp);
-							(new \Symfony\Component\Console\Output\ConsoleOutput
-							)->writeln("Criando Reserva para funcionário: {$ref}");
+							// (new \Symfony\Component\Console\Output\ConsoleOutput
+							// )->writeln("Criando Reserva para funcionário: {$ref}");
 							$type = [AllowanceType::Fixed, AllowanceType::Percentage][array_rand([0, 1])];
 
 							[$title, $amount] = $type === AllowanceType::Percentage

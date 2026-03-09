@@ -1,11 +1,12 @@
 @extends('vendor.installer.layouts.master')
 
 @php
-    use Illuminate\Support\Collection;
-    use Illuminate\Support\Facades\Route;
-
-    $hasNext = Route::has('LaravelInstaller::requirements');
-    $nextUrl = $hasNext ? route('LaravelInstaller::requirements') : '#';
+    try {
+$hasNext = Route::has('LaravelInstaller::requirements');
+        $nextUrl = $hasNext ? route('LaravelInstaller::requirements') : '#';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/installer/welcome — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @section('template_title')

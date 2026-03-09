@@ -6,6 +6,7 @@ use App\Traits\ChecksLogin;
 use App\Config\Constants\{
 	ActivitiesConstants as AC,
 	DatabaseConstants as DC,
+	PermissionsConstants as PMC,
 	ProjectsConstants as PJC,
 	UsersConstants as UC
 };
@@ -35,11 +36,9 @@ class DealRequestService
 
 		$user = $userOrRedirect;
 
-		$dealsArray = is_array($deals)
-			? $deals
-			: ($deals instanceof Collection ? $deals->toArray() : []);
+		$dealsCollection = is_array($deals) ? collect($deals) : ($deals instanceof Collection ? $deals : collect());
 
-		$total = collect($dealsArray)->sum(fn($d) => $d->price ?? 0);
+		$total = $dealsCollection->sum(fn($d) => is_object($d) ? ($d->price ?? 0) : (is_array($d) ? ($d['price'] ?? 0) : 0));
 
 		return $user->priceFormat($total, $numeric);
 	}
@@ -58,11 +57,9 @@ class DealRequestService
 
 		$user = $userOrRedirect;
 
-		$dealsArray = is_array($deals)
-			? $deals
-			: ($deals instanceof Collection ? $deals->toArray() : []);
+		$dealsCollection = is_array($deals) ? collect($deals) : ($deals instanceof Collection ? $deals : collect());
 
-		return (float) collect($dealsArray)->sum(fn($d) => $d->price ?? 0);
+		return (float) $dealsCollection->sum(fn($d) => is_object($d) ? ($d->price ?? 0) : (is_array($d) ? ($d['price'] ?? 0) : 0));
 	}
 
 	/**
@@ -102,6 +99,13 @@ class DealRequestService
 			return $userOrRedirect;
 
 		$user = $userOrRedirect;
+
+		// SA and company users see all their own deals without pivot filtering
+		if (in_array($user[UC::COL_TP], [PMC::CPN, PMC::SA], true))
+			return Deal::where(DC::COL_TABLE_CREATOR, $user->creatorId())
+				->where(PJC::COL_STG_ID, $stage->id)
+				->orderBy(AC::COL_OD)
+				->get();
 
 		$pivot = $user[UC::COL_TP] === UserType::Client->value
 			? DC::TABLE_CLT_DLS

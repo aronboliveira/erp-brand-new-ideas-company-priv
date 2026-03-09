@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Document;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DocumentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -15,8 +21,28 @@ class DocumentTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Document::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'file_path',
+			'url',
+			'name',
+			'extension',
+			'mime_type',
+			'last_accessed',
+			'size',
+			'description',
+			'notes',
+			'download_count',
+			'file_size',
+			'permission_rules',
+			'viewers',
+			'editors',
+			'executors',
+			'expiration_date',
+			'type',
+			'number',
+			'is_required',
+			'is_private',
+		];
 
 		$this->assertSame($expected, (new Document)->getFillable());
 	}
@@ -29,13 +55,13 @@ class DocumentTest extends TestCase
 	 **/
 	public function user_relation_is_has_one(): void
 	{
-		$rel = (new Document)->user();
+		$rel = (new Document)->createdBy();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('created_by',         $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

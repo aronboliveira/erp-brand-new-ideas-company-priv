@@ -1,19 +1,42 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-
-	$formId = 'update_training_type_form';
-	$typeId = data_get($trainingType ?? null, 'id', '');
-
-	$updateBase  = VW::TNG_TP . '.update';
-	$updateKebab = Str::kebab($updateBase);
-	$updateName  = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-	$updateUrl   = ($updateName && $typeId) ? route($updateName, [$typeId]) : '#';
-	$guardMsg    = Utility::fetchLinkMessage($lang, VW::TNG_TP, 'update_training_type_route_unavailable') ?? 'Update training type route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$formId ??= 'update_training_type_form';
+	$typeId ??= '';
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateName ??= null;
+	$updateUrl ??= '#';
+	$guardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$typeId = data_get($trainingType ?? null, 'id', '');
+		$updateBase = VW::TNG_TP . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateName = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateName && $typeId) ? (route($updateName, [$typeId]) ?? '#') : '#';
+		$guardMsg = Utility::fetchLinkMessage($lang, VW::TNG_TP, 'update_training_type_route_unavailable') ?? 'Update training type route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in training_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in training_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in training_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($trainingType, [
@@ -39,4 +62,3 @@
 	</div>
   <script defer src="{{ asset('assets/js/routes/trainings/types/update.js') }}"></script>
 {!! Form::close() !!}
-

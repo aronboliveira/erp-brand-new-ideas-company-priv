@@ -10,6 +10,11 @@ use App\Models\UserCoupon;
 
 class OrderTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -24,7 +29,7 @@ class OrderTest extends TestCase
 			'name'           => 'Acme Corp',
 			'email'          => 'billing@acme.test',
 			'card_number'    => '4242424242424242',
-			'card_exp_month' => '12',
+			'card_exp_month' => 'november',
 			'card_exp_year'  => '2030',
 			'plan_name'      => 'Pro',
 			'plan_id'        => 'plan-pro-01',
@@ -32,15 +37,19 @@ class OrderTest extends TestCase
 			'price_currency' => 'USD',
 			'txn_id'         => 'TXN-5001',
 			'payment_status' => 'completed',
-			'payment_type'   => 'card',
+			'payment_type'   => 'card_credit',
 			'receipt'        => 'RCT-9001',
 			'user_id'        => 'user-123',
 		];
 
 		$order = Order::create($data);
 
+		$this->assertNotNull($order->id);
+		$skip = ['txn_id']; // not fillable
 		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $order->$field);
+			if (in_array($field, $skip)) continue;
+			$raw = $order->getRawOriginal($field);
+			$this->assertEquals($value, $raw, "Field {$field} mismatch");
 		}
 	}
 
@@ -66,7 +75,7 @@ class OrderTest extends TestCase
 			'name'           => 'Test',
 			'email'          => 't@t.test',
 			'card_number'    => '0000',
-			'card_exp_month' => '01',
+			'card_exp_month' => 'january',
 			'card_exp_year'  => '2031',
 			'plan_name'      => 'TestPlan',
 			'plan_id'        => 'plan-test',
@@ -74,13 +83,13 @@ class OrderTest extends TestCase
 			'price_currency' => 'USD',
 			'txn_id'         => 'TXN-1',
 			'payment_status' => 'pending',
-			'payment_type'   => 'card',
+			'payment_type'   => 'card_credit',
 			'receipt'        => 'RCT-1',
 			'user_id'        => 'u1',
 		];
 
 		Order::create($base);
-		$second = array_merge($base, ['order_id' => 'ORD-201', 'txn_id' => 'TXN-2']);
+		$second = array_merge($base, ['order_id' => 'ORD-201', 'email' => 't2@t.test']);
 		Order::create($second);
 
 		$this->assertSame(2, Order::totalOrders());
@@ -108,21 +117,21 @@ class OrderTest extends TestCase
 			'name'           => 'SumTest',
 			'email'          => 's@sum.test',
 			'card_number'    => '1111',
-			'card_exp_month' => '02',
+			'card_exp_month' => 'february',
 			'card_exp_year'  => '2032',
 			'plan_name'      => 'SumPlan',
 			'plan_id'        => 'plan-sum',
 			'price'          => 15.25,
 			'price_currency' => 'USD',
 			'txn_id'         => 'TXN-3',
-			'payment_status' => 'paid',
-			'payment_type'   => 'card',
+			'payment_status' => 'completed',
+			'payment_type'   => 'card_credit',
 			'receipt'        => 'RCT-3',
 			'user_id'        => 'u2',
 		];
 
 		Order::create($base);
-		Order::create(array_merge($base, ['order_id' => 'ORD-301', 'price' => 24.75, 'txn_id' => 'TXN-4']));
+		Order::create(array_merge($base, ['order_id' => 'ORD-301', 'price' => 24.75, 'email' => 's2@sum.test']));
 
 		$this->assertEquals(15.25 + 24.75, Order::totalOrdersPrice());
 	}
@@ -154,7 +163,7 @@ class OrderTest extends TestCase
 			'name'           => 'UUIDTest',
 			'email'          => 'u@uuid.test',
 			'card_number'    => '2222',
-			'card_exp_month' => '03',
+			'card_exp_month' => 'march',
 			'card_exp_year'  => '2033',
 			'plan_name'      => 'UUIDPlan',
 			'plan_id'        => 'plan-uuid',
@@ -162,7 +171,7 @@ class OrderTest extends TestCase
 			'price_currency' => 'USD',
 			'txn_id'         => 'TXN-5',
 			'payment_status' => 'completed',
-			'payment_type'   => 'card',
+			'payment_type'   => 'card_credit',
 			'receipt'        => 'RCT-5',
 			'user_id'        => 'u3',
 		]);

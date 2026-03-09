@@ -1,22 +1,42 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang      = Utility::fetchUserLang();
-    $hasModel  = !empty($performanceType ?? null) && data_get($performanceType, 'id');
-
-    $updateBase     = VW::PFM_TP . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $performanceType->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PFM_TP, 'update_route_unavailable')
-                        ?? __('Update Performance Type route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasModel = !empty($performanceType ?? null) && data_get($performanceType, 'id');
+		$updateBase = VW::PFM_TP . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasModel) ? (route($updateResolved, $performanceType->id) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PFM_TP, 'update_route_unavailable')
+			?? __('Update Performance Type route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in performance_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in performance_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in performance_types/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)

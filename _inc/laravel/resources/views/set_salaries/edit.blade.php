@@ -1,84 +1,79 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route, URL};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-        $salaryUpdateRoute  = Route::has(ViewsConstants::EMP . '.salary.update')
-        ? route(ViewsConstants::EMP . '.salary.update', $employee->id)
-        : (Route::has(Str::kebab(ViewsConstants::EMP . '.salary.update'))
-            ? route(Str::kebab(ViewsConstants::EMP . '.salary.update'), $employee->id)
-            : '#');
-    $salaryFormId             = 'salary-update-form';
-    $updateMsg          = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::EMP,
-        'salary_update_route_unavailable'
-    ) ?? 'Salary update route is unavailable. Please contact technical support or your domain administrator.';
-    $createRoute = Route::has(ViewsConstants::ALW . '.store')
-        ? route(ViewsConstants::ALW . '.store')
-        : '#';
-    $allowanceFormId      = 'allowance-store-form';
-    $createMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::ALW,
-        'allowance_store_route_unavailable'
-    ) ?? 'Allowance store route is unavailable. Please contact technical support or your domain administrator.';
-    $storeRoute = Route::has(ViewsConstants::COM . '.store')
-        ? route(ViewsConstants::COM . '.store')
-        : '#';
-    $comFormId     = 'commission-store-form';
-    $storeMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COM,
-        'commission_store_route_unavailable'
-    ) ?? 'Commission store route is unavailable. Please contact technical support or your domain administrator.';
-    $loanStoreRoute     = Route::has(ViewsConstants::LN . '.store')
-        ? route(ViewsConstants::LN . '.store')
-        : '#';
-    $loanFormId         = 'loan-store-form';
-    $loanStoreMsg       = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::LN,
-        'loan_store_route_unavailable'
-    ) ?? 'Loan store route is unavailable. Please contact technical support or your domain administrator.';
-    $sdStoreRoute       = Route::has(ViewsConstants::STR_DD . '.store')
-        ? route(ViewsConstants::STR_DD . '.store')
-        : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.store'))
-            ? route(Str::kebab(ViewsConstants::STR_DD . '.store'))
-            : '#');
-    $sdFormId           = 'saturation-deduction-store-form';
-    $sdStoreMsg         = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::STR_DD,
-        'saturation_deduction_store_route_unavailable'
-    ) ?? 'Saturation deduction store route is unavailable. Please contact technical support or your domain administrator.';
-    $otherPayStoreRoute = Route::has(ViewsConstants::OT_PAY . '.store')
-        ? route(ViewsConstants::OT_PAY . '.store')
-        : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.store'))
-            ? route(Str::kebab(ViewsConstants::OT_PAY . '.store'))
-            : '#');
-    $otherPayFormId     = 'other-payment-store-form';
-    $otherPayStoreMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::OT_PAY,
-        'other_payment_store_route_unavailable'
-    ) ?? 'Other payment store route is unavailable. Please contact technical support or your domain administrator.';
-    $overtimeStoreRoute    = Route::has(ViewsConstants::OVT . '.store')
-        ? route(ViewsConstants::OVT . '.store')
-        : '#';
-    $overtimeFormId        = 'overtime-store-form';
-    $overtimeStoreMsg      = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::OVT,
-        'overtime_store_route_unavailable'
-    ) ?? 'Overtime store route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+            $salaryUpdateRoute  = Route::has(ViewsConstants::EMP . '.salary.update')
+            ? route(ViewsConstants::EMP . '.salary.update', $employee->id)
+            : (Route::has(Str::kebab(ViewsConstants::EMP . '.salary.update'))
+                ? route(Str::kebab(ViewsConstants::EMP . '.salary.update'), $employee->id)
+                : '#');
+        $salaryFormId             = 'salary-update-form';
+        $updateMsg          = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::EMP,
+            'salary_update_route_unavailable'
+        ) ?? 'Salary update route is unavailable. Please contact technical support or your domain administrator.';
+        $createRoute = Route::has(ViewsConstants::ALW . '.store')
+            ? route(ViewsConstants::ALW . '.store')
+            : '#';
+        $allowanceFormId      = 'allowance-store-form';
+        $createMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::ALW,
+            'allowance_store_route_unavailable'
+        ) ?? 'Allowance store route is unavailable. Please contact technical support or your domain administrator.';
+        $storeRoute = Route::has(ViewsConstants::COM . '.store')
+            ? route(ViewsConstants::COM . '.store')
+            : '#';
+        $comFormId     = 'commission-store-form';
+        $storeMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::COM,
+            'commission_store_route_unavailable'
+        ) ?? 'Commission store route is unavailable. Please contact technical support or your domain administrator.';
+        $loanStoreRoute     = Route::has(ViewsConstants::LN . '.store')
+            ? route(ViewsConstants::LN . '.store')
+            : '#';
+        $loanFormId         = 'loan-store-form';
+        $loanStoreMsg       = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::LN,
+            'loan_store_route_unavailable'
+        ) ?? 'Loan store route is unavailable. Please contact technical support or your domain administrator.';
+        $sdStoreRoute       = Route::has(ViewsConstants::STR_DD . '.store')
+            ? route(ViewsConstants::STR_DD . '.store')
+            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.store'))
+                ? route(Str::kebab(ViewsConstants::STR_DD . '.store'))
+                : '#');
+        $sdFormId           = 'saturation-deduction-store-form';
+        $sdStoreMsg         = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::STR_DD,
+            'saturation_deduction_store_route_unavailable'
+        ) ?? 'Saturation deduction store route is unavailable. Please contact technical support or your domain administrator.';
+        $otherPayStoreRoute = Route::has(ViewsConstants::OT_PAY . '.store')
+            ? route(ViewsConstants::OT_PAY . '.store')
+            : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.store'))
+                ? route(Str::kebab(ViewsConstants::OT_PAY . '.store'))
+                : '#');
+        $otherPayFormId     = 'other-payment-store-form';
+        $otherPayStoreMsg   = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::OT_PAY,
+            'other_payment_store_route_unavailable'
+        ) ?? 'Other payment store route is unavailable. Please contact technical support or your domain administrator.';
+        $overtimeStoreRoute    = Route::has(ViewsConstants::OVT . '.store')
+            ? route(ViewsConstants::OVT . '.store')
+            : '#';
+        $overtimeFormId        = 'overtime-store-form';
+        $overtimeStoreMsg      = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::OVT,
+            'overtime_store_route_unavailable'
+        ) ?? 'Overtime store route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -86,22 +81,26 @@
 @endsection
 @section('content')
     <div class="row">
-        <div class="col-lg-12">
+        <div class="{{ VC::CL12 }}">
             <section class="nav-tabs">
-                <div class="col-lg-12 our-system">
+                <div class="{{ VC::CL12 }} our-system">
                     <div class="row">
                         @php
-                            $tabs = [
-                                'salary',
-                                'allowance',
-                                'commission',
-                                'loan',
-                                'saturation-deduction',
-                                'other-payment',
-                                'overtime',
-                            ];
-                        @endphp
-                        <ul class="nav nav-tabs my-4">
+                            try {
+                                $tabs = [
+                                    'salary',
+                                    'allowance',
+                                    'commission',
+                                    'loan',
+                                    'saturation-deduction',
+                                    'other-payment',
+                                    'overtime',
+                                ];
+                            } catch (\Throwable $e) {
+                                \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
+                        <ul class="{{ VC::NAV_TB_MY4 }}">
                             @foreach ($tabs as $tab)
                                 <li>
                                     <a data-toggle="tab" href="#{{ $tab }}" class="{{ $loop->first ? 'active' : '' }}">
@@ -126,13 +125,13 @@
                                 <div class="{{ VC::RW }}">
                                     <div class="{{ VC::C12 }} {{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Form::label(ViewsConstants::S_SLR, __('Payslip Type'), ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                            {{ Form::label(ViewsConstants::S_SLR, __('Payslip Type'), ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                             {{ Form::select('salary_type', $payslip_type, null, ['required'=>'required','class'=>VC::FM_CT_SL.' select2']) }}
                                         </div>
                                     </div>
                                     <div class="{{ VC::C12 }} {{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Form::label('salary', __('Salary'), ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                            {{ Form::label('salary', __('Salary'), ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                             {{ Form::number('salary', null, ['required'=>'required','class'=>VC::FM_CT]) }}
                                         </div>
                                     </div>
@@ -168,13 +167,17 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} {{ VC::CM4 }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}@if($f['field']=='allowance_option')<span class="text-danger">*</span>@endif
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}@if($f['field']=='allowance_option')<span class="{{ VC::TX_DNG }}">*</span>@endif
                                                 @php
-                                                    $attrs = array_merge(
-                                                        ['class'=>VC::FM_CT_SL.' select2','required'=>'required'],
-                                                        $f['attrs'] ?? []
-                                                    );
-                                                @endphp
+                                                    try {
+                                                        $attrs = array_merge(
+                                                            ['class'=>VC::FM_CT_SL.' select2','required'=>'required'],
+                                                            $f['attrs'] ?? []
+                                                        );
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 @if($f['type']==='select')
                                                     {{ Form::select($f['field'], $f['options'], null, $attrs) }}
                                                 @else
@@ -193,7 +196,7 @@
                                 @endcan
                                 {{ Form::close() }}
                                 <hr>
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="allowance-dataTable">
                                         <thead>
                                             <tr>
@@ -207,31 +210,35 @@
                                         <tbody class="font-style">
                                             @foreach($allowances as $allowance)
                                                 @php
-                                                    $editRoute    = Route::has(ViewsConstants::ALW . '.edit')
-                                                        ? route(ViewsConstants::ALW . '.edit', $allowance->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::ALW . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::ALW . '.edit'), $allowance->id)
-                                                            : '#');
-                                                    $editBtnId    = 'allowance-edit-' . $allowance->id;
-                                                    $editMsg      = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::ALW,
-                                                        'allowance_edit_route_unavailable'
-                                                    ) ?? 'Allowance edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                    try {
+                                                        $editRoute    = Route::has(ViewsConstants::ALW . '.edit')
+                                                            ? route(ViewsConstants::ALW . '.edit', $allowance->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::ALW . '.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::ALW . '.edit'), $allowance->id)
+                                                                : '#');
+                                                        $editBtnId    = 'allowance-edit-' . $allowance->id;
+                                                        $editMsg      = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::ALW,
+                                                            'allowance_edit_route_unavailable'
+                                                        ) ?? 'Allowance edit route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $destroyRoute = Route::has(ViewsConstants::ALW . '.destroy')
-                                                        ? route(ViewsConstants::ALW . '.destroy', $allowance->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::ALW . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::ALW . '.destroy'), $allowance->id)
-                                                            : '#');
-                                                    $deleteBtnId  = 'allowance-delete-' . $allowance->id;
-                                                    $deleteFormId = 'del-allow-' . $allowance->id;
-                                                    $destroyMsg   = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::ALW,
-                                                        'allowance_destroy_route_unavailable'
-                                                    ) ?? 'Allowance destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                        $destroyRoute = Route::has(ViewsConstants::ALW . '.destroy')
+                                                            ? route(ViewsConstants::ALW . '.destroy', $allowance->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::ALW . '.destroy'))
+                                                                ? route(Str::kebab(ViewsConstants::ALW . '.destroy'), $allowance->id)
+                                                                : '#');
+                                                        $deleteBtnId  = 'allowance-delete-' . $allowance->id;
+                                                        $deleteFormId = 'del-allow-' . $allowance->id;
+                                                        $destroyMsg   = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::ALW,
+                                                            'allowance_destroy_route_unavailable'
+                                                        ) ?? 'Allowance destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $allowance->employee()->name }}</td>
                                                     <td>{{ $allowance->allowance_option()->name }}</td>
@@ -242,7 +249,7 @@
                                                             <a id="{{ $editBtnId }}"
                                                             href="{{ $editRoute }}"
                                                             data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Allowance') }}"
@@ -255,12 +262,12 @@
                                                             <a id="{{ $deleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $destroyRoute }}"
-                                                            data-guard-msg="{{ $destroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($destroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT_DSB }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Form::open([
                                                                 'url'            => $destroyRoute,
@@ -299,13 +306,17 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} {{ VC::CM6 }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                                 @php
-                                                    $attrs = array_merge(
-                                                        ['class'=>VC::FM_CT,'required'=>'required'],
-                                                        $f['attrs'] ?? []
-                                                    );
-                                                @endphp
+                                                    try {
+                                                        $attrs = array_merge(
+                                                            ['class'=>VC::FM_CT,'required'=>'required'],
+                                                            $f['attrs'] ?? []
+                                                        );
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 {{ Form::{$f['type']}($f['field'], null, $attrs) }}
                                             </div>
                                         </div>
@@ -322,7 +333,7 @@
 
                                 <hr>
 
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="commission-dataTable">
                                         <thead>
                                             <tr>
@@ -335,30 +346,34 @@
                                         <tbody class="font-style">
                                             @foreach($commissions as $commission)
                                                 @php
-                                                    $editRoute    = Route::has(ViewsConstants::COM . '.edit')
-                                                        ? route(ViewsConstants::COM . '.edit', $commission->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::COM . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::COM . '.edit'), $commission->id)
-                                                            : '#');
-                                                    $editBtnId    = 'commission-edit-' . $commission->id;
-                                                    $editMsg      = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::COM,
-                                                        'commission_edit_route_unavailable'
-                                                    ) ?? 'Commission edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $destroyRoute = Route::has(ViewsConstants::COM . '.destroy')
-                                                        ? route(ViewsConstants::COM . '.destroy', $commission->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::COM . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::COM . '.destroy'), $commission->id)
-                                                            : '#');
-                                                    $deleteBtnId  = 'commission-delete-' . $commission->id;
-                                                    $deleteFormId = 'commission-delete-form-' . $commission->id;
-                                                    $destroyMsg   = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::COM,
-                                                        'commission_destroy_route_unavailable'
-                                                    ) ?? 'Commission destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $editRoute    = Route::has(ViewsConstants::COM . '.edit')
+                                                            ? route(ViewsConstants::COM . '.edit', $commission->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::COM . '.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::COM . '.edit'), $commission->id)
+                                                                : '#');
+                                                        $editBtnId    = 'commission-edit-' . $commission->id;
+                                                        $editMsg      = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::COM,
+                                                            'commission_edit_route_unavailable'
+                                                        ) ?? 'Commission edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $destroyRoute = Route::has(ViewsConstants::COM . '.destroy')
+                                                            ? route(ViewsConstants::COM . '.destroy', $commission->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::COM . '.destroy'))
+                                                                ? route(Str::kebab(ViewsConstants::COM . '.destroy'), $commission->id)
+                                                                : '#');
+                                                        $deleteBtnId  = 'commission-delete-' . $commission->id;
+                                                        $deleteFormId = 'commission-delete-form-' . $commission->id;
+                                                        $destroyMsg   = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::COM,
+                                                            'commission_destroy_route_unavailable'
+                                                        ) ?? 'Commission destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $commission->employee()->name }}</td>
                                                     <td>{{ $commission->title }}</td>
@@ -368,7 +383,7 @@
                                                             <a id="{{ $editBtnId }}"
                                                             href="{{ $editRoute }}"
                                                             data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Commission') }}"
@@ -381,12 +396,12 @@
                                                             <a id="{{ $deleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $destroyRoute }}"
-                                                            data-guard-msg="{{ $destroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($destroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT_DSB }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Form::open([
                                                                 'url'            => $destroyRoute,
@@ -430,11 +445,11 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} {{ VC::CM4 }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                                 @php
                                                     $baseAttrs = ['class'=>VC::FM_CT,'required'=>'required'];
                                                     $attrs     = array_merge($baseAttrs, $f['attrs'] ?? []);
-                                                @endphp
+@endphp
                                                 @if($f['type'] === 'select')
                                                     {{ Form::select($f['field'], $f['options'], null, $attrs) }}
                                                 @elseif($f['type'] === 'textarea')
@@ -457,7 +472,7 @@
 
                                 <hr>
 
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="loan-dataTable">
                                         <thead>
                                             <tr>
@@ -473,30 +488,34 @@
                                         <tbody class="font-style">
                                             @foreach($loans as $loan)
                                                 @php
-                                                    $loanEditRoute   = Route::has(ViewsConstants::LN . '.edit')
-                                                        ? route(ViewsConstants::LN . '.edit', $loan->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::LN . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::LN . '.edit'), $loan->id)
-                                                            : '#');
-                                                    $loanEditBtnId   = 'loan-edit-' . $loan->id;
-                                                    $loanEditMsg     = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::LN,
-                                                        'loan_edit_route_unavailable'
-                                                    ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $loanDestroyRoute = Route::has(ViewsConstants::LN . '.destroy')
-                                                        ? route(ViewsConstants::LN . '.destroy', $loan->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
-                                                            : '#');
-                                                    $loanDeleteBtnId = 'loan-delete-' . $loan->id;
-                                                    $loanDeleteFormId = 'del-loan-' . $loan->id;
-                                                    $loanDestroyMsg  = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::LN,
-                                                        'loan_destroy_route_unavailable'
-                                                    ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $loanEditRoute   = Route::has(ViewsConstants::LN . '.edit')
+                                                            ? route(ViewsConstants::LN . '.edit', $loan->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::LN . '.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::LN . '.edit'), $loan->id)
+                                                                : '#');
+                                                        $loanEditBtnId   = 'loan-edit-' . $loan->id;
+                                                        $loanEditMsg     = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::LN,
+                                                            'loan_edit_route_unavailable'
+                                                        ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $loanDestroyRoute = Route::has(ViewsConstants::LN . '.destroy')
+                                                            ? route(ViewsConstants::LN . '.destroy', $loan->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
+                                                                ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
+                                                                : '#');
+                                                        $loanDeleteBtnId = 'loan-delete-' . $loan->id;
+                                                        $loanDeleteFormId = 'del-loan-' . $loan->id;
+                                                        $loanDestroyMsg  = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::LN,
+                                                            'loan_destroy_route_unavailable'
+                                                        ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $loan->employee()->name }}</td>
                                                     <td>{{ $loan->loan_option()->name }}</td>
@@ -509,7 +528,7 @@
                                                             <a id="{{ $loanEditBtnId }}"
                                                             href="{{ $loanEditRoute }}"
                                                             data-url="{{ $loanEditRoute }}"
-                                                            data-guard-msg="{{ $loanEditMsg }}"
+                                                            data-guard-msg="{{ base64_encode($loanEditMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Loan') }}"
@@ -522,12 +541,12 @@
                                                             <a id="{{ $loanDeleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $loanDestroyRoute }}"
-                                                            data-guard-msg="{{ $loanDestroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($loanDestroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $loanDeleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {{ Form::open([
                                                                 'route'         => [ViewsConstants::LN . '.destroy', $loan->id],
@@ -569,11 +588,11 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} {{ $f['col'] }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                                 @php
                                                     $base = ['class'=>VC::FM_CT,'required'=>'required'];
                                                     $attrs = array_merge($base, $f['attrs'] ?? []);
-                                                @endphp
+@endphp
                                                 @if($f['type'] === 'select')
                                                     {{ Form::select($f['field'], $f['options'], null, $attrs) }}
                                                 @elseif($f['type'] === 'number')
@@ -598,7 +617,7 @@
 
                                 <hr>
 
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="saturation-deduction-dataTable">
                                         <thead>
                                             <tr>
@@ -612,30 +631,34 @@
                                         <tbody class="font-style">
                                             @foreach($saturationdeductions as $sd)
                                                 @php
-                                                    $sdEditRoute     = Route::has(ViewsConstants::STR_DD . '.edit')
-                                                        ? route(ViewsConstants::STR_DD . '.edit', $sd->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::STR_DD . '.edit'), $sd->id)
-                                                            : '#');
-                                                    $sdEditBtnId     = 'saturation-deduction-edit-' . $sd->id;
-                                                    $sdEditMsg       = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::STR_DD,
-                                                        'saturation_deduction_edit_route_unavailable'
-                                                    ) ?? 'Saturation deduction edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $sdDestroyRoute  = Route::has(ViewsConstants::STR_DD . '.destroy')
-                                                        ? route(ViewsConstants::STR_DD . '.destroy', $sd->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::STR_DD . '.destroy'), $sd->id)
-                                                            : '#');
-                                                    $sdDeleteBtnId   = 'saturation-deduction-delete-' . $sd->id;
-                                                    $sdDeleteFormId  = 'del-sd-' . $sd->id;
-                                                    $sdDestroyMsg    = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::STR_DD,
-                                                        'saturation_deduction_destroy_route_unavailable'
-                                                    ) ?? 'Saturation deduction destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $sdEditRoute     = Route::has(ViewsConstants::STR_DD . '.edit')
+                                                            ? route(ViewsConstants::STR_DD . '.edit', $sd->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::STR_DD . '.edit'), $sd->id)
+                                                                : '#');
+                                                        $sdEditBtnId     = 'saturation-deduction-edit-' . $sd->id;
+                                                        $sdEditMsg       = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::STR_DD,
+                                                            'saturation_deduction_edit_route_unavailable'
+                                                        ) ?? 'Saturation deduction edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $sdDestroyRoute  = Route::has(ViewsConstants::STR_DD . '.destroy')
+                                                            ? route(ViewsConstants::STR_DD . '.destroy', $sd->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.destroy'))
+                                                                ? route(Str::kebab(ViewsConstants::STR_DD . '.destroy'), $sd->id)
+                                                                : '#');
+                                                        $sdDeleteBtnId   = 'saturation-deduction-delete-' . $sd->id;
+                                                        $sdDeleteFormId  = 'del-sd-' . $sd->id;
+                                                        $sdDestroyMsg    = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::STR_DD,
+                                                            'saturation_deduction_destroy_route_unavailable'
+                                                        ) ?? 'Saturation deduction destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $sd->employee()->name }}</td>
                                                     <td>{{ $sd->deduction_option()->name }}</td>
@@ -646,7 +669,7 @@
                                                             <a id="{{ $sdEditBtnId }}"
                                                             href="{{ $sdEditRoute }}"
                                                             data-url="{{ $sdEditRoute }}"
-                                                            data-guard-msg="{{ $sdEditMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sdEditMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Saturation Deduction') }}"
@@ -659,12 +682,12 @@
                                                             <a id="{{ $sdDeleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $sdDestroyRoute }}"
-                                                            data-guard-msg="{{ $sdDestroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($sdDestroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $sdDeleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Form::open([
                                                                 'url'            => $sdDestroyRoute,
@@ -705,11 +728,11 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} col-md-6">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                                 @php
                                                     $base  = ['class'=>VC::FM_CT,'required'=>'required'];
                                                     $attrs = array_merge($base, $f['attrs'] ?? []);
-                                                @endphp
+@endphp
                                                 @if(($f['type'] ?? '') === 'number')
                                                     {{ Form::number($f['field'], null, $attrs) }}
                                                 @else
@@ -731,7 +754,7 @@
 
                                 <hr>
 
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="other-payment-dataTable">
                                         <thead>
                                             <tr>
@@ -744,30 +767,34 @@
                                         <tbody class="font-style">
                                             @foreach($otherpayments as $op)
                                                 @php
-                                                    $editRoute      = Route::has(ViewsConstants::OT_PAY . '.edit')
-                                                        ? route(ViewsConstants::OT_PAY . '.edit', $op->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::OT_PAY . '.edit'), $op->id)
-                                                            : '#');
-                                                    $editBtnId      = 'other-payment-edit-' . $op->id;
-                                                    $editMsg        = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::OT_PAY,
-                                                        'other_payment_edit_route_unavailable'
-                                                    ) ?? 'Other payment edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $destroyRoute   = Route::has(ViewsConstants::OT_PAY . '.destroy')
-                                                        ? route(ViewsConstants::OT_PAY . '.destroy', $op->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::OT_PAY . '.destroy'), $op->id)
-                                                            : '#');
-                                                    $deleteBtnId    = 'other-payment-delete-' . $op->id;
-                                                    $deleteFormId   = 'del-op-' . $op->id;
-                                                    $destroyMsg     = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::OT_PAY,
-                                                        'other_payment_destroy_route_unavailable'
-                                                    ) ?? 'Other payment destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $editRoute      = Route::has(ViewsConstants::OT_PAY . '.edit')
+                                                            ? route(ViewsConstants::OT_PAY . '.edit', $op->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::OT_PAY . '.edit'), $op->id)
+                                                                : '#');
+                                                        $editBtnId      = 'other-payment-edit-' . $op->id;
+                                                        $editMsg        = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::OT_PAY,
+                                                            'other_payment_edit_route_unavailable'
+                                                        ) ?? 'Other payment edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $destroyRoute   = Route::has(ViewsConstants::OT_PAY . '.destroy')
+                                                            ? route(ViewsConstants::OT_PAY . '.destroy', $op->id)
+                                                            : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.destroy'))
+                                                                ? route(Str::kebab(ViewsConstants::OT_PAY . '.destroy'), $op->id)
+                                                                : '#');
+                                                        $deleteBtnId    = 'other-payment-delete-' . $op->id;
+                                                        $deleteFormId   = 'del-op-' . $op->id;
+                                                        $destroyMsg     = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::OT_PAY,
+                                                            'other_payment_destroy_route_unavailable'
+                                                        ) ?? 'Other payment destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <tr>
                                                     <td>{{ $op->employee()->name }}</td>
                                                     <td>{{ $op->title }}</td>
@@ -777,7 +804,7 @@
                                                             <a id="{{ $editBtnId }}"
                                                             href="{{ $editRoute }}"
                                                             data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editMsg }}"
+                                                            data-guard-msg="{{ base64_encode($editMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Other Payment') }}"
@@ -790,12 +817,12 @@
                                                             <a id="{{ $deleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $destroyRoute }}"
-                                                            data-guard-msg="{{ $destroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($destroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Form::open([
                                                                 'route'            => [ViewsConstants::OT_PAY . '.destroy', $op->id],
@@ -838,11 +865,11 @@
                                     ] as $f)
                                         <div class="{{ VC::C12 }} col-md-6">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="text-danger">*</span>
+                                                {{ Form::label($f['field'], $f['label'], ['class'=>VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                                                 @php
                                                     $base  = ['class'=>VC::FM_CT,'required'=>'required'];
                                                     $attrs = array_merge($base, $f['attrs'] ?? []);
-                                                @endphp
+@endphp
                                                 {{ Form::{$f['type'] ?? 'text'}($f['field'], null, $attrs) }}
                                             </div>
                                         </div>
@@ -861,7 +888,7 @@
 
                                 <hr>
 
-                                <div class="table-responsive">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="{{ VC::TB }} table-striped mb-0" id="overtime-dataTable">
                                         <thead>
                                             <tr>
@@ -884,22 +911,26 @@
                                                     <td class="{{ VC::JCE }}">
                                                         @can('edit overtime')
                                                             @php
-                                                                $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
-                                                                    ? route(ViewsConstants::OVT . '.edit', $ot->id)
-                                                                    : (Route::has(Str::kebab(ViewsConstants::OVT . '.edit'))
-                                                                        ? route(Str::kebab(ViewsConstants::OVT . '.edit'), $ot->id)
-                                                                        : '#');
-                                                                $overtimeEditBtnId    = 'overtime-edit-' . $ot->id;
-                                                                $overtimeEditMsg      = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::OVT,
-                                                                    'overtime_edit_route_unavailable'
-                                                                ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
+                                                                        ? route(ViewsConstants::OVT . '.edit', $ot->id)
+                                                                        : (Route::has(Str::kebab(ViewsConstants::OVT . '.edit'))
+                                                                            ? route(Str::kebab(ViewsConstants::OVT . '.edit'), $ot->id)
+                                                                            : '#');
+                                                                    $overtimeEditBtnId    = 'overtime-edit-' . $ot->id;
+                                                                    $overtimeEditMsg      = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::OVT,
+                                                                        'overtime_edit_route_unavailable'
+                                                                    ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a id="{{ $overtimeEditBtnId }}"
                                                             href="{{ $overtimeEditRoute }}"
                                                             data-url="{{ $overtimeEditRoute }}"
-                                                            data-guard-msg="{{ $overtimeEditMsg }}"
+                                                            data-guard-msg="{{ base64_encode($overtimeEditMsg) }}"
                                                             data-ajax-popup="true"
                                                             data-size="lg"
                                                             data-title="{{ __('Edit Overtime') }}"
@@ -910,28 +941,32 @@
                                                         @endcan
                                                         @can('delete overtime')
                                                             @php
-                                                                $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
-                                                                    ? route(ViewsConstants::OVT . '.destroy', $ot->id)
-                                                                    : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
-                                                                        ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $ot->id)
-                                                                        : '#');
-                                                                $overtimeDeleteBtnId  = 'overtime-delete-' . $ot->id;
-                                                                $overtimeDeleteFormId = 'overtime-delete-form-' . $ot->id;
-                                                                $overtimeDestroyMsg   = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::OVT,
-                                                                    'overtime_destroy_route_unavailable'
-                                                                ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
+                                                                        ? route(ViewsConstants::OVT . '.destroy', $ot->id)
+                                                                        : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
+                                                                            ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $ot->id)
+                                                                            : '#');
+                                                                    $overtimeDeleteBtnId  = 'overtime-delete-' . $ot->id;
+                                                                    $overtimeDeleteFormId = 'overtime-delete-form-' . $ot->id;
+                                                                    $overtimeDestroyMsg   = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::OVT,
+                                                                        'overtime_destroy_route_unavailable'
+                                                                    ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('set_salaries/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a id="{{ $overtimeDeleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $overtimeDestroyRoute }}"
-                                                            data-guard-msg="{{ $overtimeDestroyMsg }}"
+                                                            data-guard-msg="{{ base64_encode($overtimeDestroyMsg) }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $overtimeDeleteFormId }}').submit();"
                                                             title="{{ __('Delete') }}">
-                                                                <i class="ti ti-trash"></i>
+                                                                <i class="{{ VC::TI_TRS }}"></i>
                                                             </a>
                                                             {!! Form::open([
                                                                 'route'            => [$overtimeDestroyRoute],
@@ -997,34 +1032,7 @@
             return msg;
         };
 
-        const showError = message => {
-            try {
-            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            if (bootstrapLink && window.bootstrap?.Toast) {
-                const toastEl = document.createElement('div');
-                toastEl.className = 'toast';
-                toastEl.setAttribute('role', 'alert');
-                toastEl.setAttribute('aria-live', 'assertive');
-                toastEl.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toastEl.appendChild(body);
-                container.appendChild(toastEl);
-                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
+        const showError = message => (window.RouteGuard?.showToast || (m => alert(m)))(message);
 
         let errorMessage = '';
         const onErrorPointerUp = () => {

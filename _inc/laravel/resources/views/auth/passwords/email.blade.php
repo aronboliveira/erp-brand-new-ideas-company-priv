@@ -1,18 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-
-	$filePath ??= '';
+$filePath ??= '';
 	$settings ??= [];
 	$logo ??= '';
 	$languages ??= [DatabaseConstants::DEFAULT_LANG];
@@ -25,11 +12,6 @@
 		$company_logo = Utility::getValByName(SettingsConstants::CPN_LG) ?: '';
 		$filePath = collect(array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS), 'file'))
 			->first(fn ($p) => str_ends_with($p, '.blade.php')) ?? '';
-		Log::debug("Rendering Email Password Blade ({$filePath})", [
-			'route' => request()?->getRequestUri() ?? 'Undefined URI',
-			'user'  => optional(auth()->user())->id ?? 'Unidentified User',
-		]);
-		(new ConsoleOutput)->writeln("Rendering Email Password Blade ({$filePath}) for " . (request()?->getRequestUri() ?? 'Undefined URI'));
 	} catch (\Error $e) {
 		Log::error('Error fetching data for Email Password Blade', [
 			'exception_class' => get_class($e),
@@ -108,22 +90,22 @@
 @endsection
 
 @section(YieldingConstants::AUTH_TB)
-	<li class="nav-item">
+	<li class="{{ VC::NV_IT }}">
 		<select class="{{ VC::BT_PM }} my-1 me-2"
 				onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);"
 				id="{{ $languageSelectId }}"
-				data-guard-msg="{{ $langGuardMsg }}"
+				data-guard-msg="{{ base64_encode($langGuardMsg) }}"
 				data-sv-localized="true">
 			@foreach($languages as $language)
 				@php
-					$optUrl = '#';
+					$optUrl ??= '#';
 					try {
 						$optUrl = $loginResolved ? route($loginResolved, $language) : '#';
 					} catch (\Throwable $e) {
 						Log::error('Email Password Blade: generating URL for login with language failed: ' . $e->getMessage());
 						$optUrl = '#';
 					}
-				@endphp
+@endphp
 				<option value="{{ $optUrl }}" {{ $lang === $language ? 'selected' : '' }}>{{ ucfirst($language) }}</option>
 			@endforeach
 		</select>
@@ -153,19 +135,19 @@
 				<label class="{{ VC::FM_LB }}" for="email">{{ __('E-Mail Address') }}</label>
 				<input id="email" type="email" class="{{ VC::FM_CT }} @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
 				@error('email')
-					<span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
+					<span class="{{ VC::INV_FB }}" role="alert"><strong>{{ $message }}</strong></span>
 				@enderror
 			</div>
-			<div class="d-grid">
+			<div class="{{ VC::D_GR }}">
 				<button type="submit" class="{{ VC::BT_PRM }} btn-block mt-2">{{ __('Send Password Reset Link') }}</button>
 			</div>
 		</div>
-		<p class="my-4">
+		<p class="{{ VC::MY4 }}">
 			{{ __('OR') }}
 			<a href="{{ $loginUrl }}"
-			   class="f-w-400 text-primary auth-login-link"
+			   class="f-w-400 {{ VC::TX_PM }} auth-login-link"
 			   data-url="{{ $loginUrl }}"
-			   data-guard-msg="{{ $loginGuardMsg }}"
+			   data-guard-msg="{{ base64_encode($loginGuardMsg) }}"
 			   data-sv-localized="true">{{ __('Signin') }}</a>
 		</p>
 	{{ Form::close() }}

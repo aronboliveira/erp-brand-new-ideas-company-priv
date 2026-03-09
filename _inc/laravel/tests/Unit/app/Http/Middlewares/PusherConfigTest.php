@@ -7,9 +7,12 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Illuminate\Http\{Request, Response};
 use App\Http\Middleware\PusherConfig;
+use Tests\Concerns\SafeAliasMock;
 
 class PusherConfigTest extends TestCase
 {
+	use SafeAliasMock;
+
 	use MockeryPHPUnitIntegration;
 
 	/**
@@ -21,7 +24,7 @@ class PusherConfigTest extends TestCase
 	public function handle_passes_through_and_sets_pusher_config()
 	{
 		// Arrange: stub Utility::settingsById to return our test settings
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('settingsById')
 			->with(1)
 			->andReturn([
@@ -65,7 +68,7 @@ class PusherConfigTest extends TestCase
 	public function handle_swallows_utility_exception_and_passes_through()
 	{
 		// Arrange: stub Utility::settingsById to throw
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('settingsById')
 			->with(1)
 			->andThrow(new \RuntimeException('oops'));

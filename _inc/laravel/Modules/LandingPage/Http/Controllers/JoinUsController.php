@@ -3,26 +3,27 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    UsersConstants,
-    ViewsConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    UsersConstants as UC,
+    ViewsConstants as VW
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator};
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC, SettingsConstants as LPC};
+use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC, SettingsConstants as LPSC};
 use Modules\LandingPage\Entities\{JoinUs, LandingPageSetting};
-use function App\Http\Controllers\{defaultUndefinedException};
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 class JoinUsController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
+    public const STR = 'store';
     private const LP = RRC::LP;
     private const JU = RRC::JU;
     private const REDIRECT_INDEX = self::JU . '.index';
@@ -105,25 +106,25 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             $startGuard = microtime(true);
-            if ($g = static::guard($request, PermissionsConstants::MNG_LP, static::REDIRECT_INDEX)) {
+            if ($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 Log::debug($method . ' debug guard', ['redirect' => $g]);
                 return $g;
             }
             $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
-            Log::info($method . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info($method . ' started', [UC::COL_USER_ID => $user?->id]);
             $startSettings = microtime(true);
             $settings = LandingPageSetting::settings();
             $this->logExecutionTime($startSettings, $function . '::settingsFetch', 'completed');
-            Log::info($method . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info($method . ' succeeded', [UC::COL_USER_ID => $user?->id]);
             $startView = microtime(true);
             $view = self::getFirstExistingView(static::JU . '.' . $function);
             if (!$view) {
                 Log::warning("[$function] view not found", ['attempted' => static::JU . '.' . $function]);
                 throw new \RuntimeException("View not found: " . static::JU . '.' . $function);
             }
-            $view = view($view, compact(DatabaseConstants::TABLE_SETTINGS));
+            $view = view($view, compact(DC::TABLE_SETTINGS));
             $this->logExecutionTime($startView, $function . '::view', 'completed');
             return $view;
         }, func_get_args());
@@ -137,17 +138,17 @@ class JoinUsController extends AppController
         return $this->measureProfile($action, function () use ($request, $action) {
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
             $user = $ur;
-            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
-            Log::info("$action started", [UsersConstants::COL_USER_ID => $user?->id]);
+            if (($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
+            Log::info("$action started", [UC::COL_USER_ID => $user?->id]);
             $data = $request->validate([
-                LPC::JU_STT_K => 'nullable',
-                LPC::JU_HDG_K => 'nullable|string',
-                LPC::JU_DESC_K => 'nullable|string'
+                LPSC::JU_STT_K => 'nullable',
+                LPSC::JU_HDG_K => 'nullable|string',
+                LPSC::JU_DESC_K => 'nullable|string'
             ]);
             $settings = [
-                self::JU . '_status' => $request->has(LPC::JU_STT_K) ? 'on' : 'off',
-                self::JU . '_heading' => $data[LPC::JU_HDG_K] ?? '',
-                self::JU . '_description' => $data[LPC::JU_DESC_K] ?? ''
+                self::JU . '_status' => $request->has(LPSC::JU_STT_K) ? 'on' : 'off',
+                self::JU . '_heading' => $data[LPSC::JU_HDG_K] ?? '',
+                self::JU . '_description' => $data[LPSC::JU_DESC_K] ?? ''
             ];
             DB::beginTransaction();
             $stepStart = microtime(true);
@@ -155,12 +156,12 @@ class JoinUsController extends AppController
                 collect($settings)->each(fn($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v]));
                 DB::commit();
                 $this->logExecutionTime($stepStart, 'settings update', 'completed');
-                Log::info("$action succeeded", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info("$action succeeded", [UC::COL_USER_ID => $user?->id]);
                 return redirect()->back()->with('success', __('Settings updated successfully'));
             } catch (\Throwable $e) {
                 DB::rollBack();
                 Log::debug("$action exception trace", ['exception' => $e, 'request' => $request->all()]);
-                Log::error("$action failed", ['error' => $e->getMessage(), UsersConstants::COL_USER_ID => $user?->id]);
+                Log::error("$action failed", ['error' => $e->getMessage(), UC::COL_USER_ID => $user?->id]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
@@ -177,7 +178,7 @@ class JoinUsController extends AppController
             if ($ur instanceof RedirectResponse) return $ur;
             $user = $ur;
             $guardStart = microtime(true);
-            $g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
+            $g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
             if ($g instanceof RedirectResponse) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'id' => $id]);
@@ -218,7 +219,7 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
+            if (($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             Log::info($method . ' - started', ['user_id' => $user?->id, 'id' => $id]);
             $stepStart = microtime(true);
@@ -250,24 +251,24 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             $startGuard = microtime(true);
-            if ($g = static::guard($request, PermissionsConstants::MNG_LP, static::REDIRECT_INDEX)) {
+            if ($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 Log::debug($method . ' debug guard', ['redirect' => $g]);
                 return $g;
             }
             $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
-            Log::info($method . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'id' => $id]);
+            Log::info($method . ' started', [UC::COL_USER_ID => $user?->id, 'id' => $id]);
             try {
                 $startDestroy = microtime(true);
                 JoinUs::destroy($id);
                 $this->logExecutionTime($startDestroy, $function . '::destroy', 'completed');
-                Log::info($method . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'id' => $id]);
+                Log::info($method . ' succeeded', [UC::COL_USER_ID => $user?->id, 'id' => $id]);
                 return redirect()->back()->with('success', __('Entry deleted successfully'));
             } catch (\Throwable $e) {
                 $errorTime = microtime(true);
                 $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
-                Log::error($method . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error($method . ' failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $method, route(static::REDIRECT_INDEX));
             }
@@ -275,6 +276,13 @@ class JoinUsController extends AppController
     }
 
     public const JU_U_ST = 'joinUsUserStore';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function joinUsUserStore(Request $request): JsonResponse|RedirectResponse
     {
         $class  = static::class;

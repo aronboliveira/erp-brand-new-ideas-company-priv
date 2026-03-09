@@ -1,5 +1,5 @@
 @php
-    use Modules\LandingPage\Constants\RoutesResourcesConstants;
+
 @endphp
 {{ Collective\Html\FormFacade::open(array('route' => RoutesResourcesConstants::FQ.'.store', 'method'=>'post', 'enctype' => "multipart/form-data")) }}
     <div class="modal-body">

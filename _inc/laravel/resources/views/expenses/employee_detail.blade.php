@@ -1,10 +1,14 @@
 @php
-    $hasEmployee = isset($employee) && !empty($employee);
+    try {
+        $hasEmployee = isset($employee) && !empty($employee);
 
-    $empName    = !empty($employee->name)    ? $employee->name    : __('Name not provided');
-    $empEmail   = !empty($employee->email)   ? $employee->email   : __('Email not provided');
-    $empPhone   = !empty($employee->phone)   ? $employee->phone   : __('Phone not provided');
-    $empAddress = !empty($employee->address) ? $employee->address : __('Address not provided');
+        $empName    = !empty($employee->name)    ? $employee->name    : __('Name not provided');
+        $empEmail   = !empty($employee->email)   ? $employee->email   : __('Email not provided');
+        $empPhone   = !empty($employee->phone)   ? $employee->phone   : __('Phone not provided');
+        $empAddress = !empty($employee->address) ? $employee->address : __('Address not provided');
+    } catch (\Throwable $e) {
+        \Log::error('expenses/employee_detail — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @if($hasEmployee)
@@ -21,12 +25,12 @@
             </div>
         </div>
 
-        <div class="col-md-2">
-            <a href="#" id="remove" class="text-sm">{{ __(' Remove') }}</a>
+        <div class="{{ VC::CM2 }}">
+            <a href="#" id="remove" class="{{ VC::TXSM }}">{{ __(' Remove') }}</a>
         </div>
     </div>
 @else
     <div class="row">
-        <div class="col-12 text-muted text-center">{{ __('Employee details not available.') }}</div>
+        <div class="{{ VC::C12 }} {{ VC::TXT_MT }} {{ VC::TXCT }}">{{ __('Employee details not available.') }}</div>
     </div>
 @endif

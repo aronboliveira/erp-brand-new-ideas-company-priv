@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
-use App\Enums\GoalType as GoalTypeEnum;
-use App\Services\GoalRequestService;
+use App\Enums\{GoalType as GoalTypeEnum};
+use App\Services\{GoalRequestService};
 use App\Traits\{HasAuditFields, NormalizesArrays, PlansWithSchedule, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Http\{RedirectResponse};
 use Illuminate\Support\{Carbon, Str};
 use Illuminate\Support\Facades\{DB, Log};
 
@@ -277,17 +278,22 @@ class Goal extends Model
 
     public function getPeriodAttribute(): ?array
     {
-        $from = $this->getAttribute('from');
-        $to   = $this->getAttribute('to');
+        try {
+            $from = $this->getAttribute('from');
+            $to   = $this->getAttribute('to');
 
-        if (!$from instanceof Carbon && !$to instanceof Carbon) {
-            return null;
+            if (!$from instanceof Carbon && !$to instanceof Carbon) {
+                return null;
+            }
+
+            return [
+                'from' => $from instanceof Carbon ? $from->toDateTimeString() : null,
+                'to'   => $to instanceof Carbon ? $to->toDateTimeString() : null,
+            ];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getPeriodAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        return [
-            'from' => $from instanceof Carbon ? $from->toDateTimeString() : null,
-            'to'   => $to instanceof Carbon ? $to->toDateTimeString() : null,
-        ];
     }
 
     public function getHasAmountAttribute(): bool
@@ -298,356 +304,416 @@ class Goal extends Model
 
     public function target(string $type, string $from, string $to, float $amount): array|RedirectResponse
     {
-        return app(GoalRequestService::class)->calculateTarget(
-            $type,
-            $from,
-            $to,
-            $amount
-        );
+        try {
+            return app(GoalRequestService::class)->calculateTarget(
+                $type,
+                $from,
+                $to,
+                $amount
+            );
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::target — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
-    public static function parseDateTimeOrNull(mixed $value): ?Carbon
+    protected static function parseDateTimeOrNull(mixed $value): ?Carbon
     {
-        if ($value instanceof Carbon) {
-            return $value->copy();
-        }
-
-        $string = trim((string) $value);
-        if ($string === '') {
-            return null;
-        }
-
         try {
-            return Carbon::parse($string);
+            if ($value instanceof Carbon) {
+                return $value->copy();
+            }
+
+            $string = trim((string) $value);
+            if ($string === '') {
+                return null;
+            }
+
+            try {
+                return Carbon::parse($string);
+            } catch (\Throwable $e) {
+                Log::debug(static::class . ' failed to parse datetime', [
+                    'value' => $string,
+                    'error' => $e->getMessage(),
+                ]);
+                return null;
+            }
         } catch (\Throwable $e) {
-            Log::debug(static::class . ' failed to parse datetime', [
-                'value' => $string,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(static::class . '::parseDateTimeOrNull — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return null;
         }
     }
 
     protected static function normalizeMetricsArray(array $metrics): array
     {
-        $result = [];
+        try {
+            $result = [];
 
-        foreach ($metrics as $metric) {
-            if (!is_array($metric)) {
-                continue;
-            }
-
-            $clean = [];
-
-            foreach (['key', 'label', 'target', 'unit', 'weight', 'direction'] as $field) {
-                if (!array_key_exists($field, $metric)) {
+            foreach ($metrics as $metric) {
+                if (!is_array($metric)) {
                     continue;
                 }
 
-                $value = $metric[$field];
+                $clean = [];
 
-                if (in_array($field, ['key', 'label', 'unit', 'direction'], true)) {
-                    if (!is_string($value)) {
+                foreach (['key', 'label', 'target', 'unit', 'weight', 'direction'] as $field) {
+                    if (!array_key_exists($field, $metric)) {
                         continue;
                     }
-                    $value = trim($value);
-                    if ($value === '') {
-                        continue;
+
+                    $value = $metric[$field];
+
+                    if (in_array($field, ['key', 'label', 'unit', 'direction'], true)) {
+                        if (!is_string($value)) {
+                            continue;
+                        }
+                        $value = trim($value);
+                        if ($value === '') {
+                            continue;
+                        }
+                        $clean[$field] = $value;
+                    } elseif (in_array($field, ['target', 'weight'], true)) {
+                        if (!is_numeric($value)) {
+                            continue;
+                        }
+                        $clean[$field] = (float) $value;
                     }
-                    $clean[$field] = $value;
-                } elseif (in_array($field, ['target', 'weight'], true)) {
-                    if (!is_numeric($value)) {
-                        continue;
-                    }
-                    $clean[$field] = (float) $value;
+                }
+
+                if ($clean !== []) {
+                    $result[] = $clean;
                 }
             }
 
-            if ($clean !== []) {
-                $result[] = $clean;
-            }
+            return $result;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeMetricsArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        return $result;
     }
 
     protected static function normalizeUuidList(array $values): array
     {
-        $ids = [];
+        try {
+            $ids = [];
 
-        foreach ($values as $value) {
-            if (is_array($value) && isset($value['id']))
-                $value = $value['id'];
-            $string = trim((string) $value);
-            if ($string === '' || !Utility::looksLikeUuid($string))
-                continue;
-            $ids[] = $string;
+            foreach ($values as $value) {
+                if (is_array($value) && isset($value['id']))
+                    $value = $value['id'];
+                $string = trim((string) $value);
+                if ($string === '' || !Utility::looksLikeUuid($string))
+                    continue;
+                $ids[] = $string;
+            }
+
+            return array_values(array_unique($ids));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeUuidList — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        return array_values(array_unique($ids));
     }
 
     protected static function resolveStakeholders(array $ids): array
     {
-        if ($ids === [])
-            return [];
-        $resolved = [];
-        if (class_exists(Employee::class)) {
-            try {
-                $employeeIds = Employee::query()
-                    ->whereIn('id', $ids)
-                    ->pluck('id')
-                    ->map(static fn($id) => (string) $id)
-                    ->all();
-
-                $resolved = [...$resolved, ...$employeeIds];
-            } catch (\Throwable $e) {
-                Log::warning(static::class . ' failed to resolve stakeholder employees', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        if (class_exists(User::class)) {
-            try {
-                $userIds = User::query()
-                    ->whereIn('id', $ids)
-                    ->whereIn('type', ['company', 'admin', 'super admin'])
-                    ->pluck('id')
-                    ->map(static fn($id) => (string) $id)
-                    ->all();
-
-                $resolved = [...$resolved, ...$userIds];
-            } catch (\Throwable $e) {
-                Log::warning(static::class . ' failed to resolve stakeholder users', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        if ($resolved === []) {
-            return $ids;
-        }
-
-        return array_values(array_unique($resolved));
-    }
-
-    protected static function applyAmountRules(float $amount, array $rules): array
-    {
-        if (isset($rules['min']) && is_numeric($rules['min'])) {
-            $min = (float) $rules['min'];
-            if ($amount < $min) {
-                $amount = $min;
-            }
-        }
-
-        if (isset($rules['max']) && is_numeric($rules['max'])) {
-            $max = (float) $rules['max'];
-            if ($amount > $max) {
-                $amount = $max;
-            }
-        }
-
-        return [$amount];
-    }
-
-    protected static function applyDateBoundaryRules(?Carbon $date, array $rules, string $field): ?Carbon
-    {
-        if ($date === null) {
-            if (!empty($rules['required'])) {
-                $date = Carbon::now();
-            } else {
-                return null;
-            }
-        }
-
-        if (isset($rules['earliest']) && is_string($rules['earliest'])) {
-            $earliest = self::parseDateTimeOrNull($rules['earliest']);
-            if ($earliest && $date->lessThan($earliest)) {
-                $date = $earliest;
-            }
-        }
-
-        if (isset($rules['latest']) && is_string($rules['latest'])) {
-            $latest = self::parseDateTimeOrNull($rules['latest']);
-            if ($latest && $date->greaterThan($latest)) {
-                $date = $latest;
-            }
-        }
-
-        if (array_key_exists('allow_past', $rules) && !$rules['allow_past']) {
-            $now = Carbon::now();
-            if ($date->lessThan($now)) {
-                $date = $now;
-            }
-        }
-
-        return $date;
-    }
-
-    protected static function applyPeriodRules(Carbon $from, Carbon $to, array $rules): array
-    {
-        if (isset($rules['max_days']) && is_numeric($rules['max_days'])) {
-            $maxDays = (int) $rules['max_days'];
-            if ($maxDays > 0) {
-                $diff = $from->diffInDays($to);
-                if ($diff > $maxDays) {
-                    $to = $from->copy()->addDays($maxDays);
-                }
-            }
-        }
-
-        return [$from, $to];
-    }
-
-    protected static function applyMetricRules(array $metrics, array $rules): array
-    {
-        if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
-            $maxCount = (int) $rules['max_count'];
-            if ($maxCount > 0 && \count($metrics) > $maxCount) {
-                $metrics = \array_slice($metrics, 0, $maxCount);
-            }
-        }
-
-        if (isset($rules['required_keys']) && is_array($rules['required_keys'])) {
-            $required = [];
-            foreach ($rules['required_keys'] as $key) {
-                if (is_string($key) && $key !== '') {
-                    $required[] = $key;
-                }
-            }
-
-            if ($required !== []) {
-                foreach ($metrics as $idx => $metric) {
-                    if (!is_array($metric)) {
-                        continue;
-                    }
-                    foreach ($required as $key) {
-                        if (!array_key_exists($key, $metric)) {
-                            Log::warning(static::class . ' metric missing required key', [
-                                'index' => $idx,
-                                'key'   => $key,
-                            ]);
-                        }
-                    }
-                }
-            }
-        }
-
-        return $metrics;
-    }
-
-    protected static function applyTrackingRules(array $trackings, array $rules): array
-    {
-        if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
-            $maxCount = (int) $rules['max_count'];
-            if ($maxCount > 0 && \count($trackings) > $maxCount) {
-                $trackings = \array_slice($trackings, 0, $maxCount);
-            }
-        }
-
-        if (isset($rules['must_exist']) && $rules['must_exist'] && $trackings !== []) {
-            if (class_exists(GoalTracking::class)) {
+        try {
+            if ($ids === [])
+                return [];
+            $resolved = [];
+            if (class_exists(Employee::class)) {
                 try {
-                    $valid = GoalTracking::query()
-                        ->whereIn('id', $trackings)
+                    $employeeIds = Employee::query()
+                        ->whereIn('id', $ids)
                         ->pluck('id')
                         ->map(static fn($id) => (string) $id)
                         ->all();
 
-                    $trackings = $valid ?: $trackings;
+                    $resolved = [...$resolved, ...$employeeIds];
                 } catch (\Throwable $e) {
-                    Log::warning(static::class . ' failed to validate goal trackings', [
+                    Log::warning(static::class . ' failed to resolve stakeholder employees', [
                         'error' => $e->getMessage(),
                     ]);
                 }
-            } else {
+            }
+
+            if (class_exists(User::class)) {
                 try {
-                    if (DB::getSchemaBuilder()->hasTable(DC::TABLE_GL_TRK)) {
-                        $valid = DB::table(DC::TABLE_GL_TRK)
+                    $userIds = User::query()
+                        ->whereIn('id', $ids)
+                        ->whereIn('type', ['company', 'admin', 'super admin'])
+                        ->pluck('id')
+                        ->map(static fn($id) => (string) $id)
+                        ->all();
+
+                    $resolved = [...$resolved, ...$userIds];
+                } catch (\Throwable $e) {
+                    Log::warning(static::class . ' failed to resolve stakeholder users', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            if ($resolved === []) {
+                return $ids;
+            }
+
+            return array_values(array_unique($resolved));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::resolveStakeholders — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
+    }
+
+    protected static function applyAmountRules(float $amount, array $rules): array
+    {
+        try {
+            if (isset($rules['min']) && is_numeric($rules['min'])) {
+                $min = (float) $rules['min'];
+                if ($amount < $min) {
+                    $amount = $min;
+                }
+            }
+
+            if (isset($rules['max']) && is_numeric($rules['max'])) {
+                $max = (float) $rules['max'];
+                if ($amount > $max) {
+                    $amount = $max;
+                }
+            }
+
+            return [$amount];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyAmountRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
+    }
+
+    protected static function applyDateBoundaryRules(?Carbon $date, array $rules, string $field): ?Carbon
+    {
+        try {
+            if ($date === null) {
+                if (!empty($rules['required'])) {
+                    $date = Carbon::now();
+                } else {
+                    return null;
+                }
+            }
+
+            if (isset($rules['earliest']) && is_string($rules['earliest'])) {
+                $earliest = self::parseDateTimeOrNull($rules['earliest']);
+                if ($earliest && $date->lessThan($earliest)) {
+                    $date = $earliest;
+                }
+            }
+
+            if (isset($rules['latest']) && is_string($rules['latest'])) {
+                $latest = self::parseDateTimeOrNull($rules['latest']);
+                if ($latest && $date->greaterThan($latest)) {
+                    $date = $latest;
+                }
+            }
+
+            if (array_key_exists('allow_past', $rules) && !$rules['allow_past']) {
+                $now = Carbon::now();
+                if ($date->lessThan($now)) {
+                    $date = $now;
+                }
+            }
+
+            return $date;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyDateBoundaryRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
+    }
+
+    protected static function applyPeriodRules(Carbon $from, Carbon $to, array $rules): array
+    {
+        try {
+            if (isset($rules['max_days']) && is_numeric($rules['max_days'])) {
+                $maxDays = (int) $rules['max_days'];
+                if ($maxDays > 0) {
+                    $diff = $from->diffInDays($to);
+                    if ($diff > $maxDays) {
+                        $to = $from->copy()->addDays($maxDays);
+                    }
+                }
+            }
+
+            return [$from, $to];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyPeriodRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
+    }
+
+    protected static function applyMetricRules(array $metrics, array $rules): array
+    {
+        try {
+            if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
+                $maxCount = (int) $rules['max_count'];
+                if ($maxCount > 0 && \count($metrics) > $maxCount) {
+                    $metrics = \array_slice($metrics, 0, $maxCount);
+                }
+            }
+
+            if (isset($rules['required_keys']) && is_array($rules['required_keys'])) {
+                $required = [];
+                foreach ($rules['required_keys'] as $key) {
+                    if (is_string($key) && $key !== '') {
+                        $required[] = $key;
+                    }
+                }
+
+                if ($required !== []) {
+                    foreach ($metrics as $idx => $metric) {
+                        if (!is_array($metric)) {
+                            continue;
+                        }
+                        foreach ($required as $key) {
+                            if (!array_key_exists($key, $metric)) {
+                                Log::warning(static::class . ' metric missing required key', [
+                                    'index' => $idx,
+                                    'key'   => $key,
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return $metrics;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyMetricRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
+    }
+
+    protected static function applyTrackingRules(array $trackings, array $rules): array
+    {
+        try {
+            if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
+                $maxCount = (int) $rules['max_count'];
+                if ($maxCount > 0 && \count($trackings) > $maxCount) {
+                    $trackings = \array_slice($trackings, 0, $maxCount);
+                }
+            }
+
+            if (isset($rules['must_exist']) && $rules['must_exist'] && $trackings !== []) {
+                if (class_exists(GoalTracking::class)) {
+                    try {
+                        $valid = GoalTracking::query()
                             ->whereIn('id', $trackings)
                             ->pluck('id')
                             ->map(static fn($id) => (string) $id)
                             ->all();
 
                         $trackings = $valid ?: $trackings;
+                    } catch (\Throwable $e) {
+                        Log::warning(static::class . ' failed to validate goal trackings', [
+                            'error' => $e->getMessage(),
+                        ]);
                     }
-                } catch (\Throwable $e) {
-                    Log::warning(static::class . ' failed to validate goal trackings via DB', [
-                        'error' => $e->getMessage(),
-                    ]);
+                } else {
+                    try {
+                        if (DB::getSchemaBuilder()->hasTable(DC::TABLE_GL_TRK)) {
+                            $valid = DB::table(DC::TABLE_GL_TRK)
+                                ->whereIn('id', $trackings)
+                                ->pluck('id')
+                                ->map(static fn($id) => (string) $id)
+                                ->all();
+
+                            $trackings = $valid ?: $trackings;
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning(static::class . ' failed to validate goal trackings via DB', [
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
-        }
 
-        return $trackings;
+            return $trackings;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyTrackingRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     protected static function applyParticipantRules(array $ids, array $rules, string $field): array
     {
-        if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
-            $maxCount = (int) $rules['max_count'];
-            if ($maxCount > 0 && \count($ids) > $maxCount) {
-                $ids = \array_slice($ids, 0, $maxCount);
-            }
-        }
-
-        if (isset($rules['only']) && is_array($rules['only'])) {
-            $allowed = [];
-            foreach ($rules['only'] as $id) {
-                $id = trim((string) $id);
-                if ($id !== '' && Utility::looksLikeUuid($id)) {
-                    $allowed[] = $id;
+        try {
+            if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
+                $maxCount = (int) $rules['max_count'];
+                if ($maxCount > 0 && \count($ids) > $maxCount) {
+                    $ids = \array_slice($ids, 0, $maxCount);
                 }
             }
 
-            if ($allowed !== []) {
-                $ids = array_values(
-                    array_intersect($ids, array_unique($allowed))
-                );
-            }
-        }
+            if (isset($rules['only']) && is_array($rules['only'])) {
+                $allowed = [];
+                foreach ($rules['only'] as $id) {
+                    $id = trim((string) $id);
+                    if ($id !== '' && Utility::looksLikeUuid($id)) {
+                        $allowed[] = $id;
+                    }
+                }
 
-        if (isset($rules['except']) && is_array($rules['except'])) {
-            $blocked = [];
-            foreach ($rules['except'] as $id) {
-                $id = trim((string) $id);
-                if ($id !== '' && Utility::looksLikeUuid($id)) {
-                    $blocked[] = $id;
+                if ($allowed !== []) {
+                    $ids = array_values(
+                        array_intersect($ids, array_unique($allowed))
+                    );
                 }
             }
 
-            if ($blocked !== []) {
-                $ids = array_values(
-                    array_diff($ids, array_unique($blocked))
-                );
-            }
-        }
+            if (isset($rules['except']) && is_array($rules['except'])) {
+                $blocked = [];
+                foreach ($rules['except'] as $id) {
+                    $id = trim((string) $id);
+                    if ($id !== '' && Utility::looksLikeUuid($id)) {
+                        $blocked[] = $id;
+                    }
+                }
 
-        return $ids;
+                if ($blocked !== []) {
+                    $ids = array_values(
+                        array_diff($ids, array_unique($blocked))
+                    );
+                }
+            }
+
+            return $ids;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyParticipantRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     protected static function applyTagRules(array $tags, array $rules): array
     {
-        if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
-            $maxCount = (int) $rules['max_count'];
-            if ($maxCount > 0 && \count($tags) > $maxCount) {
-                $tags = \array_slice($tags, 0, $maxCount);
+        try {
+            if (isset($rules['max_count']) && is_numeric($rules['max_count'])) {
+                $maxCount = (int) $rules['max_count'];
+                if ($maxCount > 0 && \count($tags) > $maxCount) {
+                    $tags = \array_slice($tags, 0, $maxCount);
+                }
             }
-        }
 
-        if (isset($rules['prefix']) && is_string($rules['prefix'])) {
-            $prefix = trim($rules['prefix']);
-            if ($prefix !== '') {
-                $tags = array_map(
-                    static fn(string $tag) => Str::startsWith($tag, $prefix)
-                        ? $tag
-                        : $prefix . $tag,
-                    $tags
-                );
+            if (isset($rules['prefix']) && is_string($rules['prefix'])) {
+                $prefix = trim($rules['prefix']);
+                if ($prefix !== '') {
+                    $tags = array_map(
+                        static fn(string $tag) => Str::startsWith($tag, $prefix)
+                            ? $tag
+                            : $prefix . $tag,
+                        $tags
+                    );
+                }
             }
-        }
 
-        return $tags;
+            return $tags;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::applyTagRules — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 }

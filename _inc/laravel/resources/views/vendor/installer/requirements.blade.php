@@ -1,23 +1,22 @@
 @extends('vendor.installer.layouts.master')
 
 @php
-    use Illuminate\Support\Collection;
-    use Illuminate\Support\Facades\Route;
+    try {
+$requirementsArr = $requirements['requirements'] ?? [];
+            $requirementsByType = $requirementsArr instanceof Collection ? $requirementsArr : collect($requirementsArr);
 
-    /** Normalize inputs */
-    $requirementsArr = $requirements['requirements'] ?? [];
-    /** @var Collection $requirementsByType */
-    $requirementsByType = $requirementsArr instanceof Collection ? $requirementsArr : collect($requirementsArr);
+        $phpInfo       = $phpSupportInfo ?? [];
+        $phpSupported  = (bool) data_get($phpInfo, 'supported', false);
+        $phpCurrent    = (string) data_get($phpInfo, 'current', '');
+        $phpMinimum    = (string) data_get($phpInfo, 'minimum', '');
 
-    $phpInfo       = $phpSupportInfo ?? [];
-    $phpSupported  = (bool) data_get($phpInfo, 'supported', false);
-    $phpCurrent    = (string) data_get($phpInfo, 'current', '');
-    $phpMinimum    = (string) data_get($phpInfo, 'minimum', '');
+        $hasErrors     = (bool) data_get($requirements, 'errors', false);
 
-    $hasErrors     = (bool) data_get($requirements, 'errors', false);
-
-    $nextUrl       = Route::has('LaravelInstaller::permissions') ? route('LaravelInstaller::permissions') : '#';
-    $canProceed    = $phpSupported && !$hasErrors && $nextUrl !== '#';
+        $nextUrl       = Route::has('LaravelInstaller::permissions') ? route('LaravelInstaller::permissions') : '#';
+        $canProceed    = $phpSupported && !$hasErrors && $nextUrl !== '#';
+    } catch (\Throwable $e) {
+        \Log::error('vendor/installer/requirements — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @section('template_title')
@@ -32,12 +31,15 @@
 @section('container')
     @forelse ($requirementsByType as $type => $group)
         @php
-            // Default to a neutral style unless PHP support explicitly passes/fails
-            $headerStatusClass = $type === 'php'
-                ? ($phpSupported ? 'success' : 'error')
-                : '';
-            $group = $group instanceof Collection ? $group->toArray() : (array) $group;
-        @endphp
+                        try {
+                            $headerStatusClass = $type === 'php'
+                                            ? ($phpSupported ? 'success' : 'error')
+                                            : '';
+                                        $group = $group instanceof Collection ? $group->toArray() : (array) $group;
+                        } catch (\Throwable $e) {
+                            \Log::error('vendor/installer/requirements — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
 
         <ul class="list" role="list">
             <li class="list__item list__title {{ $headerStatusClass }}">
@@ -56,10 +58,14 @@
 
             @foreach ($group as $extension => $enabled)
                 @php
-                    $ok   = (bool) $enabled;
-                    $icon = $ok ? 'check-circle-o' : 'exclamation-circle';
-                    $cls  = $ok ? 'success' : 'error';
-                @endphp
+                    try {
+                        $ok   = (bool) $enabled;
+                        $icon = $ok ? 'check-circle-o' : 'exclamation-circle';
+                        $cls  = $ok ? 'success' : 'error';
+                    } catch (\Throwable $e) {
+                        \Log::error('vendor/installer/requirements — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <li class="list__item {{ $cls }}">
                     {{ (string) $extension }}
                     <i class="fa fa-fw fa-{{ $icon }} row-icon" aria-hidden="true"></i>

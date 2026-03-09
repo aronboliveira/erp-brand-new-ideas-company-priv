@@ -1,22 +1,47 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $hasJobCategory = !empty($jobCategory ?? null) && data_get($jobCategory, 'id');
-
-    $updateBase     = VW::JB_CAT . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasJobCategory) ? route($updateResolved, $jobCategory->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::JB_CAT, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasJobCategory ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$jobCategoryId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$jobCategoryId = data_get($jobCategory ?? null, 'id');
+		$hasJobCategory = !empty($jobCategory ?? null) && $jobCategoryId;
+		$updateBase = VW::JB_CAT . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $jobCategoryId) ? (route($updateResolved, $jobCategoryId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::JB_CAT, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in job_categories/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in job_categories/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in job_categories/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!$hasJobCategory)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested job category was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested job category was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($jobCategory, [
         'url'               => $updateUrl,

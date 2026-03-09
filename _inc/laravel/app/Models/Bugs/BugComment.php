@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Enums\UserType;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\{UserType};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BugComment extends Comment
 {
+    use HasFactory;
+
     protected $table = DC::TABLE_BG_CMT;
 
     protected $casts = [
@@ -37,5 +41,12 @@ class BugComment extends Comment
     public function scopeForBug($query, string $bugId)
     {
         return $query->where(AC::COL_BUG, $bugId);
+    }
+
+    public function commentUser(): ?User
+    {
+        $createdBy = $this->getAttribute(DC::COL_TABLE_CREATOR);
+        if (!$createdBy) return null;
+        return User::find($createdBy);
     }
 }

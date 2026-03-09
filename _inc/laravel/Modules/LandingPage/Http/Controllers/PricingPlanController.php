@@ -3,29 +3,37 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    SettingsConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    SettingsConstants as SC
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log};
 use Modules\LandingPage\{
-    Config\Constants\RoutesResourcesConstants,
+    Config\Constants\RoutesResourcesConstants as RRC,
     Entities\LandingPageSetting
 };
-use Modules\LandingPage\Config\Constants\SettingsConstants as LSC;
-use function App\Http\Controllers\{defaultUndefinedException};
+use Modules\LandingPage\Config\Constants\SettingsConstants as LPSC;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 class PricingPlanController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const LP = RoutesResourcesConstants::LP;
-    private const REDIRECT_INDEX = RoutesResourcesConstants::PRC_PLN . '.index';
+    public const CRT = 'create';
+    public const IDX = 'index';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
+    private const LP = RRC::LP;
+    private const REDIRECT_INDEX = RRC::PRC_PLN . '.index';
 
     /**
      * Display the pricing plan settings.
@@ -39,16 +47,19 @@ class PricingPlanController extends AppController
             $ur = self::_checkLogin(haltRedirect: true);
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($ur instanceof User) $userId = $ur->id;
+            if (!($ur instanceof User) || $ur->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             Log::info("[$action] start", ['user_id' => $userId]);
             try {
                 $settingsStart = microtime(true);
                 $settings = LandingPageSetting::settings();
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
                 Log::info("[$action] success: fetched pricing settings", ['count' => count($settings)]);
-                return view(self::LP . '::' . self::LP . '.pricing_plan', compact(DatabaseConstants::TABLE_SETTINGS));
+                return view(self::LP . '::' . self::LP . '.pricing_plan', compact(DC::TABLE_SETTINGS));
             } catch (\Throwable $e) {
                 Log::error("[$action] exception", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("[$action] exception", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                Log::channel(SC::ERR_TRACE)->debug("[$action] exception", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         }, ['user_id' => Auth::id()]);
@@ -87,7 +98,7 @@ class PricingPlanController extends AppController
                 return $view;
             } catch (\Throwable $e) {
                 Log::error($method . " exception", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug($method . " exception", [
+                Log::channel(SC::ERR_TRACE)->debug($method . " exception", [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
@@ -251,7 +262,7 @@ class PricingPlanController extends AppController
                 DB::rollBack();
                 $this->logExecutionTime($timeError, $function . '::exception', 'failed');
                 Log::error($method . ' exception', ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug($method . ' exception', [
+                Log::channel(SC::ERR_TRACE)->debug($method . ' exception', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
@@ -278,10 +289,10 @@ class PricingPlanController extends AppController
         try {
             DB::beginTransaction();
             $data = [
-                LSC::PN_STT_K      => $validated[LSC::PN_STT_K] ?? 'off',
-                LSC::PN_TTL_K       => $validated[LSC::PN_TTL_K] ?? LSC::PN_TTL_DEF,
-                LSC::PN_HDG_K     => $validated[LSC::PN_HDG_K] ?? LSC::PN_HDG_DEF,
-                LSC::PN_DESC_K => $validated[LSC::PN_DESC_K] ?? '',
+                LPSC::PN_STT_K      => $validated['planStatus'] ?? 'off',
+                LPSC::PN_TTL_K       => $validated['planTitle'] ?? LPSC::PN_TTL_DEF,
+                LPSC::PN_HDG_K     => $validated['planHeading'] ?? LPSC::PN_HDG_DEF,
+                LPSC::PN_DESC_K => $validated['planDescription'] ?? '',
             ];
             // if updating single key
             if ($mode === 'update' && $key) {

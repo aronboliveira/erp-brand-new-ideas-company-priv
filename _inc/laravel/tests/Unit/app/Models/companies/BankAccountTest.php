@@ -4,18 +4,23 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{BankAccount, ChartOfAccount};
 
 class BankAccountTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
 	 ** @test
 	 **
 	 ** BankAccount is mass assignable for holder_name, bank_name, account_number,
-	 ** chart_account_id, opening_balance, contact_number, bank_address, and created_by
+	 ** chart_account_id, opening_balance, contact_number, and bank_address
 	 **/
 	public function bank_account_is_fillable()
 	{
@@ -29,14 +34,11 @@ class BankAccountTest extends TestCase
 			'opening_balance'  => 500.00,
 			'contact_number'   => '555-1234',
 			'bank_address'     => '123 Main St',
-			'created_by'       => 'admin_user',
 		];
 
 		$acct = BankAccount::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $acct->$field);
-		}
+		$this->assertFillableMatches($data, $acct);
 	}
 
 	/**
@@ -67,9 +69,9 @@ class BankAccountTest extends TestCase
 	{
 		$relation = (new BankAccount)->chartAccount();
 
-		$this->assertInstanceOf(HasOne::class,                $relation);
+		$this->assertInstanceOf(BelongsTo::class,                $relation);
 		$this->assertSame(ChartOfAccount::class,              get_class($relation->getRelated()));
-		$this->assertSame('id',                               $relation->getForeignKeyName());
-		$this->assertSame('chart_account_id',                 $relation->getLocalKeyName());
+		$this->assertSame('chart_account_id',                               $relation->getForeignKeyName());
+		$this->assertSame('id',                 $relation->getOwnerKeyName());
 	}
 }

@@ -1,15 +1,18 @@
 <?php
 
-use Mockery;
-use Tests\TestCase;
+use App\Models\{JobApplication, JobStage, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use App\Models\{JobApplication, JobStage, User};
+use Tests\TestCase;
 
 class JobStageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
-
 
 	/**
 	 ** @test
@@ -18,7 +21,23 @@ class JobStageTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['created_by', 'order', 'title'];
+		$expected = [
+			'title',
+			'slug',
+			'status',
+			'order',
+			'depth',
+			'description',
+			'instructions',
+			'is_active',
+			'tags',
+			'attachments',
+			'urls',
+			'templates',
+			'project',
+			'goal',
+			'training',
+		];
 		$this->assertEquals($expected, (new JobStage())->getFillable());
 	}
 

@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class CustomQuestionTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 *
@@ -31,7 +36,39 @@ class CustomQuestionTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['question', 'is_required', 'created_by'];
+		$expected = [
+			'question',
+			'is_required',
+			'name',
+			'type',
+			'module',
+			'description',
+			'default',
+			'placeholder',
+			'pattern',
+			'readonly',
+			'required',
+			'multiline',
+			'multiple',
+			'autocapitalize',
+			'autocomplete',
+			'autocorrect',
+			'disabled',
+			'min',
+			'max',
+			'step',
+			'minlength',
+			'maxlength',
+			'rows',
+			'cols',
+			'wrap',
+			'spellcheck',
+			'options',
+			'optgroups',
+			'accepts',
+			'tags',
+			'custom_field_id',
+		];
 
 		$this->assertSame($expected, (new CustomQuestion)->getFillable());
 	}

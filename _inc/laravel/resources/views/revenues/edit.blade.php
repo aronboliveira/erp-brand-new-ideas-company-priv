@@ -1,52 +1,82 @@
-{{ Collective\Html\FormFacade::model($revenue, array('route' => array('revenue.update', $revenue->id), 'method' => 'PUT','enctype' => 'multipart/form-data')) }}
+@php
+$revenue ??= null;
+	$accounts ??= [];
+	$customers ??= [];
+	$categories ??= [];
+	$revenueId ??= '';
+	$revenueReceipt ??= '';
+	try {
+		$revenueId = data_get($revenue ?? null, 'id') ?? '';
+		$revenueReceipt = data_get($revenue ?? null, 'add_receipt') ?? '';
+	} catch (\Error $e) {
+		Log::error('Error in revenues/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in revenues/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in revenues/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
+@endphp
+{{ Form::model($revenue, ['route' => ['revenue.update', $revenueId], 'method' => 'PUT', 'enctype' => 'multipart/form-data']) }}
 <div class="modal-body">
     <div class="row">
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('date', __('Date'),['class'=>'form-label']) }}
-            {{Collective\Html\FormFacade::date('date',null,array('class'=>'form-control','required'=>'required'))}}
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('date', __('Date'), ['class' => VC::FM_LB]) }}
+            {{ Form::date('date', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
         </div>
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('amount', __('Amount'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::number('amount', null, array('class' => 'form-control','required'=>'required','step'=>'0.01')) }}
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('amount', __('Amount'), ['class' => VC::FM_LB]) }}
+            {{ Form::number('amount', null, ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01']) }}
         </div>
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('account_id', __('Account'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::select('account_id',$accounts,null, array('class' => 'form-control select','required'=>'required')) }}
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('account_id', __('Account'), ['class' => VC::FM_LB]) }}
+            {{ Form::select('account_id', $accounts, null, ['class' => VC::FM_CT . ' select', 'required' => 'required']) }}
         </div>
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('customer_id', __('Customer'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::select('customer_id', $customers,null, array('class' => 'form-control select','required'=>'required')) }}
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('customer_id', __('Customer'), ['class' => VC::FM_LB]) }}
+            {{ Form::select('customer_id', $customers, null, ['class' => VC::FM_CT . ' select', 'required' => 'required']) }}
         </div>
-        <div class="form-group  col-md-12">
-            {{ Collective\Html\FormFacade::label('description', __('Description'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::textarea('description', null, array('class' => 'form-control','rows'=>3)) }}
+        <div class="{{ VC::FM_G }} col-md-12">
+            {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+            {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 3]) }}
         </div>
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('category_id', __('Category'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::select('category_id', $categories,null, array('class' => 'form-control select','required'=>'required')) }}
-        </div>
-
-        <div class="form-group  col-md-6">
-            {{ Collective\Html\FormFacade::label('reference', __('Reference'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::text('reference', null, array('class' => 'form-control')) }}
-
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('category_id', __('Category'), ['class' => VC::FM_LB]) }}
+            {{ Form::select('category_id', $categories, null, ['class' => VC::FM_CT . ' select', 'required' => 'required']) }}
         </div>
 
-        <div class="form-group col-md-6">
-            {{Collective\Html\FormFacade::label('add_receipt',__('Payment Receipt'),['class' => 'col-form-label'])}}
-            {{Collective\Html\FormFacade::file('add_receipt',array('class'=>'form-control', 'id'=>'files'))}}
-            <img id="image" src="{{asset(Storage::url('uploads/revenue')).'/'.$revenue->add_receipt}}" class="mt-2" style="width:25%;"/>
+        <div class="{{ VC::FM_G }} col-md-6">
+            {{ Form::label('reference', __('Reference'), ['class' => VC::FM_LB]) }}
+            {{ Form::text('reference', null, ['class' => VC::FM_CT]) }}
+        </div>
+
+        <div class="{{ VC::FM_GCB6 }}">
+            {{ Form::label('add_receipt', __('Payment Receipt'), ['class' => 'col-form-label']) }}
+            {{ Form::file('add_receipt', ['class' => 'form-control', 'id' => 'files']) }}
+            <img id="image" src="{{ asset(Storage::url('uploads/revenue')) . '/' . $revenueReceipt }}" class="{{ VC::MT2 }}" style="width:25%;"/>
         </div>
 
     </div>
 </div>
 <div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+    <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+    <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
 </div>
-{{ Collective\Html\FormFacade::close() }}
-
-
+{{ Form::close() }}
 
 <script>
     document.getElementById('files').onchange = function () {

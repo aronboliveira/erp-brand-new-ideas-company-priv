@@ -13,7 +13,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class PlanningScheduleSeeder extends Seeder
 {
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	private ConsoleOutput $out;
 
 	private array $tableIdCache = [];
@@ -28,15 +29,16 @@ class PlanningScheduleSeeder extends Seeder
 			return;
 		}
 
-		$userIds = $this->loadUserIds(8192);
-		$contractIds = Schema::hasTable(DC::TABLE_CONTRACTS) ? $this->loadIds(DC::TABLE_CONTRACTS, 16384) : [];
+		$userIds = $this->loadUserIds(64);
+		$contractIds = Schema::hasTable(DC::TABLE_CONTRACTS) ? $this->loadIds(DC::TABLE_CONTRACTS, 64) : [];
 
 		$rawTotal = $contractIds !== []
 			? (int) floor(count($contractIds) * 0.5) * 2
-			: max(64, min(4096, count($userIds) * 2));
+			: max(4, min(4, count($userIds) * 2));
 
-		$targetTotal = $this->toNext64Multiple(max(64, $rawTotal));
-		$cap = 32000;
+		$targetTotal = max(4, $rawTotal);
+		// $cap = 32000;
+		$cap = 4;
 		$targetTotal > $cap && $targetTotal = $cap - ($cap % 64);
 
 		$typeValues = array_column(PlanningScheduleType::cases(), 'value');
@@ -94,8 +96,6 @@ class PlanningScheduleSeeder extends Seeder
 
 			$mi = $ownerId ? $ownerId : (random_int(0, 2) === 0 ? null : (string) Str::uuid());
 
-			$this->out->writeln("[PlanningScheduleSeeder] Creating: tp={$tp} start={$startMode} mt={$mt} s={$sDate->format('Y-m-d')} {$sTime} e=" . ($eDate ? $eDate->format('Y-m-d') : 'null') . ' ' . ($eTime ?? 'null'));
-
 			try {
 				PlanningSchedule::create([
 					'title' => $title,
@@ -135,8 +135,8 @@ class PlanningScheduleSeeder extends Seeder
 			}
 		}
 
-		$created % 64 !== 0 && $this->out->writeln('[PlanningScheduleSeeder] Warning: created count not multiple of 64: ' . $created);
-		$this->out->writeln('[PlanningScheduleSeeder] Done. Created: ' . $created);
+		$elapsed = round(microtime(true) - $clock, 2);
+		$this->out->writeln("[PlanningScheduleSeeder] Done. Created: {$created} in {$elapsed}s");
 	}
 
 	private function loadUserIds(int $limit): array

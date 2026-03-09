@@ -1,24 +1,14 @@
 @php
-    use Illuminate\Support\Collection;
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        PermissionsConstants as PC,
-        ViewsConstants as VW,
-        YieldingConstants
-    };
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
+$lang    = Utility::fetchUserLang();
+        $profile = Utility::getFile('uploads/avatar');
 
-    $lang    = Utility::fetchUserLang();
-    $profile = Utility::getFile('uploads/avatar');
-
-    $dashBase  = 'dashboard';
-    $dashName  = Route::has($dashBase) ? $dashBase : (Route::has(Str::kebab($dashBase)) ? Str::kebab($dashBase) : null);
-    $dashUrl   = $dashName ? route($dashName) : '#';
+        $dashBase  = 'dashboard';
+        $dashName  = Route::has($dashBase) ? $dashBase : (Route::has(Str::kebab($dashBase)) ? Str::kebab($dashBase) : null);
+        $dashUrl   = $dashName ? route($dashName) : '#';
+    } catch (\Throwable $e) {
+        \Log::error('users/userlog — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -31,12 +21,12 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('User Log') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('User Log') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
@@ -44,16 +34,20 @@
         <div class="{{ VC::CS12 }}">
             <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $logBase   = ViewsConstants::USR . '.log';
-                            $logName   = Route::has($logBase) ? $logBase : (Route::has(Str::kebab($logBase)) ? Str::kebab($logBase) : null);
-                            $logUrl    = $logName ? route($logName) : '#';
-                            $logGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::USR, 'view_user_log_unavailable') ?? 'User logs route is unavailable. Please contact technical support or your domain administrator.';
-                            $formId    = 'user_userlog';
-                            $applyId   = 'userlog-apply-btn';
-                            $resetId   = 'userlog-reset-link';
-                        @endphp
+                            try {
+                                $logBase   = ViewsConstants::USR . '.log';
+                                $logName   = Route::has($logBase) ? $logBase : (Route::has(Str::kebab($logBase)) ? Str::kebab($logBase) : null);
+                                $logUrl    = $logName ? route($logName) : '#';
+                                $logGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::USR, 'view_user_log_unavailable') ?? 'User logs route is unavailable. Please contact technical support or your domain administrator.';
+                                $formId    = 'user_userlog';
+                                $applyId   = 'userlog-apply-btn';
+                                $resetId   = 'userlog-reset-link';
+                            } catch (\Throwable $e) {
+                                \Log::error('users/userlog — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {!! Form::open([
                             'url'                  => $logUrl,
                             'method'               => 'GET',
@@ -102,7 +96,7 @@
                                             <a id="{{ $resetId }}"
                                             href="{{ $logUrl }}"
                                             data-url="{{ $logUrl }}"
-                                            data-guard-msg="{{ $logGuard }}"
+                                            data-guard-msg="{{ base64_encode($logGuard) }}"
                                             class="{{ VC::BT_SM_DG }}"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Reset') }}">
@@ -125,8 +119,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -143,16 +137,20 @@
                             <tbody>
                                 @forelse((($userDetails ?? null) instanceof Collection || is_array($userDetails ?? null)) ? $userDetails : [] as $ud)
                                     @php
-                                        $rowId      = (string) data_get($ud, 'id', '');
-                                        $userId     = (string) data_get($ud, 'user_id', '');
-                                        $detail     = (string) data_get($ud, 'Details', '');
-                                        $userDetail = $detail !== '' ? (json_decode($detail) ?: (object)[]) : (object)[];
-                                        $viewBase  = VW::USR . '.log.view';
-                                        $viewName  = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
-                                        $viewUrl   = ($viewName && $rowId) ? route($viewName, [$rowId]) : '#';
-                                        $viewGuard = Utility::fetchLinkMessage($lang, VW::USR, 'view_user_log_detail_unavailable') ?? 'View user log route is unavailable. Please contact technical support or your domain administrator.';
-                                        $viewId    = 'userlog-view-link-' . $rowId;
-                                    @endphp
+                                        try {
+                                            $rowId      = (string) data_get($ud, 'id', '');
+                                            $userId     = (string) data_get($ud, 'user_id', '');
+                                            $detail     = (string) data_get($ud, 'Details', '');
+                                            $userDetail = $detail !== '' ? (json_decode($detail) ?: (object)[]) : (object)[];
+                                            $viewBase  = VW::USR . '.log.view';
+                                            $viewName  = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
+                                            $viewUrl   = ($viewName && $rowId) ? route($viewName, [$rowId]) : '#';
+                                            $viewGuard = Utility::fetchLinkMessage($lang, VW::USR, 'view_user_log_detail_unavailable') ?? 'View user log route is unavailable. Please contact technical support or your domain administrator.';
+                                            $viewId    = 'userlog-view-link-' . $rowId;
+                                        } catch (\Throwable $e) {
+                                            \Log::error('users/userlog — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ data_get($ud, 'user_name') ?: __('No user name available') }}</td>
                                         <td>
@@ -176,7 +174,7 @@
                                                    data-bs-toggle="tooltip"
                                                    data-title="{{ __('View User Logs') }}"
                                                    title="{{ __('View') }}"
-                                                   data-guard-msg="{{ $viewGuard }}">
+                                                   data-guard-msg="{{ base64_encode($viewGuard) }}">
                                                     <i class="{{ VC::TI_EYE_WT }}"></i>
                                                 </a>
                                             </div>
@@ -218,12 +216,16 @@
                                             @endpush
                                             @can(PC::DEL_USER)
                                                 @php
-                                                    $delBase   = VW::USR . '.log.destroy';
-                                                    $delName   = Route::has($delBase) ? $delBase : (Route::has(Str::kebab($delBase)) ? Str::kebab($delBase) : null);
-                                                    $delUrl    = ($delName && $userId) ? route($delName, [$userId]) : '#';
-                                                    $delGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'delete_user_log_route_unavailable') ?? 'Delete user log route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $delFormId = 'userlog-delete-form-' . $rowId;
-                                                @endphp
+                                                    try {
+                                                        $delBase   = VW::USR . '.log.destroy';
+                                                        $delName   = Route::has($delBase) ? $delBase : (Route::has(Str::kebab($delBase)) ? Str::kebab($delBase) : null);
+                                                        $delUrl    = ($delName && $userId) ? route($delName, [$userId]) : '#';
+                                                        $delGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'delete_user_log_route_unavailable') ?? 'Delete user log route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $delFormId = 'userlog-delete-form-' . $rowId;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('users/userlog — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open([
                                                         'method'               => 'DELETE',
@@ -282,7 +284,7 @@
                                     </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted">{{ __('No user logs available') }}</td>
+                                            <td colspan="8" class="{{ VC::TXCT_MT }}">{{ __('No user logs available') }}</td>
                                         </tr>
                                     @endforelse
                                 </div>

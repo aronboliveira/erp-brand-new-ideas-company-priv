@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Database\Eloquent\Relations\HasOne,
 	Foundation\Testing\RefreshDatabase
@@ -11,6 +12,11 @@ use App\Models\{Bug, BugComment, User};
 
 class BugCommentTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -21,19 +27,20 @@ class BugCommentTest extends TestCase
 	public function bug_comment_is_fillable()
 	{
 		$user = User::factory()->create();
+		$bug  = Bug::factory()->create();
 
 		$data = [
 			'comment'    => 'A comment',
-			'bug_id'     => Bug::factory()->create()->id,
-			'created_by' => $user?->id,
-			'user_type'  => 'employee',
+			'bug_id'     => $bug->id,
+			'user_type'  => 'company',
 		];
 
 		$comment = BugComment::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $comment->$field);
-		}
+		$this->assertNotNull($comment->id);
+		$this->assertEquals('A comment', $comment->getRawOriginal('comment'));
+		$this->assertEquals($bug->id, $comment->getRawOriginal('bug_id'));
+		$this->assertEquals('company', $comment->getRawOriginal('user_type'));
 	}
 
 	/**
@@ -78,9 +85,9 @@ class BugCommentTest extends TestCase
 	{
 		$relation = (new BugComment)->user();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(User::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('created_by',        $relation->getLocalKeyName());
+		$this->assertSame('user_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',        $relation->getOwnerKeyName());
 	}
 }

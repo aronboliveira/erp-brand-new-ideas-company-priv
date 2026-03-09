@@ -1,19 +1,45 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-	$formId = 'store_trainer_form';
-	$branches = $branches ?? [];
-	$trainerCreateBase   = VW::TNR;
-	$trainerCreateKebab  = Str::kebab($trainerCreateBase);
-	$trainerCreateName   = Route::has($trainerCreateBase)
-		? $trainerCreateBase
-		: (Route::has($trainerCreateKebab) ? $trainerCreateKebab : null);
-	$trainerCreateAction = $trainerCreateName ? route($trainerCreateName) : '#';
-	$trainerCreateGuard  = Utility::fetchLinkMessage($lang, VW::TNR, 'store_trainer_route_unavailable') ?? 'Store trainer route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$formId ??= 'store_trainer_form';
+	$branches ??= [];
+	$trainerCreateBase ??= '';
+	$trainerCreateKebab ??= '';
+	$trainerCreateName ??= null;
+	$trainerCreateAction ??= '#';
+	$trainerCreateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$branches = $branches ?? [];
+		$trainerCreateBase = VW::TNR;
+		$trainerCreateKebab = Str::kebab($trainerCreateBase);
+		$trainerCreateName = Route::has($trainerCreateBase)
+			? $trainerCreateBase
+			: (Route::has($trainerCreateKebab) ? $trainerCreateKebab : null);
+		$trainerCreateAction = $trainerCreateName ? (route($trainerCreateName) ?? '#') : '#';
+		$trainerCreateGuard = Utility::fetchLinkMessage($lang, VW::TNR, 'store_trainer_route_unavailable')
+			?? 'Store trainer route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in trainers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in trainers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in trainers/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -69,4 +95,3 @@
 	</div>
     <script defer src="{{ asset('assets/js/routes/trainers/store.js') }}"></script>
 {!! Form::close() !!}
-

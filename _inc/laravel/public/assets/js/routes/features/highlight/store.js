@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   const form = document.getElementById("highlight-feature-store-form");
   if (form) {
     form.addEventListener(
@@ -10,37 +18,11 @@
           e.preventDefault();
           const msg =
             form.getAttribute("data-guard-msg") ||
-            "Store Highlight Feature route is unavailable. Please contact technical support or your domain administrator.";
-          try {
-            if (window.bootstrap?.Toast) {
-              const c =
-                document.getElementById("toast-container") ||
-                (() => {
-                  const t = document.createElement("div");
-                  t.id = "toast-container";
-                  document.body.appendChild(t);
-                  return t;
-                })();
-              const el = document.createElement("div");
-              el.className = "toast";
-              el.setAttribute("role", "alert");
-              el.setAttribute("aria-live", "assertive");
-              el.setAttribute("aria-atomic", "true");
-              const body = document.createElement("div");
-              body.className = "toast-body";
-              body.textContent = msg;
-              el.appendChild(body);
-              c.appendChild(el);
-              window.bootstrap.Toast.getOrCreateInstance(el).show();
-            } else {
-              alert(msg);
-            }
-          } catch {
-            alert(msg);
-          }
+            getMsg("store_highlight_unavailable");
+          scheduleError(msg, "submit");
         }
       },
-      { passive: false }
+      { passive: false },
     );
   }
   const input = document.getElementById("highlight_feature_image");

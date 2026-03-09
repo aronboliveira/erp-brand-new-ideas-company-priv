@@ -1,25 +1,45 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        StacksConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang = Utility::fetchUserLang();
-
-    $storeBase     = VW::TRV;
-    $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has(Str::kebab($storeBase)) ? Str::kebab($storeBase) : null);
-    $storeUrl      = $storeResolved ? route($storeResolved) : url(VW::TRV);
-    $storeGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'store_travel_route_unavailable') ?? 'Store travel route is unavailable. Please contact technical support or your domain administrator.';
-
-    $genResolved   = Route::has('generate') ? 'generate' : (Route::has(Str::kebab('generate')) ? Str::kebab('generate') : null);
-    $genUrl        = $genResolved ? route($genResolved, ['travel']) : '#';
-    $genGuard      = Utility::fetchLinkMessage($lang, VW::TRV, 'generate_route_unavailable') ?? 'Generate content route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$storeBase ??= '';
+	$storeResolved ??= null;
+	$storeUrl ??= '#';
+	$storeGuard ??= '';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeBase = VW::TRV;
+		$storeResolved = Route::has($storeBase) ? $storeBase : (Route::has(Str::kebab($storeBase)) ? Str::kebab($storeBase) : null);
+		$storeUrl = $storeResolved ? (route($storeResolved) ?? url(VW::TRV)) : url(VW::TRV);
+		$storeGuard = Utility::fetchLinkMessage($lang, VW::TRV, 'store_travel_route_unavailable')
+			?? 'Store travel route is unavailable. Please contact technical support or your domain administrator.';
+		$genResolved = Route::has('generate') ? 'generate' : (Route::has(Str::kebab('generate')) ? Str::kebab('generate') : null);
+		$genUrl = $genResolved ? (route($genResolved, ['travel']) ?? '#') : '#';
+		$genGuard = Utility::fetchLinkMessage($lang, VW::TRV, 'generate_route_unavailable')
+			?? 'Generate content route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in travels/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in travels/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in travels/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -32,7 +52,7 @@
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
         @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $genUrl }}"
                    id="travel-generate-link"
                    data-size="md"
@@ -41,7 +61,7 @@
                    data-url="{{ $genUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $genGuard }}"
+                   data-guard-msg="{{ base64_encode($genGuard) }}"
                    data-sv-localized="true">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>

@@ -1,28 +1,10 @@
 (function () {
-  function toast(msg) {
-    if (window.bootstrap?.Toast) {
-      const box =
-        document.getElementById("toast-container") ||
-        document.body.appendChild(
-          Object.assign(document.createElement("div"), {
-            id: "toast-container",
-          })
-        );
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.setAttribute("role", "alert");
-      t.innerHTML = '<div class="toast-body"></div>';
-      t.querySelector(".toast-body").textContent =
-        msg ||
-        "Requested route is unavailable. Please contact technical support or your domain administrator.";
-      box.appendChild(t);
-      bootstrap.Toast.getOrCreateInstance(t).show();
-    } else {
-      alert(
-        msg ||
-          "Requested route is unavailable. Please contact technical support or your domain administrator."
-      );
-    }
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
   }
 
   function guardClick(a) {
@@ -33,7 +15,9 @@
       const url = (a.getAttribute("data-url") || href || "#").trim();
       if (url !== "#" && href !== "#") return;
       e.preventDefault();
-      toast(a.getAttribute("data-guard-msg"));
+      const msg =
+        a.getAttribute("data-guard-msg") || getMsg("route_unavailable");
+      scheduleError(msg, "click");
     });
   }
 

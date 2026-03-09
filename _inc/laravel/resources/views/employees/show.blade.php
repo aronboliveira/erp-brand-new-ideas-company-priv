@@ -1,12 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants, StacksConstants as ST, ViewClassNamesConstants as VC, ViewsConstants as VW, YieldingConstants};
-	use App\Models\{Utility};
-	use Illuminate\Support\{Collection, Str};
-	use Illuminate\Support\Facades\{Auth, Crypt, Log, Route, Storage};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$user ??= null;
+$user ??= null;
 	$lang ??= DatabaseConstants::DEFAULT_LANG;
 	$employee ??= null;
 	$employeesId ??= (string)'';
@@ -49,49 +42,61 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        $empIndexBase   = VW::EMP.'.index';
-        $empIndexKebab  = Str::kebab($empIndexBase);
-        $empIndexName   = Route::has($empIndexBase) ? $empIndexBase : (Route::has($empIndexKebab) ? $empIndexKebab : null);
-        $empIndexUrl    = $empIndexName ? route($empIndexName) : '#';
-        $empIndexGuard  = Utility::fetchLinkMessage($lang, VW::EMP, 'index_employee_route_unavailable') ?? 'Employee index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
+        try {
+            $empIndexBase   = VW::EMP.'.index';
+            $empIndexKebab  = Str::kebab($empIndexBase);
+            $empIndexName   = Route::has($empIndexBase) ? $empIndexBase : (Route::has($empIndexKebab) ? $empIndexKebab : null);
+            $empIndexUrl    = $empIndexName ? route($empIndexName) : '#';
+            $empIndexGuard  = Utility::fetchLinkMessage($lang, VW::EMP, 'index_employee_route_unavailable') ?? 'Employee index route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('employees/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
         <a id="bc-employee-index-link"
            href="{{ $empIndexUrl }}"
            data-url="{{ $empIndexUrl }}"
-           data-guard-msg="{{ $empIndexGuard }}"
+           data-guard-msg="{{ base64_encode($empIndexGuard) }}"
            data-sv-localized="true">
             {{ __('Employee') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{!empty($employeesId) ? $employeesId : __('Employees ids not found') }}</li>
+    <li class="{{ VC::BCI }}">{{!empty($employeesId) ? $employeesId : __('Employees ids not found') }}</li>
+@endsection
+@extends(ExtendingLayoutsConstants::ADM)
+@section(YieldingConstants::ADM_PG_TTL)
+	{{ __('Employee') }}
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
 	@if(!empty($employee))
 		<div class="{{ VC::FEND }} {{ VC::MT3 }} m-2">
 			@can('edit employee')
 				@php
-						$empIdStr        = (string) data_get($employee ?? null, 'id', '');
-						$encId           = $empIdStr !== '' ? Crypt::encrypt($empIdStr) : null;
-						$empEditBase     = VW::EMP.'.edit';
-						$empEditKebab    = Str::kebab($empEditBase);
-						$empEditName     = Route::has($empEditBase) ? $empEditBase : (Route::has($empEditKebab) ? $empEditKebab : null);
-						$empEditUrl      = ($empEditName && $encId) ? route($empEditName, $encId) : '#';
-						$empEditGuardMsg = Utility::fetchLinkMessage($lang, VW::EMP, 'edit_employee_route_unavailable') ?? 'Edit employee route is unavailable. Please contact technical support or your domain administrator.';
-						$editLinkId      = 'employee-edit-btn-'.($empIdStr !== '' ? $empIdStr : 'x');
-				@endphp
+						try {
+						    $empIdStr        = (string) data_get($employee ?? null, 'id', '');
+						    $encId           = $empIdStr !== '' ? Crypt::encrypt($empIdStr) : null;
+						    $empEditBase     = VW::EMP.'.edit';
+						    $empEditKebab    = Str::kebab($empEditBase);
+						    $empEditName     = Route::has($empEditBase) ? $empEditBase : (Route::has($empEditKebab) ? $empEditKebab : null);
+						    $empEditUrl      = ($empEditName && $encId) ? route($empEditName, $encId) : '#';
+						    $empEditGuardMsg = Utility::fetchLinkMessage($lang, VW::EMP, 'edit_employee_route_unavailable') ?? 'Edit employee route is unavailable. Please contact technical support or your domain administrator.';
+						    $editLinkId      = 'employee-edit-btn-'.($empIdStr !== '' ? $empIdStr : 'x');
+						} catch (\Throwable $e) {
+						    \Log::error('employees/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+						}
+@endphp
 				<a
 						id="{{ $editLinkId }}"
 						href="{{ $empEditUrl }}"
 						data-url="{{ $empEditUrl }}"
-						data-guard-msg="{{ $empEditGuardMsg }}"
+						data-guard-msg="{{ base64_encode($empEditGuardMsg) }}"
 						data-sv-localized="true"
 						data-bs-toggle="tooltip"
 						title="{{ __('Edit') }}"
@@ -105,81 +110,85 @@
 				@endpush
 			@endcan
 		</div>
-		<div class="text-end">
+		<div class="{{ VC::TX_END }}">
 			@php
-					$empIdStr    = (string) data_get($employee ?? null, 'id', '');
-					$empIdOrNull = $empIdStr !== '' ? $empIdStr : null;
-					$jlPdfBase   = 'joining_letter.download.pdf';
-					$jlPdfKebab  = Str::kebab($jlPdfBase);
-					$jlPdfName   = Route::has($jlPdfBase) ? $jlPdfBase : (Route::has($jlPdfKebab) ? $jlPdfKebab : null);
-					$jlPdfUrl    = ($jlPdfName && $empIdOrNull) ? route($jlPdfName, [$empIdOrNull]) : '#';
-					$jlPdfId     = 'joining-letter-download-pdf-btn-'.($empIdOrNull ?? 'x');
-					$jlPdfMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'download_joining_letter_pdf_unavailable') ?? 'Download joining letter (PDF) route is unavailable. Please contact technical support or your domain administrator.';
-					$jlDocBase   = 'joining_letter.download.doc';
-					$jlDocKebab  = Str::kebab($jlDocBase);
-					$jlDocName   = Route::has($jlDocBase) ? $jlDocBase : (Route::has($jlDocKebab) ? $jlDocKebab : null);
-					$jlDocUrl    = ($jlDocName && $empIdOrNull) ? route($jlDocName, [$empIdOrNull]) : '#';
-					$jlDocId     = 'joining-letter-download-doc-btn-'.($empIdOrNull ?? 'x');
-					$jlDocMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'download_joining_letter_doc_unavailable') ?? 'Download joining letter (DOC) route is unavailable. Please contact technical support or your domain administrator.';
-					$expPdfBase  = 'exp.download.pdf';
-					$expPdfKebab = Str::kebab($expPdfBase);
-					$expPdfName  = Route::has($expPdfBase) ? $expPdfBase : (Route::has($expPdfKebab) ? $expPdfKebab : null);
-					$expPdfUrl   = ($expPdfName && $empIdOrNull) ? route($expPdfName, [$empIdOrNull]) : '#';
-					$expPdfId    = 'experience-certificate-download-pdf-btn-'.($empIdOrNull ?? 'x');
-					$expPdfMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_experience_certificate_pdf_unavailable') ?? 'Download experience certificate (PDF) route is unavailable. Please contact technical support or your domain administrator.';
-					$expDocBase  = 'exp.download.doc';
-					$expDocKebab = Str::kebab($expDocBase);
-					$expDocName  = Route::has($expDocBase) ? $expDocBase : (Route::has($expDocKebab) ? $expDocKebab : null);
-					$expDocUrl   = ($expDocName && $empIdOrNull) ? route($expDocName, [$empIdOrNull]) : '#';
-					$expDocId    = 'experience-certificate-download-doc-btn-'.($empIdOrNull ?? 'x');
-					$expDocMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_experience_certificate_doc_unavailable') ?? 'Download experience certificate (DOC) route is unavailable. Please contact technical support or your domain administrator.';
-					$nocPdfBase  = 'noc.download.pdf';
-					$nocPdfKebab = Str::kebab($nocPdfBase);
-					$nocPdfName  = Route::has($nocPdfBase) ? $nocPdfBase : (Route::has($nocPdfKebab) ? $nocPdfKebab : null);
-					$nocPdfUrl   = ($nocPdfName && $empIdOrNull) ? route($nocPdfName, [$empIdOrNull]) : '#';
-					$nocPdfId    = 'noc-download-pdf-btn-'.($empIdOrNull ?? 'x');
-					$nocPdfMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_noc_pdf_unavailable') ?? 'Download NOC (PDF) route is unavailable. Please contact technical support or your domain administrator.';
-					$nocDocBase  = 'noc.download.doc';
-					$nocDocKebab = Str::kebab($nocDocBase);
-					$nocDocName  = Route::has($nocDocBase) ? $nocDocBase : (Route::has($nocDocKebab) ? $nocDocKebab : null);
-					$nocDocUrl   = ($nocDocName && $empIdOrNull) ? route($nocDocName, [$empIdOrNull]) : '#';
-					$nocDocId    = 'noc-download-doc-btn-'.($empIdOrNull ?? 'x');
-					$nocDocMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_noc_doc_unavailable') ?? 'Download NOC (DOC) route is unavailable. Please contact technical support or your domain administrator.';
-			@endphp
+					try {
+					    $empIdStr    = (string) data_get($employee ?? null, 'id', '');
+					    $empIdOrNull = $empIdStr !== '' ? $empIdStr : null;
+					    $jlPdfBase   = 'joining_letter.download.pdf';
+					    $jlPdfKebab  = Str::kebab($jlPdfBase);
+					    $jlPdfName   = Route::has($jlPdfBase) ? $jlPdfBase : (Route::has($jlPdfKebab) ? $jlPdfKebab : null);
+					    $jlPdfUrl    = ($jlPdfName && $empIdOrNull) ? route($jlPdfName, [$empIdOrNull]) : '#';
+					    $jlPdfId     = 'joining-letter-download-pdf-btn-'.($empIdOrNull ?? 'x');
+					    $jlPdfMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'download_joining_letter_pdf_unavailable') ?? 'Download joining letter (PDF) route is unavailable. Please contact technical support or your domain administrator.';
+					    $jlDocBase   = 'joining_letter.download.doc';
+					    $jlDocKebab  = Str::kebab($jlDocBase);
+					    $jlDocName   = Route::has($jlDocBase) ? $jlDocBase : (Route::has($jlDocKebab) ? $jlDocKebab : null);
+					    $jlDocUrl    = ($jlDocName && $empIdOrNull) ? route($jlDocName, [$empIdOrNull]) : '#';
+					    $jlDocId     = 'joining-letter-download-doc-btn-'.($empIdOrNull ?? 'x');
+					    $jlDocMsg    = Utility::fetchLinkMessage($lang, VW::EMP, 'download_joining_letter_doc_unavailable') ?? 'Download joining letter (DOC) route is unavailable. Please contact technical support or your domain administrator.';
+					    $expPdfBase  = 'exp.download.pdf';
+					    $expPdfKebab = Str::kebab($expPdfBase);
+					    $expPdfName  = Route::has($expPdfBase) ? $expPdfBase : (Route::has($expPdfKebab) ? $expPdfKebab : null);
+					    $expPdfUrl   = ($expPdfName && $empIdOrNull) ? route($expPdfName, [$empIdOrNull]) : '#';
+					    $expPdfId    = 'experience-certificate-download-pdf-btn-'.($empIdOrNull ?? 'x');
+					    $expPdfMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_experience_certificate_pdf_unavailable') ?? 'Download experience certificate (PDF) route is unavailable. Please contact technical support or your domain administrator.';
+					    $expDocBase  = 'exp.download.doc';
+					    $expDocKebab = Str::kebab($expDocBase);
+					    $expDocName  = Route::has($expDocBase) ? $expDocBase : (Route::has($expDocKebab) ? $expDocKebab : null);
+					    $expDocUrl   = ($expDocName && $empIdOrNull) ? route($expDocName, [$empIdOrNull]) : '#';
+					    $expDocId    = 'experience-certificate-download-doc-btn-'.($empIdOrNull ?? 'x');
+					    $expDocMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_experience_certificate_doc_unavailable') ?? 'Download experience certificate (DOC) route is unavailable. Please contact technical support or your domain administrator.';
+					    $nocPdfBase  = 'noc.download.pdf';
+					    $nocPdfKebab = Str::kebab($nocPdfBase);
+					    $nocPdfName  = Route::has($nocPdfBase) ? $nocPdfBase : (Route::has($nocPdfKebab) ? $nocPdfKebab : null);
+					    $nocPdfUrl   = ($nocPdfName && $empIdOrNull) ? route($nocPdfName, [$empIdOrNull]) : '#';
+					    $nocPdfId    = 'noc-download-pdf-btn-'.($empIdOrNull ?? 'x');
+					    $nocPdfMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_noc_pdf_unavailable') ?? 'Download NOC (PDF) route is unavailable. Please contact technical support or your domain administrator.';
+					    $nocDocBase  = 'noc.download.doc';
+					    $nocDocKebab = Str::kebab($nocDocBase);
+					    $nocDocName  = Route::has($nocDocBase) ? $nocDocBase : (Route::has($nocDocKebab) ? $nocDocKebab : null);
+					    $nocDocUrl   = ($nocDocName && $empIdOrNull) ? route($nocDocName, [$empIdOrNull]) : '#';
+					    $nocDocId    = 'noc-download-doc-btn-'.($empIdOrNull ?? 'x');
+					    $nocDocMsg   = Utility::fetchLinkMessage($lang, VW::EMP, 'download_noc_doc_unavailable') ?? 'Download NOC (DOC) route is unavailable. Please contact technical support or your domain administrator.';
+					} catch (\Throwable $e) {
+					    \Log::error('employees/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+					}
+@endphp
 			<div class="{{ VC::DFL }} {{ VC::JCE }} drp-languages">
 					<ul class="list-unstyled {{ VC::MB0 }} m-2">
 							<li class="{{ VC::STT_DD_IT }}">
 									<a class="{{ VC::DRP_NO_ARROW }}" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-											<span class="drp-text hide-mob text-primary">{{ __('Joining Letter') }}</span>
+											<span class="drp-text hide-mob {{ VC::TX_PM }}">{{ __('Joining Letter') }}</span>
 											<i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
 									</a>
 									<div class="{{ VC::DRP_DSH_MN }}">
-											<a id="{{ $jlPdfId }}" href="{{ $jlPdfUrl }}" data-url="{{ $jlPdfUrl }}" data-guard-msg="{{ $jlPdfMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $jlPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
-											<a id="{{ $jlDocId }}" href="{{ $jlDocUrl }}" data-url="{{ $jlDocUrl }}" data-guard-msg="{{ $jlDocMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $jlDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
+											<a id="{{ $jlPdfId }}" href="{{ $jlPdfUrl }}" data-url="{{ $jlPdfUrl }}" data-guard-msg="{{ base64_encode($jlPdfMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $jlPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
+											<a id="{{ $jlDocId }}" href="{{ $jlDocUrl }}" data-url="{{ $jlDocUrl }}" data-guard-msg="{{ base64_encode($jlDocMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $jlDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
 									</div>
 							</li>
 					</ul>
 					<ul class="list-unstyled {{ VC::MB0 }} m-2">
 							<li class="{{ VC::STT_DD_IT }}">
 									<a class="{{ VC::DRP_NO_ARROW }}" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-											<span class="drp-text hide-mob text-primary">{{ __('Experience Certificate') }}</span>
+											<span class="drp-text hide-mob {{ VC::TX_PM }}">{{ __('Experience Certificate') }}</span>
 											<i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
 									</a>
 									<div class="{{ VC::DRP_DSH_MN }}">
-											<a id="{{ $expPdfId }}" href="{{ $expPdfUrl }}" data-url="{{ $expPdfUrl }}" data-guard-msg="{{ $expPdfMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $expPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
-											<a id="{{ $expDocId }}" href="{{ $expDocUrl }}" data-url="{{ $expDocUrl }}" data-guard-msg="{{ $expDocMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $expDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
+											<a id="{{ $expPdfId }}" href="{{ $expPdfUrl }}" data-url="{{ $expPdfUrl }}" data-guard-msg="{{ base64_encode($expPdfMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $expPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
+											<a id="{{ $expDocId }}" href="{{ $expDocUrl }}" data-url="{{ $expDocUrl }}" data-guard-msg="{{ base64_encode($expDocMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $expDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
 									</div>
 							</li>
 					</ul>
 					<ul class="list-unstyled {{ VC::MB0 }} m-2">
 							<li class="{{ VC::STT_DD_IT }}">
 									<a class="{{ VC::DRP_NO_ARROW }}" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-											<span class="drp-text hide-mob text-primary">{{ __('NOC') }}</span>
+											<span class="drp-text hide-mob {{ VC::TX_PM }}">{{ __('NOC') }}</span>
 											<i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
 									</a>
 									<div class="{{ VC::DRP_DSH_MN }}">
-											<a id="{{ $nocPdfId }}" href="{{ $nocPdfUrl }}" data-url="{{ $nocPdfUrl }}" data-guard-msg="{{ $nocPdfMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $nocPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
-											<a id="{{ $nocDocId }}" href="{{ $nocDocUrl }}" data-url="{{ $nocDocUrl }}" data-guard-msg="{{ $nocDocMsg }}" data-sv-localized="true" class="btn-icon dropdown-item" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $nocDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
+											<a id="{{ $nocPdfId }}" href="{{ $nocPdfUrl }}" data-url="{{ $nocPdfUrl }}" data-guard-msg="{{ base64_encode($nocPdfMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $nocPdfUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('PDF') }}</a>
+											<a id="{{ $nocDocId }}" href="{{ $nocDocUrl }}" data-url="{{ $nocDocUrl }}" data-guard-msg="{{ base64_encode($nocDocMsg) }}" data-sv-localized="true" class="btn-icon {{ VC::DRP_IT }}" data-bs-toggle="tooltip" data-bs-placement="top" target="_blank" {{ $nocDocUrl === '#' ? 'aria-disabled=true' : '' }}><i class="{{ VC::TI_DWN }}">&nbsp;</i>{{ __('DOC') }}</a>
 									</div>
 							</li>
 					</ul>
@@ -194,17 +203,17 @@
 			@endpush
 		</div>
     @else
-        <div class="{{ VC::CD }}"><div class="card-body text-center">{{ __('No employee data available') }}</div></div>
+        <div class="{{ VC::CD }}"><div class="{{ VC::CD_BD }} {{ VC::TXCT }}">{{ __('No employee data available') }}</div></div>
 	@endif
 @endsection
 @section(YieldingConstants::ADM_CTT)
 	@if(!empty($employee))
 		<div class="{{ VC::RW }}">
-			<div class="col-xl-12">
+			<div class="{{ VC::CXL12 }}">
 				<div class="{{ VC::RW }}">
 					<div class="{{ VC::CS12 }} {{ VC::CM6 }}">
 						<div class="{{ VC::CD }}">
-							<div class="card-body employee-detail-body fulls-card">
+							<div class="{{ VC::CD_BD }} employee-detail-body fulls-card">
 								<h5>{{ __('Personal Detail') }}</h5>
 								<hr>
 								<div class="{{ VC::RW }}">
@@ -262,7 +271,7 @@
 					</div>
 					<div class="{{ VC::CS12 }} {{ VC::CM6 }}">
 						<div class="{{ VC::CD }}">
-							<div class="card-body employee-detail-body fulls-card">
+							<div class="{{ VC::CD_BD }} employee-detail-body fulls-card">
 								<h5>{{ __('Company Detail') }}</h5>
 								<hr>
 								<div class="{{ VC::RW }}">
@@ -298,7 +307,7 @@
 				<div class="{{ VC::RW }}">
 					<div class="{{ VC::CS12 }} {{ VC::CM6 }}">
 						<div class="{{ VC::CD }}">
-							<div class="card-body employee-detail-body fulls-card">
+							<div class="{{ VC::CD_BD }} employee-detail-body fulls-card">
 								<h5>{{ __('Document Detail') }}</h5>
 								<hr>
 								<div class="{{ VC::RW }}">
@@ -327,7 +336,7 @@
 										}
 										$docs = (is_array($documents ?? null) || ($documents ?? null) instanceof Collection) ? $documents : [];
 										$hasDocs = (is_array($docs) && count($docs) > 0) || ($docs instanceof Collection && $docs->isNotEmpty());
-									@endphp
+@endphp
 									@if($hasDocs)
 										@foreach($docs as $key => $document)
 											<div class="{{ VC::CM6 }}">
@@ -337,7 +346,7 @@
 														@php
 															$docId = isset($document->id) ? $document->id : null;
 															$fileName = ($docId !== null && isset($employeedoc[$docId]) && $employeedoc[$docId] !== '') ? $employeedoc[$docId] : null;
-														@endphp
+@endphp
 														<a href="{{ $fileName ? asset(Storage::url('uploads/document')).'/'.$fileName : '#' }}" target="_blank"{{ $fileName ? '' : ' aria-disabled=true' }}>
 															{{ $fileName ? $fileName : __('No document available') }}
 														</a>
@@ -346,7 +355,7 @@
 											</div>
 										@endforeach
 									@else
-										<div class="text-center">
+										<div class="{{ VC::TXCT }}">
 											{{ __('No document types available') }}
 										</div>
 									@endif
@@ -356,7 +365,7 @@
 					</div>
 					<div class="{{ VC::CS12 }} {{ VC::CM6 }}">
 						<div class="{{ VC::CD }}">
-							<div class="card-body employee-detail-body fulls-card">
+							<div class="{{ VC::CD_BD }} employee-detail-body fulls-card">
 								<h5>{{ __('Bank Account Detail') }}</h5>
 								<hr>
 								<div class="{{ VC::RW }}">
@@ -404,8 +413,6 @@
 			</div>
 		</div>
 	@else
-		<div class="{{ VC::CD }}"><div class="card-body text-center">{{ __('No employee data available') }}</div></div>
+		<div class="{{ VC::CD }}"><div class="{{ VC::CD_BD }} {{ VC::TXCT }}">{{ __('No employee data available') }}</div></div>
 	@endif
 @endsection
-
-

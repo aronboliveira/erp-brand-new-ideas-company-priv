@@ -8,6 +8,11 @@ use App\Models\{Bug, BugFile};
 
 class BugFileTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -22,16 +27,13 @@ class BugFileTest extends TestCase
 			'name'        => 'file',
 			'extension'   => 'png',
 			'file_size'   => 1024,
-			'created_by'  => 'user1',
 			'bug_id'      => Bug::factory()->create()->id,
 			'user_type'   => 'client',
 		];
 
 		$bf = BugFile::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $bf->$field);
-		}
+		$this->assertFillableMatches($data, $bf);
 	}
 
 	/**

@@ -34,7 +34,11 @@ enum LogType: string
 	case Schedule = 'schedule';
 	case Console = 'console';
 	case System = 'system';
-	case Other = 'other';
+	    case UploadFile = 'Upload File';
+    case Move = 'Move';
+    case UpdateSources = 'Update Sources';
+    case Nonexistent = 'Nonexistent';
+    case Other = 'other';
 
 	public static function normalize(?string $value): self
 	{
@@ -63,6 +67,7 @@ enum LogType: string
 			// Warning
 			'warning'       => self::Warning,
 			'warn'          => self::Warning,
+			'alerta'        => self::Warning,
 			'advertência'   => self::Warning,
 
 			// Info
@@ -118,6 +123,7 @@ enum LogType: string
 			'job'           => self::Job,
 			'trabalho'      => self::Job,
 			'queue_job'     => self::Job,
+			'queue'         => self::Job,
 
 			// Event
 			'event'         => self::Event,

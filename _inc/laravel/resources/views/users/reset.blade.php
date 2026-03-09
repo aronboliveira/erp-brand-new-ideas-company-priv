@@ -1,19 +1,17 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
-
-    $updBase   = VW::USR . '.password.update';
-    $updKebab  = Str::kebab($updBase);
-    $updName   = Route::has($updBase) ? $updBase : (Route::has($updKebab) ? $updKebab : null);
-    $updUrl    = ($updName && ($user?->id)) ? route($updName, [$user?->id]) : '#';
-    $updGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_password_route_unavailable')
-                 ?? 'Update user password route is unavailable. Please contact technical support or your domain administrator.';
-    $formId    = 'user-password-update-form-' . ($user?->id ?? 'unknown');
+        $updBase   = VW::USR . '.password.update';
+        $updKebab  = Str::kebab($updBase);
+        $updName   = Route::has($updBase) ? $updBase : (Route::has($updKebab) ? $updKebab : null);
+        $updUrl    = ($updName && ($user?->id)) ? route($updName, [$user?->id]) : '#';
+        $updGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_password_route_unavailable')
+                     ?? 'Update user password route is unavailable. Please contact technical support or your domain administrator.';
+        $formId    = 'user-password-update-form-' . ($user?->id ?? 'unknown');
+    } catch (\Throwable $e) {
+        \Log::error('users/reset — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::model($user, [
@@ -35,7 +33,7 @@
                        required
                        autocomplete="new-password">
                 @error('password')
-                    <span class="invalid-feedback" role="alert">
+                    <span class="{{ VC::INV_FB }}" role="alert">
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror

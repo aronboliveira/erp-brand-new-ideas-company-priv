@@ -1,30 +1,30 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\{Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $productsIsList = (is_array($products ?? null) && count($products ?? []) > 0) || (($products ?? null) instanceof Collection && $products->isNotEmpty());
-    $productOptions = $productsIsList ? (is_array($products) ? $products : $products->toArray()) : [__('No products available')];
+        $productsIsList = (is_array($products ?? null) && count($products ?? []) > 0) || (($products ?? null) instanceof Collection && $products->isNotEmpty());
+        $productOptions = $productsIsList ? (is_array($products) ? $products : $products->toArray()) : [__('No products available')];
+    } catch (\Throwable $e) {
+        \Log::error('estimations/products — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="{{ VC::CD }} bg-none card-box">
     @if(!empty($estimation) && isset($estimation->id))
         @if(!empty($product) && isset($product->id))
             @php
-                $formId     = 'est-prod-update-form';
-                $base       = VW::EST . '.products.update';
-                $kebab      = Str::kebab($base);
-                $resolved   = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
-                $actionUrl  = ($resolved && isset($estimation?->id, $product?->id)) ? route($resolved, [$estimation->id, $product->id]) : '#';
-                $guardMsg   = Utility::fetchLinkMessage($lang, VW::EST, 'update_product_route_unavailable') ?? 'Update product route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                $formId     ??= 'est-prod-update-form';
+                try {
+                    $base       = VW::EST . '.products.update';
+                    $kebab      = Str::kebab($base);
+                    $resolved   = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
+                    $actionUrl  = ($resolved && isset($estimation?->id, $product?->id)) ? route($resolved, [$estimation->id, $product->id]) : '#';
+                    $guardMsg   = Utility::fetchLinkMessage($lang, VW::EST, 'update_product_route_unavailable') ?? 'Update product route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('estimations/products — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             {{ Form::model($product, [
                 'url'                => $actionUrl,
                 'method'             => 'PUT',
@@ -35,13 +35,17 @@
             ]) }}
         @else
             @php
-                $formId     = 'est-prod-store-form';
-                $base       = VW::EST . '.products.store';
-                $kebab      = Str::kebab($base);
-                $resolved   = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
-                $actionUrl  = ($resolved && isset($estimation?->id)) ? route($resolved, $estimation->id) : '#';
-                $guardMsg   = Utility::fetchLinkMessage($lang, VW::EST, 'store_product_route_unavailable') ?? 'Store product route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                $formId     ??= 'est-prod-store-form';
+                try {
+                    $base       = VW::EST . '.products.store';
+                    $kebab      = Str::kebab($base);
+                    $resolved   = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
+                    $actionUrl  = ($resolved && isset($estimation?->id)) ? route($resolved, $estimation->id) : '#';
+                    $guardMsg   = Utility::fetchLinkMessage($lang, VW::EST, 'store_product_route_unavailable') ?? 'Store product route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('estimations/products — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             {{ Form::model($estimation, [
                 'url'                => $actionUrl,
                 'method'             => 'POST',

@@ -1,29 +1,46 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $updateRoute = Route::has(ViewsConstants::ANC.'.update')
-        ? route(ViewsConstants::ANC.'.update', $announcement->id)
-        : '#';
-    $formId = 'announcement-update-form';
-    $updateMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::ANC,
-        'announcement_update_route_unavailable'
-    ) ?? 'Announcement update route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$announcementId ??= null;
+	$updateRoute ??= '#';
+	$formId ??= 'announcement-update-form';
+	$updateMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$announcementId = data_get($announcement ?? null, 'id', null);
+		$updateRoute = ($announcementId && Route::has(ViewsConstants::ANC . '.update'))
+			? (route(ViewsConstants::ANC . '.update', $announcementId) ?? '#')
+			: '#';
+		$updateMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::ANC,
+			'announcement_update_route_unavailable'
+		) ?? 'Announcement update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in announcements/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in announcements/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in announcements/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($announcement) && isset($announcement?->id))
     {{ Form::model($announcement, [
-        'route'             => [$updateRoute],
+        'url'               => $updateRoute,
         'method'            => 'PUT',
         'id'                => $formId,
         'data-url'          => $updateRoute,
@@ -31,20 +48,48 @@
         'data-guard-msg'    => $updateMsg,
     ]) }}
         <div class="modal-body">
-            @php $plan = Utility::getChatGPTSettings(); @endphp
+            @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
                 @php
-                    $lang = Utility::fetchUserLang();
-                    $aiGenerateRoute = Route::has('generate')
-                        ? route('generate', ['announcement'])
-                        : '#';
-                    $aiGenerateId = 'announcement-ai-generate-link';
-                    $aiGenerateMsg = Utility::fetchLinkMessage(
-                        $lang,
-                        ViewsConstants::ANC,
-                        'announcement_generate_route_unavailable'
-                    ) ?? 'Generate with AI route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
+$aiLang ??= 'en';
+                    $aiGenerateRoute ??= '#';
+                    $aiGenerateId ??= 'announcement-ai-generate-link';
+                    $aiGenerateMsg ??= '';
+                    try {
+                        $aiLang = Utility::fetchUserLang() ?? 'en';
+                        $aiGenerateRoute = Route::has('generate')
+                            ? (route('generate', ['announcement']) ?? '#')
+                            : '#';
+                        $aiGenerateMsg = Utility::fetchLinkMessage(
+                            $aiLang,
+                            ViewsConstants::ANC,
+                            'announcement_generate_route_unavailable'
+                        ) ?? 'Generate with AI route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Error $e) {
+                        AiLog::error('Error in announcements/edit.blade.php AI @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    } catch (\Exception $e) {
+                        AiLog::error('Exception in announcements/edit.blade.php AI @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    } catch (\Throwable $e) {
+                        AiLog::error('Throwable in announcements/edit.blade.php AI @php block', [
+                            'exception_class' => get_class($e),
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ]);
+                    }
+@endphp
                 <div class="{{ VC::DFL_JCE }}">
                     <a href="#"
                     data-size="md"
@@ -103,5 +148,5 @@
         <script defer src="{{ asset('assets/js/routes/announcements/edit.js') }}"></script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-danger">{{ __('Announcement not found.') }}</div>
+    <div class="{{ VC::ALT_DNG }}">{{ __('Announcement not found.') }}</div>
 @endif

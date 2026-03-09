@@ -1,23 +1,28 @@
 <?php
 
-namespace Tests\Unit\Models;
+namespace Tests\Unit\app\Models\info;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\NotificationTemplateLangs;
+use App\Models\NotificationTemplateLang;
 
 class NotificationTemplateLangsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
 	 ** @test
 	 **
-	 ** The NotificationTemplateLangs model has the expected fillable fields.
+	 ** The NotificationTemplateLang model has the expected fillable fields.
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = ['parent_id', 'lang', 'content', 'variables', 'created_by'];
-		$this->assertEquals($expected, (new NotificationTemplateLangs())->getFillable());
+		$this->assertEquals($expected, (new NotificationTemplateLang())->getFillable());
 	}
 }

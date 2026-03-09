@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Helpers\AppModuleTypeCast;
-use App\Enums\AppModuleType;
-use App\Models\Utility;
-use App\Traits\{HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
-use Illuminate\Support\Facades\{DB, Log, Schema};
 use ReflectionClass;
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\{AppModuleType};
+use App\Helpers\{AppModuleTypeCast};
+use App\Models\{Utility};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class BasicFavorite extends Model
 {
@@ -107,25 +108,30 @@ class BasicFavorite extends Model
 
 	private static function allowedTables(): array
 	{
-		if (self::$allowedTablesCache !== null)
-			return self::$allowedTablesCache;
+	    try {
+    		if (self::$allowedTablesCache !== null)
+    			return self::$allowedTablesCache;
 
-		$out = [];
-		try {
-			$ref = new ReflectionClass(DC::class);
-			foreach ($ref->getConstants() as $k => $v) {
-				if (!is_string($k) || !is_string($v)) continue;
-				if (!str_starts_with($k, 'TABLE_')) continue;
-				$vv = trim($v);
-				if ($vv === '') continue;
-				$out[] = $vv;
-			}
-		} catch (\Throwable) {
-			$out = [DC::TABLE_NOTES];
-		}
+    		$out = [];
+    		try {
+    			$ref = new ReflectionClass(DC::class);
+    			foreach ($ref->getConstants() as $k => $v) {
+    				if (!is_string($k) || !is_string($v)) continue;
+    				if (!str_starts_with($k, 'TABLE_')) continue;
+    				$vv = trim($v);
+    				if ($vv === '') continue;
+    				$out[] = $vv;
+    			}
+    		} catch (\Throwable) {
+    			$out = [DC::TABLE_NOTES];
+    		}
 
-		$out = array_values(array_unique($out));
-		self::$allowedTablesCache = $out;
-		return $out;
+    		$out = array_values(array_unique($out));
+    		self::$allowedTablesCache = $out;
+    		return $out;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::allowedTables — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 }

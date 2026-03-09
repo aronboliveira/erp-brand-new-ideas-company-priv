@@ -1,36 +1,37 @@
 @php
-    use App\Config\Constants\{
-        ActivitiesConstants,
-        PlansConstants,
-        ProjectsConstants,
-        ViewsConstants,
-        DatabaseConstants,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\{Utility, User, Plan};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $bugStoreBaseName     = ViewsConstants::PRJ_TSK_BUG.'.store';
-    $bugStoreKebabName    = Str::kebab($bugStoreBaseName);
-    $bugStoreResolvedName = Route::has($bugStoreBaseName)
-        ? $bugStoreBaseName
-        : (Route::has($bugStoreKebabName) ? $bugStoreKebabName : null);
-    $projectId            = isset($project_id) && !empty($project_id) ? $project_id : null;
-    $bugStoreRouteArray   = ($bugStoreResolvedName && $projectId) ? [$bugStoreResolvedName, $projectId] : ['#'];
-    $bugStoreUrl          = ($bugStoreResolvedName && $projectId) ? route($bugStoreResolvedName, $projectId) : '#';
-    $bugStoreGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-    $bugStoreFormId       = 'create_bug';
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+
+            function resolveBugCreateRoute($baseName) {
+            $kebab = Str::kebab($baseName);
+            return Route::has($baseName) ? $baseName : (Route::has($kebab) ? $kebab : null);
+        }
+
+            function safeBugCreateRoute($routeName, $params = []) {
+            return $routeName ? route($routeName, $params) : '#';
+        }
+
+        $projectId = isset($project_id) && !empty($project_id) ? $project_id : null;
+        $bugStoreRouteName = resolveBugCreateRoute(ViewsConstants::PRJ_TSK_BUG.'.store');
+        $bugStoreUrl = $bugStoreRouteName && $projectId ? safeBugCreateRoute($bugStoreRouteName, $projectId) : '#';
+        $bugStoreRouteArray = $bugStoreRouteName && $projectId ? [$bugStoreRouteName, $projectId] : ['#'];
+
+        $guardMessages = [
+            'bug_store' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'create_bug_route_unavailable') ?? 'Create bug route is unavailable. Please contact technical support or your domain administrator.',
+            'ai_generate' => Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'generate_project_bug_route_unavailable') ?? 'Generate project bug route is unavailable. Please contact technical support or your domain administrator.',
+        ];
+    } catch (\Throwable $e) {
+        \Log::error('projects/bug_create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'route'          => $bugStoreRouteArray,
     'method'         => 'post',
     'accept-charset' => 'UTF-8',
-    'id'             => $bugStoreFormId,
+    'id'             => 'create_bug',
     'data-url'       => $bugStoreUrl,
-    'data-guard-msg' => $bugStoreGuardMsg
+    'data-guard-msg' => $guardMessages['bug_store']
 ]) !!}
     @csrf
     <div class="modal-body">
@@ -38,30 +39,22 @@
             @php
                 $planUser = User::find($user->creatorId());
                 $plan     = Plan::getPlan($planUser?->plan ?? DatabaseConstants::DEFAULT_PLAN);
-            @endphp
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
-                <div class="float-end">
+                <div class="{{ VC::FEND }}">
                     @php
-                        $aiGenerateBaseName        = 'generate';
-                        $aiGenerateKebabName       = Str::kebab($aiGenerateBaseName);
-                        $aiGenerateResolvedName    = Route::has($aiGenerateBaseName)
-                            ? $aiGenerateBaseName
-                            : (Route::has($aiGenerateKebabName) ? $aiGenerateKebabName : null);
-                        $aiGenerateParam           = ['project bug'];
-                        $aiGenerateUrl             = $aiGenerateResolvedName ? route($aiGenerateResolvedName, $aiGenerateParam) : '#';
-                        $aiGenerateGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'generate_project_bug_route_unavailable') ?? 'Generate project bug route is unavailable. Please contact technical support or your domain administrator.';
-                        $aiGenerateLinkId          = 'ai-generate-project-bug-link';
-                        $aiGenerateTitle           = __('Generate content with AI');
-                    @endphp
+                        $aiGenerateRouteName = resolveBugCreateRoute('generate');
+                        $aiGenerateUrl = safeBugCreateRoute($aiGenerateRouteName, ['project bug']);
+@endphp
                     <a href="{{ $aiGenerateUrl }}"
-                    id="{{ $aiGenerateLinkId }}"
                     data-size="md"
-                    class="btn btn-primary btn-icon btn-sm"
+                    class="{{ VC::BT_PRM }} btn-icon btn-sm"
                     data-ajax-popup-over="true"
+                    data-route-guard
                     data-url="{{ $aiGenerateUrl }}"
-                    data-guard-msg="{{ $aiGenerateGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($guardMessages['ai_generate']) }}"
                     data-bs-placement="top"
-                    data-title="{{ $aiGenerateTitle }}">
+                    data-title="{{ __('Generate content with AI') }}">
                         <i class="{{ VC::FAS_RB }}"></i>
                         <span>{{ __('Generate with AI') }}</span>
                     </a>
@@ -112,85 +105,59 @@
         <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PM }}">
     </div>
 {!! Form::close() !!}
-<script defer>
-    (() => {
-        try {
-            const f = document.getElementById('{{ $bugStoreFormId }}');
-            if (!f || f.getAttribute('data-listener-active') === 'true') return;
-            f.setAttribute('data-listener-active', 'true');
-            f.addEventListener('submit', e => {
-                try {
-                    const url = f.getAttribute('data-url') || '#';
-                    const action = f.getAttribute('action') || '#';
-                    if (url !== '#' || action !== '#') return;
-                    e.preventDefault();
-                    const msg = f.getAttribute('data-guard-msg') || 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    f.setAttribute('data-failed-route', 'true');
-                } catch (err) {}
+<script>
+if (typeof window.BugCreateHandler === 'undefined') {
+    window.BugCreateHandler = {
+        debounceMap: new Map(),
+
+        init() {
+            document.querySelectorAll('[data-route-guard]').forEach(el => this.attachClickHandler(el));
+            document.querySelectorAll('form[data-guard-msg]').forEach(form => this.attachFormHandler(form));
+        },
+
+        attachClickHandler(el) {
+            const elId = el.getAttribute('data-url') || el.href;
+            el.addEventListener('click', (e) => {
+                if (this.debounceMap.has(elId)) { e.preventDefault(); return; }
+                const href = el.getAttribute('href') || '#';
+                const url = el.getAttribute('data-url') || href || '#';
+                if (href !== '#' && url !== '#') return;
+                e.preventDefault();
+                this.showToast(el.getAttribute('data-guard-msg') || 'Route unavailable');
+                this.debounceMap.set(elId, true);
+                setTimeout(() => this.debounceMap.delete(elId), 800);
+            }, { passive: false });
+        },
+
+        attachFormHandler(form) {
+            form.addEventListener('submit', (e) => {
+                const url = form.getAttribute('data-url') || '#';
+                const action = form.getAttribute('action') || '#';
+                if (url !== '#' || action !== '#') return;
+                e.preventDefault();
+                this.showToast(form.getAttribute('data-guard-msg') || 'Form submission unavailable');
             });
-        } catch (error) {}
-    })();
-</script>
-<script defer>
-    (() => {
-        try {
-            const l = document.getElementById('{{ $aiGenerateLinkId }}');
-            if (!l || l.getAttribute('data-listener-active') === 'true') return;
-            l.setAttribute('data-listener-active', 'true');
-            l.addEventListener('click', e => {
-                try {
-                    const href = l.getAttribute('href') || '#';
-                    const url = l.getAttribute('data-url') || href || '#';
-                    if (href !== '#' || url !== '#') return;
-                    e.preventDefault();
-                    const msg = l.getAttribute('data-guard-msg') || 'Generate project bug route is unavailable. Please contact technical support or your domain administrator.';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (hasBootstrap) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    l.setAttribute('data-failed-route', 'true');
-                } catch (err) {}
-            });
-        } catch (error) {}
-    })();
+        },
+
+        showToast(msg) {
+            const container = document.getElementById('toast-container') || (() => {
+                const c = document.createElement('div');
+                c.id = 'toast-container';
+                c.className = 'position-fixed top-0 end-0 p-3';
+                document.body.appendChild(c);
+                return c;
+            })();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+            container.appendChild(toast);
+            window.bootstrap?.Toast?.getOrCreateInstance(toast)?.show() || alert(msg);
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+        }
+    };
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.BugCreateHandler.init()) : window.BugCreateHandler.init();
+}
 </script>

@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (function () {
   if (!window.translations) {
     window.translations = {};
@@ -104,7 +105,7 @@
     window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
   });
   (function () {
-    let t = {
+    var t = {
       ar: {
         action_unavailable: "الإجراء غير متاح.",
         dashboard_unavailable: "لوحة التحكم غير متاحة.",
@@ -213,4 +214,3 @@
       });
     }
   })();
-})();

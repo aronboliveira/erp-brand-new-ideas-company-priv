@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Unit\Mail;
+namespace Tests\Unit\app\Mail;
 
 use App\Mail\TestMail;
 use Illuminate\Mail\Mailable;
 use Tests\TestCase;
 
-class TestMailTest extends TestCase
+class TestEmailTest extends TestCase
 {
 	/**
 	 ** @test

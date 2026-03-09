@@ -1,34 +1,7 @@
+/** @requires ERPGuard */
 (() => {
-  const show = msg => {
-    try {
-      const hasBs = !!window.bootstrap?.Toast;
-      if (hasBs) {
-        const c =
-          document.getElementById("toast-container") ||
-          (() => {
-            const t = document.createElement("div");
-            t.id = "toast-container";
-            document.body.appendChild(t);
-            return t;
-          })();
-        const el = document.createElement("div");
-        el.className = "toast";
-        el.setAttribute("role", "alert");
-        el.setAttribute("aria-live", "assertive");
-        el.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = msg;
-        el.appendChild(body);
-        c.appendChild(el);
-        window.bootstrap.Toast.getOrCreateInstance(el).show();
-      } else {
-        alert(msg);
-      }
-    } catch {
-      alert(msg);
-    }
-  };
+  const { scheduleError } = window.ERPGuard ?? {};
+  if (typeof scheduleError !== "function") return;
 
   const safeUrl = el =>
     (
@@ -50,22 +23,22 @@
         const url = safeUrl(form);
         if (!url || url === "#") {
           e.preventDefault();
-          show(guard(form));
+          scheduleError(guard(form), "submit");
         }
       },
-      { passive: false }
+      { passive: false },
     );
   }
 
   const guardLinks = Array.from(
-    document.querySelectorAll('a[data-ajax-popup-over="true"]')
+    document.querySelectorAll('a[data-ajax-popup-over="true"]'),
   );
   guardLinks.forEach(a => {
     a.addEventListener("click", e => {
       const url = safeUrl(a);
       if (!url || url === "#") {
         e.preventDefault();
-        show(guard(a));
+        scheduleError(guard(a), "click");
       }
     });
   });

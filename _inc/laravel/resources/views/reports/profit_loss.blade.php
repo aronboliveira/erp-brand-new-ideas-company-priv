@@ -1,19 +1,12 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $authUser = $user?->creatorId() ?? null;
-    $creatorUser = User::find($authUser);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $authUser = $user?->creatorId() ?? null;
+        $creatorUser = User::find($authUser);
+    } catch (\Throwable $e) {
+        \Log::error('reports/profit_loss — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -21,13 +14,13 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Profit & Loss') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Profit & Loss') }}</li>
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
@@ -36,33 +29,35 @@
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-        $printBase        = VW::RPT.'.profit.loss.print';
-        $printKebab       = Str::kebab($printBase);
-        $printResolved    = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
-        $printActionRoute = $printResolved ? [$printResolved] : ['#'];
-        $printActionUrl   = $printResolved ? route($printResolved) : '#';
-        $printGuardMsg    = Utility::fetchLinkMessage($langValue, VW::RPT, 'print_profit_loss_route_unavailable') ?? 'Print profit and loss route is unavailable. Please contact technical support or your domain administrator.';
-        $exportBase        = VW::RPT.'.profit.loss.export';
-        $exportKebab       = Str::kebab($exportBase);
-        $exportResolved    = Route::has($exportBase) ? $exportBase : (Route::has($exportKebab) ? $exportKebab : null);
-        $exportActionRoute = $exportResolved ? [$exportResolved] : ['#'];
-        $exportActionUrl   = $exportResolved ? route($exportResolved) : '#';
-        $exportGuardMsg    = Utility::fetchLinkMessage($langValue, VW::RPT, 'export_profit_loss_route_unavailable') ?? 'Export profit and loss route is unavailable. Please contact technical support or your domain administrator.';
-        $horizontalBase     = VW::RPT.'.profit.loss';
-        $horizontalKebab    = Str::kebab($horizontalBase);
-        $horizontalResolved = Route::has($horizontalBase) ? $horizontalBase : (Route::has($horizontalKebab) ? $horizontalKebab : null);
-        $horizontalUrl      = $horizontalResolved ? route($horizontalResolved, 'horizontal') : '#';
-        $horizontalGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_profit_loss_horizontal_route_unavailable') ?? 'Horizontal profit & loss view route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <div class="float-end">
-        {{ Form::open([
-            'route'             => $printActionRoute,
-            'id'                => 'profit-loss-print',
-            'data-url'          => $printActionUrl,
-            'data-guard-msg'    => $printGuardMsg,
-            'data-sv-localized' => 'true',
-        ]) }}
+        try {
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $printBase        = VW::RPT.'.profit.loss.print';
+            $printKebab       = Str::kebab($printBase);
+            $printResolved    = Route::has($printBase) ? $printBase : (Route::has($printKebab) ? $printKebab : null);
+            $printActionRoute = $printResolved ? [$printResolved] : ['#'];
+            $printActionUrl   = $printResolved ? route($printResolved) : '#';
+            $printGuardMsg    = Utility::fetchLinkMessage($langValue, VW::RPT, 'print_profit_loss_route_unavailable') ?? 'Print profit and loss route is unavailable. Please contact technical support or your domain administrator.';
+            $exportBase        = VW::RPT.'.profit.loss.export';
+            $exportKebab       = Str::kebab($exportBase);
+            $exportResolved    = Route::has($exportBase) ? $exportBase : (Route::has($exportKebab) ? $exportKebab : null);
+            $exportActionRoute = $exportResolved ? [$exportResolved] : ['#'];
+            $exportActionUrl   = $exportResolved ? route($exportResolved) : '#';
+            $exportGuardMsg    = Utility::fetchLinkMessage($langValue, VW::RPT, 'export_profit_loss_route_unavailable') ?? 'Export profit and loss route is unavailable. Please contact technical support or your domain administrator.';
+            $horizontalBase     = VW::RPT.'.profit.loss';
+            $horizontalKebab    = Str::kebab($horizontalBase);
+            $horizontalResolved = Route::has($horizontalBase) ? $horizontalBase : (Route::has($horizontalKebab) ? $horizontalKebab : null);
+            $horizontalUrl      = $horizontalResolved ? route($horizontalResolved, 'horizontal') : '#';
+            $horizontalGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_profit_loss_horizontal_route_unavailable') ?? 'Horizontal profit & loss view route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('reports/profit_loss — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <div class="{{ VC::FEND }}">
+        {{ Form::open(
+            $printResolved
+                ? ['route' => [$printResolved], 'id' => 'profit-loss-print', 'data-url' => $printActionUrl, 'data-guard-msg' => $printGuardMsg, 'data-sv-localized' => 'true']
+                : ['url' => '#', 'id' => 'profit-loss-print', 'data-url' => '#', 'data-guard-msg' => $printGuardMsg, 'data-sv-localized' => 'true']
+        ) }}
             <input type="hidden" name="start_date" class="start_date">
             <input type="hidden" name="end_date" class="end_date">
             <button type="submit" class="{{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Print') }}" data-original-title="{{ __('Print') }}">
@@ -70,30 +65,28 @@
             </button>
         {{ Form::close() }}
     </div>
-    <div class="float-end me-2">
-        {{ Form::open([
-            'route'             => $exportActionRoute,
-            'id'                => 'profit-loss-export',
-            'data-url'          => $exportActionUrl,
-            'data-guard-msg'    => $exportGuardMsg,
-            'data-sv-localized' => 'true',
-        ]) }}
+    <div class="{{ VC::FEND }} me-2">
+        {{ Form::open(
+            $exportResolved
+                ? ['route' => [$exportResolved], 'id' => 'profit-loss-export', 'data-url' => $exportActionUrl, 'data-guard-msg' => $exportGuardMsg, 'data-sv-localized' => 'true']
+                : ['url' => '#', 'id' => 'profit-loss-export', 'data-url' => '#', 'data-guard-msg' => $exportGuardMsg, 'data-sv-localized' => 'true']
+        ) }}
             <input type="hidden" name="start_date" class="start_date">
             <input type="hidden" name="end_date" class="end_date">
             <button type="submit" class="{{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Export') }}" data-original-title="{{ __('Export') }}">
-                <i class="ti ti-file-export"></i>
+                <i class="{{ VC::TI_EXP }}"></i>
             </button>
         {{ Form::close() }}
     </div>
-    <div class="float-end me-2" id="filter">
+    <div class="{{ VC::FEND }} me-2" id="filter">
         <button id="filter" class="{{ VC::BT_SM_PM }}"><i class="ti ti-filter"></i></button>
     </div>
-    <div class="float-end me-2">
+    <div class="{{ VC::FEND }} me-2">
         <a id="profit-loss-horizontal-open"
            href="{{ $horizontalUrl }}"
            class="{{ VC::BT_SM_PM }}"
            data-url="{{ $horizontalUrl }}"
-           data-guard-msg="{{ $horizontalGuardMsg }}"
+           data-guard-msg="{{ base64_encode($horizontalGuardMsg) }}"
            data-sv-localized="true"
            data-bs-toggle="tooltip"
            title="{{ __('Horizontal View') }}"
@@ -109,6 +102,7 @@
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
+    @include('reports.partials._report_styles')
     <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
         <li class="{{ VC::NV_IT }}">
             <a class="{{ VC::NV_LK }} active"
@@ -121,13 +115,17 @@
         </li>
         <li class="{{ VC::NV_IT }}">
             @php
-                $monthlyPurchaseBase = VW::RPT.'.monthly.purchase';
-                $monthlyPurchaseKebab = Str::kebab($monthlyPurchaseBase);
-                $monthlyPurchaseResolved = Route::has($monthlyPurchaseBase) ? $monthlyPurchaseBase : (Route::has($monthlyPurchaseKebab) ? $monthlyPurchaseKebab : null);
-                $monthlyPurchaseUrl = $monthlyPurchaseResolved ? route($monthlyPurchaseResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_monthly_purchase_route_unavailable') ?? 'Monthly purchase route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $monthlyPurchaseBase = VW::RPT.'.monthly.purchase';
+                    $monthlyPurchaseKebab = Str::kebab($monthlyPurchaseBase);
+                    $monthlyPurchaseResolved = Route::has($monthlyPurchaseBase) ? $monthlyPurchaseBase : (Route::has($monthlyPurchaseKebab) ? $monthlyPurchaseKebab : null);
+                    $monthlyPurchaseUrl = $monthlyPurchaseResolved ? route($monthlyPurchaseResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $guardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'open_monthly_purchase_route_unavailable') ?? 'Monthly purchase route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('reports/profit_loss — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a class="{{ VC::NV_LK }}"
             id="pills-profile-tab"
             data-bs-toggle="pill"
@@ -136,7 +134,7 @@
             aria-controls="pills-profile"
             aria-selected="false"
             data-url="{{ $monthlyPurchaseUrl }}"
-            data-guard-msg="{{ $guardMsg }}"
+            data-guard-msg="{{ base64_encode($guardMsg) }}"
             data-sv-localized="true">{{ __('Quarterly') }}</a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/purchases/monthly/open.js') }}" defer></script>
@@ -145,23 +143,27 @@
     </ul>
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $plsBase = VW::RPT.'.profit.loss.summary';
-                            $plsKebab = Str::kebab($plsBase);
-                            $plsResolved = Route::has($plsBase) ? $plsBase : (Route::has($plsKebab) ? $plsKebab : null);
-                            $actionRoute = $plsResolved ? [$plsResolved] : ['#'];
-                            $actionUrl = $plsResolved ? route($plsResolved) : '#';
-                            $resetUrl = $actionUrl;
-                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_profit_loss_summary_route_unavailable') ?? 'Apply profit & loss summary route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_profit_loss_summary_route_unavailable') ?? 'Reset profit & loss summary route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
-                        {{ Form::open(['route'=>$actionRoute,'method'=>'GET','id'=>'report_profit_loss_summary','data-url'=>$actionUrl,'data-guard-msg'=>$applyGuardMsg,'data-sv-localized'=>'true']) }}
+                            try {
+                                $plsBase = VW::RPT.'.profit.loss.summary';
+                                $plsKebab = Str::kebab($plsBase);
+                                $plsResolved = Route::has($plsBase) ? $plsBase : (Route::has($plsKebab) ? $plsKebab : null);
+                                $actionRoute = $plsResolved ? [$plsResolved] : ['#'];
+                                $actionUrl = $plsResolved ? route($plsResolved) : '#';
+                                $resetUrl = $actionUrl;
+                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_profit_loss_summary_route_unavailable') ?? 'Apply profit & loss summary route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_profit_loss_summary_route_unavailable') ?? 'Reset profit & loss summary route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/profit_loss — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
+                        {{ Form::open($plsResolved ? ['route'=>[$plsResolved],'method'=>'GET','id'=>'report_profit_loss_summary','data-url'=>$actionUrl,'data-guard-msg'=>$applyGuardMsg,'data-sv-localized'=>'true'] : ['url'=>'#','method'=>'GET','id'=>'report_profit_loss_summary','data-url'=>'#','data-guard-msg'=>$applyGuardMsg,'data-sv-localized'=>'true']) }}
                             <div class="{{ VC::R_ALC_JCE }}">
-                                <div class="col-xl-10">
+                                <div class="{{ VC::CXL10 }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
                                         <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
@@ -177,10 +179,10 @@
                                 <div class="{{ VC::C_AT }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
-                                            <a id="apply-profit-loss-summary" href="#" class="{{ VC::BT_SM_PM }}" data-form-id="report_profit_loss_summary" data-guard-msg="{{ $applyGuardMsg }}" data-sv-localized="true" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}">
+                                            <a id="apply-profit-loss-summary" href="#" class="{{ VC::BT_SM_PM }}" data-form-id="report_profit_loss_summary" data-guard-msg="{{ base64_encode($applyGuardMsg) }}" data-sv-localized="true" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                             </a>
-                                            <a id="reset-profit-loss-summary" href="{{ $resetUrl }}" class="{{ VC::BT_SM_DG }}" data-url="{{ $resetUrl }}" data-guard-msg="{{ $resetGuardMsg }}" data-sv-localized="true" data-bs-toggle="tooltip" title="{{ __('Reset') }}" data-original-title="{{ __('Reset') }}">
+                                            <a id="reset-profit-loss-summary" href="{{ $resetUrl }}" class="{{ VC::BT_SM_DG }}" data-url="{{ $resetUrl }}" data-guard-msg="{{ base64_encode($resetGuardMsg) }}" data-sv-localized="true" data-bs-toggle="tooltip" title="{{ __('Reset') }}" data-original-title="{{ __('Reset') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                             </a>
                                         </div>
@@ -198,12 +200,32 @@
         </div>
     </div>
     @php
-        $startLabel = $filter['startDateRange'] ?? __('No start date available');
-        $endLabel   = $filter['endDateRange']   ?? __('No end date available');
-        $months     = $month ?? [];
-        $colspan    = max(2, count($months) + 1);
-    @endphp
+        try {
+            $startLabel = $filter['startDateRange'] ?? __('No start date available');
+            $endLabel   = $filter['endDateRange']   ?? __('No end date available');
+            $months     = $month ?? [];
+            $colspan    = max(2, count($months) + 1);
+        } catch (\Throwable $e) {
+            \Log::error('reports/profit_loss — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
     <div id="printableArea">
+        {{-- ── KPI Aggregation Cards ── --}}
+        @php
+            $plTotalIncome  = is_array($totalIncome ?? null) ? array_sum($totalIncome) : 0;
+            $plTotalExpense = is_array($totalExpense ?? null) ? array_sum($totalExpense) : 0;
+            $plNetProfit    = is_array($netProfitArray ?? null) ? array_sum($netProfitArray) : 0;
+            $fmtPlIncome    = ($user?->priceFormat($plTotalIncome))  ?? number_format((float)$plTotalIncome, 2);
+            $fmtPlExpense   = ($user?->priceFormat($plTotalExpense)) ?? number_format((float)$plTotalExpense, 2);
+            $fmtPlProfit    = ($user?->priceFormat($plNetProfit))    ?? number_format((float)$plNetProfit, 2);
+            $plProfitTone   = $plNetProfit >= 0 ? 'positive' : 'negative';
+        @endphp
+        @include('reports.partials._kpi_cards', ['kpiHeading' => __('Profit & Loss Overview'), 'kpis' => [
+            ['label' => __('Total Income'),  'value' => $fmtPlIncome,  'tone' => 'positive'],
+            ['label' => __('Total Expense'), 'value' => $fmtPlExpense, 'tone' => 'negative'],
+            ['label' => __('Net Profit'),    'value' => $fmtPlProfit,  'tone' => $plProfitTone],
+        ]])
+
         <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="col">
                 <div class="{{ VC::CD_POS }}">
@@ -224,31 +246,34 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CS12 }}">
                                 <h5 class="pb-3">{{ __('Income') }}</h5>
-                                <div class="table-responsive mt-3 mb-3">
-                                    <table class="{{ VC::TB }}">
+                                <div class="{{ VC::TB_RSP }} {{ VC::MT3 }} {{ VC::MB3 }}">
+                                    <table class="{{ VC::TB }} rpt-table" role="table" aria-label="{{ __('Income Breakdown') }}">
+                                        <caption class="sr-only">{{ __('Revenue and invoice income by category and month') }}</caption>
                                         <thead>
                                         <tr>
-                                            <th width="25%">{{ __('Category') }}</th>
+                                            <th scope="col" width="25%">{{ __('Category') }}</th>
                                             @forelse($months as $m)
-                                                <th width="15%">{{ $m }}</th>
+                                                <th scope="col" width="15%">{{ $m }}</th>
                                             @empty
                                                 <th>{{ __('No months available') }}</th>
                                             @endforelse
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
-                                            <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Revenue : ') }}</span></td>
+                                        <tr class="rpt-section-header">
+                                            <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Revenue : ') }}</span></td>
                                         </tr>
 
                                         @forelse($revenueIncomeArray ?? [] as $revenue)
                                             <tr>
                                                 <td>{{ $revenue['category'] ?? __('No revenue category available') }}</td>
-                                                @php $amounts = $revenue['amount'] ?? []; @endphp
+                                                @php
+ $amounts = $revenue['amount'] ?? [];
+@endphp
                                                 @forelse($amounts as $amount)
                                                     <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                 @empty
@@ -261,14 +286,16 @@
                                             </tr>
                                         @endforelse
 
-                                        <tr>
-                                            <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Invoice : ') }}</span></td>
+                                        <tr class="rpt-section-header">
+                                            <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Invoice : ') }}</span></td>
                                         </tr>
 
                                         @forelse($invoiceIncomeArray ?? [] as $invoice)
                                             <tr>
                                                 <td>{{ $invoice['category'] ?? __('No invoice category available') }}</td>
-                                                @php $amounts = $invoice['amount'] ?? []; @endphp
+                                                @php
+ $amounts = $invoice['amount'] ?? [];
+@endphp
                                                 @forelse($amounts as $amount)
                                                     <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                 @empty
@@ -284,16 +311,16 @@
                                     </table>
                                 </div>
 
-                                <div class="table-responsive mt-1 mb-4">
+                                <div class="{{ VC::TB_RSP }} {{ VC::MT1 }} {{ VC::MB4 }}">
                                     <table class="table table-flush border">
                                         <tbody>
                                         <tr>
-                                            <td colspan="{{ $colspan }}" class="text-dark">
+                                            <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}">
                                                 <span>{{ __('Total Income =  Revenue + Invoice ') }}</span>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td width="25%" class="text-dark">{{ __('Total Income') }}</td>
+                                            <td width="25%" class="{{ VC::TX_DK }}">{{ __('Total Income') }}</td>
                                             @forelse(($totalIncome ?? []) as $income)
                                                 <td width="15%">{{ $user?->priceFormat($income) }}</td>
                                             @empty
@@ -306,27 +333,30 @@
 
                                 <div class="{{ VC::CS12 }}">
                                     <h5>{{ __('Expense') }}</h5>
-                                    <div class="table-responsive mt-4">
-                                        <table class="{{ VC::TB }} mb-0">
+                                    <div class="{{ VC::TB_RSP }} {{ VC::MT4 }}">
+                                        <table class="{{ VC::TB }} rpt-table mb-0" role="table" aria-label="{{ __('Expense Breakdown') }}">
+                                            <caption class="sr-only">{{ __('Payment and bill expenses by category and month') }}</caption>
                                             <thead>
                                             <tr>
-                                                <th width="25%">{{ __('Category') }}</th>
+                                                <th scope="col" width="25%">{{ __('Category') }}</th>
                                                 @forelse($months as $m)
-                                                    <th width="15%">{{ $m }}</th>
+                                                    <th scope="col" width="15%">{{ $m }}</th>
                                                 @empty
                                                     <th>{{ __('No months available') }}</th>
                                                 @endforelse
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr>
-                                                <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Payment : ') }}</span></td>
+                                            <tr class="rpt-section-header">
+                                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Payment : ') }}</span></td>
                                             </tr>
 
                                             @forelse($expenseArray ?? [] as $expense)
                                                 <tr>
                                                     <td>{{ $expense['category'] ?? __('No payment category available') }}</td>
-                                                    @php $amounts = $expense['amount'] ?? []; @endphp
+                                                    @php
+ $amounts = $expense['amount'] ?? [];
+@endphp
                                                     @forelse($amounts as $amount)
                                                         <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                     @empty
@@ -339,14 +369,16 @@
                                                 </tr>
                                             @endforelse
 
-                                            <tr>
-                                                <td colspan="{{ $colspan }}" class="text-dark"><span>{{ __('Bill : ') }}</span></td>
+                                            <tr class="rpt-section-header">
+                                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}"><span>{{ __('Bill : ') }}</span></td>
                                             </tr>
 
                                             @forelse($billExpenseArray ?? [] as $bill)
                                                 <tr>
                                                     <td>{{ $bill['category'] ?? __('No bill category available') }}</td>
-                                                    @php $amounts = $bill['amount'] ?? []; @endphp
+                                                    @php
+ $amounts = $bill['amount'] ?? [];
+@endphp
                                                     @forelse($amounts as $amount)
                                                         <td width="15%">{{ $user?->priceFormat($amount) }}</td>
                                                     @empty
@@ -362,16 +394,16 @@
                                         </table>
                                     </div>
 
-                                    <div class="table-responsive mt-3">
+                                    <div class="{{ VC::TB_RSP }} {{ VC::MT3 }}">
                                         <table class="table table-flush border">
                                             <tbody>
                                             <tr>
-                                                <td colspan="{{ $colspan }}" class="text-dark">
+                                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}">
                                                     <span>{{ __('Total Expense =  Payment + Bill ') }}</span>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td class="text-dark">{{ __('Total Expenses') }}</td>
+                                                <td class="{{ VC::TX_DK }}">{{ __('Total Expenses') }}</td>
                                                 @forelse(($totalExpense ?? []) as $expense)
                                                     <td width="15%">{{ $user?->priceFormat($expense) }}</td>
                                                 @empty
@@ -382,16 +414,16 @@
                                         </table>
                                     </div>
 
-                                    <div class="table-responsive mt-3">
+                                    <div class="{{ VC::TB_RSP }} {{ VC::MT3 }}">
                                         <table class="table table-flush border">
                                             <tbody>
                                             <tr>
-                                                <td colspan="{{ $colspan }}" class="text-dark">
+                                                <td colspan="{{ $colspan }}" class="{{ VC::TX_DK }}">
                                                     <span>{{ __('Net Profit = Total Income - Total Expense ') }}</span>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td width="25%" class="text-dark">{{ __('Net Profit') }}</td>
+                                                <td width="25%" class="{{ VC::TX_DK }}">{{ __('Net Profit') }}</td>
                                                 @forelse(($netProfitArray ?? []) as $profit)
                                                     <td width="15%">{{ $user?->priceFormat($profit) }}</td>
                                                 @empty

@@ -1,68 +1,17 @@
 (() => {
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langSessionKey = "erp-np-lang";
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  const $ = window.jQuery;
+  if (!guard || !utils) return;
+
   let errorMessage = "";
 
   const getLocalizedMessage = (msgKey, el) => {
-    let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem(langSessionKey) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        window.translations?.["en"]?.[msgKey] ||
-        errFb;
-      if (msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
+    return utils.getTranslation(msgKey) || "# ERROR";
   };
 
   const showError = message => {
-    try {
-      const bsLink = document.querySelector('link[href*="bootstrap"]');
-      let container = document.getElementById("toast-container");
-      if (bsLink && window.bootstrap) {
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        const toastEl = document.createElement("div");
-        toastEl.className = "toast";
-        toastEl.setAttribute("role", "alert");
-        toastEl.setAttribute("aria-live", "assertive");
-        toastEl.setAttribute("aria-atomic", "true");
-        const body = document.createElement("div");
-        body.className = "toast-body";
-        body.textContent = message;
-        toastEl.appendChild(body);
-        container.appendChild(toastEl);
-        window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
-      } else {
-        alert(message);
-      }
-    } catch {
-      alert(message);
-    }
+    guard.showToast(message);
   };
 
   const onPointerUp = () => {
@@ -94,7 +43,7 @@
           document.removeEventListener("pointerup", onPointerUp);
           obs.disconnect();
         }
-      })
+      }),
     );
   }).observe(document.body, { childList: true, subtree: true });
 })();

@@ -38,7 +38,7 @@ enum EventObservance: string
 			return self::Standard;
 		}
 
-		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Main categories
 			'compensatory', 'compensation', 'compensate', 'comp', 'lieu', 'inlieu', 'makeup', 'makeupday', 'substitute' => self::Compensatory,

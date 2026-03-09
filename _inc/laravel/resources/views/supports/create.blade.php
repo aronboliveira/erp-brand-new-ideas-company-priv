@@ -1,18 +1,5 @@
 @php
-	use App\Config\Constants\{
-		ActivitiesConstants,
-		PlansConstants,
-		ProjectsConstants,
-		SupportsConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use Illuminate\Support\Facades\Auth;
-	use InvalidArgumentException;
-	$user = Auth::user();
+$user = Auth::user();
 	$lang = Utility::fetchUserLang(user: $user);
 	$users = (is_iterable($users ?? null) || is_array($users ?? null)) ? $users : [];
 	$priority = (is_iterable($priority ?? null) || is_array($priority ?? null)) ? $priority : [];
@@ -122,7 +109,7 @@
 ]) }}
 	<div class="modal-body">
 		@if(data_get($plan, PlansConstants::COL_GPT) == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a id="{{ $generateId }}"
 				   href="{{ $generateUrl }}"
 				   data-size="md"
@@ -131,7 +118,7 @@
 				   data-url="{{ $generateUrl }}"
 				   data-bs-placement="top"
 				   data-title="{{ $genContentLabel }}"
-				   data-guard-msg="{{ $generateGuardMsg }}"
+				   data-guard-msg="{{ base64_encode($generateGuardMsg) }}"
 				   data-sv-localized="true">
 					<i class="{{ VC::FAS_RB }}"></i>
 					<span>{{ $genContentLabel }}</span>
@@ -180,7 +167,7 @@
 			<label for="attachment" class="{{ VC::FM_LB }}">
 				<input type="file" class="{{ VC::FM_CT }}" name="attachment" id="attachment" data-filename="attachment_create">
 			</label>
-			<img id="image" class="mt-2" style="width:25%;" />
+			<img id="image" class="{{ VC::MT2 }}" style="width:25%;" />
 		</div>
 	</div>
 

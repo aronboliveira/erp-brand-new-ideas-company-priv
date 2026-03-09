@@ -8,6 +8,11 @@ use App\Models\{Deal, DealEmail};
 
 class DealEmailTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -17,7 +22,20 @@ class DealEmailTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['deal_id', 'to', 'subject', 'description'];
+		$expected = [
+			'deal_id',
+			'user_id',
+			'from',
+			'to',
+			'subject',
+			'description',
+			'notes',
+			'counter',
+			'is_follow_up',
+			'attachments',
+			'attachment_filter_rules',
+			'created_by',
+		];
 		$this->assertEquals($expected, (new DealEmail())->getFillable());
 	}
 
@@ -33,6 +51,7 @@ class DealEmailTest extends TestCase
 		$email = DealEmail::create([
 			'deal_id'     => $deal->id,
 			'to'          => 'user@example.com',
+			'from'        => 'sender@example.com',
 			'subject'     => 'Test',
 			'description' => 'Details',
 		]);
@@ -52,6 +71,7 @@ class DealEmailTest extends TestCase
 		$email = DealEmail::create([
 			'deal_id'     => $deal->id,
 			'to'          => 'test@example.com',
+			'from'        => 'sender@example.com',
 			'subject'     => 'Subject',
 			'description' => 'Desc',
 		]);

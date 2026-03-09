@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use App\Helpers\SafeConsoleOutput;
 
 trait ChecksLogin
 {
@@ -28,30 +27,14 @@ trait ChecksLogin
 	 */
 	protected static function _checkLogin(bool $haltRedirect = false): Response|RedirectResponse|JsonResponse|View|User|false
 	{
-		$output = SafeConsoleOutput::make();
-		$function = __FUNCTION__;
-		$msg = 'Checking authentication in ' . $function . ', called by ' . get_called_class() .
-			' using ' . (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'] ?? 'UNKNOWN_METHOD');
-		app()->runningInConsole() ?
-			$output->writeln('<comment> ' . $msg . ' </comment>') :
-			$output->writeln("## CHECK-LOGIN: {$msg}");
-		Log::debug('[ChecksLogin] Starting authentication check: ' . $msg, ['method' => __METHOD__]);
 		$lang = DatabaseConstants::DEFAULT_LANG;
+		$msgs = LangsConstants::DEFAULT_CLIENT_MESSAGES;
 		try {
 			/** @var User|null $user */
 			$user = Auth::user();
 			$lang = Utility::fetchUserLang(user: $user);
 			$msgs = !empty(LangsConstants::ERROR_MESSAGES[$lang]) ? LangsConstants::ERROR_MESSAGES[$lang] : LangsConstants::DEFAULT_CLIENT_MESSAGES;
 			if (is_null($user)) {
-				$failMsg = 'User not authenticated';
-				app()->runningInConsole() ?
-					$output->writeln('<error> ' . $failMsg . ' </error>') :
-					$output->writeln("## CHECK-LOGIN: {$failMsg}");
-				Log::debug('[ChecksLogin] User not authenticated in ' . __FUNCTION__, [
-					'ip' => request()->ip(),
-					'session_id' => session()->getId(),
-					'user_agent' => request()->userAgent()
-				]);
 				$path = trim(request()->path(), '/');
 				if (preg_match('#^login(/[^/]+)?$#', $path)) {
 					$notFoundMsg = !empty($msgs['invalid_user']) ? $msgs['invalid_user'] : 'User not found.';
@@ -66,25 +49,10 @@ trait ChecksLogin
 					->route('login')
 					->with('error', __(!empty($msgs['must_login']) ? $msgs['must_login'] : 'Login required.'));
 			}
-			$successMsg = 'User authenticated';
-			app()->runningInConsole() ?
-				$output->writeln('<info> ' . $successMsg . ' </info>') :
-				$output->writeln("## AUTH: {$successMsg}");
-			Log::debug('[ChecksLogin] User authenticated successfully in ' . __FUNCTION__, [
-				'user_id' => $user?->id,
-				'email' => $user?->email ?? 'no_email',
-				'session_id' => session()->getId()
-			]);
 			return $user;
 		} catch (\Throwable $e) {
-			$errorMsg = 'Authentication check failed in ' . __FUNCTION__;
-			app()->runningInConsole() ?
-				$output->writeln('<error> ' . $errorMsg . ' </error>') :
-				$output->writeln("## CHECK-LOGIN: {$errorMsg}");
-			Log::notice('[ChecksLogin] Exception during authentication check in ' . __FUNCTION__, [
+			Log::notice('[ChecksLogin] Exception during authentication check', [
 				'error' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
 				'session_id' => session()->getId()
 			]);
 			$path = trim(request()->path(), '/');
@@ -106,7 +74,7 @@ trait ChecksLogin
 							}
 							const delay = 5000;
 							const bs = new bootstrap.Toast(toast, { delay });
-							body.textContent = {$msg};
+							body.textContent = "{$msg}";
 							toast.style.display = 'block';
 							bs.show();
 							const handleHidden = function() {
@@ -128,7 +96,6 @@ trait ChecksLogin
 				]);
 			}
 			if ($haltRedirect) return false;
-			Log::debug('[ChecksLogin] redirecting to login...');
 			return redirect()
 				->route('login')
 				->with('error', __(!empty($msgs['internal_error']) ? $msgs['internal_error'] : 'An internal error occurred. Please try again later.'));

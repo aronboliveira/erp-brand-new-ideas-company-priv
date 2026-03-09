@@ -1,9 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
-	use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants};
+
+
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
@@ -122,7 +119,6 @@
                                             </div>
                                         </div>
 
-
                                     </div>
                                 </div>
                                     <div class="card-footer text-end">
@@ -137,7 +133,9 @@
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
                                     <div class="{{ VC::CLMS_JCE3 }}">
-                                        @php $canCreate = Route::has(R::SST.'.create'); @endphp
+                                        @php
+ $canCreate = Route::has(R::SST.'.create');
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ $canCreate ? route(R::SST.'.create') : '#' }}"
@@ -166,7 +164,7 @@
                                            @if (is_array($screenshots) || is_object($screenshots))
                                                @php
                                                    $no = 1
-                                               @endphp
+@endphp
                                                 @foreach ($screenshots as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
@@ -239,6 +237,3 @@
         </div>
     </div>
 @endsection
-
-
-

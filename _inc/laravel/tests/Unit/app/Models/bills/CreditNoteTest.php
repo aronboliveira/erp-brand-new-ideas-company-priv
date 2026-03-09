@@ -9,6 +9,11 @@ use App\Models\{CreditNote, Invoice, Customer};
 
 class CreditNoteTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -23,7 +28,7 @@ class CreditNoteTest extends TestCase
 
 		$data = [
 			'invoice'     => $invoice->id,
-			'customer'    => $customer->id,
+			'customer_id' => $customer->id,
 			'amount'      => 100.50,
 			'date'        => '2025-05-27',
 			'description' => 'Refund issued',
@@ -31,9 +36,7 @@ class CreditNoteTest extends TestCase
 
 		$note = CreditNote::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $note->$field);
-		}
+		$this->assertFillableMatches($data, $note);
 	}
 
 	/**
@@ -43,7 +46,8 @@ class CreditNoteTest extends TestCase
 	 **/
 	public function credit_note_uses_uuid_for_primary_key()
 	{
-		$note = CreditNote::factory()->create();
+		$invoice = Invoice::factory()->create();
+		$note = CreditNote::factory()->create(['invoice' => $invoice->id]);
 
 		$key = $note->getKey();
 
@@ -80,9 +84,9 @@ class CreditNoteTest extends TestCase
 	{
 		$relation = (new CreditNote)->customer();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(Customer::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('customer',             $relation->getLocalKeyName());
+		$this->assertSame('customer_id',               $relation->getForeignKeyName());
+		$this->assertSame('id',             $relation->getOwnerKeyName());
 	}
 }

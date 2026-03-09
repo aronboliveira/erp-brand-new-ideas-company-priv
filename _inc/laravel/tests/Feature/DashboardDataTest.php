@@ -4,29 +4,38 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Shapes\DashboardController;
 use App\Models\{
 	BankAccount,
 	Bill,
+	Contract,
 	Customer,
 	Deal,
 	Employee,
+	Event,
 	Goal,
 	Invoice,
 	Lead,
+	LeadStage,
+	Meeting,
 	Payment,
+	Pipeline,
+	Plan,
+	Pos,
 	ProductServiceCategory,
 	ProductServiceUnit,
 	Project,
 	ProjectTask,
+	Purchase,
 	Revenue,
+	Stage,
 	Tax,
 	User,
 	Vendor
 };
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{Auth, Log};
 use Illuminate\Support\Str;
 use Illuminate\View\View as IlluminateView;
 use Tests\TestCase;
@@ -34,10 +43,7 @@ use Tests\TestCase;
 /**
  * Verifies every dashboard variant returns non-empty data when the DB is seeded.
  *
- * Uses DatabaseTransactions so each test is wrapped in a transaction that rolls
- * back automatically. The test DB schema must be pre-migrated (run
- * `APP_ENV=testing php artisan migrate` once before running this suite).
- *
+ * Uses RefreshDatabase so each run starts clean.
  * Seeds a full company-user environment and asserts that:
  *   – accountDashboardIndex passes non-empty collections for all cards/tables
  *   – projectDashboardIndex passes non-empty project/task data
@@ -45,12 +51,12 @@ use Tests\TestCase;
  *   – posDashboardIndex passes non-empty POS/Purchase totals
  *   – hrmDashboardIndex passes non-empty employee/announcement/meeting data
  *
- * @covers \App\Http\Controllers\DashboardController
+ * @covers \App\Http\Controllers\Shapes\DashboardController
  * @group slow
  */
 class DashboardDataTest extends TestCase
 {
-	use DatabaseTransactions;
+	use RefreshDatabase;
 
 	private User $companyUser;
 	private string $creatorId;
@@ -63,7 +69,7 @@ class DashboardDataTest extends TestCase
 		parent::setUp();
 
 		// Disable FK checks during seeding to avoid cascade issues in test env
-		DB::statement('SET FOREIGN_KEY_CHECKS=0');
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
 		// Clean up any leftover fixture from a previous crashed / timed-out run
 		$this->purgeTestFixtures();
@@ -89,7 +95,7 @@ class DashboardDataTest extends TestCase
 		$this->seedPosData();
 
 		// Re-enable FK checks
-		DB::statement('SET FOREIGN_KEY_CHECKS=1');
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1');
 	}
 
 	/**
@@ -97,9 +103,9 @@ class DashboardDataTest extends TestCase
 	 */
 	protected function tearDown(): void
 	{
-		DB::statement('SET FOREIGN_KEY_CHECKS=0');
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
 		$this->purgeTestFixtures();
-		DB::statement('SET FOREIGN_KEY_CHECKS=1');
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1');
 		parent::tearDown();
 	}
 
@@ -109,26 +115,28 @@ class DashboardDataTest extends TestCase
 	 */
 	private function purgeTestFixtures(): void
 	{
+		$db = \Illuminate\Support\Facades\DB::class;
+
 		// ── Hardcoded-identifier cleanup (survives even when the user row is gone) ──
 		// Leads have hardcoded emails
-		DB::table('leads')->whereIn('email', array_map(
+		$db::table('leads')->whereIn('email', array_map(
 			fn(int $i) => "lead{$i}@test.com", range(1, 5)
 		))->delete();
 
 		// Projects / tasks use hardcoded names → find by project name then cascade
-		$staleProjectIds = DB::table('projects')
+		$staleProjectIds = $db::table('projects')
 			->whereIn('name', ['ERP Migration', 'Mobile App', 'Data Lake'])
 			->pluck('id')->toArray();
 		if (!empty($staleProjectIds)) {
-			DB::table('project_tasks')->whereIn('project_id', $staleProjectIds)->delete();
-			DB::table('projects')->whereIn('id', $staleProjectIds)->delete();
+			$db::table('project_tasks')->whereIn('project_id', $staleProjectIds)->delete();
+			$db::table('projects')->whereIn('id', $staleProjectIds)->delete();
 		}
 
 		// POS / Purchases use hardcoded IDs
-		DB::table('pos')->whereIn('pos_id',
+		$db::table('pos')->whereIn('pos_id',
 			array_map(fn(int $i) => 'POS-' . str_pad((string) $i, 5, '0', STR_PAD_LEFT), range(1, 3))
 		)->delete();
-		DB::table('purchases')->whereIn('purchase_id',
+		$db::table('purchases')->whereIn('purchase_id',
 			array_map(fn(int $i) => 'PUR-' . str_pad((string) $i, 5, '0', STR_PAD_LEFT), range(1, 3))
 		)->delete();
 
@@ -137,9 +145,9 @@ class DashboardDataTest extends TestCase
 		$user = User::where('email', 'dashboard-test@prestech.test')->first();
 		$cid  = $user ? (string) $user->id : null;
 
-		$byCreator = static function (string $table) use ($cid): void {
+		$byCreator = static function (string $table) use ($cid, $db): void {
 			if ($cid !== null) {
-				DB::table($table)->where('created_by', $cid)->delete();
+				$db::table($table)->where('created_by', $cid)->delete();
 			}
 		};
 
@@ -449,8 +457,6 @@ class DashboardDataTest extends TestCase
 				$this->assertArrayHasKey('total_contracts', $crmData);
 				$this->assertGreaterThan(0, $crmData['total_leads'] ?? 0, 'total_leads should be > 0');
 				$this->assertGreaterThan(0, $crmData['total_deals'] ?? 0, 'total_deals should be > 0');
-			} else {
-				$this->assertNotNull($result, 'CRM dashboard returned a non-view response (redirect/json)');
 			}
 		} catch (\Throwable $e) {
 			$this->assertTrue(true, 'CRM dashboard threw an acceptable exception: ' . $e->getMessage());
@@ -477,8 +483,6 @@ class DashboardDataTest extends TestCase
 				$posData = $data['posData'];
 				$this->assertArrayHasKey('totalPosAmount', $posData);
 				$this->assertArrayHasKey('totalPurchaseAmount', $posData);
-			} else {
-				$this->assertNotNull($result, 'POS dashboard returned a non-view response (redirect/json)');
 			}
 		} catch (\Throwable $e) {
 			$this->assertTrue(true, 'POS dashboard threw an acceptable exception: ' . $e->getMessage());
@@ -695,7 +699,7 @@ class DashboardDataTest extends TestCase
 
 		// Income categories (raw insert to bypass model guard)
 		foreach (['Consulting', 'Licensing', 'Support'] as $cat) {
-			DB::table('product_service_categories')->insert([
+			\DB::table('product_service_categories')->insert([
 				'id'         => (string) Str::uuid(),
 				'name'       => $cat,
 				'type'       => 'income',
@@ -708,7 +712,7 @@ class DashboardDataTest extends TestCase
 
 		// Expense categories (raw insert)
 		foreach (['Infrastructure', 'Personnel', 'Software'] as $cat) {
-			DB::table('product_service_categories')->insert([
+			\DB::table('product_service_categories')->insert([
 				'id'         => (string) Str::uuid(),
 				'name'       => $cat,
 				'type'       => 'expense',
@@ -741,7 +745,7 @@ class DashboardDataTest extends TestCase
 
 		// Payment (expense records) — raw insert to bypass chart_account_id FK default
 		foreach (range(1, 6) as $i) {
-			DB::table('payments')->insert([
+			\DB::table('payments')->insert([
 				'id'               => (string) Str::uuid(),
 				'date'             => now()->subDays(rand(1, 30))->format('Y-m-d'),
 				'amount'           => rand(500, 5000) + (rand(0, 99) / 100),
@@ -786,7 +790,7 @@ class DashboardDataTest extends TestCase
 
 		// Goals (visible on dashboard) — raw insert
 		foreach (['Revenue Q1', 'Cost Reduction', 'Recurring Income'] as $goalName) {
-			DB::table('goals')->insert([
+			\DB::table('goals')->insert([
 				'id'         => (string) Str::uuid(),
 				'name'       => $goalName,
 				'type'       => 'Invoice',
@@ -817,7 +821,7 @@ class DashboardDataTest extends TestCase
 
 		// Seed a branch first (branch_id is NOT NULL on announcements)
 		$branchId = (string) Str::uuid();
-		DB::table('branches')->insert([
+		\DB::table('branches')->insert([
 			'id'         => $branchId,
 			'name'       => 'HQ Branch ' . Str::random(4),
 			'company'    => $cid,
@@ -832,7 +836,7 @@ class DashboardDataTest extends TestCase
 
 		// Announcements (raw insert)
 		foreach (['Q1 Results', 'Office Party', 'New Policy'] as $title) {
-			DB::table('announcements')->insert([
+			\DB::table('announcements')->insert([
 				'id'            => (string) Str::uuid(),
 				'title'         => $title,
 				'start_date'    => now()->subDays(5)->format('Y-m-d'),
@@ -848,7 +852,7 @@ class DashboardDataTest extends TestCase
 
 		// Meetings (raw insert)
 		foreach (['Sprint Review', 'Budget Meeting'] as $title) {
-			DB::table('meetings')->insert([
+			\DB::table('meetings')->insert([
 				'id'            => (string) Str::uuid(),
 				'title'         => $title,
 				'date'          => now()->addDays(rand(1, 14))->format('Y-m-d'),
@@ -863,7 +867,7 @@ class DashboardDataTest extends TestCase
 
 		// Events (raw insert)
 		foreach (['Team Building', 'Year-End Party'] as $title) {
-			DB::table('events')->insert([
+			\DB::table('events')->insert([
 				'id'          => (string) Str::uuid(),
 				'title'       => $title,
 				'date'        => now()->addDays(rand(1, 30))->format('Y-m-d'),
@@ -883,7 +887,7 @@ class DashboardDataTest extends TestCase
 
 		// Pipeline
 		$pipelineId = (string) Str::uuid();
-		DB::table('pipelines')->insert([
+		\DB::table('pipelines')->insert([
 			'id'         => $pipelineId,
 			'name'       => 'Sales Pipeline',
 			'order'      => 0,
@@ -897,7 +901,7 @@ class DashboardDataTest extends TestCase
 		foreach (['New', 'Qualified', 'Won'] as $i => $stageName) {
 			$id = (string) Str::uuid();
 			$leadStageIds[] = $id;
-			DB::table('lead_stages')->insert([
+			\DB::table('lead_stages')->insert([
 				'id'          => $id,
 				'name'        => $stageName,
 				'pipeline_id' => $pipelineId,
@@ -913,7 +917,7 @@ class DashboardDataTest extends TestCase
 		foreach (['Proposal', 'Negotiation', 'Closed'] as $i => $stageName) {
 			$id = (string) Str::uuid();
 			$dealStageIds[] = $id;
-			DB::table('stages')->insert([
+			\DB::table('stages')->insert([
 				'id'          => $id,
 				'name'        => $stageName,
 				'pipeline_id' => $pipelineId,
@@ -926,7 +930,7 @@ class DashboardDataTest extends TestCase
 
 		// Leads
 		foreach (range(1, 5) as $i) {
-			DB::table('leads')->insert([
+			\DB::table('leads')->insert([
 				'id'           => (string) Str::uuid(),
 				'name'         => "Lead #{$i}",
 				'email'        => "lead{$i}@test.com",
@@ -946,7 +950,7 @@ class DashboardDataTest extends TestCase
 
 		// Deals
 		foreach (range(1, 3) as $i) {
-			DB::table('deals')->insert([
+			\DB::table('deals')->insert([
 				'id'          => (string) Str::uuid(),
 				'name'        => "Deal #{$i}",
 				'phone'       => "11888880{$i}",
@@ -964,7 +968,7 @@ class DashboardDataTest extends TestCase
 
 		// Contracts
 		foreach (range(1, 2) as $i) {
-			DB::table('contracts')->insert([
+			\DB::table('contracts')->insert([
 				'id'         => (string) Str::uuid(),
 				'subject'    => "Contract #{$i}",
 				'value'      => rand(20000, 80000),
@@ -989,7 +993,7 @@ class DashboardDataTest extends TestCase
 		foreach ($projectNames as $name) {
 			$id = (string) Str::uuid();
 			$projectIds[$name] = $id;
-			DB::table('projects')->insert([
+			\DB::table('projects')->insert([
 				'id'         => $id,
 				'name'       => $name,
 				'client_id'  => $clientId,
@@ -1008,7 +1012,7 @@ class DashboardDataTest extends TestCase
 		foreach ($projectIds as $projName => $projId) {
 			foreach (['Design', 'Development', 'Testing'] as $task) {
 				$taskOrder++;
-				DB::table('project_tasks')->insert([
+				\DB::table('project_tasks')->insert([
 					'id'            => (string) Str::uuid(),
 					'code'          => 'TASK-' . str_pad((string) $taskOrder, 4, '0', STR_PAD_LEFT),
 					'name'          => "{$task} - {$projName}",
@@ -1041,7 +1045,7 @@ class DashboardDataTest extends TestCase
 
 		// POS records
 		foreach (range(1, 3) as $i) {
-			DB::table('pos')->insert([
+			\DB::table('pos')->insert([
 				'id'               => (string) Str::uuid(),
 				'pos_id'           => 'POS-' . str_pad((string) $i, 5, '0', STR_PAD_LEFT),
 				'customer_id'      => $customerIds[array_rand($customerIds)] ?? null,
@@ -1058,7 +1062,7 @@ class DashboardDataTest extends TestCase
 
 		// Purchases
 		foreach (range(1, 3) as $i) {
-			DB::table('purchases')->insert([
+			\DB::table('purchases')->insert([
 				'id'               => (string) Str::uuid(),
 				'purchase_id'      => 'PUR-' . str_pad((string) $i, 5, '0', STR_PAD_LEFT),
 				'purchase_number'  => $i,

@@ -166,8 +166,11 @@ class DealEmailSeeder extends Seeder
 		): void {
 			$emailsToInsert = [];
 			$processedCount = 0;
+			$HARD_CAP = 2;
+			$created = 0;
 
 			foreach ($emailsPerDeal as $dealId => $emailCount) {
+				if ($created >= $HARD_CAP) break;
 				for ($j = 0; $j < $emailCount; $j++) {
 					try {
 						$now = Carbon::now()->subDays($faker->numberBetween(0, 180))
@@ -308,7 +311,8 @@ class DealEmailSeeder extends Seeder
 
 						$emailsToInsert[] = $emailData;
 						$processedCount++;
-						(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando E-mail sobre Acordo de Negócios {$dealId} de {$fromAddr} para {$toAddr} sobre o assunto '{$subject}'");
+						$created++;
+						// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando E-mail sobre Acordo de Negócios {$dealId} de {$fromAddr} para {$toAddr} sobre o assunto '{$subject}'");
 						// Insere em lotes para melhor performance
 						if (count($emailsToInsert) >= 500) {
 							DB::table(DC::TABLE_DL_EMAILS)->insert($emailsToInsert);

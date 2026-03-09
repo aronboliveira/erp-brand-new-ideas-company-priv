@@ -1,20 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
-    use Illuminate\Support\{Collection, Str};
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('contracts/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -27,55 +17,63 @@
 @endpush
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Contract') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Contract') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
-            $contractsIndexBaseRouteName = VW::CTC.'.index';
-            $contractsIndexKebabRouteName = Str::kebab($contractsIndexBaseRouteName);
-            $contractsIndexResolvedRouteName = Route::has($contractsIndexBaseRouteName)
-                ? $contractsIndexBaseRouteName
-                : (Route::has($contractsIndexKebabRouteName) ? $contractsIndexKebabRouteName : null);
-            $contractsIndexUrl = $contractsIndexResolvedRouteName ? route($contractsIndexResolvedRouteName) : '#';
-            $contractsLangValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $contractsIndexGuardMessage = Utility::fetchLinkMessage($contractsLangValue, VW::CTC, 'index_route_unavailable')
-                ?? 'Contracts index route is unavailable. Please contact technical support or your domain administrator.';
-            $contractsIndexLinkId = 'contracts-index-list-link';
-        @endphp
+            try {
+                $contractsIndexBaseRouteName = VW::CTC.'.index';
+                $contractsIndexKebabRouteName = Str::kebab($contractsIndexBaseRouteName);
+                $contractsIndexResolvedRouteName = Route::has($contractsIndexBaseRouteName)
+                    ? $contractsIndexBaseRouteName
+                    : (Route::has($contractsIndexKebabRouteName) ? $contractsIndexKebabRouteName : null);
+                $contractsIndexUrl = $contractsIndexResolvedRouteName ? route($contractsIndexResolvedRouteName) : '#';
+                $contractsLangValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $contractsIndexGuardMessage = Utility::fetchLinkMessage($contractsLangValue, VW::CTC, 'index_route_unavailable')
+                    ?? 'Contracts index route is unavailable. Please contact technical support or your domain administrator.';
+                $contractsIndexLinkId = 'contracts-index-list-link';
+            } catch (\Throwable $e) {
+                \Log::error('contracts/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a id="{{ $contractsIndexLinkId }}"
         href="{{ $contractsIndexUrl }}"
         class="{{ VC::BT_SM_PM }}"
         data-sv-localized="true"
         data-url="{{ $contractsIndexUrl }}"
-        data-guard-msg="{{ $contractsIndexGuardMessage }}"
+        data-guard-msg="{{ base64_encode($contractsIndexGuardMessage) }}"
         data-bs-toggle="tooltip"
         title="{{ __('List View') }}">
-            <i class="ti ti-list"></i>
+            <i class="{{ VC::TI_LT }}"></i>
         </a>
         @push(StacksConstants::ADM_SCR_PG)
             <script defer src="{{ asset('assets/js/routes/contracts/index.js') }}"></script>
         @endpush
         @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
             @php
-                $createRoute = VW::CTC . '.create';
-                $createHref  = Route::has($createRoute) ? route($createRoute) : '#';
-                $createGuard = Utility::fetchLinkMessage($lang, VW::CTC, 'create_route_unavailable')
-                                ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $createRoute = VW::CTC . '.create';
+                    $createHref  = Route::has($createRoute) ? route($createRoute) : '#';
+                    $createGuard = Utility::fetchLinkMessage($lang, VW::CTC, 'create_route_unavailable')
+                                    ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('contracts/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="#"
                data-size="md"
                data-url="{{ $createHref }}"
                data-ajax-popup="true"
                data-sv-localized="true"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="{{ base64_encode($createGuard) }}"
                data-bs-toggle="tooltip"
                title="{{ __('Create New Contract') }}"
                class="{{ VC::BT_SM_PM }}">
@@ -98,7 +96,7 @@
                                             t.setAttribute('role','alert');
                                             t.setAttribute('aria-live','assertive');
                                             t.setAttribute('aria-atomic','true');
-                                            t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                                            t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                                             document.body.appendChild(t);
                                         }
                                         var body = t.querySelector('.toast-body');
@@ -135,79 +133,87 @@
     <div class="row">
         @php
             $list = Utility::isFilled($contracts ?? []) ? $contracts : [];
-        @endphp
+@endphp
         @forelse($list as $contract)
             @php
-                $cid = isset($contract->id) ? (string)$contract->id : '';
-                $subject = (isset($contract->subject) && $contract->subject !== '') ? (string)$contract->subject : __('No subject available');
-                $desc = (isset($contract->description) && $contract->description !== '') ? (string)$contract->description : __('No description available');
-                $typeName = (string)(data_get($contract,'types.name') ?: __('No type available'));
-                $clientName = (string)(data_get($contract,'clients.name') ?: __('No client available'));
-                $valueRaw = isset($contract->value) ? $contract->value : null;
-                $startRaw = isset($contract->start_date) ? $contract->start_date : null;
-                $endRaw = isset($contract->end_date) ? $contract->end_date : null;
-                $showRoute   = VW::CTC . '.show';
-                $showHref    = Route::has($showRoute) && $cid !== '' ? route($showRoute, $cid) : '#';
-                $showGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'show_route_unavailable')
-                               ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <div class="col-md-3">
+                try {
+                    $cid = isset($contract->id) ? (string)$contract->id : '';
+                    $subject = (isset($contract->subject) && $contract->subject !== '') ? (string)$contract->subject : __('No subject available');
+                    $desc = (isset($contract->description) && $contract->description !== '') ? (string)$contract->description : __('No description available');
+                    $typeName = (string)(data_get($contract,'types.name') ?: __('No type available'));
+                    $clientName = (string)(data_get($contract,'clients.name') ?: __('No client available'));
+                    $valueRaw = isset($contract->value) ? $contract->value : null;
+                    $startRaw = isset($contract->start_date) ? $contract->start_date : null;
+                    $endRaw = isset($contract->end_date) ? $contract->end_date : null;
+                    $showRoute   = VW::CTC . '.show';
+                    $showHref    = Route::has($showRoute) && $cid !== '' ? route($showRoute, $cid) : '#';
+                    $showGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'show_route_unavailable')
+                                   ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('contracts/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <div class="{{ VC::CM3 }}">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="{{ VC::CD_HD }}">
                         <a href="{{ $showHref }}"
-                           class="mb-0"
+                           class="{{ VC::MB0 }}"
                            data-sv-localized="true"
-                           data-guard-msg="{{ $showGuard }}">
+                           data-guard-msg="{{ base64_encode($showGuard) }}">
                             {{ $subject }}
                         </a>
                         @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
                             @php
-                                $editRoute   = VW::CTC . '.edit';
-                                $editHref    = (Route::has($editRoute) && $cid !== '') ? route($editRoute, $cid) : '#';
-                                $editGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'edit_route_unavailable')
-                                               ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
-                                $destroyRoute = VW::CTC . '.destroy';
-                                $deleteGuard  = Utility::fetchLinkMessage($lang, VW::CTC, 'delete_route_unavailable')
-                                                ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
-                                $confirmMsg   = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
-                                                .'|'.
-                                                __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                $deleteFormId = 'delete-form-' . $cid;
-                                $openParams   = ['method' => 'DELETE', 'id' => $deleteFormId, 'data-sv-localized' => 'true', 'data-guard-msg' => $deleteGuard];
-                                if (Route::has($destroyRoute) && $cid !== '') {
-                                    $openParams['route'] = [$destroyRoute, $cid];
-                                } else {
-                                    $openParams['url'] = '#';
+                                try {
+                                    $editRoute   = VW::CTC . '.edit';
+                                    $editHref    = (Route::has($editRoute) && $cid !== '') ? route($editRoute, $cid) : '#';
+                                    $editGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'edit_route_unavailable')
+                                                   ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
+                                    $destroyRoute = VW::CTC . '.destroy';
+                                    $deleteGuard  = Utility::fetchLinkMessage($lang, VW::CTC, 'delete_route_unavailable')
+                                                    ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
+                                    $confirmMsg   = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
+                                                    .'|'.
+                                                    __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                    $deleteFormId = 'delete-form-' . $cid;
+                                    $openParams   = ['method' => 'DELETE', 'id' => $deleteFormId, 'data-sv-localized' => 'true', 'data-guard-msg' => $deleteGuard];
+                                    if (Route::has($destroyRoute) && $cid !== '') {
+                                        $openParams['route'] = [$destroyRoute, $cid];
+                                    } else {
+                                        $openParams['url'] = '#';
+                                    }
+                                } catch (\Throwable $e) {
+                                    \Log::error('contracts/grid — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                 }
-                            @endphp
+@endphp
                             <div class="card-header-right">
                                 <div class="btn-group card-option">
                                     <button type="button" class="btn dropdown-toggle"
                                             data-bs-toggle="dropdown" aria-haspopup="true"
                                             aria-expanded="false">
-                                        <i class="ti ti-dots-vertical"></i>
+                                        <i class="{{ VC::TD_DOTV }}"></i>
                                     </button>
                                     <div class="{{ VC::DRP_MN_EM }}">
                                         <a href="#!"
                                            data-size="md"
                                            data-url="{{ $editHref }}"
                                            data-ajax-popup="true"
-                                           class="dropdown-item"
+                                           class="{{ VC::DRP_IT }}"
                                            data-sv-localized="true"
-                                           data-guard-msg="{{ $editGuard }}"
+                                           data-guard-msg="{{ base64_encode($editGuard) }}"
                                            data-bs-original-title="{{ __('Edit User') }}">
-                                            <i class="ti ti-pencil"></i>
+                                            <i class="{{ VC::TI_PC }}"></i>
                                             <span>{{ __('Edit') }}</span>
                                         </a>
 
                                         {!! Form::open($openParams) !!}
                                             <a href="#!"
-                                               class="dropdown-item bs-pass-para"
+                                               class="{{ VC::DRP_IT }} bs-pass-para"
                                                data-sv-localized="true"
-                                               data-guard-msg="{{ $deleteGuard }}"
+                                               data-guard-msg="{{ base64_encode($deleteGuard) }}"
                                                data-confirm="{{ $confirmMsg }}"
                                                data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
-                                                <i class="ti ti-archive"></i>
+                                                <i class="{{ VC::TI_ARC }}"></i>
                                                 <span>{{ __('Delete') }}</span>
                                             </a>
                                         {!! Form::close() !!}
@@ -231,7 +237,7 @@
                                                         t.setAttribute('role','alert');
                                                         t.setAttribute('aria-live','assertive');
                                                         t.setAttribute('aria-atomic','true');
-                                                        t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                                                        t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                                                         document.body.appendChild(t);
                                                     }
                                                     var body = t.querySelector('.toast-body');
@@ -276,28 +282,28 @@
                             </script>
                         @endif
                     </div>
-                    <div class="card-body py-3 flex-grow-1">
-                        <p class="text-sm mb-0">{{ $desc }}</p>
+                    <div class="{{ VC::CD_BD }} py-3 flex-grow-1">
+                        <p class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $desc }}</p>
                     </div>
                     <div class="card-footer py-0">
                         <ul class="{{ VC::LG_FLSH }}">
-                            <li class="list-group-item px-0">
-                                <div class="row align-items-center">
-                                    <div class="col-6">
-                                        <span class="form-label">{{ __('Contract Type') }}:</span>
+                            <li class="{{ VC::LG_IT }} px-0">
+                                <div class="{{ VC::R_ALC }}">
+                                    <div class="{{ VC::C6 }}">
+                                        <span class="{{ VC::FM_LB }}">{{ __('Contract Type') }}:</span>
                                     </div>
-                                    <div class="col-6 text-end">
-                                        <span class="badge bg-secondary p-2 px-3 rounded">{{ $typeName }}</span>
+                                    <div class="{{ VC::C6 }} {{ VC::TX_END }}">
+                                        <span class="badge bg-secondary p-2 {{ VC::PX3 }} rounded">{{ $typeName }}</span>
                                     </div>
                                 </div>
                             </li>
-                            <li class="list-group-item px-0">
-                                <div class="row align-items-center">
-                                    <div class="col-6">
-                                        <span class="form-label">{{ __('Contract Value') }}:</span>
+                            <li class="{{ VC::LG_IT }} px-0">
+                                <div class="{{ VC::R_ALC }}">
+                                    <div class="{{ VC::C6 }}">
+                                        <span class="{{ VC::FM_LB }}">{{ __('Contract Value') }}:</span>
                                     </div>
-                                    <div class="col-6 text-end">
-                                        <span class="badge bg-secondary p-2 px-3 rounded">
+                                    <div class="{{ VC::C6 }} {{ VC::TX_END }}">
+                                        <span class="badge bg-secondary p-2 {{ VC::PX3 }} rounded">
                                             {{ is_numeric($valueRaw) && method_exists($user, 'priceFormat') ? ($user?->priceFormat($valueRaw) ?? __('Failed to format value')) : __('No value available') }}
                                         </span>
                                     </div>
@@ -305,29 +311,29 @@
                             </li>
 
                             @if($user?->{UsersConstants::COL_TP} != PermissionsConstants::CL)
-                                <li class="list-group-item px-0">
-                                    <div class="row align-items-center">
-                                        <div class="col-6">
-                                            <span class="form-label">{{ __('Client') }}:</span>
+                                <li class="{{ VC::LG_IT }} px-0">
+                                    <div class="{{ VC::R_ALC }}">
+                                        <div class="{{ VC::C6 }}">
+                                            <span class="{{ VC::FM_LB }}">{{ __('Client') }}:</span>
                                         </div>
-                                        <div class="col-6 text-end">
+                                        <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                             {{ $clientName }}
                                         </div>
                                     </div>
                                 </li>
                             @endif
 
-                            <li class="list-group-item px-0">
-                                <div class="row align-items-center">
-                                    <div class="col-6">
+                            <li class="{{ VC::LG_IT }} px-0">
+                                <div class="{{ VC::R_ALC }}">
+                                    <div class="{{ VC::C6 }}">
                                         <small>{{ __('Start Date') }}:</small>
-                                        <div class="h6 mb-0">
+                                        <div class="h6 {{ VC::MB0 }}">
                                             {{ $startRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($startRaw) ?? __('Failed to format date')) : __('No start date available') }}
                                         </div>
                                     </div>
-                                    <div class="col-6">
+                                    <div class="{{ VC::C6 }}">
                                         <small>{{ __('End Date') }}:</small>
-                                        <div class="h6 mb-0">
+                                        <div class="h6 {{ VC::MB0 }}">
                                             {{ $endRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($endRaw) ?? __('Failed to format date')) : __('No end date available') }}
                                         </div>
                                     </div>
@@ -339,9 +345,9 @@
                 </div>
             </div>
         @empty
-            <div class="col-12">
+            <div class="{{ VC::C12 }}">
                 <div class="card">
-                    <div class="card-body text-center text-muted">
+                    <div class="{{ VC::CD_BD }} {{ VC::TXCT_MT }}">
                         {{ __('No contracts available') }}
                     </div>
                 </div>

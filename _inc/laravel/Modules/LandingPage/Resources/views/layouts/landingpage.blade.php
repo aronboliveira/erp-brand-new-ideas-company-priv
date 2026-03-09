@@ -1,11 +1,6 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,ExtendingLayoutsConstants,SettingsConstants,ViewClassNamesConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log, Route};
-	use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as R,SettingsConstants as LandingPageSettingsConstants};
-    use Nwidart\Modules\Facades\Module;
-	use Symfony\Component\Console\Output\ConsoleOutput;
-    
+
+
 	$lpSettings??=[];
 	$data??=[];
 	$logo??='';
@@ -73,14 +68,14 @@
             'meta_desc' => $meta_desc
         ])
         @include('fragments.og', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.x', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc,
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
@@ -101,6 +96,7 @@
         <link rel="stylesheet" href=" {{ Module::asset('LandingPage:css/customizer.css') }}" />
         <link rel="stylesheet" href=" {{ Module::asset('LandingPage:css/landing-page.css') }}" />
         <link rel="stylesheet" href=" {{ Module::asset('LandingPage:css/custom.css') }}" />
+        <link rel="stylesheet" href="{{ asset('assets/css/auth-enhancements.css') }}">
     </head>
     @if ($colorSettings[SettingsConstants::CST_DRK] == 'on')
         <body class="{{ $color }} landing-dark">
@@ -108,36 +104,36 @@
         <body class="{{ $color }}">
     @endif
                 <header class="main-header">
-                    @if (!empty($lpSettings[LandingPageSettingsConstants::TB_STT_K]) && $lpSettings[LandingPageSettingsConstants::TB_STT_K] === 'on')
+                    @if (!empty($lpSettings[LPSC::TB_STT_K]) && $lpSettings[LPSC::TB_STT_K] === 'on')
                         <div class="announcement bg-dark text-center p-2">
-                            <p class="mb-0">{!! $lpSettings[LandingPageSettingsConstants::TB_NTF_MSG_K] !!}</p>
+                            <p class="mb-0">{!! $lpSettings[LPSC::TB_NTF_MSG_K] !!}</p>
                         </div>
                     @endif
-                    @if (!empty($lpSettings[LandingPageSettingsConstants::MB_STT_K]) && $lpSettings[LandingPageSettingsConstants::MB_STT_K] === 'on')
+                    @if (!empty($lpSettings[LPSC::MB_STT_K]) && $lpSettings[LPSC::MB_STT_K] === 'on')
                         <div class="{{ ViewClassNamesConstants::CT }}">
                             <nav class="{{ ViewClassNamesConstants::NVB_DEF_TOP }}">
                                 <div class="header-left">
                                     <a class="{{ ViewClassNamesConstants::NVB_BR_TPR }}" href="#">
-                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="{{ __('logo') }}">
+                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="logo">
                                     </a>
                                 </div>
                                 <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarTogglerDemo01">
                                     <ul class="{{ ViewClassNamesConstants::NVB_NAV }}">
                                         <li class="nav-item">
-                                            <a class="nav-link active" href="#home">{{ $lpSettings[LandingPageSettingsConstants::HM_TTL_K] }}</a>
+                                            <a class="nav-link active" href="#home">{{ $lpSettings[LPSC::HM_TTL_K] }}</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#features">{{ $lpSettings[LandingPageSettingsConstants::FT_TTL_K] }}</a>
+                                            <a class="nav-link" href="#features">{{ $lpSettings[LPSC::FT_TTL_K] }}</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#plan">{{ $lpSettings[LandingPageSettingsConstants::PN_TTL_K] }}</a>
+                                            <a class="nav-link" href="#plan">{{ $lpSettings[LPSC::PN_TTL_K] }}</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#faq">{{ $lpSettings[LandingPageSettingsConstants::FAQ_TTL_K] }}</a>
+                                            <a class="nav-link" href="#faq">{{ $lpSettings[LPSC::FAQ_TTL_K] }}</a>
                                         </li>
 
-                                        @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::MB_PG_K])) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::MB_PG_K])))
-                                            @foreach (json_decode($lpSettings[LandingPageSettingsConstants::MB_PG_K]) as $key => $value)
+                                        @if (is_array(json_decode($lpSettings[LPSC::MB_PG_K])) || is_object(json_decode($lpSettings[LPSC::MB_PG_K])))
+                                            @foreach (json_decode($lpSettings[LPSC::MB_PG_K]) as $key => $value)
                                                 @if ($value->header == 'on' && $value->template_name == 'page_content')
                                                     <li class="nav-item">
                                                         @php
@@ -146,9 +142,9 @@
                                                             $pageName??='';
                                                             $pageUrl??='';
                                                             try {
-                                                                $slug=data_get($value,LandingPageSettingsConstants::PG_SLG,'');
+                                                                $slug=data_get($value,LPSC::PG_SLG,'');
                                                                 $hasRoute=Route::has('custom.page')&&$slug!=='';
-                                                                $pageName=data_get($value,LandingPageSettingsConstants::MB_PG_NM,'');
+                                                                $pageName=data_get($value,LPSC::MB_PG_NM,'');
                                                                 $pageUrl=$hasRoute?route('custom.page',$slug):'#';
                                                             } catch (\Error $e) {
                                                                 Log::error(
@@ -184,7 +180,7 @@
                                                                     ]
                                                                 );
                                                             }
-                                                        @endphp
+@endphp
                                                         <a class="nav-link"
                                                         href="{{ $pageUrl }}">
                                                             {!! $pageName !!}
@@ -193,7 +189,7 @@
                                                 @elseif($value->header == 'on')
                                                     <li class="nav-item">
                                                         <a class="nav-link"
-                                                            href="{{ $value->page_url }}">{{ $value[LandingPageSettingsConstants::MB_PG_NM] }}</a>
+                                                            href="{{ $value->page_url }}">{{ $value[LPSC::MB_PG_NM] }}</a>
                                                     </li>
                                                 @endif
                                             @endforeach
@@ -202,7 +198,7 @@
                                     </ul>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                        aria-label="{{ __('Toggle navigation') }}">
+                                        aria-label="Toggle navigation">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -221,7 +217,7 @@
                                     </a>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01"
-                                        aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                                        aria-expanded="false" aria-label="Toggle navigation">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -232,27 +228,27 @@
                 </header>
                 <!-- [ Header ] End -->
                 <!-- [ Banner ] start -->
-                @if ($lpSettings[LandingPageSettingsConstants::HM_STT_K] == 'on')
+                @if ($lpSettings[LPSC::HM_STT_K] == 'on')
                     <section class="main-banner bg-primary" id="home">
                         <div class="container-offset">
                             <div class="row gy-3 g-0 align-items-center">
                                 <div class="col-xxl-4 col-md-6">
                                     <span class="badge py-2 px-3 bg-white text-dark rounded-pill fw-bold mb-3">
-                                        {{ $lpSettings[LandingPageSettingsConstants::HM_OFF_TXT_K] }}
+                                        {{ $lpSettings[LPSC::HM_OFF_TXT_K] }}
                                     </span>
                                     <h1 class="mb-3">
-                                        {{ $lpSettings[LandingPageSettingsConstants::HM_HDG_K] }}
+                                        {{ $lpSettings[LPSC::HM_HDG_K] }}
                                     </h1>
-                                    <h6 class="mb-0">{{ $lpSettings[LandingPageSettingsConstants::HM_DESC_K] }}</h6>
+                                    <h6 class="mb-0">{{ $lpSettings[LPSC::HM_DESC_K] }}</h6>
                                     <div class="d-flex gap-3 mt-4 banner-btn">
-                                        @if ($lpSettings[LandingPageSettingsConstants::HM_DEMO_LNK_K])
-                                            <a href="{{ $lpSettings[LandingPageSettingsConstants::HM_DEMO_LNK_K] }}" class="btn btn-outline-dark">
+                                        @if ($lpSettings[LPSC::HM_DEMO_LNK_K])
+                                            <a href="{{ $lpSettings[LPSC::HM_DEMO_LNK_K] }}" class="btn btn-outline-dark">
                                                 {{ __('Live Demo') }}
                                                 <i data-feather="play-circle" class="ms-2"></i>
                                             </a>
                                         @endif
-                                        @if ($lpSettings[LandingPageSettingsConstants::HM_BUY_LNK_K])
-                                            <a href="{{ $lpSettings[LandingPageSettingsConstants::HM_BUY_LNK_K] }}"
+                                        @if ($lpSettings[LPSC::HM_BUY_LNK_K])
+                                            <a href="{{ $lpSettings[LPSC::HM_BUY_LNK_K] }}"
                                                 class="btn btn-outline-dark">{{ __('Buy Now') }} <i data-feather="lock"
                                                     class="ms-2"></i></a>
                                         @endif
@@ -260,7 +256,7 @@
                                 </div>
                                 <div class="col-xxl-8 col-md-6">
                                     <div class="dash-preview">
-                                        <img class="img-fluid preview-img" src="{{ $logo . '/' . $lpSettings[LandingPageSettingsConstants::HM_BNR_K] }}"
+                                        <img class="img-fluid preview-img" src="{{ $logo . '/' . $lpSettings[LPSC::HM_BNR_K] }}"
                                             alt="">
                                     </div>
                                 </div>
@@ -269,36 +265,36 @@
                         {{-- <div class="{{ ViewClassNamesConstants::CT }}">
                                 <div class="row g-0 gy-2 mt-4 align-items-center">
                                     <div class="col-xxl-3">
-                                        <p class="mb-0">{{__('Trusted by')}} <b class="fw-bold">{{ $lpSettings[LandingPageSettingsConstants::HM_TRST_BY_K] }}</b></p>
+                                        <p class="mb-0">{{__('Trusted by')}} <b class="fw-bold">{{ $lpSettings[LPSC::HM_TRST_BY_K] }}</b></p>
                                     </div>
                                     <div class="col-xxl-9">
                                         <div class="row gy-3 row-cols-9">
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                             <div class="col-auto">
-                                                <img src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}" alt="" class="img-fluid"
+                                                <img src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}" alt="" class="img-fluid"
                                                     style="width: 130px;">
                                             </div>
                                         </div>
@@ -315,7 +311,7 @@
                         <div class="{{ ViewClassNamesConstants::CT }}">
                             <div class="row gy-3">
                                 <div class="col-xxl-4">
-                                    <span class="d-block mb-2 text-uppercase">{{ $lpSettings[LandingPageSettingsConstants::FT_TTL_K] }}</span>
+                                    <span class="d-block mb-2 text-uppercase">{{ $lpSettings[LPSC::FT_TTL_K] }}</span>
                                     <div class="title mb-4">
                                         <h2><b class="fw-bold">{!! $lpSettings['feature_heading'] !!}</b></h2>
                                     </div>
@@ -350,7 +346,7 @@
                                 </div>
                                 <div class="mt-5">
                                     <div class="title text-center mb-4">
-                                        <span class="d-block mb-2 text-uppercase">{{ $lpSettings[LandingPageSettingsConstants::FT_TTL_K] }}</span>
+                                        <span class="d-block mb-2 text-uppercase">{{ $lpSettings[LPSC::FT_TTL_K] }}</span>
                                         <h2 class="mb-4">{!! $lpSettings['highlight_feature_heading'] !!}</h2>
                                         <p>{!! $lpSettings['highlight_feature_description'] !!}</p>
                                     </div>
@@ -382,7 +378,7 @@
                                                 </div>
                                                 <p class="mb-3">{!! $value['other_featured_description'] !!}</p>
                                                 <a href="{{ $value['other_feature_buy_now_link'] }}"
-                                                    class="btn btn-primary rounded-pill d-inline-flex align-items-center">{{ __('Buy Now ') }}
+                                                    class="btn btn-primary rounded-pill d-inline-flex align-items-center">{{ __('Buy Now') }}
                                                     <i data-feather="lock" class="ms-2"></i></a>
                                             </div>
                                             <div class="col-lg-7 col-md-6 res-img">
@@ -409,7 +405,7 @@
                                                 </div>
                                                 <p class="mb-3">{!! $value['other_featured_description'] !!}</p>
                                                 <a href="{{ $value['other_feature_buy_now_link'] }}"
-                                                    class="btn btn-primary rounded-pill d-inline-flex align-items-center">{{ __('Buy Now ') }}
+                                                    class="btn btn-primary rounded-pill d-inline-flex align-items-center">{{ __('Buy Now') }}
                                                     <i data-feather="lock" class="ms-2"></i></a>
                                             </div>
                                         </div>
@@ -466,7 +462,7 @@
 
                                 @if ($lpSettings['discover_buy_now_link'])
                                     <a href="{{ $lpSettings['discover_buy_now_link'] }}"
-                                        class="btn btn-primary rounded-pill">{{ __('Buy Now ') }} <i data-feather="lock"
+                                        class="btn btn-primary rounded-pill">{{ __('Buy Now') }} <i data-feather="lock"
                                             class="ms-2"></i> </a>
                                 @endif
                             </div>
@@ -521,7 +517,7 @@
                             </div>
                             <div class="row justify-content-center">
                                 @php
-                                    use App\Models\{Plan,Utility};
+
                                     $collection??=collect([]);
                                     $admin_payment_setting??=[];
                                     try {
@@ -558,12 +554,12 @@
                                             ]
                                         );
                                     }
-                                @endphp
+@endphp
                                 @foreach ($collection as $key => $value)
                                     <div class="col-xxl-3 col-lg-4 col-md-6">
                                         <div class="card price-card shadow-none {{ $key == 2 ? 'bg-dark' : '' }}">
                                             @php
-                                                use App\Config\Constants\PlansConstants;
+
                                                 $features??=[];
                                                 $name??='';
                                                 $price??=0;
@@ -663,7 +659,7 @@
                                                         ]
                                                     );
                                                 }
-                                            @endphp
+@endphp
                                         <div class="card-body">
                                             <span class="price-badge bg-dark">{{ $name }}</span>
                                             <span class="mb-4 f-w-00 p-price">
@@ -721,7 +717,7 @@
                                                                 ]
                                                             );
                                                         }
-                                                    @endphp
+@endphp
                                                     <li>
                                                         <div class="form-check text-start">
                                                             <label class="form-check-label" for="feature-{{ $loop->index }}">
@@ -751,23 +747,23 @@
                 @endif
                 <!-- [ subscription ] end -->
                 <!-- [ FAqs ] start -->
-                @if ($lpSettings[LandingPageSettingsConstants::FAQ_STT_K] == 'on')
+                @if ($lpSettings[LPSC::FAQ_STT_K] == 'on')
                     <section class="faqs section-gap bg-gray-100" id="faq">
                         <div class="{{ ViewClassNamesConstants::CT }}">
                             <div class="row mb-2">
                                 <div class="col-xxl-6">
                                     <div class="title mb-4">
-                                        <span class="d-block mb-2 fw-bold text-uppercase">{{ $lpSettings[LandingPageSettingsConstants::FAQ_TTL_K] }}</span>
-                                        <h2 class="mb-4">{!! $lpSettings[LandingPageSettingsConstants::FAQ_HDG_K] !!}</h2>
-                                        <p>{!! $lpSettings[LandingPageSettingsConstants::FAQ_DESC_K] !!}</p>
+                                        <span class="d-block mb-2 fw-bold text-uppercase">{{ $lpSettings[LPSC::FAQ_TTL_K] }}</span>
+                                        <h2 class="mb-4">{!! $lpSettings[LPSC::FAQ_HDG_K] !!}</h2>
+                                        <p>{!! $lpSettings[LPSC::FAQ_DESC_K] !!}</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="accordion accordion-flush" id="accordionFlushExample">
-                                        @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true)) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true)))
-                                            @foreach (json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true) as $key => $value)
+                                        @if (is_array(json_decode($lpSettings[LPSC::FAQ_FQS_K], true)) || is_object(json_decode($lpSettings[LPSC::FAQ_FQS_K], true)))
+                                            @foreach (json_decode($lpSettings[LPSC::FAQ_FQS_K], true) as $key => $value)
                                                 @if ($key % 2 == 0)
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="{{ 'flush-heading' . $key }}">
@@ -793,8 +789,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="accordion accordion-flush" id="accordionFlushExample2">
-                                        @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true)) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true)))
-                                            @foreach (json_decode($lpSettings[LandingPageSettingsConstants::FAQ_FQS_K], true) as $key => $value)
+                                        @if (is_array(json_decode($lpSettings[LPSC::FAQ_FQS_K], true)) || is_object(json_decode($lpSettings[LPSC::FAQ_FQS_K], true)))
+                                            @foreach (json_decode($lpSettings[LPSC::FAQ_FQS_K], true) as $key => $value)
                                                 @if ($key % 2 != 0)
                                                     <div class="accordion-item">
                                                         <h2 class="accordion-header" id="{{ 'flush-heading' . $key }}">
@@ -825,21 +821,21 @@
                 @endif
                 <!-- [ FAqs ] end -->
                 <!-- [ testimonial ] start -->
-                @if (!empty($lpSettings[LandingPageSettingsConstants::TM_STT_K]) && $lpSettings[LandingPageSettingsConstants::TM_STT_K] === 'on')
+                @if (!empty($lpSettings[LPSC::TM_STT_K]) && $lpSettings[LPSC::TM_STT_K] === 'on')
                     <section class="testimonial section-gap">
                         <div class="{{ ViewClassNamesConstants::CT }}">
                             <div class="row gy-4">
                                 <div class="col-lg-4">
                                     <div class="title mb-4">
                                         <span class="d-block mb-2 fw-bold text-uppercase">{{ __('TESTIMONIALS') }}</span>
-                                        <h2 class="mb-2">{!! $lpSettings[LandingPageSettingsConstants::TM_HDG_K] !!}</h2>
-                                        <p>{!! $lpSettings[LandingPageSettingsConstants::TM_DESC_K] !!}</p>
+                                        <h2 class="mb-2">{!! $lpSettings[LPSC::TM_HDG_K] !!}</h2>
+                                        <p>{!! $lpSettings[LPSC::TM_DESC_K] !!}</p>
                                     </div>
                                 </div>
                                 <div class="col-lg-8">
                                     <div class="row justify-content-center gy-3">
-                                        @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::TM_TMS_K])) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::TM_TMS_K])))
-                                            @foreach (json_decode($lpSettings[LandingPageSettingsConstants::TM_TMS_K]) as $key => $value)
+                                        @if (is_array(json_decode($lpSettings[LPSC::TM_TMS_K])) || is_object(json_decode($lpSettings[LPSC::TM_TMS_K])))
+                                            @foreach (json_decode($lpSettings[LPSC::TM_TMS_K]) as $key => $value)
                                                 <div class="col-xxl-4 col-sm-6 col-lg-6 col-md-4">
                                                     <div class="card bg-dark shadow-none mb-0">
                                                         <div class="card-body p-3">
@@ -853,21 +849,21 @@
                                                                     </svg>
                                                                 </span>
                                                                 <span>
-                                                                    @for ($i = 1; $i <= (int) $value[LandingPageSettingsConstants::TM_STR] ?? 5; $i++)
+                                                                    @for ($i = 1; $i <= (int) $value[LPSC::TM_STR] ?? 5; $i++)
                                                                         <i data-feather="star"></i>
                                                                     @endfor
                                                                 </span>
                                                             </div>
-                                                            <h3 class="text-white">{{ $value[LandingPageSettingsConstants::TM_TTL_K] }}</h3>
+                                                            <h3 class="text-white">{{ $value[LPSC::TM_TTL_K] }}</h3>
                                                             <p class="hljs-comment">
-                                                                {{ $value[LandingPageSettingsConstants::TM_DESC_K]}}
+                                                                {{ $value[LPSC::TM_DESC_K]}}
                                                             </p>
                                                             <div class="d-flex  align-items-center ">
-                                                                <img src="{{ $logo . '/' . $value[LandingPageSettingsConstants::TM_USR_AV] }}"
-                                                                    class="wid-40 rounded-circle me-3" alt="{{ __('User avatar') }}">
+                                                                <img src="{{ $logo . '/' . $value[LPSC::TM_USR_AV] }}"
+                                                                    class="wid-40 rounded-circle me-3" alt="User avatar">
                                                                 <span>
-                                                                    <b class="fw-bold d-block">{{ $value[LandingPageSettingsConstants::TM_USR] ?? 'Anonymous' }}</b>
-                                                                    {{ $value[LandingPageSettingsConstants::TM_USR_DSG] ?? 'Customer' }}
+                                                                    <b class="fw-bold d-block">{{ $value[LPSC::TM_USR] ?? 'Anonymous' }}</b>
+                                                                    {{ $value[LPSC::TM_USR_DSG] ?? 'Customer' }}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -880,7 +876,7 @@
                                 </div>
                                 <div class="col-12">
                                     <p class="mb-0 f-w-600">
-                                        {!! $lpSettings[LandingPageSettingsConstants::TM_LONG_DESC_K] !!}
+                                        {!! $lpSettings[LPSC::TM_LONG_DESC_K] !!}
                                     </p>
                                 </div>
                             </div>
@@ -895,16 +891,16 @@
                             <div class="ftr-col cmp-detail">
                                 <div class="footer-logo mb-3">
                                     <a href="#">
-                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="{{ __('logo') }}">
+                                        <img src="{{ $logo . '/' . $lpSettings['site_logo'] }}" alt="logo">
                                     </a>
                                 </div>
                                 <p>
-                                    {!! $lpSettings[LandingPageSettingsConstants::SD_K] !!}
+                                    {!! $lpSettings[LPSC::SD_K] !!}
                                 </p>
                             </div>
                             <div class="ftr-col">
                                 <ul class="list-unstyled">
-                                    @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::MB_PG_K])) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::MB_PG_K])))
+                                    @if (is_array(json_decode($lpSettings[LPSC::MB_PG_K])) || is_object(json_decode($lpSettings[LPSC::MB_PG_K])))
                                         @php
                                             $lpSettings??=[];
                                             $data??=[];
@@ -962,7 +958,7 @@
                                                     ]
                                                 );
                                             }
-                                        @endphp
+@endphp
                                         <ul class="list-unstyled">
                                             @foreach($menuItems as $item)
                                                 @php
@@ -976,8 +972,8 @@
                                                         $footer=($item['footer']??'')==='on';
                                                         $header=($item['header']??'')==='on';
                                                         $template=$item['template_name']??'';
-                                                        $slug=$item[LandingPageSettingsConstants::PG_SLG]??'';
-                                                        $name=$item[LandingPageSettingsConstants::MB_PG_NM]??'';
+                                                        $slug=$item[LPSC::PG_SLG]??'';
+                                                        $name=$item[LPSC::MB_PG_NM]??'';
                                                         if($footer&&$template==='page_content'){
                                                             $url=Route::has('custom.page')
                                                                 ?route('custom.page',$slug)
@@ -1021,7 +1017,7 @@
                                                             ]
                                                         );
                                                     }
-                                                @endphp
+@endphp
                                                 @if($footer && $name)
                                                     <li>
                                                         <a href="{{ $url }}">
@@ -1034,21 +1030,25 @@
                                     @endif
                                 </ul>
                             </div>
-                            @if ($lpSettings[LandingPageSettingsConstants::JU_STT_K] == 'on')
+                            @if ($lpSettings[LPSC::JU_STT_K] == 'on')
                                 <div class="ftr-col ftr-subscribe">
-                                    <h2>{!! $lpSettings[LandingPageSettingsConstants::JU_HDG_K] !!}</h2>
-                                    <p>{!! $lpSettings[LandingPageSettingsConstants::JU_DESC_K] !!}</p>
+                                    <h2>{!! $lpSettings[LPSC::JU_HDG_K] !!}</h2>
+                                    <p>{!! $lpSettings[LPSC::JU_DESC_K] !!}</p>
                                     @php
-                                        $juSt = RoutesResourcesConstants::JU.'.store';
-                                        $joinUsRouteExists = Route::has($juSt);
-                                        $joinUsUrl         = $joinUsRouteExists ? route($juSt) : '#';
-                                    @endphp
+                                        try {
+                                            $juSt = RoutesResourcesConstants::JU.'.store';
+                                            $joinUsRouteExists = Route::has($juSt);
+                                            $joinUsUrl         = $joinUsRouteExists ? route($juSt) : '#';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('Modules/LandingPage/Resources/views/layouts/landingpage — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <form method="post" action="{{ $joinUsUrl }}">
                                         @csrf
                                         <div class="input-wrapper border border-dark">
                                             <input type="email"
                                                 name="email"
-                                                placeholder="{{ __('Type your email address…') }}"
+                                                placeholder="Type your email address…"
                                                 {{ $joinUsRouteExists ? '' : 'disabled' }}>
                                             <button type="submit"
                                                     class="btn btn-dark rounded-pill"
@@ -1059,7 +1059,7 @@
                                     </form>
                                     @if (!$joinUsRouteExists)
                                         <p class="text-muted mt-2">
-                                            {{ __('Sorry, sign-up is currently unavailable.') }}
+                                            Sorry, sign-up is currently unavailable.
                                         </p>
                                     @endif
                                 </div>

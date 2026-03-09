@@ -17,7 +17,8 @@ class LeadFileSeeder extends Seeder
 	private const PER_LEAD_MIN = 1;   // arquivos mínimos por lead
 	private const PER_LEAD_MAX = 4;   // arquivos máximos por lead
 	private const OPTIONAL_PCT = 65;  // probabilidade média p/ opcionais
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function run(): void
 	{
@@ -44,10 +45,11 @@ class LeadFileSeeder extends Seeder
 		$userIds = $users->pluck('id')->all();
 
 		// Regra de quantidade: --count se disponível; caso contrário 64 * nº_de_leads
-		$target = 64 * max(1, $leads->count());
+		// $target = 64 * max(1, $leads->count()); /* original */
+		$target = 2; /* HARD_CAP: original was 64 × leads */
 		if ($this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count')) {
 			$opt = (int) $this->command->option('count');
-			if ($opt > 0) $target = $opt;
+			if ($opt > 0) $target = min(2, $opt); /* clamp to HARD_CAP */
 		}
 
 		// Catálogo (extensão => mime) por categoria (valores compatíveis com FileCategory)
@@ -268,7 +270,7 @@ class LeadFileSeeder extends Seeder
 					if (Schema::hasColumn(DC::TABLE_LD_FILES, DC::COL_TABLE_UPDATER)) {
 						$row[DC::COL_TABLE_UPDATER] = $userIds ? Arr::random($userIds) : null;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Arquivo sobre Lead {$lead->id} com nome '{$fname}' e mime '{$mime}'");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput)->writeln("Criando registro de Arquivo sobre Lead {$lead->id} com nome '{$fname}' e mime '{$mime}'");
 					// Remove apenas nulls (manter 0/false)
 					$rows[] = $row;
 					$inserted++;

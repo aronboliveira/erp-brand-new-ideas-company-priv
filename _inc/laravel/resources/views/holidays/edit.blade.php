@@ -1,27 +1,52 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang        = Utility::fetchUserLang();
-    $hasHoliday  = !empty($holiday ?? null) && data_get($holiday, 'id');
-    $updateUrl      = '#';
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::HLD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasHoliday ??= false;
+	$updateUrl ??= '#';
+	$updateGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasHoliday = !empty($holiday ?? null) && data_get($holiday, 'id');
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::HLD, 'update_route_unavailable')
+			?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in holidays/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in holidays/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in holidays/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @can('edit holiday')
     @php
-        $updateBase     = VW::HLD . '.update';
-        $updateKebab    = Str::kebab($updateBase);
-        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-        $updateUrl      = ($updateResolved && $hasHoliday) ? route($updateResolved, $holiday->id) : '#';
-    @endphp
+        try {
+            $updateBase     = VW::HLD . '.update';
+            $updateKebab    = Str::kebab($updateBase);
+            $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+            $updateUrl      = ($updateResolved && $hasHoliday) ? route($updateResolved, $holiday->id) : '#';
+        } catch (\Throwable $e) {
+            \Log::error('holidays/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
 @endcan
 
 @if(!$hasHoliday)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested holiday was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested holiday was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($holiday, [
         'url'               => $updateUrl,
@@ -32,16 +57,22 @@
         'data-sv-localized' => 'true',
     ]) }}
         <div class="modal-body">
-            @php $plan = Utility::getChatGPTSettings(); @endphp
+            @php
+ $plan = Utility::getChatGPTSettings();
+@endphp
             @if($plan?->{PlansConstants::COL_GPT} == 1)
                 @php
-                    $genUrl      = '#';
-                    $genGuardMsg = Utility::fetchLinkMessage($lang, VW::HLD, 'generate_ai_route_unavailable') ?? __('AI generation route is unavailable. Please contact technical support or your domain administrator.');
-                    if (Route::has('generate')) {
-                        $genUrl = route('generate', ['holiday']);
+                    $genUrl      ??= '#';
+                    try {
+                        $genGuardMsg = Utility::fetchLinkMessage($lang, VW::HLD, 'generate_ai_route_unavailable') ?? __('AI generation route is unavailable. Please contact technical support or your domain administrator.');
+                        if (Route::has('generate')) {
+                            $genUrl = route('generate', ['holiday']);
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error('holidays/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                     }
-                @endphp
-                <div class="text-end">
+@endphp
+                <div class="{{ VC::TX_END }}">
                     <a
                         id="holiday-gen-ai"
                         href="#"
@@ -51,7 +82,7 @@
                         data-url="{{ $genUrl }}"
                         data-bs-placement="top"
                         data-title="{{ __('Generate content with AI') }}"
-                        data-guard-msg="{{ $genGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($genGuardMsg) }}"
                         data-sv-localized="true"
                     >
                         <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>

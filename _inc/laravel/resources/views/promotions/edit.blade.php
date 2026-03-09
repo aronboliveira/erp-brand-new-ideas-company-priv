@@ -1,29 +1,59 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route};
-    use Illuminate\Support\Str;
-
-    $lang = Utility::fetchUserLang();
-
-    $promotionId = isset($promotion) && !empty(data_get($promotion, 'id')) ? data_get($promotion, 'id') : null;
-
-    $updateBaseName = VW::PRM . '.update';
-    $updateKebabName = Str::kebab($updateBaseName);
-    $updateResolvedName = Route::has($updateBaseName) ? $updateBaseName : (Route::has($updateKebabName) ? $updateKebabName : null);
-    $updateParams = $promotionId ? [$promotionId] : ['#'];
-    $updateUrl = ($updateResolvedName && $promotionId) ? route($updateResolvedName, $updateParams) : '#';
-    $formId = 'edit_promotion';
-    $formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'update_promotion_unavailable') ?? 'Update promotion route is unavailable. Please contact technical support or your domain administrator.';
-    $plan = Utility::getChatGPTSettings();
-    $aiGenBase = 'generate';
-    $aiGenKebab = Str::kebab($aiGenBase);
-    $aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
-    $aiGenParams = ['promotion'];
-    $aiGenUrl = $aiGenResolved ? route($aiGenResolved, $aiGenParams) : '#';
-    $aiLinkId = 'promotion-ai-generate-link';
-    $aiGuardMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'generate_promotion_unavailable') ?? 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$promotionId ??= null;
+	$updateBaseName ??= '';
+	$updateKebabName ??= '';
+	$updateResolvedName ??= null;
+	$updateParams ??= ['#'];
+	$updateUrl ??= '#';
+	$formId ??= 'edit_promotion';
+	$formGuardMsg ??= '';
+	$plan ??= null;
+	$aiGenBase ??= 'generate';
+	$aiGenKebab ??= '';
+	$aiGenResolved ??= null;
+	$aiGenParams ??= ['promotion'];
+	$aiGenUrl ??= '#';
+	$aiLinkId ??= 'promotion-ai-generate-link';
+	$aiGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$promotionId = isset($promotion) && !empty(data_get($promotion, 'id')) ? data_get($promotion, 'id') : null;
+		$updateBaseName = VW::PRM . '.update';
+		$updateKebabName = Str::kebab($updateBaseName);
+		$updateResolvedName = Route::has($updateBaseName) ? $updateBaseName : (Route::has($updateKebabName) ? $updateKebabName : null);
+		$updateParams = $promotionId ? [$promotionId] : ['#'];
+		$updateUrl = ($updateResolvedName && $promotionId) ? (route($updateResolvedName, $updateParams) ?? '#') : '#';
+		$formGuardMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'update_promotion_unavailable')
+			?? 'Update promotion route is unavailable. Please contact technical support or your domain administrator.';
+		$plan = Utility::getChatGPTSettings();
+		$aiGenKebab = Str::kebab($aiGenBase);
+		$aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
+		$aiGenUrl = $aiGenResolved ? (route($aiGenResolved, $aiGenParams) ?? '#') : '#';
+		$aiGuardMsg = Utility::fetchLinkMessage($lang, VW::PRM, 'generate_promotion_unavailable')
+			?? 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in promotions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in promotions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in promotions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {!! Form::model($promotion, [
     'url'    => $updateUrl,
@@ -33,7 +63,7 @@
 ]) !!}
     <div class="modal-body">
         @if ($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $aiGenUrl }}"
                    id="{{ $aiLinkId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -42,7 +72,7 @@
                    data-url="{{ $aiGenUrl }}"
                    data-bs-placement="top"
                    data-title="{{ __('Generate content with AI') }}"
-                   data-guard-msg="{{ $aiGuardMsg }}">
+                   data-guard-msg="{{ base64_encode($aiGuardMsg) }}">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
@@ -85,36 +115,6 @@
     <script>
         (() => {
             try {
-                const guardToast = (msg) => {
-                    try {
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            container.className = 'position-fixed top-0 end-0 p-3';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role', 'alert');
-                            toast.setAttribute('aria-live', 'assertive');
-                            toast.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg ?? 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                            toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                            inst.show();
-                        } else {
-                            alert(msg ?? 'Requested route is unavailable. Please contact technical support or your domain administrator.');
-                        }
-                    } catch (err) {}
-                };
-
                 const formEl = document.getElementById('{{ $formId }}');
                 if (formEl && !(formEl.hasAttribute('data-submit-listener') && formEl.getAttribute('data-submit-listener') === 'true')) {
                     formEl.setAttribute('data-submit-listener', 'true');
@@ -124,7 +124,7 @@
                             if (action !== '#') return;
                             e.preventDefault();
                             const msg = formEl.getAttribute('data-guard-msg') || 'Update promotion route is unavailable. Please contact technical support or your domain administrator.';
-                            guardToast(msg);
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             formEl.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     }, { passive: false });
@@ -140,7 +140,7 @@
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = ai.getAttribute('data-guard-msg') || 'Generate promotion content route is unavailable. Please contact technical support or your domain administrator.';
-                            guardToast(msg);
+                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                             ai.setAttribute('data-failed-route', 'true');
                         } catch (err) {}
                     }, { passive: false });

@@ -6,18 +6,18 @@
 </head>
 <body>
     <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
+        <div class="row {{ VC::JCC }}">
+            <div class="{{ VC::CM6 }}">
                 <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h4 class="mb-0">{{ !empty($title) ? $title : "Error" }}</h4>
+                    <div class="{{ VC::CD_HD }} bg-danger {{ VC::TXT_WT }}">
+                        <h4 class="{{ VC::MB0 }}">{{ !empty($title) ? $title : "Error" }}</h4>
                     </div>
-                    <div class="card-body">
-                        <div class="alert alert-danger">
+                    <div class="{{ VC::CD_BD }}">
+                        <div class="{{ VC::ALT_DNG }}">
                             {{!empty($message) ? $message : "Undefined error." }}
                         </div>
-                        <a href="{{ route('login') }}" class="btn btn-primary">{{ __('Try Again') }}</a>
-                        <a href="{{ url('/') }}" class="btn btn-secondary">{{ __('Go Home') }}</a>
+                        <a href="{{ route('login') }}" class="{{ VC::BT_PRM }}">Try Again</a>
+                        <a href="{{ url('/') }}" class="btn btn-secondary">Go Home</a>
                     </div>
                 </div>
             </div>

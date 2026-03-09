@@ -11,13 +11,23 @@ namespace Tests\Unit\Models;
 use App\Models\{GeneratedOfferLetter, Utility};
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GeneratedOfferLetterTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -59,7 +69,7 @@ class GeneratedOfferLetterTest extends TestCase
 	public function replace_variable_applies_all_settings_and_obj_values(): void
 	{
 		// Stub Utility::settings() to provide app_name, default_salary_type, default_salary_duration
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -102,7 +112,7 @@ class GeneratedOfferLetterTest extends TestCase
 	 **/
 	public function replace_variable_uses_env_app_name_when_settings_empty(): void
 	{
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -144,7 +154,7 @@ class GeneratedOfferLetterTest extends TestCase
 		// The user code defines exactly 16 keys in defaultTemplate.
 
 		// Spy on GeneratedOfferLetter::create()
-		$createMock = Mockery::mock('alias:' . GeneratedOfferLetter::class)
+		$createMock = $this->aliasMock(GeneratedOfferLetter::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)
@@ -167,7 +177,7 @@ class GeneratedOfferLetterTest extends TestCase
 	public function default_offer_letter_register_creates_expected_number_of_records(): void
 	{
 		// Spy on GeneratedOfferLetter::create()
-		$createMock = Mockery::mock('alias:' . GeneratedOfferLetter::class)
+		$createMock = $this->aliasMock(GeneratedOfferLetter::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)

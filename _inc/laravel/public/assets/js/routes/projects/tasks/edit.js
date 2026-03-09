@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const f = document.getElementById("edit-project-task-form");
     if (!f) return;
@@ -19,7 +27,7 @@
       (assigneesInput?.value ?? "")
         .split(",")
         .map(s => s.trim())
-        .filter(Boolean)
+        .filter(Boolean),
     );
 
     document.querySelectorAll(".add_usr").forEach(wrap => {
@@ -66,7 +74,7 @@
               console.error(
                 "[assets/js/routes/projects/tasks/edit.js] add_usr click error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
           }
         });
@@ -78,7 +86,7 @@
           console.error(
             "[assets/js/routes/projects/tasks/edit.js] bind add_usr error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -145,7 +153,7 @@
               console.error(
                 "[assets/js/routes/projects/tasks/edit.js] Bootstrap toast instantiation error:",
                 err?.constructor?.name ?? "Error",
-                err?.message ?? "Unknown error"
+                err?.message ?? "Unknown error",
               );
             alert(msg);
           }
@@ -162,7 +170,7 @@
           console.error(
             "[assets/js/routes/projects/tasks/edit.js] Submit handler error:",
             err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            err?.message ?? "Unknown error",
           );
       }
     });
@@ -174,7 +182,7 @@
       console.error(
         "[assets/js/routes/projects/tasks/edit.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

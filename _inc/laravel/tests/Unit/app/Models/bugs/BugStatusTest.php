@@ -11,6 +11,11 @@ use App\Models\{BugStatus, Bug, Project, User};
 
 class BugStatusTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -20,19 +25,14 @@ class BugStatusTest extends TestCase
 	 **/
 	public function bug_status_is_fillable()
 	{
-		$user = User::factory()->create();
-
 		$data = [
-			'created_by' => $user?->id,
 			'order'      => 1,
 			'title'      => 'Open',
 		];
 
 		$bs = BugStatus::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $bs->$field);
-		}
+		$this->assertFillableMatches($data, $bs);
 	}
 
 	/**

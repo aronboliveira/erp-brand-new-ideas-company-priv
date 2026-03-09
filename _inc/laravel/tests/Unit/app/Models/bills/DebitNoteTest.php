@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{DebitNote, Bill, Vendor};
 
 class DebitNoteTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -31,9 +36,7 @@ class DebitNoteTest extends TestCase
 
 		$note = DebitNote::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $note->$field);
-		}
+		$this->assertFillableMatches($data, $note);
 	}
 
 	/**
@@ -43,7 +46,8 @@ class DebitNoteTest extends TestCase
 	 **/
 	public function debit_note_uses_uuid_for_primary_key()
 	{
-		$note = DebitNote::factory()->create();
+		$bill = Bill::factory()->create();
+		$note = DebitNote::factory()->create(['bill' => $bill->id]);
 
 		$key = $note->getKey();
 
@@ -65,10 +69,10 @@ class DebitNoteTest extends TestCase
 	{
 		$relation = (new DebitNote)->bill();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Bill::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',               $relation->getForeignKeyName());
-		$this->assertSame('bill',             $relation->getLocalKeyName());
+		$this->assertSame('bill',               $relation->getForeignKeyName());
+		$this->assertSame('id',             $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -80,9 +84,9 @@ class DebitNoteTest extends TestCase
 	{
 		$relation = (new DebitNote)->vendor();
 
-		$this->assertInstanceOf(HasOne::class, get_class($relation));
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Vendor::class,      get_class($relation->getRelated()));
-		$this->assertSame('id',               $relation->getForeignKeyName());
-		$this->assertSame('vendor',           $relation->getLocalKeyName());
+		$this->assertSame('vendor_id',            $relation->getForeignKeyName());
+		$this->assertSame('id',           $relation->getOwnerKeyName());
 	}
 }

@@ -1,7 +1,10 @@
+/**
+ * @requires ERPUtils (native file handling)
+ */
 (() => {
   try {
     const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-filename]')
+      document.querySelectorAll('input[type="file"][data-filename]'),
     );
     if (!inputs.length) return;
     inputs.forEach(inp => {

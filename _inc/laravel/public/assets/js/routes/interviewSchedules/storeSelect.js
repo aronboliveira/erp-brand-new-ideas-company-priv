@@ -1,111 +1,31 @@
 (() => {
-  const dataListenerAdded = "data-listener-added";
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
+  const { scheduleError, utils } = window.ERPGuard || {};
+  const getMsg = utils?.getMsg;
+  if (!scheduleError || !getMsg) return;
 
-  const getLocalizedMessage = (el, msgKey) => {
-    let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el.getAttribute(dataGuardMsg) ||
-        window.translations?.["en"]?.[msgKey] ||
-        errFb;
-      if (msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
+  const $ = window.jQuery;
 
   try {
-    if (!window.jQuery) {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      )
-        console.error("jQuery is not available");
+    if (!$) {
+      scheduleError(getMsg("plugin_unavailable"));
       return;
     }
-    const candidate = jQuery("select#candidate");
+
+    const candidate = $("select#candidate");
     const el = candidate.get(0);
-    if (!el) {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      )
-        console.error("Select#candidate element not found");
-      return;
-    }
+    if (!el) return;
+
     const url = el.getAttribute("data-url");
-    const href = el.href
+    const href = (el.href || "")
       .replace(window.location.origin, "")
       .replace(window.location.pathname, "");
-    if ((!url || url === "#") && (!href || href === "#")) {
-      return;
-    }
-    const candidateVal = candidate;
-    if (candidateVal == null) {
-      return;
-    }
+    if ((!url || url === "#") && (!href || href === "#")) return;
+
+    const candidateVal = candidate.val();
+    if (candidateVal == null) return;
+
     candidate.val(candidateVal).trigger("change");
-  } catch {
-    const handleErrorDisplay = () => {
-      const el = document.querySelector("select#candidate");
-      const msgKey = "candidate_unavailable";
-      const message = el ? getLocalizedMessage(el, msgKey) : errFb;
-      const hasBootstrap =
-        document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap?.Toast;
-      if (hasBootstrap) {
-        if (!document.querySelector("#error-toast")) {
-          const toast = document.createElement("div");
-          toast.id = "error-toast";
-          toast.className = "toast align-items-center text-bg-danger border-0";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          toast.innerHTML = `
-                    <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button"
-                            class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast"
-                            aria-label="Close"></button>
-                    </div>`;
-          document.body.appendChild(toast);
-        }
-        new bootstrap.Toast(document.querySelector("#error-toast")).show();
-      } else {
-        alert(message);
-      }
-    };
-    const el = document.querySelector("select#candidate");
-    if (el && el.getAttribute(dataListenerAdded) !== "true") {
-      const observer = new MutationObserver((_, obs) => {
-        if (!document.body.contains(el)) {
-          el.removeEventListener("click", handleErrorDisplay);
-          obs.disconnect();
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-      el.addEventListener("click", handleErrorDisplay);
-      el.setAttribute(dataListenerAdded, "true");
-    }
+  } catch (_) {
+    scheduleError(getMsg("candidate_unavailable"));
   }
 })();

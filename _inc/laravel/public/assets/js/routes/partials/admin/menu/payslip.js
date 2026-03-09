@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   try {
     const l = document.getElementById("payslip-link");
     if (!l) {
@@ -8,16 +16,6 @@
       return;
     }
     l.setAttribute("data-listener-active", "true");
-
-    const ensureToastContainer = () => {
-      let c = document.getElementById("toast-container");
-      if (!c) {
-        c = document.createElement("div");
-        c.id = "toast-container";
-        document.body.appendChild(c);
-      }
-      return c;
-    };
 
     l.addEventListener("click", e => {
       try {
@@ -29,35 +27,12 @@
 
         e.preventDefault();
 
-        const msg = (
-          l.getAttribute("data-guard-msg") ??
-          "Payslip route is unavailable. Please contact technical support or your domain administrator."
-        ).trim();
-        const hasBs = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-
-        if (hasBs) {
-          const c = ensureToastContainer();
-          const t = document.createElement("div");
-          t.className = "toast";
-          t.setAttribute("role", "alert");
-          t.setAttribute("aria-live", "assertive");
-          t.setAttribute("aria-atomic", "true");
-
-          const b = document.createElement("div");
-          b.className = "toast-body";
-          b.textContent = msg;
-
-          t.appendChild(b);
-          c.appendChild(t);
-          bootstrap.Toast.getOrCreateInstance(t).show();
-        } else {
-          alert(msg);
-        }
-
+        const msg =
+          l.getAttribute("data-guard-msg") ||
+          getMsg("payslip_route_unavailable");
+        scheduleError(msg, "click");
         l.setAttribute("data-failed-route", "true");
-      } catch (err) {}
+      } catch (_) {}
     });
-  } catch (err) {}
+  } catch (_) {}
 })();

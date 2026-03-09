@@ -1,27 +1,23 @@
 @php
-    use App\Config\Constants\{
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, URL};
-
-    $lang = Utility::fetchUserLang();
-    $storeRouteName = VW::COA_TP;
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::COA_TP, 'chart_of_account_type_store_route_unavailable')
-        ?? 'Store chart of account type route is unavailable. Please contact technical support or your domain administrator.';
-    $formParams = [
-        'method' => 'post',
-        'id'     => 'store_chart_of_account_type',
-        'data-sv-localized' => 'true',
-        'data-guard-msg'    => $storeGuard,
-        'data-action-href'  => Route::has($storeRouteName) ? route($storeRouteName) : '#',
-    ];
-    if (Route::has($storeRouteName))
-        $formParams['route'] = [$storeRouteName];
-    else
-        $formParams['url'] = '#';
+    try {
+$lang = Utility::fetchUserLang();
+        $storeRouteName = VW::COA_TP;
+        $storeGuard = Utility::fetchLinkMessage($lang, VW::COA_TP, 'chart_of_account_type_store_route_unavailable')
+            ?? 'Store chart of account type route is unavailable. Please contact technical support or your domain administrator.';
+        $formParams = [
+            'method' => 'post',
+            'id'     => 'store_chart_of_account_type',
+            'data-sv-localized' => 'true',
+            'data-guard-msg'    => $storeGuard,
+            'data-action-href'  => Route::has($storeRouteName) ? route($storeRouteName) : '#',
+        ];
+        if (Route::has($storeRouteName))
+            $formParams['route'] = [$storeRouteName];
+        else
+            $formParams['url'] = '#';
+    } catch (\Throwable $e) {
+        \Log::error('chart_of_account_types/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::open($formParams) !!}
@@ -31,7 +27,7 @@
                 {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                 {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => true]) }}
                 @error('name')
-                    <small class="invalid-name" role="alert"><strong class="text-danger">{{ $message }}</strong></small>
+                    <small class="invalid-name" role="alert"><strong class="{{ VC::TX_DNG }}">{{ $message }}</strong></small>
                 @enderror
             </div>
         </div>

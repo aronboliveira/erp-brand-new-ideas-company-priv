@@ -9,10 +9,16 @@ use Tests\TestCase;
 
 class JournalEntryTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -24,11 +30,72 @@ class JournalEntryTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'date',
-			'description',
-			'journal_id',
+			'code',
+			'name',
 			'reference',
-			'created_by',
+			'date',
+			'posting_date',
+			'reversal_date',
+			'period',
+			'author',
+			'reviewer',
+			'accepted_at',
+			'rejected_at',
+			'rejection_reason',
+			'status',
+			'payment_type',
+			'total_debit',
+			'total_credit',
+			'currency',
+			'exchange_rate',
+			'description',
+			'memo',
+			'notes',
+			'company',
+			'branch',
+			'department',
+			'project',
+			'document',
+			'invoice_id',
+			'bill_id',
+			'order_id',
+			'transaction_id',
+			'payment_id',
+			'payslip_id',
+			'expense_id',
+			'pos_id',
+			'pos_payment_id',
+			'credit_note_id',
+			'debit_note_id',
+			'loan_id',
+			'allowance_id',
+			'revenue',
+			'contract',
+			'deal',
+			'journal_id',
+			'is_reversal',
+			'reversing_id',
+			'reversed_id',
+			'book_type',
+			'nire',
+			'hash_ecd',
+			'ecd_transmitted',
+			'ecd_transmitted_at',
+			'nfe_key',
+			'nfe_number',
+			'nfe_series',
+			'nfe_xml_path',
+			'nfe_protocol',
+			'nfe_authorized_at',
+			'origin_user_id',
+			'ip_address',
+			'user_agent',
+			'attachments',
+			'tags',
+			'metadata',
+			'taxes',
+			'items',
+			'transactions',
 		];
 
 		$this->assertSame($expected, (new JournalEntry)->getFillable());

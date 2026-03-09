@@ -48,12 +48,6 @@ final class DealSeeder extends Seeder
 			}
 		}
 
-		$pipelineIds = Pln::query()->pluck('id')->all();
-		if (!$pipelineIds) {
-			Log::notice('DealSeeder: não há pipelines; abortando.');
-			return;
-		}
-
 		// Mapeia estágios por pipeline
 		$stagesByPipeline = Stg::query()
 			->select(['id', 'pipeline_id'])
@@ -61,6 +55,13 @@ final class DealSeeder extends Seeder
 			->groupBy('pipeline_id')
 			->map(fn($g) => $g->pluck('id')->all())
 			->toArray();
+
+		// Only use pipelines that have at least one stage (avoids empty stagePool → continue loop)
+		$pipelineIds = array_keys($stagesByPipeline);
+		if (!$pipelineIds) {
+			Log::notice('DealSeeder: nenhum pipeline com stages; abortando.');
+			return;
+		}
 
 		$users = Usr::query()->pluck('id')->all();
 		if (!$users) {
@@ -92,6 +93,9 @@ final class DealSeeder extends Seeder
 				$this->command?->warn('DealSeeder: falha ao ler --count; usando valor padrão.');
 			}
 		}
+		// HARD_CAP: limit iterations for dev/test speed (raised from 2; was 0 deals due to stageless pipelines)
+		$HARD_CAP = 12;
+		$count = min($HARD_CAP, $count); // original default: max(64, 64 * nPipelines)
 
 		$systemUserId = $this->ensureSystemUser();
 
@@ -132,8 +136,8 @@ final class DealSeeder extends Seeder
 			for ($i = 0; $i < $count; $i++) {
 				try {
 					$nm = $faker->sentence(3);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Acordo de Negócios: {$nm}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Acordo de Negócios: {$nm}");
 					$pipelineId = $pipelineIds[array_rand($pipelineIds)];
 					$stagePool  = $stagesByPipeline[$pipelineId] ?? [];
 					if (!$stagePool) {

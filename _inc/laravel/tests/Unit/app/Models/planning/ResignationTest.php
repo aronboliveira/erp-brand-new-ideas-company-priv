@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Resignation;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ResignationTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -20,7 +26,7 @@ class ResignationTest extends TestCase
 			'notice_date',
 			'resignation_date',
 			'description',
-			'created_by',
+			'notes',
 		];
 
 		$this->assertSame($expected, (new Resignation)->getFillable());
@@ -37,10 +43,10 @@ class ResignationTest extends TestCase
 		$rel = (new Resignation)->employee();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',          $rel->getForeignKeyName());
-		$this->assertSame('employee_id', $rel->getLocalKeyName());
+		$this->assertSame('employee_id',          $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

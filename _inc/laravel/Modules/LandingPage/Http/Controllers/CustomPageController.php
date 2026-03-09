@@ -3,30 +3,34 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    SettingsConstants as SC,
+    UsersConstants as UC,
+    ViewsConstants as VW,
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
-use function App\Http\Controllers\defaultUndefinedException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\{Collection, Str};
 use Illuminate\View\View;
-use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
-use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
+use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants as RRC, Entities\LandingPageSetting};
+use Modules\LandingPage\Config\Constants\SettingsConstants as LPSC;
 
 class CustomPageController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const LP = RoutesResourcesConstants::LP;
+    public const CRT = 'create';
+    public const EDT = 'edit';
+    public const DEL = 'destroy';
+    public const STR = 'store';
+    private const LP = RRC::LP;
     private const MB = 'menubar';
-    private const REDIRECT_INDEX = RoutesResourcesConstants::HM . '.index';
+    private const REDIRECT_INDEX = RRC::HM . '.index';
 
     public function index(Request $request): View|RedirectResponse|null
     {
@@ -38,11 +42,14 @@ class CustomPageController extends AppController
                 return $userOrRedirect instanceof RedirectResponse ? $userOrRedirect : redirect('/login');
             }
             $user = $userOrRedirect;
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) {
+            if ($user->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
+            if (($redirect = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) {
                 Log::warning("{$action} • permission denied, redirecting");
                 return $redirect;
             }
-            Log::info("{$action} • started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info("{$action} • started", [UC::COL_USER_ID => $user->id]);
             try {
                 $settings = LandingPageSetting::landingPageSetting();
                 $pages    = json_decode($settings[self::MB . '_page'], true);
@@ -53,10 +60,10 @@ class CustomPageController extends AppController
                     throw new \RuntimeException("View not found: " . self::MB . '.' . $action);
                 }
                 Log::debug("[$action] resolved view", ['view' => $view]);
-                return view($view, compact('pages', DatabaseConstants::TABLE_SETTINGS));
+                return view($view, compact('pages', DC::TABLE_SETTINGS));
             } catch (\Throwable $e) {
                 Log::error("{$action} • failed", [
-                    UsersConstants::COL_USER_ID => $user->id,
+                    UC::COL_USER_ID => $user->id,
                     'error'                    => $e->getMessage()
                 ]);
                 return defaultUndefinedException(
@@ -81,7 +88,7 @@ class CustomPageController extends AppController
                 return $userOrRedirect;
             $user = $userOrRedirect;
             $guardStart = microtime(true);
-            $redirect = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
+            $redirect = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
             if ($redirect instanceof RedirectResponse) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'key' => $key]);
@@ -103,7 +110,7 @@ class CustomPageController extends AppController
                 }
                 $page = $pages[$key];
                 Log::info("[$action] succeeded", ['user_id' => $user?->id, 'key' => $key]);
-                return view(self::LP . '::' . self::LP . '.' . $function, compact('page', DatabaseConstants::TABLE_SETTINGS));
+                return view(self::LP . '::' . self::LP . '.' . $function, compact('page', DC::TABLE_SETTINGS));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['user_id' => $user?->id, 'key' => $key, 'error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -124,7 +131,7 @@ class CustomPageController extends AppController
                 $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
                 $stepStart = microtime(true);
                 $user = $userOrRedirect;
-                if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true)
+                if (($redirect = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true)
                     return $redirect;
                 $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
                 Log::info($method . ' - initializing create', ['user_id' => $user?->id]);
@@ -164,11 +171,11 @@ class CustomPageController extends AppController
                 return $ur;
             }
             $user = $ur;
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX) !== true) {
+            if ($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX) !== true) {
                 Log::warning("{$action} • access denied, redirecting");
                 return $g;
             }
-            Log::info("{$action} • started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info("{$action} • started", [UC::COL_USER_ID => $user->id]);
             $settings = LandingPageSetting::settings();
             $pages    = json_decode($settings[self::MB . '_page'], true);
             $v        = $request->validate([
@@ -194,11 +201,11 @@ class CustomPageController extends AppController
                     ['name'  => self::MB . '_page'],
                     ['value' => json_encode($pages)]
                 ));
-                Log::info("{$action} • succeeded", [UsersConstants::COL_USER_ID => $user->id]);
+                Log::info("{$action} • succeeded", [UC::COL_USER_ID => $user->id]);
                 return redirect()->back()->with('success', __('Page added successfully'));
             } catch (\Throwable $e) {
                 Log::error("{$action} • failed", [
-                    UsersConstants::COL_USER_ID => $user->id,
+                    UC::COL_USER_ID => $user->id,
                     'error'                    => $e->getMessage(),
                 ]);
                 return defaultUndefinedException(
@@ -222,7 +229,7 @@ class CustomPageController extends AppController
             if ($ur instanceof RedirectResponse) return $ur;
             $user = $ur;
             $guardStart = microtime(true);
-            $g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
+            $g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
             if ($g instanceof RedirectResponse) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'key' => $key]);
@@ -268,7 +275,7 @@ class CustomPageController extends AppController
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
             $user = $ur;
-            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
+            if (($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             Log::info($method . ' - starting update', ['user_id' => $user->id, 'key' => $key]);
             $stepStart = microtime(true);
@@ -323,7 +330,7 @@ class CustomPageController extends AppController
                 return $ur;
             }
             $user = $ur;
-            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) {
+            if (($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) {
                 Log::warning("{$action} • authorization failed", ['user_id' => $user->id, 'key' => $key]);
                 return $g;
             }
@@ -345,7 +352,7 @@ class CustomPageController extends AppController
             } catch (\Throwable $e) {
                 $errCtx = ['exception' => get_class($e), 'message' => $e->getMessage(), 'user_id' => $user->id, 'key' => $key];
                 Log::error("{$action} • failed", $errCtx);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$action} • failed", array_merge(
+                Log::channel(SC::ERR_TRACE)->debug("{$action} • failed", array_merge(
                     $errCtx,
                     ['trace' => $e->getTraceAsString()]
                 ));
@@ -370,7 +377,7 @@ class CustomPageController extends AppController
             if ($ur instanceof RedirectResponse) return $ur;
             $user = $ur;
             $guardStart = microtime(true);
-            $g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
+            $g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
             if ($g instanceof RedirectResponse) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
@@ -393,7 +400,7 @@ class CustomPageController extends AppController
                 }
                 $data['site_logo'] = $name;
             }
-            $data[LandingPageSettingsConstants::SD_K] = $request->input(LandingPageSettingsConstants::SD_K, '');
+            $data[LPSC::SD_K] = $request->input(LPSC::SD_K, '');
             try {
                 $dbStart = microtime(true);
                 DB::transaction(fn() => collect($data)->each(fn($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v])));
@@ -410,6 +417,21 @@ class CustomPageController extends AppController
     }
 
     public const CT_PG = 'customPage';
+    public const IDX = 'index';
+    public const SHW = 'show';
+    public const UPD = 'update';
+
+    /**
+     * Known static page slugs that have dedicated partial views.
+     * When the DB has no menubar_page data, these slugs are rendered
+     * from their Blade partials instead of aborting with 404.
+     */
+    private const STATIC_PAGE_PARTIALS = [
+        'about_us'             => 'landingpage::partials.about_us',
+        'privacy_policy'       => 'landingpage::partials.privacy_policy',
+        'terms_and_conditions' => 'landingpage::partials.terms_and_conditions',
+    ];
+
     public function customPage(Request $request, string $slug): View|RedirectResponse|null
     {
         $method = __METHOD__;
@@ -423,22 +445,22 @@ class CustomPageController extends AppController
             $pages = json_decode($settings[self::MB . '_page'] ?? '[]', true);
             $this->logExecutionTime($stepStart, 'decodePages', 'completed');
             if (!is_array($pages)) {
-                Log::debug($method . ' - raw pages JSON invalid', ['raw' => $settings[self::MB . '_page'] ?? null]);
-                Log::error($method . ' - failed to decode pages JSON');
-                return redirect()->back()->with('error', __('Page configuration is invalid'));
+                Log::debug($method . ' - raw pages JSON invalid, treating as empty', ['raw' => $settings[self::MB . '_page'] ?? null]);
+                $pages = [];
             }
             $stepStart = microtime(true);
+            // Try to find the page in DB-stored menubar_page JSON
             foreach ($pages as $page) {
                 try {
-                    if (($page[LandingPageSettingsConstants::PG_SLG] ?? '') === $slug) {
+                    if (($page[LPSC::PG_SLG] ?? '') === $slug) {
                         Log::info($method . ' - rendering custom page', ['slug' => $slug, 'title' => $page['page_title'] ?? null]);
-                        $view = self::getFirstExistingView(ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
+                        $view = self::getFirstExistingView(VW::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
                         if (!$view) {
-                            Log::warning($method . ' - view not found', ['attempted' => ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1])]);
-                            throw new \RuntimeException("View not found: " . ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
+                            Log::warning($method . ' - view not found', ['attempted' => VW::SET_LOS . '.' . strtolower(explode('::', $method)[1])]);
+                            throw new \RuntimeException("View not found: " . VW::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
                         }
                         $this->logExecutionTime($stepStart, 'findPage', 'completed');
-                        return view($view, compact('page', DatabaseConstants::TABLE_SETTINGS));
+                        return view($view, compact('page', DC::TABLE_SETTINGS));
                     }
                 } catch (\Throwable $e) {
                     Log::error($method . ' - exception during page iteration', ['error' => $e->getMessage(), 'page' => $page]);
@@ -446,8 +468,24 @@ class CustomPageController extends AppController
                 }
             }
             $this->logExecutionTime($stepStart, 'findPage', 'completed');
+            // Fallback: check if this is a known static page with a dedicated partial view
+            if (isset(self::STATIC_PAGE_PARTIALS[$slug])) {
+                Log::info($method . ' - rendering static page in layout', ['slug' => $slug]);
+                // Build a synthetic $page array so the custompage layout can render header/footer/CSS
+                $page = [
+                    LPSC::MB_PG_NM => __(ucwords(str_replace('_', ' ', $slug))),
+                    LPSC::MB_PG_CT => '', // empty content — layout will fall through to @include partial
+                    LPSC::PG_SLG   => $slug,
+                    'template_name' => 'page_content',
+                    'page_url'     => '',
+                    'header'       => 'on',
+                    'footer'       => 'on',
+                    'login'        => 'on',
+                ];
+                return view('landingpage::layouts.custompage', compact('page', DC::TABLE_SETTINGS));
+            }
             Log::warning($method . ' - page not found', ['slug' => $slug]);
-            return redirect()->back()->with('error', __('Page not found'));
+            abort(404, __('Page not found'));
         }, ['path' => $request->path(), 'slug' => $slug]);
     }
 }

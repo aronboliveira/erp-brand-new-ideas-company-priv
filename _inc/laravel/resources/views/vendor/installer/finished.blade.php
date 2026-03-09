@@ -11,17 +11,18 @@
 
 @section('container')
     @php
-        use Illuminate\Support\Arr;
+        try {
+$showSeededCreds = (bool) config('installer.show_seeded_credentials', app()->environment('local'));
 
-        // Only show seeded credentials in safe contexts (local by default, or if explicitly enabled)
-        $showSeededCreds = (bool) config('installer.show_seeded_credentials', app()->environment('local'));
-
-        $messageBag    = session('message', []);
-        $dbOutputLog   = data_get($messageBag, 'dbOutputLog');
-        $consoleOutput = $finalMessages       ?? '';
-        $statusLog     = $finalStatusMessage  ?? '';
-        $envDump       = $finalEnvFile        ?? '';
-    @endphp
+            $messageBag    = session('message', []);
+            $dbOutputLog   = data_get($messageBag, 'dbOutputLog');
+            $consoleOutput = $finalMessages       ?? '';
+            $statusLog     = $finalStatusMessage  ?? '';
+            $envDump       = $finalEnvFile        ?? '';
+        } catch (\Throwable $e) {
+            \Log::error('vendor/installer/finished — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
 
     @if($showSeededCreds)
         <div role="alert" aria-live="polite" class="alert alert-warning" style="margin-bottom:1rem;">

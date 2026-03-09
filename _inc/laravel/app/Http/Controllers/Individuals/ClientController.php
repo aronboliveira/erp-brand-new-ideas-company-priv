@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    MiddlewaresConstants,
-    PermissionsConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants
+    DatabaseConstants as DC,
+    MiddlewaresConstants as MWC,
+    PermissionsConstants as PMC,
+    SettingsConstants as SC,
+    UsersConstants as UC,
+    ViewsConstants as VW
 };
 use App\Traits\ChecksLogin;
 use App\Models\{
@@ -32,6 +34,7 @@ use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, View as ViewFacade}
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Auth\Access\AuthorizationException;
 use illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
 class ClientController extends Controller
 {
@@ -40,7 +43,7 @@ class ClientController extends Controller
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+        $this->middleware([MWC::AUTH, MWC::XSS]);
     }
 
     public function index(Request $request): View|RedirectResponse|null
@@ -50,16 +53,16 @@ class ClientController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $function) {
             try {
                 $t = microtime(true);
-                self::_authorize($request, PermissionsConstants::MNG_CLT);
+                self::_authorize($request, PMC::MNG_CLT);
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $t = microtime(true);
-                $clients = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
-                    ->where(UsersConstants::COL_TP, self::SINGULAR)
+                $clients = User::where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())
+                    ->where(UC::COL_TP, self::SINGULAR)
                     ->get();
                 $this->logExecutionTime($t, $action . '::loadClients', 'completed');
 
-                $view = ViewsConstants::CLT . '.' . $function;
+                $view = VW::CLT . '.' . $function;
                 $t = microtime(true);
                 if (!ViewFacade::exists($view)) {
                     $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
@@ -67,27 +70,27 @@ class ClientController extends Controller
                 }
                 $this->logExecutionTime($t, $action . '::viewCheck', 'ok');
 
-                return view($view, compact(DatabaseConstants::TABLE_CLIENTS));
+                return view($view, compact(DC::TABLE_CLIENTS));
             } catch (\Throwable $e) {
                 return defaultPermissionDenial($request, $e, $action);
             }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 
-    public function create(Request $request): RedirectResponse|null
+    public function create(Request $request): RedirectResponse|View|JsonResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $action, $function) {
             try {
                 $t = microtime(true);
-                self::_authorize($request, PermissionsConstants::CR_CLT);
+                self::_authorize($request, PMC::CR_CLT);
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $isAjax = method_exists($request, 'ajax') ? $request->ajax() : ($request->ajax ?? false);
 
                 if ($isAjax) {
-                    $view = ViewsConstants::CLT . '.create_ajax';
+                    $view = VW::CLT . '.create_ajax';
                     $t = microtime(true);
                     if (!ViewFacade::exists($view)) {
                         $this->logExecutionTime($t, $action . '::viewCheckAjax', 'missing');
@@ -101,7 +104,7 @@ class ClientController extends Controller
                 $customFields = CustomField::where('module', self::SINGULAR)->get();
                 $this->logExecutionTime($t, $action . '::loadCustomFields', 'completed');
 
-                $view = ViewsConstants::CLT . '.' . $function;
+                $view = VW::CLT . '.' . $function;
                 $t = microtime(true);
                 if (!ViewFacade::exists($view)) {
                     $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
@@ -129,14 +132,14 @@ class ClientController extends Controller
                 $creator = $uor;
 
                 $t = microtime(true);
-                self::_authorize($request, PermissionsConstants::CR_CLT);
+                self::_authorize($request, PMC::CR_CLT);
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $t = microtime(true);
-                $defaultLang = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                    ->where('name', SettingsConstants::DEF_LNG)
-                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
-                    ->value('value') ?? DatabaseConstants::DEFAULT_LANG;
+                $defaultLang = DB::table(DC::TABLE_SETTINGS)
+                    ->where('name', SC::DEF_LNG)
+                    ->where(DC::COL_TABLE_CREATOR, $request->user()->creatorId())
+                    ->value('value') ?? DC::DEFAULT_LANG;
                 $this->logExecutionTime($t, $action . '::loadDefaultLang', 'completed');
 
                 $t = microtime(true);
@@ -149,8 +152,8 @@ class ClientController extends Controller
 
                 $t = microtime(true);
                 $plan  = Plan::find($creator->plan());
-                $total = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creator->creatorId())
-                    ->where(UsersConstants::COL_TP, self::SINGULAR)
+                $total = User::where(DC::COL_TABLE_CREATOR, $creator->creatorId())
+                    ->where(UC::COL_TP, self::SINGULAR)
                     ->count();
                 $this->logExecutionTime($t, $action . '::planCheck', 'completed');
 
@@ -164,9 +167,9 @@ class ClientController extends Controller
                     'email'             => $request->email,
                     'job_title'         => $request->job_title,
                     'password'          => Hash::make($request->password),
-                    UsersConstants::COL_TP => self::SINGULAR,
+                    UC::COL_TP => self::SINGULAR,
                     'lang'              => $defaultLang,
-                    DatabaseConstants::COL_TABLE_CREATOR => $creator->creatorId(),
+                    DC::COL_TABLE_CREATOR => $creator->creatorId(),
                     'email_verified_at' => now()->toDateTimeString(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persistClient', 'completed');
@@ -187,7 +190,7 @@ class ClientController extends Controller
                     $this->logExecutionTime($t, $action . '::sendEmail', 'completed');
                 }
 
-                return redirect()->route(ViewsConstants::CLT . '.index')->with(
+                return redirect()->route(VW::CLT . '.index')->with(
                     'success',
                     __('Client successfully added.')
                         . ((($resp['is_success'] ?? true) === false && ($resp['error'] ?? false))
@@ -258,7 +261,7 @@ class ClientController extends Controller
                 ];
                 $this->logExecutionTime($t, $action . '::summaries', 'completed');
 
-                $view = ViewsConstants::CLT . '.' . $function;
+                $view = VW::CLT . '.' . $function;
                 $t = microtime(true);
                 if (!ViewFacade::exists($view)) {
                     $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
@@ -270,7 +273,7 @@ class ClientController extends Controller
                     self::SINGULAR,
                     'estimations',
                     'cntEst',
-                    DatabaseConstants::TABLE_CONTRACTS,
+                    DC::TABLE_CONTRACTS,
                     'cntCont'
                 ));
             } catch (\Throwable $e) {
@@ -300,7 +303,7 @@ class ClientController extends Controller
                 tap($client)->customField = CustomField::getData($client, self::SINGULAR);
                 $this->logExecutionTime($t, $action . '::loadFormData', 'completed');
 
-                $view = ViewsConstants::CLT . '.' . $function;
+                $view = VW::CLT . '.' . $function;
                 $t = microtime(true);
                 if (!ViewFacade::exists($view)) {
                     $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
@@ -420,7 +423,7 @@ class ClientController extends Controller
                     : throw new \Exception('Invalid Client');
                 $this->logExecutionTime($t, $action . '::loadClient', 'completed');
 
-                $view = ViewsConstants::CLT . '.reset';
+                $view = VW::CLT . '.reset';
                 $t = microtime(true);
                 if (!ViewFacade::exists($view)) {
                     $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
@@ -436,6 +439,14 @@ class ClientController extends Controller
     }
 
     public const CLT_PSW_R = 'clientPasswordReset';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function clientPasswordReset(string|int $id, Request $request): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
@@ -450,10 +461,10 @@ class ClientController extends Controller
                 $this->logExecutionTime($t, $action . '::validate', 'completed');
 
                 $t = microtime(true);
-                User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->findOrFail($id)->update(['password' => Hash::make($request->password)]);
+                User::findOrFail($id)->update(['password' => Hash::make($request->password)]);
                 $this->logExecutionTime($t, $action . '::persistPassword', 'completed');
 
-                return redirect()->route(ViewsConstants::CLT . '.index')
+                return redirect()->route(VW::CLT . '.index')
                     ->with('success', 'Client Password successfully updated.');
             } catch (\Throwable $e) {
                 return redirect()->back()->with('error', $e->getMessage());

@@ -1,18 +1,17 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
+	try {
+$lang = Utility::fetchUserLang();
 
-	$lang = Utility::fetchUserLang();
+		$formId = 'store_training_type_form';
 
-	$formId = 'store_training_type_form';
-
-	$createBase  = VW::TNG_TP;
-	$createKebab = Str::kebab($createBase);
-	$createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
-	$createUrl   = $createName ? route($createName) : '#';
-	$guardMsg    = Utility::fetchLinkMessage($lang, VW::TNG_TP, 'store_training_type_route_unavailable') ?? 'Store training type route is unavailable. Please contact technical support or your domain administrator.';
+		$createBase  = VW::TNG_TP;
+		$createKebab = Str::kebab($createBase);
+		$createName  = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
+		$createUrl   = $createName ? route($createName) : '#';
+		$guardMsg    = Utility::fetchLinkMessage($lang, VW::TNG_TP, 'store_training_type_route_unavailable') ?? 'Store training type route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Throwable $e) {
+		\Log::error('training_types/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	}
 @endphp
 
 {!! Form::open([
@@ -37,4 +36,3 @@
 	</div>
     <script defer src="{{ asset('assets/js/routes/training/types/store.js') }}"></script>
 {!! Form::close() !!}
-

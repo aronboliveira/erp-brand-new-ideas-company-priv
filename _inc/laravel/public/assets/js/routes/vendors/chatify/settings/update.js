@@ -1,50 +1,15 @@
+/**
+ * @fileoverview Chatify settings update route guard
+ * @description Protects chatify avatar update form from submission when route is unavailable
+ */
+
 (() => {
   try {
-    const fm = document.getElementById("update-settings");
-    if (!fm) {
-      return;
-    }
-    if (fm.getAttribute("data-listener-active") === "true") {
-      return;
-    }
-    fm.setAttribute("data-listener-active", "true");
-    fm.addEventListener("submit", e => {
-      try {
-        const action = fm.getAttribute("action") ?? "#";
-        const url = fm.getAttribute("data-url") ?? action ?? "#";
-        if (url !== "#" && action !== "#") {
-          return;
-        }
-        e.preventDefault();
-        const msg =
-          fm.getAttribute("data-guard-msg") ??
-          "Update avatar route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          document.body.appendChild(container);
-        }
-        if (hasBootstrap) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-        fm.setAttribute("data-failed-route", "true");
-      } catch (err) {}
-    });
-  } catch (err) {}
+    const guard = window.ERPGuard;
+    if (!guard) return;
+    guard.bindSubmitGuard(
+      "#update-settings",
+      "VXBkYXRlIGF2YXRhciByb3V0ZSBpcyB1bmF2YWlsYWJsZS4gUGxlYXNlIGNvbnRhY3QgdGVjaG5pY2FsIHN1cHBvcnQgb3IgeW91ciBkb21haW4gYWRtaW5pc3RyYXRvci4=",
+    );
+  } catch {}
 })();

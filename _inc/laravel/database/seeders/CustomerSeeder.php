@@ -34,7 +34,8 @@ final class CustomerSeeder extends Seeder
 				Log::warning(self::class . ': nenhum Tax encontrado; campos fiscais serão preenchidos com null.');
 			}
 
-			$count   = max(User::where('type', 'customer')->count(), self::MIN_CUSTOMER * count(UserType::cases()));
+			// $count   = max(User::where('type', 'customer')->count(), self::MIN_CUSTOMER * count(UserType::cases())); // ORIGINAL — unbounded
+			$count   = min(2, max(User::where('type', 'customer')->count(), self::MIN_CUSTOMER * count(UserType::cases()))); // HARD CAP
 			$created = 0;
 			$updated = 0;
 
@@ -47,8 +48,8 @@ final class CustomerSeeder extends Seeder
 						$email  = $faker->username() . '_' . Str::random(8) . "@" . $faker->freeEmailDomain();
 						$safeAcc++;
 					} while (Customer::query()->where('email', $email)->exists());
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Cliente: {$name}, Email: {$email}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Cliente: {$name}, Email: {$email}");
 					// --- Dados base
 					$isVip  = $faker->boolean(20);
 					$rating = $isVip ? $faker->randomFloat(2, 4.2, 5.0) : $faker->randomFloat(2, 3.3, 4.9);

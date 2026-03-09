@@ -1,3 +1,6 @@
+/**
+ * @requires ERPUtils (URL handling uses native APIs)
+ */
 (() => {
   try {
     const safeURL = file => {

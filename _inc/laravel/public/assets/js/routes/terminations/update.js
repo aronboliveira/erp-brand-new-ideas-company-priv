@@ -1,70 +1,13 @@
+/**
+ * @file Termination update form route guard
+ * @description Prevents submission if route is unavailable
+ */
 (() => {
   try {
-    const f = document.getElementById("edit_termination");
-    if (!f) return;
-    if (f.getAttribute("data-listener-active") === "true") return;
-    f.setAttribute("data-listener-active", "true");
-
-    const resolved = f.getAttribute("data-resolved-action") || "#";
-    if (
-      f.hasAttribute("action") &&
-      f.getAttribute("action") === "#" &&
-      resolved !== "#"
-    ) {
-      f.setAttribute("action", resolved);
-    }
-
-    f.addEventListener("submit", e => {
-      try {
-        const action = f.getAttribute("action") || "#";
-        if (action !== "#") return;
-        e.preventDefault();
-
-        const msg =
-          f.getAttribute("data-guard-msg") ||
-          "Update termination route is unavailable. Please contact technical support or your domain administrator.";
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        const bsLink = document.querySelector('link[href*="bootstrap"]');
-        if (
-          bsLink &&
-          typeof window.bootstrap !== "undefined" &&
-          window.bootstrap?.Toast
-        ) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          window.bootstrap.Toast.getOrCreateInstance(toast).show();
-        } else {
-          alert(msg);
-        }
-
-        f.setAttribute("data-failed-route", "true");
-      } catch (err) {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error(
-            "[assets/js/routes/terminations/update.js] Submit handler error:",
-            err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
-          );
-      }
+    window.ERPGuard.bindSubmitGuard("#edit_termination", {
+      msg: btoa(
+        "Update termination route is unavailable. Please contact technical support or your domain administrator.",
+      ),
     });
   } catch (error) {
     if (
@@ -74,7 +17,7 @@
       console.error(
         "[assets/js/routes/terminations/update.js] Initialization error:",
         error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        error?.message ?? "Unknown error",
       );
   }
 })();

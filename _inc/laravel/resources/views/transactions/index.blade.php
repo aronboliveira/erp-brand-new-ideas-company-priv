@@ -1,17 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('transactions/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,14 +12,14 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Report')}}</li>
-    <li class="breadcrumb-item">{{__('Transaction Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Transaction Summary')}}</li>
 @endsection
 
 @push(StacksConstants::ADM_CSS)
@@ -46,24 +39,28 @@
     <script defer src="{{ asset('js/datatable/vfs_fonts.js') }}"></script>
 @endpush
 
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
 {{--            <i class="ti ti-filter"></i>--}}
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
-            $tstExportBase = VW::TST.'.export';
-            $tstExportKebab = Str::kebab($tstExportBase);
-            $tstExportResolved = Route::has($tstExportBase) ? $tstExportBase : (Route::has($tstExportKebab) ? $tstExportKebab : null);
-            $tstExportUrl = $tstExportResolved ? route($tstExportResolved) : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $tstExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::TST, 'export_test_route_unavailable') ?? 'Export test route is unavailable. Please contact technical support or your domain administrator.';
-            $tstExportAnchorId = 'tst-export-btn';
-        @endphp
+            try {
+                $tstExportBase = VW::TST.'.export';
+                $tstExportKebab = Str::kebab($tstExportBase);
+                $tstExportResolved = Route::has($tstExportBase) ? $tstExportBase : (Route::has($tstExportKebab) ? $tstExportKebab : null);
+                $tstExportUrl = $tstExportResolved ? route($tstExportResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $tstExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::TST, 'export_test_route_unavailable') ?? 'Export test route is unavailable. Please contact technical support or your domain administrator.';
+                $tstExportAnchorId = 'tst-export-btn';
+            } catch (\Throwable $e) {
+                \Log::error('transactions/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a href="{{ $tstExportUrl }}"
         id="{{ $tstExportAnchorId }}"
         data-url="{{ $tstExportUrl }}"
-        data-guard-msg="{{ $tstExportGuardMsg }}"
+        data-guard-msg="{{ base64_encode($tstExportGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Export') }}"
@@ -85,28 +82,7 @@
                                 if (url !== '#' && href !== '#') { return; }
                                 e.preventDefault();
                                 const msg = el.getAttribute('data-guard-msg') ?? 'Export test route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (hasBootstrap) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role','alert');
-                                    toast.setAttribute('aria-live','assertive');
-                                    toast.setAttribute('aria-atomic','true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
+                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                 el.setAttribute('data-failed-route','true');
                             } catch (err) {}
                         });
@@ -117,17 +93,17 @@
         @php
             $downloadLabelTr = __('Download');
             $downloadGuardMsgTr = Utility::fetchLinkMessage($lang, VW::TST, 'download_transactions_report_unavailable') ?? 'Download function for Transactions report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         class="{{ VC::BT_SM_PM }} download-transactions"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsgTr }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsgTr) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ $downloadLabelTr }}"
         aria-label="{{ $downloadLabelTr }}"
         data-original-title="{{ $downloadLabelTr }}">
-            <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
+            <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
         @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/transactions/download.js') }}" defer></script>
@@ -137,19 +113,23 @@
 
 @section(YieldingConstants::ADM_CTT)
 	@php
-		$indexBase      = VW::TST . '.index';
-		$indexKebab     = Str::kebab($indexBase);
-		$indexResolved  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
-		$indexUrl       = $indexResolved ? route($indexResolved) : '#';
-		$indexGuard     = Utility::fetchLinkMessage($lang, VW::TST, 'index_transaction_route_unavailable') ?? 'Transaction index route is unavailable. Please contact technical support or your domain administrator.';
-		$accountOptions = is_array($account ?? null) ? $account : (method_exists(($account ?? null), 'toArray') ? $account->toArray() : ['' => __('No accounts available')]);
-		$categoryOpts   = is_array($category ?? null) ? $category : (method_exists(($category ?? null), 'toArray') ? $category->toArray() : ['' => __('No categories available')]);
-	@endphp
+		try {
+		    $indexBase      = VW::TST . '.index';
+		    $indexKebab     = Str::kebab($indexBase);
+		    $indexResolved  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+		    $indexUrl       = $indexResolved ? route($indexResolved) : '#';
+		    $indexGuard     = Utility::fetchLinkMessage($lang, VW::TST, 'index_transaction_route_unavailable') ?? 'Transaction index route is unavailable. Please contact technical support or your domain administrator.';
+		    $accountOptions = is_array($account ?? null) ? $account : (method_exists(($account ?? null), 'toArray') ? $account->toArray() : ['' => __('No accounts available')]);
+		    $categoryOpts   = is_array($category ?? null) ? $category : (method_exists(($category ?? null), 'toArray') ? $category->toArray() : ['' => __('No categories available')]);
+		} catch (\Throwable $e) {
+		    \Log::error('transactions/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+		}
+@endphp
 	<div class="{{ VC::RW }}">
 		<div class="{{ VC::CS12 }}">
-			<div class="mt-2" id="multiCollapseExample1">
+			<div class="{{ VC::MT2 }}" id="multiCollapseExample1">
 				<div class="{{ VC::CD }}">
-					<div class="card-body">
+					<div class="{{ VC::CD_BD }}">
 						{{ Form::open([
 							'url'                  => $indexUrl,
 							'method'               => 'get',
@@ -159,7 +139,7 @@
 							'data-sv-localized'    => 'true',
 						]) }}
 							<div class="{{ VC::R_ALC_JCE }}">
-								<div class="col-xl-10">
+								<div class="{{ VC::CXL10 }}">
 									<div class="{{ VC::RW }}">
 										<div class="{{ VC::CL_XL3 }}">
 											<div class="btn-box">
@@ -202,7 +182,7 @@
 											   id="transaction-report-reset"
 											   class="{{ VC::BT_SM_DG }}"
 											   data-url="{{ $indexUrl }}"
-											   data-guard-msg="{{ $indexGuard }}"
+											   data-guard-msg="{{ base64_encode($indexGuard) }}"
 											   data-sv-localized="true"
 											   data-bs-toggle="tooltip"
 											   title="{{ __('Reset') }}"
@@ -255,10 +235,14 @@
 		<div class="{{ VC::RW }}">
 			@forelse(((($accounts ?? null) && (is_array($accounts) || method_exists($accounts,'toArray')))) ? (is_array($accounts) ? $accounts : $accounts->toArray()) : [] as $account)
 				@php
-					$__holder = (string) (data_get($account,'holder_name') ?? '');
-					$__bank   = (string) (data_get($account,'bank_name') ?? '');
-					$__total  = data_get($account,'total');
-				@endphp
+					try {
+					    $__holder = (string) (data_get($account,'holder_name') ?? '');
+					    $__bank   = (string) (data_get($account,'bank_name') ?? '');
+					    $__total  = data_get($account,'total');
+					} catch (\Throwable $e) {
+					    \Log::error('transactions/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+					}
+@endphp
 				<div class="{{ VC::CL_XL3 }}">
 					<div class="{{ VC::CD_POS }}">
 						@if($__holder === 'Cash')
@@ -272,15 +256,15 @@
 					</div>
 				</div>
 			@empty
-				<div class="{{ VC::CM12 }}"><p class="text-center text-muted">{{ __('No accounts available') }}</p></div>
+				<div class="{{ VC::CM12 }}"><p class="{{ VC::TXCT_MT }}">{{ __('No accounts available') }}</p></div>
 			@endforelse
 		</div>
 	</div>
 	<div class="{{ VC::RW }}">
 		<div class="{{ VC::CM12 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="{{ VC::TB }} datatable">
 							<thead>
 							<tr>
@@ -298,10 +282,14 @@
 									<td>{{ $user?->dateFormat(data_get($transaction,'date')) ?? __('Failed to get date') }}</td>
 									<td>
 										@php
-											$__ba      = (is_object($transaction) && method_exists($transaction,'bankAccount')) ? ($transaction->bankAccount() ?? null) : null;
-											$__bHolder = data_get($__ba,'holder_name');
-											$__bName   = data_get($__ba,'bank_name');
-										@endphp
+											try {
+											    $__ba      = (is_object($transaction) && method_exists($transaction,'bankAccount')) ? ($transaction->bankAccount() ?? null) : null;
+											    $__bHolder = data_get($__ba,'holder_name');
+											    $__bName   = data_get($__ba,'bank_name');
+											} catch (\Throwable $e) {
+											    \Log::error('transactions/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+											}
+@endphp
 										@if($__ba && $__bHolder === 'Cash')
 											{{ $__bHolder }}
 										@else
@@ -314,7 +302,7 @@
 									<td>{{ $user?->priceFormat((float)(data_get($transaction,'amount') ?? 0)) ?? __('Failed to get amount') }}</td>
 								</tr>
 							@empty
-								<tr><td colspan="6" class="text-center text-muted">{{ __('No transactions available') }}</td></tr>
+								<tr><td colspan="6" class="{{ VC::TXCT_MT }}">{{ __('No transactions available') }}</td></tr>
 							@endforelse
 							</tbody>
 						</table>

@@ -1,55 +1,102 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Models\Utility;
-    use App\Config\Constants\ViewsConstants;
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Config\Constants\StacksConstants;
-    use Illuminate\Support\Collection;
-
-    $fields = [
-        [
-            'name'     => 'date',
-            'type'     => 'date',
-            'label'    => __('Date'),
-            'colClass' => VC::FM_GCB6,
-            'attrs'    => ['class' => VC::FM_CT, 'required' => 'required'],
-        ],
-        [
-            'name'     => 'amount',
-            'type'     => 'number',
-            'label'    => __('Amount'),
-            'colClass' => VC::FM_GCB6,
-            'attrs'    => ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01'],
-        ],
-        [
-            'name'     => 'description',
-            'type'     => 'textarea',
-            'label'    => __('Description'),
-            'colClass' => VC::FM_GCB12,
-            'attrs'    => ['class' => VC::FM_CT, 'rows' => 2],
-        ],
-    ];
+$fields ??= [];
+	try {
+		$fields = [
+			[
+				'name'     => 'date',
+				'type'     => 'date',
+				'label'    => __('Date'),
+				'colClass' => VC::FM_GCB6,
+				'attrs'    => ['class' => VC::FM_CT, 'required' => 'required'],
+			],
+			[
+				'name'     => 'amount',
+				'type'     => 'number',
+				'label'    => __('Amount'),
+				'colClass' => VC::FM_GCB6,
+				'attrs'    => ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01'],
+			],
+			[
+				'name'     => 'description',
+				'type'     => 'textarea',
+				'label'    => __('Description'),
+				'colClass' => VC::FM_GCB12,
+				'attrs'    => ['class' => VC::FM_CT, 'rows' => 2],
+			],
+		];
+	} catch (\Error $e) {
+		Log::error('Error in debit_notes/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in debit_notes/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in debit_notes/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!empty($debitNote) && isset($debitNote->bill, $debitNote->id))
     @php
-        $billsEditDebitNoteBaseRouteName   = ViewsConstants::BIL.'.edit.debit.note';
-        $billsEditDebitNoteKebabRouteName  = Str::kebab($billsEditDebitNoteBaseRouteName);
-        $billsEditDebitNoteResolvedName    = Route::has($billsEditDebitNoteBaseRouteName)
-            ? $billsEditDebitNoteBaseRouteName
-            : (Route::has($billsEditDebitNoteKebabRouteName) ? $billsEditDebitNoteKebabRouteName : null);
-
-        $billIdValue                       = (string) ($debitNote->bill ?? '');
-        $debitNoteIdValue                  = (string) ($debitNote->id ?? '');
-        $billsEditDebitNoteUrl             = ($billsEditDebitNoteResolvedName && $billIdValue !== '' && $debitNoteIdValue !== '')
-            ? route($billsEditDebitNoteResolvedName, [$billIdValue, $debitNoteIdValue])
-            : '#';
-
-        $billsEditDebitNoteFormId          = 'bills-edit-debit-note-form-'.$billIdValue.'-'.$debitNoteIdValue;
-        $billsLangValue                    = isset($lang) ? $lang : Utility::fetchUserLang();
-        $billsEditDebitNoteGuardMessage    = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'edit_debit_note_route_unavailable')
-            ?? 'Edit debit note route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+$billsEditDebitNoteBaseRouteName ??= '';
+		$billsEditDebitNoteKebabRouteName ??= '';
+		$billsEditDebitNoteResolvedName ??= null;
+		$billIdValue ??= '';
+		$debitNoteIdValue ??= '';
+		$billsEditDebitNoteUrl ??= '#';
+		$billsEditDebitNoteFormId ??= 'bills-edit-debit-note-form-x-x';
+		$billsLangValue ??= 'en';
+		$billsEditDebitNoteGuardMessage ??= '';
+		try {
+			$billsEditDebitNoteBaseRouteName = ViewsConstants::BIL . '.edit.debit.note';
+			$billsEditDebitNoteKebabRouteName = Str::kebab($billsEditDebitNoteBaseRouteName);
+			$billsEditDebitNoteResolvedName = Route::has($billsEditDebitNoteBaseRouteName)
+				? $billsEditDebitNoteBaseRouteName
+				: (Route::has($billsEditDebitNoteKebabRouteName) ? $billsEditDebitNoteKebabRouteName : null);
+			$billIdValue = (string) data_get($debitNote ?? null, 'bill', '');
+			$debitNoteIdValue = (string) data_get($debitNote ?? null, 'id', '');
+			$billsEditDebitNoteUrl = ($billsEditDebitNoteResolvedName && $billIdValue !== '' && $debitNoteIdValue !== '')
+				? (route($billsEditDebitNoteResolvedName, [$billIdValue, $debitNoteIdValue]) ?? '#')
+				: '#';
+			$billsEditDebitNoteFormId = 'bills-edit-debit-note-form-' . $billIdValue . '-' . $debitNoteIdValue;
+			$billsLangValue = isset($lang) ? $lang : (Utility::fetchUserLang() ?? 'en');
+			$billsEditDebitNoteGuardMessage = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'edit_debit_note_route_unavailable')
+				?? 'Edit debit note route is unavailable. Please contact technical support or your domain administrator.';
+		} catch (\\Error $e) {
+			FormLog::error('Error in debit_notes/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\\Exception $e) {
+			FormLog::error('Exception in debit_notes/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\\Throwable $e) {
+			FormLog::error('Throwable in debit_notes/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		}
+@endphp
 
     {{ Form::model($debitNote, [
         'method'            => 'POST',
@@ -69,7 +116,9 @@
                             @if(($f['type'] ?? '') === 'textarea')
                                 {{ Form::textarea($f['name'], null, $f['attrs']) }}
                             @else
-                                @php $__method = $f['type'] ?? 'text'; @endphp
+                                @php
+ $__method = $f['type'] ?? 'text';
+@endphp
                                 {!! call_user_func([Form::class, $__method], $f['name'], null, $f['attrs']) !!}
                             @endif
                         </div>
@@ -86,55 +135,7 @@
             <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
         </div>
         <script defer>
-            (() => {
-                try {
-                    const fm = document.getElementById('{{ $billsEditDebitNoteFormId ?? "x" }}');
-                    if (!fm) { return; }
-                    if (fm.getAttribute('data-submit-guarded') === 'true') { return; }
-                    fm.setAttribute('data-submit-guarded','true');
-
-                    fm.addEventListener('submit', (e) => {
-                        try {
-                            const action = fm.getAttribute('action') ?? '#';
-                            const url    = fm.getAttribute('data-url') ?? action ?? '#';
-                            if (url !== '#' && action !== '#') { return; }
-
-                            e.preventDefault();
-
-                            const msg = fm.getAttribute('data-guard-msg')
-                                ?? 'Edit debit note route is unavailable. Please contact technical support or your domain administrator.';
-
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-
-                            fm.setAttribute('data-failed-route','true');
-                        } catch (err) {}
-                    });
-                } catch (err) {}
-            })();
+            window.RouteGuard?.guardFormSubmit?.('{{ $billsEditDebitNoteFormId ?? "x" }}');
         </script>
     {{ Form::close() }}
 @else

@@ -1,30 +1,23 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('reports/payroll — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Payroll')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Payroll Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Payroll Report')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/jszip.js') }}"></script>
@@ -72,7 +65,7 @@
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -114,7 +107,7 @@
             const name = (($ && $("#filename").val()) ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { 
+                if (typeof window.html2pdf !== "function") { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -157,7 +150,7 @@
             const initDataTable = () => {
             const $table = $("#report-dataTable");
             if (!$table.length) { return; }
-            if (!$.fn || !$.fn.DataTable) { try { 
+            if (!$.fn || !$.fn.DataTable) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -167,7 +160,7 @@
             const title = (($ && $("#filename").val()) ?? "").toString().trim() || "export";
             const hasButtons = $.fn.dataTable && $.fn.dataTable.Buttons;
             const opts = hasButtons ? { dom: "lBfrtip", buttons: [{ extend: "pdf", title }, { extend: "excel", title }, { extend: "csv", title }] } : {};
-            if (!hasButtons) { try { 
+            if (!hasButtons) { try {
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -252,37 +245,41 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::C_AT_FEND }}">
         @php
-            $exportRouteName = VW::RPT . '.payroll.export';
-            $exportUrl       = Route::has($exportRouteName) ? route($exportRouteName) : '#';
-            $exportLinkId    = 'export-payroll-link';
-            $exportGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_export_route_unavailable') ?? 'Payroll export is unavailable. Please contact technical support or your domain administrator.';
-            $downloadLabel   = __('Download');
-            $exportLabel     = __('Export');
-        @endphp
+            try {
+                $exportRouteName = VW::RPT . '.payroll.export';
+                $exportUrl       = Route::has($exportRouteName) ? route($exportRouteName) : '#';
+                $exportLinkId    = 'export-payroll-link';
+                $exportGuardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_export_route_unavailable') ?? 'Payroll export is unavailable. Please contact technical support or your domain administrator.';
+                $downloadLabel   = __('Download');
+                $exportLabel     = __('Export');
+            } catch (\Throwable $e) {
+                \Log::error('reports/payroll — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a href="{{ $exportUrl }}"
         id="{{ $exportLinkId }}"
         class="{{ VC::BT_SM_PM }} {{ $exportLinkId }}"
         data-url="{{ $exportUrl }}"
         data-sv-localized="true"
-        data-guard-msg="{{ $exportGuardMsg }}"
+        data-guard-msg="{{ base64_encode($exportGuardMsg) }}"
         data-bs-toggle="tooltip"
         title="{{ $exportLabel }}"
         aria-label="{{ $exportLabel }}">
-        <i class="ti ti-file-export"></i>
+        <i class="{{ VC::TI_EXP }}"></i>
         </a>
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_payroll_report_unavailable') ?? 'Download function for payroll report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         class="{{ VC::BT_SM_PM }} download-payroll"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ $downloadLabel }}"
         aria-label="{{ $downloadLabel }}"
         data-original-title="{{ $downloadLabel }}">
-            <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
+            <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
         @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/payrolls/download.js') }}" defer></script>
@@ -292,18 +289,22 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
-            <div class="mt-2" id="multiCollapseExample1">
+            <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         @php
-                            $payrollBase            = VW::RPT.'.payroll';
-                            $payrollKebab           = Str::kebab($payrollBase);
-                            $payrollResolved        = Route::has($payrollBase) ? $payrollBase : (Route::has($payrollKebab) ? $payrollKebab : null);
-                            $payrollUrl             = $payrollResolved ? route($payrollResolved) : '#';
-                            $payrollFormId          = 'report_payroll';
-                            $applyGuardMsg          = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_apply_report_route_unavailable') ?? 'Payroll apply route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg          = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_reset_report_route_unavailable') ?? 'Payroll reset route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $payrollBase            = VW::RPT.'.payroll';
+                                $payrollKebab           = Str::kebab($payrollBase);
+                                $payrollResolved        = Route::has($payrollBase) ? $payrollBase : (Route::has($payrollKebab) ? $payrollKebab : null);
+                                $payrollUrl             = $payrollResolved ? route($payrollResolved) : '#';
+                                $payrollFormId          = 'report_payroll';
+                                $applyGuardMsg          = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_apply_report_route_unavailable') ?? 'Payroll apply route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg          = Utility::fetchLinkMessage($lang, VW::RPT, 'payroll_reset_report_route_unavailable') ?? 'Payroll reset route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('reports/payroll — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {{ Form::open([
                             'method'            => 'GET',
                             'url'               => $payrollUrl,
@@ -313,8 +314,8 @@
                             'data-sv-localized' => 'true',
                         ]) }}
                             <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCE }}">
-                                <div class="col-2 mt-2">
-                                    <label class="form-label">{{ __('Type') }}</label><br>
+                                <div class="{{ VC::C2 }} {{ VC::MT2 }}">
+                                    <label class="{{ VC::FM_LB }}">{{ __('Type') }}</label><br>
                                     <div class="{{ VC::FM_CHK_IL_GP }}">
                                         <input type="radio" id="monthly" value="monthly" name="type" class="form-check-input" {{ isset($_GET['type']) && $_GET['type']=='monthly' ? 'checked' : 'checked' }}>
                                         <label class="form-check-label" for="monthly">{{ __('Monthly') }}</label>
@@ -324,13 +325,13 @@
                                         <label class="form-check-label" for="daily">{{ __('Daily') }}</label>
                                     </div>
                                 </div>
-                                <div class="col-2 month">
+                                <div class="{{ VC::C2 }} month">
                                     <div class="btn-box">
                                         {{ Form::label('month', __('Month'), ['class'=> VC::FM_LB]) }}
                                         {{ Form::month('month', isset($_GET['month']) ? $_GET['month'] : date('Y-m'), ['class'=>'month-btn '.VC::FM_CT]) }}
                                     </div>
                                 </div>
-                                <div class="col-2 year d-none">
+                                <div class="{{ VC::C2 }} year d-none">
                                     <div class="btn-box">
                                         {{ Form::label('year', __('Year'), ['class'=> VC::FM_LB]) }}
                                         <select class="{{ VC::FM_CT }} select" id="year" name="year" tabindex="-1" aria-hidden="true">
@@ -344,10 +345,10 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="{{ VC::C2 }}">
                                     <div class="btn-box">
                                         {{ Form::label('branch', __('Branch'), ['class'=> VC::FM_LB]) }}
-                                        <select class="{{ VC::FM_CT }} select" name="branch_id" id="branch_id" placeholder="{{ __('Select Branch') }}" required>
+                                        <select class="{{ VC::FM_CT }} select" name="branch_id" id="branch_id" placeholder="Select Branch" required>
                                             <option value="">{{ __('Select Branch') }}</option>
                                             @foreach(($branch ?? []) as $branchItem)
                                                 <option value="{{ $branchItem->id }}">{{ $branchItem->name ?? __('No branch name available') }}</option>
@@ -355,7 +356,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div class="{{ VC::C2 }}">
                                     <div class="btn-box" id="department_div">
                                         {{ Form::label('department', __('Department'), ['class'=> VC::FM_LB]) }}
                                         <select class="{{ VC::FM_CT }} select" name="department_id" id="department_id" required="required">
@@ -363,7 +364,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="{{ VC::C3 }}">
                                     <div class="btn-box" id="employee_div">
                                         {{ Form::label('employee', __('Employee'), ['class'=> VC::FM_LB]) }}
                                         <select class="{{ VC::FM_CT }} select" name="employee_id" id="employee_id">
@@ -375,7 +376,7 @@
                                     <a href="#"
                                     class="{{ VC::BT_SM_PM }} apply-payroll-report"
                                     data-form-id="{{ $payrollFormId }}"
-                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                     data-sv-localized="true"
                                     data-bs-toggle="tooltip"
                                     title="{{ __('Apply') }}"
@@ -385,7 +386,7 @@
                                     <a href="{{ $payrollUrl }}"
                                     class="{{ VC::BT_SM_DG }} reset-payroll-report"
                                     data-url="{{ $payrollUrl }}"
-                                    data-guard-msg="{{ $resetGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($resetGuardMsg) }}"
                                     data-sv-localized="true"
                                     data-bs-toggle="tooltip"
                                     title="{{ __('Reset') }}"
@@ -404,36 +405,36 @@
             </div>
         </div>
     </div>
-    <div id="printableArea" class="mt-2">
-        <div class="row mt-3">
+    <div id="printableArea" class="{{ VC::MT2 }}">
+        <div class="row {{ VC::MT3 }}">
             <div class="col">
                 <input type="hidden" value="{{ $filterYear['branch'].' '.__('Branch').' '.$filterYear['dateYearRange'].' '.$filterYear['type'].' '.__('Payroll Report of').' '.$filterYear['department'].' '.__('Department') }}" id="filename">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Report') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ ($filterYear['type'] ?? __('No report type available')).' '.__('Payroll Summary') }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ ($filterYear['type'] ?? __('No report type available')).' '.__('Payroll Summary') }}</h7>
                 </div>
             </div>
             @if(($filterYear['branch'] ?? 'All') != 'All')
                 <div class="col">
                     <div class="{{ VC::CD }} p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Branch') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $filterYear['branch'] ?? __('No branch selected') }}</h7>
+                        <h6 class="{{ VC::MB0 }}">{{ __('Branch') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $filterYear['branch'] ?? __('No branch selected') }}</h7>
                     </div>
                 </div>
             @endif
             @if(($filterYear['department'] ?? 'All') != 'All')
                 <div class="col">
                     <div class="{{ VC::CD }} p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Department') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $filterYear['department'] ?? __('No department selected') }}</h7>
+                        <h6 class="{{ VC::MB0 }}">{{ __('Department') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $filterYear['department'] ?? __('No department selected') }}</h7>
                     </div>
                 </div>
             @endif
 
             <div class="col">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Duration') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $filterYear['dateYearRange'] ?? __('No duration available') }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $filterYear['dateYearRange'] ?? __('No duration available') }}</h7>
                 </div>
             </div>
         </div>
@@ -441,50 +442,50 @@
         <div class="row">
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Basic Salary') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalBasicSalary'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Basic Salary') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalBasicSalary'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Net Salary') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalNetSalary'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Net Salary') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalNetSalary'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Allowance') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalAllowance'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Allowance') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalAllowance'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Commission') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalCommision'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Commission') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalCommision'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Loan') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalLoan'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Loan') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalLoan'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Saturation Deduction') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalSaturationDeduction'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Saturation Deduction') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalSaturationDeduction'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Other Payment') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalOtherPayment'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Other Payment') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalOtherPayment'] ?? 0) }}</h7>
                 </div>
             </div>
             <div class="{{ VW::CL_XS12 }}">
                 <div class="{{ VC::CD }} p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Total Overtime') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $user?->priceFormat($filterData['totalOverTime'] ?? 0) }}</h7>
+                    <h6 class="{{ VC::MB0 }}">{{ __('Total Overtime') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat($filterData['totalOverTime'] ?? 0) }}</h7>
                 </div>
             </div>
         </div>
@@ -492,8 +493,8 @@
     <div class="{{ VC::RW }}">
         <div class="col">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive py-4">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }} {{ VC::PY4 }}">
                         <table class="{{ VC::TB }} datatable {{ VC::MB0 }}" id="report-dataTable">
                             <thead>
                             <tr>
@@ -511,21 +512,25 @@
                                     <td>
                                         @if(!empty($payslip->employees))
                                             @php
-                                                $empShowBase = VW::EMP.'.show';
-                                                $empShowKebab = Str::kebab($empShowBase);
-                                                $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
-                                                $empIdValue = isset($payslip) && !empty($payslip->employee_id) ? $payslip->employee_id : null;
-                                                $encryptedEmpId = $empIdValue ? Crypt::encrypt($empIdValue) : null;
-                                                $empShowUrl = ($empShowResolved && $encryptedEmpId) ? route($empShowResolved, $encryptedEmpId) : '#';
-                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                $showEmpGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                $anchorId = 'employee-show-link-'.($empIdValue ?? 'x');
-                                                $empLabel = $user?->employeeIdFormat($payslip->employees->employee_id) ?? __('No employee ID available');
-                                            @endphp
+                                                try {
+                                                    $empShowBase = VW::EMP.'.show';
+                                                    $empShowKebab = Str::kebab($empShowBase);
+                                                    $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
+                                                    $empIdValue = isset($payslip) && !empty($payslip->employee_id) ? $payslip->employee_id : null;
+                                                    $encryptedEmpId = $empIdValue ? Crypt::encrypt($empIdValue) : null;
+                                                    $empShowUrl = ($empShowResolved && $encryptedEmpId) ? route($empShowResolved, $encryptedEmpId) : '#';
+                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                    $showEmpGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $anchorId = 'employee-show-link-'.($empIdValue ?? 'x');
+                                                    $empLabel = $user?->employeeIdFormat($payslip->employees->employee_id) ?? __('No employee ID available');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('reports/payroll — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <a id="{{ $anchorId }}"
                                             href="{{ $empShowUrl }}"
                                             class="{{ VC::BT_SM }} btn-outline-primary"
-                                            data-guard-msg="{{ $showEmpGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($showEmpGuardMsg) }}"
                                             data-sv-localized="true">
                                                 {{ $empLabel }}
                                             </a>
@@ -543,28 +548,7 @@
                                                                     if (href !== '#') { return; }
                                                                     e.preventDefault();
                                                                     const msg = el.getAttribute('data-guard-msg') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (hasBootstrap) {
-                                                                        const toast = document.createElement('div');
-                                                                        toast.className = 'toast';
-                                                                        toast.setAttribute('role', 'alert');
-                                                                        toast.setAttribute('aria-live', 'assertive');
-                                                                        toast.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toast.appendChild(body);
-                                                                        container.appendChild(toast);
-                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
+                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                     el.setAttribute('data-failed-route', 'true');
                                                                 } catch (err) {}
                                                             });
@@ -573,7 +557,7 @@
                                                 </script>
                                             @endpush
                                         @else
-                                            <span class="text-muted">{{ __('No employee found') }}</span>
+                                            <span class="{{ VC::TXT_MT }}">{{ __('No employee found') }}</span>
                                         @endif
                                     </td>
                                     <td>{{ optional($payslip->employees)->name ?? __('No employee name available') }}</td>
@@ -582,15 +566,15 @@
                                     <td>{{ $payslip->salary_month ?? __('No salary month available') }}</td>
                                     <td>
                                         @if(isset($payslip->status) && $payslip->status == 0)
-                                            <div class="badge bg-danger p-2 px-3 rounded">
-                                                <a href="#" class="text-white">{{ __('UnPaid') }}</a>
+                                            <div class="badge bg-danger p-2 {{ VC::PX3 }} rounded">
+                                                <a href="#" class="{{ VC::TXT_WT }}">{{ __('UnPaid') }}</a>
                                             </div>
                                         @elseif(isset($payslip->status) && $payslip->status == 1)
-                                            <div class="badge bg-success p-2 px-3 rounded">
-                                                <a href="#" class="text-white">{{ __('Paid') }}</a>
+                                            <div class="badge bg-success p-2 {{ VC::PX3 }} rounded">
+                                                <a href="#" class="{{ VC::TXT_WT }}">{{ __('Paid') }}</a>
                                             </div>
                                         @else
-                                            <span class="text-muted">{{ __('No status available') }}</span>
+                                            <span class="{{ VC::TXT_MT }}">{{ __('No status available') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -607,4 +591,3 @@
         </div>
     </div>
 @endsection
-

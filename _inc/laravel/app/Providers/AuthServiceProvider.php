@@ -2,20 +2,25 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\{Gate, Log};
+use App\Config\Constants\{PermissionsConstants, UsersConstants};
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use App\Helpers\SafeConsoleOutput;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
-    ];
+    protected $policies = [];
 
     public function boot(): void
     {
-        SafeConsoleOutput::make()->writeln('Booting main ' . class_basename(self::class) . ' for registering policies...');
-        Log::debug(__METHOD__ . ' invoked');
         $this->registerPolicies();
+
+        // Super-admin bypass: grant all permissions to super admin users.
+        // This mirrors the ChecksPermissions::guard() trait bypass so that
+        // controllers using raw $user->can() also respect the super-admin role.
+        Gate::before(function ($user, string $ability): ?bool {
+            return ($user[UsersConstants::COL_TP] ?? null) === PermissionsConstants::SA
+                ? true
+                : null;
+        });
     }
 }

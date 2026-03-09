@@ -26,7 +26,7 @@ class TrustHostsTest extends TestCase
 
 		// Assert
 		$this->assertIsArray($hosts);
-		$this->assertCount(1, $hosts);
+		$this->assertCount(6, $hosts);
 
 		$host = parse_url(Config::get('app.url'), PHP_URL_HOST);
 		$expected = '^(.+\\.)?' . preg_quote($host, '/') . '$';
@@ -50,7 +50,7 @@ class TrustHostsTest extends TestCase
 		$hosts = $middleware->hosts();
 
 		// Assert
-		$this->assertCount(1, $hosts);
+		$this->assertCount(6, $hosts);
 
 		$host = parse_url(Config::get('app.url'), PHP_URL_HOST);
 		$expected = '^(.+\\.)?' . preg_quote($host, '/') . '$';

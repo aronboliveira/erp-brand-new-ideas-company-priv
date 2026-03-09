@@ -27,7 +27,7 @@
 <script defer>
   (function () {
     const $ = window.jQuery;
-    if (!$) { try { 
+    if (!$) { try {
       if (
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1"
@@ -67,7 +67,7 @@
           t.setAttribute("role", "alert");
           t.setAttribute("aria-live", "assertive");
           t.setAttribute("aria-atomic", "true");
-          t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+          t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
           container.appendChild(t);
         }
         const body = qs(".toast-body", t);
@@ -114,7 +114,7 @@
           jsPDF: { unit: "in", format: "A4" }
         };
         try {
-          if (typeof window.html2pdf !== "function") { try { 
+          if (typeof window.html2pdf !== "function") { try {
               if (
                   window.location.hostname === "localhost" ||
                   window.location.hostname === "127.0.0.1"

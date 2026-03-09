@@ -4,11 +4,16 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{CompanyPolicy, Branch};
 
 class CompanyPolicyTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -25,14 +30,11 @@ class CompanyPolicyTest extends TestCase
 			'title'       => 'Privacy Policy',
 			'description' => 'Company privacy guidelines',
 			'file'        => '/policies/privacy.pdf',
-			'created_by'  => 'admin_user',
 		];
 
 		$policy = CompanyPolicy::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $policy->$field);
-		}
+		$this->assertFillableMatches($data, $policy);
 	}
 
 	/**
@@ -63,9 +65,9 @@ class CompanyPolicyTest extends TestCase
 	{
 		$relation = (new CompanyPolicy)->branches();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Branch::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',                $relation->getForeignKeyName());
-		$this->assertSame('branch',            $relation->getLocalKeyName());
+		$this->assertSame('branch',                $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 }

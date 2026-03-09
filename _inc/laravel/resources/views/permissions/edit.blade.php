@@ -1,22 +1,41 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-
-    $lang      = Utility::fetchUserLang();
-    $hasModel  = !empty($permission ?? null) && data_get($permission, 'id');
-
-    $updateBase     = VW::PMS . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $permission->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::PMS, 'update_route_unavailable')
-                        ?? __('Update Permission route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasModel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasModel = !empty($permission ?? null) && data_get($permission, 'id');
+		$updateBase = VW::PMS . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasModel) ? (route($updateResolved, data_get($permission ?? null, 'id')) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::PMS, 'update_route_unavailable') ?? __('Update Permission route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\Error $e) {
+		Log::error('Error in permissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in permissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in permissions/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasModel)
@@ -28,13 +47,13 @@
         'data-guard-msg'    => $updateGuard,
         'data-sv-localized' => 'true',
     ]) }}
-        <div class="card-body">
+        <div class="{{ VC::CD_BD }}">
             <div class="{{ VC::FM_GCB12 }}">
                 {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                 {{ Form::text('name', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Permission Name')]) }}
                 @error('name')
                     <span class="invalid-name" role="alert">
-                        <strong class="text-danger">{{ $message }}</strong>
+                        <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                     </span>
                 @enderror
             </div>

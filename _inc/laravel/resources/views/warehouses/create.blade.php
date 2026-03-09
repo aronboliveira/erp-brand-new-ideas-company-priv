@@ -1,24 +1,19 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
+        $storeBase = VW::WRH;
+        $storeTry  = [$storeBase, $storeBase . '.store', Str::kebab($storeBase), Str::kebab($storeBase) . '.store'];
+        $storeName = collect($storeTry)->first(fn($n) => Route::has($n));
+        $storeUrl  = $storeName ? route($storeName) : '#';
+        $storeGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'store_warehouse_route_unavailable')
+            ?? 'Store warehouse route is unavailable. Please contact technical support or your domain administrator.';
+        $formId = 'create_warehouse';
 
-    $storeBase = VW::WRH;
-    $storeTry  = [$storeBase, $storeBase . '.store', Str::kebab($storeBase), Str::kebab($storeBase) . '.store'];
-    $storeName = collect($storeTry)->first(fn($n) => Route::has($n));
-    $storeUrl  = $storeName ? route($storeName) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'store_warehouse_route_unavailable')
-        ?? 'Store warehouse route is unavailable. Please contact technical support or your domain administrator.';
-    $formId = 'create_warehouse';
-
-    $plan = Utility::getChatGPTSettings();
+        $plan = Utility::getChatGPTSettings();
+    } catch (\Throwable $e) {
+        \Log::error('warehouses/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::open([
@@ -32,14 +27,18 @@
     <div class="modal-body">
         @if(($plan?->{PlansConstants::COL_GPT} ?? 0) == 1)
             @php
-                $genBase  = 'generate';
-                $genName  = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-                $genUrl   = $genName ? route($genName, ['warehouse']) : '#';
-                $genGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'ai_generate_content_unavailable')
-                    ?? 'AI content generation for warehouses is unavailable. Please contact technical support or your domain administrator.';
-                $genId = 'warehouse-ai-generate-link';
-            @endphp
-            <div class="text-end">
+                $genBase  ??= 'generate';
+                try {
+                    $genName  = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+                    $genUrl   = $genName ? route($genName, ['warehouse']) : '#';
+                    $genGuard = Utility::fetchLinkMessage($lang, VW::WRH, 'ai_generate_content_unavailable')
+                        ?? 'AI content generation for warehouses is unavailable. Please contact technical support or your domain administrator.';
+                    $genId = 'warehouse-ai-generate-link';
+                } catch (\Throwable $e) {
+                    \Log::error('warehouses/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <div class="{{ VC::TX_END }}">
                 <a id="{{ $genId }}"
                    href="{{ $genUrl }}"
                    data-url="{{ $genUrl }}"
@@ -47,7 +46,7 @@
                    data-size="md"
                    data-title="{{ __('Generate content with AI') }}"
                    data-bs-placement="top"
-                   data-guard-msg="{{ $genGuard }}"
+                   data-guard-msg="{{ base64_encode($genGuard) }}"
                    data-sv-localized="true"
                    class="{{ VC::BT_SM_PM }} btn-icon">
                     <i class="{{ VC::FAS_RB }}"></i>
@@ -86,4 +85,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/warehouses/store.js') }}"></script>
 {!! Form::close() !!}
-

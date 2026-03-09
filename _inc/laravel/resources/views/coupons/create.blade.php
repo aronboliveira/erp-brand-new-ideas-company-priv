@@ -1,32 +1,29 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        StacksConstants, 
-        ViewsConstants,
-        ViewClassNamesConstant as VC
-    };
-    $lang              = Utility::fetchUserLang();
-    $generateAiRoute   = Route::has('generate')
-        ? route('generate', ['coupon'])
-        : '#';
-    $generateAiBtnId   = 'coupon-generate-ai-btn';
-    $generateAiGuardMsg = Utility::fetchLinkMessage(
-        $lang,
-        'generics',
-        'coupon_generate_ai_route_unavailable'
-    ) ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
-    $couponStoreBaseRouteName    = ViewsConstants::CPN;
-    $couponStoreKebabRouteName   = Str::kebab($couponStoreBaseRouteName);
-    $couponStoreResolvedName     = Route::has($couponStoreBaseRouteName)
-        ? $couponStoreBaseRouteName
-        : (Route::has($couponStoreKebabRouteName) ? $couponStoreKebabRouteName : null);
-    $couponStoreUrl              = $couponStoreResolvedName ? route($couponStoreResolvedName) : '#';
+    try {
+$lang              = Utility::fetchUserLang();
+        $generateAiRoute   = Route::has('generate')
+            ? route('generate', ['coupon'])
+            : '#';
+        $generateAiBtnId   = 'coupon-generate-ai-btn';
+        $generateAiGuardMsg = Utility::fetchLinkMessage(
+            $lang,
+            'generics',
+            'coupon_generate_ai_route_unavailable'
+        ) ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
+        $couponStoreBaseRouteName    = ViewsConstants::CPN;
+        $couponStoreKebabRouteName   = Str::kebab($couponStoreBaseRouteName);
+        $couponStoreResolvedName     = Route::has($couponStoreBaseRouteName)
+            ? $couponStoreBaseRouteName
+            : (Route::has($couponStoreKebabRouteName) ? $couponStoreKebabRouteName : null);
+        $couponStoreUrl              = $couponStoreResolvedName ? route($couponStoreResolvedName) : '#';
 
-    $couponCreateFormId          = 'coupon-store-form';
-    $userLang                    = isset($lang) ? $lang : Utility::fetchUserLang();
-    $couponCreateGuardMessage    = Utility::fetchLinkMessage($userLang, ViewsConstants::CPN, 'store_coupon_route_unavailable')
-        ?? 'Store coupon route is unavailable. Please contact technical support or your domain administrator.';
+        $couponCreateFormId          = 'coupon-store-form';
+        $userLang                    = isset($lang) ? $lang : Utility::fetchUserLang();
+        $couponCreateGuardMessage    = Utility::fetchLinkMessage($userLang, ViewsConstants::CPN, 'store_coupon_route_unavailable')
+            ?? 'Store coupon route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('coupons/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 {!! Form::open([
     'method'            => 'POST',
@@ -40,7 +37,7 @@
         {{-- start for ai module --}}
         @php
             $settings = Utility::settings();
-        @endphp
+@endphp
         @if(!empty($settings['chat_gpt_key']))
             <div class="{{ VC::FEND }}">
                 <a
@@ -48,7 +45,7 @@
                     href="#"
                     class="{{ VC::BT_SM_PM }} btn-icon"
                     data-url="{{ $generateAiRoute }}"
-                    data-guard-msg="{{ $generateAiGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($generateAiGuardMsg) }}"
                     data-ajax-popup-over="true"
                     data-size="md"
                     data-bs-placement="top"
@@ -84,11 +81,11 @@
                 <div class="{{ VC::DFL }} radio-check">
                     <div class="{{ VC::FM_CHK_IL_GP_COLM6 }}">
                         <input type="radio" id="manual_code" value="manual" name="icon-input" class="form-check-input code" checked>
-                        <label class="custom-control-label" for="manual_code">{{ __('Manual') }}</label>
+                        <label class="{{ VC::CST_LB }}" for="manual_code">{{ __('Manual') }}</label>
                     </div>
                     <div class="{{ VC::FM_CHK_IL_GP_COLM6 }}">
                         <input type="radio" id="auto_code" value="auto" name="icon-input" class="form-check-input code">
-                        <label class="custom-control-label" for="auto_code">{{ __('Auto Generate') }}</label>
+                        <label class="{{ VC::CST_LB }}" for="auto_code">{{ __('Auto Generate') }}</label>
                     </div>
                 </div>
             </div>

@@ -9,6 +9,11 @@ use App\Models\{DeductionOption, User};
 
 class DeductionOptionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**

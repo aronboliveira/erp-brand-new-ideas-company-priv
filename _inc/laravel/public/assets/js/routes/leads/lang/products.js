@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (function () {
   const t = {
     ar: {

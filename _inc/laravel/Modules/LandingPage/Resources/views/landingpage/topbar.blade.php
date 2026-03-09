@@ -1,11 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,SettingsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,SettingsConstants as LSC,RoutesResourcesConstants as R};
-    use Collective\Html\FormFacade as Form;
-    use Nwidart\Modules\Facades\Module;
-    
+
+
 	$logo ??= '';
 	$lpSettings ??= [];
 	try {
@@ -103,7 +98,7 @@
                                         <div class="form-group mb-0">
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" data-toggle="switchbutton" data-onstyle="primary" class="" name="topbar_status"
-                                                    id="topbar_status" {{ !empty($lpSettings[LSC::TB_STT_K]) && $lpSettings[LSC::TB_STT_K] === 'on' ? 'checked="checked"' : '' }}>
+                                                    id="topbar_status" {{ !empty($lpSettings[LPSC::TB_STT_K]) && $lpSettings[LPSC::TB_STT_K] === 'on' ? 'checked="checked"' : '' }}>
                                                 <label class="custom-control-label" for="topbar_status"></label>
                                             </div>
                                         </div>
@@ -114,7 +109,7 @@
                                 <div class="row">
                                     <div class="form-group col-12">
                                         {{ Form::label('content', __('Message'), ['class' => 'col-form-label text-dark']) }}
-                                        {{ Form::textarea(LSC::TB_NTF_MSG_K,$lpSettings[LSC::TB_NTF_MSG_K], ['class' => 'summernote-simple form-control', 'required' => 'required']) }}
+                                        {{ Form::textarea(LPSC::TB_NTF_MSG_K,$lpSettings[LPSC::TB_NTF_MSG_K], ['class' => 'summernote-simple form-control', 'required' => 'required']) }}
                                     </div>
 
                                 </div>
@@ -130,6 +125,3 @@
         </div>
     </div>
 @endsection
-
-
-

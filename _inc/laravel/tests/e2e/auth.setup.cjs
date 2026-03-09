@@ -1,16 +1,21 @@
 // @ts-check
-const { test: setup, expect } = require("@playwright/test");
+const { chromium } = require("@playwright/test");
 const fs = require("fs");
 const path = require("path");
 
+const BASE_URL = "http://localhost:8000";
 const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
 
-setup("authenticate", async ({ page, context }) => {
+async function globalSetup() {
   console.log("Starting authentication setup...");
+
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
   try {
     console.log("Navigating to login page...");
-    await page.goto("/login", { timeout: 30000 });
+    await page.goto(`${BASE_URL}/login`, { timeout: 30000 });
 
     console.log("Waiting for login form...");
     await page.waitForSelector("#email-input", { timeout: 10000 });
@@ -31,7 +36,9 @@ setup("authenticate", async ({ page, context }) => {
     const finalUrl = page.url();
     console.log("Redirected to:", finalUrl);
 
-    expect(finalUrl).not.toContain("login");
+    if (finalUrl.includes("login")) {
+      throw new Error("Login failed - still on login page");
+    }
 
     // Ensure auth directory exists
     const authDir = path.dirname(STORAGE_STATE);
@@ -46,5 +53,17 @@ setup("authenticate", async ({ page, context }) => {
     console.error("Authentication setup failed:", error.message);
     await page.screenshot({ path: "auth-error.png" });
     throw error;
+  } finally {
+    await browser.close();
   }
-});
+}
+
+globalSetup()
+  .then(() => {
+    console.log("Auth setup completed successfully");
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error("Auth setup failed:", error);
+    process.exit(1);
+  });

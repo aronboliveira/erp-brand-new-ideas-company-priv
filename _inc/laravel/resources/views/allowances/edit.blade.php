@@ -1,18 +1,43 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    $lang = Utility::fetchUserLang();
-    $updateRoute = Route::has(ViewsConstants::ALW.'.update')
-        ? route(ViewsConstants::ALW.'.update', $allowance->id)
-        : '#';
-    $formId = 'allowance-update-form';
-    $updateMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::ALW,
-        'allowance_update_route_unavailable'
-    ) ?? 'Allowance update route is unavailable. Please contact technical support or your domain administrator.';
+$allowance ??= null;
+	$allowance_options ??= [];
+	$Allowancetypes ??= [];
+	$lang ??= '';
+	$updateRoute ??= '#';
+	$formId ??= 'allowance-update-form';
+	$updateMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? '';
+		$updateRoute = (!empty($allowance) && isset($allowance?->id) && Route::has(VW::ALW.'.update'))
+			? (route(VW::ALW.'.update', $allowance->id) ?? '#')
+			: '#';
+		$updateMsg = Utility::fetchLinkMessage(
+			$lang,
+			VW::ALW,
+			'allowance_update_route_unavailable'
+		) ?? 'Allowance update route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in allowances/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in allowances/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in allowances/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($allowance) && isset($allowance?->id))
     {{ Form::model($allowance, [
@@ -24,10 +49,10 @@
         'data-guard-msg'    => $updateMsg,
     ]) }}
         <div class="modal-body">
-            <div class="card-body p-0">
+            <div class="{{ VC::CD_BD }} p-0">
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                        {{ Form::label('allowance_option', __('Allowance Options'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                        {{ Form::label('allowance_option', __('Allowance Options'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
                         {{ Form::select('allowance_option', $allowance_options, null, ['class' => VC::FM_CT_SL, 'required']) }}
                     </div>
                     <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
@@ -57,9 +82,9 @@
 @else
     <div class="modal-body">
         <div class="row">
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::ALERT }} {{ VC::ALERT_DANGER }}">
-                    <h4 class="text-danger">{{ __('No Allowance found') }}</h4>
+                    <h4 class="{{ VC::TX_DNG }}">{{ __('No Allowance found') }}</h4>
                     <p>{{ __('The allowance data is invalid or not found. Please refresh the page and try again.') }}</p>
                 </div>
             </div>

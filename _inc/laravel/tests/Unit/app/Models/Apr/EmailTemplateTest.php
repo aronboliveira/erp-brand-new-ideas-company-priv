@@ -1,13 +1,29 @@
 <?php
 
-namespace Tests\Unit\Models\Apr;
+namespace Tests\Unit\app\Models\Apr;
 
-use PHPUnit\Framework\TestCase;
+use App\Models\EmailTemplate;
+use Tests\TestCase;
 
 class EmailTemplateTest extends TestCase
 {
-    public function test_placeholder(): void
+    protected function setUp(): void
     {
-        $this->markTestSkipped('Stub — no test logic implemented yet.');
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
+	/** @test */
+	public function it_is_instantiable(): void
+	{
+		$model = new EmailTemplate();
+		$this->assertInstanceOf(EmailTemplate::class, $model);
+	}
+
+	/** @test */
+	public function it_uses_uuid_primary_key(): void
+	{
+		$model = new EmailTemplate();
+		$this->assertFalse($model->getIncrementing());
+		$this->assertSame('string', $model->getKeyType());
+	}
 }

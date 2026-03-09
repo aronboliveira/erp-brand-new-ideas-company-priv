@@ -1,32 +1,53 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang         = Utility::fetchUserLang();
-    $hasIndicator = !empty($indicator ?? null) && data_get($indicator, 'id');
-
-    $updateUrl   = '#';
-    $updateGuard = Utility::fetchLinkMessage($lang, VW::IND, 'update_route_unavailable')
-        ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
-
-    $designationUrl   = Route::has(VW::EMP.'.json') ? route(VW::EMP.'.json') : '#';
-    $desgUnavailable  = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_fetch_unavailable')
-        ?? __('Failed to fetch designations.');
-    $desgFailed       = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_fetch_failed')
-        ?? __('Failed to fetch designation data.');
-    $designationLabel = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_default')
-        ?? __('Select any Designation');
-
-    if (Route::has(VW::IND.'.update') && $hasIndicator) {
-        $updateUrl = route(VW::IND.'.update', $indicator->id);
-    }
+$lang ??= 'en';
+	$hasIndicator ??= false;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$designationUrl ??= '#';
+	$desgUnavailable ??= '';
+	$desgFailed ??= '';
+	$designationLabel ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasIndicator = !empty($indicator ?? null) && data_get($indicator, 'id');
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::IND, 'update_route_unavailable')
+			?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+		$designationUrl = Route::has(VW::EMP.'.json') ? (route(VW::EMP.'.json') ?? '#') : '#';
+		$desgUnavailable = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_fetch_unavailable')
+			?? __('Failed to fetch designations.');
+		$desgFailed = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_fetch_failed')
+			?? __('Failed to fetch designation data.');
+		$designationLabel = Utility::fetchLinkMessage($lang, VW::EMP, 'designation_default')
+			?? __('Select any Designation');
+		if (Route::has(VW::IND.'.update') && $hasIndicator) {
+			$updateUrl = route(VW::IND.'.update', $indicator->id) ?? '#';
+		}
+	} catch (\Error $e) {
+		Log::error('Error in indicators/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in indicators/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in indicators/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!$hasIndicator)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested indicator was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested indicator was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($indicator, [
         'url'                        => $updateUrl,
@@ -40,13 +61,13 @@
         <div class="modal-body">
             <div class="row">
                 <div class="{{ VC::FM_GCB12 }}">
-                    <div class="form-group">
+                    <div class="{{ VC::FM_G }}">
                         {{ Form::label('branch', __('Branch'), ['class' => 'form-label']) }}
                         {{ Form::select('branch', $branches ?? [], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
                     </div>
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
-                    <div class="form-group">
+                    <div class="{{ VC::FM_G }}">
                         {{ Form::label('department', __('Department'), ['class' => 'form-label']) }}
                         {{ Form::select('department', $departments ?? [], null, [
                             'class'                                   => VC::FM_CT_SL,
@@ -62,7 +83,7 @@
                     </div>
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
-                    <div class="form-group">
+                    <div class="{{ VC::FM_G }}">
                         {{ Form::label('designation', __('Designation'), ['class' => 'form-label']) }}
                         <select
                             class="select {{ VC::FM_CT }} select2-multiple"
@@ -80,14 +101,14 @@
             @php
                 $perfIsList = (is_array($performances ?? null) && count($performances ?? []) > 0) || (($performances ?? null) instanceof Collection && $performances->isNotEmpty());
                 $ratings = $ratings ?? [];
-            @endphp
+@endphp
 
             @if($perfIsList)
                 @foreach($performances as $perf)
                     @php
                         $types = data_get($perf, 'types');
                         $typesIsList = Utility::isFilled($types ?? []);
-                    @endphp
+@endphp
                     <div class="row">
                         <div class="{{ VC::FM_GCB12 }} mt-3">
                             <h6>{{ data_get($perf, 'name', __('Unnamed section')) }}</h6>
@@ -96,22 +117,28 @@
                         @if($typesIsList)
                             @foreach($types as $t)
                                 @php
-                                    $typeId   = data_get($t, 'id');
-                                    $typeName = data_get($t, 'name', __('Unnamed metric'));
-                                    $current  = (int) data_get($ratings, $typeId, 0);
-                                    $titles   = [
-                                        5 => __('Excellent — 5 stars'),
-                                        4 => __('Very good — 4 stars'),
-                                        3 => __('Good — 3 stars'),
-                                        2 => __('Needs improvement — 2 stars'),
-                                        1 => __('Poor — 1 star')
-                                    ];
-                                @endphp
+                                    try {
+                                        $typeId   = data_get($t, 'id');
+                                        $typeName = data_get($t, 'name', __('Unnamed metric'));
+                                        $current  = (int) data_get($ratings, $typeId, 0);
+                                        $titles   = [
+                                            5 => __('Excellent — 5 stars'),
+                                            4 => __('Very good — 4 stars'),
+                                            3 => __('Good — 3 stars'),
+                                            2 => __('Needs improvement — 2 stars'),
+                                            1 => __('Poor — 1 star')
+                                        ];
+                                    } catch (\Throwable $e) {
+                                        \Log::error('indicators/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <div class="{{ VC::CM6 }}">{{ $typeName }}</div>
                                 <div class="{{ VC::CM6 }}">
                                     <fieldset class="rating">
                                         @for($r = 5; $r >= 1; $r--)
-                                            @php $idAttr = "rating-{$r}-{$typeId}"; @endphp
+                                            @php
+ $idAttr ??= "rating-{$r}-{$typeId}";
+@endphp
                                             <input class="stars" type="radio" id="{{ $idAttr }}" name="rating[{{ $typeId }}]" value="{{ $r }}" {{ $current === $r ? 'checked' : '' }}>
                                             <label class="full" for="{{ $idAttr }}" title="{{ $titles[$r] }}"></label>
                                         @endfor
@@ -120,7 +147,7 @@
                             @endforeach
                         @else
                             <div class="{{ VC::FM_GCB12 }}">
-                                <div class="text-muted">{{ __('No performance metrics available for this section.') }}</div>
+                                <div class="{{ VC::TXT_MT }}">{{ __('No performance metrics available for this section.') }}</div>
                             </div>
                         @endif
                     </div>
@@ -128,7 +155,7 @@
             @else
                 <div class="row">
                     <div class="{{ VC::FM_GCB12 }}">
-                        <div class="text-muted">{{ __('No performance sections available.') }}</div>
+                        <div class="{{ VC::TXT_MT }}">{{ __('No performance sections available.') }}</div>
                     </div>
                 </div>
             @endif
@@ -145,57 +172,11 @@
               const CLIENT_FLAG = 'data-client-localized';
               const GUARD_MSG = 'data-guard-msg';
               const LANG_KEY = 'erp-np-lang';
-            
-              const getMsg = (key, el) => {
-                let msg = ERR_FB;
-                if (el?.getAttribute(CLIENT_FLAG) === 'true') {
-                  msg = el.getAttribute(GUARD_MSG) || msg;
-                } else {
-                  let lang = (sessionStorage.getItem(LANG_KEY) || document.documentElement.lang || 'en')
-                    .toLowerCase().replace(/_/g, '-');
-                  lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-                  msg = window.translations?.[lang]?.[key]
-                    || el?.getAttribute(GUARD_MSG)
-                    || window.translations?.['en']?.[key]
-                    || msg;
-                  if (msg !== ERR_FB && el) {
-                    el.setAttribute(GUARD_MSG, msg);
-                    el.setAttribute(CLIENT_FLAG, 'true');
-                  }
-                }
-                return msg;
-              };
-            
-              const showError = message => {
-                try {
-                  const bsAvailable = !!document.querySelector('link[href*="bootstrap"]') && !!window.bootstrap?.Toast;
-                  if (bsAvailable) {
-                    const container = document.getElementById('toast-container') 
-                      || (() => {
-                        const c = document.createElement('div');
-                        c.id = 'toast-container';
-                        document.body.appendChild(c);
-                        return c;
-                      })();
-                    const toastEl = document.createElement('div');
-                    toastEl.className = 'toast';
-                    toastEl.setAttribute('role','alert');
-                    toastEl.setAttribute('aria-live','assertive');
-                    toastEl.setAttribute('aria-atomic','true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    body.textContent = message;
-                    toastEl.appendChild(body);
-                    container.appendChild(toastEl);
-                    window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                  } else {
-                    alert(message);
-                  }
-                } catch {
-                  alert(message);
-                }
-              };
-            
+
+              const RG = window.RouteGuard || {};
+              const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '# ERROR');
+              const showError = RG.showToast || (m => alert(m));
+
               const fetchDesignation = did => {
                 try {
                   if (!did) throw new Error('designation_fetch_unavailable');
@@ -209,9 +190,9 @@
                   .done(data => {
                     const sel = document.getElementById('designation_id');
                     if (!sel) return;
-                    sel.innerHTML = '<option value="">' 
-                      + (window.translations?.[navigator.language.slice(0,2)]?.designation_default 
-                        || 'Select any Designation') 
+                    sel.innerHTML = '<option value="">'
+                      + (window.translations?.[navigator.language.slice(0,2)]?.designation_default
+                        || 'Select any Designation')
                       + '</option>';
                     data.forEach((v, k) => {
                       const opt = document.createElement('option');
@@ -227,7 +208,7 @@
                   showError(getMsg(e.message, el));
                 }
               };
-            
+
               const init = () => {
                 const dep = $('#department_id');
                 if (!dep.length) return;
@@ -253,9 +234,9 @@
                   });
                 }
               };
-            
+
               $(document).ready(init);
-            
+
               new MutationObserver((muts, obs) => {
                 muts.forEach(m => Array.from(m.removedNodes).forEach(n => {
                   if (n.id === 'department_id') {
@@ -265,7 +246,5 @@
               }).observe(document.body, { childList: true, subtree: true });
             })();
         </script>
-    {{ Form::close() }}        
-@endif    
-    
-
+    {{ Form::close() }}
+@endif

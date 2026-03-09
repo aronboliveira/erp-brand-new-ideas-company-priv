@@ -1,13 +1,5 @@
 @php
-    # Template 6
-    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-    use App\Models\{Utility};
-    use Illuminate\Support\Facades\{Auth, Log};
-    use InvalidArgumentException;
-    use RuntimeException;
-    use TypeError;
-
-    $usr ??= null;
+$usr ??= null;
     $lang ??= (string)'';
     $siteRtl ??= (string)'';
     $color ??= (string)'#ffffff';
@@ -104,7 +96,7 @@
                             <div data-v-4b3dcb8a class="d" style="width:800px;margin-left:auto;margin-right:auto;" id="boxes">
                                 <div data-v-4b3dcb8a class="d-inner" style="border-top:15px solid {{ $color }}">
                                     <div data-v-4b3dcb8a class="row">
-                                        <div data-v-4b3dcb8a class="col-3">
+                                        <div data-v-4b3dcb8a class="{{ VC::C3 }}">
                                             <h1 data-v-4b3dcb8a class="fancy-title mb5">{{ __('ESTIMATION') }}</h1>
                                         </div>
                                         <div data-v-4b3dcb8a class="col-1">
@@ -113,7 +105,7 @@
                                     </div>
                                     <div data-v-4b3dcb8a class="break-50"></div>
                                     <div data-v-4b3dcb8a class="row">
-                                        <div data-v-4b3dcb8a class="col-2">
+                                        <div data-v-4b3dcb8a class="{{ VC::C2 }}">
                                             <small data-v-4b3dcb8a>{{ __('From') }}:</small>
                                             <strong data-v-4b3dcb8a class="sub-title">{{ ($settings['company_name'] ?? '') !== '' ? $settings['company_name'] : __('No company name available') }}</strong>
                                             <pre data-v-4b3dcb8a>{{ ($settings['company_address'] ?? '') !== '' ? $settings['company_address'] : __('No address available for company') }}</pre>
@@ -124,7 +116,7 @@
                                             </p>
                                             <p data-v-4b3dcb8a>{{ (($settings['company_country'] ?? '') !== '') ? $settings['company_country'] : __('No country available for company') }}</p>
                                         </div>
-                                        <div data-v-4b3dcb8a class="col-2">
+                                        <div data-v-4b3dcb8a class="{{ VC::C2 }}">
                                             <div data-v-4b3dcb8a class="col-66">
                                                 <small data-v-4b3dcb8a>{{ __('To') }}:</small>
                                                 <strong data-v-4b3dcb8a class="sub-title">{{ isset($client->name) && $client->name !== '' ? $client->name : __('No client name available') }}</strong>
@@ -141,7 +133,7 @@
                                                 <tbody data-v-4b3dcb8a>
                                                     <tr data-v-4b3dcb8a>
                                                         <td data-v-4b3dcb8a class="fwb">{{ __('Number') }}:</td>
-                                                        <td data-v-4b3dcb8a class="text-end">
+                                                        <td data-v-4b3dcb8a class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->estimation_id))
                                                                 {{ $hasEstimateNumberFormat ? (string)$usr->estimateNumberFormat($estimation->estimation_id) : (string)$estimation->estimation_id }}
                                                             @else
@@ -151,7 +143,7 @@
                                                     </tr>
                                                     <tr data-v-4b3dcb8a>
                                                         <td data-v-4b3dcb8a class="fwb">{{ __('Issue Date') }}:</td>
-                                                        <td data-v-4b3dcb8a class="text-end">
+                                                        <td data-v-4b3dcb8a class="{{ VC::TX_END }}">
                                                             @if(isset($estimation->issue_date) && $estimation->issue_date !== '')
                                                                 {{ $hasDateFormat ? (string)$usr->dateFormat($estimation->issue_date) : (string)$estimation->issue_date }}
                                                             @else
@@ -171,16 +163,20 @@
                                                 <div data-v-4b3dcb8a class="d-table-th w-13">{{ __('Item description') }}</div>
                                                 <div data-v-4b3dcb8a class="d-table-th w-3">{{ __('Price') }}</div>
                                                 <div data-v-4b3dcb8a class="d-table-th w-2">{{ __('Qty') }}</div>
-                                                <div data-v-4b3dcb8a class="d-table-th w-3 text-end">{{ __('Amount') }}</div>
+                                                <div data-v-4b3dcb8a class="d-table-th w-3 {{ VC::TX_END }}">{{ __('Amount') }}</div>
                                             </div>
                                             <div data-v-4b3dcb8a class="d-table-body">
                                                 @if(!empty($items))
                                                     @foreach($items as $key => $item)
                                                         @php
-                                                            $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
-                                                            $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
-                                                            $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
-                                                        @endphp
+                                                            try {
+                                                                $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
+                                                                $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
+                                                                $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('estimations/templates/template6 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div data-v-4b3dcb8a class="d-table-tr" style="border-bottom:1px solid {{ $color }}">
                                                             <div data-v-4b3dcb8a class="d-table-td w-2"><span>{{ (int)$key + 1 }}</span></div>
                                                             <div data-v-4b3dcb8a class="d-table-td w-13">
@@ -196,7 +192,7 @@
                                                                 </span>
                                                             </div>
                                                             <div data-v-4b3dcb8a class="d-table-td w-2"><span data-v-4b3dcb8a>{{ !is_null($q) ? $q : __('No quantity available') }}</span></div>
-                                                            <div data-v-4b3dcb8a class="d-table-td w-3 text-end">
+                                                            <div data-v-4b3dcb8a class="d-table-td w-3 {{ VC::TX_END }}">
                                                                 <span data-v-4b3dcb8a>
                                                                     @if(!is_null($lt))
                                                                         {{ $hasPriceFormat ? (string)$usr->priceFormat($lt) : number_format($lt, 2) }}
@@ -213,7 +209,7 @@
                                                         <div data-v-4b3dcb8a class="d-table-td w-13"><pre data-v-4b3dcb8a>-<br data-v-4b3dcb8a></pre></div>
                                                         <div data-v-4b3dcb8a class="d-table-td w-3"><span>-</span></div>
                                                         <div data-v-4b3dcb8a class="d-table-td w-2"><span>-</span></div>
-                                                        <div data-v-4b3dcb8a class="d-table-td w-3 text-end"><span>-</span></div>
+                                                        <div data-v-4b3dcb8a class="d-table-td w-3 {{ VC::TX_END }}"><span>-</span></div>
                                                     </div>
                                                 @endif
                                             </div>

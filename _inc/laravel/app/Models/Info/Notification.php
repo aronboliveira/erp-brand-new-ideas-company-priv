@@ -8,10 +8,18 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\{MessagingPlatform, NotificationTemplateType};
-use App\Models\User;
-use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
-use Illuminate\Support\Carbon;
+use App\Models\{User};
+use App\Traits\{
+	DefinesDates,
+	FiltersSecureAttachments,
+	HasAuditFields,
+	NormalizesArrays,
+	UsesUuids
+};
+use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
+use Illuminate\Support\{Carbon};
 use Illuminate\Support\Facades\{Cache, Log};
 
 class Notification extends Model
@@ -20,10 +28,7 @@ class Notification extends Model
 
     protected $table = DC::TABLE_NTF;
 
-    /**
-     * @var array<int,string>
-     */
-    protected $fillable = [
+        protected $fillable = [
         UC::COL_USER_ID,
         'type',
         'data',
@@ -37,18 +42,12 @@ class Notification extends Model
         MC::COL_RD_AT,
     ];
 
-    /**
-     * @var array<int,string>
-     */
-    protected $guarded = [
+        protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
     ];
 
-    /**
-     * @var array<string,string>
-     */
-    protected $casts = [
+        protected $casts = [
         'attachments'      => 'array',
         'metadata'         => 'array',
         'tags'             => 'array',
@@ -60,17 +59,11 @@ class Notification extends Model
         DC::COL_U_AT       => 'datetime',
     ];
 
-    /**
-     * @var array<int,string>
-     */
-    protected $with = [
+        protected $with = [
         'user',
     ];
 
-    /**
-     * @var array<int,string>
-     */
-    protected $appends = [
+        protected $appends = [
         'sent_at_human',
         'type_enum',
         'is_read_flag',
@@ -148,8 +141,7 @@ class Notification extends Model
                 $typeSlug = trim((string) ($model->getAttribute('type') ?? ''));
                 if ($typeSlug !== '' && class_exists(\App\Models\NotificationTemplate::class)) {
                     try {
-                        /** @var \App\Models\NotificationTemplate |null $template */
-                        $template = \App\Models\NotificationTemplate::query()
+                                                $template = \App\Models\NotificationTemplate::query()
                             ->where('name', $typeSlug)
                             ->orWhere('slug', $typeSlug)
                             ->first();
@@ -601,20 +593,30 @@ class Notification extends Model
 
     public function getSentAtHumanAttribute(): ?string
     {
-        $sentAt = $this->getAttribute(MC::COL_SNT_AT);
-        if (!$sentAt instanceof Carbon) {
-            return null;
-        }
+        try {
+            $sentAt = $this->getAttribute(MC::COL_SNT_AT);
+            if (!$sentAt instanceof Carbon) {
+                return null;
+            }
 
-        return $sentAt->diffForHumans();
+            return $sentAt->diffForHumans();
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getSentAtHumanAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getTypeEnumAttribute(): string
     {
-        $raw  = (string) ($this->getAttribute('type') ?? '');
-        $enum = NotificationTemplateType::normalize($raw);
+        try {
+            $raw  = (string) ($this->getAttribute('type') ?? '');
+            $enum = NotificationTemplateType::normalize($raw);
 
-        return $enum->value;
+            return $enum->value;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getTypeEnumAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
+        }
     }
 
     public function getIsReadFlagAttribute(): bool
@@ -622,45 +624,49 @@ class Notification extends Model
         return (bool) $this->getAttribute(MC::COL_IS_RD);
     }
 
-    /**
-     * @return array<int,string>
-     */
-    public function getPlatformsEnumAttribute(): array
+        public function getPlatformsEnumAttribute(): array
     {
-        $raw = self::normalizeArrayField($this->getAttribute('platforms'));
+            try {
+            $raw = self::normalizeArrayField($this->getAttribute('platforms'));
 
-        $normalized = [];
-        foreach ($raw as $value) {
-            if (!is_string($value) || trim($value) === '')
-                continue;
-            $normalized[] = MessagingPlatform::normalize($value)->value;
-        }
+            $normalized = [];
+            foreach ($raw as $value) {
+                if (!is_string($value) || trim($value) === '')
+                    continue;
+                $normalized[] = MessagingPlatform::normalize($value)->value;
+            }
 
-        return array_values(array_unique($normalized));
+            return array_values(array_unique($normalized));
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getPlatformsEnumAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return [];
+            }
     }
 
-    /**
-     * @return array<string,mixed>
-     */
-    public function getPayloadAttribute(): array
+        public function getPayloadAttribute(): array
     {
-        $raw = (string) ($this->getAttribute('data') ?? '');
-        if ($raw === '') {
-            return [];
-        }
+            try {
+            $raw = (string) ($this->getAttribute('data') ?? '');
+            if ($raw === '') {
+                return [];
+            }
 
-        try {
-            $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+            try {
+                $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
-            return is_array($decoded) ? $decoded : [];
-        } catch (\Throwable $e) {
-            Log::debug(static::class . ' invalid JSON payload in data', [
-                'error' => $e->getMessage(),
-                'data'  => mb_substr($raw, 0, 256),
-            ]);
+                return is_array($decoded) ? $decoded : [];
+            } catch (\Throwable $e) {
+                Log::debug(static::class . ' invalid JSON payload in data', [
+                    'error' => $e->getMessage(),
+                    'data'  => mb_substr($raw, 0, 256),
+                ]);
 
-            return [];
-        }
+                return [];
+            }
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getPayloadAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return [];
+            }
     }
 
     public function scopeForUser(Builder $query, string $userId): Builder
@@ -709,102 +715,113 @@ class Notification extends Model
 
     public static function markAllAsReadForUser(string $userId): void
     {
-        $userId = trim($userId);
-        if ($userId === '') {
-            return;
-        }
-
         try {
-            static::query()
-                ->forUser($userId)
-                ->unread()
-                ->update([
-                    MC::COL_IS_RD => 1,
-                    MC::COL_RD_AT => Carbon::now(),
-                    DC::COL_U_AT  => Carbon::now(),
+            $userId = trim($userId);
+            if ($userId === '') {
+                return;
+            }
+
+            try {
+                static::query()
+                    ->forUser($userId)
+                    ->unread()
+                    ->update([
+                        MC::COL_IS_RD => 1,
+                        MC::COL_RD_AT => Carbon::now(),
+                        DC::COL_U_AT  => Carbon::now(),
+                    ]);
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to mark all notifications as read for user', [
+                    'error'   => $e->getMessage(),
+                    'user_id' => $userId,
                 ]);
+            }
         } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to mark all notifications as read for user', [
-                'error'   => $e->getMessage(),
-                'user_id' => $userId,
-            ]);
+            Log::error(static::class . '::markAllAsReadForUser — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     public static function unreadCountForUserCached(string $userId): int
     {
-        $userId = trim($userId);
-        if ($userId === '') {
-            return 0;
-        }
-
-        $cacheKey = 'notifications:unread_count:' . $userId;
-
         try {
-            return Cache::remember(
-                $cacheKey,
-                Carbon::now()->addMinutes(5),
-                fn(): int => (int) static::query()
-                    ->forUser($userId)
-                    ->unread()
-                    ->count()
-            );
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to compute unreadCountForUserCached', [
-                'error'   => $e->getMessage(),
-                'user_id' => $userId,
-            ]);
+            $userId = trim($userId);
+            if ($userId === '') {
+                return 0;
+            }
+
+            $cacheKey = 'notifications:unread_count:' . $userId;
 
             try {
-                return (int) static::query()
-                    ->forUser($userId)
-                    ->unread()
-                    ->count();
-            } catch (\Throwable $e2) {
-                Log::error(static::class . ' failed to compute unreadCountForUser without cache', [
-                    'error'   => $e2->getMessage(),
+                return Cache::remember(
+                    $cacheKey,
+                    Carbon::now()->addMinutes(5),
+                    fn(): int => (int) static::query()
+                        ->forUser($userId)
+                        ->unread()
+                        ->count()
+                );
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to compute unreadCountForUserCached', [
+                    'error'   => $e->getMessage(),
                     'user_id' => $userId,
                 ]);
 
-                return 0;
+                try {
+                    return (int) static::query()
+                        ->forUser($userId)
+                        ->unread()
+                        ->count();
+                } catch (\Throwable $e2) {
+                    Log::error(static::class . ' failed to compute unreadCountForUser without cache', [
+                        'error'   => $e2->getMessage(),
+                        'user_id' => $userId,
+                    ]);
+
+                    return 0;
+                }
             }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::unreadCountForUserCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return 0;
         }
     }
 
-    /**
-     * @return array<string,array{count:int}>
-     */
-    public static function aggregateCountByTypeForUser(string $userId): array
+        public static function aggregateCountByTypeForUser(string $userId): array
     {
-        $userId = trim($userId);
-        if ($userId === '') {
-            return [];
-        }
-
-        try {
-            $rows = static::query()
-                ->forUser($userId)
-                ->selectRaw('type, COUNT(*) as aggregate_count')
-                ->groupBy('type')
-                ->get();
-
-            $result = [];
-            foreach ($rows as $row) {
-                $key = (string) ($row->type ?? 'unknown');
-                $result[$key] = [
-                    'count' => (int) ($row->aggregate_count ?? 0),
-                ];
+            try {
+            $userId = trim($userId);
+            if ($userId === '') {
+                return [];
             }
 
-            return $result;
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to aggregateCountByTypeForUser', [
-                'error'   => $e->getMessage(),
-                'user_id' => $userId,
-            ]);
+            try {
+                $rows = static::query()
+                    ->forUser($userId)
+                    ->selectRaw('type, COUNT(*) as aggregate_count')
+                    ->groupBy('type')
+                    ->get();
 
-            return [];
-        }
+                $result = [];
+                foreach ($rows as $row) {
+                    $key = (string) ($row->type ?? 'unknown');
+                    $result[$key] = [
+                        'count' => (int) ($row->aggregate_count ?? 0),
+                    ];
+                }
+
+                return $result;
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to aggregateCountByTypeForUser', [
+                    'error'   => $e->getMessage(),
+                    'user_id' => $userId,
+                ]);
+
+                return [];
+            }
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::aggregateCountByTypeForUser — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return [];
+            }
     }
 
     public function toHtml(): string

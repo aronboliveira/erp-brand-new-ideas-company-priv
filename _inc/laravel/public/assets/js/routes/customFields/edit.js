@@ -1,48 +1,12 @@
+/**
+ * @file Custom Field Edit Route Guard
+ * @description Guards edit custom field links using ERPGuard singleton
+ */
 (() => {
-  const selector = ".edit-custom-field-link[data-ajax-popup][data-url]";
-  const alias = "data-listening-customfieldseditclick";
-  document.querySelectorAll(selector).forEach(el => {
-    if (!el.hasAttribute(alias)) {
-      el.addEventListener("click", event => {
-        if (el.getAttribute(alias) !== "true") return;
-        const url = el.getAttribute("data-url");
-        if (url === "#" && el.href === "#") {
-          event.preventDefault();
-          const hasBS = Array.from(document.scripts).some(
-            s =>
-              s.src &&
-              s.src.includes("bootstrap.min.js") &&
-              window.bootstrap &&
-              typeof window.bootstrap.Modal === "function"
-          );
-          const msg =
-            event.currentTarget.getAttribute("data-guard-msg") ??
-            "Edit route is unavailable. Please contact technical support or your domain administrator.";
-          if (hasBS) {
-            const wrapper = document.createElement("div");
-            wrapper.innerHTML = `
-                                        <div class="modal fade" tabindex="-1">
-                                            <div class="modal-dialog modal-sm">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Error</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body"><p>${msg}</p></div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-            document.body.appendChild(wrapper);
-            new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
-          } else {
-            alert(msg);
-          }
-        }
-      });
-      el.setAttribute(alias, "true");
-    }
-  });
+  try {
+    const guard = window.ERPGuard;
+    if (!guard) return;
+
+    guard.bindClickGuard(".edit-custom-field-link[data-ajax-popup][data-url]");
+  } catch {}
 })();

@@ -46,8 +46,8 @@ final class ResignationSeeder extends Seeder
 					if (Resignation::where(UC::COL_EMP_ID, $empId)->exists()) {
 						continue;
 					}
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Pedido de Demissão (Resignation) para funcionário ID: {$empId}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Pedido de Demissão (Resignation) para funcionário ID: {$empId}");
 					// Data de aviso ∈ [hoje-6m, hoje], data efetiva ∈ [aviso+7, aviso+60]
 					$notice = now('America/Sao_Paulo')->subDays(random_int(0, 180));
 					$effective = (clone $notice)->addDays(random_int(7, 60));

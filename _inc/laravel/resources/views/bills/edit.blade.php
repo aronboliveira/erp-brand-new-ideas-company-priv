@@ -1,50 +1,65 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\Route;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $billIndexRoute = Route::has(ViewsConstants::BIL . '.index')
-        ? route(ViewsConstants::BIL . '.index')
-        : '#';
-    $billIndexId  = 'bill-index-link';
-    $billIndexMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::BIL,
-        'bill_index_route_unavailable'
-    ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$billIndexRoute ??= '#';
+	$billIndexId ??= 'bill-index-link';
+	$billIndexMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$billIndexRoute = Route::has(ViewsConstants::BIL . '.index')
+			? (route(ViewsConstants::BIL . '.index') ?? '#')
+			: '#';
+		$billIndexMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::BIL,
+			'bill_index_route_unavailable'
+		) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in bills/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in bills/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in bills/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Bill Edit')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="{{ $billIndexId }}"
             href="{{ $billIndexRoute }}"
             data-url="{{ $billIndexRoute }}"
-            data-guard-msg="{{ $billIndexMsg }}"
+            data-guard-msg="{{ base64_encode($billIndexMsg) }}"
         >
             {{ __('Bill') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Bill Edit')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Bill Edit')}}</li>
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/bills/index.js') }}"></script>
     @endpush
@@ -61,7 +76,7 @@
           const dataClientLocalized = 'data-client-localized';
           const dataGuardMsg = 'data-guard-msg';
           const langKey = 'erp-np-lang';
-        
+
           const getMsg = (key, el) => {
             let msg = errFb;
             if (el.getAttribute('data-sv-localized') === 'true'
@@ -83,36 +98,11 @@
             }
             return msg;
           };
-        
+
           const showError = message => {
-            try {
-              let container = document.getElementById('toast-container');
-              if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-              }
-              const bsLink = document.querySelector('link[href*="bootstrap"]');
-              if (bsLink && window.bootstrap) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role','alert');
-                toast.setAttribute('aria-live','assertive');
-                toast.setAttribute('aria-atomic','true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toast.appendChild(body);
-                container.appendChild(toast);
-                bootstrap.Toast.getOrCreateInstance(toast).show();
-              } else {
-                alert(message);
-              }
-            } catch {
-              alert(message);
-            }
+            (window.RouteGuard?.showToast || (m => alert(m)))(message);
           };
-        
+
           let errorMsg = '';
           const onPointerUp = () => {
             if (errorMsg) {
@@ -129,19 +119,19 @@
               }
             }));
           }).observe(document.body, { childList:true, subtree:true });
-        
+
           document.addEventListener('DOMContentLoaded', () => {
             const sel = 'body .repeater';
             const container = document.querySelector(sel);
             if (!container) return;
-        
+
             let drag = null;
             try {
               drag = $(sel + ' tbody').sortable({ handle: '.sort-handler' });
             } catch {
               errorMsg = getMsg('calculation_error', container);
             }
-        
+
             let rep = null;
             try {
               rep = $(sel).repeater({
@@ -192,7 +182,7 @@
             } catch {
               errorMsg = getMsg('calculation_error', container);
             }
-        
+
             const onVendorChange = async () => {
               try {
                 $('#vendor_detail').removeClass('d-none').addClass('d-block');
@@ -216,7 +206,7 @@
               $('#vendor-box').removeClass('d-none').addClass('d-block');
               $('#vendor_detail').removeClass('d-block').addClass('d-none');
             });
-        
+
             const billId = '{{ $bill->id }}';
             async function changeItem(el) {
               try {
@@ -232,7 +222,7 @@
                   headers:{ 'X-CSRF-TOKEN':$('#token').val() },
                   data:{ bill_id: billId, product_id: pid }
                 })) || null;
-        
+
                 const row = el.closest('tr');
                 const qty = billItems?.quantity ?? 1;
                 const price = billItems?.price ?? itemData.product.purchase_price;
@@ -241,12 +231,12 @@
                 row.find('.price').val(price);
                 row.find('.discount').val(discount);
                 row.find('.pro_description').val(billItems?.description ?? itemData.product.description);
-        
+
                 const totalRate = (itemData.taxes || []).reduce((s,t)=>{
                   return s + parseFloat(t.rate);
                 },0);
                 const taxHtml = (itemData.taxes || []).map(t=>
-                  `<span class="badge bg-primary p-2 px-3 rounded mt-1 mr-1">${t.name} (${t.rate}%)</span>`
+                  `<span class="badge {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded {{ VC::MT1 }} mr-1">${t.name} (${t.rate}%)</span>`
                 ).join('') || '-';
                 const taxPrice = ((totalRate/100)*( (price*qty) - discount ));
                 row.find('.itemTaxPrice').val(taxPrice.toFixed(2));
@@ -254,14 +244,14 @@
                 row.find('.taxes').html(taxHtml);
                 row.find('.tax').val((itemData.taxes||[]).map(t=>t.id));
                 row.find('.unit').html(itemData.unit);
-        
+
                 $('.quantity, .price, .discount, .accountAmount').trigger('keyup change');
               } catch {
                 errorMsg = getMsg('item_data_fetch_failed', document.body);
               }
             }
             $(document).on('change', '.item', function(){ changeItem($(this)); });
-        
+
             const recalc = () => {
               try {
                 let totalPrice=0, totalTax=0, totalAccount=0;
@@ -290,7 +280,7 @@
               }
             };
             $(document).on('keyup change', '.quantity, .price, .discount, .accountAmount', recalc);
-        
+
             $(document).on('click','[data-repeater-delete]', async function(){
               if (!confirm(getMsg('repeater_delete_confirm', this))) return;
               const row = $(this).closest('tr');
@@ -308,7 +298,7 @@
               }
               recalc();
             });
-        
+
             $('.accountAmount').trigger('keyup');
           });
         })();
@@ -318,31 +308,35 @@
     <div class="row">
         @if(isset($bill) && !empty($bill))
             @php
-                $resolvedUpdateName = Route::has(ViewsConstants::BIL . '.update') ? (ViewsConstants::BIL . '.update') : (Route::has(Str::kebab(ViewsConstants::BIL . '.update')) ? Str::kebab(ViewsConstants::BIL . '.update') : null);
-                $billUpdateUrl = $resolvedUpdateName ? route($resolvedUpdateName, $bill->id) : '#';
-                $billUpdateFormId = 'bill-update-form-' . ($bill->id ?? 'unknown');
-                $billUpdateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_update_route_unavailable') ?? 'Bill update route is unavailable. Please contact technical support or your domain administrator.';
-                $fields = [
-                    ['name' => 'bill_date',    'type' => 'date',     'label' => __('Bill Date'),   'cols' => 6, 'attrs' => ['required' => true]],
-                    ['name' => 'due_date',     'type' => 'date',     'label' => __('Due Date'),    'cols' => 6, 'attrs' => ['required' => true]],
-                    ['name' => 'bill_id',  'type' => 'readonly', 'label' => __('Bill Identifier'), 'cols' => 6, 'value' => ($bill_id ?? '') !== '' ? $bill_id : 'No Bill Identifier available'],
-                    ['name' => 'category_id',  'type' => 'select',   'label' => __('Category'),    'cols' => 6, 'options' => $category ?? [], 'attrs' => ['class' => VC::FM_CT_SL]],
-                    ['name' => 'order_id', 'type' => 'text',   'label' => __('Order Identifier'),'cols' => 6, 'attrs' => []],
-                ];
-                $resolvedVendorName = Route::has(ViewsConstants::BIL . '.vendor') ? (ViewsConstants::BIL . '.vendor') : (Route::has(Str::kebab(ViewsConstants::BIL . '.vendor')) ? Str::kebab(ViewsConstants::BIL . '.vendor') : null);
-                $vendorRoute = $resolvedVendorName ? route($resolvedVendorName) : '#';
-                $vendorMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_vendor_fetch_route_unavailable') ?? 'Vendor fetch route is unavailable. Please contact technical support or your domain administrator.';
-                $resolvedProductName = Route::has(ViewsConstants::BIL . '.product') ? (ViewsConstants::BIL . '.product') : (Route::has(Str::kebab(ViewsConstants::BIL . '.product')) ? Str::kebab(ViewsConstants::BIL . '.product') : null);
-                $productRoute = $resolvedProductName ? route($resolvedProductName) : '#';
-                $productGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'product_fetch_route_unavailable') ?? 'Product fetch route is unavailable. Please contact technical support or your domain administrator.';
-                $resolvedIndexName = Route::has(ViewsConstants::BIL . '.index') ? (ViewsConstants::BIL . '.index') : (Route::has(Str::kebab(ViewsConstants::BIL . '.index')) ? Str::kebab(ViewsConstants::BIL . '.index') : null);
-                $cancelRoute = $resolvedIndexName ? route($resolvedIndexName) : '#';
-                $cancelGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_index_route_unavailable') ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
-                $currencySymbol = (is_object($user ?? null) && method_exists($user, 'currencySymbol')) ? ((string) ($user->currencySymbol() ?? '')) : '';
-                $currencySymbol = $currencySymbol !== '' ? $currencySymbol : '¤';
-                $itemsData = (is_array($items ?? null) && count($items ?? [])) || (($items ?? null) instanceof \Illuminate\Support\Collection && ($items ?? collect())->isNotEmpty()) ? $items : [];
-                $hasCustomFields = (is_array($customFields ?? null) && count($customFields ?? [])) || (($customFields ?? null) instanceof \Illuminate\Support\Collection && ($customFields ?? collect())->isNotEmpty());
-            @endphp
+                try {
+                    $resolvedUpdateName = Route::has(ViewsConstants::BIL . '.update') ? (ViewsConstants::BIL . '.update') : (Route::has(Str::kebab(ViewsConstants::BIL . '.update')) ? Str::kebab(ViewsConstants::BIL . '.update') : null);
+                    $billUpdateUrl = $resolvedUpdateName ? route($resolvedUpdateName, $bill->id) : '#';
+                    $billUpdateFormId = 'bill-update-form-' . ($bill->id ?? 'unknown');
+                    $billUpdateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_update_route_unavailable') ?? 'Bill update route is unavailable. Please contact technical support or your domain administrator.';
+                    $fields = [
+                        ['name' => 'bill_date',    'type' => 'date',     'label' => __('Bill Date'),   'cols' => 6, 'attrs' => ['required' => true]],
+                        ['name' => 'due_date',     'type' => 'date',     'label' => __('Due Date'),    'cols' => 6, 'attrs' => ['required' => true]],
+                        ['name' => 'bill_id',  'type' => 'readonly', 'label' => __('Bill Identifier'), 'cols' => 6, 'value' => ($bill_id ?? '') !== '' ? $bill_id : 'No Bill Identifier available'],
+                        ['name' => 'category_id',  'type' => 'select',   'label' => __('Category'),    'cols' => 6, 'options' => $category ?? [], 'attrs' => ['class' => VC::FM_CT_SL]],
+                        ['name' => 'order_id', 'type' => 'text',   'label' => __('Order Identifier'),'cols' => 6, 'attrs' => []],
+                    ];
+                    $resolvedVendorName = Route::has(ViewsConstants::BIL . '.vendor') ? (ViewsConstants::BIL . '.vendor') : (Route::has(Str::kebab(ViewsConstants::BIL . '.vendor')) ? Str::kebab(ViewsConstants::BIL . '.vendor') : null);
+                    $vendorRoute = $resolvedVendorName ? route($resolvedVendorName) : '#';
+                    $vendorMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_vendor_fetch_route_unavailable') ?? 'Vendor fetch route is unavailable. Please contact technical support or your domain administrator.';
+                    $resolvedProductName = Route::has(ViewsConstants::BIL . '.product') ? (ViewsConstants::BIL . '.product') : (Route::has(Str::kebab(ViewsConstants::BIL . '.product')) ? Str::kebab(ViewsConstants::BIL . '.product') : null);
+                    $productRoute = $resolvedProductName ? route($resolvedProductName) : '#';
+                    $productGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'product_fetch_route_unavailable') ?? 'Product fetch route is unavailable. Please contact technical support or your domain administrator.';
+                    $resolvedIndexName = Route::has(ViewsConstants::BIL . '.index') ? (ViewsConstants::BIL . '.index') : (Route::has(Str::kebab(ViewsConstants::BIL . '.index')) ? Str::kebab(ViewsConstants::BIL . '.index') : null);
+                    $cancelRoute = $resolvedIndexName ? route($resolvedIndexName) : '#';
+                    $cancelGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_index_route_unavailable') ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+                    $currencySymbol = (is_object($user ?? null) && method_exists($user, 'currencySymbol')) ? ((string) ($user->currencySymbol() ?? '')) : '';
+                    $currencySymbol = $currencySymbol !== '' ? $currencySymbol : '¤';
+                    $itemsData = (is_array($items ?? null) && count($items ?? [])) || (($items ?? null) instanceof \Illuminate\Support\Collection && ($items ?? collect())->isNotEmpty()) ? $items : [];
+                    $hasCustomFields = (is_array($customFields ?? null) && count($customFields ?? [])) || (($customFields ?? null) instanceof \Illuminate\Support\Collection && ($customFields ?? collect())->isNotEmpty());
+                } catch (\Throwable $e) {
+                    \Log::error('bills/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
 
             {{ Form::model($bill, [
                 'url'            => $billUpdateUrl,
@@ -357,7 +351,7 @@
                     <div class="{{ VC::CD }}">
                         <div class="{{ VC::CD_MT }}">
                             <div class="{{ VC::RW }}">
-                                <div class="col-md-6">
+                                <div class="{{ VC::CM6 }}">
                                     <div id="vendor-box" class="{{ VC::FM_G }}">
                                         {{ Form::label('vendor_id', __('Vendor'), ['class' => VC::FM_LB]) }}
                                         {{ Form::select('vendor_id', $vendors ?? [], $vendorId ?? null, [
@@ -373,12 +367,12 @@
                                     </div>
                                     <div id="vendor_detail" class="d-none"></div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="{{ VC::CM6 }}">
                                     <div class="{{ VC::RW }}">
                                         @foreach($fields as $f)
                                             @php
                                                 $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []);
-                                            @endphp
+@endphp
                                             <div class="col-md-{{ $f['cols'] }}">
                                                 <div class="{{ VC::FM_G }}">
                                                     {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
@@ -400,7 +394,7 @@
                                             </div>
                                         @endforeach
                                         @if($hasCustomFields)
-                                            <div class="col-md-6">
+                                            <div class="{{ VC::CM6 }}">
                                                 @include(ViewsConstants::CST_FD . '.formBuilder')
                                             </div>
                                         @endif
@@ -412,9 +406,9 @@
                 </div>
 
                 <div class="{{ VC::C12 }}">
-                    <h5 class="d-inline-block mb-4">{{ __('Product & Services') }}</h5>
+                    <h5 class="d-inline-block {{ VC::MB4 }}">{{ __('Product & Services') }}</h5>
                     <div class="{{ VC::CD }} repeater" data-value='{!! json_encode($itemsData) !!}'>
-                        <div class="item-section py-2">
+                        <div class="item-section {{ VC::PY2 }}">
                             <div class="{{ VC::RW }} justify-content-end">
                                 <div class="all-button-box me-2">
                                     <a href="#" data-repeater-create class="{{ VC::BT_SM_PM }}" data-bs-toggle="modal" data-target="#add-bank">
@@ -433,9 +427,9 @@
                                             <th>{{ __('Price') }}</th>
                                             <th>{{ __('Discount') }}</th>
                                             <th>{{ __('Tax') }} (%)</th>
-                                            <th class="text-end">
+                                            <th class="{{ VC::TX_END }}">
                                                 {{ __('Amount') }}<br>
-                                                <small class="text-danger font-bold">{{ __('after tax & discount') }}</small>
+                                                <small class="{{ VC::TX_DNG }} font-bold">{{ __('after tax & discount') }}</small>
                                             </th>
                                             <th></th>
                                         </tr>
@@ -446,8 +440,8 @@
                                             {{ Form::hidden('account_id', null, ['class' => 'account_id']) }}
                                             @php
                                                 $productSelectOptions = $product_services ?? [];
-                                            @endphp
-                                            <td width="25%" class="form-group pt-0">
+@endphp
+                                            <td width="25%" class="{{ VC::FM_G }} pt-0">
                                                 {{ Form::select('items', $productSelectOptions, null, [
                                                     'id'             => 'product-select',
                                                     'class'          => 'form-control select item',
@@ -460,20 +454,20 @@
                                             @endpush
                                             <td>
                                                 <div class="input-group">
-                                                    <input name="quantity" class="form-control quantity" placeholder="{{ __('Qty') }}">
-                                                    <span class="unit input-group-text bg-transparent"></span>
+                                                    <input name="quantity" class="{{ VC::FM_CT }} quantity" placeholder="{{ __('Qty') }}">
+                                                    <span class="unit {{ VC::TXTS_TRP }}"></span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input name="price" class="form-control price" placeholder="{{ __('Price') }}">
-                                                    <span class="input-group-text bg-transparent">{{ $currencySymbol }}</span>
+                                                    <input name="price" class="{{ VC::FM_CT }} price" placeholder="{{ __('Price') }}">
+                                                    <span class="{{ VC::TXTS_TRP }}">{{ $currencySymbol }}</span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input name="discount" class="form-control discount" placeholder="{{ __('Discount') }}">
-                                                    <span class="input-group-text bg-transparent">{{ $currencySymbol }}</span>
+                                                    <input name="discount" class="{{ VC::FM_CT }} discount" placeholder="{{ __('Discount') }}">
+                                                    <span class="{{ VC::TXTS_TRP }}">{{ $currencySymbol }}</span>
                                                 </div>
                                             </td>
                                             <td>
@@ -484,47 +478,47 @@
                                                     {{ Form::hidden('itemTaxRate', null, ['class' => 'itemTaxRate']) }}
                                                 </div>
                                             </td>
-                                            <td class="text-end amount">0.00</td>
+                                            <td class="{{ VC::TX_END }} amount">0.00</td>
                                             <td><a href="#" class="{{ VC::TRS_PARA }}" data-repeater-delete></a></td>
                                         </tr>
                                         <tr>
                                             <td>{{ Form::select('chart_account_id', $chartAccounts ?? [], null, ['class' => 'form-control select js-searchBox']) }}</td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input name="amount" class="form-control accountAmount" placeholder="{{ __('Amount') }}">
-                                                    <span class="input-group-text bg-transparent">{{ $currencySymbol }}</span>
+                                                    <input name="amount" class="{{ VC::FM_CT }} accountAmount" placeholder="{{ __('Amount') }}">
+                                                    <span class="{{ VC::TXTS_TRP }}">{{ $currencySymbol }}</span>
                                                 </div>
                                             </td>
                                             <td colspan="2">
                                                 {{ Form::textarea('description', null, ['class' => 'form-control pro_description', 'rows' => 1, 'placeholder' => __('Description')]) }}
                                             </td>
                                             <td></td>
-                                            <td class="text-end accountamount">0.00</td>
+                                            <td class="{{ VC::TX_END }} accountamount">0.00</td>
                                         </tr>
                                     </tbody>
                                     <tfoot>
                                         <tr>
                                             <td colspan="4"></td>
                                             <td><strong>{{ __('Sub Total') }} ({{ $currencySymbol }})</strong></td>
-                                            <td class="text-end subTotal">0.00</td>
+                                            <td class="{{ VC::TX_END }} subTotal">0.00</td>
                                             <td></td>
                                         </tr>
                                         <tr>
                                             <td colspan="4"></td>
                                             <td><strong>{{ __('Discount') }} ({{ $currencySymbol }})</strong></td>
-                                            <td class="text-end totalDiscount">0.00</td>
+                                            <td class="{{ VC::TX_END }} totalDiscount">0.00</td>
                                             <td></td>
                                         </tr>
                                         <tr>
                                             <td colspan="4"></td>
                                             <td><strong>{{ __('Tax') }} ({{ $currencySymbol }})</strong></td>
-                                            <td class="text-end totalTax">0.00</td>
+                                            <td class="{{ VC::TX_END }} totalTax">0.00</td>
                                             <td></td>
                                         </tr>
                                         <tr>
                                             <td colspan="4"></td>
                                             <td class="blue-text"><strong>{{ __('Total Amount') }} ({{ $currencySymbol }})</strong></td>
-                                            <td class="blue-text text-end totalAmount">0.00</td>
+                                            <td class="blue-text {{ VC::TX_END }} totalAmount">0.00</td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
@@ -536,14 +530,14 @@
 
                 <div class="modal-footer">
                     @php
-                        $cancelBtnId = 'bill-cancel-btn';
-                    @endphp
+                        $cancelBtnId ??= 'bill-cancel-btn';
+@endphp
                     <button
                         id="{{ $cancelBtnId }}"
                         type="button"
                         class="{{ VC::BT_LG }} {{ VC::ME3 }}"
                         data-url="{{ $cancelRoute }}"
-                        data-guard-msg="{{ $cancelGuardMsg }}"
+                        data-guard-msg="{{ base64_encode($cancelGuardMsg) }}"
                     >
                         {{ __('Cancel') }}
                     </button>
@@ -597,11 +591,10 @@
             @endpush
         @else
             <div class="{{ VC::C12 }}">
-                <div class="alert alert-danger">
+                <div class="{{ VC::ALT_DNG }}">
                     {{ __('Bill record not found.') }}
                 </div>
             </div>
         @endif
     </div>
 @endsection
-

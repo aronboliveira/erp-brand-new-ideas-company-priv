@@ -86,7 +86,9 @@ final class DealTaskSeeder extends Seeder
         }
 
         // Recompute: we will assign priority/status across the final plan size
-        $finalTotal = $plan->count();
+        // original: $finalTotal = $plan->count();
+        $HARD_CAP = 16;
+        $finalTotal = min($HARD_CAP, $plan->count());
 
         // Priority/status assignment pools
         [$priorityPool, $priorityOverflow] = $this->buildBoundedPool(
@@ -193,7 +195,7 @@ final class DealTaskSeeder extends Seeder
                 'tags'            => $this->randomStringList($faker, 0, 5, prefix: 'tag_'),
             ];
 
-            $this->output->writeln('Creating DealTask for deal ' . $dealId . ' with priority ' . $priorityCode . ' and status ' . $statusCode . ($taskId !== null ? ' linked to task ' . $taskId : ' without task link'));
+            // $this->output->writeln('Creating DealTask for deal ' . $dealId . ' with priority ' . $priorityCode . ' and status ' . $statusCode . ($taskId !== null ? ' linked to task ' . $taskId : ' without task link'));
             DealTask::query()->create($attrs);
 
             $created++;

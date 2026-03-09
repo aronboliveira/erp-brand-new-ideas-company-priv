@@ -1,42 +1,39 @@
 @php
-    # Template 6
-    use App\Config\Constants\{DatabaseConstants, ViewsConstants};
-    use App\Models\Utility as UtilModel;
+        try {
+$settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
 
-    $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
+            $hasInvoiceNumberFormat = is_callable([UtilModel::class, 'invoiceNumberFormat']);
+                $hasDateFormat          = is_callable([UtilModel::class, 'dateFormat']);
+                $hasPriceFormat         = is_callable([UtilModel::class, 'priceFormat']);
 
-    // ——— Safe method-existence checks (saved as booleans for repeated use)
-    $hasInvoiceNumberFormat = is_callable([UtilModel::class, 'invoiceNumberFormat']);
-    $hasDateFormat          = is_callable([UtilModel::class, 'dateFormat']);
-    $hasPriceFormat         = is_callable([UtilModel::class, 'priceFormat']);
+                $hasGetSubTotal              = method_exists($invoice, 'getSubTotal');
+                $hasGetTotalDiscount         = method_exists($invoice, 'getTotalDiscount');
+                $hasGetTotalTax              = method_exists($invoice, 'getTotalTax');
+                $hasInvoiceTotalCreditNote   = method_exists($invoice, 'invoiceTotalCreditNote');
+                $hasGetTotal                 = method_exists($invoice, 'getTotal');
+                $hasGetDue                   = method_exists($invoice, 'getDue');
 
-    $hasGetSubTotal              = method_exists($invoice, 'getSubTotal');
-    $hasGetTotalDiscount         = method_exists($invoice, 'getTotalDiscount');
-    $hasGetTotalTax              = method_exists($invoice, 'getTotalTax');
-    $hasInvoiceTotalCreditNote   = method_exists($invoice, 'invoiceTotalCreditNote');
-    $hasGetTotal                 = method_exists($invoice, 'getTotal');
-    $hasGetDue                   = method_exists($invoice, 'getDue');
+            $fmtInvoiceNo = function ($settings, $id) use ($hasInvoiceNumberFormat) {
+            return $hasInvoiceNumberFormat ? \App\Models\Utility::invoiceNumberFormat($settings, $id) : (string) $id;
+                };
+                $fmtDate = function ($settings, $date) use ($hasDateFormat) {
+            if ($hasDateFormat) return \App\Models\Utility::dateFormat($settings, $date);
+            if ($date instanceof \DateTimeInterface) return $date->format('Y-m-d');
+            return is_string($date) ? $date : (string) $date;
+                };
+                $fmtPrice = function ($settings, $amount) use ($hasPriceFormat) {
+            return $hasPriceFormat ? \App\Models\Utility::priceFormat($settings, $amount) : number_format((float) $amount, 2);
+                };
 
-    // ——— Small helpers with graceful fallbacks
-    $fmtInvoiceNo = function ($settings, $id) use ($hasInvoiceNumberFormat) {
-        return $hasInvoiceNumberFormat ? \App\Models\Utility::invoiceNumberFormat($settings, $id) : (string) $id;
-    };
-    $fmtDate = function ($settings, $date) use ($hasDateFormat) {
-        if ($hasDateFormat) return \App\Models\Utility::dateFormat($settings, $date);
-        if ($date instanceof \DateTimeInterface) return $date->format('Y-m-d');
-        return is_string($date) ? $date : (string) $date;
-    };
-    $fmtPrice = function ($settings, $amount) use ($hasPriceFormat) {
-        return $hasPriceFormat ? \App\Models\Utility::priceFormat($settings, $amount) : number_format((float) $amount, 2);
-    };
-
-    // ——— Totals with fallbacks (so users still see something readable)
-    $subTotal   = $hasGetSubTotal            ? $invoice->getSubTotal()            : ($invoice->totalRate ?? 0);
-    $totalDisc  = $hasGetTotalDiscount       ? $invoice->getTotalDiscount()       : ($invoice->totalDiscount ?? 0);
-    $totalTax   = $hasGetTotalTax            ? $invoice->getTotalTax()            : ($invoice->totalTaxPrice ?? 0);
-    $creditNote = $hasInvoiceTotalCreditNote ? $invoice->invoiceTotalCreditNote() : 0;
-    $total      = $hasGetTotal               ? $invoice->getTotal()               : ($subTotal - $totalDisc + $totalTax);
-    $due        = $hasGetDue                 ? $invoice->getDue()                 : max(0, $total - (($invoice->payments_total ?? 0) - $creditNote));
+            $subTotal   = $hasGetSubTotal            ? $invoice->getSubTotal()            : ($invoice->totalRate ?? 0);
+                $totalDisc  = $hasGetTotalDiscount       ? $invoice->getTotalDiscount()       : ($invoice->totalDiscount ?? 0);
+                $totalTax   = $hasGetTotalTax            ? $invoice->getTotalTax()            : ($invoice->totalTaxPrice ?? 0);
+                $creditNote = $hasInvoiceTotalCreditNote ? $invoice->invoiceTotalCreditNote() : 0;
+                $total      = $hasGetTotal               ? $invoice->getTotal()               : ($subTotal - $totalDisc + $totalTax);
+                $due        = $hasGetDue                 ? $invoice->getDue()                 : max(0, $total - (($invoice->payments_total ?? 0) - $creditNote));
+        } catch (\Throwable $e) {
+            \Log::error('invoices/templates/template6 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang ? (str_replace('_','-',is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) : DatabaseConstants::DEFAULT_LANG }}" dir="{{ ($siteRtl ?? '') === 'on' ? 'rtl' : '' }}">
@@ -67,7 +64,7 @@
                         <td>
                             <h3 style="text-transform: uppercase; font-size: 40px; font-weight: bold;">{{ __('INVOICE') }}</h3>
                         </td>
-                        <td class="text-right">
+                        <td class="{{ VC::TX_RT }}">
                             <img class="invoice-logo" src="{{ $img }}" alt="">
                         </td>
                     </tr>
@@ -76,14 +73,18 @@
         </div>
 
         <div class="invoice-body">
-            <table class="vertical-align-top">
+            <table class="{{ VC::VA_TOP }}">
                 <tbody>
                     <tr>
                         @php
-                            $company_city   = $settings['company_city']   ?? '';
-                            $company_state  = $settings['company_state']  ?? '';
-                            $company_zip    = $settings['company_zipcode']?? '';
-                        @endphp
+                            try {
+                                $company_city   = $settings['company_city']   ?? '';
+                                $company_state  = $settings['company_state']  ?? '';
+                                $company_zip    = $settings['company_zipcode']?? '';
+                            } catch (\Throwable $e) {
+                                \Log::error('invoices/templates/template6 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
 
                         @if (!empty($settings['company_name']) || !empty($settings['mail_from_address']) || !empty($settings['company_address']))
                         <td style="font-size: 13px;">
@@ -116,7 +117,7 @@
                         </td>
 
                         @if(($settings['shipping_display'] ?? '') == 'on')
-                        <td style="font-size: 13px;" class="text-right">
+                        <td style="font-size: 13px;" class="{{ VC::TX_RT }}">
                             <strong style="margin-bottom: 10px; display:block;">{{ __('Ship To:') }}</strong>
                             <p>
                                 {{ $customer->shipping_name    ?? __('No shipping name available for customer') }}<br>
@@ -143,8 +144,8 @@
                             </p>
                         </td>
                         <td colspan="2">
-                            <div class="view-qrcode" style="margin-top: 0;">
-                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', \Crypt::encrypt($invoice->invoice_id)), 'QRCODE', 2, 2) !!}
+                            <div class="{{ VC::VW_QR }}" style="margin-top: 0;">
+                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', \Crypt::encrypt($invoice->invoice_id)), 'QRCODE', 2, 2) !!}
                             </div>
                         </td>
                     </tr>
@@ -155,19 +156,19 @@
                 <tbody>
                     <tr>
                         <td>
-                            <table class="no-space">
+                            <table class="{{ VC::NO_SPC }}">
                                 <tbody>
                                     <tr>
                                         <td>{{ __('Number') }}:</td>
-                                        <td class="text-right">{{ $fmtInvoiceNo($settings, $invoice->invoice_id) }}</td>
+                                        <td class="{{ VC::TX_RT }}">{{ $fmtInvoiceNo($settings, $invoice->invoice_id) }}</td>
                                     </tr>
                                     <tr>
                                         <td>{{ __('Issue Date') }}:</td>
-                                        <td class="text-right">{{ $fmtDate($settings, $invoice->issue_date) }}</td>
+                                        <td class="{{ VC::TX_RT }}">{{ $fmtDate($settings, $invoice->issue_date) }}</td>
                                     </tr>
                                     <tr>
                                         <td><b>{{ __('Due Date:') }}</b></td>
-                                        <td class="text-right">{{ $fmtDate($settings, $invoice->due_date) }}</td>
+                                        <td class="{{ VC::TX_RT }}">{{ $fmtDate($settings, $invoice->due_date) }}</td>
                                     </tr>
 
                                     @if(!empty($customFields) && !empty($invoice->customField) && count($invoice->customField) > 0)
@@ -185,7 +186,7 @@
                 </tbody>
             </table>
 
-            <table class="add-border invoice-summary" style="margin-top: 30px;">
+            <table class="{{ VC::BDR_INV_SM }}" style="margin-top: 30px;">
                 <thead style="background: <?= $color ?>; color: {{ $font_color }}">
                     <tr style="border-bottom:1px solid <?= $color ?>">
                         <th>{{ __('Item') }}</th>
@@ -200,12 +201,16 @@
                     @if(isset($invoice->itemData) && count($invoice->itemData) > 0)
                         @foreach($invoice->itemData as $key => $item)
                             @php
-                                $unitName = class_exists(\App\Models\ProductServiceUnit::class)
-                                    ? \App\Models\ProductServiceUnit::find($item->unit)
-                                    : null;
-                                $unitLabel = $unitName->name ?? __('unit');
-                                $itemtax   = 0;
-                            @endphp
+                                try {
+                                    $unitName = class_exists(\App\Models\ProductServiceUnit::class)
+                                        ? \App\Models\ProductServiceUnit::find($item->unit)
+                                        : null;
+                                    $unitLabel = $unitName->name ?? __('unit');
+                                    $itemtax   = 0;
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/templates/template6 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <tr>
                                 <td>{{ $item->name ?? __('Unnamed item') }}</td>
                                 <td>{{ ($item->quantity ?? 0) . ' (' . $unitLabel . ')' }}</td>
@@ -214,7 +219,9 @@
                                 <td>
                                     @if(!empty($item->itemTax))
                                         @foreach($item->itemTax as $taxes)
-                                            @php $itemtax += $taxes['tax_price'] ?? 0; @endphp
+                                            @php
+ $itemtax += $taxes['tax_price'] ?? 0;
+@endphp
                                             <p>
                                                 {{ ($taxes['name'] ?? __('Tax')) }}
                                                 ({{ $taxes['rate'] ?? 0 }})
@@ -228,7 +235,7 @@
                                 <td>{{ $fmtPrice($settings, (($item->price ?? 0) * ($item->quantity ?? 0)) - ($item->discount ?? 0) + $itemtax) }}</td>
                             </tr>
                             @if(!empty($item->description))
-                                <tr class="border-0 itm-description">
+                                <tr class="{{ VC::BD0_ITM_DSC }}">
                                     <td colspan="6" style="border-bottom:1px solid <?= $color ?>">{{ $item->description }}</td>
                                 </tr>
                             @endif
@@ -247,8 +254,8 @@
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
+                        <td colspan="2" class="{{ VC::SUB_TTL }}">
+                            <table class="{{ VC::TTL_TB }}">
                                 <tr style="border-bottom:1px solid <?= $color ?>">
                                     <td>{{ __('Subtotal') }}:</td>
                                     <td>{{ $fmtPrice($settings, $subTotal) }}</td>

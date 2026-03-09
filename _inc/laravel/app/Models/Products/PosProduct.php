@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Traits\{ExtendsProductServiceTable, HasAuditFields, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 
 final class PosProduct extends Model
 {
-    use UsesUuids, HasAuditFields, ExtendsProductServiceTable;
+    use HasFactory, UsesUuids, HasAuditFields, ExtendsProductServiceTable;
 
     protected $table = DC::TABLE_POS_PRD;
 
@@ -76,17 +78,21 @@ final class PosProduct extends Model
 
     protected static function getExtendsBaseTableExcludedColumns(): array
     {
-        return [
-            ...self::BASE_TABLE_EXCLUDED_COLUMNS,
-            'quantity',
-            'tax',
-            'discount',
-            'price',
-        ];
+        try {
+            return [
+                ...self::BASE_TABLE_EXCLUDED_COLUMNS,
+                'quantity',
+                'tax',
+                'discount',
+                'price',
+            ];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getExtendsBaseTableExcludedColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
-    /** POS owning this line item. */
-    public function pos(): BelongsTo
+        public function pos(): BelongsTo
     {
         return $this->belongsTo(Pos::class, BC::COL_POS_ID, 'id');
     }
@@ -106,75 +112,99 @@ final class PosProduct extends Model
         return Utility::getProduct($this);
     }
 
-    /** Line subtotal (quantity * price). */
-    public function getSubtotalAttribute(): float
+        public function getSubtotalAttribute(): float
     {
-        $qty = (int) ($this->getAttribute('quantity') ?? 0);
-        $price = (float) ($this->getAttribute('price') ?? 0.0);
-        if ($qty <= 0 || $price <= 0.0) return 0.0;
-        return (float) ($qty * $price);
+            try {
+            $qty = (int) ($this->getAttribute('quantity') ?? 0);
+            $price = (float) ($this->getAttribute('price') ?? 0.0);
+            if ($qty <= 0 || $price <= 0.0) return 0.0;
+            return (float) ($qty * $price);
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getSubtotalAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 
-    /** Discount amount inferred from discount value. */
-    public function getDiscountAmountAttribute(): float
+        public function getDiscountAmountAttribute(): float
     {
-        $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
-        if ($subtotal <= 0.0) return 0.0;
-        return $this->inferAmountFromRateOrAbsolute((float) ($this->getAttribute('discount') ?? 0.0), $subtotal);
+            try {
+            $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
+            if ($subtotal <= 0.0) return 0.0;
+            return $this->inferAmountFromRateOrAbsolute((float) ($this->getAttribute('discount') ?? 0.0), $subtotal);
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getDiscountAmountAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 
-    /** Tax amount inferred from tax value. */
-    public function getTaxAmountAttribute(): float
+        public function getTaxAmountAttribute(): float
     {
-        $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
-        if ($subtotal <= 0.0) return 0.0;
-        return $this->inferAmountFromRateOrAbsolute((float) ($this->getAttribute('tax') ?? 0.0), $subtotal);
+            try {
+            $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
+            if ($subtotal <= 0.0) return 0.0;
+            return $this->inferAmountFromRateOrAbsolute((float) ($this->getAttribute('tax') ?? 0.0), $subtotal);
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getTaxAmountAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 
-    /** Total = subtotal - discount + tax. */
-    public function getTotalAttribute(): float
+        public function getTotalAttribute(): float
     {
-        $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
-        if ($subtotal <= 0.0) return 0.0;
+            try {
+            $subtotal = (float) ($this->getAttribute('subtotal') ?? 0.0);
+            if ($subtotal <= 0.0) return 0.0;
 
-        $disc = (float) ($this->getAttribute('discount_amount') ?? 0.0);
-        $tax = (float) ($this->getAttribute('tax_amount') ?? 0.0);
+            $disc = (float) ($this->getAttribute('discount_amount') ?? 0.0);
+            $tax = (float) ($this->getAttribute('tax_amount') ?? 0.0);
 
-        $t = $subtotal - $disc + $tax;
-        return $t < 0.0 ? 0.0 : $t;
+            $t = $subtotal - $disc + $tax;
+            return $t < 0.0 ? 0.0 : $t;
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::getTotalAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 
-    /** Cacheable aggregation: sum(total) for a POS. */
-    public static function cachedTotalForPos(string $posId): float
+        public static function cachedTotalForPos(string $posId): float
     {
-        static $cache = [];
-        if (isset($cache[$posId])) return (float) $cache[$posId];
+            try {
+            static $cache = [];
+            if (isset($cache[$posId])) return (float) $cache[$posId];
 
-        try {
-            $tbl = (new static)->getTable();
-            $row = DB::selectOne(
-                "select coalesce(sum(quantity * price), 0) as s from {$tbl} where " . BC::COL_POS_ID . " = ?",
-                [$posId]
-            );
-            $cache[$posId] = (float) ($row?->s ?? 0.0);
-            return (float) $cache[$posId];
-        } catch (\Throwable $e) {
-            Log::warning(static::class . '::cachedTotalForPos failed', [
-                'pos_id' => $posId,
-                'msg' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            return 0.0;
-        }
+            try {
+                $tbl = (new static)->getTable();
+                $row = DB::selectOne(
+                    "select coalesce(sum(quantity * price), 0) as s from {$tbl} where " . BC::COL_POS_ID . " = ?",
+                    [$posId]
+                );
+                $cache[$posId] = (float) ($row?->s ?? 0.0);
+                return (float) $cache[$posId];
+            } catch (\Throwable $e) {
+                Log::warning(static::class . '::cachedTotalForPos failed', [
+                    'pos_id' => $posId,
+                    'msg' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+                return 0.0;
+            }
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::cachedTotalForPos — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 
-    /** Interprets $v as fraction (0..1), percent (0..100), or absolute (>=100). */
-    protected function inferAmountFromRateOrAbsolute(float $v, float $base): float
+        protected function inferAmountFromRateOrAbsolute(float $v, float $base): float
     {
-        if ($v <= 0.0 || $base <= 0.0) return 0.0;
-        if ($v <= 1.0) return $base * $v;
-        if ($v <= 100.0) return $base * ($v / 100.0);
-        return $v > $base ? $base : $v;
+            try {
+            if ($v <= 0.0 || $base <= 0.0) return 0.0;
+            if ($v <= 1.0) return $base * $v;
+            if ($v <= 100.0) return $base * ($v / 100.0);
+            return $v > $base ? $base : $v;
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::inferAmountFromRateOrAbsolute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                return 0.0;
+            }
     }
 }

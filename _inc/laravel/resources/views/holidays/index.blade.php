@@ -1,20 +1,37 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route, Gate};
-
-    $user = Auth::user();
-    $hasUser = (bool) $user;
-    $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+$user ??= null;
+	$hasUser ??= false;
+	$hasUserDateFormat ??= false;
+	$hasFetchLinkMessage ??= false;
+	$lang ??= 'en';
+	try {
+		$user = Auth::user();
+		$hasUser = (bool) $user;
+		$hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
+		$hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+		$lang = is_callable([Utility::class, 'fetchUserLang']) ? (Utility::fetchUserLang(user: $user) ?? 'en') : app()->getLocale();
+	} catch (\Error $e) {
+		Log::error('Error in holidays/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in holidays/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in holidays/index.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @extends(EL::ADM)
@@ -24,32 +41,36 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Holiday') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Holiday') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     @can('create holiday')
         @php
-            $calendarRouteName = VW::HLD.'.calendar';
-            $calendarUrl = Route::has($calendarRouteName) ? route($calendarRouteName) : '#';
-            $calendarMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'calendar_holiday_route_unavailable') : 'Calendar view route is unavailable. Please contact technical support or your domain administrator.') ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
+            try {
+                $calendarRouteName = VW::HLD.'.calendar';
+                $calendarUrl = Route::has($calendarRouteName) ? route($calendarRouteName) : '#';
+                $calendarMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'calendar_holiday_route_unavailable') : 'Calendar view route is unavailable. Please contact technical support or your domain administrator.') ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
 
-            $createRouteName = VW::HLD.'.create';
-            $createUrl = Route::has($createRouteName) ? route($createRouteName) : '#';
-            $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'holiday_create_route_unavailable') : 'Create holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
-        @endphp
+                $createRouteName = VW::HLD.'.create';
+                $createUrl = Route::has($createRouteName) ? route($createRouteName) : '#';
+                $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'holiday_create_route_unavailable') : 'Create holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
+            } catch (\Throwable $e) {
+                \Log::error('holidays/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::FEND }}">
             <a href="{{ $calendarUrl }}"
                class="{{ VC::BT_SM_PM }}"
                data-url="{{ $calendarUrl }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $calendarMsg }}"
+               data-guard-msg="{{ base64_encode($calendarMsg) }}"
                data-bs-toggle="tooltip"
                title="{{ __('Calendar View') }}">
                 <i class="{{ VC::TI_CLD }}"></i>
@@ -58,7 +79,7 @@
                class="{{ VC::BT_SM_PM }}"
                data-url="{{ $createUrl }}"
                data-sv-localized="true"
-               data-guard-msg="{{ $createMsg }}"
+               data-guard-msg="{{ base64_encode($createMsg) }}"
                data-size="lg"
                data-ajax-popup="true"
                data-bs-toggle="tooltip"
@@ -72,17 +93,17 @@
 
 @section(YW::ADM_CTT)
     @if(!$hasUser)
-        <div class="alert alert-warning mb-0" role="alert">{{ __('Failed to load Holiday data for the current user.') }}</div>
+        <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('Failed to load Holiday data for the current user.') }}</div>
     @else
         @can('create holiday')
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CS12 }}">
-                    <div class="mt-2" id="multiCollapseExample1">
+                    <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                         <div class="{{ VC::CD }}">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 {!! Form::open(['route' => [VW::HLD.'.calendar'], 'method' => 'get', 'id' => 'holiday_filter']) !!}
                                 <div class="{{ VC::R_ALC_JCE }}">
-                                    <div class="col-xl-10">
+                                    <div class="{{ VC::CXL10 }}">
                                         <div class="{{ VC::RW }}">
                                             <div class="{{ VC::CL_POS3 }}"><div class="btn-box"></div></div>
                                             <div class="{{ VC::CL_POS3 }}"><div class="btn-box"></div></div>
@@ -113,13 +134,13 @@
                                                 @php
                                                     $calUrl = Route::has(VW::HLD.'.calendar') ? route(VW::HLD.'.calendar') : '#';
                                                     $calGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'calendar_holiday_route_unavailable') : null) ?? __('Reset route is unavailable. Please contact technical support or your domain administrator.');
-                                                @endphp
+@endphp
                                                 <a href="{{ $calUrl }}"
                                                    class="{{ VC::BT_SM_DG }}"
                                                    data-bs-toggle="tooltip"
                                                    title="{{ __('Reset') }}"
                                                    data-url="{{ $calUrl }}"
-                                                   data-guard-msg="{{ $calGuardMsg }}"
+                                                   data-guard-msg="{{ base64_encode($calGuardMsg) }}"
                                                    data-sv-localized="true">
                                                     <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                                 </a>
@@ -136,10 +157,10 @@
         @endcan
 
         <div class="{{ VC::RW }} {{ VC::MT1 }}">
-            <div class="col-md-12">
+            <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                     <tr>
@@ -154,19 +175,23 @@
                                 <tbody class="font-style">
                                     @forelse ($holidays as $holiday)
                                         @php
-                                            $hid = isset($holiday->id) ? (string) $holiday->id : '';
-                                            $occasionTxt = isset($holiday->occasion) && $holiday->occasion !== ''
-                                                ? $holiday->occasion
-                                                : __('Occasion not available or failed to be fetched.');
-                                            $rawStart = $holiday->date ?? null;
-                                            $rawEnd = $holiday->end_date ?? null;
-                                            $startTxt = $rawStart
-                                                ? ($hasUserDateFormat ? $user->dateFormat($rawStart) : __('Failed to format start date.'))
-                                                : __('Start date not available or failed to be fetched.');
-                                            $endTxt = $rawEnd
-                                                ? ($hasUserDateFormat ? $user->dateFormat($rawEnd) : __('Failed to format end date.'))
-                                                : __('End date not available or failed to be fetched.');
-                                        @endphp
+                                            try {
+                                                $hid = isset($holiday->id) ? (string) $holiday->id : '';
+                                                $occasionTxt = isset($holiday->occasion) && $holiday->occasion !== ''
+                                                    ? $holiday->occasion
+                                                    : __('Occasion not available or failed to be fetched.');
+                                                $rawStart = $holiday->date ?? null;
+                                                $rawEnd = $holiday->end_date ?? null;
+                                                $startTxt = $rawStart
+                                                    ? ($hasUserDateFormat ? $user->dateFormat($rawStart) : __('Failed to format start date.'))
+                                                    : __('Start date not available or failed to be fetched.');
+                                                $endTxt = $rawEnd
+                                                    ? ($hasUserDateFormat ? $user->dateFormat($rawEnd) : __('Failed to format end date.'))
+                                                    : __('End date not available or failed to be fetched.');
+                                            } catch (\Throwable $e) {
+                                                \Log::error('holidays/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $occasionTxt }}</td>
                                             <td>{{ $startTxt }}</td>
@@ -176,10 +201,14 @@
                                                     <span>
                                                         @can('edit holiday')
                                                             @php
-                                                                $editRouteName = VW::HLD.'.edit';
-                                                                $editUrl = (Route::has($editRouteName) && $hid !== '') ? route($editRouteName, $hid) : '#';
-                                                                $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : 'Edit Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
-                                                            @endphp
+                                                                try {
+                                                                    $editRouteName = VW::HLD.'.edit';
+                                                                    $editUrl = (Route::has($editRouteName) && $hid !== '') ? route($editRouteName, $hid) : '#';
+                                                                    $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : 'Edit Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('holidays/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN }} {{ VC::BG_P }} {{ VC::MS2 }}">
                                                                 <a href="{{ $editUrl }}"
                                                                    class="{{ VC::BT_SM_CT }}"
@@ -188,7 +217,7 @@
                                                                    data-title="{{ __('Edit Holiday') }}"
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Edit') }}"
-                                                                   data-guard-msg="{{ $editGuardMsg }}"
+                                                                   data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                    data-sv-localized="true">
                                                                     <i class="{{ VC::TI_PC_WT }}"></i>
                                                                 </a>
@@ -196,13 +225,17 @@
                                                         @endcan
                                                         @can('delete holiday')
                                                             @php
-                                                                $destroyRouteName = VW::HLD.'.destroy';
-                                                                $destroyUrl = (Route::has($destroyRouteName) && $hid !== '') ? route($destroyRouteName, $hid) : '#';
-                                                                $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : 'Delete Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
-                                                                $delFormId = 'delete-form-'.$hid;
-                                                                $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
-                                                                $confirmBody = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
-                                                            @endphp
+                                                                try {
+                                                                    $destroyRouteName = VW::HLD.'.destroy';
+                                                                    $destroyUrl = (Route::has($destroyRouteName) && $hid !== '') ? route($destroyRouteName, $hid) : '#';
+                                                                    $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : 'Delete Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    $delFormId = 'delete-form-'.$hid;
+                                                                    $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                                    $confirmBody = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('holidays/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Form::open([
                                                                     'method' => 'DELETE',
@@ -229,7 +262,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ (Gate::check('edit holiday') || Gate::check('delete holiday')) ? 4 : 3 }}" class="text-center">
+                                            <td colspan="{{ (Gate::check('edit holiday') || Gate::check('delete holiday')) ? 4 : 3 }}" class="{{ VC::TXCT }}">
                                                 {{ __('No holidays found or the holiday data failed to load.') }}
                                             </td>
                                         </tr>

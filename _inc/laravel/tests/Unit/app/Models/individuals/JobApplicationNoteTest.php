@@ -6,6 +6,11 @@ use App\Models\{JobApplication, JobApplicationNote, User};
 
 class JobApplicationNoteTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -16,7 +21,14 @@ class JobApplicationNoteTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'application_id', 'note_created', 'note', 'created_by'
+			'author',
+			'author_id',
+			'written_at',
+			'application_id',
+			'note_created',
+			'note',
+			'reviewer',
+			'reviewed_at',
 		];
 		$this->assertEquals($expected, (new JobApplicationNote())->getFillable());
 	}

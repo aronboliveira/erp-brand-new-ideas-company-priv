@@ -1,3 +1,4 @@
+/** @requires ERPGuard */
 (() => {
   const DATA_LISTENER_ADDED = "data-listener-added";
   const ERR_FB = "# ERROR";
@@ -46,7 +47,7 @@
         t.setAttribute("role", "alert");
         t.setAttribute("aria-live", "assertive");
         t.setAttribute("aria-atomic", "true");
-        { t.replaceChildren(); const _d = document.createElement("div"); _d.className = "d-flex"; const _b = document.createElement("div"); _b.className = "toast-body"; _b.textContent = message; const _c = document.createElement("button"); _c.type = "button"; _c.className = "btn-close btn-close-white me-2 m-auto"; _c.dataset.bsDismiss = "toast"; _c.setAttribute("aria-label", "Close"); _d.append(_b, _c); t.append(_d); }
+        t.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
         document.body.appendChild(t);
       }
       new bootstrap.Toast(document.querySelector("#error-toast")).show();
@@ -108,29 +109,38 @@
       const $table = $("#reportTable");
       if (!$table.length) return;
       try {
-        if (!$.fn.DataTable) {
-          if (
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1"
-          )
-            console.error("DataTables library is required");
-          attachPointerGuard($table.get(0), "datatable_unavailable");
+        // Try jQuery DataTables first
+        if ($.fn.DataTable) {
+          if ($.fn.DataTable.isDataTable($table)) return;
+          const currentName = $("#filename").val() || initialFilename;
+          $table.DataTable({
+            dom: "Bfrtip",
+            buttons: [
+              { extend: "excelHtml5", title: currentName },
+              { extend: "csvHtml5", title: currentName },
+              { extend: "pdfHtml5", title: currentName },
+            ],
+            language:
+              typeof window.dataTabelLang !== "undefined" && window.dataTabelLang
+                ? window.dataTabelLang
+                : {},
+          });
           return;
         }
-        if ($.fn.DataTable.isDataTable($table)) return;
-        const currentName = $("#filename").val() || initialFilename;
-        $table.DataTable({
-          dom: "Bfrtip",
-          buttons: [
-            { extend: "excelHtml5", title: currentName },
-            { extend: "csvHtml5", title: currentName },
-            { extend: "pdfHtml5", title: currentName },
-          ],
-          language:
-            typeof window.dataTabelLang !== "undefined" && window.dataTabelLang
-              ? window.dataTabelLang
-              : {},
-        });
+        // Fallback: simple-datatables (vanilla)
+        if (window.simpleDatatables && window.simpleDatatables.DataTable) {
+          const el = $table.get(0);
+          if (!el.classList.contains("dataTable-table"))
+            new window.simpleDatatables.DataTable(el);
+          return;
+        }
+        // Neither available — show localized notice
+        const lang = (document.documentElement.lang || "pt-br").toLowerCase().replace(/_/g, "-");
+        const isPt = lang === "pt-br" || lang === "pt";
+        const notice = isPt
+          ? "Uma biblioteca necessária não foi carregada."
+          : "A required library was not loaded.";
+        attachPointerGuard($table.get(0), "datatable_unavailable", notice);
       } catch {
         attachPointerGuard($table.get(0), "datatable_unavailable");
       }

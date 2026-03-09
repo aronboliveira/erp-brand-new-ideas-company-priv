@@ -1,17 +1,15 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, Storage};
-    use Illuminate\Support\Str;
-
-    $lang               = Utility::fetchUserLang();
-    $empImportBase      = VW::EMP.'.import';
-    $empImportKebab     = Str::kebab($empImportBase);
-    $empImportResolved  = Route::has($empImportBase) ? $empImportBase : (Route::has($empImportKebab) ? $empImportKebab : null);
-    $empImportUrl       = $empImportResolved ? route($empImportResolved) : '#';
-    $empImportFormId    = 'employee-import-form';
-    $empImportGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'import_employee_route_unavailable') ?? 'Import employee route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang               = Utility::fetchUserLang();
+        $empImportBase      = VW::EMP.'.import';
+        $empImportKebab     = Str::kebab($empImportBase);
+        $empImportResolved  = Route::has($empImportBase) ? $empImportBase : (Route::has($empImportKebab) ? $empImportKebab : null);
+        $empImportUrl       = $empImportResolved ? route($empImportResolved) : '#';
+        $empImportFormId    = 'employee-import-form';
+        $empImportGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'import_employee_route_unavailable') ?? 'Import employee route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('employees/import — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([

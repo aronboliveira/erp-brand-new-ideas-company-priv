@@ -1,29 +1,22 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Route, URL};
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('project_stages/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Project Stages')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Project Stage')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Project Stage')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/jscolor.js') }}"></script>
@@ -57,7 +50,7 @@
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -74,7 +67,7 @@
             };
 
             try{
-            if(typeof $==='undefined' || !$.fn.sortable){ 
+            if(typeof $==='undefined' || !$.fn.sortable){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -105,7 +98,7 @@
                 });
                 }catch{ attachPointerGuard(listEl,'project_stage_order_unavailable'); }
             });
-            }catch(e){ 
+            }catch(e){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -119,26 +112,30 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     @can('create project stage')
         @php
-            $projectStageCreateBaseName     = ViewsConstants::PRJ_STG.'.create';
-            $projectStageCreateKebabName    = Str::kebab($projectStageCreateBaseName);
-            $projectStageCreateResolvedName = Route::has($projectStageCreateBaseName)
-                ? $projectStageCreateBaseName
-                : (Route::has($projectStageCreateKebabName) ? $projectStageCreateKebabName : null);
-            $projectStageCreateUrl          = $projectStageCreateResolvedName ? route($projectStageCreateResolvedName) : '#';
-            $projectStageCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'create_project_stage_route_unavailable') ?? 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
-            $projectStageCreateLinkId       = 'project-stage-create-link';
-            $projectStageCreateTitle        = __('Create Project Stage');
-            $projectStageCreateLabel        = __('Create');
-        @endphp
-        <div class="float-end">
+            try {
+                $projectStageCreateBaseName     = ViewsConstants::PRJ_STG.'.create';
+                $projectStageCreateKebabName    = Str::kebab($projectStageCreateBaseName);
+                $projectStageCreateResolvedName = Route::has($projectStageCreateBaseName)
+                    ? $projectStageCreateBaseName
+                    : (Route::has($projectStageCreateKebabName) ? $projectStageCreateKebabName : null);
+                $projectStageCreateUrl          = $projectStageCreateResolvedName ? route($projectStageCreateResolvedName) : '#';
+                $projectStageCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'create_project_stage_route_unavailable') ?? 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
+                $projectStageCreateLinkId       = 'project-stage-create-link';
+                $projectStageCreateTitle        = __('Create Project Stage');
+                $projectStageCreateLabel        = __('Create');
+            } catch (\Throwable $e) {
+                \Log::error('project_stages/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
+        <div class="{{ VC::FEND }}">
             <a href="{{ $projectStageCreateUrl }}"
             id="{{ $projectStageCreateLinkId }}"
-            class="btn btn-xs btn-white btn-icon-only width-auto"
+            class="{{ VC::BT_XS }} btn-white btn-icon-only width-auto"
             data-ajax-popup="true"
             data-url="{{ $projectStageCreateUrl }}"
-            data-guard-msg="{{ $projectStageCreateGuardMsg }}"
+            data-guard-msg="{{ base64_encode($projectStageCreateGuardMsg) }}"
             data-title="{{ $projectStageCreateTitle }}">
-                <i class="ti ti-plus"></i> {{ $projectStageCreateLabel }}
+                <i class="{{ VC::TI_PLS }}"></i> {{ $projectStageCreateLabel }}
             </a>
         </div>
         @push(StacksConstants::ADM_SCR_PG)
@@ -149,7 +146,7 @@
 @section(YieldingConstants::ADM_CTT)
     @php
         $stagesSafe = (isset($projectstages) && (is_array($projectstages) || $projectstages instanceof Collection)) ? $projectstages : [];
-    @endphp
+@endphp
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="alert alert-info note-constant {{ VC::TXS }}">
@@ -159,40 +156,48 @@
                 </p>
             </div>
         </div>
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body">
+                <div class="{{ VC::CD_BD }}">
                     <ul class="{{ VC::LGRP }} sortable">
                         @forelse ($stagesSafe as $projectstage)
                             @php
-                                $valid = isset($projectstage) && !empty($projectstage) && (is_array($projectstage) || is_object($projectstage));
-                                $pid = $valid ? data_get($projectstage,'id') : null;
-                                $nameText = $valid ? (data_get($projectstage,'name') ?? __('No stage name available')) : __('No stage available');
-                                $createdText = $valid ? (data_get($projectstage,'created_at') ?? __('No created date available')) : __('No created date available');
-                            @endphp
+                                try {
+                                    $valid = isset($projectstage) && !empty($projectstage) && (is_array($projectstage) || is_object($projectstage));
+                                    $pid = $valid ? data_get($projectstage,'id') : null;
+                                    $nameText = $valid ? (data_get($projectstage,'name') ?? __('No stage name available')) : __('No stage available');
+                                    $createdText = $valid ? (data_get($projectstage,'created_at') ?? __('No created date available')) : __('No created date available');
+                                } catch (\Throwable $e) {
+                                    \Log::error('project_stages/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <li class="{{ VC::LGI }}" data-id="{{ $pid ?? '' }}">
                                 <div class="{{ VC::RW }}">
                                     <div class="col-6 {{ VC::TXS }} text-dark">{{ $nameText }}</div>
                                     <div class="col-4 {{ VC::TXS }} text-dark">{{ $createdText }}</div>
-                                    <div class="col-2">
+                                    <div class="{{ VC::C2 }}">
                                         @can('edit project stage')
                                             @php
-                                                $projectStageEditBaseName     = ViewsConstants::PRJ_STG.'.edit';
-                                                $projectStageEditKebabName    = Str::kebab($projectStageEditBaseName);
-                                                $projectStageEditResolvedName = Route::has($projectStageEditBaseName)
-                                                    ? $projectStageEditBaseName
-                                                    : (Route::has($projectStageEditKebabName) ? $projectStageEditKebabName : null);
-                                                $projectIdValue               = isset($pid) && !empty($pid) ? $pid : null;
-                                                $projectStageEditUrl          = ($projectStageEditResolvedName && $projectIdValue) ? route($projectStageEditResolvedName, $projectIdValue) : '#';
-                                                $projectStageEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'edit_project_stage_route_unavailable') ?? 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                $projectStageEditLinkId       = 'project-stage-edit-link-'.($projectIdValue ?? 'x');
-                                                $projectStageEditTitle        = __('Edit Project Stages');
-                                            @endphp
+                                                try {
+                                                    $projectStageEditBaseName     = ViewsConstants::PRJ_STG.'.edit';
+                                                    $projectStageEditKebabName    = Str::kebab($projectStageEditBaseName);
+                                                    $projectStageEditResolvedName = Route::has($projectStageEditBaseName)
+                                                        ? $projectStageEditBaseName
+                                                        : (Route::has($projectStageEditKebabName) ? $projectStageEditKebabName : null);
+                                                    $projectIdValue               = isset($pid) && !empty($pid) ? $pid : null;
+                                                    $projectStageEditUrl          = ($projectStageEditResolvedName && $projectIdValue) ? route($projectStageEditResolvedName, $projectIdValue) : '#';
+                                                    $projectStageEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'edit_project_stage_route_unavailable') ?? 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $projectStageEditLinkId       = 'project-stage-edit-link-'.($projectIdValue ?? 'x');
+                                                    $projectStageEditTitle        = __('Edit Project Stages');
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('project_stages/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <a href="{{ $projectStageEditUrl }}"
                                             id="{{ $projectStageEditLinkId }}"
                                             data-url="{{ $projectStageEditUrl }}"
                                             data-ajax-popup="true"
-                                            data-guard-msg="{{ $projectStageEditGuardMsg }}"
+                                            data-guard-msg="{{ base64_encode($projectStageEditGuardMsg) }}"
                                             data-title="{{ $projectStageEditTitle }}"
                                             class="edit-icon">
                                                 <i class="{{ VC::TI_PC }}"></i>
@@ -211,28 +216,7 @@
                                                                     if (href !== '#' || url !== '#') return;
                                                                     e.preventDefault();
                                                                     const msg = l.getAttribute('data-guard-msg') || 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (hasBootstrap) {
-                                                                        const toast = document.createElement('div');
-                                                                        toast.className = 'toast';
-                                                                        toast.setAttribute('role','alert');
-                                                                        toast.setAttribute('aria-live','assertive');
-                                                                        toast.setAttribute('aria-atomic','true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toast.appendChild(body);
-                                                                        container.appendChild(toast);
-                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
+                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                     l.setAttribute('data-failed-route', 'true');
                                                                 } catch (err) {}
                                                             });
@@ -244,28 +228,32 @@
                                         @can('delete project stage')
                                             @if($pid)
                                                 @php
-                                                    $projectStageDestroyBaseName     = ViewsConstants::PRJ_STG.'.destroy';
-                                                    $projectStageDestroyKebabName    = Str::kebab($projectStageDestroyBaseName);
-                                                    $projectStageDestroyResolvedName = Route::has($projectStageDestroyBaseName)
-                                                        ? $projectStageDestroyBaseName
-                                                        : (Route::has($projectStageDestroyKebabName) ? $projectStageDestroyKebabName : null);
-                                                    $projectIdValue                  = isset($pid) && !empty($pid) ? $pid : null;
-                                                    $projectStageDestroyRouteArray   = ($projectStageDestroyResolvedName && $projectIdValue) ? [$projectStageDestroyResolvedName, $projectIdValue] : ['#'];
-                                                    $projectStageDestroyUrl          = ($projectStageDestroyResolvedName && $projectIdValue) ? route($projectStageDestroyResolvedName, $projectIdValue) : '#';
-                                                    $projectStageDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'delete_project_stage_route_unavailable') ?? 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $projectStageDeleteFormId        = 'delete-form-'.($projectIdValue ?? 'x');
-                                                    $projectStageDeleteLinkId        = 'project-stage-delete-link-'.($projectIdValue ?? 'x');
-                                                    $confirmTitle                    = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?');
-                                                    $confirmBody                     = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
-                                                    $confirmCombined                 = $confirmTitle.'|'.$confirmBody;
-                                                @endphp
+                                                    try {
+                                                        $projectStageDestroyBaseName     = ViewsConstants::PRJ_STG.'.destroy';
+                                                        $projectStageDestroyKebabName    = Str::kebab($projectStageDestroyBaseName);
+                                                        $projectStageDestroyResolvedName = Route::has($projectStageDestroyBaseName)
+                                                            ? $projectStageDestroyBaseName
+                                                            : (Route::has($projectStageDestroyKebabName) ? $projectStageDestroyKebabName : null);
+                                                        $projectIdValue                  = isset($pid) && !empty($pid) ? $pid : null;
+                                                        $projectStageDestroyRouteArray   = ($projectStageDestroyResolvedName && $projectIdValue) ? [$projectStageDestroyResolvedName, $projectIdValue] : ['#'];
+                                                        $projectStageDestroyUrl          = ($projectStageDestroyResolvedName && $projectIdValue) ? route($projectStageDestroyResolvedName, $projectIdValue) : '#';
+                                                        $projectStageDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'delete_project_stage_route_unavailable') ?? 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $projectStageDeleteFormId        = 'delete-form-'.($projectIdValue ?? 'x');
+                                                        $projectStageDeleteLinkId        = 'project-stage-delete-link-'.($projectIdValue ?? 'x');
+                                                        $confirmTitle                    = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                        $confirmBody                     = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                        $confirmCombined                 = $confirmTitle.'|'.$confirmBody;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('project_stages/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a href="#"
                                                 id="{{ $projectStageDeleteLinkId }}"
                                                 class="delete-icon"
                                                 data-confirm="{{ $confirmCombined }}"
                                                 data-confirm-yes="document.getElementById('{{ $projectStageDeleteFormId }}').submit();"
                                                 data-form-id="{{ $projectStageDeleteFormId }}"
-                                                data-guard-msg="{{ $projectStageDestroyGuardMsg }}">
+                                                data-guard-msg="{{ base64_encode($projectStageDestroyGuardMsg) }}">
                                                     <i class="{{ VC::TI_TRS }}"></i>
                                                 </a>
                                                 {!! Form::open([
@@ -291,28 +279,7 @@
                                                                         const action = f.getAttribute('action') || '#';
                                                                         if (url === '#' && action === '#') {
                                                                             const msg = a.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role','alert');
-                                                                                toast.setAttribute('aria-live','assertive');
-                                                                                toast.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             a.setAttribute('data-failed-route', 'true');
                                                                             f.setAttribute('data-failed-route', 'true');
                                                                             return;

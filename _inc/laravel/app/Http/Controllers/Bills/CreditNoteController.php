@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Bills;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
-    MiddlewaresConstants,
-    PermissionsConstants,
+    MiddlewaresConstants as MWC,
+    PermissionsConstants as PMC,
     ViewsConstants as VW
 };
 use App\Models\{CreditNote, Invoice, Utility};
@@ -12,7 +14,9 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
+use Illuminate\View\View;
 use Throwable;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 final class CreditNoteController extends Controller
 {
@@ -21,10 +25,10 @@ final class CreditNoteController extends Controller
 
     public function __construct()
     {
-        $this->middleware(MiddlewaresConstants::AUTH);
+        $this->middleware(MWC::AUTH);
     }
 
-    public function index(Request $request): Response|RedirectResponse|JsonResponse|null
+    public function index(Request $request): Response|RedirectResponse|JsonResponse|View|null
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -38,7 +42,7 @@ final class CreditNoteController extends Controller
                 return $u;
             }
             $user = $u;
-            $guard = self::guard($request, PermissionsConstants::MNG_CRD, VW::CRD_NT . '.index');
+            $guard = self::guard($request, PMC::MNG_CRD, VW::CRD_NT . '.index');
             if ($guard !== true) {
                 Log::warning("[{$base}::{$action}] abort: permission denied", ['user_id' => $user?->id]);
                 return $guard;
@@ -299,7 +303,7 @@ final class CreditNoteController extends Controller
     }
 
     public const CST_CRT = 'customCreate';
-    public function customCreate(Request $request): Response|RedirectResponse|JsonResponse|null
+    public function customCreate(Request $request): Response|RedirectResponse|JsonResponse|View|null
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -394,6 +398,13 @@ final class CreditNoteController extends Controller
     }
 
     public const GET_INV = 'getInvoice';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function getInvoice(Request $request): JsonResponse
     {
         $action = __FUNCTION__;

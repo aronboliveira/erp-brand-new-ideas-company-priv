@@ -1,29 +1,22 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        YieldingConstants as YW,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\{Job, Utility};
-    use Illuminate\Support\{Collection, Str};
-    use Illuminate\Support\Facades\{Auth, Route};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $canFormatDate = is_callable([$user, 'dateFormat']);
+        $skills           = $job->skill ?? [__('No skill available')];
+        $skillsIsList     = Utility::isFilled($skills ?? []);
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $canFormatDate = is_callable([$user, 'dateFormat']);
-    $skills           = $job->skill ?? [__('No skill available')];
-    $skillsIsList     = Utility::isFilled($skills ?? []);
+        $applicant        = $job->applicant ?? [__('No applicant available')];
+        $applicantIsList  = Utility::isFilled($applicant ?? []);
 
-    $applicant        = $job->applicant ?? [__('No applicant available')];
-    $applicantIsList  = Utility::isFilled($applicant ?? []);
+        $visibility       = $job->visibility ?? [__('No visibility available')];
+        $visibilityIsList = Utility::isFilled($visibility ?? []);
 
-    $visibility       = $job->visibility ?? [__('No visibility available')];
-    $visibilityIsList = Utility::isFilled($visibility ?? []);
-
-    $questions        = is_callable([$job, 'questions']) ? $job->questions() : [__('No questions available')];
-    $questionsIsList  = Utility::isFilled($questions ?? []);
+        $questions        = is_callable([$job, 'questions']) ? $job->questions() : [__('No questions available')];
+        $questionsIsList  = Utility::isFilled($questions ?? []);
+    } catch (\Throwable $e) {
+        \Log::error('jobs/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -33,24 +26,28 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        $jobIndexBase    = VW::JB.'.index';
-        $jobIndexKebab   = Str::kebab($jobIndexBase);
-        $jobIndexName    = Route::has($jobIndexBase) ? $jobIndexBase : (Route::has($jobIndexKebab) ? $jobIndexKebab : null);
-        $jobIndexUrl     = $jobIndexName ? route($jobIndexName) : '#';
-        $jobIndexGuard   = Utility::fetchLinkMessage($lang, VW::JB, 'job_index_route_unavailable') ?? 'Job index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
+        try {
+            $jobIndexBase    = VW::JB.'.index';
+            $jobIndexKebab   = Str::kebab($jobIndexBase);
+            $jobIndexName    = Route::has($jobIndexBase) ? $jobIndexBase : (Route::has($jobIndexKebab) ? $jobIndexKebab : null);
+            $jobIndexUrl     = $jobIndexName ? route($jobIndexName) : '#';
+            $jobIndexGuard   = Utility::fetchLinkMessage($lang, VW::JB, 'job_index_route_unavailable') ?? 'Job index route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('jobs/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
         <a
             id="bc-job-index-link"
             href="{{ $jobIndexUrl }}"
             data-url="{{ $jobIndexUrl }}"
-            data-guard-msg="{{ $jobIndexGuard }}"
+            data-guard-msg="{{ base64_encode($jobIndexGuard) }}"
             data-sv-localized="true"
         >
             {{ __('Job') }}
@@ -59,18 +56,22 @@
     @push(ST::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/jobs/indexBc.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{ __('Job Details') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Job Details') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('edit job')
             @php
-                $editBase     = VW::JB . '.edit';
-                $editResolved = Route::has($editBase) ? $editBase : null;
-                $editUrl      = ($editResolved && ($job->id ?? null)) ? route($editResolved, $job->id) : '#';
-                $editGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'edit_route_unavailable') ?? __('Edit Job route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $editBase     = VW::JB . '.edit';
+                    $editResolved = Route::has($editBase) ? $editBase : null;
+                    $editUrl      = ($editResolved && ($job->id ?? null)) ? route($editResolved, $job->id) : '#';
+                    $editGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'edit_route_unavailable') ?? __('Edit Job route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('jobs/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a id="job-edit-link"
                href="{{ $editUrl }}"
                data-url="{{ $editUrl }}"
@@ -79,7 +80,7 @@
                data-bs-toggle="tooltip"
                title="{{ __('Edit') }}"
                class="{{ VC::BT_SM_PM }}"
-               data-guard-msg="{{ $editGuard }}"
+               data-guard-msg="{{ base64_encode($editGuard) }}"
                data-sv-localized="true">
                 <i class="{{ VC::TI_PC_WT }}"></i>
             </a>
@@ -91,8 +92,8 @@
     <div id="job-show-page" class="{{ VC::RW }}">
         <div class="{{ VC::CM4 }}">
             <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} mt-3">
                             <tbody>
                                 <tr>
@@ -115,9 +116,9 @@
                                     <td>{{ __('Status') }}</td>
                                     <td>
                                         @if($job->status == 'active')
-                                            <span class="p-2 px-3 rounded badge bg-primary">{{ !empty(Job::$status) && !empty($job->status) && !empty(Job::$status[$job->status]) ? Job::$status[$job->status] : __('Unknown status') }}</span>
+                                            <span class="p-2 {{ VC::PX3 }} rounded badge {{ VC::BG_P }}">{{ !empty(Job::$status) && !empty($job->status) && !empty(Job::$status[$job->status]) ? Job::$status[$job->status] : __('Unknown status') }}</span>
                                         @else
-                                            <span class="p-2 px-3 rounded badge bg-danger">{{ !empty(Job::$status) && !empty($job->status) && !empty(Job::$status[$job->status]) ? Job::$status[$job->status] : __('Unknown status') }}</span>
+                                            <span class="p-2 {{ VC::PX3 }} rounded badge bg-danger">{{ !empty(Job::$status) && !empty($job->status) && !empty(Job::$status[$job->status]) ? Job::$status[$job->status] : __('Unknown status') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -138,7 +139,7 @@
                                     <td>
                                         @if($skillsIsList)
                                             @foreach($skills as $skill)
-                                                <span class="p-2 px-3 rounded badge bg-primary">{{ !empty($skill) ? $skill : __('No skill found') }}</span>
+                                                <span class="p-2 {{ VC::PX3 }} rounded badge {{ VC::BG_P }}">{{ !empty($skill) ? $skill : __('No skill found') }}</span>
                                             @endforeach
                                         @else
                                             <span class="{{ VC::TXT_MT }}">—</span>
@@ -152,8 +153,8 @@
             </div>
         </div>
         <div class="{{ VC::CM8 }}">
-            <div class="card card-fluid">
-                <div class="card-body">
+            <div class="{{ VC::CD_FL }}">
+                <div class="{{ VC::CD_BD }}">
                     <div class="{{ VC::C12 }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CM6 }}">

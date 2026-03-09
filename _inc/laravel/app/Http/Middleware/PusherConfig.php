@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Middleware;
-use App\Helpers\SafeConsoleOutput;
 
 use Closure;
 use App\Config\Constants\SettingsConstants;
@@ -11,7 +10,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class PusherConfig
 {
-    use MeasuresPerformance;
     /**
      * Apply dynamic Pusher configuration based on stored settings.
      *
@@ -21,21 +19,6 @@ final class PusherConfig
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $start = microtime(true);
-        $output = SafeConsoleOutput::make();
-        $class = class_basename(static::class);
-        $method = __METHOD__;
-        $ctx = [
-            'ip'        => $request->ip(),
-            'method'    => $request->getMethod(),
-            'full-path' => $request->fullUrl(),
-            'params'    => $request->route()?->parameters() ?? [],
-            'referrer'  => $request->header('Referer') ?? '# UNIDENTIFIED',
-            'bearer_present' => (bool)$request->bearerToken(),
-            'next'   => $this->searchForNext($request)
-        ];
-        Log::debug("{$class}::{$method} start", $ctx);
-        $output->writeln("[$class] Loading Pusher settings for {$request->getRequestUri()}");
         try {
             $settings = Utility::settingsById(1);
             if (is_array($settings) && $settings) {
@@ -47,55 +30,17 @@ final class PusherConfig
                         'chatify.pusher.options.cluster' => 'pusher_app_cluster',
                     ] as $configKey => $settingKey
                 ) {
-                    $value = $settings[$settingKey] ?? null;
-                    config([$configKey => $value]);
-                    Log::debug("{$class}::{$method} set config", [
-                        'config_key' => $configKey,
-                        'value'      => $value,
-                    ]);
+                    config([$configKey => $settings[$settingKey] ?? null]);
                 }
-                Log::debug("{$class}::{$method} settings applied", [
-                    'uri'      => $request->getRequestUri(),
-                    'settings' => $settings,
-                ]);
-                $output->writeln("[$class] Pusher settings applied successfully");
-            } else {
-                Log::debug("{$class}::{$method} no settings found", [
-                    'uri' => $request->getRequestUri(),
-                ]);
-                $output->writeln("[$class] No Pusher settings to apply");
             }
-            try {
-                $response = $next($request);
-            } catch (\Throwable $e) {
-                $errCtx = [
-                    'exception' => get_class($e),
-                    'message'   => $e->getMessage(),
-                    'uri'       => $request->getRequestUri(),
-                ];
-                Log::error(get_class($this) . " encountered downstream error", $errCtx);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug(
-                    get_class($this) . " encountered downstream error",
-                    array_merge($errCtx, ['trace' => $e->getTraceAsString()])
-                );
-                throw $e;
-            }
-            $this->logExecutionTime($start, "{$class}::{$method}");
-            return $response;
+            return $next($request);
         } catch (\Throwable $e) {
-            $errCtx = [
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-                'uri'       => $request->getRequestUri(),
-            ];
-            Log::warning("{$class}::{$method} failed to load settings", $errCtx);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(
-                "{$class}::{$method} failed to load settings",
-                array_merge($errCtx, ['trace' => $e->getTraceAsString()])
-            );
-            $msg = "[$class] Error loading settings: {$e->getMessage()}";
-            app()->runningInConsole() ? $output->writeln("<error> {$msg} </error>") : $output->writeln("## PUSHER ERROR: {$msg}");
-            Log::debug("{$class} ingested a throwable. Throwing to upstream...");
+            Log::warning('PusherConfig: failed to load settings', [
+                'message' => $e->getMessage(),
+            ]);
+            Log::channel(SettingsConstants::ERR_TRACE)->debug('PusherConfig trace', [
+                'trace' => $e->getTraceAsString(),
+            ]);
             throw $e;
         }
     }

@@ -1,23 +1,24 @@
 @php
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
+    try {
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
 
-    $hasKey         = isset($key) && !empty($key);
-    $updateBase     = 'feature_update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasKey) ? route($updateResolved, $key) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, 'features', 'update_route_unavailable')
-                        ?? __('Update Feature route is unavailable. Please contact technical support or your domain administrator.');
-    $f        = is_array($feature ?? null) ? $feature : [];
-    $heading  = !empty($f['feature_heading']) ? $f['feature_heading'] : '';
-    $desc     = !empty($f['feature_description']) ? $f['feature_description'] : '';
+
+        $user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+
+        $hasKey         = isset($key) && !empty($key);
+        $updateBase     = 'feature_update';
+        $updateKebab    = Str::kebab($updateBase);
+        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+        $updateUrl      = ($updateResolved && $hasKey) ? route($updateResolved, $key) : '#';
+        $updateGuard    = Utility::fetchLinkMessage($lang, 'features', 'update_route_unavailable')
+                            ?? __('Update Feature route is unavailable. Please contact technical support or your domain administrator.');
+        $f        = is_array($feature ?? null) ? $feature : [];
+        $heading  = !empty($f['feature_heading']) ? $f['feature_heading'] : '';
+        $desc     = !empty($f['feature_description']) ? $f['feature_description'] : '';
+    } catch (\Throwable $e) {
+        \Log::error('Modules/LandingPage/Resources/views/landingpage/features/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::model(null, [
@@ -54,7 +55,6 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/features/edit.js') }}"></script>
 {{ Form::close() }}
-
 
 {{--<script>--}}
 {{--    tinymce.init({--}}

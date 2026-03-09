@@ -94,7 +94,8 @@ class EmployeeAttendanceSeeder extends Seeder
 			foreach ($employees as $empId) {
 				if ($target > 0 && $inserted >= $target) break;
 
-				$daysToSeed = fake()->numberBetween($perEmpMin, $perEmpMax);
+				// $daysToSeed = fake()->numberBetween($perEmpMin, $perEmpMax); // ORIGINAL — unbounded
+				$daysToSeed = min(2, fake()->numberBetween($perEmpMin, $perEmpMax)); // HARD CAP
 				// Sorteia datas nos últimos $backDays dias
 				$dates = [];
 				for ($i = 0; $i < $daysToSeed; $i++) {
@@ -102,9 +103,9 @@ class EmployeeAttendanceSeeder extends Seeder
 					$dates[] = $d->toDateString();
 				}
 				$dates = array_values(array_unique($dates));
-				$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
-				(new \Symfony\Component\Console\Output\ConsoleOutput
-				)->writeln("Criando Atendimento para funcionário: {$ref}");
+				// $ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+				// (new \Symfony\Component\Console\Output\ConsoleOutput
+				// )->writeln("Criando Atendimento para funcionário: {$ref}");
 				foreach ($dates as $date) {
 					try {
 						if ($target > 0 && $inserted >= $target) break;

@@ -1,15 +1,19 @@
 @php
-    $deductionOptionStoreBaseRouteName  = ViewsConstants::DDT_OPT;
-    $deductionOptionStoreKebabRouteName = Str::kebab($deductionOptionStoreBaseRouteName);
-    $deductionOptionStoreResolvedName   = Route::has($deductionOptionStoreBaseRouteName)
-        ? $deductionOptionStoreBaseRouteName
-        : (Route::has($deductionOptionStoreKebabRouteName) ? $deductionOptionStoreKebabRouteName : null);
-    $deductionOptionStoreUrl            = $deductionOptionStoreResolvedName ? route($deductionOptionStoreResolvedName) : '#';
+    try {
+$deductionOptionStoreBaseRouteName  = ViewsConstants::DDT_OPT;
+        $deductionOptionStoreKebabRouteName = Str::kebab($deductionOptionStoreBaseRouteName);
+        $deductionOptionStoreResolvedName   = Route::has($deductionOptionStoreBaseRouteName)
+            ? $deductionOptionStoreBaseRouteName
+            : (Route::has($deductionOptionStoreKebabRouteName) ? $deductionOptionStoreKebabRouteName : null);
+        $deductionOptionStoreUrl            = $deductionOptionStoreResolvedName ? route($deductionOptionStoreResolvedName) : '#';
 
-    $deductionOptionCreateFormId        = 'deduction-option-store-form';
-    $langValue                          = isset($lang) ? $lang : Utility::fetchUserLang();
-    $deductionOptionStoreGuardMessage   = Utility::fetchLinkMessage($langValue, ViewsConstants::DDT_OPT, 'store_deduction_option_route_unavailable')
-        ?? 'Store deduction option route is unavailable. Please contact technical support or your domain administrator.';
+        $deductionOptionCreateFormId        = 'deduction-option-store-form';
+        $langValue                          = isset($lang) ? $lang : Utility::fetchUserLang();
+        $deductionOptionStoreGuardMessage   = Utility::fetchLinkMessage($langValue, ViewsConstants::DDT_OPT, 'store_deduction_option_route_unavailable')
+            ?? 'Store deduction option route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('deduction_options/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -27,21 +31,25 @@
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
                     @php
-                        $hasError = $errors->has('name');
-                        $attrs = [
-                            'id'               => 'name',
-                            'class'            => trim(VC::FM_CT . ' ' . ($hasError ? 'is-invalid' : '')),
-                            'placeholder'      => __('Enter Deduction Option Name'),
-                            'required'         => 'required',
-                            'aria-invalid'     => $hasError ? 'true' : 'false',
-                            'aria-describedby' => $hasError ? 'name-error' : null,
-                            'autocomplete'     => 'off',
-                        ];
-                    @endphp
+                        try {
+                            $hasError = $errors->has('name');
+                            $attrs = [
+                                'id'               => 'name',
+                                'class'            => trim(VC::FM_CT . ' ' . ($hasError ? 'is-invalid' : '')),
+                                'placeholder'      => __('Enter Deduction Option Name'),
+                                'required'         => 'required',
+                                'aria-invalid'     => $hasError ? 'true' : 'false',
+                                'aria-describedby' => $hasError ? 'name-error' : null,
+                                'autocomplete'     => 'off',
+                            ];
+                        } catch (\Throwable $e) {
+                            \Log::error('deduction_options/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     {{ Form::text('name', null, $attrs) }}
                     @if($hasError)
-                        <span id="name-error" class="invalid-feedback d-block" role="alert">
-                            <strong class="text-danger">{{ $errors->first('name') }}</strong>
+                        <span id="name-error" class="{{ VC::INV_FB }} {{ VC::DBL }}" role="alert">
+                            <strong class="{{ VC::TX_DNG }}">{{ $errors->first('name') }}</strong>
                         </span>
                     @endif
                 </div>

@@ -1,7 +1,8 @@
 @php
-    use Illuminate\Support\Collection;
-    use Illuminate\Support\Str;
-    use App\Config\Constants\ViewClassNamesConstants as VC;
+    try {
+} catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/favorite — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 <div class="favorite-list-item">
     <div data-id="{{ (string) data_get($user,'id','') }}"

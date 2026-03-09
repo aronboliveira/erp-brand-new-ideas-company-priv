@@ -243,7 +243,6 @@
     </div>
 @endsection
 
-
 @section('scripts')
     <script async src="{{ asset('assets/js/routes/installer/lang/env.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/installer/env.js') }}"></script>

@@ -13,7 +13,9 @@ class ProductSeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const CAP = 3200;
+	// private const CAP = 3200;
+	private const CAP = 4; /* original: 3200 */
+	private const HARD_CAP = 4;
 	private const UNIQUE_ATTEMPTS = 20;
 	private const WRITE_EVERY = 1;
 
@@ -25,8 +27,8 @@ class ProductSeeder extends Seeder
 	{
 		$this->out = new ConsoleOutput();
 
-		$target = $this->normalizeTargetWithinCap(self::CAP);
-		$this->out->writeln("<info>[ProductSeeder] target={$target} (cap=" . self::CAP . ")</info>");
+		$target = min(self::HARD_CAP, $this->normalizeTargetWithinCap(self::CAP));
+		$this->out->writeln("<info>[ProductSeeder] target={$target} (cap=" . self::CAP . ", hard_cap=" . self::HARD_CAP . ")</info>");
 
 		$productsTable = (new Product())->getTable();
 		$prodCatsTable = DC::TABLE_PRD_CAT;
@@ -158,14 +160,14 @@ class ProductSeeder extends Seeder
 			$type = $types[$i % count($types)];
 			$type = $this->tolerant($type, self::KEEP_PCT_MED);
 
-			if (self::WRITE_EVERY === 1) {
-				$this->out->writeln(
-					"<comment>[ProductSeeder] creating name=\"{$name}\" price={$price} qty={$qty} prd_sv=" .
-						($prodServiceId ? substr($prodServiceId, 0, 8) : 'null') .
-						" cat=" . substr($productCategoryId, 0, 8) .
-						"</comment>"
-				);
-			}
+			// if (self::WRITE_EVERY === 1) {
+			// 	$this->out->writeln(
+			// 		"<comment>[ProductSeeder] creating name=\"{$name}\" price={$price} qty={$qty} prd_sv=" .
+			// 			($prodServiceId ? substr($prodServiceId, 0, 8) : 'null') .
+			// 			" cat=" . substr($productCategoryId, 0, 8) .
+			// 			"</comment>"
+			// 	);
+			// }
 
 			$m = new Product();
 

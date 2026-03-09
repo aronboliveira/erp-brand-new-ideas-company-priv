@@ -145,7 +145,7 @@ enum ContactRole: string
 		if ($value === null)
 			return self::Unspecified;
 
-		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Finance
 			'accountmanager', 'accountmanager' => self::AccountManager,

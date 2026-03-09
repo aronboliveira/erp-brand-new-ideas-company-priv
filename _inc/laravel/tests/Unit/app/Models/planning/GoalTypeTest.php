@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class GoalTypeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -16,7 +21,16 @@ class GoalTypeTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['name', 'created_by'];
+		$expected = [
+			'category',
+			'name',
+			'description',
+			'icon',
+			'color',
+			'rules',
+			'metadata',
+			'tags',
+		];
 
 		$this->assertSame($expected, (new GoalType)->getFillable());
 	}

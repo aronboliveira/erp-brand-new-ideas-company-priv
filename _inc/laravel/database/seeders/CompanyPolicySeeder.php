@@ -21,7 +21,9 @@ class CompanyPolicySeeder extends Seeder
 {
 	use EvaluatesMemory, EnsuresSystemUser;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
+	private const HARD_CAP = 4;
 	public function run(): void
 	{
 		$clock = microtime(true);
@@ -67,6 +69,7 @@ class CompanyPolicySeeder extends Seeder
 		try {
 			$output = new \Symfony\Component\Console\Output\ConsoleOutput();
 			for ($i = 0; $i < $target; $i++) {
+				if ($i >= self::HARD_CAP) break; /* HARD_CAP guard */
 				if ((microtime(true) - $clock) >= self::SECONDS_LIMIT) {
 					$output->writeln("Reached time limit of " . self::SECONDS_LIMIT . " seconds; stopping seeder.");
 					break;
@@ -143,7 +146,7 @@ class CompanyPolicySeeder extends Seeder
 
 				if ($hasCreatedBy) $policy->setAttribute(DC::COL_TABLE_CREATOR, $systemUserId);
 				if ($hasUpdatedBy) $policy->setAttribute(DC::COL_TABLE_UPDATER, $systemUserId);
-				$output->writeln("Seeding company {$company} policy: {$title} ({$code})");
+				// $output->writeln("Seeding company {$company} policy: {$title} ({$code})");
 				$policy->save();
 
 				unset($policy);

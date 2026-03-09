@@ -1,63 +1,88 @@
-'use strict';
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("#btn-default").addEventListener('click', function () {
-        notifier.show('Hello!', 'I am a default notification.', '', '', 0);
-    });
-    document.querySelector("#btn-info").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '', 0);
-    });
-    document.querySelector("#btn-success").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '', 0);
-    });
-    document.querySelector("#btn-warning").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '', 0);
-    });
-    document.querySelector("#btn-danger").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '', 0);
-    });
+/**
+ * @file ac-notification.js
+ * @description Notifier library demonstration controller (Landing Page)
+ * @version 2.0.0
+ */
 
-    document.querySelector("#btn-default-i").addEventListener('click', function () {
-        notifier.show('Default!', 'I am a default notification.', '', '../assets/images/notification/clock-48.png', 0);
-    });
-    document.querySelector("#btn-info-i").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 0);
-    });
-    document.querySelector("#btn-success-i").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '../assets/images/notification/ok-48.png', 0);
-    });
-    document.querySelector("#btn-warning-i").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '../assets/images/notification/medium_priority-48.png', 0);
-    });
-    document.querySelector("#btn-danger-i").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '../assets/images/notification/high_priority-48.png', 0);
-    });
+(() => {
+  "use strict";
 
-    document.querySelector("#btn-default-ac").addEventListener('click', function () {
-        notifier.show('Default!', 'I am a default notification.', '', '../assets/images/notification/clock-48.png', 4000);
-    });
-    document.querySelector("#btn-info-ac").addEventListener('click', function () {
-        notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 4000);
-    });
-    document.querySelector("#btn-success-ac").addEventListener('click', function () {
-        notifier.show('Well Done!', 'You just submit your resume successfuly.', 'success', '../assets/images/notification/ok-48.png', 4000);
-    });
-    document.querySelector("#btn-warning-ac").addEventListener('click', function () {
-        notifier.show('Warning!', 'The data presented here can be change.', 'warning', '../assets/images/notification/medium_priority-48.png', 4000);
-    });
-    document.querySelector("#btn-danger-ac").addEventListener('click', function () {
-        notifier.show('Sorry!', 'Could not complete your transaction.', 'danger', '../assets/images/notification/high_priority-48.png', 4000);
-    });
+  /**
+   * Notifier demo controller
+   * @class LandingNotifierDemoController
+   */
+  class LandingNotifierDemoController {
+    /** @type {string} */
+    static #DATA_INIT = "data-lp-notifier-init";
+    /** @type {string} */
+    static #DATA_LISTENER = "data-lp-notifier-listener";
 
-    var notificationId;
+    /**
+     * Initialize notifier demos
+     */
+    init() {
+      if (document.body?.hasAttribute(LandingNotifierDemoController.#DATA_INIT)) return;
+      if (typeof notifier === "undefined") return console.warn("[LandingNotifierDemoController] notifier not loaded");
 
-    var showNotification = function () {
-        notificationId = notifier.show('Reminder!', 'You have a meeting at 10:30 AM.', 'info', '../assets/images/notification/survey-48.png', 4000);
-    };
+      document.body?.setAttribute(LandingNotifierDemoController.#DATA_INIT, "true");
+      this.#setupDemos();
+    }
 
-    var hideNotification = function () {
-        notifier.hide(notificationId);
-    };
+    /**
+     * Bind click handler to element
+     * @private
+     * @param {string} selector
+     * @param {Function} handler
+     */
+    #bind(selector, handler) {
+      const el = document.querySelector(selector);
+      if (!el || el.hasAttribute(LandingNotifierDemoController.#DATA_LISTENER)) return;
+      el.setAttribute(LandingNotifierDemoController.#DATA_LISTENER, "true");
+      el.addEventListener("click", handler);
+    }
 
-    document.querySelector('#btn-nt-show').addEventListener('click', showNotification);
-    document.querySelector('#btn-nt-hide').addEventListener('click', hideNotification);
-});
+    /**
+     * Setup all demo buttons
+     * @private
+     */
+    #setupDemos() {
+      try {
+        const positions = [
+          { id: "ntf-demo-1", pos: "top-left" },
+          { id: "ntf-demo-2", pos: "top-center" },
+          { id: "ntf-demo-3", pos: "top-right" },
+          { id: "ntf-demo-4", pos: "bottom-left" },
+          { id: "ntf-demo-5", pos: "bottom-center" },
+          { id: "ntf-demo-6", pos: "bottom-right" },
+        ];
+        positions.forEach(({ id, pos }) => {
+          this.#bind(`#${id}`, () => notifier.show("Success", `Notification at ${pos}`, "success", "", pos, 5000));
+        });
+      } catch (err) {
+        console.error("[LandingNotifierDemoController] Error:", err);
+      }
+    }
+
+    /**
+     * Destroy controller
+     */
+    destroy() {
+      document.body?.removeAttribute(LandingNotifierDemoController.#DATA_INIT);
+    }
+  }
+
+  /**
+   * Initialize when DOM ready
+   */
+  const initNotifierDemo = () => {
+    try {
+      new LandingNotifierDemoController().init();
+    } catch (err) {
+      console.error("[LandingNotifierDemoController] Initialization error:", err);
+    }
+  };
+
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initNotifierDemo)
+    : initNotifierDemo();
+})();

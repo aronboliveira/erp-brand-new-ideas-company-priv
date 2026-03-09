@@ -6,29 +6,33 @@ use App\Models\TimeTracker;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class TimeTrackerTest extends TestCase
 {
+	use SafeAliasMock;
+
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// Stub Project::select()->where(...)->first()
-		Mockery::mock('alias:App\Models\Project')
+		$this->aliasMock('App\Models\Project')
 			->shouldReceive('select')->andReturnSelf()
 			->getMock()->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('first')
 			->andReturn((object)['project_name' => 'Demo']);
 
 		// Stub ProjectTask::select()->where(...)->first()
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('select')->andReturnSelf()
 			->getMock()->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('first')
 			->andReturn((object)['name' => 'Sprint task']);
 
 		// Stub Utility::secondToTime()
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('secondToTime')
 			->andReturn('00:42:00');
 	}
@@ -54,6 +58,6 @@ class TimeTrackerTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

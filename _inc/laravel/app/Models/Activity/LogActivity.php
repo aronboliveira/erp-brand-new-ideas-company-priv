@@ -79,121 +79,157 @@ class LogActivity extends Model
 
 	private function normalizeModuleEnum(): void
 	{
-		$raw = $this->getAttribute(AC::COL_MD);
-		if ($raw instanceof AppModuleType)
-			$this->setAttribute(AC::COL_MD, $raw->value);
-		else {
-			$rawStr = is_scalar($raw) ? (string) $raw : null;
-			$this->setAttribute(AC::COL_MD, $rawStr !== null && trim($rawStr) !== '' ? AppModuleType::normalize($rawStr)->value : null);
-		}
+	    try {
+    		$raw = $this->getAttribute(AC::COL_MD);
+    		if ($raw instanceof AppModuleType)
+    			$this->setAttribute(AC::COL_MD, $raw->value);
+    		else {
+    			$rawStr = is_scalar($raw) ? (string) $raw : null;
+    			$this->setAttribute(AC::COL_MD, $rawStr !== null && trim($rawStr) !== '' ? AppModuleType::normalize($rawStr)->value : null);
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeModuleEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function normalizeTypeEnum(): void
 	{
-		$raw = $this->getAttribute('type');
+	    try {
+    		$raw = $this->getAttribute('type');
 
-		if ($raw instanceof ActivityType) {
-			$this->setAttribute('type', $raw->value);
-			return;
-		}
+    		if ($raw instanceof ActivityType) {
+    			$this->setAttribute('type', $raw->value);
+    			return;
+    		}
 
-		$rawStr = is_scalar($raw) ? (string) $raw : null;
-		$normalized = ActivityType::normalize($rawStr) ?? ActivityType::Other;
-		$this->setAttribute('type', $normalized->value);
+    		$rawStr = is_scalar($raw) ? (string) $raw : null;
+    		$normalized = ActivityType::normalize($rawStr) ?? ActivityType::Other;
+    		$this->setAttribute('type', $normalized->value);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeTypeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function normalizeStartDateField(): void
 	{
-		$raw = $this->getAttribute(PJC::COL_S_DT);
+	    try {
+    		$raw = $this->getAttribute(PJC::COL_S_DT);
 
-		if ($raw instanceof \DateTimeInterface) {
-			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::instance(\DateTime::createFromInterface($raw))->format('Y-m-d'));
-			return;
-		}
+    		if ($raw instanceof \DateTimeInterface) {
+    			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::instance(\DateTime::createFromInterface($raw))->format('Y-m-d'));
+    			return;
+    		}
 
-		if (!is_scalar($raw)) {
-			// Date is NOT nullable in migration; pick a deterministic fallback.
-			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
-			return;
-		}
+    		if (!is_scalar($raw)) {
+    			// Date is NOT nullable in migration; pick a deterministic fallback.
+    			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
+    			return;
+    		}
 
-		$s = trim((string) $raw);
-		if ($s === '') {
-			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
-			return;
-		}
+    		$s = trim((string) $raw);
+    		if ($s === '') {
+    			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
+    			return;
+    		}
 
-		try {
-			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::parse($s)->format('Y-m-d'));
-		} catch (\Throwable $e) {
-			Log::warning(self::class . ' invalid start_date; falling back to today', [
-				'id'         => $this->getAttribute('id'),
-				'start_date' => $s,
-				'error'      => $e->getMessage(),
-			]);
-			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
-		}
+    		try {
+    			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::parse($s)->format('Y-m-d'));
+    		} catch (\Throwable $e) {
+    			Log::warning(self::class . ' invalid start_date; falling back to today', [
+    				'id'         => $this->getAttribute('id'),
+    				'start_date' => $s,
+    				'error'      => $e->getMessage(),
+    			]);
+    			$this->setAttribute(PJC::COL_S_DT, CarbonImmutable::now()->format('Y-m-d'));
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeStartDateField — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	private function normalizeTimeField(): void
 	{
-		$raw = $this->getAttribute(AC::COL_TSK_TIME);
+	    try {
+    		$raw = $this->getAttribute(AC::COL_TSK_TIME);
 
-		if (!is_scalar($raw)) {
-			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
-			return;
-		}
+    		if (!is_scalar($raw)) {
+    			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
+    			return;
+    		}
 
-		$s = trim((string) $raw);
-		if ($s === '') {
-			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
-			return;
-		}
+    		$s = trim((string) $raw);
+    		if ($s === '') {
+    			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
+    			return;
+    		}
 
-		if (preg_match('/^\d{2}:\d{2}$/', $s)) {
-			$this->setAttribute(AC::COL_TSK_TIME, $s . ':00');
-			return;
-		}
+    		if (preg_match('/^\d{2}:\d{2}$/', $s)) {
+    			$this->setAttribute(AC::COL_TSK_TIME, $s . ':00');
+    			return;
+    		}
 
-		if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $s)) {
-			Log::warning(self::class . ' invalid time; falling back to 00:00:00', [
-				'id'   => $this->getAttribute('id'),
-				'time' => $s,
-			]);
-			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
-			return;
-		}
+    		if (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $s)) {
+    			Log::warning(self::class . ' invalid time; falling back to 00:00:00', [
+    				'id'   => $this->getAttribute('id'),
+    				'time' => $s,
+    			]);
+    			$this->setAttribute(AC::COL_TSK_TIME, '00:00:00');
+    			return;
+    		}
 
-		$this->setAttribute(AC::COL_TSK_TIME, $s);
+    		$this->setAttribute(AC::COL_TSK_TIME, $s);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::normalizeTimeField — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	public function getModuleLabelAttribute(): string
 	{
-		$module = $this->getAttribute(AC::COL_MD);
-		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
-		return $enum->label();
+	    try {
+    		$module = $this->getAttribute(AC::COL_MD);
+    		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
+    		return $enum->label();
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getModuleLabelAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 
 	public function getModuleIconAttribute(): string
 	{
-		$module = $this->getAttribute(AC::COL_MD);
-		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
-		return $enum->getIcon();
+	    try {
+    		$module = $this->getAttribute(AC::COL_MD);
+    		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
+    		return $enum->getIcon();
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getModuleIconAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 
 	public function getModuleColorAttribute(): string
 	{
-		$module = $this->getAttribute(AC::COL_MD);
-		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
-		return $enum->getColor();
+	    try {
+    		$module = $this->getAttribute(AC::COL_MD);
+    		$enum = $module instanceof AppModuleType ? $module : (is_string($module) ? AppModuleType::normalize($module) : AppModuleType::Other);
+    		return $enum->getColor();
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getModuleColorAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 
 	public function getTypeLabelAttribute(): string
 	{
-		$type = $this->typeEnum();
-		$lang = config('app.locale') ?: DC::DEFAULT_LANG;
-		$labels = ActivityType::labels($lang);
-		return $labels[$type->value] ?? $type->value;
+	    try {
+    		$type = $this->typeEnum();
+    		$lang = config('app.locale') ?: DC::DEFAULT_LANG;
+    		$labels = ActivityType::labels($lang);
+    		return $labels[$type->value] ?? $type->value;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::getTypeLabelAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 
 	public function getTypeActionAttribute(): string
@@ -218,26 +254,36 @@ class LogActivity extends Model
 
 	public function typeEnum(): ActivityType
 	{
-		$v = $this->getAttribute('type');
-		if ($v instanceof ActivityType)
-			return $v;
+	    try {
+    		$v = $this->getAttribute('type');
+    		if ($v instanceof ActivityType)
+    			return $v;
 
-		if (is_string($v) || is_int($v))
-			return ActivityType::normalize($v) ?? ActivityType::Other;
+    		if (is_string($v) || is_int($v))
+    			return ActivityType::normalize($v) ?? ActivityType::Other;
 
-		return ActivityType::Other;
+    		return ActivityType::Other;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::typeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return null;
+	    }
 	}
 
 	public function moduleEnum(): ?AppModuleType
 	{
-		$v = $this->getAttribute(AC::COL_MD);
-		if ($v instanceof AppModuleType)
-			return $v;
+	    try {
+    		$v = $this->getAttribute(AC::COL_MD);
+    		if ($v instanceof AppModuleType)
+    			return $v;
 
-		if (is_string($v) && trim($v) !== '')
-			return AppModuleType::normalize($v);
+    		if (is_string($v) && trim($v) !== '')
+    			return AppModuleType::normalize($v);
 
-		return null;
+    		return null;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::moduleEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return null;
+	    }
 	}
 
 	public function getMetadataSafe(): array
@@ -300,34 +346,39 @@ class LogActivity extends Model
 		string|\DateTimeInterface|null $to = null,
 		int $ttlSeconds = 120
 	): array {
-		$key = self::cacheKey('countByType', [
-			'from' => $from instanceof \DateTimeInterface ? $from->format('Y-m-d') : (string) $from,
-			'to'   => $to instanceof \DateTimeInterface ? $to->format('Y-m-d') : (string) $to,
-		]);
+	    try {
+    		$key = self::cacheKey('countByType', [
+    			'from' => $from instanceof \DateTimeInterface ? $from->format('Y-m-d') : (string) $from,
+    			'to'   => $to instanceof \DateTimeInterface ? $to->format('Y-m-d') : (string) $to,
+    		]);
 
-		return Cache::remember($key, $ttlSeconds, function () use ($from, $to): array {
-			$out = [];
-			try {
-				$rows = self::query()
-					->selectRaw('type, COUNT(*) as aggregate_count')
-					->betweenDates($from, $to)
-					->groupBy('type')
-					->get();
+    		return Cache::remember($key, $ttlSeconds, function () use ($from, $to): array {
+    			$out = [];
+    			try {
+    				$rows = self::query()
+    					->selectRaw('type, COUNT(*) as aggregate_count')
+    					->betweenDates($from, $to)
+    					->groupBy('type')
+    					->get();
 
-				foreach ($rows as $row) {
-					$type = $row->getAttribute('type');
-					$cnt  = $row->getAttribute('aggregate_count');
+    				foreach ($rows as $row) {
+    					$type = $row->getAttribute('type');
+    					$cnt  = $row->getAttribute('aggregate_count');
 
-					$typeStr = is_scalar($type) ? (string) $type : ActivityType::Other->value;
-					$out[$typeStr] = is_numeric($cnt) ? (int) $cnt : 0;
-				}
-			} catch (\Throwable $e) {
-				Log::error(self::class . ' failed countByTypeCached', [
-					'error' => $e->getMessage(),
-				]);
-			}
-			return $out;
-		});
+    					$typeStr = is_scalar($type) ? (string) $type : ActivityType::Other->value;
+    					$out[$typeStr] = is_numeric($cnt) ? (int) $cnt : 0;
+    				}
+    			} catch (\Throwable $e) {
+    				Log::error(self::class . ' failed countByTypeCached', [
+    					'error' => $e->getMessage(),
+    				]);
+    			}
+    			return $out;
+    		});
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::countByTypeCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	public static function createSafe(array $attr): ?self

@@ -1,24 +1,50 @@
 @php
-	use App\Config\Constants\{PlansConstants, StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-
-	$formId = 'create_training';
-
-	$storeBase = VW::TNG;
-	$storeKebab = Str::kebab($storeBase);
-	$storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-	$storeActionUrl = $storeResolved ? route($storeResolved) : '#';
-	$storeGuardMsg = Utility::fetchLinkMessage($lang, VW::TNG, 'store_training_route_unavailable') ?? 'Store training route is unavailable. Please contact technical support or your domain administrator.';
-
-	$genBase = 'generate';
-	$genResolved = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-	$genUrl = $genResolved ? route($genResolved, ['training']) : '#';
-	$genGuardMsg = Utility::fetchLinkMessage($lang, VW::TNG, 'store_training_generate_unavailable') ?? 'Store training generate route is unavailable. Please contact technical support or your domain administrator.';
-	$genId = 'training-generate-link';
+$lang ??= 'en';
+	$formId ??= 'create_training';
+	$storeBase ??= '';
+	$storeKebab ??= '';
+	$storeResolved ??= null;
+	$storeActionUrl ??= '#';
+	$storeGuardMsg ??= '';
+	$genBase ??= 'generate';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuardMsg ??= '';
+	$genId ??= 'training-generate-link';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeBase = VW::TNG;
+		$storeKebab = Str::kebab($storeBase);
+		$storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+		$storeActionUrl = $storeResolved ? (route($storeResolved) ?? '#') : '#';
+		$storeGuardMsg = Utility::fetchLinkMessage($lang, VW::TNG, 'store_training_route_unavailable')
+			?? 'Store training route is unavailable. Please contact technical support or your domain administrator.';
+		$genResolved = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+		$genUrl = $genResolved ? (route($genResolved, ['training']) ?? '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, VW::TNG, 'store_training_generate_unavailable')
+			?? 'Store training generate route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in trainings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in trainings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in trainings/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::open([
@@ -32,7 +58,7 @@
 	<div class="modal-body">
 		@php($plan = Utility::getChatGPTSettings())
 		@if($plan?->{PlansConstants::COL_GPT} == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a href="{{ $genUrl }}"
 				   id="{{ $genId }}"
 				   data-size="md"
@@ -41,7 +67,7 @@
 				   data-url="{{ $genUrl }}"
 				   data-bs-placement="top"
 				   data-title="{{ __('Generate content with AI') }}"
-				   data-guard-msg="{{ $genGuardMsg }}"
+				   data-guard-msg="{{ base64_encode($genGuardMsg) }}"
 				   data-sv-localized="true">
 					<i class="{{ VC::FAS_RB }}"></i>
 					<span>{{ __('Generate with AI') }}</span>
@@ -104,4 +130,3 @@
 	</div>
     <script defer src="{{ asset('assets/js/routes/trainings/store.js') }}"></script>
 {!! Form::close() !!}
-

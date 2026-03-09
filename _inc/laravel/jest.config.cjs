@@ -1,48 +1,20 @@
-/// <reference types="node" />
-// @ts-check
-/* eslint-env node */
-/* global __dirname */
-
-/**
- * Jest Configuration — Core Tests
- *
- * This config covers all Jest unit/integration tests in the project.
- * Run with: npm run test:jest:core
- *
- * For frontend-specific mock page tests, see:
- *   tests/frontend/jest.frontend.config.cjs
- */
-const path = require("path");
-
 module.exports = {
-  rootDir: __dirname,
-  roots: ["<rootDir>/tests/frontend/js"],
   testEnvironment: "jsdom",
-  testMatch: [
-    "<rootDir>/tests/frontend/js/**/*.test.cjs",
-    "<rootDir>/tests/frontend/js/**/*.test.js",
-    /* TypeScript tests in ts/src/tests/ are handled by ts/jest.config.cjs */
-  ],
-  setupFilesAfterSetup: undefined,
-  setupFilesAfterEnv: (() => {
-    try {
-      require.resolve(
-        path.resolve(__dirname, "tests/frontend/js/jest.setup.cjs"),
-      );
-      return ["<rootDir>/tests/frontend/js/jest.setup.cjs"];
-    } catch {
-      return [];
-    }
-  })(),
-  testPathIgnorePatterns: [
-    "/node_modules/",
-    "<rootDir>/tests/frontend/js/coverage/",
-    "<rootDir>/tests/frontend/js/playwright-report/",
-    "<rootDir>/tests/frontend/js/test-results/",
-    "<rootDir>/tests/frontend/js/e2e/",
-  ],
-  moduleFileExtensions: ["cjs", "js", "json"],
-  transform: {},
-  verbose: true,
+  testMatch: ["<rootDir>/tests/Unit/frontend/js/**/*.test.cjs"],
   clearMocks: true,
+  restoreMocks: true,
+  resetMocks: true,
+  // Transform .js files using Babel to convert ESM to CommonJS
+  transform: {
+    "^.+\\.js$": "babel-jest",
+  },
+  // Don't ignore any files from transformation (needed because package.json has "type": "module")
+  transformIgnorePatterns: [],
+  moduleFileExtensions: ["js", "mjs", "cjs", "json"],
+  moduleDirectories: ["node_modules"],
+  testEnvironmentOptions: {
+    customExportConditions: ["node"],
+  },
+  // Treat source .js files as scripts, not ES modules
+  extensionsToTreatAsEsm: [],
 };

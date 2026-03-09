@@ -1,9 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,SettingsConstants,ViewClassNamesConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$data??=[];
+$data??=[];
 	$setting??=[];
 	$logo??='';
 	$company_logo??='';
@@ -21,19 +17,19 @@
     $lang = Utility::fetchUserLang();
 	try {
 		$data=Utility::prepareCommonViewData(null,'uploads/logo')?:[];
-		$setting=$data[SettingsConstants::ENTITY]??[];
-		$logo=$data[SettingsConstants::LOGO]??'';
-		$company_logo=$data[SettingsConstants::CPN_LG_DK]??'';
-		$company_logos=$data[SettingsConstants::CPN_LG_LT]??'';
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$color=$data[SettingsConstants::THM_CLR]??'';
-		$mode_setting=$data[SettingsConstants::MD_LO]??'';
-		$siteRtl=$data[SettingsConstants::RTL]??false;
-		$meta_title=$data[SettingsConstants::MT_TTL_K]??'';
-		$meta_desc=$data[SettingsConstants::MT_DESC_LONG]??'';
-		$meta_image=$data[SettingsConstants::MT_IMG_K]??'';
-		$meta_logo=$data[SettingsConstants::MT_LOGO]??'';
-		$get_cookie=$data[SettingsConstants::CK_STG]??'';
+		$setting=$data[SC::ENTITY]??[];
+		$logo=$data[SC::LOGO]??'';
+		$company_logo=$data[SC::CPN_LG_DK]??'';
+		$company_logos=$data[SC::CPN_LG_LT]??'';
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$color=$data[SC::THM_CLR]??'';
+		$mode_setting=$data[SC::MD_LO]??'';
+		$siteRtl=$data[SC::RTL]??false;
+		$meta_title=$data[SC::MT_TTL_K]??'';
+		$meta_desc=$data[SC::MT_DESC_LONG]??'';
+		$meta_image=$data[SC::MT_IMG_K]??'';
+		$meta_logo=$data[SC::MT_LOGO]??'';
+		$get_cookie=$data[SC::CK_STG]??'';
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 	} catch (\Error $e) {
 		Log::error(
@@ -69,7 +65,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-    <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
+    <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
         <head>
             <title>{{__('ERP Nova Prestech')}}</title>
             @include('fragments.std', [
@@ -77,14 +73,14 @@
                 'meta_desc' => $meta_desc
             ])
             @include('fragments.og', [
-                'meta_title' => $meta_title, 
-                'meta_desc' => $meta_desc, 
+                'meta_title' => $meta_title,
+                'meta_desc' => $meta_desc,
                 'meta_image' => $meta_image,
                 'meta_logo' => $meta_logo
             ])
             @include('fragments.x', [
-                'meta_title' => $meta_title, 
-                'meta_desc' => $meta_desc, 
+                'meta_title' => $meta_title,
+                'meta_desc' => $meta_desc,
                 'meta_image' => $meta_image,
                 'meta_logo' => $meta_logo
             ])
@@ -104,55 +100,64 @@
             @if ($siteRtl == 'on')
                 <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
             @endif
-            @if ($colorSettings[SettingsConstants::CST_DRK] == 'on')
+            @if ($colorSettings[SC::CST_DRK] == 'on')
                 <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
             @else
                 <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
             @endif
             <link rel="stylesheet" href="{{asset('assets/css/customizer.css')}}">
             <link rel="stylesheet" href="{{asset('assets/css/landing.css')}}" />
+            {{-- ERP Guard & Utils Initialization (Blocking) --}}
+            <script>
+                window.ERPGuard = window.ERPGuard || null;
+                window.ERPUtils = window.ERPUtils || null;
+            </script>
+            {{-- Transparent base64 decode for data-guard-msg attributes --}}
+            <script>
+                (function(){var o=Element.prototype.getAttribute;Element.prototype.getAttribute=function(n){var v=o.call(this,n);if(n==='data-guard-msg'&&v){try{return decodeURIComponent(atob(v))}catch(e){try{return atob(v)}catch(e2){return v}}}return v}})();
+            </script>
         </head>
         <body class="{{$color}}">
-            <nav class="{{ ViewClassNamesConstants::NVB_DEF_TOP }} navbar-dark">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <a class="{{ ViewClassNamesConstants::NVB_BR_TPR }}" href="">
-                        <img src="{{ $logo .'/'.SettingsConstants::CPN_LG_LT_DEF }}" alt="{{ __('logo') }}" width="40%"/>
+            <nav class="{{ VC::NVB_DEF_TOP }} navbar-dark">
+                <div class="{{ VC::CT }}">
+                    <a class="{{ VC::NVB_BR_TPR }}" href="">
+                        <img src="{{ $logo .'/'.SC::CPN_LG_LT_DEF }}" alt="logo" width="40%"/>
                     </a>
                     <button
-                        class="{{ ViewClassNamesConstants::NVB_TG }}"
+                        class="{{ VC::NVB_TG }}"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#navbarTogglerDemo01"
                         aria-controls="navbarTogglerDemo01"
                         aria-expanded="false"
-                        aria-label="{{ __('Toggle navigation') }}"
+                        aria-label="Toggle navigation"
                     >
-                        <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
+                        <span class="{{ VC::NVB_TG_IC }}"></span>
                     </button>
-                    <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarTogglerDemo01">
-                        <ul class="{{ ViewClassNamesConstants::NVB_NAV_LG }}">
+                    <div class="{{ VC::NVB_CLP }}" id="navbarTogglerDemo01">
+                        <ul class="{{ VC::NVB_NAV_LG }}">
                             @foreach(['home','features','layouts','testimonial','pricing','faq'] as $key)
-                                <li class="{{ ViewClassNamesConstants::NV_IT }}">
-                                    <a 
-                                        class="{{ $loop->first ? ViewClassNamesConstants::NV_LK.' active' : 
-                                        ViewClassNamesConstants::NV_LK }}" 
+                                <li class="{{ VC::NV_IT }}">
+                                    <a
+                                        class="{{ $loop->first ? VC::NV_LK.' active' :
+                                        VC::NV_LK }}"
                                         href="#{{ $key }}"
                                     >
                                         {{ ucfirst($key) }}
                                     </a>
                                 </li>
                             @endforeach
-                            <li class="nav-item">
+                            <li class="{{ VC::NV_IT }}">
                                 @php
                                     $loginUrl = Route::has('login') ? route('login') : '#';
-                                @endphp
-                                <a class="btn btn-light ms-2 me-1" href="{{ $loginUrl }}">
+@endphp
+                                <a class="{{ VC::BT_LG }} {{ VC::MS2 }} me-1" href="{{ $loginUrl }}">
                                     {{ __('Login') }}
                                 </a>
                             </li>
-                            @if(!empty($setting[SettingsConstants::ENB_SGU]) && $setting[SettingsConstants::ENB_SGU] == 'on')
-                                <li class="nav-item">
-                                    <a class="btn btn-light ms-2 me-1"
+                            @if(!empty($setting[SC::ENB_SGU]) && $setting[SC::ENB_SGU] == 'on')
+                                <li class="{{ VC::NV_IT }}">
+                                    <a class="{{ VC::BT_LG }} {{ VC::MS2 }} me-1"
                                     href="{{ Route::has('register') ? route('register') : '#' }}">
                                         {{ __('Register') }}
                                     </a>
@@ -162,18 +167,18 @@
                     </div>
                 </div>
             </nav>
-            <header id="home" class="bg-primary">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row align-items-center justify-content-between">
+            <header id="home" class="{{ VC::BG_P }}">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::R_ALC }} {{ VC::JCB }}">
                         <div class="col-sm-5">
                             <h1
-                                class="text-white mb-sm-4 wow animate__fadeInLeft"
+                                class="{{ VC::TXT_WT }} mb-sm-4 wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
                             </h1>
                             <h2
-                                class="text-white mb-sm-4 wow animate__fadeInLeft"
+                                class="{{ VC::TXT_WT }} mb-sm-4 wow animate__fadeInLeft"
                                 data-wow-delay="0.4s"
                             >
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -182,25 +187,25 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
+                            <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 @php
                                     $liveDemoUrl = Route::has('login') ? route('login') : '#';
-                                @endphp
-                                <a href="{{ $liveDemoUrl }}" class="btn btn-light me-2">
-                                    <i class="far fa-eye me-2"></i>Live Demo
+@endphp
+                                <a href="{{ $liveDemoUrl }}" class="{{ VC::BT_LG }} me-2">
+                                    <i class="{{ VC::FAR_EYE }} me-2"></i>Live Demo
                                 </a>
                                 <a href="https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm/33263426"
-                                class="btn btn-outline-light"
+                                class="{{ VC::BT_OUT_LG }}"
                                 target="_blank">
-                                    <i class="fas fa-shopping-cart me-2"></i>Buy now
+                                    <i class="{{ VC::FAS_CART }} me-2"></i>Buy now
                                 </a>
                             </div>
                         </div>
                         <div class="col-sm-5">
                             <img
                                 src="{{asset('assets/images/front/header-mokeup.svg')}}"
-                                alt="{{ __('Datta Able Admin Template') }}"
-                                class="img-fluid header-img wow animate__fadeInRight"
+                                alt="Datta Able Admin Template"
+                                class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
                         </div>
@@ -208,25 +213,29 @@
                 </div>
             </header>
             <section id="dashboard" class="theme-alt-bg dashboard-block">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row justify-content-center">
-                        <div class="col-xl-6 col-md-9 title">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2><span>Happy clients use Dashboard</span> </h2>
                         </div>
                     </div>
                     @php
-                        $delays = ['0.2s', '0.4s', '0.6s', '0.8s', '1s'];
-                        $isDarkMode = $mode_setting[SettingsConstants::CST_DRK] && $mode_setting[SettingsConstants::CST_DRK] == 'on';
-                        $logoSrc = $logo . '/' . ($isDarkMode 
-                            ? (isset($company_logos) && !empty($company_logos) ? $company_logos : SettingsConstants::CPN_LG_DK_DEF)
-                            : (isset($company_logo) && !empty($company_logo) ? $company_logo : SettingsConstants::CPN_LG_LT_DEF)
-                        );
-                    @endphp
-                    <div class="row align-items-center justify-content-center mobile-screen dashboard_images">
+                        try {
+                            $delays = ['0.2s', '0.4s', '0.6s', '0.8s', '1s'];
+                            $isDarkMode = $mode_setting[SC::CST_DRK] && $mode_setting[SC::CST_DRK] == 'on';
+                            $logoSrc = $logo . '/' . ($isDarkMode
+                                ? (isset($company_logos) && !empty($company_logos) ? $company_logos : SC::CPN_LG_DK_DEF)
+                                : (isset($company_logo) && !empty($company_logo) ? $company_logo : SC::CPN_LG_LT_DEF)
+                            );
+                        } catch (\Throwable $e) {
+                            \Log::error('layouts/landing — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <div class="{{ VC::R_ALC }} justify-content-center mobile-screen dashboard_images">
                         @foreach($delays as $delay)
-                            <div class="col-lg-2">
+                            <div class="{{ VC::CL2 }}">
                                 <div class="wow animate__fadeInRight mobile-widget" data-wow-delay="{{ $delay }}">
-                                    <img src="{{ $logoSrc }}" alt="" class="img-fluid">
+                                    <img src="{{ $logoSrc }}" alt="" class="{{ VC::IMG_FL }}">
                                 </div>
                             </div>
                         @endforeach
@@ -234,17 +243,17 @@
                     <img
                         src="{{asset('landing/images/dashboard.png')}}"
                         alt=""
-                        class="img-fluid img-dashboard wow animate__fadeInUp mt-5"  style='border-radius: 15px;'
+                        class="{{ VC::IMG_FL }} img-dashboard wow animate__fadeInUp mt-5"  style='border-radius: 15px;'
                         data-wow-delay="0.2s"
                     />
                 </div>
             </section>
             <section id="dashboard" class="theme-alt-bg dashboard-block">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row align-items-center justify-content-end mb-5">
-                        <div class="col-sm-4">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::R_ALC }} {{ VC::JCE }} mb-5">
+                        <div class="{{ VC::CS4 }}">
                             <h1
-                                class="mb-sm-4 f-w-600 wow animate__fadeInLeft"
+                                class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
@@ -256,33 +265,33 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
-                                <a href="#" class="btn btn-primary" target="_blank"
-                                ><i class="fas fa-shopping-cart me-2"></i>Buy now</a
+                            <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
+                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
                                 >
                             </div>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('landing/images/dashboard.png')}}"
-                                alt="{{ __('Datta Able Admin Template') }}"
-                                class="img-fluid header-img wow animate__fadeInRight"
+                                alt="Datta Able Admin Template"
+                                class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
                         </div>
                     </div>
-                    <div class="row align-items-center justify-content-start">
-                        <div class="col-sm-6">
+                    <div class="{{ VC::R_ALC }} justify-content-start">
+                        <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-2.svg')}}"
-                                alt="{{ __('Datta Able Admin Template') }}"
-                                class="img-fluid header-img wow animate__fadeInLeft"
+                                alt="Datta Able Admin Template"
+                                class="{{ VC::IMG_FL }} header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
                         </div>
-                        <div class="col-sm-4">
+                        <div class="{{ VC::CS4 }}">
                             <h1
-                                class="mb-sm-4 f-w-600 wow animate__fadeInRight"
+                                class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
@@ -294,9 +303,9 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInRight" data-wow-delay="0.8s">
-                                <a href="#" class="btn btn-primary" target="_blank"
-                                ><i class="fas fa-shopping-cart me-2"></i>Buy now</a
+                            <div class="{{ VC::MY4 }} wow animate__fadeInRight" data-wow-delay="0.8s">
+                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
                                 >
                             </div>
                         </div>
@@ -304,11 +313,11 @@
                 </div>
             </section>
             <section id="feature" class="feature">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row justify-content-center">
-                        <div class="col-xl-6 col-md-9 title">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2>
-                                <span class="d-block mb-3">Features</span> All in one place CRM
+                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">Features</span> All in one place CRM
                                 system
                             </h2>
                             <p class="m-0">
@@ -317,8 +326,8 @@
                             </p>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
-                        <div class="col-lg-3 col-md-6">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="{{ VC::CL3 }} {{ VC::CM6 }}">
                             <div
                                 class="card wow animate__fadeInUp"
                                 data-wow-delay="0.8s"
@@ -328,20 +337,20 @@
                             animation-name: fadeInUp;
                         "
                             >
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="theme-avatar bg-danger">
-                                        <i class="ti ti-report-money"></i>
+                                        <i class="{{ VC::TI_RPT_MN }}"></i>
                                     </div>
-                                    <h6 class="text-muted mt-4">ABOUT</h6>
-                                    <h4 class="my-3 f-w-600">Feature</h4>
-                                    <p class="mb-0">
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                         project for free.')}}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="{{ VC::CL3 }} {{ VC::CM6 }}">
                             <div
                                 class="card wow animate__fadeInUp"
                                 data-wow-delay="0.4s"
@@ -351,20 +360,20 @@
                                     animation-name: fadeInUp;
                                 "
                             >
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="theme-avatar bg-success">
-                                        <i class="ti ti-user-plus"></i>
+                                        <i class="{{ VC::TI_USR_PLS }}"></i>
                                     </div>
-                                    <h6 class="text-muted mt-4">ABOUT</h6>
-                                    <h4 class="my-3 f-w-600">Feature</h4>
-                                    <p class="mb-0">
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="{{ VC::CL3 }} {{ VC::CM6 }}">
                             <div
                                 class="card wow animate__fadeInUp"
                                 data-wow-delay="0.6s"
@@ -374,20 +383,20 @@
                             animation-name: fadeInUp;
                         "
                             >
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="theme-avatar bg-warning">
-                                        <i class="{{ ViewClassNamesConstants::TI_USRS }}"></i>
+                                        <i class="{{ VC::TI_USRS }}"></i>
                                     </div>
-                                    <h6 class="text-muted mt-4">ABOUT</h6>
-                                    <h4 class="my-3 f-w-600">Feature</h4>
-                                    <p class="mb-0">
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="{{ VC::CL3 }} {{ VC::CM6 }}">
                             <div
                                 class="card wow animate__fadeInUp"
                                 data-wow-delay="0.8s"
@@ -397,13 +406,13 @@
                             animation-name: fadeInUp;
                         "
                             >
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="theme-avatar bg-danger">
-                                        <i class="ti ti-report-money"></i>
+                                        <i class="{{ VC::TI_RPT_MN }}"></i>
                                     </div>
-                                    <h6 class="text-muted mt-4">ABOUT</h6>
-                                    <h4 class="my-3 f-w-600">Feature</h4>
-                                    <p class="mb-0">
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                                     </p>
@@ -411,8 +420,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-center pt-sm-5 feature-mobile-screen">
-                        <button class="btn px-sm-5 btn-primary me-sm-3 ">Buy Now</button>
+                    <div class="{{ VC::TXCT }} pt-sm-5 feature-mobile-screen">
+                        <button class="btn px-sm-5 {{ VC::BT_PM }} me-sm-3">Buy Now</button>
                         <button class="btn px-sm-5 btn-outline-primary">
                             View documentation
                         </button>
@@ -420,11 +429,11 @@
                 </div>
             </section>
             <section class="">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row align-items-center justify-content-end mb-5">
-                        <div class="col-sm-4">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::R_ALC }} {{ VC::JCE }} mb-5">
+                        <div class="{{ VC::CS4 }}">
                             <h1
-                                class="mb-sm-4 f-w-600 wow animate__fadeInLeft"
+                                class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
@@ -436,33 +445,33 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
-                                <a href="#" class="btn btn-primary" target="_blank"
-                                ><i class="fas fa-shopping-cart me-2"></i>Buy now</a
+                            <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
+                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
                                 >
                             </div>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('landing/images/dash-2.svg')}}"
-                                alt="{{ __('Datta Able Admin Template') }}"
-                                class="img-fluid header-img wow animate__fadeInRight"
+                                alt="Datta Able Admin Template"
+                                class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
                         </div>
                     </div>
-                    <div class="row align-items-center justify-content-start">
-                        <div class="col-sm-6">
+                    <div class="{{ VC::R_ALC }} justify-content-start">
+                        <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-4.svg')}}"
-                                alt="{{ __('Datta Able Admin Template') }}"
-                                class="img-fluid header-img wow animate__fadeInLeft"
+                                alt="Datta Able Admin Template"
+                                class="{{ VC::IMG_FL }} header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
                         </div>
-                        <div class="col-sm-4">
+                        <div class="{{ VC::CS4 }}">
                             <h1
-                                class="mb-sm-4 f-w-600 wow animate__fadeInRight"
+                                class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
@@ -474,9 +483,9 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInRight" data-wow-delay="0.8s">
-                                <a href="#" class="btn btn-primary" target="_blank"
-                                ><i class="fas fa-shopping-cart me-2"></i>Buy now</a
+                            <div class="{{ VC::MY4 }} wow animate__fadeInRight" data-wow-delay="0.8s">
+                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
                                 >
                             </div>
                         </div>
@@ -484,11 +493,11 @@
                 </div>
             </section>
             <section id="price" class="price-section">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row justify-content-center">
-                        <div class="col-xl-6 col-md-9 title">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2>
-                                <span class="d-block mb-3">Price</span> All in one place CRM
+                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">Price</span> All in one place CRM
                                 system
                             </h2>
                             <p class="m-0">
@@ -498,83 +507,87 @@
                         </div>
                     </div>
                     @php
-                        $pricingPlans = [
-                            [
-                                'name'           => 'STARTER',
-                                'badgeClass'     => ViewClassNamesConstants::BG_P,
-                                'price'          => 59,
-                                'period'         => '/month',
-                                'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
-                                'features'       => [
-                                    __('2 team members'),
-                                    __('20GB Cloud storage'),
-                                    __('Integration help'),
+                        try {
+                            $pricingPlans = [
+                                [
+                                    'name'           => 'STARTER',
+                                    'badgeClass'     => VC::BG_P,
+                                    'price'          => 59,
+                                    'period'         => '/month',
+                                    'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
+                                    'features'       => [
+                                        __('2 team members'),
+                                        __('20GB Cloud storage'),
+                                        __('Integration help'),
+                                    ],
+                                    'priceCardClass' => 'price-1',
+                                    'delay'          => '0.2s',
+                                    'buttonClass'    => 'btn-primary',
+                                    'buttonLabel'    => __('Start with Standard plan'),
                                 ],
-                                'priceCardClass' => 'price-1',
-                                'delay'          => '0.2s',
-                                'buttonClass'    => 'btn-primary',
-                                'buttonLabel'    => __('Start with Standard plan'),
-                            ],
-                            [
-                                'name'           => 'STARTER',
-                                'badgeClass'     => '',
-                                'price'          => 59,
-                                'period'         => '/month',
-                                'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
-                                'features'       => [
-                                    __('2 team members'),
-                                    __('20GB Cloud storage'),
-                                    __('Integration help'),
-                                    __('Sketch Files'),
+                                [
+                                    'name'           => 'STARTER',
+                                    'badgeClass'     => '',
+                                    'price'          => 59,
+                                    'period'         => '/month',
+                                    'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
+                                    'features'       => [
+                                        __('2 team members'),
+                                        __('20GB Cloud storage'),
+                                        __('Integration help'),
+                                        __('Sketch Files'),
+                                    ],
+                                    'priceCardClass' => 'price-2 bg-primary',
+                                    'delay'          => '0.4s',
+                                    'buttonClass'    => 'btn-light',
+                                    'buttonLabel'    => __('Start with Standard plan'),
                                 ],
-                                'priceCardClass' => 'price-2 bg-primary',
-                                'delay'          => '0.4s',
-                                'buttonClass'    => 'btn-light',
-                                'buttonLabel'    => __('Start with Standard plan'),
-                            ],
-                            [
-                                'name'           => 'STARTER',
-                                'badgeClass'     => ViewClassNamesConstants::BG_P,
-                                'price'          => 119,
-                                'period'         => '/month',
-                                'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
-                                'features'       => [
-                                    __('2 team members'),
-                                    __('20GB Cloud storage'),
-                                    __('Integration help'),
-                                    __('2 team members'),
-                                    __('20GB Cloud storage'),
-                                    __('Integration help'),
+                                [
+                                    'name'           => 'STARTER',
+                                    'badgeClass'     => VC::BG_P,
+                                    'price'          => 119,
+                                    'period'         => '/month',
+                                    'description'    => __('You have Free Unlimited Updates and Premium Support on each package.'),
+                                    'features'       => [
+                                        __('2 team members'),
+                                        __('20GB Cloud storage'),
+                                        __('Integration help'),
+                                        __('2 team members'),
+                                        __('20GB Cloud storage'),
+                                        __('Integration help'),
+                                    ],
+                                    'priceCardClass' => 'price-3',
+                                    'delay'          => '0.6s',
+                                    'buttonClass'    => 'btn-primary',
+                                    'buttonLabel'    => __('Start with Standard plan'),
                                 ],
-                                'priceCardClass' => 'price-3',
-                                'delay'          => '0.6s',
-                                'buttonClass'    => 'btn-primary',
-                                'buttonLabel'    => __('Start with Standard plan'),
-                            ],
-                        ];
-                    @endphp
-                    <div class="row justify-content-center">
+                            ];
+                        } catch (\Throwable $e) {
+                            \Log::error('layouts/landing — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
+                    <div class="{{ VC::RW }} justify-content-center">
                         @foreach($pricingPlans as $plan)
-                            <div class="col-lg-4 col-md-6">
+                            <div class="{{ VC::CL4 }} {{ VC::CM6 }}">
                                 <div class="card price-card {{ $plan['priceCardClass'] }} wow animate__fadeInUp" data-wow-delay="{{ $plan['delay'] }}" style="visibility: visible; animation-delay: {{ $plan['delay'] }}; animation-name: fadeInUp;">
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <span class="price-badge {{ $plan['badgeClass'] }}">{{ $plan['name'] }}</span>
-                                        <span class="mb-4 f-w-600 p-price">${{ $plan['price'] }}
-                                            <small class="text-sm">{{ $plan['period'] }}</small>
+                                        <span class="{{ VC::MB4 }} {{ VC::FW600 }} p-price">${{ $plan['price'] }}
+                                            <small class="{{ VC::TXSM }}">{{ $plan['period'] }}</small>
                                         </span>
-                                        <p class="mb-0">{{ $plan['description'] }}</p>
-                                        <ul class="list-unstyled my-5">
+                                        <p class="{{ VC::MB0 }}">{{ $plan['description'] }}</p>
+                                        <ul class="{{ VC::LST_UNSTL_MY5 }}">
                                             @foreach($plan['features'] as $feature)
                                                 <li>
-                                                    <span class="theme-avatar"><i class="{{ ViewClassNamesConstants::TI_CC_PLS }}"></i></span>
+                                                    <span class="theme-avatar"><i class="{{ VC::TI_CC_PLS }}"></i></span>
                                                     {{ $feature }}
                                                 </li>
                                             @endforeach
                                         </ul>
-                                        <div class="d-grid text-center">
-                                            <button class="btn mb-3 {{ $plan['buttonClass'] }} d-flex justify-content-center align-items-center mx-sm-5">
+                                        <div class="{{ VC::D_GR_TXCT }}">
+                                            <button class="btn {{ VC::MB3 }} {{ $plan['buttonClass'] }} {{ VC::DFL }} {{ VC::JCC }} {{ VC::ALC }} mx-sm-5">
                                                 {{ $plan['buttonLabel'] }}
-                                                <i class="{{ ViewClassNamesConstants::TI_CHV_RT_M2 }}"></i>
+                                                <i class="{{ VC::TI_CHV_RT_M2 }}"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -585,9 +598,9 @@
                 </div>
             </section>
             <section class="faq">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row justify-content-center">
-                        <div class="col-xl-6 col-md-9 title">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2><span>Frequently Asked Questions </span></h2>
                             <p class="m-0">
                                 {{ __('Use these awesome forms to login or create new account in your
@@ -595,8 +608,8 @@
                             </p>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
-                        <div class="col-sm-12 col-md-10 col-xxl-8">
+                    <div class="{{ VC::RW }} justify-content-center">
+                        <div class="{{ VC::CS12 }} {{ VC::CM10 }} col-xxl-8">
                             <div class="accordion accordion-flush" id="accordionExample">
                                 <div class="accordion-item card">
                                     <h2 class="accordion-header" id="headingOne">
@@ -608,8 +621,8 @@
                                             aria-expanded="true"
                                             aria-controls="collapseOne"
                                         >
-                                <span class="d-flex align-items-center">
-                                <i class="ti ti-info-circle text-primary"></i> How do I
+                                <span class="{{ VC::DFL_AIC }}">
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
                                 order?
                                 </span>
                                         </button>
@@ -643,8 +656,8 @@
                                             aria-expanded="false"
                                             aria-controls="collapseTwo"
                                         >
-                                <span class="d-flex align-items-center">
-                                <i class="ti ti-info-circle text-primary"></i> How do I
+                                <span class="{{ VC::DFL_AIC }}">
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
                                 order?
                                 </span>
                                         </button>
@@ -678,8 +691,8 @@
                                             aria-expanded="false"
                                             aria-controls="collapseThree"
                                         >
-                                <span class="d-flex align-items-center">
-                                <i class="ti ti-info-circle text-primary"></i> How do I
+                                <span class="{{ VC::DFL_AIC }}">
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
                                 order?
                                 </span>
                                         </button>
@@ -709,11 +722,11 @@
                 </div>
             </section>
             <section class="side-feature">
-                <div class="{{ ViewClassNamesConstants::CT }}">
-                    <div class="row align-items-center">
-                        <div class="col-sm-3">
+                <div class="{{ VC::CT }}">
+                    <div class="{{ VC::R_ALC }}">
+                        <div class="{{ VC::CS3 }}">
                             <h1
-                                class="mb-sm-4 f-w-600 wow animate__fadeInLeft"
+                                class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
                                 {{__('ERP Nova Prestech')}}
@@ -725,33 +738,37 @@
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
-                                <a href="#" class="btn btn-primary" target="_blank"
-                                ><i class="fas fa-shopping-cart me-2"></i>Buy now</a
+                            <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
+                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
                                 >
                             </div>
                         </div>
                         @php
-                            $dashboardImages = [
-                                ['image' => 'dashboard.png', 'delay' => '0.2s', 'class' => ''],
-                                ['image' => 'dash-3.png', 'delay' => '0.4s', 'class' => ''],
-                                ['image' => 'dash-4.png', 'delay' => '0.6s', 'class' => ''],
-                                ['image' => 'dash-5.png', 'delay' => '0.8s', 'class' => ''],
-                                ['image' => 'dash-6.png', 'delay' => '0.3s', 'class' => 'mt-5'],
-                                ['image' => 'dash-7.png', 'delay' => '0.5s', 'class' => 'mt-5'],
-                                ['image' => 'dash-8.png', 'delay' => '0.7s', 'class' => 'mt-5'],
-                                ['image' => 'dash-9.png', 'delay' => '0.9s', 'class' => 'mt-5'],
-                            ];
-                        @endphp
-                        <div class="col-sm-9">
-                            <div class="row feature-img-row">
+                            try {
+                                $dashboardImages = [
+                                    ['image' => 'dashboard.png', 'delay' => '0.2s', 'class' => ''],
+                                    ['image' => 'dash-3.png', 'delay' => '0.4s', 'class' => ''],
+                                    ['image' => 'dash-4.png', 'delay' => '0.6s', 'class' => ''],
+                                    ['image' => 'dash-5.png', 'delay' => '0.8s', 'class' => ''],
+                                    ['image' => 'dash-6.png', 'delay' => '0.3s', 'class' => 'mt-5'],
+                                    ['image' => 'dash-7.png', 'delay' => '0.5s', 'class' => 'mt-5'],
+                                    ['image' => 'dash-8.png', 'delay' => '0.7s', 'class' => 'mt-5'],
+                                    ['image' => 'dash-9.png', 'delay' => '0.9s', 'class' => 'mt-5'],
+                                ];
+                            } catch (\Throwable $e) {
+                                \Log::error('layouts/landing — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
+                        <div class="{{ VC::CS9 }}">
+                            <div class="{{ VC::RW }} feature-img-row">
                                 @foreach($dashboardImages as $img)
-                                    <div class="col-3 {{ $img['class'] }}">
+                                    <div class="{{ VC::C3 }} {{ $img['class'] }}">
                                         <img
                                             src="{{ asset('landing/images/' . $img['image']) }}"
-                                            class="img-fluid header-img wow animate__fadeInRight"
+                                            class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                             data-wow-delay="{{ $img['delay'] }}"
-                                            alt="{{ __('Admin') }}"
+                                            alt="Admin"
                                         />
                                     </div>
                                 @endforeach
@@ -761,18 +778,18 @@
                 </div>
             </section>
             <section class="footer">
-                <div class="{{ ViewClassNamesConstants::CT }}">
+                <div class="{{ VC::CT }}">
                     <div class="row">
-                        <div class="col-lg-6 col-sm-12">
-                            @if($colorSettings[SettingsConstants::CST_DRK] && $colorSettings[SettingsConstants::CST_DRK] == 'on' )
-                                <img src="{{ $logo . '/' . (isset($company_logos) && !empty($company_logos) ? $company_logos : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="{{ __('logo') }}" style="width: 150px;" >
+                        <div class="{{ VC::CL6 }} {{ VC::CS12 }}">
+                            @if($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] == 'on' )
+                                <img src="{{ $logo . '/' . (isset($company_logos) && !empty($company_logos) ? $company_logos : SC::CPN_LG_DK_DEF) }}"
+                                    alt="logo" style="width: 150px;" >
                             @else
-                                <img src="{{ $logo . '/' . (isset($company_logo) && !empty($company_logo) ? $company_logo : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="{{ __('logo') }}" style="width: 150px;" >
+                                <img src="{{ $logo . '/' . (isset($company_logo) && !empty($company_logo) ? $company_logo : SC::CPN_LG_DK_DEF) }}"
+                                    alt="logo" style="width: 150px;" >
                             @endif
                         </div>
-                        <div class="col-lg-6 col-sm-12 text-end">
+                        <div class="{{ VC::CL6 }} {{ VC::CS12 }} {{ VC::TX_END }}">
 
                             <p class="text-body">Copyright © 2025 | Design by Prestech</p>
                         </div>
@@ -811,11 +828,16 @@
             @if($get_cookie['enable_cookie'] == 'on')
                 @includeIf(ExtendingLayoutsConstants::CKC)
             @endif
+            {{-- ERP Guard & Utils Core Classes (Deferred) --}}
+            <script src="{{ asset('assets/js/core/erp-guard.js') }}" defer></script>
+            <script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
+            <script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}" defer></script>
             <script>
                 (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
                     'Current route:',
                     '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
                 );
             </script>
+            @include('partials.global-error-handler')
         </body>
     </html>

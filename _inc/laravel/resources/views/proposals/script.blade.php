@@ -1,5 +1,4 @@
 @php
-    use App\Models\Utility;
 @endphp
 <script src="{{ asset('js/jquery.min.js') }} "></script>
 <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
@@ -11,4 +10,3 @@
         // Failed to load proposal data script
     </script>
 @endif
-

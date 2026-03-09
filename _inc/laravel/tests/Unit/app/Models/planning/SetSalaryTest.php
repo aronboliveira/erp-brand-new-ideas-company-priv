@@ -10,9 +10,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\SetSalary;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SetSalaryTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -22,8 +28,13 @@ class SetSalaryTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(SetSalary::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'employee_id',
+			'salary_type',
+			'salary',
+			'frequency',
+			'month_day_limit',
+		];
 
 		$this->assertSame($expected, (new SetSalary)->getFillable());
 	}

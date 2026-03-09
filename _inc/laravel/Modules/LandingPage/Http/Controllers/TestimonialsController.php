@@ -3,27 +3,28 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    UsersConstants
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    UsersConstants as UC
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
+use App\Models\User;
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Collection;
-use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants as RRC, Entities\LandingPageSetting};
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 final class TestimonialsController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    public const ENTITY  = RoutesResourcesConstants::TTMN;
-    private const LP = RoutesResourcesConstants::LP;
-    private const REDIRECT_INDEX = RoutesResourcesConstants::TTMN . '.index';
+    public const ENTITY  = RRC::TTMN;
+    private const LP = RRC::LP;
+    private const REDIRECT_INDEX = RRC::TTMN . '.index';
     private const UPLOAD_DIR    = 'uploads/landing_page_image';
 
     public function index(Request $request): Renderable|RedirectResponse|null
@@ -31,6 +32,10 @@ final class TestimonialsController extends AppController
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $function) {
+            $ur = self::_checkLogin(haltRedirect: true);
+            if (!($ur instanceof User) || $ur->type !== 'super admin') {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
             try {
                 $settingsStart = microtime(true);
                 $settings = LandingPageSetting::landingPageSetting();
@@ -46,7 +51,7 @@ final class TestimonialsController extends AppController
                 }
                 Log::info("[$action] loaded", ['count' => count($items)]);
                 return view($view, [
-                    DatabaseConstants::TABLE_SETTINGS => $settings,
+                    DC::TABLE_SETTINGS => $settings,
                     self::ENTITY => $items
                 ]);
             } catch (\Throwable $e) {
@@ -66,7 +71,7 @@ final class TestimonialsController extends AppController
             Log::info($method . ' called', ['key' => $key, 'user_id' => auth()->id()]);
             $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
             $stepStart = microtime(true);
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_TT, self::REDIRECT_INDEX)) !== true)
+            if (($redirect = self::guard($request, PMC::MNG_TT, self::REDIRECT_INDEX)) !== true)
                 return $redirect;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             return redirect()->route(self::REDIRECT_INDEX);
@@ -78,10 +83,10 @@ final class TestimonialsController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' start', [UsersConstants::COL_USER_ID => auth()->id()]);
+            Log::info($method . ' start', [UC::COL_USER_ID => auth()->id()]);
             if (($user = static::_checkLogin()) instanceof RedirectResponse) return $user;
             $startGuard = microtime(true);
-            if (($redirect = static::guard($request, PermissionsConstants::MNG_TT, static::REDIRECT_INDEX)) !== true) {
+            if (($redirect = static::guard($request, PMC::MNG_TT, static::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 return $redirect;
@@ -113,9 +118,9 @@ final class TestimonialsController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $action) {
-            Log::info("$action start", [UsersConstants::COL_USER_ID => auth()->id()]);
+            Log::info("$action start", [UC::COL_USER_ID => auth()->id()]);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_TT, self::REDIRECT_INDEX)) !== true) return $redirect;
+            if (($redirect = self::guard($request, PMC::MNG_TT, self::REDIRECT_INDEX)) !== true) return $redirect;
             $request->validate([
                 self::ENTITY . '_heading' => 'required|string',
                 self::ENTITY . '_description' => 'required|string',
@@ -169,13 +174,13 @@ final class TestimonialsController extends AppController
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $key, $function) {
-            Log::info("[$action] start", ['key' => $key, UsersConstants::COL_USER_ID => auth()->id()]);
+            Log::info("[$action] start", ['key' => $key, UC::COL_USER_ID => auth()->id()]);
             $checkStart = microtime(true);
             $user = self::_checkLogin();
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($user instanceof RedirectResponse) return $user;
             $guardStart = microtime(true);
-            $redirect = self::guard($request, PermissionsConstants::MNG_TT, self::REDIRECT_INDEX);
+            $redirect = self::guard($request, PMC::MNG_TT, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
             if ($redirect instanceof RedirectResponse) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'key' => $key]);
@@ -218,7 +223,7 @@ final class TestimonialsController extends AppController
             $this->logExecutionTime($stepStart, 'logStart', 'completed');
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             $stepStart = microtime(true);
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_TT, self::REDIRECT_INDEX)) !== true) return $redirect;
+            if (($redirect = self::guard($request, PMC::MNG_TT, self::REDIRECT_INDEX)) !== true) return $redirect;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             $stepStart = microtime(true);
             $request->validate([
@@ -296,7 +301,7 @@ final class TestimonialsController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' start', ['key' => $key, UsersConstants::COL_USER_ID => auth()->id()]);
+            Log::info($method . ' start', ['key' => $key, UC::COL_USER_ID => auth()->id()]);
             $startLogin = microtime(true);
             if (($user = static::_checkLogin()) instanceof RedirectResponse) {
                 $this->logExecutionTime($startLogin, $function . '::login', 'failed');
@@ -304,7 +309,7 @@ final class TestimonialsController extends AppController
             }
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             $startGuard = microtime(true);
-            if (($redirect = static::guard($request, PermissionsConstants::MNG_TT, static::REDIRECT_INDEX)) !== true) {
+            if (($redirect = static::guard($request, PMC::MNG_TT, static::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 return $redirect;
@@ -355,7 +360,7 @@ final class TestimonialsController extends AppController
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id()]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id()]);
             $stepStart = microtime(true);
             try {
                 $response = $this->create($request);
@@ -399,7 +404,7 @@ final class TestimonialsController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $key, $function) {
             $method = static::class . '::' . $function;
-            Log::info($method . ' called', [UsersConstants::COL_USER_ID => auth()->id(), 'key' => $key]);
+            Log::info($method . ' called', [UC::COL_USER_ID => auth()->id(), 'key' => $key]);
             try {
                 $startUpdate = microtime(true);
                 $response = $this->update($request, $key);
@@ -416,13 +421,21 @@ final class TestimonialsController extends AppController
     }
 
     public const TTM_DEL = 'testimonialsDelete';
-    public function testimonialsDelete(Request $request, int $key)
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
+    public function testimonialsDelete(Request $request, string|int $key)
     {
         $class = static::class;
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
         return $this->measureProfile($action, function () use ($request, $key, $action) {
-            Log::info("$action called", [UsersConstants::COL_USER_ID => auth()->id(), 'key' => $key]);
+            Log::info("$action called", [UC::COL_USER_ID => auth()->id(), 'key' => $key]);
             $stepStart = microtime(true);
             try {
                 $response = $this->destroy($request, $key);

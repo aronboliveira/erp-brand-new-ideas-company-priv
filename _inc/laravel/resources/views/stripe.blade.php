@@ -1,20 +1,10 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants,
-        ExtendingLayoutsConstants,
-        PlansConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{Plan,Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route, Storage};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -23,7 +13,7 @@
     <script src="https://api.ravepay.co/flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -180,7 +170,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
@@ -228,9 +218,9 @@ Object.keys(t).forEach(
                     toast.setAttribute("aria-live","assertive");
                     toast.setAttribute("aria-atomic","true");
                     toast.innerHTML = `
-                    <div class="d-flex">
+                    <div class="{{ VC::DFL }}">
                         <div class="toast-body">${text}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>`;
                     document.body.appendChild(toast);
                 }
@@ -503,27 +493,31 @@ Object.keys(t).forEach(
     {{__('Manage Order Summary')}}
 @endsection
 @section('breadcrumb')
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        $planIndexBaseName     = VW::PLN.'.index';
-        $planIndexKebabName    = Str::kebab($planIndexBaseName);
-        $planIndexResolvedName = Route::has($planIndexBaseName)
-            ? $planIndexBaseName
-            : (Route::has($planIndexKebabName) ? $planIndexKebabName : null);
-        $planIndexUrl          = $planIndexResolvedName ? route($planIndexResolvedName) : '#';
-        $planIndexGuardMsg     = Utility::fetchLinkMessage($lang, VW::PLN, 'index_plan_route_unavailable') ?? 'Index plan route is unavailable. Please contact technical support or your domain administrator.';
-        $planIndexLinkId       = 'plan-index-breadcrumb-link';
-    @endphp
-    <li class="breadcrumb-item">
+        try {
+            $planIndexBaseName     = VW::PLN.'.index';
+            $planIndexKebabName    = Str::kebab($planIndexBaseName);
+            $planIndexResolvedName = Route::has($planIndexBaseName)
+                ? $planIndexBaseName
+                : (Route::has($planIndexKebabName) ? $planIndexKebabName : null);
+            $planIndexUrl          = $planIndexResolvedName ? route($planIndexResolvedName) : '#';
+            $planIndexGuardMsg     = Utility::fetchLinkMessage($lang, VW::PLN, 'index_plan_route_unavailable') ?? 'Index plan route is unavailable. Please contact technical support or your domain administrator.';
+            $planIndexLinkId       = 'plan-index-breadcrumb-link';
+        } catch (\Throwable $e) {
+            \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
         <a href="{{ $planIndexUrl }}"
         id="{{ $planIndexLinkId }}"
         data-url="{{ $planIndexUrl }}"
-        data-guard-msg="{{ $planIndexGuardMsg }}">
+        data-guard-msg="{{ base64_encode($planIndexGuardMsg) }}">
             {{ __('Plan') }}
         </a>
     </li>
@@ -570,67 +564,73 @@ Object.keys(t).forEach(
             })();
         </script>
     @endpush
-    <li class="breadcrumb-item">{{__('Order Summary')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Order Summary')}}</li>
 @endsection
 
 @section('content')
     <div class="row">
-        <div class="col-sm-12">
+        <div class="{{ VC::CS12 }}">
             <div class="row">
                 @php
-                    $planName   = data_get($plan ?? [], PlansConstants::COL_NM, __('Failed to get Plan name.'));
-                    $planPrice  = data_get($plan ?? [], PlansConstants::COL_PC, __('Failed to get Plan price.'));
-                    $planDurKey = data_get($plan ?? [], PlansConstants::COL_DUR, __('Failed to get Plan duration.'));
-                    $duration   = Plan::$arrDuration[$planDurKey] ?? '';
+                    try {
+                        $planName   = data_get($plan ?? [], PlansConstants::COL_NM, __('Failed to get Plan name.'));
+                        $planPrice  = data_get($plan ?? [], PlansConstants::COL_PC, __('Failed to get Plan price.'));
+                        $planDurKey = data_get($plan ?? [], PlansConstants::COL_DUR, __('Failed to get Plan duration.'));
+                        $duration   = Plan::$arrDuration[$planDurKey] ?? '';
 
-                    $currencySymbol = isset($admin_payment_setting['currency_symbol']) && !empty($admin_payment_setting['currency_symbol'])
-                        ? $admin_payment_setting['currency_symbol']
-                        : __('Failed to get currency symbol.');
-                    $quotaItems = [
-                        ['key' => PlansConstants::COL_MAX_U,  'label' => __('Users')],
-                        ['key' => PlansConstants::COL_MAX_CR, 'label' => __('Customers')],
-                        ['key' => PlansConstants::COL_MAX_V,  'label' => __('Vendors')],
-                    ];
-
-                    $methods = [
-                        ['id'=>'send_request',    'label'=>__('Manually'),       'enabled'=>'is_manually_payment_enabled', 'extra'=>[],                                           'active'=>true],
-                        ['id'=>'bank_payment',    'label'=>__('Bank Transfer'),  'enabled'=>'is_bank_transfer_enabled',    'extra'=>['bank_details'],                              'active'=>false],
-                        ['id'=>'stripe_payment',  'label'=>__('Stripe'),         'enabled'=>'is_stripe_enabled',           'extra'=>['stripe_key','stripe_secret'],                'active'=>false],
-                        ['id'=>'paypal_payment',  'label'=>__('Paypal'),         'enabled'=>'is_paypal_enabled',           'extra'=>['paypal_client_id','paypal_secret_key'],      'active'=>false],
-                        ['id'=>'paystack_payment','label'=>__('Paystack'),       'enabled'=>'is_paystack_enabled',         'extra'=>['paystack_public_key','paystack_secret_key'], 'active'=>false],
-                    ];
-
-                    $generic = [
-                        'flutterwave','razorpay','mercado' => 'Mercado Pago','paytm','mollie','skrill','coingate','paymentwall',
-                        'toyyibpay' => 'Toyyibpay','payfast','iyzipay' => 'Iyzipay','sspay' => 'SSPay','paytab' => 'Paytab',
-                        'benefit' => 'Benefit','cashfree' => 'Cashfree','aamarpay' => 'AamarPay','paytr' => 'PayTR','yookassa' => 'Yookassa',
-                        'midtrans' => 'Midtrans','xendit' => 'Xendit',
-                    ];
-
-                    foreach ($generic as $key => $label) {
-                        $methodKey   = is_int($key) ? $label : $key;
-                        $methodLabel = __(is_int($key) ? $label : $label);
-                        $methods[] = [
-                            'id'      => $methodKey . '_payment',
-                            'label'   => $methodLabel,
-                            'enabled' => 'is_' . $methodKey . '_enabled',
-                            'extra'   => [],
-                            'active'  => false,
+                        $currencySymbol = isset($admin_payment_setting['currency_symbol']) && !empty($admin_payment_setting['currency_symbol'])
+                            ? $admin_payment_setting['currency_symbol']
+                            : __('Failed to get currency symbol.');
+                        $quotaItems = [
+                            ['key' => PlansConstants::COL_MAX_U,  'label' => __('Users')],
+                            ['key' => PlansConstants::COL_MAX_CR, 'label' => __('Customers')],
+                            ['key' => PlansConstants::COL_MAX_V,  'label' => __('Vendors')],
                         ];
+
+                        $methods = [
+                            ['id'=>'send_request',    'label'=>__('Manually'),       'enabled'=>'is_manually_payment_enabled', 'extra'=>[],                                           'active'=>true],
+                            ['id'=>'bank_payment',    'label'=>__('Bank Transfer'),  'enabled'=>'is_bank_transfer_enabled',    'extra'=>['bank_details'],                              'active'=>false],
+                            ['id'=>'stripe_payment',  'label'=>__('Stripe'),         'enabled'=>'is_stripe_enabled',           'extra'=>['stripe_key','stripe_secret'],                'active'=>false],
+                            ['id'=>'paypal_payment',  'label'=>__('Paypal'),         'enabled'=>'is_paypal_enabled',           'extra'=>['paypal_client_id','paypal_secret_key'],      'active'=>false],
+                            ['id'=>'paystack_payment','label'=>__('Paystack'),       'enabled'=>'is_paystack_enabled',         'extra'=>['paystack_public_key','paystack_secret_key'], 'active'=>false],
+                        ];
+
+                        $generic = [
+                            'flutterwave','razorpay','mercado' => 'Mercado Pago','paytm','mollie','skrill','coingate','paymentwall',
+                            'toyyibpay' => 'Toyyibpay','payfast','iyzipay' => 'Iyzipay','sspay' => 'SSPay','paytab' => 'Paytab',
+                            'benefit' => 'Benefit','cashfree' => 'Cashfree','aamarpay' => 'AamarPay','paytr' => 'PayTR','yookassa' => 'Yookassa',
+                            'midtrans' => 'Midtrans','xendit' => 'Xendit',
+                        ];
+
+                        foreach ($generic as $key => $label) {
+                            $methodKey   = is_int($key) ? $label : $key;
+                            $methodLabel = __(is_int($key) ? $label : $label);
+                            $methods[] = [
+                                'id'      => $methodKey . '_payment',
+                                'label'   => $methodLabel,
+                                'enabled' => 'is_' . $methodKey . '_enabled',
+                                'extra'   => [],
+                                'active'  => false,
+                            ];
+                        }
+                    } catch (\Throwable $e) {
+                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                     }
-                @endphp
+@endphp
                 <div class="{{ VC::CXL3 }}">
                     <div class="sticky-top" style="top:30px">
                         <div class="mt-5">
                             <div class="{{ VC::CD }} price-card price-1 wow animate__fadeInUp" data-wow-delay="0.2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInUp;">
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <span class="price-badge {{ VC::BG_P }}">{{ $planName }}</span>
                                     <h3 class="{{ VC::MB4 }} {{ VC::FW600 }}">
                                         {{ $currencySymbol }}{{ $planPrice . ' / ' . __($duration) }}
                                     </h3>
                                     <ul class="list-unstyled my-5 {{ VC::MT3 }}">
                                         @foreach($quotaItems as $item)
-                                            @php $val = data_get($plan ?? [], $item['key'], 0); @endphp
+                                            @php
+ $val = data_get($plan ?? [], $item['key'], 0);
+@endphp
                                             <li>
                                                 <span class="theme-avatar">
                                                     <i class="{{ VC::TI_CC_PLS }}"></i>
@@ -647,12 +647,16 @@ Object.keys(t).forEach(
                                 <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                                     @foreach($methods as $method)
                                         @php
-                                            $enabled   = (data_get($admin_payment_setting ?? [], $method['enabled']) === 'on');
-                                            $hasExtras = true;
-                                            foreach ($method['extra'] as $extraKey) {
-                                                if (empty(data_get($admin_payment_setting ?? [], $extraKey))) { $hasExtras = false; break; }
+                                            try {
+                                                $enabled   = (data_get($admin_payment_setting ?? [], $method['enabled']) === 'on');
+                                                $hasExtras = true;
+                                                foreach ($method['extra'] as $extraKey) {
+                                                    if (empty(data_get($admin_payment_setting ?? [], $extraKey))) { $hasExtras = false; break; }
+                                                }
+                                            } catch (\Throwable $e) {
+                                                \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                             }
-                                        @endphp
+@endphp
                                         @if($enabled && $hasExtras)
                                             <a href="#{{ $method['id'] }}" class="{{ VC::LGI_ACT_NBD }}{{ $method['active'] ? ' active' : '' }}">
                                                 {{ $method['label'] }}
@@ -670,28 +674,32 @@ Object.keys(t).forEach(
                 <div class="col-xl-9">
                     @if (($admin_payment_setting['is_manually_payment_enabled'] ?? 'off') == 'on')
                         <div id="send_request" class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Manually') }}</h5></div>
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Manually') }}</h5></div>
                             <div class="tab-pane {{ (($admin_payment_setting['is_manually_payment_enabled'] ?? 'off') == 'on') ? 'active' : '' }}" id="send_request">
                                 <div class="{{ VC::BD }} p-3 rounded send-request-div">
                                     <p>{{__('Requesting manual payment for the planned amount for the subscriptions plan.')}}</p>
                                 </div>
                                 <div class="{{ VC::CS12 }} my-2 px-2">
-                                    <div class="text-end">
+                                    <div class="{{ VC::TX_END }}">
                                         @if($plan->id !== DatabaseConstants::DEFAULT_PLAN && $plan->id !== $user[UsersConstants::COL_PL])
                                             @if($user[UsersConstants::COL_RP] != $plan->id)
                                                 @php
-                                                    $planRequestSendBaseName     = VW::PLN_RQ.'.request.send';
-                                                    $planRequestSendKebabName    = Str::kebab($planRequestSendBaseName);
-                                                    $planRequestSendResolvedName = Route::has($planRequestSendBaseName)
-                                                        ? $planRequestSendBaseName
-                                                        : (Route::has($planRequestSendKebabName) ? $planRequestSendKebabName : null);
-                                                    $planIdValue                 = isset($plan) && !empty($plan->id) ? $plan->id : null;
-                                                    $encryptedPlanId             = $planIdValue ? Crypt::encrypt($planIdValue) : null;
-                                                    $planRequestSendUrl          = ($planRequestSendResolvedName && $encryptedPlanId) ? route($planRequestSendResolvedName, $encryptedPlanId) : '#';
-                                                    $planRequestSendGuardMsg     = Utility::fetchLinkMessage($lang, VW::PLN_RQ, 'send_plan_request_route_unavailable') ?? 'Send plan request route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $planRequestSendLinkId       = 'plan-request-send-link-'.($planIdValue ?? 'x');
-                                                    $planRequestSendTitle        = __('Send Request');
-                                                @endphp
+                                                    try {
+                                                        $planRequestSendBaseName     = VW::PLN_RQ.'.request.send';
+                                                        $planRequestSendKebabName    = Str::kebab($planRequestSendBaseName);
+                                                        $planRequestSendResolvedName = Route::has($planRequestSendBaseName)
+                                                            ? $planRequestSendBaseName
+                                                            : (Route::has($planRequestSendKebabName) ? $planRequestSendKebabName : null);
+                                                        $planIdValue                 = isset($plan) && !empty($plan->id) ? $plan->id : null;
+                                                        $encryptedPlanId             = $planIdValue ? Crypt::encrypt($planIdValue) : null;
+                                                        $planRequestSendUrl          = ($planRequestSendResolvedName && $encryptedPlanId) ? route($planRequestSendResolvedName, $encryptedPlanId) : '#';
+                                                        $planRequestSendGuardMsg     = Utility::fetchLinkMessage($lang, VW::PLN_RQ, 'send_plan_request_route_unavailable') ?? 'Send plan request route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $planRequestSendLinkId       = 'plan-request-send-link-'.($planIdValue ?? 'x');
+                                                        $planRequestSendTitle        = __('Send Request');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a href="{{ $planRequestSendUrl }}"
                                                 id="{{ $planRequestSendLinkId }}"
                                                 class="{{ VC::BT_PRM }} {{ VC::MB2 }} {{ VC::ME3 }}"
@@ -699,7 +707,7 @@ Object.keys(t).forEach(
                                                 data-bs-toggle="tooltip"
                                                 title="{{ $planRequestSendTitle }}"
                                                 data-url="{{ $planRequestSendUrl }}"
-                                                data-guard-msg="{{ $planRequestSendGuardMsg }}">
+                                                data-guard-msg="{{ base64_encode($planRequestSendGuardMsg) }}">
                                                     <span class="btn-inner--icon">{{ $planRequestSendTitle }}</span>
                                                 </a>
                                                 @push(StacksConstants::ADM_SCR_PG)
@@ -747,17 +755,21 @@ Object.keys(t).forEach(
                                                 @endpush
                                             @else
                                                 @php
-                                                    $planRequestCancelBaseName     = ViewsConstants::PLN_RQ.'.request.cancel';
-                                                    $planRequestCancelKebabName    = Str::kebab($planRequestCancelBaseName);
-                                                    $planRequestCancelResolvedName = Route::has($planRequestCancelBaseName)
-                                                        ? $planRequestCancelBaseName
-                                                        : (Route::has($planRequestCancelKebabName) ? $planRequestCancelKebabName : null);
-                                                    $planRequestCancelUserId       = (isset($user) && !empty($user->id)) ? $user->id : null;
-                                                    $planRequestCancelUrl          = ($planRequestCancelResolvedName && $planRequestCancelUserId) ? route($planRequestCancelResolvedName, $planRequestCancelUserId) : '#';
-                                                    $planRequestCancelGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PLN_RQ, 'cancel_plan_request_route_unavailable') ?? 'Cancel plan request route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $planRequestCancelLinkId       = 'plan-request-cancel-link-'.($planRequestCancelUserId ?? 'x');
-                                                    $planRequestCancelTitle        = __('Cancel Request');
-                                                @endphp
+                                                    try {
+                                                        $planRequestCancelBaseName     = ViewsConstants::PLN_RQ.'.request.cancel';
+                                                        $planRequestCancelKebabName    = Str::kebab($planRequestCancelBaseName);
+                                                        $planRequestCancelResolvedName = Route::has($planRequestCancelBaseName)
+                                                            ? $planRequestCancelBaseName
+                                                            : (Route::has($planRequestCancelKebabName) ? $planRequestCancelKebabName : null);
+                                                        $planRequestCancelUserId       = (isset($user) && !empty($user->id)) ? $user->id : null;
+                                                        $planRequestCancelUrl          = ($planRequestCancelResolvedName && $planRequestCancelUserId) ? route($planRequestCancelResolvedName, $planRequestCancelUserId) : '#';
+                                                        $planRequestCancelGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PLN_RQ, 'cancel_plan_request_route_unavailable') ?? 'Cancel plan request route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $planRequestCancelLinkId       = 'plan-request-cancel-link-'.($planRequestCancelUserId ?? 'x');
+                                                        $planRequestCancelTitle        = __('Cancel Request');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a href="{{ $planRequestCancelUrl }}"
                                                 id="{{ $planRequestCancelLinkId }}"
                                                 class="btn btn-danger {{ VC::MB2 }} {{ VC::ME3 }}"
@@ -765,7 +777,7 @@ Object.keys(t).forEach(
                                                 data-bs-toggle="tooltip"
                                                 title="{{ $planRequestCancelTitle }}"
                                                 data-url="{{ $planRequestCancelUrl }}"
-                                                data-guard-msg="{{ $planRequestCancelGuardMsg }}">
+                                                data-guard-msg="{{ base64_encode($planRequestCancelGuardMsg) }}">
                                                     <span class="btn-inner--icon">{{ $planRequestCancelTitle }}</span>
                                                 </a>
                                                 @push(StacksConstants::ADM_SCR_PG)
@@ -820,18 +832,22 @@ Object.keys(t).forEach(
                     @endif
                     @if (($admin_payment_setting['is_bank_transfer_enabled'] ?? 'off') == 'on' && !empty($admin_payment_setting['bank_details']))
                         <div id="bank_payment" class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Bank Transfer') }}</h5></div>
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Bank Transfer') }}</h5></div>
                             <div class="tab-pane {{ ((($admin_payment_setting['is_bank_transfer_enabled'] ?? 'off') == 'on') && !empty($admin_payment_setting['bank_details'])) ? 'active' : '' }}" id="bank_payment">
                                 @php
-                                    $bankPayBaseName     = ViewsConstants::PLN.'.pay.with.bank';
-                                    $bankPayKebabName    = Str::kebab($bankPayBaseName);
-                                    $bankPayResolvedName = Route::has($bankPayBaseName)
-                                        ? $bankPayBaseName
-                                        : (Route::has($bankPayKebabName) ? $bankPayKebabName : null);
-                                    $bankPayUrl          = $bankPayResolvedName ? route($bankPayResolvedName) : '#';
-                                    $bankPayGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PLN, 'pay_with_bank_route_unavailable') ?? 'Pay with bank route is unavailable. Please contact technical support or your domain administrator.';
-                                    $bankPayFormId       = 'bank-payment-form';
-                                @endphp
+                                    try {
+                                        $bankPayBaseName     = ViewsConstants::PLN.'.pay.with.bank';
+                                        $bankPayKebabName    = Str::kebab($bankPayBaseName);
+                                        $bankPayResolvedName = Route::has($bankPayBaseName)
+                                            ? $bankPayBaseName
+                                            : (Route::has($bankPayKebabName) ? $bankPayKebabName : null);
+                                        $bankPayUrl          = $bankPayResolvedName ? route($bankPayResolvedName) : '#';
+                                        $bankPayGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PLN, 'pay_with_bank_route_unavailable') ?? 'Pay with bank route is unavailable. Please contact technical support or your domain administrator.';
+                                        $bankPayFormId       = 'bank-payment-form';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <form role="form"
                                     action="{{ $bankPayUrl }}"
                                     method="post"
@@ -839,7 +855,7 @@ Object.keys(t).forEach(
                                     id="{{ $bankPayFormId }}"
                                     enctype="multipart/form-data"
                                     data-url="{{ $bankPayUrl }}"
-                                    data-guard-msg="{{ $bankPayGuardMsg }}">
+                                    data-guard-msg="{{ base64_encode($bankPayGuardMsg) }}">
                                     @csrf
                                     @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
@@ -886,13 +902,13 @@ Object.keys(t).forEach(
                                     @endpush
                                     <div class="{{ VC::BD }} p-3 rounded bank-payment-div">
                                         <div class="{{ VC::RW }}">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <div class="custom-radio">
                                                     <label class="font-16 font-bold">{{ __('Bank Details') }} :</label>
                                                 </div>
                                                 <p class="{{ VC::MB0 }} pt-1 {{ VC::TXSM }}">{!! $admin_payment_setting['bank_details'] !!}</p>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 {{ Form::label('payment_receipt', __('Payment Receipt'), ['class' => VC::FM_LB]) }}
                                                 <div class="choose-file {{ VC::FM_G }}">
                                                     <input type="file" name="payment_receipt" id="image" class="{{ VC::FM_CT }}">
@@ -915,15 +931,17 @@ Object.keys(t).forEach(
                                                 </div>
                                             </div>
                                         </div>
-                                        @php $currency = $admin_payment_setting['currency_symbol'] ?? '$'; @endphp
+                                        @php
+ $currency = $admin_payment_setting['currency_symbol'] ?? '$';
+@endphp
                                         <div class="{{ VC::RW }}">
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <div class="custom-radio">
                                                     <label class="font-16 font-bold">{{ __('Plan Price') }} :</label>
                                                     {{ $currency }}{{ $plan[PlansConstants::COL_PC] }}
                                                 </div>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="{{ VC::C6 }}">
                                                 <div class="custom-radio">
                                                     <label class="font-16 font-bold">{{ __('Net Amount') }} : </label>
                                                     <span class="final-price">{{ $currency }}{{ $plan[PlansConstants::COL_PC] }}</span>
@@ -933,7 +951,7 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                     <div class="{{ VC::CS12 }} my-2 px-2">
-                                        <div class="text-end">
+                                        <div class="{{ VC::TX_END }}">
                                             <input type="hidden" name="plan_id" value="{{ Crypt::encrypt($plan->id) }}">
                                             <input type="submit" value="{{ __('Pay Now') }}" class="{{ VC::BT_PRM }} mb-2 {{ VC::ME3 }}">
                                         </div>
@@ -944,25 +962,29 @@ Object.keys(t).forEach(
                     @endif
                     @if (($admin_payment_setting['is_stripe_enabled'] ?? 'off') == 'on' && !empty($admin_payment_setting['stripe_key']) && !empty($admin_payment_setting['stripe_secret']))
                         <div id="stripe_payment" class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Stripe') }}</h5></div>
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Stripe') }}</h5></div>
                             <div class="tab-pane {{ ((($admin_payment_setting['is_stripe_enabled'] ?? 'off') == 'on') && !empty($admin_payment_setting['stripe_key']) && !empty($admin_payment_setting['stripe_secret'])) ? 'active' : '' }}" id="stripe_payment">
                                 @php
-                                    $stripePostBaseName     = 'stripe.post';
-                                    $stripePostKebabName    = Str::kebab($stripePostBaseName);
-                                    $stripePostResolvedName = Route::has($stripePostBaseName)
-                                        ? $stripePostBaseName
-                                        : (Route::has($stripePostKebabName) ? $stripePostKebabName : null);
-                                    $stripePostUrl          = $stripePostResolvedName ? route($stripePostResolvedName) : '#';
-                                    $stripePostGuardMsg     = Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'stripe', 'stripe_plan_payment_route_unavailable') ?? 'Stripe payment route for plans is unavailable. Please contact technical support or your domain administrator.';
-                                    $stripePostFormId       = 'payment-form';
-                                @endphp
+                                    $stripePostBaseName     ??= 'stripe.post';
+                                    try {
+                                        $stripePostKebabName    = Str::kebab($stripePostBaseName);
+                                        $stripePostResolvedName = Route::has($stripePostBaseName)
+                                            ? $stripePostBaseName
+                                            : (Route::has($stripePostKebabName) ? $stripePostKebabName : null);
+                                        $stripePostUrl          = $stripePostResolvedName ? route($stripePostResolvedName) : '#';
+                                        $stripePostGuardMsg     = Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'stripe', 'stripe_plan_payment_route_unavailable') ?? 'Stripe payment route for plans is unavailable. Please contact technical support or your domain administrator.';
+                                        $stripePostFormId       = 'payment-form';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <form role="form"
                                     action="{{ $stripePostUrl }}"
                                     method="post"
                                     class="require-validation"
                                     id="{{ $stripePostFormId }}"
                                     data-url="{{ $stripePostUrl }}"
-                                    data-guard-msg="{{ $stripePostGuardMsg }}">
+                                    data-guard-msg="{{ base64_encode($stripePostGuardMsg) }}">
                                     @csrf
                                     @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
@@ -1050,7 +1072,7 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                     <div class="{{ VC::CS12 }} my-2 px-2">
-                                        <div class="text-end">
+                                        <div class="{{ VC::TX_END }}">
                                             <input type="hidden" name="plan_id" value="{{ Crypt::encrypt($plan->id) }}">
                                             <input type="submit" value="{{ __('Pay Now') }}" class="{{ VC::BT_PRM }} mb-2 {{ VC::ME3 }}">
                                         </div>
@@ -1061,18 +1083,22 @@ Object.keys(t).forEach(
                     @endif
                     @if (isset($admin_payment_setting['is_skrill_enabled']) && $admin_payment_setting['is_skrill_enabled'] == 'on')
                         <div id="skrill_payment" class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __('Skrill') }}</h5></div>
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __('Skrill') }}</h5></div>
                             <div class="tab-pane" id="skrill_payment">
                                 @php
-                                    $skrillPayBaseName     = ViewsConstants::PLN.'.pay.with.skrill';
-                                    $skrillPayKebabName    = Str::kebab($skrillPayBaseName);
-                                    $skrillPayResolvedName = Route::has($skrillPayBaseName)
-                                        ? $skrillPayBaseName
-                                        : (Route::has($skrillPayKebabName) ? $skrillPayKebabName : null);
-                                    $skrillPayUrl          = $skrillPayResolvedName ? route($skrillPayResolvedName) : '#';
-                                    $skrillPayGuardMsg     = Utility::fetchLinkMessage($lang, 'skrill', 'pay_with_skrill_route_unavailable') ?? 'Plan payment with skrill route is unavailable. Please contact technical support or your domain administrator.';
-                                    $skrillPayFormId       = 'skrill-payment-form';
-                                @endphp
+                                    try {
+                                        $skrillPayBaseName     = ViewsConstants::PLN.'.pay.with.skrill';
+                                        $skrillPayKebabName    = Str::kebab($skrillPayBaseName);
+                                        $skrillPayResolvedName = Route::has($skrillPayBaseName)
+                                            ? $skrillPayBaseName
+                                            : (Route::has($skrillPayKebabName) ? $skrillPayKebabName : null);
+                                        $skrillPayUrl          = $skrillPayResolvedName ? route($skrillPayResolvedName) : '#';
+                                        $skrillPayGuardMsg     = Utility::fetchLinkMessage($lang, 'skrill', 'pay_with_skrill_route_unavailable') ?? 'Plan payment with skrill route is unavailable. Please contact technical support or your domain administrator.';
+                                        $skrillPayFormId       = 'skrill-payment-form';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <form role="form"
                                     action="{{ $skrillPayUrl }}"
                                     method="post"
@@ -1080,7 +1106,7 @@ Object.keys(t).forEach(
                                     id="{{ $skrillPayFormId }}"
                                     accept-charset="UTF-8"
                                     data-url="{{ $skrillPayUrl }}"
-                                    data-guard-msg="{{ $skrillPayGuardMsg }}">
+                                    data-guard-msg="{{ base64_encode($skrillPayGuardMsg) }}">
                                     @csrf
                                     @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
@@ -1128,14 +1154,18 @@ Object.keys(t).forEach(
                                     <input type="hidden" name="id" value="{{ date('Y-m-d') }}-{{ strtotime(date('Y-m-d H:i:s')) }}-payatm">
                                     <input type="hidden" name="order_id" value="{{ str_pad(!empty($order->id) ? $order->id + 1 : 0 + 1, 4, '100', STR_PAD_LEFT) }}">
                                     @php
-                                        $skrill_data = [
-                                            'transaction_id' => md5(date('Y-m-d') . strtotime('Y-m-d H:i:s') . 'user_id'),
-                                            'user_id' => 'user_id',
-                                            'amount' => 'amount',
-                                            'currency' => 'currency',
-                                        ];
-                                        session()->put('skrill_data', $skrill_data);
-                                    @endphp
+                                        try {
+                                            $skrill_data = [
+                                                'transaction_id' => md5(date('Y-m-d') . strtotime('Y-m-d H:i:s') . 'user_id'),
+                                                'user_id' => 'user_id',
+                                                'amount' => 'amount',
+                                                'currency' => 'currency',
+                                            ];
+                                            session()->put('skrill_data', $skrill_data);
+                                        } catch (\Throwable $e) {
+                                            \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <input type="hidden" name="plan_id" value="{{ Crypt::encrypt($plan->id) }}">
                                     <input type="hidden" name="total_price" id="skrill_total_price" value="{{ $plan[PlansConstants::COL_PC] }}" class="{{ VC::FM_CT }}">
                                     <div class="{{ VC::BD }} p-3 {{ VC::MB3 }} rounded">
@@ -1156,7 +1186,7 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                     <div class="{{ VC::CS12 }} my-2 px-2">
-                                        <div class="text-end">
+                                        <div class="{{ VC::TX_END }}">
                                             <button class="{{ VC::BT_PRM }} mb-2 {{ VC::ME3 }}" id="pay_with_skrill" type="submit">
                                                 {{ __('Pay Now') }}
                                             </button>
@@ -1173,22 +1203,28 @@ Object.keys(t).forEach(
                             && !empty($admin_payment_setting['payfast_signature'])
                             && !empty($admin_payment_setting['payfast_mode']))
                             <div id="payfast_payment" class="{{ VC::CD }}">
-                                <div class="card-header"><h5>{{ __('Payfast') }}</h5></div>
-                                @php $pfHost = $admin_payment_setting['payfast_mode'] == 'sandbox' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za'; @endphp
+                                <div class="{{ VC::CD_HD }}"><h5>{{ __('Payfast') }}</h5></div>
+                                @php
+ $pfHost = $admin_payment_setting['payfast_mode'] == 'sandbox' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+@endphp
                                 <div class="tab-pane {{ 'active' }}">
                                     @php
-                                        $pfHostValue        = isset($pfHost) && !empty($pfHost) ? $pfHost : null;
-                                        $payfastActionUrl   = $pfHostValue ? ('https://'.$pfHostValue.'/eng/process') : '#';
-                                        $payfastGuardMsg    = Utility::fetchLinkMessage($lang, 'payfast', 'payfast_process_route_unavailable') ?? 'PayFast plan payment route is unavailable. Please contact technical support or your domain administrator.';
-                                        $payfastFormId      = 'payfast-form';
-                                    @endphp
+                                        try {
+                                            $pfHostValue        = isset($pfHost) && !empty($pfHost) ? $pfHost : null;
+                                            $payfastActionUrl   = $pfHostValue ? ('https://'.$pfHostValue.'/eng/process') : '#';
+                                            $payfastGuardMsg    = Utility::fetchLinkMessage($lang, 'payfast', 'payfast_process_route_unavailable') ?? 'PayFast plan payment route is unavailable. Please contact technical support or your domain administrator.';
+                                            $payfastFormId      = 'payfast-form';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <form role="form"
                                         action="{{ $payfastActionUrl }}"
                                         method="post"
                                         class="require-validation"
                                         id="{{ $payfastFormId }}"
                                         data-url="{{ $payfastActionUrl }}"
-                                        data-guard-msg="{{ $payfastGuardMsg }}">
+                                        data-guard-msg="{{ base64_encode($payfastGuardMsg) }}">
                                         @csrf
                                         @push(StacksConstants::ADM_SCR_PG)
                                             <script defer>
@@ -1252,7 +1288,7 @@ Object.keys(t).forEach(
                                         </div>
                                         <div id="get-payfast-inputs"></div>
                                         <div class="{{ VC::CS12 }} my-2 px-2">
-                                            <div class="text-end">
+                                            <div class="{{ VC::TX_END }}">
                                                 <input type="hidden" name="plan_id" id="plan_id" value="{{ Crypt::encrypt($plan->id) }}">
                                                 <input type="submit" value="{{ __('Pay Now') }}" id="payfast-get-status" class="{{ VC::BT_PRM }} mb-2 {{ VC::ME3 }}">
                                             </div>
@@ -1263,289 +1299,297 @@ Object.keys(t).forEach(
                         @endif
                     @endif
                     @php
-                        $defaultFormClass = 'w3-container w3-display-middle w3-card-4';
-                        $couponGateways = [
-                            [
-                                'cond'       => (($admin_payment_setting['is_paypal_enabled'] ?? 'off') == 'on')
-                                                && !empty($admin_payment_setting['paypal_client_id'])
-                                                && !empty($admin_payment_setting['paypal_secret_key']),
-                                'key'        => 'paypal',
-                                'title'      => 'Paypal',
-                                'action'     => route(VW::PLN.'.pay.with.paypal'),
-                                'formId'     => 'paypal-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_paystack_enabled']) && $admin_payment_setting['is_paystack_enabled'] == 'on'),
-                                'key'        => 'paystack',
-                                'title'      => 'Paystack',
-                                'action'     => route(VW::PLN.'.pay.with.paystack'),
-                                'formId'     => 'paystack-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'button',
-                                'submitId'   => 'pay_with_paystack',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_flutterwave_enabled']) && $admin_payment_setting['is_flutterwave_enabled'] == 'on'),
-                                'key'        => 'flutterwave',
-                                'title'      => 'Flutterwave',
-                                'action'     => route(VW::PLN.'.pay.with.flutterwave'),
-                                'formId'     => 'flutterwave-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'button',
-                                'submitId'   => 'pay_with_flutterwave',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_razorpay_enabled']) && $admin_payment_setting['is_razorpay_enabled'] == 'on'),
-                                'key'        => 'razorpay',
-                                'title'      => 'Razorpay',
-                                'action'     => route(VW::PLN.'.pay.with.razorpay'),
-                                'formId'     => 'razorpay-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'button',
-                                'submitId'   => 'pay_with_razorpay',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_mercado_enabled']) && $admin_payment_setting['is_mercado_enabled'] == 'on'),
-                                'key'        => 'mercado',
-                                'title'      => 'Mercado Pago',
-                                'action'     => route(VW::PLN.'.pay.with.mercado'),
-                                'formId'     => 'mercado-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => 'pay_with_mercado',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_paytm_enabled']) && $admin_payment_setting['is_paytm_enabled'] == 'on'),
-                                'key'        => 'paytm',
-                                'title'      => 'Paytm',
-                                'action'     => route(VW::PLN.'.pay.with.paytm'),
-                                'formId'     => 'paytm-payment-form',
-                                'formClass'  => 'require-validation',
-                                'submitType' => 'submit',
-                                'submitId'   => 'pay_with_paytm',
-                                'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC]],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_mollie_enabled']) && $admin_payment_setting['is_mollie_enabled'] == 'on'),
-                                'key'        => 'mollie',
-                                'title'      => 'Mollie',
-                                'action'     => route(VW::PLN.'.pay.with.mollie'),
-                                'formId'     => 'mollie-payment-form',
-                                'formClass'  => 'require-validation',
-                                'submitType' => 'submit',
-                                'submitId'   => 'pay_with_mollie',
-                                'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC]],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_coingate_enabled']) && $admin_payment_setting['is_coingate_enabled'] == 'on'),
-                                'key'        => 'coingate',
-                                'title'      => 'Coingate',
-                                'action'     => route(VW::PLN.'.pay.with.coingate'),
-                                'formId'     => 'coingate-payment-form',
-                                'formClass'  => 'require-validation',
-                                'submitType' => 'submit',
-                                'submitId'   => 'pay_with_coingate',
-                                'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC], 'counpon' => ''],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_paymentwall_enabled']) && $admin_payment_setting['is_paymentwall_enabled'] == 'on'),
-                                'key'        => 'paymentwall',
-                                'title'      => 'Paymentwall',
-                                'action'     => route(VW::PLN.'.paymentwallpayment'),
-                                'formId'     => 'paymentwall-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => 'pay_with_paymentwall',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_toyyibpay_enabled']) && $admin_payment_setting['is_toyyibpay_enabled'] == 'on'),
-                                'key'        => 'toyyibpay',
-                                'title'      => 'Toyyibpay',
-                                'action'     => route(VW::PLN.'.toyyibpaypayment'),
-                                'formId'     => 'toyyibpay-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_iyzipay_enabled']) && $admin_payment_setting['is_iyzipay_enabled'] == 'on'),
-                                'key'        => 'iyzipay',
-                                'title'      => 'Iyzipay',
-                                'action'     => route('iyzipay.payment.init'),
-                                'formId'     => 'iyzipay-payment-form',
-                                'formClass'  => 'require-validation',
-                                'submitType' => 'submit',
-                                'submitId'   => 'payfast-get-status',
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_sspay_enabled']) && $admin_payment_setting['is_sspay_enabled'] == 'on'),
-                                'key'        => 'sspay',
-                                'title'      => 'SSPay',
-                                'action'     => route(VW::PLN.'.sspaypayment'),
-                                'formId'     => 'sspay-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_paytab_enabled']) && $admin_payment_setting['is_paytab_enabled'] == 'on'),
-                                'key'        => 'paytab',
-                                'title'      => 'PayTab',
-                                'action'     => route(VW::PLN.'.pay.with.paytab'),
-                                'formId'     => 'paytab-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_benefit_enabled']) && $admin_payment_setting['is_benefit_enabled'] == 'on'),
-                                'key'        => 'benefit',
-                                'title'      => 'Benefit',
-                                'action'     => route(VW::PLN.'.pay.with.benefit'),
-                                'formId'     => 'benefit-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_cashfree_enabled']) && $admin_payment_setting['is_cashfree_enabled'] == 'on'),
-                                'key'        => 'cashfree',
-                                'title'      => 'Cashfree',
-                                'action'     => route(VW::PLN.'.pay.with.cashfree'),
-                                'formId'     => 'cashfree-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_aamarpay_enabled']) && $admin_payment_setting['is_aamarpay_enabled'] == 'on'),
-                                'key'        => 'aamarpay',
-                                'title'      => 'AamarPay',
-                                'action'     => route(VW::PLN.'.pay.with.aamarpay'),
-                                'formId'     => 'aamarpay-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_paytr_enabled']) && $admin_payment_setting['is_paytr_enabled'] == 'on'),
-                                'key'        => 'paytr',
-                                'title'      => 'PayTR',
-                                'action'     => route(VW::PLN.'.pay.with.paytr', $plan->id),
-                                'formId'     => 'paytr-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_yookassa_enabled']) && $admin_payment_setting['is_yookassa_enabled'] == 'on'),
-                                'key'        => 'yookassa',
-                                'title'      => 'Yookassa',
-                                'action'     => route(VW::PLN.'.pay.with.yookassa', $plan->id),
-                                'formId'     => 'yookassa-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_midtrans_enabled']) && $admin_payment_setting['is_midtrans_enabled'] == 'on'),
-                                'key'        => 'midtrans',
-                                'title'      => 'Midtrans',
-                                'action'     => route(VW::PLN.'.pay.with.midtrans', $plan->id),
-                                'formId'     => 'midtrans-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                            [
-                                'cond'       => (isset($admin_payment_setting['is_xendit_enabled']) && $admin_payment_setting['is_xendit_enabled'] == 'on'),
-                                'key'        => 'xendit',
-                                'title'      => 'Xendit',
-                                'action'     => route(VW::PLN.'.pay.with.xendit', $plan->id),
-                                'formId'     => 'xendit-payment-form',
-                                'formClass'  => $defaultFormClass,
-                                'submitType' => 'submit',
-                                'submitId'   => null,
-                                'extraHidden'=> [],
-                            ],
-                        ];
-                        $activeKey = null;
-                        if (($admin_payment_setting['is_stripe_enabled'] ?? 'off') !== 'on')
-                            foreach ($couponGateways as $g)
-                                if ($g['key'] === 'paypal' && $g['cond']) { $activeKey = 'paypal'; break; }
-                        if (!$activeKey)
-                            foreach ($couponGateways as $g)
-                                if ($g['cond']) { $activeKey = $g['key']; break; }
-                    @endphp
+                        $defaultFormClass ??= 'w3-container w3-display-middle w3-card-4';
+                        try {
+                            $couponGateways = [
+                                [
+                                    'cond'       => (($admin_payment_setting['is_paypal_enabled'] ?? 'off') == 'on')
+                                                    && !empty($admin_payment_setting['paypal_client_id'])
+                                                    && !empty($admin_payment_setting['paypal_secret_key']),
+                                    'key'        => 'paypal',
+                                    'title'      => 'Paypal',
+                                    'action'     => route(VW::PLN.'.pay.with.paypal'),
+                                    'formId'     => 'paypal-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_paystack_enabled']) && $admin_payment_setting['is_paystack_enabled'] == 'on'),
+                                    'key'        => 'paystack',
+                                    'title'      => 'Paystack',
+                                    'action'     => route(VW::PLN.'.pay.with.paystack'),
+                                    'formId'     => 'paystack-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'button',
+                                    'submitId'   => 'pay_with_paystack',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_flutterwave_enabled']) && $admin_payment_setting['is_flutterwave_enabled'] == 'on'),
+                                    'key'        => 'flutterwave',
+                                    'title'      => 'Flutterwave',
+                                    'action'     => route(VW::PLN.'.pay.with.flutterwave'),
+                                    'formId'     => 'flutterwave-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'button',
+                                    'submitId'   => 'pay_with_flutterwave',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_razorpay_enabled']) && $admin_payment_setting['is_razorpay_enabled'] == 'on'),
+                                    'key'        => 'razorpay',
+                                    'title'      => 'Razorpay',
+                                    'action'     => route(VW::PLN.'.pay.with.razorpay'),
+                                    'formId'     => 'razorpay-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'button',
+                                    'submitId'   => 'pay_with_razorpay',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_mercado_enabled']) && $admin_payment_setting['is_mercado_enabled'] == 'on'),
+                                    'key'        => 'mercado',
+                                    'title'      => 'Mercado Pago',
+                                    'action'     => route(VW::PLN.'.pay.with.mercado'),
+                                    'formId'     => 'mercado-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'pay_with_mercado',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_paytm_enabled']) && $admin_payment_setting['is_paytm_enabled'] == 'on'),
+                                    'key'        => 'paytm',
+                                    'title'      => 'Paytm',
+                                    'action'     => route(VW::PLN.'.pay.with.paytm'),
+                                    'formId'     => 'paytm-payment-form',
+                                    'formClass'  => 'require-validation',
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'pay_with_paytm',
+                                    'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC]],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_mollie_enabled']) && $admin_payment_setting['is_mollie_enabled'] == 'on'),
+                                    'key'        => 'mollie',
+                                    'title'      => 'Mollie',
+                                    'action'     => route(VW::PLN.'.pay.with.mollie'),
+                                    'formId'     => 'mollie-payment-form',
+                                    'formClass'  => 'require-validation',
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'pay_with_mollie',
+                                    'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC]],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_coingate_enabled']) && $admin_payment_setting['is_coingate_enabled'] == 'on'),
+                                    'key'        => 'coingate',
+                                    'title'      => 'Coingate',
+                                    'action'     => route(VW::PLN.'.pay.with.coingate'),
+                                    'formId'     => 'coingate-payment-form',
+                                    'formClass'  => 'require-validation',
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'pay_with_coingate',
+                                    'extraHidden'=> ['total_price' => $plan[\PlansConstants::COL_PC], 'counpon' => ''],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_paymentwall_enabled']) && $admin_payment_setting['is_paymentwall_enabled'] == 'on'),
+                                    'key'        => 'paymentwall',
+                                    'title'      => 'Paymentwall',
+                                    'action'     => route(VW::PLN.'.paymentwallpayment'),
+                                    'formId'     => 'paymentwall-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'pay_with_paymentwall',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_toyyibpay_enabled']) && $admin_payment_setting['is_toyyibpay_enabled'] == 'on'),
+                                    'key'        => 'toyyibpay',
+                                    'title'      => 'Toyyibpay',
+                                    'action'     => route(VW::PLN.'.toyyibpaypayment'),
+                                    'formId'     => 'toyyibpay-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_iyzipay_enabled']) && $admin_payment_setting['is_iyzipay_enabled'] == 'on'),
+                                    'key'        => 'iyzipay',
+                                    'title'      => 'Iyzipay',
+                                    'action'     => route('iyzipay.payment.init'),
+                                    'formId'     => 'iyzipay-payment-form',
+                                    'formClass'  => 'require-validation',
+                                    'submitType' => 'submit',
+                                    'submitId'   => 'payfast-get-status',
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_sspay_enabled']) && $admin_payment_setting['is_sspay_enabled'] == 'on'),
+                                    'key'        => 'sspay',
+                                    'title'      => 'SSPay',
+                                    'action'     => route(VW::PLN.'.sspaypayment'),
+                                    'formId'     => 'sspay-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_paytab_enabled']) && $admin_payment_setting['is_paytab_enabled'] == 'on'),
+                                    'key'        => 'paytab',
+                                    'title'      => 'PayTab',
+                                    'action'     => route(VW::PLN.'.pay.with.paytab'),
+                                    'formId'     => 'paytab-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_benefit_enabled']) && $admin_payment_setting['is_benefit_enabled'] == 'on'),
+                                    'key'        => 'benefit',
+                                    'title'      => 'Benefit',
+                                    'action'     => route(VW::PLN.'.pay.with.benefit'),
+                                    'formId'     => 'benefit-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_cashfree_enabled']) && $admin_payment_setting['is_cashfree_enabled'] == 'on'),
+                                    'key'        => 'cashfree',
+                                    'title'      => 'Cashfree',
+                                    'action'     => route(VW::PLN.'.pay.with.cashfree'),
+                                    'formId'     => 'cashfree-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_aamarpay_enabled']) && $admin_payment_setting['is_aamarpay_enabled'] == 'on'),
+                                    'key'        => 'aamarpay',
+                                    'title'      => 'AamarPay',
+                                    'action'     => route(VW::PLN.'.pay.with.aamarpay'),
+                                    'formId'     => 'aamarpay-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_paytr_enabled']) && $admin_payment_setting['is_paytr_enabled'] == 'on'),
+                                    'key'        => 'paytr',
+                                    'title'      => 'PayTR',
+                                    'action'     => route(VW::PLN.'.pay.with.paytr', $plan->id),
+                                    'formId'     => 'paytr-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_yookassa_enabled']) && $admin_payment_setting['is_yookassa_enabled'] == 'on'),
+                                    'key'        => 'yookassa',
+                                    'title'      => 'Yookassa',
+                                    'action'     => route(VW::PLN.'.pay.with.yookassa', $plan->id),
+                                    'formId'     => 'yookassa-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_midtrans_enabled']) && $admin_payment_setting['is_midtrans_enabled'] == 'on'),
+                                    'key'        => 'midtrans',
+                                    'title'      => 'Midtrans',
+                                    'action'     => route(VW::PLN.'.pay.with.midtrans', $plan->id),
+                                    'formId'     => 'midtrans-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                                [
+                                    'cond'       => (isset($admin_payment_setting['is_xendit_enabled']) && $admin_payment_setting['is_xendit_enabled'] == 'on'),
+                                    'key'        => 'xendit',
+                                    'title'      => 'Xendit',
+                                    'action'     => route(VW::PLN.'.pay.with.xendit', $plan->id),
+                                    'formId'     => 'xendit-payment-form',
+                                    'formClass'  => $defaultFormClass,
+                                    'submitType' => 'submit',
+                                    'submitId'   => null,
+                                    'extraHidden'=> [],
+                                ],
+                            ];
+                            $activeKey = null;
+                            if (($admin_payment_setting['is_stripe_enabled'] ?? 'off') !== 'on')
+                                foreach ($couponGateways as $g)
+                                    if ($g['key'] === 'paypal' && $g['cond']) { $activeKey = 'paypal'; break; }
+                            if (!$activeKey)
+                                foreach ($couponGateways as $g)
+                                    if ($g['cond']) { $activeKey = $g['key']; break; }
+                        } catch (\Throwable $e) {
+                            \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     @foreach ($couponGateways as $gw)
                         @continue(!$gw['cond'])
                         <div id="{{ $gw['key'] }}_payment" class="{{ VC::CD }}">
-                            <div class="card-header"><h5>{{ __($gw['title']) }}</h5></div>
+                            <div class="{{ VC::CD_HD }}"><h5>{{ __($gw['title']) }}</h5></div>
                             <div class="tab-pane {{ $activeKey === $gw['key'] ? 'active' : '' }}" id="{{ $gw['key'] }}_payment">
                                 @php
-                                    $gatewayKey                    = e(data_get($gw ?? [], 'key', 'gateway'));
-                                    $gatewayFormId                 = e(data_get($gw ?? [], 'formId', 'gateway-payment-form'));
-                                    $gatewayFormClass              = e(data_get($gw ?? [], 'formClass', 'require-validation'));
-                                    $gatewayProvidedAction         = data_get($gw ?? [], 'action', '#');
-                                    $routeNameByKey = [
-                                        'paypal'      => ViewsConstants::PLN.'.pay.with.paypal',
-                                        'paystack'    => ViewsConstants::PLN.'.pay.with.paystack',
-                                        'flutterwave' => ViewsConstants::PLN.'.pay.with.flutterwave',
-                                        'razorpay'    => ViewsConstants::PLN.'.pay.with.razorpay',
-                                        'mercado'     => ViewsConstants::PLN.'.pay.with.mercado',
-                                        'paytm'       => ViewsConstants::PLN.'.pay.with.paytm',
-                                        'mollie'      => ViewsConstants::PLN.'.pay.with.mollie',
-                                        'coingate'    => ViewsConstants::PLN.'.pay.with.coingate',
-                                        'paymentwall' => ViewsConstants::PLN.'.paymentwallpayment',
-                                        'toyyibpay'   => ViewsConstants::PLN.'.toyyibpaypayment',
-                                        'iyzipay'     => 'iyzipay.payment.init',
-                                        'sspay'       => ViewsConstants::PLN.'.sspaypayment',
-                                        'paytab'      => ViewsConstants::PLN.'.pay.with.paytab',
-                                        'benefit'     => ViewsConstants::PLN.'.pay.with.benefit',
-                                        'cashfree'    => ViewsConstants::PLN.'.pay.with.cashfree',
-                                        'aamarpay'    => ViewsConstants::PLN.'.pay.with.aamarpay',
-                                        'paytr'       => ViewsConstants::PLN.'.pay.with.paytr',
-                                        'yookassa'    => ViewsConstants::PLN.'.pay.with.yookassa',
-                                        'midtrans'    => ViewsConstants::PLN.'.pay.with.midtrans',
-                                        'xendit'      => ViewsConstants::PLN.'.pay.with.xendit',
-                                    ];
+                                    try {
+                                        $gatewayKey                    = e(data_get($gw ?? [], 'key', 'gateway'));
+                                        $gatewayFormId                 = e(data_get($gw ?? [], 'formId', 'gateway-payment-form'));
+                                        $gatewayFormClass              = e(data_get($gw ?? [], 'formClass', 'require-validation'));
+                                        $gatewayProvidedAction         = data_get($gw ?? [], 'action', '#');
+                                        $routeNameByKey = [
+                                            'paypal'      => ViewsConstants::PLN.'.pay.with.paypal',
+                                            'paystack'    => ViewsConstants::PLN.'.pay.with.paystack',
+                                            'flutterwave' => ViewsConstants::PLN.'.pay.with.flutterwave',
+                                            'razorpay'    => ViewsConstants::PLN.'.pay.with.razorpay',
+                                            'mercado'     => ViewsConstants::PLN.'.pay.with.mercado',
+                                            'paytm'       => ViewsConstants::PLN.'.pay.with.paytm',
+                                            'mollie'      => ViewsConstants::PLN.'.pay.with.mollie',
+                                            'coingate'    => ViewsConstants::PLN.'.pay.with.coingate',
+                                            'paymentwall' => ViewsConstants::PLN.'.paymentwallpayment',
+                                            'toyyibpay'   => ViewsConstants::PLN.'.toyyibpaypayment',
+                                            'iyzipay'     => 'iyzipay.payment.init',
+                                            'sspay'       => ViewsConstants::PLN.'.sspaypayment',
+                                            'paytab'      => ViewsConstants::PLN.'.pay.with.paytab',
+                                            'benefit'     => ViewsConstants::PLN.'.pay.with.benefit',
+                                            'cashfree'    => ViewsConstants::PLN.'.pay.with.cashfree',
+                                            'aamarpay'    => ViewsConstants::PLN.'.pay.with.aamarpay',
+                                            'paytr'       => ViewsConstants::PLN.'.pay.with.paytr',
+                                            'yookassa'    => ViewsConstants::PLN.'.pay.with.yookassa',
+                                            'midtrans'    => ViewsConstants::PLN.'.pay.with.midtrans',
+                                            'xendit'      => ViewsConstants::PLN.'.pay.with.xendit',
+                                        ];
 
-                                    $gatewayBaseName               = $routeNameByKey[$gatewayKey] ?? null;
-                                    $gatewayKebabName              = $gatewayBaseName ? Str::kebab($gatewayBaseName) : null;
-                                    $gatewayResolvedName           = ($gatewayBaseName && Route::has($gatewayBaseName))
-                                        ? $gatewayBaseName
-                                        : (($gatewayKebabName && Route::has($gatewayKebabName)) ? $gatewayKebabName : null);
+                                        $gatewayBaseName               = $routeNameByKey[$gatewayKey] ?? null;
+                                        $gatewayKebabName              = $gatewayBaseName ? Str::kebab($gatewayBaseName) : null;
+                                        $gatewayResolvedName           = ($gatewayBaseName && Route::has($gatewayBaseName))
+                                            ? $gatewayBaseName
+                                            : (($gatewayKebabName && Route::has($gatewayKebabName)) ? $gatewayKebabName : null);
 
-                                    $gatewayActionUrl              = $gatewayResolvedName ? ($gatewayProvidedAction ?? '#') : '#';
+                                        $gatewayActionUrl              = $gatewayResolvedName ? ($gatewayProvidedAction ?? '#') : '#';
 
-                                    $gatewayGuardMsg               = Utility::fetchLinkMessage($lang, $gatewayKey, $gatewayKey.'_plan_payment_route_unavailable') ?? ('Pay with '.ucfirst($gatewayKey).' route is unavailable. Please contact technical support or your domain administrator.');
-                                @endphp
+                                        $gatewayGuardMsg               = Utility::fetchLinkMessage($lang, $gatewayKey, $gatewayKey.'_plan_payment_route_unavailable') ?? ('Pay with '.ucfirst($gatewayKey).' route is unavailable. Please contact technical support or your domain administrator.');
+                                    } catch (\Throwable $e) {
+                                        \Log::error('stripe — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <form role="form"
                                     action="{{ $gatewayActionUrl }}"
                                     method="post"
                                     class="{{ $gatewayFormClass }}"
                                     id="{{ $gatewayFormId }}"
                                     data-url="{{ $gatewayActionUrl }}"
-                                    data-guard-msg="{{ $gatewayGuardMsg }}">
+                                    data-guard-msg="{{ base64_encode($gatewayGuardMsg) }}">
                                     @csrf
                                     @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
@@ -1621,7 +1665,7 @@ Object.keys(t).forEach(
                                                     </div>
                                                 </div>
                                                 @if($gw['key'] === 'paystack')
-                                                    <div class="col-12 text-right paymentwall-coupon-tr" style="display: none">
+                                                    <div class="{{ VC::C12 }} {{ VC::TX_RT }} paymentwall-coupon-tr" style="display: none">
                                                         <b>{{__('Coupon Discount')}}</b> : <b class="paymentwall-coupon-price"></b>
                                                     </div>
                                                 @endif
@@ -1629,7 +1673,7 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                     <div class="{{ VC::CS12 }} my-2 px-2">
-                                        <div class="text-end">
+                                        <div class="{{ VC::TX_END }}">
                                             @if(($gw['submitType'] ?? 'submit') === 'button')
                                                 <input type="button" id="{{ $gw['submitId'] }}" value="{{ __('Pay Now') }}" class="{{ VC::BT_PRM }} mb-2 {{ VC::ME3 }}">
                                             @else

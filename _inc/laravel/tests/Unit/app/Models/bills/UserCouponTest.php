@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{UserCoupon, User, Coupon, Order};
 
 class UserCouponTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -32,9 +38,7 @@ class UserCouponTest extends TestCase
 
 		$uc = UserCoupon::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $uc->$field);
-		}
+		$this->assertFillableMatches($data, $uc);
 	}
 
 	/**
@@ -65,10 +69,10 @@ class UserCouponTest extends TestCase
 	{
 		$relation = (new UserCoupon)->userDetail();
 
-		$this->assertInstanceOf(HasOne::class,   $relation);
+		$this->assertInstanceOf(BelongsTo::class,   $relation);
 		$this->assertSame(User::class,           get_class($relation->getRelated()));
-		$this->assertSame('id',                  $relation->getForeignKeyName());
-		$this->assertSame('user',                $relation->getLocalKeyName());
+		$this->assertSame('user',                  $relation->getForeignKeyName());
+		$this->assertSame('id',                $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -80,9 +84,9 @@ class UserCouponTest extends TestCase
 	{
 		$relation = (new UserCoupon)->couponDetail();
 
-		$this->assertInstanceOf(HasOne::class,   $relation);
+		$this->assertInstanceOf(BelongsTo::class,   $relation);
 		$this->assertSame(Coupon::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                  $relation->getForeignKeyName());
-		$this->assertSame('coupon',              $relation->getLocalKeyName());
+		$this->assertSame('coupon',                  $relation->getForeignKeyName());
+		$this->assertSame('id',              $relation->getOwnerKeyName());
 	}
 }

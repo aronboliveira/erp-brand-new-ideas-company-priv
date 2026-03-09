@@ -12,6 +12,11 @@ use App\Models\{Budget, User};
 
 class BudgetTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -88,12 +93,44 @@ class BudgetTest extends TestCase
 	public function period_static_property_is_correct()
 	{
 		$expected = [
-			'monthly'     => 'Monthly',
-			'quarterly'   => 'Quarterly',
-			'half-yearly' => 'Half Yearly',
-			'yearly'      => 'Yearly',
+			'code',
+			'name',
+			'type',
+			'period',
+			'frequency',
+			'from',
+			'start_date',
+			'to',
+			'end_date',
+			'amount',
+			'currency',
+			'exchange_rate',
+			'warn_threshold',
+			'critical_warning_threshold',
+			'status',
+			'submitted_by',
+			'submitted_at',
+			'approved_by',
+			'approved_at',
+			'rejected_by',
+			'rejected_at',
+			'description',
+			'notes',
+			'income_data',
+			'expense_data',
+			'project_id',
+			'contract_id',
+			'company',
+			'branch',
+			'department',
+			'bank_transfers',
+			'transactions',
+			'card_notes',
+			'receipts',
+			'attachments',
+			'metadata',
 		];
-		$this->assertSame($expected, Budget::$period);
+		$this->assertSame($expected, (new Budget())->getFillable());
 	}
 
 	/**
@@ -108,7 +145,7 @@ class BudgetTest extends TestCase
 			'end_date'   => '2025-03-01',
 		]);
 
-		$this->assertSame('Jan-2025 - Mar-2025', $budget->getAvailabilityDate());
+		$this->assertSame('Jan-2025 - Mar-2025', $budget->availability_date);
 	}
 
 	/**
@@ -122,7 +159,7 @@ class BudgetTest extends TestCase
 			'start_date' => '2025-02-15',
 		]);
 
-		$this->assertSame('Feb-2025', $budget->getAvailabilityDate());
+		$this->assertSame('Feb-2025', $budget->availability_date);
 	}
 
 	/**
@@ -136,7 +173,7 @@ class BudgetTest extends TestCase
 			'end_date' => '2025-04-20',
 		]);
 
-		$this->assertSame('Apr-2025', $budget->getAvailabilityDate());
+		$this->assertSame('Apr-2025', $budget->availability_date);
 	}
 
 	/**
@@ -147,7 +184,7 @@ class BudgetTest extends TestCase
 	public function availability_date_is_empty_when_no_dates()
 	{
 		$budget = new Budget();
-		$this->assertSame('', $budget->getAvailabilityDate());
+		$this->assertSame('', $budget->availability_date);
 	}
 
 	/**

@@ -10,7 +10,9 @@ use App\Config\Constants\{
 use App\Enums\{AvailableLang, NotificationTemplateType};
 use App\Models\{Language, User};
 use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\{Builder, Factories\HasFactory, Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\{Carbon, Str};
 use Illuminate\Support\Facades\{Cache, DB, Log};
 
@@ -114,8 +116,7 @@ class NotificationTemplate extends Model
                     $defaults = [DC::DEFAULT_LANG];
                     if (enum_exists(AvailableLang::class)) {
                         try {
-                            /** @var \App\Enums\AvailableLang $ptBr */
-                            $ptBr = AvailableLang::PtBr;
+                                                        $ptBr = AvailableLang::PtBr;
                             $defaults[] = $ptBr->value;
                         } catch (\Throwable $e) {
                             Log::debug(static::class . ' could not load AvailableLang::PtBr', [
@@ -186,53 +187,68 @@ class NotificationTemplate extends Model
 
     public function getIsActiveAttribute(): bool
     {
-        $disabled = (bool) $this->getAttribute(AC::COL_DSB);
-        if ($disabled) {
+        try {
+            $disabled = (bool) $this->getAttribute(AC::COL_DSB);
+            if ($disabled) {
+                return false;
+            }
+
+            $from = $this->getAttribute(AC::COL_AV_FROM);
+
+            if (!$from instanceof Carbon) {
+                try {
+                    $from = Carbon::parse((string) $from);
+                } catch (\Throwable) {
+                    $from = Carbon::now();
+                }
+            }
+
+            return $from->lessThanOrEqualTo(Carbon::now());
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getIsActiveAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return false;
         }
-
-        $from = $this->getAttribute(AC::COL_AV_FROM);
-
-        if (!$from instanceof Carbon) {
-            try {
-                $from = Carbon::parse((string) $from);
-            } catch (\Throwable) {
-                $from = Carbon::now();
-            }
-        }
-
-        return $from->lessThanOrEqualTo(Carbon::now());
     }
 
     public function getTypeEnumAttribute(): NotificationTemplateType
     {
-        return NotificationTemplateType::normalize(
-            (string) ($this->getAttribute('type') ?? '')
-        );
+        try {
+            return NotificationTemplateType::normalize(
+                (string) ($this->getAttribute('type') ?? '')
+            );
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getTypeEnumAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     public function getAvailableLanguagesResolvedAttribute(): array
     {
-        $codes = self::normalizeArrayField(
-            $this->getAttribute(MC::COL_AV_LG)
-        );
-
-        if (empty($codes) || !class_exists(Language::class))
-            return $codes;
         try {
-            $languages = Language::query()
-                ->whereIn('code', $codes)
-                ->orWhereIn('full_name', $codes)
-                ->get(['id', 'code', 'full_name'])
-                ->toArray();
+            $codes = self::normalizeArrayField(
+                $this->getAttribute(MC::COL_AV_LG)
+            );
 
-            return $languages;
+            if (empty($codes) || !class_exists(Language::class))
+                return $codes;
+            try {
+                $languages = Language::query()
+                    ->whereIn('code', $codes)
+                    ->orWhereIn('full_name', $codes)
+                    ->get(['id', 'code', 'full_name'])
+                    ->toArray();
+
+                return $languages;
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to resolve languages', [
+                    'error' => $e->getMessage(),
+                    'codes' => $codes,
+                ]);
+                return $codes;
+            }
         } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to resolve languages', [
-                'error' => $e->getMessage(),
-                'codes' => $codes,
-            ]);
-            return $codes;
+            Log::error(static::class . '::getAvailableLanguagesResolvedAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
     }
 
@@ -259,21 +275,41 @@ class NotificationTemplate extends Model
         string $slug,
         bool $onlyActive = true
     ): ?self {
-        $enum = NotificationTemplateType::normalize($type);
-        $normalizedSlug = Str::slug($slug);
-
-        $cacheKey = sprintf(
-            'notification_template:%s:%s:%s',
-            $enum->value,
-            $normalizedSlug,
-            $onlyActive ? 'active' : 'any'
-        );
-
         try {
-            return Cache::remember(
-                $cacheKey,
-                Carbon::now()->addMinutes(10),
-                function () use ($enum, $normalizedSlug, $onlyActive) {
+            $enum = NotificationTemplateType::normalize($type);
+            $normalizedSlug = Str::slug($slug);
+
+            $cacheKey = sprintf(
+                'notification_template:%s:%s:%s',
+                $enum->value,
+                $normalizedSlug,
+                $onlyActive ? 'active' : 'any'
+            );
+
+            try {
+                return Cache::remember(
+                    $cacheKey,
+                    Carbon::now()->addMinutes(10),
+                    function () use ($enum, $normalizedSlug, $onlyActive) {
+                        $query = static::query()
+                            ->ofType($enum)
+                            ->slug($normalizedSlug);
+
+                        if ($onlyActive) {
+                            $query->active();
+                        }
+
+                        return $query->first();
+                    }
+                );
+            } catch (\Throwable $e) {
+                Log::warning(static::class . ' failed to fetch cached notification template', [
+                    'error' => $e->getMessage(),
+                    'type'  => $enum->value,
+                    'slug'  => $normalizedSlug,
+                ]);
+
+                try {
                     $query = static::query()
                         ->ofType($enum)
                         ->slug($normalizedSlug);
@@ -283,33 +319,17 @@ class NotificationTemplate extends Model
                     }
 
                     return $query->first();
+                } catch (\Throwable $e2) {
+                    Log::error(static::class . ' failed to fetch notification template without cache', [
+                        'error' => $e2->getMessage(),
+                        'type'  => $enum->value,
+                        'slug'  => $normalizedSlug,
+                    ]);
+                    return null;
                 }
-            );
-        } catch (\Throwable $e) {
-            Log::warning(static::class . ' failed to fetch cached notification template', [
-                'error' => $e->getMessage(),
-                'type'  => $enum->value,
-                'slug'  => $normalizedSlug,
-            ]);
-
-            try {
-                $query = static::query()
-                    ->ofType($enum)
-                    ->slug($normalizedSlug);
-
-                if ($onlyActive) {
-                    $query->active();
-                }
-
-                return $query->first();
-            } catch (\Throwable $e2) {
-                Log::error(static::class . ' failed to fetch notification template without cache', [
-                    'error' => $e2->getMessage(),
-                    'type'  => $enum->value,
-                    'slug'  => $normalizedSlug,
-                ]);
-                return null;
             }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::findCachedByTypeAndSlug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 

@@ -1,13 +1,18 @@
 @php
-    $billsCustomDebitNoteBaseRouteName  = ViewsConstants::BIL.'.custom.debit.note';
-    $billsCustomDebitNoteKebabRouteName = Str::kebab($billsCustomDebitNoteBaseRouteName);
-    $billsCustomDebitNoteResolvedName   = Route::has($billsCustomDebitNoteBaseRouteName)
-        ? $billsCustomDebitNoteBaseRouteName
-        : (Route::has($billsCustomDebitNoteKebabRouteName) ? $billsCustomDebitNoteKebabRouteName : null);
-    $billsCustomDebitNoteUrl            = $billsCustomDebitNoteResolvedName ? route($billsCustomDebitNoteResolvedName) : '#';
-    $billsCustomDebitNoteFormId         = 'bills-custom-debit-note-create-form';
-    $billsLangValue                     = isset($lang) ? $lang : Utility::fetchUserLang();
-    $billsCustomDebitNoteGuardMessage   = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'create_custom_debit_note_route_unavailable') ?? 'Create custom debit note route is unavailable. Please contact technical support or your domain administrator.';
+    $fields ??= [];
+    try {
+        $billsCustomDebitNoteBaseRouteName  = ViewsConstants::BIL.'.custom.debit.note';
+        $billsCustomDebitNoteKebabRouteName = Str::kebab($billsCustomDebitNoteBaseRouteName);
+        $billsCustomDebitNoteResolvedName   = Route::has($billsCustomDebitNoteBaseRouteName)
+            ? $billsCustomDebitNoteBaseRouteName
+            : (Route::has($billsCustomDebitNoteKebabRouteName) ? $billsCustomDebitNoteKebabRouteName : null);
+        $billsCustomDebitNoteUrl            = $billsCustomDebitNoteResolvedName ? route($billsCustomDebitNoteResolvedName) : '#';
+        $billsCustomDebitNoteFormId         = 'bills-custom-debit-note-create-form';
+        $billsLangValue                     = isset($lang) ? $lang : Utility::fetchUserLang();
+        $billsCustomDebitNoteGuardMessage   = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'create_custom_debit_note_route_unavailable') ?? 'Create custom debit note route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('debit_notes/custom_create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
@@ -31,7 +36,9 @@
                                 <small class="{{ VC::TXT_MT }}">{{ __('No bills found for this query.') }}</small>
                             @endif
                         @else
-                            @php $__method = $f['type'] === 'textarea' ? 'textarea' : $f['type']; @endphp
+                            @php
+ $__method = $f['type'] === 'textarea' ? 'textarea' : $f['type'];
+@endphp
                             {!! call_user_func([Form::class, $__method], $f['name'], null, $f['attrs']) !!}
                         @endif
                     </div>

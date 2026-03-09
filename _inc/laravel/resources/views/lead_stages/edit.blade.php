@@ -1,25 +1,43 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang        = Utility::fetchUserLang();
-    $hasStage    = !empty($leadStage ?? null) && data_get($leadStage, 'id');
-
-    $updateBase     = VW::LD_STG . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasStage) ? route($updateResolved, $leadStage->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::LD_STG, 'update_route_unavailable')
-                        ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
-
-    $pipelinesIsList = (is_array($pipelines ?? null) && count($pipelines ?? []) > 0)
-        || (($pipelines ?? null) instanceof Collection && $pipelines->isNotEmpty());
+$lang ??= 'en';
+	$hasStage ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$pipelinesIsList ??= false;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasStage = !empty($leadStage ?? null) && data_get($leadStage, 'id');
+		$updateBase = VW::LD_STG . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $hasStage) ? (route($updateResolved, data_get($leadStage ?? null, 'id')) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::LD_STG, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+		$pipelinesIsList = (is_array($pipelines ?? null) && count($pipelines ?? []) > 0) || (($pipelines ?? null) instanceof Collection && $pipelines->isNotEmpty());
+	} catch (\Error $e) {
+		Log::error('Error in lead_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in lead_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in lead_stages/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if($hasStage)
@@ -57,4 +75,3 @@
 @else
     <div class="{{ VC::TXS }} {{ VC::TXT_MT }}">{{ __('Requested stage was not found or is unavailable.') }}</div>
 @endif
-

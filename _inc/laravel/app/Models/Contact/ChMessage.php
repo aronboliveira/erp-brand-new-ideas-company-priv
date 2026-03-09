@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Models\{User};
+use App\Traits\{UsesUuids};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsTo};
 
 class ChMessage extends Model
 {
@@ -12,7 +13,7 @@ class ChMessage extends Model
 
     private const COL_FROM_ID = 'from_id';
     private const COL_TO_ID  = 'to_id';
-    private const COL_MESSAGE = 'message';
+    private const COL_MESSAGE = 'body';
     private const COL_SEEN   = 'seen';
     private const FILLABLE   = [
         self::COL_FROM_ID,
@@ -23,15 +24,13 @@ class ChMessage extends Model
 
     protected $fillable = self::FILLABLE;
 
-    public function from(): HasOne
+    public function from(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', self::COL_FROM_ID);
-        // * consider belongsTo(User::class,self::COL_FROM_ID,'id')
+        return $this->belongsTo(User::class, self::COL_FROM_ID, 'id');
     }
 
-    public function to(): HasOne
+    public function to(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', self::COL_TO_ID);
-        // * consider belongsTo(User::class,self::COL_TO_ID,'id')
+        return $this->belongsTo(User::class, self::COL_TO_ID, 'id');
     }
 }

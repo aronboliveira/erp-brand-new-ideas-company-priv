@@ -1,22 +1,15 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
-
-    $user = Auth::user();
-    $hasUser = (bool) $user;
-    $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
-    $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
-    $hasGetProgressColor = is_callable([Utility::class, 'getProgressColor']);
-    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
+    try {
+$user = Auth::user();
+        $hasUser = (bool) $user;
+        $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
+        $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+        $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+        $hasGetProgressColor = is_callable([Utility::class, 'getProgressColor']);
+        $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
+    } catch (\Throwable $e) {
+        \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -26,12 +19,12 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Goal Tracking') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Goal Tracking') }}</li>
 @endsection
 
 @push(ST::ADM_CSS)
@@ -41,6 +34,7 @@
 @endpush
 
 @push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script defer src="{{ asset('js/bootstrap-toggle.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/goals/trackings/toggle.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/goals/trackings/index.js') }}"></script>
@@ -50,12 +44,16 @@
     <div class="{{ VC::FEND }}">
         @can('create goal tracking')
             @php
-                $createBase     = VW::GL_TRC . '.create';
-                $createKebab    = Str::kebab($createBase);
-                $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
-                $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'create_goal_tracking_route_unavailable') : 'Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $createBase     = VW::GL_TRC . '.create';
+                    $createKebab    = Str::kebab($createBase);
+                    $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
+                    $createUrl      = $createResolved ? route($createResolved) : '#';
+                    $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'create_goal_tracking_route_unavailable') : 'Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="#"
                data-size="lg"
                data-url="{{ $createUrl }}"
@@ -64,7 +62,7 @@
                title="{{ __('Create') }}"
                data-title="{{ __('Create New Goal Tracking') }}"
                class="{{ VC::BT_SM_PM }}"
-               data-guard-msg="{{ $createGuardMsg }}"
+               data-guard-msg="{{ base64_encode($createGuardMsg) }}"
                data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -74,18 +72,22 @@
 
 @section(YW::ADM_CTT)
     @if(!$hasUser)
-        <div class="alert alert-warning mb-0" role="alert">{{ __('Failed to load Goal Tracking for the current user.') }}</div>
+        <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('Failed to load Goal Tracking for the current user.') }}</div>
     @else
         @php
-            $list = $goalTrackings ?? [];
-            $hasList = ($list instanceof Collection) ? $list->isNotEmpty() : (is_array($list) && count($list) > 0);
-            $hasActions = $user->can('edit goal tracking') || $user->can('delete goal tracking');
-        @endphp
+            try {
+                $list = $goalTrackings ?? [];
+                $hasList = ($list instanceof Collection) ? $list->isNotEmpty() : (is_array($list) && count($list) > 0);
+                $hasActions = $user->can('edit goal tracking') || $user->can('delete goal tracking');
+            } catch (\Throwable $e) {
+                \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="row">
             <div class="{{ VC::CM12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                 <tr>
@@ -106,19 +108,23 @@
                                 @if($hasList)
                                     @foreach ($list as $goalTracking)
                                         @php
-                                            $gtId     = (string) ($goalTracking->id ?? '');
-                                            $gtType   = data_get($goalTracking, 'goalType.name') ?: __('No goal type available');
-                                            $subject  = $goalTracking->subject ?? __('No subject available');
-                                            $branch   = data_get($goalTracking, 'branches.name') ?: __('No branch available');
-                                            $target   = $goalTracking->target_achievement ?? 0;
-                                            $startAt  = $goalTracking->start_date ?? null;
-                                            $endAt    = $goalTracking->end_date ?? null;
-                                            $rating   = (int) ($goalTracking->rating ?? 0);
-                                            $progress = (int) ($goalTracking->progress ?? 0);
-                                            $startFmt = $hasUserDateFormat ? $user->dateFormat($startAt) : ($startAt ?? __('No start date available'));
-                                            $endFmt   = $hasUserDateFormat ? $user->dateFormat($endAt)   : ($endAt ?? __('No end date available'));
-                                            $progClr  = $hasGetProgressColor ? Utility::getProgressColor($progress) : 'primary';
-                                        @endphp
+                                            try {
+                                                $gtId     = (string) ($goalTracking->id ?? '');
+                                                $gtType   = data_get($goalTracking, 'goalType.name') ?: __('No goal type available');
+                                                $subject  = $goalTracking->subject ?? __('No subject available');
+                                                $branch   = data_get($goalTracking, 'branches.name') ?: __('No branch available');
+                                                $target   = $goalTracking->target_achievement ?? 0;
+                                                $startAt  = $goalTracking->start_date ?? null;
+                                                $endAt    = $goalTracking->end_date ?? null;
+                                                $rating   = (int) ($goalTracking->rating ?? 0);
+                                                $progress = (int) ($goalTracking->progress ?? 0);
+                                                $startFmt = $hasUserDateFormat ? $user->dateFormat($startAt) : ($startAt ?? __('No start date available'));
+                                                $endFmt   = $hasUserDateFormat ? $user->dateFormat($endAt)   : ($endAt ?? __('No end date available'));
+                                                $progClr  = $hasGetProgressColor ? Utility::getProgressColor($progress) : 'primary';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $gtType }}</td>
                                             <td>{{ $subject }}</td>
@@ -147,12 +153,16 @@
                                                 <td>
                                                     @can('edit goal tracking')
                                                         @php
-                                                            $editBase     = VW::GL_TRC . '.edit';
-                                                            $editKebab    = Str::kebab($editBase);
-                                                            $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
-                                                            $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
-                                                            $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'edit_goal_tracking_route_unavailable') : 'Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
-                                                        @endphp
+                                                            try {
+                                                                $editBase     = VW::GL_TRC . '.edit';
+                                                                $editKebab    = Str::kebab($editBase);
+                                                                $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
+                                                                $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
+                                                                $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'edit_goal_tracking_route_unavailable') : 'Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a href="#"
                                                                class="{{ VC::BT_SM_FL_CT }}"
@@ -162,7 +172,7 @@
                                                                data-title="{{ __('Edit Goal Tracking') }}"
                                                                data-bs-toggle="tooltip"
                                                                title="{{ __('Edit') }}"
-                                                               data-guard-msg="{{ $editGuardMsg }}"
+                                                               data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                                data-sv-localized="true">
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
                                                             </a>
@@ -171,13 +181,17 @@
 
                                                     @can('delete goal tracking')
                                                         @php
-                                                            $destroyBase     = VW::GL_TRC . '.destroy';
-                                                            $destroyKebab    = Str::kebab($destroyBase);
-                                                            $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
-                                                            $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
-                                                            $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'destroy_goal_tracking_route_unavailable') : 'Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
-                                                            $deleteFormId    = 'goal-tracking-delete-form-' . ($gtId === '' ? 'x' : $gtId);
-                                                        @endphp
+                                                            try {
+                                                                $destroyBase     = VW::GL_TRC . '.destroy';
+                                                                $destroyKebab    = Str::kebab($destroyBase);
+                                                                $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
+                                                                $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
+                                                                $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'destroy_goal_tracking_route_unavailable') : 'Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                                $deleteFormId    = 'goal-tracking-delete-form-' . ($gtId === '' ? 'x' : $gtId);
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('goal_trackings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Collective\Html\FormFacade::open([
                                                                 'method'            => 'DELETE',
@@ -204,7 +218,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ $hasActions ? 9 : 8 }}" class="text-center">{{ __('No goal tracking records found.') }}</td>
+                                        <td colspan="{{ $hasActions ? 9 : 8 }}" class="{{ VC::TXCT }}">{{ __('No goal tracking records found.') }}</td>
                                     </tr>
                                 @endif
                                 </tbody>

@@ -21,8 +21,10 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 final class HolidaySeeder extends Seeder
 {
 	private const MAX_UNIQUE_ATTEMPTS = 25;
-	private const MAX_LOOP_GUARD = 800;
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const MAX_LOOP_GUARD = 800;
+	private const MAX_LOOP_GUARD = 4; /* original: 800 */
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	/**
 	 * ISO-3166-1 alpha-2 => Faker locale
@@ -182,7 +184,7 @@ final class HolidaySeeder extends Seeder
 					linkPool: $linkPool,
 					mustLink: $mustLink
 				);
-				$out->writeln("<info>[HolidaySeeder]</info> creating holiday: name=\"{$data['name']}\" cc={$cc}\" type={$type} observance={$observance}");
+				// $out->writeln("<info>[HolidaySeeder]</info> creating holiday: name=\"{$data['name']}\" cc={$cc}\" type={$type} observance={$observance}");
 				$this->persistHoliday($data);
 				$created++;
 

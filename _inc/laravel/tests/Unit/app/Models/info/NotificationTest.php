@@ -14,6 +14,7 @@ class NotificationTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
 		// Create a dummy named route for deals.show used in toHtml()
 		Route::get('/deals/{id}', fn ($id) => 'deal')->name('deals.show');
@@ -26,7 +27,19 @@ class NotificationTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['user_id', 'type', 'data', 'is_read'];
+		$expected = [
+			'user_id',
+			'type',
+			'data',
+			'attachments',
+			'metadata',
+			'tags',
+			'platforms',
+			'sent_at',
+			'sent_by',
+			'is_read',
+			'read_at',
+		];
 		$this->assertEquals($expected, (new Notification())->getFillable());
 	}
 

@@ -1,23 +1,23 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
+    try {
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $hasKey         = isset($key) && !empty($key);
-    $updateBase     = VW::FT.'.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasKey) ? route($updateResolved, $key) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, 'features', 'update_route_unavailable')
-                        ?? __('Update Features route is unavailable. Please contact technical support or your domain administrator.');
-    $of      = is_array($other_features ?? null) ? $other_features : [];
-    $heading = isset($of['other_features_heading']) && !empty($of['other_features_heading']) ? $of['other_features_heading'] : __('Other features');
-    $desc    = isset($of['other_featured_description']) && !empty($of['other_featured_description']) ? $of['other_featured_description'] : __('No description available');
-    $link    = isset($of['other_feature_buy_now_link']) && !empty($of['other_feature_buy_now_link']) ? $of['other_feature_buy_now_link'] : __('No purchase link available');
+
+        $user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $hasKey         = isset($key) && !empty($key);
+        $updateBase     = VW::FT.'.update';
+        $updateKebab    = Str::kebab($updateBase);
+        $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+        $updateUrl      = ($updateResolved && $hasKey) ? route($updateResolved, $key) : '#';
+        $updateGuard    = Utility::fetchLinkMessage($lang, 'features', 'update_route_unavailable')
+                            ?? __('Update Features route is unavailable. Please contact technical support or your domain administrator.');
+        $of      = is_array($other_features ?? null) ? $other_features : [];
+        $heading = isset($of['other_features_heading']) && !empty($of['other_features_heading']) ? $of['other_features_heading'] : __('Other features');
+        $desc    = isset($of['other_featured_description']) && !empty($of['other_featured_description']) ? $of['other_featured_description'] : __('No description available');
+        $link    = isset($of['other_feature_buy_now_link']) && !empty($of['other_feature_buy_now_link']) ? $of['other_feature_buy_now_link'] : __('No purchase link available');
+    } catch (\Throwable $e) {
+        \Log::error('Modules/LandingPage/Resources/views/landingpage/features/features_edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::model(null, [
@@ -59,4 +59,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/features/update.js') }}"></script>
 {{ Form::close() }}
-

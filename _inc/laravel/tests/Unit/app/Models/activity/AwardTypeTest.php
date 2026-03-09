@@ -8,6 +8,11 @@ use App\Models\AwardType;
 
 class AwardTypeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -19,13 +24,11 @@ class AwardTypeTest extends TestCase
 	{
 		$data = [
 			'name'       => 'Holiday Bonus',
-			'created_by' => 'user123',
 		];
 
 		$awardType = AwardType::create($data);
 
 		$this->assertEquals('Holiday Bonus', $awardType->name);
-		$this->assertEquals('user123', $awardType->created_by);
 	}
 
 	/**
@@ -37,7 +40,6 @@ class AwardTypeTest extends TestCase
 	{
 		$awardType = AwardType::create([
 			'name'       => 'Test Type',
-			'created_by' => 'admin',
 		]);
 
 		$key = $awardType->getKey();

@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Individuals;
 
-use App\Config\Constants\{DatabaseConstants, PermissionsConstants, ViewsConstants as VW};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, ViewsConstants as VW};
 use App\Models\{Permission, Role};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\{
     View as ViewFacade
 };
 use Illuminate\View\View;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 class RoleController extends Controller
 {
@@ -23,6 +26,13 @@ class RoleController extends Controller
 
     private const SINGULAR = 'role';
     private const REDIRECT_ROUTE = VW::RL . '.index';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
 
     public function index(Request $request): RedirectResponse|View
     {
@@ -31,13 +41,13 @@ class RoleController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
-                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $roles = Role::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $view = VW::RL . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View ' . $view . ' not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 Log::debug($method . ' loaded', ['count' => $roles->count()]);
-                return ViewFacade::make($view, compact(DatabaseConstants::TABLE_ROLES));
+                return ViewFacade::make($view, compact(DC::TABLE_ROLES));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_ROUTE)); // ! ALERT
@@ -52,14 +62,14 @@ class RoleController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::CR_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::CR_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
-                $permissions = $user->type == PermissionsConstants::SA
+                $permissions = $user->type == PMC::SA
                     ? Permission::pluck('name', 'id')->toArray()
                     : $user?->roles->flatMap->permissions->pluck('name', 'id')->toArray();
                 $view = VW::RL . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
-                return ViewFacade::make($view, compact(DatabaseConstants::TABLE_PERMISSIONS));
+                return ViewFacade::make($view, compact(DC::TABLE_PERMISSIONS));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_ROUTE)); // ! ALERT
@@ -74,18 +84,18 @@ class RoleController extends Controller
         return $this->measureProfile($action, function () use ($request, $method) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::CR_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::CR_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             $request->validate([
-                'name' => 'required|max:100|unique:roles,name,NULL,id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
-                DatabaseConstants::TABLE_PERMISSIONS => 'required|array'
+                'name' => 'required|max:100|unique:roles,name,NULL,id,' . DC::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
+                DC::TABLE_PERMISSIONS => 'required|array'
             ]);
             DB::beginTransaction();
             try {
                 $role = Role::create([
                     'name' => $request->input('name'),
-                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
+                    DC::COL_TABLE_CREATOR => $user?->creatorId()
                 ]);
-                foreach ($request->input(DatabaseConstants::TABLE_PERMISSIONS) as $pid) {
+                foreach ($request->input(DC::TABLE_PERMISSIONS) as $pid) {
                     $role->givePermissionTo(Permission::findOrFail($pid));
                 }
                 DB::commit();
@@ -106,14 +116,14 @@ class RoleController extends Controller
         return $this->measureProfile($action, function () use ($request, $role, $method, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
-                $permissions = $user->type == PermissionsConstants::SA
+                $permissions = $user->type == PMC::SA
                     ? Permission::pluck('name', 'id')->toArray()
                     : $user?->roles->flatMap->permissions->pluck('name', 'id')->toArray();
                 $view = VW::RL . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
-                return ViewFacade::make($view, compact(self::SINGULAR, DatabaseConstants::TABLE_PERMISSIONS));
+                return ViewFacade::make($view, compact(self::SINGULAR, DC::TABLE_PERMISSIONS));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_ROUTE)); // ! ALERT
@@ -128,15 +138,15 @@ class RoleController extends Controller
         return $this->measureProfile($action, function () use ($request, $role, $method) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             $request->validate([
-                'name' => 'required|max:100|unique:roles,name,' . $role->id . ',id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
-                DatabaseConstants::TABLE_PERMISSIONS => 'required|array'
+                'name' => 'required|max:100|unique:roles,name,' . $role->id . ',id,' . DC::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
+                DC::TABLE_PERMISSIONS => 'required|array'
             ]);
             DB::beginTransaction();
             try {
                 $role->update(['name' => $request->input('name')]);
-                $role->syncPermissions($request->input(DatabaseConstants::TABLE_PERMISSIONS));
+                $role->syncPermissions($request->input(DC::TABLE_PERMISSIONS));
                 DB::commit();
                 Log::debug($method . ' updated', ['role_id' => $role->id]);
                 return redirect()->route(self::REDIRECT_ROUTE)->with('success', __(ucfirst(self::SINGULAR) . ' successfully updated.')); // ! ALERT
@@ -154,7 +164,7 @@ class RoleController extends Controller
         $method = __METHOD__;
         return $this->measureProfile($action, function () use ($request, $role, $method) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($c = self::guard($request, PermissionsConstants::DEL_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            if (($c = self::guard($request, PMC::DEL_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             DB::beginTransaction();
             try {
                 $role->delete();
@@ -165,6 +175,32 @@ class RoleController extends Controller
                 DB::rollBack();
                 Log::error($method . ' failed', ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_ROUTE)); // ! ALERT
+            }
+        }, ['role_id' => $role->id]);
+    }
+
+    /**
+     * Show a single role with its permissions.
+     */
+    public function show(Request $request, Role $role): RedirectResponse|View
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $role, $method, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($c = self::guard($request, PMC::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
+            try {
+                if ($role[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                    return redirect()->route(self::REDIRECT_ROUTE)->with('error', __('Permission denied.'));
+                }
+                $permissions = $role->permissions;
+                $view = VW::RL . '.show';
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE));
+                return ViewFacade::make($view, compact(self::SINGULAR, DC::TABLE_PERMISSIONS));
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['err' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_ROUTE));
             }
         }, ['role_id' => $role->id]);
     }

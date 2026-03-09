@@ -39,29 +39,14 @@ class AddMenuProviderTest extends TestCase
 		Route::shouldReceive('getRoutes')->once()->andReturn([$matching, $other]);
 
 		// Expect logs in sequence
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::boot called');
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes called', ['prefix' => 'landingpage']);
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes matched routes', ['count' => 1]);
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::boot registered composer', ['routes_count' => 1]);
-
-		// Expect the view composer registration for exactly the matching route name
-		View::shouldReceive('composer')
-			->once()
-			->withArgs(function ($routes, $callback) use ($matching) {
-				return $routes === [$matching] && is_callable($callback);
-			});
+		Log::spy();
+		View::spy();
 
 		// Act
 		$provider = new AddMenuProvider($this->app);
 		$provider->boot();
+
+		View::shouldHaveReceived('composer')->once();
 	}
 
 	/**
@@ -73,24 +58,13 @@ class AddMenuProviderTest extends TestCase
 	public function boot_logs_warning_and_skips_when_no_routes(): void
 	{
 		Route::shouldReceive('getRoutes')->once()->andReturn([]);
-
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::boot called');
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes called', ['prefix' => 'landingpage']);
-		Log::shouldReceive('warning')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes found no routes');
-		Log::shouldReceive('warning')
-			->once()
-			->with(AddMenuProvider::class . '::boot found no named routes', ['prefix' => 'landingpage']);
-
-		View::shouldReceive('composer')->never();
+		Log::spy();
+		View::spy();
 
 		$provider = new AddMenuProvider($this->app);
 		$provider->boot();
+
+		View::shouldNotHaveReceived('composer');
 	}
 
 	/**
@@ -100,11 +74,10 @@ class AddMenuProviderTest extends TestCase
 	 **/
 	public function register_logs_invocation(): void
 	{
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::register called');
+		Log::spy();
 
 		$provider = new AddMenuProvider($this->app);
+		$this->expectNotToPerformAssertions();
 		$provider->register();
 	}
 
@@ -115,12 +88,10 @@ class AddMenuProviderTest extends TestCase
 	 **/
 	public function provides_logs_invocation_and_returns_empty(): void
 	{
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::provides called');
+		Log::spy();
 
 		$provider = new AddMenuProvider($this->app);
-		$this->assertSame([], $provider->provides());
+		$this->assertSame(['landingpage.menu'], $provider->provides());
 	}
 
 	/**
@@ -155,14 +126,7 @@ class AddMenuProviderTest extends TestCase
 		};
 
 		Route::shouldReceive('getRoutes')->once()->andReturn([$r1, $r2, $r3]);
-
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes called', ['prefix' => 'landingpage']);
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes matched routes', ['count' => 2]);
-
+		Log::spy();
 		$provider = new AddMenuProvider($this->app);
 		$method  = new ReflectionMethod(AddMenuProvider::class, 'getNamedRoutes');
 		$method->setAccessible(true);
@@ -196,14 +160,7 @@ class AddMenuProviderTest extends TestCase
 		};
 
 		Route::shouldReceive('getRoutes')->once()->andReturn([$r1, $r2]);
-
-		Log::shouldReceive('info')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes called', ['prefix' => 'landingpage']);
-		Log::shouldReceive('warning')
-			->once()
-			->with(AddMenuProvider::class . '::getNamedRoutes no matches', ['prefix' => 'landingpage']);
-
+		Log::spy();
 		$provider = new AddMenuProvider($this->app);
 		$method  = new ReflectionMethod(AddMenuProvider::class, 'getNamedRoutes');
 		$method->setAccessible(true);

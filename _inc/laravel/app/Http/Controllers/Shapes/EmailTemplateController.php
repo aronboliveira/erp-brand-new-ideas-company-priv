@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shapes;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    EmailsConstants,
-    MiddlewaresConstants,
-    PermissionsConstants,
-    ViewsConstants as VW,
-    ViewsConstants
+    DatabaseConstants as DC,
+    EmailsConstants as EC,
+    MiddlewaresConstants as MWC,
+    PermissionsConstants as PMC,
+    ViewsConstants as VW
 };
+use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{
     EmailTemplate,
     EmailTemplateLang,
@@ -23,7 +23,6 @@ use Illuminate\Http\{
     Request,
     Response
 };
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\{
     Auth,
     DB,
@@ -31,6 +30,8 @@ use Illuminate\Support\Facades\{
     Validator,
     View as ViewFacade
 };
+use Illuminate\Support\Str;
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
 class EmailTemplateController extends Controller
 {
@@ -39,7 +40,7 @@ class EmailTemplateController extends Controller
 
     public function __construct()
     {
-        $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+        $this->middleware([MWC::AUTH, MWC::XSS]);
     }
 
     public function index(): Response|RedirectResponse
@@ -47,15 +48,15 @@ class EmailTemplateController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = ViewsConstants::SET . '.company';
+        $viewPath = VW::SET . '.company';
 
         return $this->measureProfile($action, function () use ($sig, $viewPath) {
             Log::info("$sig start", ['user_id' => Auth::id()]);
 
             $user = Auth::user();
-            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
+            if (!in_array($user?->type, [PMC::SA, PMC::CPN])) {
                 Log::warning("$sig denied", ['user_id' => $user?->id]);
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
             }
 
             $t = microtime(true);
@@ -104,20 +105,20 @@ class EmailTemplateController extends Controller
             Log::info("$sig start", ['input' => $req->all()]);
 
             $t = microtime(true);
-            $req->validate([EmailsConstants::COL_TT => 'required']);
+            $req->validate([EC::COL_TT => 'required']);
             $this->logExecutionTime($t, "$sig::validate", 'completed');
 
             $user  = Auth::user();
-            $title = $req->input(EmailsConstants::COL_TT);
+            $title = $req->input(EC::COL_TT);
 
             DB::beginTransaction();
             try {
                 $t = microtime(true);
                 $tpl = EmailTemplate::create([
-                    EmailsConstants::COL_TT            => $title,
-                    EmailsConstants::COL_FROM          => config('app.name'),
-                    EmailsConstants::COL_SLG           => Str::slug($title) ?? '',
-                    DatabaseConstants::COL_TABLE_CREATOR   => $user?->id,
+                    EC::COL_TT         => $title,
+                    EC::COL_FROM       => config('app.name'),
+                    EC::COL_SLG        => Str::slug($title) ?? '',
+                    DC::COL_TABLE_CREATOR => $user?->id,
                 ]);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::transaction", 'completed');
@@ -141,7 +142,7 @@ class EmailTemplateController extends Controller
 
         return $this->measureProfile($action, function () use ($id, $sig) {
             Log::info("$sig start", ['id' => $id]);
-            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            return redirect(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
         });
     }
 
@@ -153,7 +154,7 @@ class EmailTemplateController extends Controller
 
         return $this->measureProfile($action, function () use ($id, $sig) {
             Log::info("$sig start", ['id' => $id]);
-            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            return redirect(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
         });
     }
 
@@ -199,12 +200,12 @@ class EmailTemplateController extends Controller
 
         return $this->measureProfile($action, function () use ($id, $sig) {
             Log::info("$sig denied", ['id' => $id]);
-            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            return redirect(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
         });
     }
 
     public const MNG_EM_LNG = 'manageEmailLang';
-    public function manageEmailLang(int|string $id, string $lang = DatabaseConstants::DEFAULT_LANG): Response|RedirectResponse
+    public function manageEmailLang(int|string $id, string $lang = DC::DEFAULT_LANG): Response|RedirectResponse
     {
         $action   = __FUNCTION__;
         $cls      = static::class;
@@ -215,8 +216,8 @@ class EmailTemplateController extends Controller
             $user = Auth::user();
             Log::info("$sig start", ['id' => $id, 'lang' => $lang, 'user_id' => $user?->id]);
 
-            if ($user->type != PermissionsConstants::SA) {
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            if ($user->type != PMC::SA) {
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
             }
 
             $t = microtime(true);
@@ -236,7 +237,7 @@ class EmailTemplateController extends Controller
 
             return response()->view($viewPath, compact(
                 'template',
-                DatabaseConstants::TABLE_LANGS,
+                DC::TABLE_LANGS,
                 'langTemplate',
                 'allTemplates',
                 'langName',
@@ -273,6 +274,14 @@ class EmailTemplateController extends Controller
     }
 
     public const UPD_STT = 'updateStatus';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function updateStatus(Request $req): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -283,9 +292,9 @@ class EmailTemplateController extends Controller
             $user = Auth::user();
             Log::info("$sig start", ['user_id' => $user?->id, 'input' => $req->all()]);
 
-            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
+            if (!in_array($user?->type, [PMC::SA, PMC::CPN])) {
                 Log::warning("$sig denied", ['user_id' => $user?->id]);
-                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+                return redirect(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
             }
 
             $statuses = $req->except('_token');
@@ -293,18 +302,18 @@ class EmailTemplateController extends Controller
             $t = microtime(true);
             DB::transaction(function () use ($user, $statuses) {
                 // Reset then apply toggles
-                UserEmailTemplate::where('user_id', $user->id)->update(['is_active' => 0]);
+                UserEmailTemplate::where('user_id', $user->id)->update([EC::COL_IA => 0]);
                 collect($statuses)->each(function ($active, $tplId) use ($user) {
                     UserEmailTemplate::updateOrCreate(
                         ['user_id' => $user?->id, 'template_id' => $tplId],
-                        ['is_active' => (int) (bool) $active]
+                        [EC::COL_IA => (int) (bool) $active]
                     );
                 });
             });
             $this->logExecutionTime($t, "$sig::transaction", 'completed');
 
             Log::info("$sig complete", ['user_id' => $user?->id]);
-            return redirect()->route(self::REDIRECT_BACK)->with('success', __('Status successfully updated!'));
+            return redirect(self::REDIRECT_BACK)->with('success', __('Status successfully updated!'));
         });
     }
 

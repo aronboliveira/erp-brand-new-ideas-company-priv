@@ -6,9 +6,18 @@ use App\Models\ProjectTask;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class ProjectTaskTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	/**
 	 ** @test
 	 *
@@ -43,7 +52,7 @@ class ProjectTaskTest extends TestCase
 
 		// Fake User::whereIn() chain
 		$fakeUsers = new Collection([(object)['id' => 1]]);
-		Mockery::mock('alias:App\Models\User')
+		$this->aliasMock('App\Models\User')
 			->shouldReceive('whereIn')
 			->once()
 			->with('id', ['1', '2', '3'])
@@ -66,18 +75,18 @@ class ProjectTaskTest extends TestCase
 	public function delete_task_returns_true_on_success(): void
 	{
 		// Stub many collaborators to bypass DB.
-		Mockery::mock('alias:Illuminate\Support\Facades\DB')
+		$this->aliasMock('Illuminate\Support\Facades\DB')
 			->shouldReceive('transaction')
 			->once()
 			->andReturnUsing(fn ($closure) => $closure());
 
-		Mockery::mock('alias:App\Models\ProjectTask')
+		$this->aliasMock('App\Models\ProjectTask')
 			->shouldReceive('find')->andReturn(null); // each loop skip
-		Mockery::mock('alias:App\Models\TaskFile')
+		$this->aliasMock('App\Models\TaskFile')
 			->shouldReceive('where')->andReturnSelf()
 			->getMock()->shouldReceive('pluck')->andReturnSelf()
 			->getMock()->shouldReceive('toArray')->andReturn([]);
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('checkFileExistsnDelete');
 
 		$this->assertTrue(ProjectTask::deleteTask([7, 8]));
@@ -86,6 +95,6 @@ class ProjectTaskTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

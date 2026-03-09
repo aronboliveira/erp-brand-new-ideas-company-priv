@@ -1,8 +1,7 @@
 @php
-	use App\Config\Constants\SettingsConstants;
 @endphp
-@if (!empty($colorSettings[SettingsConstants::CST_DRK]) 
-	&& $colorSettings[SettingsConstants::CST_DRK] === 'on' 
+@if (!empty($colorSettings[SettingsConstants::CST_DRK])
+	&& $colorSettings[SettingsConstants::CST_DRK] === 'on'
 	&& is_file(asset('assets/css/style-dark.css')))
 	<link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}" id="main-style-link">
 @else

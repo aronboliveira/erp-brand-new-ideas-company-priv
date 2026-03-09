@@ -1,37 +1,13 @@
 (() => {
-  try {
-    const showGuard = msg => {
-      const hasBootstrap = !!(
-        document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-      );
-      let container = document.getElementById("toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.className = "toast-container position-fixed top-0 end-0 p-3";
-        container.style.zIndex = "1080";
-        document.body.appendChild(container);
-      }
-      const text =
-        msg ||
-        "Requested route is unavailable. Please contact technical support or your domain administrator.";
-      if (hasBootstrap) {
-        const t = document.createElement("div");
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        const b = document.createElement("div");
-        b.className = "toast-body";
-        b.textContent = text;
-        t.appendChild(b);
-        container.appendChild(t);
-        bootstrap.Toast.getOrCreateInstance(t).show();
-      } else {
-        alert(text);
-      }
-    };
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
 
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
+  try {
     const bindGuard = a => {
       if (!a || a.getAttribute("data-listener-active") === "true") return;
       a.setAttribute("data-listener-active", "true");
@@ -41,8 +17,10 @@
           const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
-          const msg = a.getAttribute("data-guard-msg") ?? "";
-          showGuard(msg);
+          const msg =
+            a.getAttribute("data-guard-msg") ||
+            getMsg("form_response_route_unavailable");
+          scheduleError(msg, "click");
           a.setAttribute("data-failed-route", "true");
         } catch (err) {}
       });
@@ -54,7 +32,7 @@
 
     try {
       const els = [].slice.call(
-        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
       els.forEach(el => {
         try {

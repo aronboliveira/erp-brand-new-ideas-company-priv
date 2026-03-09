@@ -1,13 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants, StacksConstants as ST, ViewClassNamesConstants as VC, ViewsConstants as VW, YieldingConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Auth, Crypt, Log, Route, Storage};
-	use Illuminate\Support\{Collection, Str};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$user ??= null;
+$user ??= null;
 	$employees ??= [];
 	$branches ??= [];
 	$departments ??= [];
@@ -35,13 +27,17 @@
 @section(YieldingConstants::ADM_ACT_BTN)
 	<div class="{{ VC::RW }} {{ VC::DFL }} {{ VC::JCE }}">
 		@php
-				$empProfileBase         = VW::EMP.'.profile';
-				$empProfileKebab        = Str::kebab($empProfileBase);
-				$empProfileResolved     = Route::has($empProfileBase) ? $empProfileBase : (Route::has($empProfileKebab) ? $empProfileKebab : null);
-				$empProfileUrl          = $empProfileResolved ? route($empProfileResolved) : '#';
-				$empProfileFormId       = 'employee_profile_filter';
-				$empProfileGuardMessage = Utility::fetchLinkMessage($lang, VW::EMP, 'profile_employee_route_unavailable') ?? 'Profile employee route is unavailable. Please contact technical support or your domain administrator.';
-		@endphp
+				try {
+				    $empProfileBase         = VW::EMP.'.profile';
+				    $empProfileKebab        = Str::kebab($empProfileBase);
+				    $empProfileResolved     = Route::has($empProfileBase) ? $empProfileBase : (Route::has($empProfileKebab) ? $empProfileKebab : null);
+				    $empProfileUrl          = $empProfileResolved ? route($empProfileResolved) : '#';
+				    $empProfileFormId       = 'employee_profile_filter';
+				    $empProfileGuardMessage = Utility::fetchLinkMessage($lang, VW::EMP, 'profile_employee_route_unavailable') ?? 'Profile employee route is unavailable. Please contact technical support or your domain administrator.';
+				} catch (\Throwable $e) {
+				    \Log::error('employees/profile — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+				}
+@endphp
 		{{ Form::open([
 				'url'               => $empProfileUrl,
 				'method'            => 'GET',
@@ -77,7 +73,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-auto text-end my-auto">
+			<div class="{{ VC::C_AT }} {{ VC::TX_END }} my-auto">
 				<a href="#" class="apply-btn" onclick="document.getElementById('employee_profile_filter').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
 					<span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
 				</a>
@@ -107,22 +103,26 @@
 						<div class="Id">
 							@can('Show Employee Profile')
 								@php
-										$employeeIdStr           = (string) data_get($employee ?? null, 'id', '');
-										$encryptedEmployeeId     = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
-										$empShowProfileBase      = VW::EMP.'.show.profile';
-										$empShowProfileKebab     = Str::kebab($empShowProfileBase);
-										$empShowProfileResolved  = Route::has($empShowProfileBase) ? $empShowProfileBase : (Route::has($empShowProfileKebab) ? $empShowProfileKebab : null);
-										$empShowProfileUrl       = ($empShowProfileResolved && $encryptedEmployeeId) ? route($empShowProfileResolved, $encryptedEmployeeId) : '#';
-										$empShowProfileGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'show_profile_employee_route_unavailable') ?? 'Show employee profile route is unavailable. Please contact technical support or your domain administrator.';
-										$empShowProfileLinkId    = 'employee-show-profile-link-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
-										$hasEmpId                = isset($employee->employee_id) && $employee->employee_id !== '';
-										$displayEmpId            = $hasEmpId ? (string) ($user?->employeeIdFormat($employee->employee_id) ?? $employee->employee_id) : __('No employee ID available');
-								@endphp
+										try {
+										    $employeeIdStr           = (string) data_get($employee ?? null, 'id', '');
+										    $encryptedEmployeeId     = $employeeIdStr !== '' ? Crypt::encrypt($employeeIdStr) : null;
+										    $empShowProfileBase      = VW::EMP.'.show.profile';
+										    $empShowProfileKebab     = Str::kebab($empShowProfileBase);
+										    $empShowProfileResolved  = Route::has($empShowProfileBase) ? $empShowProfileBase : (Route::has($empShowProfileKebab) ? $empShowProfileKebab : null);
+										    $empShowProfileUrl       = ($empShowProfileResolved && $encryptedEmployeeId) ? route($empShowProfileResolved, $encryptedEmployeeId) : '#';
+										    $empShowProfileGuardMsg  = Utility::fetchLinkMessage($lang, VW::EMP, 'show_profile_employee_route_unavailable') ?? 'Show employee profile route is unavailable. Please contact technical support or your domain administrator.';
+										    $empShowProfileLinkId    = 'employee-show-profile-link-'.($employeeIdStr !== '' ? $employeeIdStr : 'x');
+										    $hasEmpId                = isset($employee->employee_id) && $employee->employee_id !== '';
+										    $displayEmpId            = $hasEmpId ? (string) ($user?->employeeIdFormat($employee->employee_id) ?? $employee->employee_id) : __('No employee ID available');
+										} catch (\Throwable $e) {
+										    \Log::error('employees/profile — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+										}
+@endphp
 								<a
 										id="{{ $empShowProfileLinkId }}"
 										href="{{ $empShowProfileUrl }}"
 										data-url="{{ $empShowProfileUrl }}"
-										data-guard-msg="{{ $empShowProfileGuardMsg }}"
+										data-guard-msg="{{ base64_encode($empShowProfileGuardMsg) }}"
 										data-sv-localized="true"
 										{{ $empShowProfileUrl === '#' ? 'aria-disabled=true' : '' }}
 								>
@@ -142,7 +142,7 @@
 			</div>
 		@empty
 			<div class="{{ VC::C12 }}">
-				<div class="text-center">
+				<div class="{{ VC::TXCT }}">
 					<h6>{{ __('No employees available') }}</h6>
 				</div>
 			</div>
@@ -157,19 +157,19 @@
             const toastBoxId  = 'toast-box';
             const csrfToken   = '{{ csrf_token() }}';
             const routeUrl    = '{{ route(VW::EMP.".json") }}';
-            
+
             const lang = (() => {
                 const l = (sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')
                 .toLowerCase()
                 .replace(/_/g, '-');
                 return l === 'pt-br' ? l : l.slice(0, 2);
             })();
-            
+
             const tr = key =>
                 window.translations?.[lang]?.[key] ||
                 window.translations.en?.[key] ||
                 '# ERROR';
-            
+
             const showToast = msg => {
                 const hasBootstrap = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
                 .some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
@@ -191,7 +191,7 @@
                 alert(msg);
                 }
             };
-            
+
             let pendingError = '';
             const flushError = () => {
                 if (pendingError) {
@@ -210,7 +210,7 @@
                 }
                 }
             }).observe(document.body, { childList: true, subtree: true });
-            
+
             const getDesignation = deptId => {
                 try {
                 if (!routeUrl || routeUrl === '#') {
@@ -238,12 +238,12 @@
                 pendingError = tr(errKey);
                 }
             };
-            
+
             document.addEventListener('DOMContentLoaded', () => {
                 const dep = document.getElementById('department');
                 if (dep) getDesignation(dep.value);
             });
-            
+
             document.addEventListener('change', e => {
                 if (e.target.matches('select[name="department"]')) {
                 getDesignation(e.target.value);
@@ -252,4 +252,3 @@
         })();
     </script>
 @endpush
-

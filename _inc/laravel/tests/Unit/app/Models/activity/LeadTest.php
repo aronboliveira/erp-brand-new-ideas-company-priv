@@ -4,7 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\{HasOne, HasMany, BelongsToMany};
+use Illuminate\Database\Eloquent\Relations\{HasOne, HasMany, BelongsTo, BelongsToMany};
 use Illuminate\Support\Collection;
 use App\Models\{
 	Lead,
@@ -23,6 +23,11 @@ use App\Models\{
 
 class LeadTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -53,9 +58,7 @@ class LeadTest extends TestCase
 
 		$lead = Lead::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $lead->$field);
-		}
+		$this->assertFillableMatches($data, $lead);
 	}
 
 	/**
@@ -103,8 +106,8 @@ class LeadTest extends TestCase
 	public function labels_returns_empty_collection_if_no_labels()
 	{
 		$lead = Lead::factory()->create(['labels' => null]);
-		$this->assertInstanceOf(Collection::class, $lead->labels());
-		$this->assertTrue($lead->labels()->isEmpty());
+		$this->assertInstanceOf(Collection::class, $lead->labelRecords());
+		$this->assertTrue($lead->labelRecords()->isEmpty());
 	}
 
 	/**
@@ -119,7 +122,7 @@ class LeadTest extends TestCase
 			'labels' => implode(',', $labels->pluck('id')->toArray())
 		]);
 
-		$col = $lead->labels();
+		$col = $lead->labelRecords();
 		$this->assertInstanceOf(Collection::class, $col);
 		$this->assertCount(2, $col);
 		$this->assertTrue($col->pluck('id')->sort()->values()->all() === $labels->pluck('id')->sort()->values()->all());
@@ -194,10 +197,10 @@ class LeadTest extends TestCase
 	{
 		$relation = (new Lead)->stage();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(LeadStage::class,       get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('stage_id',             $relation->getLocalKeyName());
+		$this->assertSame('stage_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',             $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -209,10 +212,10 @@ class LeadTest extends TestCase
 	{
 		$relation = (new Lead)->pipeline();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(Pipeline::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('pipeline_id',          $relation->getLocalKeyName());
+		$this->assertSame('pipeline_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',          $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -256,7 +259,7 @@ class LeadTest extends TestCase
 		$relation = (new Lead)->activities();
 		$this->assertInstanceOf(HasMany::class,        $relation);
 		$this->assertSame(LeadActivityLog::class,      get_class($relation->getRelated()));
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 
@@ -270,7 +273,7 @@ class LeadTest extends TestCase
 		$relation = (new Lead)->discussions();
 		$this->assertInstanceOf(HasMany::class,        $relation);
 		$this->assertSame(LeadDiscussion::class,       get_class($relation->getRelated()));
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 
@@ -298,7 +301,7 @@ class LeadTest extends TestCase
 		$relation = (new Lead)->emails();
 		$this->assertInstanceOf(HasMany::class,      $relation);
 		$this->assertSame(LeadEmail::class,          get_class($relation->getRelated()));
-		$orders = $relation->getQuery()->orders;
+		$orders = $relation->getQuery()->getQuery()->orders;
 		$this->assertEquals([['column' => 'id', 'direction' => 'desc']], $orders);
 	}
 }

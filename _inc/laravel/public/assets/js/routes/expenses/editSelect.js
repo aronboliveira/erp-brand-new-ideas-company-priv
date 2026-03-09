@@ -1,53 +1,11 @@
 (() => {
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const langKey = "erp-np-lang";
-  const errFb = "# ERROR";
-
-  const getMsg = (key, el) => {
-    let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem(langKey) ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ||
-        el.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[key] ||
-        errFb;
-      if (msg !== errFb) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
-  };
+  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
+  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
+  if (!guard || !utils) return;
 
   const showError = message => {
-    try {
-      const hasBs =
-        Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(
-          l => /bootstrap/i.test(l.href),
-        ) && window.bootstrap?.Toast;
-      if (hasBs) {
-        let c = document.getElementById("bootstrap-toast-container");
-        if (!c) {
-          c = document.createElement("div");
-          c.id = "bootstrap-toast-container";
-          c.setAttribute("aria-live", "polite");
-          c.setAttribute("aria-atomic", "true");
-          document.body.appendChild(c);
-        }
+    guard.showToast(message);
+  };
         let t = c.querySelector(".toast");
         if (!t) {
           t = document.createElement("div");
@@ -102,7 +60,7 @@
         $(".employee, .customer").addClass("d-none").removeClass("d-block");
       }
     },
-    "selection_failed",
+    "selection_failed"
   );
 
   delegate("change", "#employee", el => {
@@ -114,10 +72,8 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("employee_detail"), data);
-        } else {
+        if (data) $("#employee_detail").innerHTML = data;
+        else {
           $("#employee-box").addClass("d-block").removeClass("d-none");
           $("#employee_detail").addClass("d-none").removeClass("d-block");
         }
@@ -135,10 +91,8 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("customer_detail"), data);
-        } else {
+        if (data) $("#customer_detail").innerHTML = data;
+        else {
           $("#customer-box").addClass("d-block").removeClass("d-none");
           $("#customer_detail").addClass("d-none").removeClass("d-block");
         }
@@ -156,10 +110,8 @@
       headers: { "X-CSRF-TOKEN": jQuery("#token").val() },
       data: { id: el.value },
       success: data => {
-        if (data) {
-          // SECURITY: Use safe HTML insertion instead of innerHTML
-          safeSethtmlContent(document.getElementById("vendor_detail"), data);
-        } else {
+        if (data) $("#vendor_detail").innerHTML = data;
+        else {
           $("#vendor-box").addClass("d-block").removeClass("d-none");
           $("#vendor_detail").addClass("d-none").removeClass("d-block");
         }
@@ -176,26 +128,4 @@
       .addClass("d-none")
       .removeClass("d-block");
   });
-
-  // SECURITY: Safe HTML insertion helper
-  function safeSethtmlContent(el, html) {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      if (doc.body.innerHTML.includes("PARSER ERROR")) {
-        el.textContent = html;
-        return;
-      }
-      while (el.firstChild) {
-        el.removeChild(el.firstChild);
-      }
-      const fragment = document.createDocumentFragment();
-      for (let node of doc.body.childNodes) {
-        fragment.appendChild(node.cloneNode(true));
-      }
-      el.appendChild(fragment);
-    } catch (e) {
-      el.textContent = html;
-    }
-  }
 })();

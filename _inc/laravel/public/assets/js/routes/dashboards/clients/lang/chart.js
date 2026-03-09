@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -116,6 +117,6 @@
       (window.translations[k] = {
         ...(window.translations[k] || {}),
         ...t[k],
-      })
+      }),
   );
 })();

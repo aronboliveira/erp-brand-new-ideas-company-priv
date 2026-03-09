@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{Loan, Employee, LoanOption};
 
 class LoanTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -36,9 +42,7 @@ class LoanTest extends TestCase
 
 		$loan = Loan::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $loan->$field);
-		}
+		$this->assertFillableMatches($data, $loan);
 	}
 
 	/**
@@ -84,10 +88,10 @@ class LoanTest extends TestCase
 	{
 		$relation = (new Loan)->employee();
 
-		$this->assertInstanceOf(HasOne::class,      $relation);
+		$this->assertInstanceOf(BelongsTo::class,      $relation);
 		$this->assertSame(Employee::class,          get_class($relation->getRelated()));
-		$this->assertSame('id',                     $relation->getForeignKeyName());
-		$this->assertSame('employee_id',            $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                     $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -99,9 +103,9 @@ class LoanTest extends TestCase
 	{
 		$relation = (new Loan)->loanOption();
 
-		$this->assertInstanceOf(HasOne::class,      $relation);
+		$this->assertInstanceOf(BelongsTo::class,      $relation);
 		$this->assertSame(LoanOption::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                     $relation->getForeignKeyName());
-		$this->assertSame('loan_option',            $relation->getLocalKeyName());
+		$this->assertSame('loan_option',                     $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 }

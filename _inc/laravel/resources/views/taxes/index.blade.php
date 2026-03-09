@@ -1,16 +1,5 @@
 @php
-	use App\Config\Constants\{
-		ExtendingLayoutsConstants,
-		StacksConstants,
-		ViewClassNamesConstants as VC,
-		ViewsConstants as VW,
-		YieldingConstants
-	};
-	use App\Models\Utility;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use InvalidArgumentException;
-
-	$lang = Utility::fetchUserLang();
+$lang = Utility::fetchUserLang();
 
 	$view ??= null;
 
@@ -68,17 +57,17 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-	<li class="breadcrumb-item">
+	<li class="{{ VC::BCI }}">
 		<a href="{{ $dashboardUrl }}"
 		   {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}
 		   class="dashboard-link"
 		   data-url="{{ $dashboardUrl }}"
-		   data-guard-msg="{{ $dashboardGuardMsg }}"
+		   data-guard-msg="{{ base64_encode($dashboardGuardMsg) }}"
 		   data-sv-localized="true">
 			{{ __('Dashboard') }}
 		</a>
 	</li>
-	<li class="breadcrumb-item">{{ __('Taxes') }}</li>
+	<li class="{{ VC::BCI }}">{{ __('Taxes') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
@@ -91,7 +80,7 @@
 			   data-title="{{ __('Create Tax Rate') }}"
 			   data-bs-toggle="tooltip"
 			   title="{{ __('Create') }}"
-			   data-guard-msg="{{ $taxCreateGuardMsg }}"
+			   data-guard-msg="{{ base64_encode($taxCreateGuardMsg) }}"
 			   data-sv-localized="true"
 			   class="{{ VC::BT_SM_PM }}">
 				<i class="{{ VC::TI_PLS }}"></i>
@@ -102,13 +91,13 @@
 
 @section(YieldingConstants::ADM_CTT)
 	<div class="row">
-		<div class="col-3">
+		<div class="{{ VC::C3 }}">
 			@include('layouts.account_setup')
 		</div>
-		<div class="col-9">
+		<div class="{{ VC::C9 }}">
 			<div class="{{ VC::CD }}">
-				<div class="card-body table-border-style">
-					<div class="table-responsive">
+				<div class="{{ VC::CD_BD_TB_BD }}">
+					<div class="{{ VC::TB_RSP }}">
 						<table class="{{ VC::TB }} datatable">
 							<thead>
 								<tr>
@@ -121,7 +110,7 @@
 								@foreach(($taxes ?? []) as $taxe)
 									@php
 										$txId = data_get($taxe, 'id');
-                                    @endphp
+@endphp
 									<tr class="font-style">
 										<td>{{ data_get($taxe, 'name') ?? __('No name available') }}</td>
 										<td>{{ data_get($taxe, 'rate') ?? __('No rate available') }}</td>
@@ -129,8 +118,8 @@
 											<span>
 												@can('edit constant tax')
                                                     @php
-                                                        $taxEditResolved = null;
-                                                        $taxEditUrl = '#';
+                                                        $taxEditResolved ??= null;
+                                                        $taxEditUrl ??= '#';
                                                         $taxEditGuardMsg = Utility::fetchLinkMessage($lang, VW::TX, 'edit_tax_route_unavailable') ?? 'Edit tax route is unavailable. Please contact technical support or your domain administrator.';
                                                         try {
                                                             $taxEditResolved = Route::has(VW::TX . '.edit') ? VW::TX . '.edit' : (Route::has(Str::kebab(VW::TX . '.edit')) ? Str::kebab(VW::TX . '.edit') : null);
@@ -143,7 +132,7 @@
                                                             Log::error('Blade taxes/index: taxes.edit URL generation error: ' . $e->getMessage());
                                                             $taxEditUrl = '#';
                                                         }
-                                                    @endphp
+@endphp
 													<div class="{{ VC::ACT_BTN_PRIM }}">
 														<a href="{{ $taxEditUrl }}"
 														   class="{{ VC::BT_SM_CT }} tax-edit-link"
@@ -152,7 +141,7 @@
 														   data-title="{{ __('Edit Tax Rate') }}"
 														   data-bs-toggle="tooltip"
 														   title="{{ __('Edit') }}"
-														   data-guard-msg="{{ $taxEditGuardMsg }}"
+														   data-guard-msg="{{ base64_encode($taxEditGuardMsg) }}"
 														   data-sv-localized="true">
 															<i class="{{ VC::TI_PC_WT }}"></i>
 														</a>
@@ -160,8 +149,8 @@
 												@endcan
 												@can('delete constant tax')
                                                     @php
-                                                        $taxDestroyResolved = null;
-                                                        $taxDestroyUrl = '#';
+                                                        $taxDestroyResolved ??= null;
+                                                        $taxDestroyUrl ??= '#';
                                                         $taxDestroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TX, 'delete_tax_route_unavailable') ?? 'Delete tax route is unavailable. Please contact technical support or your domain administrator.';
                                                         try {
                                                             $taxDestroyResolved = Route::has(VW::TX . '.destroy') ? VW::TX . '.destroy' : (Route::has(Str::kebab(VW::TX . '.destroy')) ? Str::kebab(VW::TX . '.destroy') : null);
@@ -174,7 +163,7 @@
                                                             Log::error('Blade taxes/index: taxes.destroy URL generation error: ' . $e->getMessage());
                                                             $taxDestroyUrl = '#';
                                                         }
-                                                    @endphp
+@endphp
 													<div class="{{ VC::ACT_BTN_DNG_2 }}">
 														{!! Collective\Html\FormFacade::open([
 															'method'               => 'DELETE',

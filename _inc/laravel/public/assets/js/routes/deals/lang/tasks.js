@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 const langPatch = {
   ar: {
     datepicker_init_failed: "فشل تحميل منتقي التاريخ.",

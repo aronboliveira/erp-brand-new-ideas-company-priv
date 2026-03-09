@@ -1,15 +1,6 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
-	use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log, Route};
-	use Modules\LandingPage\Config\Constants\{
-		ExtendingLandingPageLayoutConstants as E,
-		RoutesResourcesConstants                as R,
-		SettingsConstants                       as LPC
-	};
-    use Nwidart\Modules\Facades\Module;
-    
+
+
     $lang = Utility::fetchUserLang();
 	$lpSettings ??= [];
 	$logo       ??= '';
@@ -101,7 +92,7 @@
                             {{ Form::open(array('route' => R::FQ.'.store', 'method'=>'post', 'enctype' => "multipart/form-data")) }}
                                 @csrf
                                 <div class="card-header">
-                                    <div class="row align-items-center">
+                                    <div class="{{ VC::R_ALC }}">
                                         <div class="col-6">
                                             <h5 class="mb-2">{{ __('FAQ') }}</h5>
                                         </div>
@@ -162,23 +153,27 @@
                         </div>
                         <div class="card">
                             <div class="card-header">
-                                <div class="row align-items-center">
+                                <div class="{{ VC::R_ALC }}">
                                     <div class="{{ VC::CLMS9 }}">
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
                                     <div class="{{ VC::CLMS_JCE3 }}">
                                         @php
-                                            $faqCreateRoute = R::FQ.'.create';
-                                            $canCreateFaq   = Route::has($faqCreateRoute);
-                                            $faqCreateUrl   = $canCreateFaq ? route($faqCreateRoute) : '#';
-                                        @endphp
+                                            try {
+                                                $faqCreateRoute = R::FQ.'.create';
+                                                $canCreateFaq   = Route::has($faqCreateRoute);
+                                                $faqCreateUrl   = $canCreateFaq ? route($faqCreateRoute) : '#';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('Modules/LandingPage/Resources/views/landingpage/faqs/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <a
                                             data-size="lg"
                                             data-url="{{ $faqCreateUrl }}"
                                             data-ajax-popup="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Discover Feature Create') }}"
-                                            class="btn btn-sm btn-primary {{ $canCreateFaq ? '' : 'disabled' }}"
+                                            class="{{ VC::BT_SM_PM }} {{ $canCreateFaq ? '' : 'disabled' }}"
                                             {{ $canCreateFaq ? '' : 'aria-disabled="true"' }}
                                         >
                                             <i class="{{ VC::TI_PLS_LG }}"></i>
@@ -208,17 +203,21 @@
                                            @if (Utility::isFilled($faqs))
                                             @php
                                                 $no = 1
-                                            @endphp
+@endphp
                                                 @foreach ($faqs as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
                                                         <td>{{ !empty($value['faq_questions']) ? $value['faq_questions'] : __('No heading available') }}</td>
                                                         @php
-                                                            $editRoute    = R::FQ.'.edit';
-                                                            $deleteRoute  = R::FQ.'.delete';
-                                                            $canEditFaq   = Route::has($editRoute);
-                                                            $canDeleteFaq = Route::has($deleteRoute);
-                                                        @endphp
+                                                            try {
+                                                                $editRoute    = R::FQ.'.edit';
+                                                                $deleteRoute  = R::FQ.'.delete';
+                                                                $canEditFaq   = Route::has($editRoute);
+                                                                $canDeleteFaq = Route::has($deleteRoute);
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('Modules/LandingPage/Resources/views/landingpage/faqs/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <td>
                                                             <span>
                                                                 <div class="action-btn {{ VC::BG_P }} ms-2">
@@ -291,4 +290,3 @@
         </div>
     </div>
 @endsection
-

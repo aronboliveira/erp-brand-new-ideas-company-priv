@@ -12,15 +12,20 @@ use App\Models\ProductServiceCategory;
 use Illuminate\Support\{Collection, Facades\Auth};
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductServiceCategoryTest extends TestCase
 {
+	use SafeAliasMock;
+
 	/** A fake “company” user reused in multiple tests */
 	private object $fakeUser;
 
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// A simple stub user object
 		$this->fakeUser = new class
@@ -52,8 +57,18 @@ class ProductServiceCategoryTest extends TestCase
 	public function fillable_array_is_correct(): void
 	{
 		$expected = [
-			'name', 'type', 'chart_account_id',
-			'color', 'created_by',
+			'name',
+			'code',
+			'type',
+			'type_label',
+			'chart_account_id',
+			'color',
+			'icon',
+			'attributes',
+			'description',
+			'related_categories',
+			'notes',
+			'is_active',
 		];
 
 		$this->assertSame($expected, (new ProductServiceCategory)->getFillable());
@@ -84,7 +99,7 @@ class ProductServiceCategoryTest extends TestCase
 		$rel = (new ProductServiceCategory)->chartAccount();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
 	}
@@ -98,7 +113,7 @@ class ProductServiceCategoryTest extends TestCase
 	public function income_category_revenue_amount_is_calculated(): void
 	{
 		// ➊  Stub static _checkLogin()
-		Mockery::mock('alias:' . ProductServiceCategory::class)
+		$this->aliasMock(ProductServiceCategory::class)
 			->shouldReceive('_checkLogin')
 			->andReturn($this->fakeUser);
 
@@ -121,7 +136,7 @@ class ProductServiceCategoryTest extends TestCase
 			(object)['getTotal' => fn () => 50],
 			(object)['getTotal' => fn () => 30],
 		]);
-		Mockery::mock('alias:App\Models\Invoice')
+		$this->aliasMock('App\Models\Invoice')
 			->shouldReceive('where')
 			->andReturnSelf()
 			->getMock()->shouldReceive('whereRaw')
@@ -147,7 +162,7 @@ class ProductServiceCategoryTest extends TestCase
 		$cat->id = 7;
 
 		// Stub Payment::where()->whereRaw()->sum => 40
-		Mockery::mock('alias:App\Models\Payment')
+		$this->aliasMock('App\Models\Payment')
 			->shouldReceive('where')
 			->andReturnSelf()
 			->getMock()->shouldReceive('whereRaw')
@@ -160,7 +175,7 @@ class ProductServiceCategoryTest extends TestCase
 			(object)['getTotal' => fn () => 20],
 			(object)['getTotal' => fn () => 10],
 		]);
-		Mockery::mock('alias:App\Models\Bill')
+		$this->aliasMock('App\Models\Bill')
 			->shouldReceive('where')
 			->andReturnSelf()
 			->getMock()->shouldReceive('whereRaw')
@@ -182,7 +197,7 @@ class ProductServiceCategoryTest extends TestCase
 		$expected = new Collection(['dummy']);
 
 		// Stub DB::table()->select()->leftJoin()->where()->where()->groupBy()->orderBy()->get()
-		Mockery::mock('alias:Illuminate\Support\Facades\DB')
+		$this->aliasMock('Illuminate\Support\Facades\DB')
 			->shouldReceive('table')
 			->once()
 			->andReturnSelf()
@@ -201,7 +216,7 @@ class ProductServiceCategoryTest extends TestCase
 			->andReturn($expected);
 
 		// Stub _checkLogin again for static call
-		Mockery::mock('alias:' . ProductServiceCategory::class)
+		$this->aliasMock(ProductServiceCategory::class)
 			->shouldReceive('_checkLogin')
 			->andReturn($this->fakeUser);
 
@@ -212,6 +227,6 @@ class ProductServiceCategoryTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

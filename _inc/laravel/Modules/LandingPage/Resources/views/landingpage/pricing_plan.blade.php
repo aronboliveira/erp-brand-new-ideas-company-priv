@@ -1,19 +1,5 @@
 @php
-    use App\Config\Constants\{
-        DatabaseConstants,
-        ExtendingLayoutsConstants,
-        YieldingConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewClassNamesConstants
-    };
-    use Modules\LandingPage\Config\Constants\{
-        ExtendingLandingPageLayoutConstants as E, 
-        RoutesResourcesConstants as R
-    };
-    use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
-    use Illuminate\Support\Facades\{Log, Route};
-	use App\Models\Utility;
+
 	$lang??='';
 	$logo??='';
 	$logo_light??='';
@@ -127,7 +113,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Title', __('Title'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::PN_TTL_K,!empty($data[LandingPageSettingsConstants::PN_TTL_K]) ? $data[LandingPageSettingsConstants::PN_TTL_K] : '# ERROR: COULD NOT FIND PLAN TITLE', ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::PN_TTL_K,!empty($data[LPSC::PN_TTL_K]) ? $data[LPSC::PN_TTL_K] : '# ERROR: COULD NOT FIND PLAN TITLE', ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
                                             @error('mail_host')
                                             <span class="invalid-mail_driver" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -138,7 +124,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::PN_HDG_K,!empty($data[LandingPageSettingsConstants::PN_HDG_K]) ? $data[LandingPageSettingsConstants::PN_HDG_K] : '# ERROR: COULD NOT FIND PLAN HEADING', ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::PN_HDG_K,!empty($data[LPSC::PN_HDG_K]) ? $data[LPSC::PN_HDG_K] : '# ERROR: COULD NOT FIND PLAN HEADING', ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                             @error('mail_host')
                                             <span class="invalid-mail_driver" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -150,7 +136,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::PN_DESC_K, !empty($data[LandingPageSettingsConstants::PN_DESC_K]) ? $data[LandingPageSettingsConstants::PN_DESC_K] : '# ERROR: COULD NOT FIND PLAN DESCRIPTION', ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::PN_DESC_K, !empty($data[LPSC::PN_DESC_K]) ? $data[LPSC::PN_DESC_K] : '# ERROR: COULD NOT FIND PLAN DESCRIPTION', ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                             @error('mail_port')
                                             <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -172,4 +158,3 @@
         </div>
     </div>
 @endsection
-

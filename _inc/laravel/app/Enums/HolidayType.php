@@ -35,7 +35,7 @@ enum HolidayType: string
 		if ($value === null)
 			return self::Public;
 
-		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value)));
+		$normalizedValue = preg_replace('/[^a-z0-9]/', '', strtolower(trim($value ?? '')));
 		return match ($normalizedValue) {
 			// Main categories
 			'national', 'country', 'countrywide', 'nationwide' => self::National,

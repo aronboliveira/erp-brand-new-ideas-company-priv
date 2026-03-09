@@ -1,14 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        YieldingConstants
-    };
-    use App\Models\{ProjectTask, Utility};
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @if(!empty($project) && isset($project))
@@ -22,19 +18,23 @@
 
     @section(YieldingConstants::ADM_ACT_BTN)
         @php
-            $projectIndexBase = VW::PRJ.'.index';
-            $projectIndexKebab = Str::kebab($projectIndexBase);
-            $projectIndexResolved = Route::has($projectIndexBase) ? $projectIndexBase : (Route::has($projectIndexKebab) ? $projectIndexKebab : null);
-            $projectIndexUrl = $projectIndexResolved ? route($projectIndexResolved) : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $projectIndexGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-            $projectIndexAnchorId = 'project-index-back-btn';
-        @endphp
+            try {
+                $projectIndexBase = VW::PRJ.'.index';
+                $projectIndexKebab = Str::kebab($projectIndexBase);
+                $projectIndexResolved = Route::has($projectIndexBase) ? $projectIndexBase : (Route::has($projectIndexKebab) ? $projectIndexKebab : null);
+                $projectIndexUrl = $projectIndexResolved ? route($projectIndexResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $projectIndexGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+                $projectIndexAnchorId = 'project-index-back-btn';
+            } catch (\Throwable $e) {
+                \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a id="{{ $projectIndexAnchorId }}"
         href="{{ $projectIndexUrl }}"
-        class="btn btn-xs btn-white btn-icon-only width-auto"
+        class="{{ VC::BT_XS }} btn-white btn-icon-only width-auto"
         data-url="{{ $projectIndexUrl }}"
-        data-guard-msg="{{ $projectIndexGuardMsg }}"
+        data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Back') }}">
@@ -47,7 +47,7 @@
 
     @php
         $permissions = !empty($project->id) ? $user?->getPermission($project->id) : [];
-    @endphp
+@endphp
 
     @section(YieldingConstants::ADM_CTT)
         <div class="{{ VC::CD }} overflow-hidden">
@@ -61,20 +61,24 @@
                                         <h6 class="{{ VC::MB0 }}">{{ data_get($stage,'name') ?: __('No stage name available') }}</h6>
                                     </div>
                                     @if(is_array($permissions ?? null) && in_array('create task',$permissions))
-                                        <div class="col text-end">
+                                        <div class="col {{ VC::TX_END }}">
                                             <div class="actions">
                                                 @php
-                                                    $taskCreateBase = VW::PRJ_TSK_C.'.create';
-                                                    $taskCreateKebab = Str::kebab($taskCreateBase);
-                                                    $taskCreateResolved = Route::has($taskCreateBase) ? $taskCreateBase : (Route::has($taskCreateKebab) ? $taskCreateKebab : null);
-                                                    $projIdValue = data_get($stage,'project_id','');
-                                                    $stageIdValue = data_get($stage,'id','');
-                                                    $taskCreateUrl = ($taskCreateResolved && $projIdValue !== '' && $stageIdValue !== '') ? route($taskCreateResolved, [$projIdValue, $stageIdValue]) : '#';
-                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                    $taskCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'create_project_task_route_unavailable') ?? 'Create project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $taskCreateAnchorId = 'project-task-create-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($stageIdValue === '' ? 'y' : $stageIdValue);
-                                                    $taskCreateTitle = __('Add Task in ').(data_get($stage,'name') ?: __('this stage'));
-                                                @endphp
+                                                    try {
+                                                        $taskCreateBase = VW::PRJ_TSK_C.'.create';
+                                                        $taskCreateKebab = Str::kebab($taskCreateBase);
+                                                        $taskCreateResolved = Route::has($taskCreateBase) ? $taskCreateBase : (Route::has($taskCreateKebab) ? $taskCreateKebab : null);
+                                                        $projIdValue = data_get($stage,'project_id','');
+                                                        $stageIdValue = data_get($stage,'id','');
+                                                        $taskCreateUrl = ($taskCreateResolved && $projIdValue !== '' && $stageIdValue !== '') ? route($taskCreateResolved, [$projIdValue, $stageIdValue]) : '#';
+                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                        $taskCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'create_project_task_route_unavailable') ?? 'Create project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $taskCreateAnchorId = 'project-task-create-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($stageIdValue === '' ? 'y' : $stageIdValue);
+                                                        $taskCreateTitle = __('Add Task in ').(data_get($stage,'name') ?: __('this stage'));
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a id="{{ $taskCreateAnchorId }}"
                                                 class="action-item {{ VC::MR2 }}"
                                                 href="{{ $taskCreateUrl }}"
@@ -82,7 +86,7 @@
                                                 data-ajax-popup="true"
                                                 data-size="lg"
                                                 data-title="{{ $taskCreateTitle }}"
-                                                data-guard-msg="{{ $taskCreateGuardMsg }}"
+                                                data-guard-msg="{{ base64_encode($taskCreateGuardMsg) }}"
                                                 data-sv-localized="true"
                                                 data-bs-toggle="tooltip"
                                                 title="{{ __('Add Task') }}">
@@ -103,28 +107,7 @@
                                                                         if (url !== '#' && href !== '#') { return; }
                                                                         e.preventDefault();
                                                                         const msg = el.getAttribute('data-guard-msg') ?? 'Create project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (hasBootstrap) {
-                                                                            const toast = document.createElement('div');
-                                                                            toast.className = 'toast';
-                                                                            toast.setAttribute('role','alert');
-                                                                            toast.setAttribute('aria-live','assertive');
-                                                                            toast.setAttribute('aria-atomic','true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toast.appendChild(body);
-                                                                            container.appendChild(toast);
-                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                         el.setAttribute('data-failed-route','true');
                                                                     } catch (err) {}
                                                                 });
@@ -139,35 +122,39 @@
                                 <div class="card-list-body task-list-items" id="task-list-{{ data_get($stage,'id','') }}" data-status="{{ data_get($stage,'id','') }}">
                                     @php
                                         $__tasks = (is_object($stage) || is_array($stage)) ? (data_get($stage,'tasks',[]) ?: []) : [];
-                                    @endphp
+@endphp
                                     @forelse((($__tasks instanceof Collection) || is_array($__tasks)) ? $__tasks : [] as $taskDetail)
                                         @php
-                                            $__tid = (string) data_get($taskDetail,'id','');
-                                            $__pIdx = data_get($taskDetail,'priority');
-                                            $__pColors = ProjectTask::$priority_color ?? [];
-                                            $__pColor = $__pColors[$__pIdx] ?? 'secondary';
-                                            $__pLabels = ProjectTask::$priority ?? [];
-                                            $__pLabel = isset($__pLabels[$__pIdx]) ? __($__pLabels[$__pIdx]) : __('No priority available');
-                                            $__prog = (is_object($taskDetail) && method_exists($taskDetail,'taskProgress')) ? ($taskDetail->taskProgress($taskDetail) ?? []) : [];
-                                            $__percent = (string) ($__prog['percentage'] ?? '0%');
-                                            $__percentInt = (int) str_replace('%','',$__percent);
-                                            $__pColorBar = (string) ($__prog['color'] ?? 'secondary');
-                                            $__files = data_get($taskDetail,'taskFiles');
-                                            $__filesCount = is_countable($__files) ? count($__files) : 0;
-                                            $__comments = data_get($taskDetail,'comments');
-                                            $__commentsCount = is_countable($__comments) ? count($__comments) : 0;
-                                            $__checkCount = (is_object($taskDetail) && method_exists($taskDetail,'countTaskChecklist')) ? (int) $taskDetail->countTaskChecklist() : ((is_object(data_get($taskDetail,'checklist')) && method_exists(data_get($taskDetail,'checklist'),'count')) ? (int) data_get($taskDetail,'checklist')->count() : 0);
-                                            $__end = (string) (data_get($taskDetail,'end_date') ?? '');
-                                            $__overdue = !empty($__end) && $__end !== '0000-00-00' && (strtotime($__end) < time());
-                                            $__canMove = is_array($permissions ?? null) && in_array('move task',$permissions);
-                                        @endphp
+                                            try {
+                                                $__tid = (string) data_get($taskDetail,'id','');
+                                                $__pIdx = data_get($taskDetail,'priority');
+                                                $__pColors = ProjectTask::$priority_color ?? [];
+                                                $__pColor = $__pColors[$__pIdx] ?? 'secondary';
+                                                $__pLabels = ProjectTask::$priority ?? [];
+                                                $__pLabel = isset($__pLabels[$__pIdx]) ? __($__pLabels[$__pIdx]) : __('No priority available');
+                                                $__prog = (is_object($taskDetail) && method_exists($taskDetail,'taskProgress')) ? ($taskDetail->taskProgress($taskDetail) ?? []) : [];
+                                                $__percent = (string) ($__prog['percentage'] ?? '0%');
+                                                $__percentInt = (int) str_replace('%','',$__percent);
+                                                $__pColorBar = (string) ($__prog['color'] ?? 'secondary');
+                                                $__files = data_get($taskDetail,'taskFiles');
+                                                $__filesCount = is_countable($__files) ? count($__files) : 0;
+                                                $__comments = data_get($taskDetail,'comments');
+                                                $__commentsCount = is_countable($__comments) ? count($__comments) : 0;
+                                                $__checkCount = (is_object($taskDetail) && method_exists($taskDetail,'countTaskChecklist')) ? (int) $taskDetail->countTaskChecklist() : ((is_object(data_get($taskDetail,'checklist')) && method_exists(data_get($taskDetail,'checklist'),'count')) ? (int) data_get($taskDetail,'checklist')->count() : 0);
+                                                $__end = (string) (data_get($taskDetail,'end_date') ?? '');
+                                                $__overdue = !empty($__end) && $__end !== '0000-00-00' && (strtotime($__end) < time());
+                                                $__canMove = is_array($permissions ?? null) && in_array('move task',$permissions);
+                                            } catch (\Throwable $e) {
+                                                \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="{{ VC::CD }} card-progress @if($__canMove) draggable-item @endif {{ VC::BD }} {{ VC::SNN }}" id="{{ $__tid }}" style="{{ data_get($taskDetail,'priority_color') ? 'border-left: 2px solid '.data_get($taskDetail,'priority_color').' !important' : '' }};">
-                                            <div class="card-body">
+                                            <div class="{{ VC::CD_BD }}">
                                                 <div class="{{ VC::R_ALC }} mb-2">
-                                                    <div class="col-6">
+                                                    <div class="{{ VC::C6 }}">
                                                         <span class="{{ VC::BDG_XS }} badge-pill badge-{{ $__pColor }}">{{ $__pLabel }}</span>
                                                     </div>
-                                                    <div class="col-6 text-end">
+                                                    <div class="{{ VC::C6 }} {{ VC::TX_END }}">
                                                         @if($__percentInt > 0)
                                                             <span class="{{ VC::TXSM }}">{{ $__percent }}</span>
                                                         @endif
@@ -177,22 +164,26 @@
                                                                 <div class="{{ VC::DRP_MN_END }}">
                                                                     @if(in_array('show task',$permissions ?? []))
                                                                         @php
-                                                                            $taskShowBase = VW::PRJ_TSK_C.'.show';
-                                                                            $taskShowKebab = Str::kebab($taskShowBase);
-                                                                            $taskShowResolved = Route::has($taskShowBase) ? $taskShowBase : (Route::has($taskShowKebab) ? $taskShowKebab : null);
-                                                                            $projIdValue = data_get($project,'id','');
-                                                                            $taskIdValue = isset($__tid) ? $__tid : '';
-                                                                            $taskShowUrl = ($taskShowResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskShowResolved, [$projIdValue, $taskIdValue]) : '#';
-                                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                            $taskShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'show_project_task_route_unavailable') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            $taskShowAnchorId = 'project-task-show-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
-                                                                        @endphp
+                                                                            try {
+                                                                                $taskShowBase = VW::PRJ_TSK_C.'.show';
+                                                                                $taskShowKebab = Str::kebab($taskShowBase);
+                                                                                $taskShowResolved = Route::has($taskShowBase) ? $taskShowBase : (Route::has($taskShowKebab) ? $taskShowKebab : null);
+                                                                                $projIdValue = data_get($project,'id','');
+                                                                                $taskIdValue = isset($__tid) ? $__tid : '';
+                                                                                $taskShowUrl = ($taskShowResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskShowResolved, [$projIdValue, $taskIdValue]) : '#';
+                                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                                $taskShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'show_project_task_route_unavailable') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                $taskShowAnchorId = 'project-task-show-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
+                                                                            } catch (\Throwable $e) {
+                                                                                \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                            }
+@endphp
                                                                         <a id="{{ $taskShowAnchorId }}"
                                                                         href="{{ $taskShowUrl }}"
-                                                                        class="dropdown-item"
+                                                                        class="{{ VC::DRP_IT }}"
                                                                         data-url="{{ $taskShowUrl }}"
                                                                         data-ajax-popup-right="true"
-                                                                        data-guard-msg="{{ $taskShowGuardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($taskShowGuardMsg) }}"
                                                                         data-sv-localized="true">
                                                                             {{ __('View') }}
                                                                         </a>
@@ -211,28 +202,7 @@
                                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                                 e.preventDefault();
                                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                                let container = document.getElementById('toast-container');
-                                                                                                if (!container) {
-                                                                                                    container = document.createElement('div');
-                                                                                                    container.id = 'toast-container';
-                                                                                                    document.body.appendChild(container);
-                                                                                                }
-                                                                                                if (hasBootstrap) {
-                                                                                                    const toast = document.createElement('div');
-                                                                                                    toast.className = 'toast';
-                                                                                                    toast.setAttribute('role', 'alert');
-                                                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                                                    const body = document.createElement('div');
-                                                                                                    body.className = 'toast-body';
-                                                                                                    body.textContent = msg;
-                                                                                                    toast.appendChild(body);
-                                                                                                    container.appendChild(toast);
-                                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                } else {
-                                                                                                    alert(msg);
-                                                                                                }
+                                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                 el.setAttribute('data-failed-route', 'true');
                                                                                             } catch (err) {}
                                                                                         });
@@ -243,25 +213,29 @@
                                                                     @endif
                                                                     @if(in_array('edit task',$permissions ?? []))
                                                                         @php
-                                                                            $taskEditBase = VW::PRJ_TSK_C.'.edit';
-                                                                            $taskEditKebab = Str::kebab($taskEditBase);
-                                                                            $taskEditResolved = Route::has($taskEditBase) ? $taskEditBase : (Route::has($taskEditKebab) ? $taskEditKebab : null);
-                                                                            $projIdValue = data_get($project,'id','');
-                                                                            $taskIdValue = isset($__tid) ? $__tid : '';
-                                                                            $taskEditUrl = ($taskEditResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskEditResolved, [$projIdValue, $taskIdValue]) : '#';
-                                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                            $taskEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'edit_project_task_route_unavailable') ?? 'Edit project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            $taskEditAnchorId = 'project-task-edit-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
-                                                                            $taskEditTitle = __('Edit ').(data_get($taskDetail,'name') ?: __('task'));
-                                                                        @endphp
+                                                                            try {
+                                                                                $taskEditBase = VW::PRJ_TSK_C.'.edit';
+                                                                                $taskEditKebab = Str::kebab($taskEditBase);
+                                                                                $taskEditResolved = Route::has($taskEditBase) ? $taskEditBase : (Route::has($taskEditKebab) ? $taskEditKebab : null);
+                                                                                $projIdValue = data_get($project,'id','');
+                                                                                $taskIdValue = isset($__tid) ? $__tid : '';
+                                                                                $taskEditUrl = ($taskEditResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskEditResolved, [$projIdValue, $taskIdValue]) : '#';
+                                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                                $taskEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'edit_project_task_route_unavailable') ?? 'Edit project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                $taskEditAnchorId = 'project-task-edit-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
+                                                                                $taskEditTitle = __('Edit ').(data_get($taskDetail,'name') ?: __('task'));
+                                                                            } catch (\Throwable $e) {
+                                                                                \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                            }
+@endphp
                                                                         <a id="{{ $taskEditAnchorId }}"
                                                                         href="{{ $taskEditUrl }}"
-                                                                        class="dropdown-item"
+                                                                        class="{{ VC::DRP_IT }}"
                                                                         data-url="{{ $taskEditUrl }}"
                                                                         data-ajax-popup="true"
                                                                         data-size="lg"
                                                                         data-title="{{ $taskEditTitle }}"
-                                                                        data-guard-msg="{{ $taskEditGuardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($taskEditGuardMsg) }}"
                                                                         data-sv-localized="true">
                                                                             {{ __('Edit') }}
                                                                         </a>
@@ -280,28 +254,7 @@
                                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                                 e.preventDefault();
                                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Edit project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                                let container = document.getElementById('toast-container');
-                                                                                                if (!container) {
-                                                                                                    container = document.createElement('div');
-                                                                                                    container.id = 'toast-container';
-                                                                                                    document.body.appendChild(container);
-                                                                                                }
-                                                                                                if (hasBootstrap) {
-                                                                                                    const toast = document.createElement('div');
-                                                                                                    toast.className = 'toast';
-                                                                                                    toast.setAttribute('role','alert');
-                                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                                    const body = document.createElement('div');
-                                                                                                    body.className = 'toast-body';
-                                                                                                    body.textContent = msg;
-                                                                                                    toast.appendChild(body);
-                                                                                                    container.appendChild(toast);
-                                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                } else {
-                                                                                                    alert(msg);
-                                                                                                }
+                                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                 el.setAttribute('data-failed-route','true');
                                                                                             } catch (err) {}
                                                                                         });
@@ -312,21 +265,25 @@
                                                                     @endif
                                                                     @if(in_array('delete task',$permissions ?? []))
                                                                         @php
-                                                                            $taskDestroyBase = VW::PRJ_TSK_C.'.destroy';
-                                                                            $taskDestroyKebab = Str::kebab($taskDestroyBase);
-                                                                            $taskDestroyResolved = Route::has($taskDestroyBase) ? $taskDestroyBase : (Route::has($taskDestroyKebab) ? $taskDestroyKebab : null);
-                                                                            $projIdValue = data_get($project,'id','');
-                                                                            $taskIdValue = isset($__tid) ? $__tid : '';
-                                                                            $taskDestroyUrl = ($taskDestroyResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskDestroyResolved, [$projIdValue, $taskIdValue]) : '#';
-                                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                            $taskDestroyGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'destroy_project_task_route_unavailable') ?? 'Destroy project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            $taskDestroyAnchorId = 'project-task-destroy-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
-                                                                        @endphp
+                                                                            try {
+                                                                                $taskDestroyBase = VW::PRJ_TSK_C.'.destroy';
+                                                                                $taskDestroyKebab = Str::kebab($taskDestroyBase);
+                                                                                $taskDestroyResolved = Route::has($taskDestroyBase) ? $taskDestroyBase : (Route::has($taskDestroyKebab) ? $taskDestroyKebab : null);
+                                                                                $projIdValue = data_get($project,'id','');
+                                                                                $taskIdValue = isset($__tid) ? $__tid : '';
+                                                                                $taskDestroyUrl = ($taskDestroyResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskDestroyResolved, [$projIdValue, $taskIdValue]) : '#';
+                                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                                $taskDestroyGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'destroy_project_task_route_unavailable') ?? 'Destroy project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                $taskDestroyAnchorId = 'project-task-destroy-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
+                                                                            } catch (\Throwable $e) {
+                                                                                \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                            }
+@endphp
                                                                         <a id="{{ $taskDestroyAnchorId }}"
                                                                         href="{{ $taskDestroyUrl }}"
-                                                                        class="dropdown-item del_task"
+                                                                        class="{{ VC::DRP_IT }} del_task"
                                                                         data-url="{{ $taskDestroyUrl }}"
-                                                                        data-guard-msg="{{ $taskDestroyGuardMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($taskDestroyGuardMsg) }}"
                                                                         data-sv-localized="true">
                                                                             {{ __('Delete') }}
                                                                         </a>
@@ -345,28 +302,7 @@
                                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                                 e.preventDefault();
                                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Destroy project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                                let container = document.getElementById('toast-container');
-                                                                                                if (!container) {
-                                                                                                    container = document.createElement('div');
-                                                                                                    container.id = 'toast-container';
-                                                                                                    document.body.appendChild(container);
-                                                                                                }
-                                                                                                if (hasBootstrap) {
-                                                                                                    const toast = document.createElement('div');
-                                                                                                    toast.className = 'toast';
-                                                                                                    toast.setAttribute('role','alert');
-                                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                                    const body = document.createElement('div');
-                                                                                                    body.className = 'toast-body';
-                                                                                                    body.textContent = msg;
-                                                                                                    toast.appendChild(body);
-                                                                                                    container.appendChild(toast);
-                                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                                } else {
-                                                                                                    alert(msg);
-                                                                                                }
+                                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                                 el.setAttribute('data-failed-route','true');
                                                                                             } catch (err) {}
                                                                                         });
@@ -382,23 +318,27 @@
                                                 </div>
                                                 @if(is_array($permissions ?? null) && in_array('show task',$permissions))
                                                     @php
-                                                        $taskShowBase = VW::PRJ_TSK_C.'.show';
-                                                        $taskShowKebab = Str::kebab($taskShowBase);
-                                                        $taskShowResolved = Route::has($taskShowBase) ? $taskShowBase : (Route::has($taskShowKebab) ? $taskShowKebab : null);
-                                                        $projIdValue = data_get($project,'id','');
-                                                        $taskIdValue = isset($__tid) ? $__tid : '';
-                                                        $taskShowUrl = ($taskShowResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskShowResolved, [$projIdValue, $taskIdValue]) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $taskShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'show_project_task_route_unavailable') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $taskShowAnchorId = 'project-task-show-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
-                                                        $taskNameLabel = data_get($taskDetail,'name') ?: __('No task name available');
-                                                    @endphp
+                                                        try {
+                                                            $taskShowBase = VW::PRJ_TSK_C.'.show';
+                                                            $taskShowKebab = Str::kebab($taskShowBase);
+                                                            $taskShowResolved = Route::has($taskShowBase) ? $taskShowBase : (Route::has($taskShowKebab) ? $taskShowKebab : null);
+                                                            $projIdValue = data_get($project,'id','');
+                                                            $taskIdValue = isset($__tid) ? $__tid : '';
+                                                            $taskShowUrl = ($taskShowResolved && $projIdValue !== '' && $taskIdValue !== '') ? route($taskShowResolved, [$projIdValue, $taskIdValue]) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $taskShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'show_project_task_route_unavailable') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $taskShowAnchorId = 'project-task-show-'.($projIdValue === '' ? 'x' : $projIdValue).'-'.($taskIdValue === '' ? 'y' : $taskIdValue);
+                                                            $taskNameLabel = data_get($taskDetail,'name') ?: __('No task name available');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('tasks/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a id="{{ $taskShowAnchorId }}"
                                                     class="h6 task-name-break"
                                                     href="{{ $taskShowUrl }}"
                                                     data-url="{{ $taskShowUrl }}"
                                                     data-ajax-popup-right="true"
-                                                    data-guard-msg="{{ $taskShowGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($taskShowGuardMsg) }}"
                                                     data-sv-localized="true">
                                                         {{ $taskNameLabel }}
                                                     </a>
@@ -417,28 +357,7 @@
                                                                             if (url !== '#' && href !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Show project task route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role','alert');
-                                                                                toast.setAttribute('aria-live','assertive');
-                                                                                toast.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route','true');
                                                                         } catch (err) {}
                                                                     });
@@ -450,7 +369,7 @@
                                                     <a class="h6 task-name-break" href="#">{{ data_get($taskDetail,'name') ?: __('No task name available') }}</a>
                                                 @endif
                                                 <div class="{{ VC::R_ALC }}">
-                                                    <div class="col-12">
+                                                    <div class="{{ VC::C12 }}">
                                                         <div class="actions d-inline-block">
                                                             @if($__filesCount > 0)
                                                                 <div class="action-item {{ VC::MR2 }}"><i class="ti ti-paperclip {{ VC::MR2 }}"></i>{{ $__filesCount }}</div>
@@ -465,14 +384,14 @@
                                                     </div>
                                                     <div class="col-5">
                                                         @if(!empty($__end) && $__end !== '0000-00-00')
-                                                            <small @if($__overdue) class="text-danger" @endif>{{ Utility::getDateFormated($__end) }}</small>
+                                                            <small @if($__overdue) class="{{ VC::TX_DNG }}" @endif>{{ Utility::getDateFormated($__end) }}</small>
                                                         @endif
                                                     </div>
-                                                    <div class="col-7 text-end">
+                                                    <div class="col-7 {{ VC::TX_END }}">
                                                         @php
                                                             $__assignees = (is_object($taskDetail) && method_exists($taskDetail,'users')) ? ($taskDetail->users() ?? []) : [];
                                                             $__assignees = ($__assignees instanceof Collection || is_array($__assignees)) ? $__assignees : [];
-                                                        @endphp
+@endphp
                                                         @if(!empty($__assignees))
                                                             <div class="avatar-group">
                                                                 @foreach($__assignees as $idx => $u)
@@ -485,7 +404,9 @@
                                                                     @endif
                                                                 @endforeach
                                                                 @if(count($__assignees) > 3)
-                                                                    @php $__last = $__assignees[2] ?? null; @endphp
+                                                                    @php
+ $__last = $__assignees[2] ?? null;
+@endphp
                                                                     <a href="#" class="{{ VC::AV_CC_SM }}">
                                                                         <img data-original-title="{{ data_get($__last,'name') ?: '' }}" src="{{ data_get($__last,'avatar') ? asset('/storage/uploads/avatar/'.data_get($__last,'avatar')) : asset('/storage/uploads/avatar/avatar.png') }}">
                                                                     </a>
@@ -499,7 +420,7 @@
                                     @empty
                                         <span class="empty-container" data-placeholder="{{ __('Empty') }}"></span>
                                     @endforelse
-                                    <span class="empty-container" data-placeholder="{{ __('Empty') }}"></span>
+                                    <span class="empty-container" data-placeholder="Empty"></span>
                                 </div>
                             </div>
                         </div>
@@ -557,7 +478,7 @@
                         t.setAttribute("aria-live", "assertive");
                         t.setAttribute("aria-atomic", "true");
                         t.innerHTML =
-                        '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
+                        '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                         container.appendChild(t);
                     }
                     const body = t.querySelector(".toast-body");
@@ -897,19 +818,19 @@
                             try {
                             data = typeof data === "string" ? JSON.parse(data) : data;
                             const html =
-                                "<div class='list-group-item px-0'><div class='row align-items-center'><div class='col-auto'><a href='#' class='avatar avatar-sm rounded-circle'><img " +
+                                "<div class='{{ VC::LG_IT }} px-0'><div class='{{ VC::R_ALC }}'><div class='{{ VC::C_AT }}'><a href='#' class='avatar avatar-sm rounded-circle'><img " +
                                 (data.user && data.user.img_avatar
                                 ? data.user.img_avatar
                                 : "") +
                                 " alt='" +
                                 (data.user && data.user.name ? data.user.name : "") +
-                                "'></a></div><div class='col ml-n2'><p class='d-block h6 text-sm font-weight-light mb-0 text-break'>" +
+                                "'></a></div><div class='col ml-n2'><p class='{{ VC::DBL }} h6 {{ VC::TXSM }} font-weight-light {{ VC::MB0 }} text-break'>" +
                                 (data.comment ?? "") +
-                                "</p><small class='d-block'>" +
+                                "</p><small class='{{ VC::DBL }}'>" +
                                 now +
-                                "</small></div><div class='col-auto'><a href='#' class='delete-comment' data-url='" +
+                                "</small></div><div class='{{ VC::C_AT }}'><a href='#' class='delete-comment' data-url='" +
                                 (data.deleteUrl ?? "") +
-                                "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
+                                "'><i class='{{ VC::TI_TRS_ALT }}'></i></a></div></div></div>";
                             $("#comments").prepend(html);
                             $("#form-comment textarea[name='comment']").val("");
                             const sid = curr.closest(".side-modal").attr("id");
@@ -991,19 +912,19 @@
                             try {
                             data = typeof data === "string" ? JSON.parse(data) : data;
                             const html =
-                                '<div class="card border shadow-none checklist-member"><div class="px-3 py-2 row align-items-center"><div class="col-10"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="check-item-' +
+                                '<div class="{{ VC::CD_NSD }} checklist-member"><div class="{{ VC::PX3 }} {{ VC::PY2 }} {{ VC::R_ALC }}"><div class="col-10"><div class="{{ VC::CST_CT_CB }}"><input type="checkbox" class="custom-control-input" id="check-item-' +
                                 (data.id ?? "") +
                                 '" value="' +
                                 (data.id ?? "") +
                                 '" data-url="' +
                                 (data.updateUrl ?? "") +
-                                '"><label class="custom-control-label h6 text-sm" for="check-item-' +
+                                '"><label class="{{ VC::CST_LB_SM }}" for="check-item-' +
                                 (data.id ?? "") +
                                 '">' +
                                 (data.name ?? "") +
-                                "</label></div></div><div class='col-auto card-meta d-inline-flex align-items-center ml-sm-auto'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
+                                "</label></div></div><div class='{{ VC::C_AT }} {{ VC::CD_MT }} {{ VC::DFL_IL_VC }} {{ VC::ML_SM_AT }}'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
                                 (data.deleteUrl ?? "") +
-                                "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
+                                "'><i class='{{ VC::TI_TRS_ALT }}'></i></a></div></div></div>";
                             $("#checklist").append(html);
                             $("#form-checklist input[name=name]").val("");
                             $("#form-checklist").collapse("toggle");

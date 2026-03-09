@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Promotion;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PromotionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,13 @@ class PromotionTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Promotion::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'employee_id',
+			'designation_id',
+			'promotion_title',
+			'promotion_date',
+			'description',
+		];
 
 		$this->assertSame($expected, (new Promotion)->getFillable());
 	}
@@ -31,10 +42,10 @@ class PromotionTest extends TestCase
 		$rel = (new Promotion)->designation();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',              $rel->getForeignKeyName());
-		$this->assertSame('designation_id',  $rel->getLocalKeyName());
+		$this->assertSame('designation_id',              $rel->getForeignKeyName());
+		$this->assertSame('id',  $rel->getOwnerKeyName());
 	}
 }

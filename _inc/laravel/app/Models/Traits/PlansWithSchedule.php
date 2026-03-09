@@ -2,11 +2,16 @@
 
 namespace App\Traits;
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Config\Constants\{
+	ActivitiesConstants as AC,
+	DatabaseConstants as DC,
+	ProjectsConstants as PJC
+};
 use App\Enums\{AppModuleType, PlanningScheduleType};
-use App\Models\Utility;
-use Carbon\Carbon;
-use Illuminate\Database\{Eloquent\Model, Schema\Blueprint};
+use App\Models\{Utility};
+use Carbon\{Carbon};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Schema\{Blueprint};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
 trait PlansWithSchedule
@@ -16,175 +21,194 @@ trait PlansWithSchedule
 
 	protected static function bootPlansWithSchedule(): void
 	{
-		// todo too heavy for testing, enable only in production
-		// static::saving(function (Model $m): void {
-		// 	try {
-		// 		self::enforcePlanningScheduleBoundaries($m);
-		// 	} catch (\Throwable $e) {
-		// 		Log::error(static::class . ' PlansWithSchedule failed enforcing boundaries', [
-		// 			'file' => $e->getFile(),
-		// 			'line' => $e->getLine(),
-		// 			'error' => $e->getMessage(),
-		// 			'table' => $m->getTable(),
-		// 			'model_id' => $m->getKey(),
-		// 		]);
-		// 	}
-		// });
-	}
+																													}
 
 	public function addScheduleColumns(Blueprint $table): void
 	{
-		$table->string('code')->unique()->nullable();
-		$table->string('title', 1024)->index();
-		$table->string('note')->nullable();
-		$table->enum(AC::COL_MT, array_column(AppModuleType::cases(), 'value'))->default(AppModuleType::Other->value)->nullable()->index();
-		$table->string(AC::COL_MI)->index()->nullable();
-		$table->enum(AC::COL_SCHD_TP, array_column(PlanningScheduleType::cases(), 'value'))->default(PlanningScheduleType::Other->value)->nullable()->index(); // ? enforced at model level to guard against null as well
-		$table->date(PJC::COL_S_DT)->nullable();
-		$table->time(AC::COL_ST_TIME)->nullable();
+	    try {
+    		$table->string('code')->unique()->nullable();
+    		$table->string('title', 1024)->index();
+    		$table->string('note')->nullable();
+    		$table->enum(AC::COL_MT, array_column(AppModuleType::cases(), 'value'))->default(AppModuleType::Other->value)->nullable()->index();
+    		$table->string(AC::COL_MI)->index()->nullable();
+    		$table->enum(AC::COL_SCHD_TP, array_column(PlanningScheduleType::cases(), 'value'))->default(PlanningScheduleType::Other->value)->nullable()->index();
+    		$table->date(PJC::COL_S_DT)->nullable();
+    		$table->time(AC::COL_ST_TIME)->nullable();
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::addScheduleColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected static function enforcePlanningScheduleBoundaries(Model $m): void
 	{
-		$table = (string) $m->getTable();
-		if ($table === '' || !Schema::hasTable($table)) return;
-		if (!Schema::hasTable(DC::TABLE_PLN_SCHD)) return;
+	    try {
+    		$table = (string) $m->getTable();
+    		if ($table === '' || !Schema::hasTable($table)) return;
+    		if (!Schema::hasTable(DC::TABLE_PLN_SCHD)) return;
 
-		$fkCol = PJC::COL_PLN_SCHD_ID;
-		if (!self::hasColumnCached($table, $fkCol)) return;
+    		$fkCol = PJC::COL_PLN_SCHD_ID;
+    		if (!self::hasColumnCached($table, $fkCol)) return;
 
-		$raw = $m->getAttribute($fkCol);
-		$id = is_scalar($raw) ? trim((string) $raw) : '';
-		if ($id === '') return;
+    		$raw = $m->getAttribute($fkCol);
+    		$id = is_scalar($raw) ? trim((string) $raw) : '';
+    		if ($id === '') return;
 
-		if (!Utility::looksLikeUuid($id)) {
-			$m->setAttribute($fkCol, null);
-			return;
-		}
+    		if (!Utility::looksLikeUuid($id)) {
+    			$m->setAttribute($fkCol, null);
+    			return;
+    		}
 
-		$scheduleSelect = self::scheduleSelectColumns();
-		if ($scheduleSelect === []) return;
+    		$scheduleSelect = self::scheduleSelectColumns();
+    		if ($scheduleSelect === []) return;
 
-		$row = null;
-		try {
-			$row = DB::table(DC::TABLE_PLN_SCHD)->where('id', $id)->first($scheduleSelect);
-		} catch (\Throwable $e) {
-			Log::error(static::class . ' failed loading PlanningSchedule for boundary enforcement', [
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-				'error' => $e->getMessage(),
-				'pln_schd_id' => $id,
-				'model_table' => $table,
-				'model_id' => $m->getKey(),
-			]);
-			return;
-		}
+    		$row = null;
+    		try {
+    			$row = DB::table(DC::TABLE_PLN_SCHD)->where('id', $id)->first($scheduleSelect);
+    		} catch (\Throwable $e) {
+    			Log::error(static::class . ' failed loading PlanningSchedule for boundary enforcement', [
+    				'file' => $e->getFile(),
+    				'line' => $e->getLine(),
+    				'error' => $e->getMessage(),
+    				'pln_schd_id' => $id,
+    				'model_table' => $table,
+    				'model_id' => $m->getKey(),
+    			]);
+    			return;
+    		}
 
-		if (!$row) {
-			$m->setAttribute($fkCol, null);
-			return;
-		}
+    		if (!$row) {
+    			$m->setAttribute($fkCol, null);
+    			return;
+    		}
 
-		$schStart = self::buildTemporalBoundary(
-			self::readRowValue($row, PJC::COL_S_DT),
-			self::colTypeCached(DC::TABLE_PLN_SCHD, PJC::COL_S_DT),
-			self::readRowValue($row, AC::COL_ST_TIME),
-			self::colTypeCached(DC::TABLE_PLN_SCHD, AC::COL_ST_TIME),
-			start: true
-		);
+    		$schStart = self::buildTemporalBoundary(
+    			self::readRowValue($row, PJC::COL_S_DT),
+    			self::colTypeCached(DC::TABLE_PLN_SCHD, PJC::COL_S_DT),
+    			self::readRowValue($row, AC::COL_ST_TIME),
+    			self::colTypeCached(DC::TABLE_PLN_SCHD, AC::COL_ST_TIME),
+    			start: true
+    		);
 
-		$schEnd = self::buildTemporalBoundary(
-			self::readRowValue($row, PJC::COL_E_DT),
-			self::colTypeCached(DC::TABLE_PLN_SCHD, PJC::COL_E_DT),
-			self::readRowValue($row, AC::COL_E_TIME),
-			self::colTypeCached(DC::TABLE_PLN_SCHD, AC::COL_E_TIME),
-			start: false
-		);
+    		$schEnd = self::buildTemporalBoundary(
+    			self::readRowValue($row, PJC::COL_E_DT),
+    			self::colTypeCached(DC::TABLE_PLN_SCHD, PJC::COL_E_DT),
+    			self::readRowValue($row, AC::COL_E_TIME),
+    			self::colTypeCached(DC::TABLE_PLN_SCHD, AC::COL_E_TIME),
+    			start: false
+    		);
 
-		$entityStart = self::extractEntityBoundary($m, $table, start: true);
-		$entityEnd = self::extractEntityBoundary($m, $table, start: false);
+    		$entityStart = self::extractEntityBoundary($m, $table, start: true);
+    		$entityEnd = self::extractEntityBoundary($m, $table, start: false);
 
-		$violates = false;
+    		$violates = false;
 
-		$violates = $violates || self::compareStartBoundary($schStart, $entityStart);
-		$violates = $violates || self::compareEndBoundary($schEnd, $entityEnd);
+    		$violates = $violates || self::compareStartBoundary($schStart, $entityStart);
+    		$violates = $violates || self::compareEndBoundary($schEnd, $entityEnd);
 
-		if ($violates)
-			$m->setAttribute($fkCol, null);
+    		if ($violates)
+    			$m->setAttribute($fkCol, null);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::enforcePlanningScheduleBoundaries — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	    }
 	}
 
 	protected static function scheduleSelectColumns(): array
 	{
-		$out = ['id'];
+	    try {
+    		$out = ['id'];
 
-		foreach ([PJC::COL_S_DT, PJC::COL_E_DT, AC::COL_ST_TIME, AC::COL_E_TIME] as $col)
-			self::hasColumnCached(DC::TABLE_PLN_SCHD, $col) && $out[] = $col;
+    		foreach ([PJC::COL_S_DT, PJC::COL_E_DT, AC::COL_ST_TIME, AC::COL_E_TIME] as $col)
+    			self::hasColumnCached(DC::TABLE_PLN_SCHD, $col) && $out[] = $col;
 
-		return array_values(array_unique($out));
+    		return array_values(array_unique($out));
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::scheduleSelectColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function extractEntityBoundary(Model $m, string $table, bool $start): array
 	{
-		$dateCandidates = $start ? [PJC::COL_S_DT, 'from'] : [PJC::COL_E_DT, 'to'];
-		$timeCandidates = $start ? [AC::COL_ST_TIME, 'from'] : [AC::COL_E_TIME, 'to'];
+	    try {
+    		$dateCandidates = $start ? [PJC::COL_S_DT, 'from'] : [PJC::COL_E_DT, 'to'];
+    		$timeCandidates = $start ? [AC::COL_ST_TIME, 'from'] : [AC::COL_E_TIME, 'to'];
 
-		$dateCol = self::firstTemporalColumn($table, $dateCandidates);
-		$timeCol = self::firstTemporalColumn($table, $timeCandidates);
+    		$dateCol = self::firstTemporalColumn($table, $dateCandidates);
+    		$timeCol = self::firstTemporalColumn($table, $timeCandidates);
 
-		$dateVal = $dateCol ? $m->getAttribute($dateCol) : null;
-		$timeVal = ($timeCol && $timeCol !== $dateCol) ? $m->getAttribute($timeCol) : null;
+    		$dateVal = $dateCol ? $m->getAttribute($dateCol) : null;
+    		$timeVal = ($timeCol && $timeCol !== $dateCol) ? $m->getAttribute($timeCol) : null;
 
-		$dateType = $dateCol ? self::colTypeCached($table, $dateCol) : null;
-		$timeType = $timeCol ? self::colTypeCached($table, $timeCol) : null;
+    		$dateType = $dateCol ? self::colTypeCached($table, $dateCol) : null;
+    		$timeType = $timeCol ? self::colTypeCached($table, $timeCol) : null;
 
-		return self::buildTemporalBoundary($dateVal, $dateType, $timeVal, $timeType, start: $start);
+    		return self::buildTemporalBoundary($dateVal, $dateType, $timeVal, $timeType, start: $start);
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::extractEntityBoundary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function firstTemporalColumn(string $table, array $candidates): ?string
 	{
-		foreach ($candidates as $col) {
-			$col = trim((string) $col);
-			if ($col === '') continue;
-			if (!self::hasColumnCached($table, $col)) continue;
-			$t = self::colTypeCached($table, $col);
-			if (!self::isTemporalType($t)) continue;
-			return $col;
-		}
-		return null;
+	    try {
+    		foreach ($candidates as $col) {
+    			$col = trim((string) $col);
+    			if ($col === '') continue;
+    			if (!self::hasColumnCached($table, $col)) continue;
+    			$t = self::colTypeCached($table, $col);
+    			if (!self::isTemporalType($t)) continue;
+    			return $col;
+    		}
+    		return null;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::firstTemporalColumn — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 
 	protected static function compareStartBoundary(array $schedule, array $entity): bool
 	{
-		if (($entity['dt'] ?? null) instanceof Carbon && ($schedule['dt'] ?? null) instanceof Carbon)
-			return $schedule['dt']->lt($entity['dt']);
+	    try {
+    		if (($entity['dt'] ?? null) instanceof Carbon && ($schedule['dt'] ?? null) instanceof Carbon)
+    			return $schedule['dt']->lt($entity['dt']);
 
-		if (($entity['date'] ?? null) instanceof Carbon) {
-			$sd = ($schedule['date'] ?? null) instanceof Carbon
-				? $schedule['date']
-				: (($schedule['dt'] ?? null) instanceof Carbon ? $schedule['dt']->copy()->startOfDay() : null);
-			if ($sd instanceof Carbon) return $sd->lt($entity['date']);
-		}
+    		if (($entity['date'] ?? null) instanceof Carbon) {
+    			$sd = ($schedule['date'] ?? null) instanceof Carbon
+    				? $schedule['date']
+    				: (($schedule['dt'] ?? null) instanceof Carbon ? $schedule['dt']->copy()->startOfDay() : null);
+    			if ($sd instanceof Carbon) return $sd->lt($entity['date']);
+    		}
 
-		$et = $entity['time_sec'] ?? null;
-		$st = $schedule['time_sec'] ?? null;
-		return is_int($et) && is_int($st) ? $st < $et : false;
+    		$et = $entity['time_sec'] ?? null;
+    		$st = $schedule['time_sec'] ?? null;
+    		return is_int($et) && is_int($st) ? $st < $et : false;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::compareStartBoundary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return false;
+	    }
 	}
 
 	protected static function compareEndBoundary(array $schedule, array $entity): bool
 	{
-		if (($entity['dt'] ?? null) instanceof Carbon && ($schedule['dt'] ?? null) instanceof Carbon)
-			return $schedule['dt']->gt($entity['dt']);
+	    try {
+    		if (($entity['dt'] ?? null) instanceof Carbon && ($schedule['dt'] ?? null) instanceof Carbon)
+    			return $schedule['dt']->gt($entity['dt']);
 
-		if (($entity['date'] ?? null) instanceof Carbon) {
-			$sd = ($schedule['date'] ?? null) instanceof Carbon
-				? $schedule['date']
-				: (($schedule['dt'] ?? null) instanceof Carbon ? $schedule['dt']->copy()->startOfDay() : null);
-			if ($sd instanceof Carbon) return $sd->gt($entity['date']);
-		}
+    		if (($entity['date'] ?? null) instanceof Carbon) {
+    			$sd = ($schedule['date'] ?? null) instanceof Carbon
+    				? $schedule['date']
+    				: (($schedule['dt'] ?? null) instanceof Carbon ? $schedule['dt']->copy()->startOfDay() : null);
+    			if ($sd instanceof Carbon) return $sd->gt($entity['date']);
+    		}
 
-		$et = $entity['time_sec'] ?? null;
-		$st = $schedule['time_sec'] ?? null;
-		return is_int($et) && is_int($st) ? $st > $et : false;
+    		$et = $entity['time_sec'] ?? null;
+    		$st = $schedule['time_sec'] ?? null;
+    		return is_int($et) && is_int($st) ? $st > $et : false;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::compareEndBoundary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return false;
+	    }
 	}
 
 	protected static function buildTemporalBoundary(
@@ -194,58 +218,68 @@ trait PlansWithSchedule
 		?string $timeType,
 		bool $start
 	): array {
-		$out = ['dt' => null, 'date' => null, 'time_sec' => null];
+	    try {
+    		$out = ['dt' => null, 'date' => null, 'time_sec' => null];
 
-		$dateType = $dateType ? strtolower(trim($dateType)) : null;
-		$timeType = $timeType ? strtolower(trim($timeType)) : null;
+    		$dateType = $dateType ? strtolower(trim($dateType)) : null;
+    		$timeType = $timeType ? strtolower(trim($timeType)) : null;
 
-		$dateStr = is_scalar($dateVal) ? trim((string) $dateVal) : '';
-		$timeStr = is_scalar($timeVal) ? trim((string) $timeVal) : '';
+    		$dateStr = is_scalar($dateVal) ? trim((string) $dateVal) : '';
+    		$timeStr = is_scalar($timeVal) ? trim((string) $timeVal) : '';
 
-		$dt = null;
+    		$dt = null;
 
-		if ($dateStr !== '' && in_array($dateType, ['datetime', 'timestamp', 'datetimetz'], true))
-			$dt = self::tryParseCarbon($dateStr);
+    		if ($dateStr !== '' && in_array($dateType, ['datetime', 'timestamp', 'datetimetz'], true))
+    			$dt = self::tryParseCarbon($dateStr);
 
-		if (!$dt && $dateStr !== '' && $timeStr !== '' && in_array($dateType, ['date'], true)) {
-			$d = self::tryParseCarbon($dateStr);
-			if ($d) {
-				$t = self::tryParseCarbon('1970-01-01 ' . $timeStr) ?? self::tryParseCarbon($timeStr);
-				if ($t) {
-					$dt = $d->copy()->setTime((int) $t->format('H'), (int) $t->format('i'), (int) $t->format('s'));
-				}
-			}
-		}
+    		if (!$dt && $dateStr !== '' && $timeStr !== '' && in_array($dateType, ['date'], true)) {
+    			$d = self::tryParseCarbon($dateStr);
+    			if ($d) {
+    				$t = self::tryParseCarbon('1970-01-01 ' . $timeStr) ?? self::tryParseCarbon($timeStr);
+    				if ($t) {
+    					$dt = $d->copy()->setTime((int) $t->format('H'), (int) $t->format('i'), (int) $t->format('s'));
+    				}
+    			}
+    		}
 
-		if ($dt instanceof Carbon) {
-			$out['dt'] = $dt;
-			$out['date'] = $dt->copy()->startOfDay();
-			$out['time_sec'] = ((int) $dt->format('H')) * 3600 + ((int) $dt->format('i')) * 60 + ((int) $dt->format('s'));
-			return $out;
-		}
+    		if ($dt instanceof Carbon) {
+    			$out['dt'] = $dt;
+    			$out['date'] = $dt->copy()->startOfDay();
+    			$out['time_sec'] = ((int) $dt->format('H')) * 3600 + ((int) $dt->format('i')) * 60 + ((int) $dt->format('s'));
+    			return $out;
+    		}
 
-		if ($dateStr !== '' && in_array($dateType, ['date'], true)) {
-			$d = self::tryParseCarbon($dateStr);
-			if ($d) $out['date'] = $d->copy()->startOfDay();
-		}
+    		if ($dateStr !== '' && in_array($dateType, ['date'], true)) {
+    			$d = self::tryParseCarbon($dateStr);
+    			if ($d) $out['date'] = $d->copy()->startOfDay();
+    		}
 
-		if ($timeStr !== '' && self::isTemporalType($timeType)) {
-			$t = self::tryParseCarbon('1970-01-01 ' . $timeStr) ?? self::tryParseCarbon($timeStr);
-			if ($t) $out['time_sec'] = ((int) $t->format('H')) * 3600 + ((int) $t->format('i')) * 60 + ((int) $t->format('s'));
-		}
+    		if ($timeStr !== '' && self::isTemporalType($timeType)) {
+    			$t = self::tryParseCarbon('1970-01-01 ' . $timeStr) ?? self::tryParseCarbon($timeStr);
+    			if ($t) $out['time_sec'] = ((int) $t->format('H')) * 3600 + ((int) $t->format('i')) * 60 + ((int) $t->format('s'));
+    		}
 
-		return $out;
+    		return $out;
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::buildTemporalBoundary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return [];
+	    }
 	}
 
 	protected static function tryParseCarbon(string $v): ?Carbon
 	{
-		$vv = trim($v);
-		if ($vv === '') return null;
-		try {
-			return Carbon::parse($vv);
-		} catch (\Throwable) {
-			return null;
-		}
+	    try {
+    		$vv = trim($v);
+    		if ($vv === '') return null;
+    		try {
+    			return Carbon::parse($vv);
+    		} catch (\Throwable) {
+    			return null;
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::tryParseCarbon — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return null;
+	    }
 	}
 
 	protected static function readRowValue(object $row, string $col): mixed
@@ -261,27 +295,37 @@ trait PlansWithSchedule
 
 	protected static function hasColumnCached(string $table, string $col): bool
 	{
-		$k = $table . '::' . $col;
-		if (array_key_exists($k, self::$pwsHasColCache)) return self::$pwsHasColCache[$k];
+	    try {
+    		$k = $table . '::' . $col;
+    		if (array_key_exists($k, self::$pwsHasColCache)) return self::$pwsHasColCache[$k];
 
-		try {
-			return self::$pwsHasColCache[$k] = Schema::hasColumn($table, $col);
-		} catch (\Throwable) {
-			return self::$pwsHasColCache[$k] = false;
-		}
+    		try {
+    			return self::$pwsHasColCache[$k] = Schema::hasColumn($table, $col);
+    		} catch (\Throwable) {
+    			return self::$pwsHasColCache[$k] = false;
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::hasColumnCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return false;
+	    }
 	}
 
 	protected static function colTypeCached(string $table, string $col): ?string
 	{
-		$k = $table . '::' . $col;
-		if (array_key_exists($k, self::$pwsColTypeCache)) return self::$pwsColTypeCache[$k];
+	    try {
+    		$k = $table . '::' . $col;
+    		if (array_key_exists($k, self::$pwsColTypeCache)) return self::$pwsColTypeCache[$k];
 
-		try {
-			$t = Schema::getColumnType($table, $col);
-			$t = is_string($t) ? strtolower(trim($t)) : null;
-			return self::$pwsColTypeCache[$k] = $t;
-		} catch (\Throwable) {
-			return self::$pwsColTypeCache[$k] = null;
-		}
+    		try {
+    			$t = Schema::getColumnType($table, $col);
+    			$t = is_string($t) ? strtolower(trim($t)) : null;
+    			return self::$pwsColTypeCache[$k] = $t;
+    		} catch (\Throwable) {
+    			return self::$pwsColTypeCache[$k] = null;
+    		}
+	    } catch (\Throwable $e) {
+	        Log::error(static::class . '::colTypeCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+	        return '';
+	    }
 	}
 }

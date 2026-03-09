@@ -1,4 +1,12 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    void 0;
+    return;
+  }
+
   const select = document.getElementById("vendor_select");
   if (!select || select.getAttribute("data-listener-active") === "true") return;
   select.setAttribute("data-listener-active", "true");
@@ -11,29 +19,10 @@
     try {
       const url = select.getAttribute(urlAttr);
       if (!url || url === "#") {
-        const msg = select.getAttribute(guardMsgAttr);
-        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          document.body.appendChild(container);
-        }
-        if (bootstrapLink && window.bootstrap) {
-          const toastEl = document.createElement("div");
-          toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toastEl.appendChild(body);
-          container.appendChild(toastEl);
-          bootstrap.Toast.getOrCreateInstance(toastEl).show();
-        } else {
-          alert(msg);
-        }
+        const msg =
+          select.getAttribute(guardMsgAttr) ||
+          getMsg("bill_vendor_select_unavailable");
+        scheduleError(msg, "change");
         select.setAttribute(failedAttr, "true");
         return;
       }
@@ -43,7 +32,7 @@
         `${url}?vendor_id=${encodeURIComponent(vendorId)}`,
         {
           headers: { "X-Requested-With": "XMLHttpRequest" },
-        }
+        },
       );
 
       if (!response.ok) {

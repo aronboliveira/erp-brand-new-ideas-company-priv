@@ -1,15 +1,5 @@
 @php
-	use App\Config\Constants\{
-		DatabaseConstants,
-		ExtendingLayoutsConstants,
-		SettingsConstants,
-        ViewsConstants as VW,
-		ViewClassNamesConstants as VC,
-	};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log, Route};
-    use Illuminate\Support\{Collection, Str};
-	$data ??= [];
+$data ??= [];
 	$logo ??= '';
 	$colorSettings ??= [];
 	$color ??= '';
@@ -96,17 +86,19 @@
             <div class="job-content">
                 <nav class="{{ VC::NVB }}">
                     <div class="{{ VC::CT }}">
-                        @php $companyLogo = !empty($company_logos) ? $company_logos : ST::CPN_LG_LT_DEF; @endphp
+                        @php
+ $companyLogo = !empty($company_logos) ? $company_logos : SC::CPN_LG_LT_DEF;
+@endphp
                         <a class="{{ VC::NVB_BR }}" href="#">
-                            <img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="{{ __('logo') }}" style="width:90px">
+                            <img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="logo" style="width:90px">
                         </a>
                     </div>
                 </nav>
                 <section class="job-banner">
                     <div class="job-banner-bg"><img src="{{ asset('/storage/uploads/job/banner.png') }}" alt=""></div>
                     <div class="{{ VC::CT }}">
-                        <div class="job-banner-content text-center text-white">
-                            <h1 class="text-white mb-3">{{ __(' We help') }} <br> {{ __('businesses grow') }}</h1>
+                        <div class="job-banner-content {{ VC::TXCT }} {{ VC::TXT_WT }}">
+                            <h1 class="{{ VC::TXT_WT }} {{ VC::MB3 }}">{{ __(' We help') }} <br> {{ __('businesses grow') }}</h1>
                             <p>{{ __('Work there. Find the dream job you’ve always wanted..') }}</p>
                         </div>
                     </div>
@@ -114,39 +106,43 @@
                 <section class="apply-job-section">
                     <div class="{{ VC::CT }}">
                         <div class="apply-job-wrapper bg-light">
-                            <div class="section-title text-center">
+                            <div class="section-title {{ VC::TXCT }}">
                                 <p><b>{{ $jobTitle }}</b></p>
-                                <div class="d-flex flex-wrap justify-content-center gap-1 mb-4">
+                                <div class="{{ VC::DFL }} flex-wrap {{ VC::JCC }} gap-1 {{ VC::MB4 }}">
                                     @if(Utility::isFilled($skills) ?? [])
                                         @foreach($skills as $skill)
-                                            <span class="badge rounded p-2 bg-primary">{{ $skill }}</span>
+                                            <span class="badge rounded p-2 {{ VC::BG_P }}">{{ $skill }}</span>
                                         @endforeach
                                     @else
-                                        <span class="badge rounded p-2 bg-primary">{{ __('No skills available') }}</span>
+                                        <span class="badge rounded p-2 {{ VC::BG_P }}">{{ __('No skills available') }}</span>
                                     @endif
                                 </div>
                                 <p><i class="ti ti-map-pin ms-1"></i> {{ !empty($branchName) ? $branchName : __('No branch name available') }}</p>
                                 @php
-                                    $jobCode       = (string) data_get($job, 'code', '');
-                                    $locale        = isset($currentLang) ? $currentLang : app()->getLocale();
-                                    $applyBase     = VW::JB.'.apply';
-                                    $applyKebab    = Str::kebab($applyBase);
-                                    $applyResolved = Route::has($applyBase) ? $applyBase : (Route::has($applyKebab) ? $applyKebab : null);
-                                    $applyUrl      = ($applyResolved && $jobCode !== '') ? route($applyResolved, [$jobCode, $locale]) : '#';
-                                    $applyGuardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'apply_job_route_unavailable')
-                                                    ?? 'Apply job route is unavailable. Please contact technical support or your domain administrator.';
-                                    $linkId        = 'job-apply-link-'.($jobCode !== '' ? $jobCode : 'x');
-                                @endphp
+                                    try {
+                                        $jobCode       = (string) data_get($job, 'code', '');
+                                        $locale        = isset($currentLang) ? $currentLang : app()->getLocale();
+                                        $applyBase     = VW::JB.'.apply';
+                                        $applyKebab    = Str::kebab($applyBase);
+                                        $applyResolved = Route::has($applyBase) ? $applyBase : (Route::has($applyKebab) ? $applyKebab : null);
+                                        $applyUrl      = ($applyResolved && $jobCode !== '') ? route($applyResolved, [$jobCode, $locale]) : '#';
+                                        $applyGuardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'apply_job_route_unavailable')
+                                                        ?? 'Apply job route is unavailable. Please contact technical support or your domain administrator.';
+                                        $linkId        = 'job-apply-link-'.($jobCode !== '' ? $jobCode : 'x');
+                                    } catch (\Throwable $e) {
+                                        \Log::error('jobs/requirement — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <a
                                     id="{{ $linkId }}"
                                     href="{{ $applyUrl }}"
-                                    class="btn btn-primary rounded job-apply-link"
+                                    class="{{ VC::BT_PRM }} rounded job-apply-link"
                                     data-url="{{ $applyUrl }}"
-                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($applyGuardMsg) }}"
                                     data-sv-localized="true"
                                     {{ $applyUrl === '#' ? 'aria-disabled=true' : '' }}
                                 >
-                                    {{ __('Apply now') }} <i class="ti ti-send ms-2"></i>
+                                    {{ __('Apply now') }} <i class="ti ti-send {{ VC::MS2 }}"></i>
                                 </a>
                                 <script defer src="{{ asset('assets/js/routes/jobs/applyRequirement.js') }}"></script>
                             </div>

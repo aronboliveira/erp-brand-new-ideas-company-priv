@@ -1,20 +1,35 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants, StacksConstants};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use Collective\Html\FormFacade as Form;
-
-    $lang = Utility::fetchUserLang();
-    $storeRoute = Route::has(ViewsConstants::APR)
-        ? route(ViewsConstants::APR)
-        : '#';
-    $formId = 'appraisal-store-form';
-    $storeMsg = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::APR,
-        'appraisal_store_route_unavailable'
-    ) ?? 'Appraisal store route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$storeRoute ??= '#';
+	$formId ??= 'appraisal-store-form';
+	$storeMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$storeRoute = Route::has(ViewsConstants::APR) ? (route(ViewsConstants::APR) ?? '#') : '#';
+		$storeMsg = Utility::fetchLinkMessage($lang, ViewsConstants::APR, 'appraisal_store_route_unavailable')
+			?? 'Appraisal store route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in appraisals/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in appraisals/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in appraisals/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {{ Form::open(['url'=> $storeRoute,'method'=>'post']) }}
     <div class="modal-body">
@@ -190,7 +205,7 @@
             try {
               const empId = el.value ?? '';
               $.ajax({
-                url: '{{ route("empByStar") }}',
+                url: '{{ route("appraisals.employees.star") }}',
                 type: 'POST',
                 dataType: 'json',
                 data: {
@@ -249,8 +264,3 @@
         })();
     </script>
 {{ Form::close() }}
-
-
-
-
-

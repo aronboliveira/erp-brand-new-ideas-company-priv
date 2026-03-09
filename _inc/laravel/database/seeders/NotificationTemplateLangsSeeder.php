@@ -109,13 +109,14 @@ final class NotificationTemplateLangsSeeder extends Seeder
 		$faker     = fake();
 		$created   = 0;
 		$remaining = $targetTotal;
+		$HARD_CAP  = 2; // HARD CAP guard
 
 		// Para cálculo do "último template"
 		$templatesArray = $templates->all();
 		$totalTpl       = count($templatesArray);
 
 		foreach ($templatesArray as $index => $tpl) {
-			if ($remaining <= 0) {
+			if ($remaining <= 0 || $created >= $HARD_CAP) { // HARD CAP guard
 				break;
 			}
 
@@ -244,7 +245,7 @@ final class NotificationTemplateLangsSeeder extends Seeder
 				if (!empty($userIds) && $faker->boolean(50)) {
 					$translatorId = Arr::random($userIds);
 				}
-				(new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification template lang {$langValue} for {$templateId} {$templateName} ({$templateType})");
+				// (new \Symfony\Component\Console\Output\ConsoleOutput())->writeln("Generating notification template lang {$langValue} for {$templateId} {$templateName} ({$templateType})");
 				// Criação via Model (respeita casts + booted)
 				NotificationTemplateLang::query()->create([
 					NC::COL_TEMPL_PR => $templateId,

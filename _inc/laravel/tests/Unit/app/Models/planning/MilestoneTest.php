@@ -11,6 +11,11 @@ use Tests\TestCase;
 
 class MilestoneTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -19,8 +24,21 @@ class MilestoneTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Milestone::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'project_id',
+			'title',
+			'description',
+			'priority',
+			'status',
+			'progress',
+			'cost',
+			'start_date',
+			'due_date',
+			'metadata',
+			'tags',
+			'involved',
+			'updated_by',
+		];
 
 		$this->assertSame($expected, (new Milestone)->getFillable());
 	}

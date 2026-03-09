@@ -26,11 +26,13 @@ final class ProjectSeeder extends Seeder
 
 		DB::transaction(function () use ($faker) {
 			$systemUserId = DC::DEFAULT_UUID;
+			// HARD_CAP: limit iterations for dev/test speed
+			$HARD_CAP = 2;
 			if (!Cli::exists()) {
-				for ($i = 0; $i < 8; $i++) {
+				for ($i = 0; $i < $HARD_CAP; $i++) { // original: 8
 					$cName = $faker->boolean(30) ? $faker->company() : $faker->name();
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Cliente: {$cName}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Cliente: {$cName}");
 					do $clientId = Str::uuid()->toString();
 					while (Cli::where('id', $clientId)->exists());
 
@@ -53,9 +55,9 @@ final class ProjectSeeder extends Seeder
 			if (!Pst::exists()) {
 				$names = ['Planejamento', 'Em andamento', 'Revisão', 'Concluído', 'Aguardando cliente', 'Em espera', 'Cancelado', 'Arquivado', 'Iniciado', 'Em teste', 'Produção', 'Homologação', 'Análise', 'Design', 'Implementação', 'Lançamento', 'Suporte', 'Manutenção', 'Otimização', 'Encerramento'];
 				$ord = 0;
-				foreach ($names as $nm) {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Estágio: {$nm}");
+				foreach (array_slice($names, 0, $HARD_CAP) as $nm) { // original: foreach ($names as $nm)
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Estágio: {$nm}");
 					do $stageId = Str::uuid()->toString();
 					while (Pst::where('id', $stageId)->exists());
 
@@ -68,15 +70,15 @@ final class ProjectSeeder extends Seeder
 					$s->save();
 				}
 			}
-			$quantity = 255;
+			$quantity = $HARD_CAP; // original: 255
 			$statusKeys = array_keys(Prj::$project_status);
 			$clientIds = Cli::query()->pluck('id')->all();
 			$stageIds  = Pst::query()->pluck('id')->all();
 			for ($i = 0; $i < $quantity; $i++) {
 				try {
 					$pjNm = $faker->sentence(3);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Projeto: {$pjNm}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Projeto: {$pjNm}");
 					do $projectId = Str::uuid()->toString();
 					while (Prj::where('id', $projectId)->exists());
 

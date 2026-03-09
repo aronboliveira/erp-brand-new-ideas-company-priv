@@ -1,5 +1,5 @@
 @php
-    use Modules\LandingPage\Constants\RoutesResourcesConstants;
+
 @endphp
 {{ Collective\Html\FormFacade::open(array('route' => RoutesResourcesConstants::SST.'.store', 'method'=>'post', 'enctype' => "multipart/form-data")) }}
     <div class="modal-body">
@@ -26,4 +26,3 @@
         <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
     </div>
 {{ Collective\Html\FormFacade::close() }}
-

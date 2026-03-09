@@ -4,16 +4,17 @@ namespace App\Models;
 
 use App\Config\Constants\{
     BillsConstants as BC,
-    CompaniesConstants as CC,
+    CompaniesConstants as CPC,
     DatabaseConstants as DC,
     UsersConstants as UC
 };
-use App\Enums\AssetType;
-use App\Models\Employee;
+use App\Enums\{AssetType};
+use App\Models\{Employee};
 use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany};
 use Illuminate\Support\{Carbon, Str};
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Log};
 
 class Asset extends Model
 {
@@ -27,8 +28,8 @@ class Asset extends Model
         'type',
         'name',
         UC::COL_EMP_ID,
-        CC::COL_PRC_DT,
-        CC::COL_SPT_DT,
+        CPC::COL_PRC_DT,
+        CPC::COL_SPT_DT,
         'amount',
         'description',
         'purpose',
@@ -51,8 +52,8 @@ class Asset extends Model
         'attachments'     => 'array',
         'metadata'        => 'array',
         'tags'            => 'array',
-        CC::COL_PRC_DT    => 'date',
-        CC::COL_SPT_DT    => 'date',
+        CPC::COL_PRC_DT    => 'date',
+        CPC::COL_SPT_DT    => 'date',
         DC::COL_C_AT      => 'datetime',
         DC::COL_U_AT      => 'datetime',
     ];
@@ -89,8 +90,8 @@ class Asset extends Model
                 $typeEnum = AssetType::normalize($rawType !== '' ? $rawType : null);
                 $model->setAttribute('type', $typeEnum->value);
 
-                $purchase  = self::parseDate($model->getAttribute(CC::COL_PRC_DT));
-                $supported = self::parseDate($model->getAttribute(CC::COL_SPT_DT));
+                $purchase  = self::parseDate($model->getAttribute(CPC::COL_PRC_DT));
+                $supported = self::parseDate($model->getAttribute(CPC::COL_SPT_DT));
 
                 if ($purchase && $supported && $supported->lessThan($purchase)) {
                     $tmp      = $purchase;
@@ -98,8 +99,8 @@ class Asset extends Model
                     $supported = $tmp;
                 }
 
-                $model->setAttribute(CC::COL_PRC_DT, $purchase?->toDateString());
-                $model->setAttribute(CC::COL_SPT_DT, $supported?->toDateString());
+                $model->setAttribute(CPC::COL_PRC_DT, $purchase?->toDateString());
+                $model->setAttribute(CPC::COL_SPT_DT, $supported?->toDateString());
 
                 $amountRaw = $model->getAttribute('amount');
                 $amount    = is_numeric($amountRaw) ? (float) $amountRaw : 0.0;
@@ -213,55 +214,75 @@ class Asset extends Model
 
     protected static function parseDate(mixed $value): ?Carbon
     {
-        if ($value instanceof Carbon) return $value->copy()->startOfDay();
-        if ($value instanceof \DateTimeInterface) return Carbon::instance($value)->startOfDay();
-
-        $string = trim((string) $value);
-        if ($string === '') return null;
-
         try {
-            return Carbon::parse($string)->startOfDay();
+            if ($value instanceof Carbon) return $value->copy()->startOfDay();
+            if ($value instanceof \DateTimeInterface) return Carbon::instance($value)->startOfDay();
+
+            $string = trim((string) $value);
+            if ($string === '') return null;
+
+            try {
+                return Carbon::parse($string)->startOfDay();
+            } catch (\Throwable $e) {
+                Log::debug(static::class . ' failed to parse date', [
+                    'value' => $string,
+                    'error' => $e->getMessage(),
+                ]);
+                return null;
+            }
         } catch (\Throwable $e) {
-            Log::debug(static::class . ' failed to parse date', [
-                'value' => $string,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(static::class . '::parseDate — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return null;
         }
     }
 
     protected static function sanitizeAttachmentsArray(array $attachments): array
     {
-        $result = [];
+        try {
+            $result = [];
 
-        foreach ($attachments as $attachment) {
-            if (!is_array($attachment)) continue;
+            foreach ($attachments as $attachment) {
+                if (!is_array($attachment)) continue;
 
-            $path = $attachment['path'] ?? $attachment['file_path'] ?? null;
-            $name = $attachment['name'] ?? $attachment['file_name'] ?? null;
-            $mime = $attachment['mime'] ?? $attachment['mime_type'] ?? null;
-            $size = $attachment['size'] ?? $attachment['file_size'] ?? null;
+                $path = $attachment['path'] ?? $attachment['file_path'] ?? null;
+                $name = $attachment['name'] ?? $attachment['file_name'] ?? null;
+                $mime = $attachment['mime'] ?? $attachment['mime_type'] ?? null;
+                $size = $attachment['size'] ?? $attachment['file_size'] ?? null;
 
-            $clean = [];
+                $clean = [];
 
-            if (is_string($path) && trim($path) !== '') $clean['path'] = trim($path);
-            if (is_string($name) && trim($name) !== '') $clean['name'] = trim($name);
-            if (is_string($mime) && trim($mime) !== '') $clean['mime'] = trim($mime);
-            if (is_numeric($size)) $clean['size'] = (int) $size;
+                if (is_string($path) && trim($path) !== '') $clean['path'] = trim($path);
+                if (is_string($name) && trim($name) !== '') $clean['name'] = trim($name);
+                if (is_string($mime) && trim($mime) !== '') $clean['mime'] = trim($mime);
+                if (is_numeric($size)) $clean['size'] = (int) $size;
 
-            if ($clean !== []) $result[] = $clean;
+                if ($clean !== []) $result[] = $clean;
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeAttachmentsArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        return $result;
     }
 
     protected static function sanitizeTagsArray(array $tags): array
     {
-        return collect($tags)
-            ->filter(fn($t) => is_string($t) && trim($t) !== '')
-            ->map(fn($t) => Str::slug((string) $t, '_'))
-            ->unique()
-            ->values()
-            ->all();
+        try {
+            return collect($tags)
+                ->filter(fn($t) => is_string($t) && trim($t) !== '')
+                ->map(fn($t) => Str::slug((string) $t, '_'))
+                ->unique()
+                ->values()
+                ->all();
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeTagsArray — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
+    }
+
+    public function employees(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class);
     }
 }

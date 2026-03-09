@@ -1,39 +1,32 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants
-    };
-    use App\Models\{ProjectTask,Utility};
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection,Str};
-    $lang = Utility::fetchUserLang();
-    $projectIndexBaseName = VW::PRJ . '.index';
-    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
-@endphp
+    try {
+$lang = Utility::fetchUserLang();
+        $projectIndexBaseName = VW::PRJ . '.index';
+        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('project_tasks/taskboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Tasks')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="project-index-link"
             href="{{ $projectIndexUrl }}"
             data-url="{{ $projectIndexUrl }}"
-            data-guard-msg="{{ $projectIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
         >
             {{ __('Project') }}
         </a>
@@ -41,7 +34,7 @@
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/projects/tasks/index.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{__('Task')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Task')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
@@ -54,16 +47,16 @@
                 <span class="btn-inner--icon"><i class="ti ti-filter"></i></span>
             </a>
             <div class="{{ VC::DRP_MN_END }} dropdown-steady" id="task_sort">
-                <a class="dropdown-item active" href="#" data-val="created_at-desc">
+                <a class="{{ VC::DRP_IT }} active" href="#" data-val="created_at-desc">
                     <i class="ti ti-sort-amount-down"></i>{{ __('Newest') }}
                 </a>
-                <a class="dropdown-item" href="#" data-val="created_at-asc">
+                <a class="{{ VC::DRP_IT }}" href="#" data-val="created_at-asc">
                     <i class="ti ti-sort-amount-up"></i>{{ __('Oldest') }}
                 </a>
-                <a class="dropdown-item" href="#" data-val="name-asc">
+                <a class="{{ VC::DRP_IT }}" href="#" data-val="name-asc">
                     <i class="ti ti-sort-alpha-down"></i>{{ __('From A-Z') }}
                 </a>
-                <a class="dropdown-item" href="#" data-val="name-desc">
+                <a class="{{ VC::DRP_IT }}" href="#" data-val="name-desc">
                     <i class="ti ti-sort-alpha-up"></i>{{ __('From Z-A') }}
                 </a>
             </div>
@@ -78,74 +71,82 @@
             </a>
 
             <div class="{{ VC::DRP_MN_END }} task-filter-actions dropdown-steady" id="task_status">
-                <a class="dropdown-item filter-action filter-show-all ps-4" href="#">{{ __('Show All') }}</a>
+                <a class="{{ VC::DRP_IT }} filter-action filter-show-all ps-4" href="#">{{ __('Show All') }}</a>
                 <hr class="my-0">
-                <a class="dropdown-item filter-action ps-4 active" href="#" data-val="see_my_tasks">{{ __('See My Tasks') }}</a>
+                <a class="{{ VC::DRP_IT }} filter-action ps-4 active" href="#" data-val="see_my_tasks">{{ __('See My Tasks') }}</a>
                 <hr class="my-0">
                 @php
                     $priorities = ProjectTask::$priority;
                     $isCountable = Utility::isFilled($priorities ?? []);
-                @endphp
+@endphp
                 @if($isCountable)
                     @foreach($priorities as $key => $val)
                         @if(!empty($key) && !empty($val))
-                            <a class="dropdown-item filter-action ps-4" href="#" data-val="{{ $key }}">{{ __($val) }}</a>
+                            <a class="{{ VC::DRP_IT }} filter-action ps-4" href="#" data-val="{{ $key }}">{{ __($val) }}</a>
                         @endif
                     @endforeach
                 @else
-                    <a class="dropdown-item filter-action ps-4" href="#" data-val="no_priority">{{ __('No Priority') }}</a>
+                    <a class="{{ VC::DRP_IT }} filter-action ps-4" href="#" data-val="no_priority">{{ __('No Priority') }}</a>
                 @endif
                 <hr class="my-0">
-                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="due_today">{{ __('Due Today') }}</a>
-                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="over_due">{{ __('Over Due') }}</a>
-                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="starred">{{ __('Starred') }}</a>
+                <a class="{{ VC::DRP_IT }} filter-action filter-other ps-4" href="#" data-val="due_today">{{ __('Due Today') }}</a>
+                <a class="{{ VC::DRP_IT }} filter-action filter-other ps-4" href="#" data-val="over_due">{{ __('Over Due') }}</a>
+                <a class="{{ VC::DRP_IT }} filter-action filter-other ps-4" href="#" data-val="starred">{{ __('Starred') }}</a>
             </div>
         </div>
         @if($view == 'grid')
             @php
-                $taskboardViewBaseName = VW::TSKB . '.view';
-                $taskboardViewKebabName = Str::kebab($taskboardViewBaseName);
-                $taskboardViewResolvedName = Route::has($taskboardViewBaseName) ? $taskboardViewBaseName : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
-                $taskboardViewUrl = $taskboardViewResolvedName ? route($taskboardViewResolvedName, 'list') : '#';
-                $taskboardViewGuardMsg = Utility::fetchLinkMessage($lang, VW::TSK, 'taskboard_view_route_unavailable') ?? 'Taskboard view route is unavailable. Please contact technical support or your domain administrator.';
-                $taskboardViewBtnId = 'taskboard-view-list-btn';
-            @endphp
+                try {
+                    $taskboardViewBaseName = VW::TSKB . '.view';
+                    $taskboardViewKebabName = Str::kebab($taskboardViewBaseName);
+                    $taskboardViewResolvedName = Route::has($taskboardViewBaseName) ? $taskboardViewBaseName : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
+                    $taskboardViewUrl = $taskboardViewResolvedName ? route($taskboardViewResolvedName, 'list') : '#';
+                    $taskboardViewGuardMsg = Utility::fetchLinkMessage($lang, VW::TSK, 'taskboard_view_route_unavailable') ?? 'Taskboard view route is unavailable. Please contact technical support or your domain administrator.';
+                    $taskboardViewBtnId = 'taskboard-view-list-btn';
+                } catch (\Throwable $e) {
+                    \Log::error('project_tasks/taskboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 id="{{ $taskboardViewBtnId }}"
                 href="{{ $taskboardViewUrl }}"
                 data-url="{{ $taskboardViewUrl }}"
-                data-guard-msg="{{ $taskboardViewGuardMsg }}"
+                data-guard-msg="{{ base64_encode($taskboardViewGuardMsg) }}"
                 class="{{ VC::BT_SM_PM }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('List View') }}"
             >
-                <span class="btn-inner--text"><i class="ti ti-list"></i>{{ __('List View') }}</span>
+                <span class="btn-inner--text"><i class="{{ VC::TI_LT }}"></i>{{ __('List View') }}</span>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script defer src="{{ asset('assets/js/routes/projects/tasks/boardView.js') }}"></script>
             @endpush
         @else
             @php
-                $taskboardViewRouteName        = VW::TSKB . '.view';
-                $taskboardViewKebabName        = Str::kebab($taskboardViewRouteName);
-                $taskboardViewResolvedName     = Route::has($taskboardViewRouteName)
-                    ? $taskboardViewRouteName
-                    : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
-                $taskboardGridViewUrl          = $taskboardViewResolvedName
-                    ? route($taskboardViewResolvedName, 'grid')
-                    : '#';
-                $taskboardGridViewGuardMsg     = Utility::fetchLinkMessage(
-                    $lang,
-                    VW::TSK,
-                    'taskboard_view_grid_route_unavailable'
-                ) ?? 'Taskboard grid view route is unavailable. Please contact technical support or your domain administrator.';
-                $taskboardGridViewBtnId        = 'taskboard-grid-view-btn';
-            @endphp
+                try {
+                    $taskboardViewRouteName        = VW::TSKB . '.view';
+                    $taskboardViewKebabName        = Str::kebab($taskboardViewRouteName);
+                    $taskboardViewResolvedName     = Route::has($taskboardViewRouteName)
+                        ? $taskboardViewRouteName
+                        : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
+                    $taskboardGridViewUrl          = $taskboardViewResolvedName
+                        ? route($taskboardViewResolvedName, 'grid')
+                        : '#';
+                    $taskboardGridViewGuardMsg     = Utility::fetchLinkMessage(
+                        $lang,
+                        VW::TSK,
+                        'taskboard_view_grid_route_unavailable'
+                    ) ?? 'Taskboard grid view route is unavailable. Please contact technical support or your domain administrator.';
+                    $taskboardGridViewBtnId        = 'taskboard-grid-view-btn';
+                } catch (\Throwable $e) {
+                    \Log::error('project_tasks/taskboard — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a
                 id="{{ $taskboardGridViewBtnId }}"
                 href="{{ $taskboardGridViewUrl }}"
                 data-url="{{ $taskboardGridViewUrl }}"
-                data-guard-msg="{{ $taskboardGridViewGuardMsg }}"
+                data-guard-msg="{{ base64_encode($taskboardGridViewGuardMsg) }}"
                 class="{{ VC::BT_SM_PM }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Grid View') }}"
@@ -159,7 +160,14 @@
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
-    <div class="row min-750" id="taskboard_view"></div>
+    <div class="row min-750" id="taskboard_view">
+        <div class="{{ VC::C12 }} {{ VC::TXCT }} py-5" id="taskboard_loading">
+            <div class="spinner-border {{ VC::TX_PM }}" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">{{ __('Loading...') }}</span>
+            </div>
+            <p class="{{ VC::TXT_MT }} {{ VC::MT3 }}">{{ __('Loading tasks...') }}</p>
+        </div>
+    </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('assets/js/routes/projects/tasks/lang/sort.js') }}"></script>
@@ -191,7 +199,7 @@
                 toast.id='error-toast';
                 toast.className='toast align-items-center text-bg-danger border-0';
                 toast.setAttribute('role','alert'); toast.setAttribute('aria-live','assertive'); toast.setAttribute('aria-atomic','true');
-                toast.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${message}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(toast);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -228,12 +236,12 @@
             };
 
             try{
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
             $(function(){
@@ -272,7 +280,7 @@
                 if(searchEl) attachGuardOnce(searchEl,'task_search_unavailable','pointerup');
             });
 
-            }catch(e){ 
+            }catch(e){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"

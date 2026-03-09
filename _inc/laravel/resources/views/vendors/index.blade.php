@@ -1,18 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $profile = asset(Storage::url('uploads/avatar/'));
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $profile = asset(Storage::url('uploads/avatar/'));
+    } catch (\Throwable $e) {
+        \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -23,31 +16,35 @@
     {{ __('Manage Vendors') }}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Vendor')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Vendor')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @php
-            $vndImportBase = VW::VND.'.file.import';
-            $vndImportKebab = Str::kebab($vndImportBase);
-            $vndImportResolved = Route::has($vndImportBase) ? $vndImportBase : (Route::has($vndImportKebab) ? $vndImportKebab : null);
-            $vndImportUrl = $vndImportResolved ? route($vndImportResolved) : '#';
-            $vndExportBase = VW::VND.'.export';
-            $vndExportKebab = Str::kebab($vndExportBase);
-            $vndExportResolved = Route::has($vndExportBase) ? $vndExportBase : (Route::has($vndExportKebab) ? $vndExportKebab : null);
-            $vndExportUrl = $vndExportResolved ? route($vndExportResolved) : '#';
-            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-            $vndImportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'import_vendor_file_route_unavailable') ?? 'Import vendor file route is unavailable. Please contact technical support or your domain administrator.';
-            $vndExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'export_vendor_route_unavailable') ?? 'Export vendor route is unavailable. Please contact technical support or your domain administrator.';
-            $vndImportAnchorId = 'vendor-import';
-            $vndExportAnchorId = 'vendor-export';
-        @endphp
+            try {
+                $vndImportBase = VW::VND.'.file.import';
+                $vndImportKebab = Str::kebab($vndImportBase);
+                $vndImportResolved = Route::has($vndImportBase) ? $vndImportBase : (Route::has($vndImportKebab) ? $vndImportKebab : null);
+                $vndImportUrl = $vndImportResolved ? route($vndImportResolved) : '#';
+                $vndExportBase = VW::VND.'.export';
+                $vndExportKebab = Str::kebab($vndExportBase);
+                $vndExportResolved = Route::has($vndExportBase) ? $vndExportBase : (Route::has($vndExportKebab) ? $vndExportKebab : null);
+                $vndExportUrl = $vndExportResolved ? route($vndExportResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $vndImportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'import_vendor_file_route_unavailable') ?? 'Import vendor file route is unavailable. Please contact technical support or your domain administrator.';
+                $vndExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'export_vendor_route_unavailable') ?? 'Export vendor route is unavailable. Please contact technical support or your domain administrator.';
+                $vndImportAnchorId = 'vendor-import';
+                $vndExportAnchorId = 'vendor-export';
+            } catch (\Throwable $e) {
+                \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <a href="{{ $vndImportUrl }}"
         id="{{ $vndImportAnchorId }}"
         class="{{ VC::BT_SM_PM }}"
@@ -55,7 +52,7 @@
         data-ajax-popup="true"
         data-bs-toggle="tooltip"
         title="{{ __('Import') }}"
-        data-guard-msg="{{ $vndImportGuardMsg }}"
+        data-guard-msg="{{ base64_encode($vndImportGuardMsg) }}"
         data-sv-localized="true">
             <i class="{{ VC::TI_IMP }}"></i>
         </a>
@@ -65,7 +62,7 @@
         data-url="{{ $vndExportUrl }}"
         data-bs-toggle="tooltip"
         title="{{ __('Export') }}"
-        data-guard-msg="{{ $vndExportGuardMsg }}"
+        data-guard-msg="{{ base64_encode($vndExportGuardMsg) }}"
         data-sv-localized="true">
             <i class="{{ VC::TI_EXP }}"></i>
         </a>
@@ -74,14 +71,18 @@
         @endpush
         @can('create vendor')
             @php
-                $vendorCreateBase = VW::VND.'.create';
-                $vendorCreateKebab = Str::kebab($vendorCreateBase);
-                $vendorCreateResolved = Route::has($vendorCreateBase) ? $vendorCreateBase : (Route::has($vendorCreateKebab) ? $vendorCreateKebab : null);
-                $vendorCreateUrl = $vendorCreateResolved ? route($vendorCreateResolved) : '#';
-                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                $vendorCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'create_vendor_route_unavailable') ?? 'Create vendor route is unavailable. Please contact technical support or your domain administrator.';
-                $vendorCreateAnchorId = 'vendor-create-link';
-            @endphp
+                try {
+                    $vendorCreateBase = VW::VND.'.create';
+                    $vendorCreateKebab = Str::kebab($vendorCreateBase);
+                    $vendorCreateResolved = Route::has($vendorCreateBase) ? $vendorCreateBase : (Route::has($vendorCreateKebab) ? $vendorCreateKebab : null);
+                    $vendorCreateUrl = $vendorCreateResolved ? route($vendorCreateResolved) : '#';
+                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                    $vendorCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'create_vendor_route_unavailable') ?? 'Create vendor route is unavailable. Please contact technical support or your domain administrator.';
+                    $vendorCreateAnchorId = 'vendor-create-link';
+                } catch (\Throwable $e) {
+                    \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $vendorCreateUrl }}"
             id="{{ $vendorCreateAnchorId }}"
             data-size="lg"
@@ -91,7 +92,7 @@
             data-bs-toggle="tooltip"
             title="{{ __('Create') }}"
             class="{{ VC::BT_SM_PM }}"
-            data-guard-msg="{{ $vendorCreateGuardMsg }}"
+            data-guard-msg="{{ base64_encode($vendorCreateGuardMsg) }}"
             data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
@@ -106,8 +107,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -126,21 +127,25 @@
                                             <td class="Id">
                                                 @can('show vendor')
                                                     @php
-                                                        $vendorShowBase = VW::VND.'.show';
-                                                        $vendorShowKebab = Str::kebab($vendorShowBase);
-                                                        $vendorIdValue = (string) data_get($Vendor,'id','');
-                                                        $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
-                                                        $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
-                                                        $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
-                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                        $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $vendorShowAnchorId = 'vendor-show-link-'.Str::random(8);
-                                                        $vendorNumberLabel = !is_null(data_get($Vendor,'vendor_id')) ? ($user?->vendorNumberFormat(data_get($Vendor,'vendor_id')) ?? __('Failed to get vendor number')) : __('No vendor number available');
-                                                    @endphp
+                                                        try {
+                                                            $vendorShowBase = VW::VND.'.show';
+                                                            $vendorShowKebab = Str::kebab($vendorShowBase);
+                                                            $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                            $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
+                                                            $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
+                                                            $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $vendorShowAnchorId = 'vendor-show-link-'.Str::random(8);
+                                                            $vendorNumberLabel = !is_null(data_get($Vendor,'vendor_id')) ? ($user?->vendorNumberFormat(data_get($Vendor,'vendor_id')) ?? __('Failed to get vendor number')) : __('No vendor number available');
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a id="{{ $vendorShowAnchorId }}"
                                                     href="{{ $vendorShowUrl }}"
                                                     class="{{ VC::BT_OUTPM }}"
-                                                    data-guard-msg="{{ $vendorShowGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($vendorShowGuardMsg) }}"
                                                     data-sv-localized="true">
                                                         {{ $vendorNumberLabel }}
                                                     </a>
@@ -158,28 +163,7 @@
                                                                             if (href !== '#') { return; }
                                                                             e.preventDefault();
                                                                             const msg = el.getAttribute('data-guard-msg') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                            let container = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (hasBootstrap) {
-                                                                                const toast = document.createElement('div');
-                                                                                toast.className = 'toast';
-                                                                                toast.setAttribute('role','alert');
-                                                                                toast.setAttribute('aria-live','assertive');
-                                                                                toast.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toast.appendChild(body);
-                                                                                container.appendChild(toast);
-                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
+                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                             el.setAttribute('data-failed-route','true');
                                                                         } catch (err) {}
                                                                     });
@@ -202,20 +186,24 @@
                                             <td class="Action">
                                                 <span>
                                                     @if ((int) data_get($Vendor,'is_active',0) === 0)
-                                                        <i class="fa fa-lock" title="{{ __('Inactive') }}"></i>
+                                                        <i class="fa fa-lock" title="Inactive"></i>
                                                     @else
                                                         @can('show vendor')
                                                             @php
-                                                                $vendorShowBase = VW::VND.'.show';
-                                                                $vendorShowKebab = Str::kebab($vendorShowBase);
-                                                                $vendorIdValue = (string) data_get($Vendor,'id','');
-                                                                $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
-                                                                $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
-                                                                $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
-                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $vendorShowAnchorId = 'vendor-show-btn-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
-                                                            @endphp
+                                                                try {
+                                                                    $vendorShowBase = VW::VND.'.show';
+                                                                    $vendorShowKebab = Str::kebab($vendorShowBase);
+                                                                    $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                    $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
+                                                                    $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
+                                                                    $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
+                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                    $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $vendorShowAnchorId = 'vendor-show-btn-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_INF }}">
                                                                 <a id="{{ $vendorShowAnchorId }}"
                                                                 href="{{ $vendorShowUrl }}"
@@ -223,7 +211,7 @@
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('View') }}"
                                                                 data-url="{{ $vendorShowUrl }}"
-                                                                data-guard-msg="{{ $vendorShowGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($vendorShowGuardMsg) }}"
                                                                 data-sv-localized="true">
                                                                     <i class="{{ VC::TI_EYE_WT }}"></i>
                                                                 </a>
@@ -243,28 +231,7 @@
                                                                                     if (url !== '#' && href !== '#') { return; }
                                                                                     e.preventDefault();
                                                                                     const msg = el.getAttribute('data-guard-msg') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                    let container = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (hasBootstrap) {
-                                                                                        const toast = document.createElement('div');
-                                                                                        toast.className = 'toast';
-                                                                                        toast.setAttribute('role','alert');
-                                                                                        toast.setAttribute('aria-live','assertive');
-                                                                                        toast.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toast.appendChild(body);
-                                                                                        container.appendChild(toast);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     el.setAttribute('data-failed-route','true');
                                                                                 } catch (err) {}
                                                                             });
@@ -275,15 +242,19 @@
                                                         @endcan
                                                         @can('edit vendor')
                                                             @php
-                                                                $vendorEditBase = VW::VND.'.edit';
-                                                                $vendorEditKebab = Str::kebab($vendorEditBase);
-                                                                $vendorIdValue = (string) data_get($Vendor,'id','');
-                                                                $vendorEditResolved = Route::has($vendorEditBase) ? $vendorEditBase : (Route::has($vendorEditKebab) ? $vendorEditKebab : null);
-                                                                $vendorEditUrl = ($vendorEditResolved && $vendorIdValue !== '') ? route($vendorEditResolved, $vendorIdValue) : '#';
-                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                $vendorEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'edit_vendor_route_unavailable') ?? 'Edit vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $vendorEditAnchorId = 'vendor-edit-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
-                                                            @endphp
+                                                                try {
+                                                                    $vendorEditBase = VW::VND.'.edit';
+                                                                    $vendorEditKebab = Str::kebab($vendorEditBase);
+                                                                    $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                    $vendorEditResolved = Route::has($vendorEditBase) ? $vendorEditBase : (Route::has($vendorEditKebab) ? $vendorEditKebab : null);
+                                                                    $vendorEditUrl = ($vendorEditResolved && $vendorIdValue !== '') ? route($vendorEditResolved, $vendorIdValue) : '#';
+                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                    $vendorEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'edit_vendor_route_unavailable') ?? 'Edit vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $vendorEditAnchorId = 'vendor-edit-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a href="{{ $vendorEditUrl }}"
                                                             class="{{ VC::BT_SM_CT }}"
                                                             id="{{ $vendorEditAnchorId }}"
@@ -294,7 +265,7 @@
                                                             title="{{ __('Edit') }}"
                                                             data-bs-toggle="tooltip"
                                                             data-original-title="{{ __('Edit') }}"
-                                                            data-guard-msg="{{ $vendorEditGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($vendorEditGuardMsg) }}"
                                                             data-sv-localized="true">
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
                                                             </a>
@@ -313,28 +284,7 @@
                                                                                     if (url !== '#' && href !== '#') { return; }
                                                                                     e.preventDefault();
                                                                                     const msg = el.getAttribute('data-guard-msg') ?? 'Edit vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                    let container = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (hasBootstrap) {
-                                                                                        const toast = document.createElement('div');
-                                                                                        toast.className = 'toast';
-                                                                                        toast.setAttribute('role','alert');
-                                                                                        toast.setAttribute('aria-live','assertive');
-                                                                                        toast.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toast.appendChild(body);
-                                                                                        container.appendChild(toast);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     el.setAttribute('data-failed-route','true');
                                                                                 } catch (err) {}
                                                                             });
@@ -346,16 +296,20 @@
                                                         @can('delete vendor')
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 @php
-                                                                    $vndDestroyBase = VW::VND.'.destroy';
-                                                                    $vndDestroyKebab = Str::kebab($vndDestroyBase);
-                                                                    $vendorIdValue = (string) data_get($Vendor,'id','');
-                                                                    $vndDestroyResolved = Route::has($vndDestroyBase) ? $vndDestroyBase : (Route::has($vndDestroyKebab) ? $vndDestroyKebab : null);
-                                                                    $vndDestroyUrl = ($vndDestroyResolved && $vendorIdValue !== '') ? route($vndDestroyResolved, $vendorIdValue) : '#';
-                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $vndDestroyGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'delete_vendor_route_unavailable') ?? 'Delete vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $delFormId = 'delete-form-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
-                                                                    $delAnchorId = 'delete-vendor-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
-                                                                @endphp
+                                                                    try {
+                                                                        $vndDestroyBase = VW::VND.'.destroy';
+                                                                        $vndDestroyKebab = Str::kebab($vndDestroyBase);
+                                                                        $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                        $vndDestroyResolved = Route::has($vndDestroyBase) ? $vndDestroyBase : (Route::has($vndDestroyKebab) ? $vndDestroyKebab : null);
+                                                                        $vndDestroyUrl = ($vndDestroyResolved && $vendorIdValue !== '') ? route($vndDestroyResolved, $vendorIdValue) : '#';
+                                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                        $vndDestroyGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'delete_vendor_route_unavailable') ?? 'Delete vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $delFormId = 'delete-form-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                        $delAnchorId = 'delete-vendor-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('vendors/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 {!! Form::open([
                                                                     'method' => 'DELETE',
                                                                     'url' => $vndDestroyUrl,
@@ -373,7 +327,7 @@
                                                                     data-confirm="{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                     data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();"
                                                                     data-form-id="{{ $delFormId }}"
-                                                                    data-guard-msg="{{ $vndDestroyGuardMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($vndDestroyGuardMsg) }}"
                                                                     data-sv-localized="true">
                                                                         <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                     </a>
@@ -398,28 +352,7 @@
                                                                                         if (url !== '#' && action !== '#') { return; }
                                                                                         e.preventDefault();
                                                                                         const msg = a.getAttribute('data-guard-msg') ?? 'Destroy vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                        let container = document.getElementById('toast-container');
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = 'toast-container';
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (hasBootstrap) {
-                                                                                            const toast = document.createElement('div');
-                                                                                            toast.className = 'toast';
-                                                                                            toast.setAttribute('role','alert');
-                                                                                            toast.setAttribute('aria-live','assertive');
-                                                                                            toast.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toast.appendChild(body);
-                                                                                            container.appendChild(toast);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
+                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                         a.setAttribute('data-failed-route','true');
                                                                                         fm.setAttribute('data-failed-route','true');
                                                                                     } catch (err) {}
@@ -433,28 +366,7 @@
                                                                                             if (url !== '#' && action !== '#') { return; }
                                                                                             e.preventDefault();
                                                                                             const msg = f.getAttribute('data-guard-msg') ?? 'Destroy vendor route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                                            let container = document.getElementById('toast-container');
-                                                                                            if (!container) {
-                                                                                                container = document.createElement('div');
-                                                                                                container.id = 'toast-container';
-                                                                                                document.body.appendChild(container);
-                                                                                            }
-                                                                                            if (hasBootstrap) {
-                                                                                                const toast = document.createElement('div');
-                                                                                                toast.className = 'toast';
-                                                                                                toast.setAttribute('role','alert');
-                                                                                                toast.setAttribute('aria-live','assertive');
-                                                                                                toast.setAttribute('aria-atomic','true');
-                                                                                                const body = document.createElement('div');
-                                                                                                body.className = 'toast-body';
-                                                                                                body.textContent = msg;
-                                                                                                toast.appendChild(body);
-                                                                                                container.appendChild(toast);
-                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                            } else {
-                                                                                                alert(msg);
-                                                                                            }
+                                                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                             f.setAttribute('data-failed-route','true');
                                                                                         } catch (err) {}
                                                                                     });
@@ -472,7 +384,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="6" class="text-center">{{ __('No vendors found.') }}</td>
+                                        <td colspan="6" class="{{ VC::TXCT }}">{{ __('No vendors found.') }}</td>
                                     </tr>
                                 @endif
                             </tbody>

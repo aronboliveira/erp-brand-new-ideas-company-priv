@@ -32,10 +32,15 @@ final class DealFile extends AbstractFile
 
     protected static function fillableFields(): array
     {
-        return array_merge(parent::fillableFields(), [
-            AC::COL_DL,     // deal_id
-            DC::COL_FL_NM,  // file_name (legado)
-        ]);
+        try {
+            return array_merge(parent::fillableFields(), [
+                AC::COL_DL,     // deal_id
+                DC::COL_FL_NM,  // file_name (legado)
+            ]);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::fillableFields — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     protected static function booted(): void
@@ -79,37 +84,51 @@ final class DealFile extends AbstractFile
 
     private function getDerivedCategory(): ?FileCategory
     {
-        $mime = $this->getAttribute(DC::COL_MM_TP);
+        try {
+            $mime = $this->getAttribute(DC::COL_MM_TP);
 
-        $mimeEnum = $mime instanceof MimeType
-            ? $mime
-            : (is_string($mime) ? MimeType::normalize($mime) : null);
+            $mimeEnum = $mime instanceof MimeType
+                ? $mime
+                : (is_string($mime) ? MimeType::normalize($mime) : null);
 
-        if (!$mimeEnum) return FileCategory::Other;
+            if (!$mimeEnum) return FileCategory::Other;
 
-        return FileCategory::fromMimeType($mimeEnum) ?? FileCategory::Other;
+            return FileCategory::fromMimeType($mimeEnum) ?? FileCategory::Other;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getDerivedCategory — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
+        }
     }
 
     private function syncLegacyFileNameWithName(): void
     {
-        $legacy = $this->getAttribute(DC::COL_FL_NM);
-        $name   = $this->getAttribute('name');
+        try {
+            $legacy = $this->getAttribute(DC::COL_FL_NM);
+            $name   = $this->getAttribute('name');
 
-        if (is_string($legacy)) $legacy = trim($legacy);
-        if (is_string($name)) $name = trim($name);
+            if (is_string($legacy)) $legacy = trim($legacy);
+            if (is_string($name)) $name = trim($name);
 
-        if ($legacy && !$name) {
-            $this->setAttribute('name', $legacy);
-            return;
+            if ($legacy && !$name) {
+                $this->setAttribute('name', $legacy);
+                return;
+            }
+
+            if ($name && !$legacy) {
+                $this->setAttribute(DC::COL_FL_NM, $name);
+                return;
+            }
+
+            if ($legacy && $name && $legacy !== $name) {
+                $this->setAttribute(DC::COL_FL_NM, $name);
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::syncLegacyFileNameWithName — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
+    }
 
-        if ($name && !$legacy) {
-            $this->setAttribute(DC::COL_FL_NM, $name);
-            return;
-        }
-
-        if ($legacy && $name && $legacy !== $name) {
-            $this->setAttribute(DC::COL_FL_NM, $name);
-        }
+    public function getWith(): array
+    {
+        return $this->with;
     }
 }

@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   const t = {
     ar: { leads_labels_store_route_unavailable: "الإجراء غير متاح." },

@@ -1,31 +1,53 @@
 @php
-	use App\Config\Constants\{
-		PlansConstants,
-		ViewsConstants,
-		ViewClassNamesConstants as VC
-	};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Route, Str};
-
-	$lang = Utility::fetchUserLang();
-
-	$formId = 'edit_termination';
-	$terminationId = data_get($termination ?? null, 'id', '');
-
-	$updateBase = ViewsConstants::TMN . '.update';
-	$updateResolved = Route::has($updateBase)
-		? $updateBase
-		: (Route::has(Str::kebab($updateBase)) ? Str::kebab($updateBase) : null);
-	$updateActionUrl = ($updateResolved && $terminationId) ? route($updateResolved, $terminationId) : '#';
-	$updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMN, 'update_termination_unavailable') ?? 'Update termination route is unavailable. Please contact technical support or your domain administrator.';
-
-	$genBase = 'generate';
-	$genResolved = Route::has($genBase)
-		? $genBase
-		: (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-	$genUrl = $genResolved ? route($genResolved, ['termination']) : '#';
-	$genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMN, 'generate_edit_unavailable') ?? 'Generate content route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+	$formId ??= 'edit_termination';
+	$terminationId ??= '';
+	$updateBase ??= '';
+	$updateResolved ??= null;
+	$updateActionUrl ??= '#';
+	$updateGuardMsg ??= '';
+	$genBase ??= 'generate';
+	$genResolved ??= null;
+	$genUrl ??= '#';
+	$genGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$terminationId = data_get($termination ?? null, 'id', '');
+		$updateBase = ViewsConstants::TMN . '.update';
+		$updateResolved = Route::has($updateBase)
+			? $updateBase
+			: (Route::has(Str::kebab($updateBase)) ? Str::kebab($updateBase) : null);
+		$updateActionUrl = ($updateResolved && $terminationId) ? (route($updateResolved, $terminationId) ?? '#') : '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMN, 'update_termination_unavailable')
+			?? 'Update termination route is unavailable. Please contact technical support or your domain administrator.';
+		$genResolved = Route::has($genBase)
+			? $genBase
+			: (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+		$genUrl = $genResolved ? (route($genResolved, ['termination']) ?? '#') : '#';
+		$genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TMN, 'generate_edit_unavailable')
+			?? 'Generate content route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in terminations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in terminations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in terminations/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($termination, [
@@ -39,11 +61,11 @@
 	<div class="modal-body">
 		@php($plan = Utility::getChatGPTSettings())
 		@if($plan?->{PlansConstants::COL_GPT} == 1)
-			<div class="text-end">
+			<div class="{{ VC::TX_END }}">
 				<a id="gen-ai-termination"
 				   href="{{ $genUrl }}"
 				   data-url="{{ $genUrl }}"
-				   data-guard-msg="{{ $genGuardMsg }}"
+				   data-guard-msg="{{ base64_encode($genGuardMsg) }}"
 				   data-sv-localized="true"
 				   data-size="md"
 				   class="{{ VC::BT_SM_PM }} btn-icon"
@@ -93,4 +115,3 @@
         <script defer src="{{ asset('assets/js/routes/ai/generate/terminationEdit.js') }}"></script>
     @endif
 {!! Form::close() !!}
-

@@ -1,24 +1,45 @@
 @php
-    use App\Config\Constants\{
-        ViewClassNamesConstants as VC,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang       = Utility::fetchUserLang();
-    $hasLabel   = !empty($label ?? null) && data_get($label, 'id');
-
-    $updateBase     = VW::LBL.'.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasLabel) ? route($updateResolved, $label->id) : '#';
-    $updateGuard    = Utility::fetchLinkMessage($lang, VW::LBL, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
-
-    $colorsIsList = (is_array($colors ?? null) && count($colors ?? []) > 0)
-        || (($colors ?? null) instanceof Collection && $colors->isNotEmpty());
+$lang ??= 'en';
+	$hasLabel ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$colorsIsList ??= false;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$hasLabel = !empty($label ?? null) && data_get($label, 'id');
+		$updateBase = VW::LBL . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$labelId = data_get($label ?? null, 'id', '');
+		$updateUrl = ($updateResolved && $hasLabel && $labelId) ? (route($updateResolved, $labelId) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::LBL, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+		$colorsIsList = (is_array($colors ?? null) && count($colors ?? []) > 0)
+			|| (($colors ?? null) instanceof Collection && $colors->isNotEmpty());
+	} catch (\Error $e) {
+		Log::error('Error in labels/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in labels/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in labels/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {{ Form::model($label, [
@@ -45,7 +66,7 @@
                 @if($colorsIsList)
                     <div class="row gutters-xs">
                         @foreach($colors as $color)
-                            <div class="col-auto">
+                            <div class="{{ VC::C_AT }}">
                                 <label class="colorinput">
                                     <input name="color" type="radio" value="{{ $color }}" @checked(!empty($label->color) && $label->color == $color) class="colorinput-input">
                                     <span class="colorinput-color bg-{{ $color }}"></span>
@@ -65,4 +86,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/labels/edit.js') }}"></script>
 {{ Form::close() }}
-

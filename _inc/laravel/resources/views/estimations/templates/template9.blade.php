@@ -1,13 +1,5 @@
 @php
-    # Template 9
-    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-    use App\Models\{Utility};
-    use Illuminate\Support\Facades\{Auth, Log};
-    use InvalidArgumentException;
-    use RuntimeException;
-    use TypeError;
-
-    $usr ??= null;
+$usr ??= null;
     $lang ??= (string)'';
     $siteRtl ??= (string)'';
     $color ??= (string)'#ffffff';
@@ -104,7 +96,7 @@
                             <div data-v-7d9d14b5 class="d" style="width:800px;margin-left:auto;margin-right:auto;" id="boxes">
                                 <div data-v-7d9d14b5 class="d-inner" style="border-right:50px solid {{ $color }}">
                                     <div data-v-7d9d14b5 class="row">
-                                        <div data-v-7d9d14b5 class="col-3">
+                                        <div data-v-7d9d14b5 class="{{ VC::C3 }}">
                                             <h1 data-v-7d9d14b5 class="fancy-title tu mb5" style="color: {{ $color === '#ffffff' ? 'black' : $color }};">{{ __('ESTIMATION') }}</h1>
                                             <h3 data-v-7d9d14b5>
                                                 @if(isset($estimation->estimation_id))
@@ -158,16 +150,20 @@
                                                 <div data-v-7d9d14b5 class="d-table-th w-13" style="padding:3px;">{{ __('Item description') }}</div>
                                                 <div data-v-7d9d14b5 class="d-table-th w-3" style="padding:3px;">{{ __('Price') }}</div>
                                                 <div data-v-7d9d14b5 class="d-table-th w-2" style="padding:3px;">{{ __('Qty') }}</div>
-                                                <div data-v-7d9d14b5 class="d-table-th w-3 text-end" style="padding:3px;">{{ __('Amount') }}</div>
+                                                <div data-v-7d9d14b5 class="d-table-th w-3 {{ VC::TX_END }}" style="padding:3px;">{{ __('Amount') }}</div>
                                             </div>
                                             <div data-v-7d9d14b5 class="d-table-body">
                                                 @if(!empty($items))
                                                     @foreach($items as $key => $item)
                                                         @php
-                                                            $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
-                                                            $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
-                                                            $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
-                                                        @endphp
+                                                            try {
+                                                                $p = isset($item->pivot->price) ? (float)$item->pivot->price : null;
+                                                                $q = isset($item->pivot->quantity) ? (float)$item->pivot->quantity : null;
+                                                                $lt = (!is_null($p) && !is_null($q)) ? ($p * $q) : null;
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('estimations/templates/template9 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div data-v-7d9d14b5 class="d-table-tr" style="border-bottom:1px solid rgb(248, 248, 248);">
                                                             <div data-v-7d9d14b5 class="d-table-td w-2" style="padding:3px;"><span data-v-7d9d14b5>{{ (int)$key + 1 }}</span></div>
                                                             <div data-v-7d9d14b5 class="d-table-td w-13" style="padding:3px;">
@@ -183,7 +179,7 @@
                                                                 </span>
                                                             </div>
                                                             <div data-v-7d9d14b5 class="d-table-td w-2" style="padding:3px;"><span data-v-7d9d14b5>{{ !is_null($q) ? $q : __('No quantity available') }}</span></div>
-                                                            <div data-v-7d9d14b5 class="d-table-td w-3 text-end" style="padding:3px;">
+                                                            <div data-v-7d9d14b5 class="d-table-td w-3 {{ VC::TX_END }}" style="padding:3px;">
                                                                 <span data-v-7d9d14b5>
                                                                     @if(!is_null($lt))
                                                                         {{ $hasPriceFormat ? (string)$usr->priceFormat($lt) : number_format($lt, 2) }}
@@ -200,7 +196,7 @@
                                                         <div data-v-7d9d14b5 class="d-table-td w-13" style="padding:3px;"><pre data-v-7d9d14b5>-<br data-v-7d9d14b5></pre></div>
                                                         <div data-v-7d9d14b5 class="d-table-td w-3" style="padding:3px;"><span data-v-7d9d14b5>-</span></div>
                                                         <div data-v-7d9d14b5 class="d-table-td w-2" style="padding:3px;"><span data-v-7d9d14b5>-</span></div>
-                                                        <div data-v-7d9d14b5 class="d-table-td w-3 text-end" style="padding:3px;"><span data-v-7d9d14b5>-</span></div>
+                                                        <div data-v-7d9d14b5 class="d-table-td w-3 {{ VC::TX_END }}" style="padding:3px;"><span data-v-7d9d14b5>-</span></div>
                                                     </div>
                                                 @endif
                                             </div>

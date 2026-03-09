@@ -1,24 +1,44 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        UsersConstants as UC,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Auth, Facades\Route, Str};
-
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-
-    $updateBase  = VW::WRN . '.update';
-    $updateKeb   = Str::kebab($updateBase);
-    $updateName  = Route::has($updateBase) ? $updateBase : (Route::has($updateKeb) ? $updateKeb : null);
-    $wid         = (string) ($warning->id ?? '');
-    $updateUrl   = ($updateName && $wid !== '') ? route($updateName, [$wid]) : '#';
-    $updateGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'update_warning_route_unavailable') ?? 'Update warning route is unavailable. Please contact technical support or your domain administrator.';
-    $formId      = 'edit_warning';
+$user ??= null;
+	$lang ??= 'en';
+	$updateBase ??= '';
+	$updateKeb ??= '';
+	$updateName ??= null;
+	$wid ??= '';
+	$updateUrl ??= '#';
+	$updateGuard ??= '';
+	$formId ??= 'edit_warning';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$updateBase = VW::WRN . '.update';
+		$updateKeb = Str::kebab($updateBase);
+		$updateName = Route::has($updateBase) ? $updateBase : (Route::has($updateKeb) ? $updateKeb : null);
+		$wid = (string) data_get($warning ?? null, 'id', '');
+		$updateUrl = ($updateName && $wid !== '') ? (route($updateName, [$wid]) ?? '#') : '#';
+		$updateGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'update_warning_route_unavailable') ?? 'Update warning route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in warnings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in warnings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in warnings/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 {!! Form::model($warning, [
@@ -30,16 +50,43 @@
     'data-sv-localized'    => 'true',
 ]) !!}
     <div class="modal-body">
-        @php($plan = Utility::getChatGPTSettings())
+        @php
+($plan = Utility::getChatGPTSettings())
         @if(($plan?->{PlansConstants::COL_GPT} ?? 0) == 1)
             @php
-                $genBase  = 'generate';
-                $genName  = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
-                $genUrl   = $genName ? route($genName, ['warning']) : '#';
-                $genGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'ai_generate_content_unavailable') ?? 'AI content generation for warnings is unavailable. Please contact technical support or your domain administrator.';
-                $genId    = 'warning-ai-generate-link';
-            @endphp
-            <div class="text-end">
+$genBase ??= 'generate';
+				$genName ??= null;
+				$genUrl ??= '#';
+				$genGuard ??= '';
+				$genId ??= 'warning-ai-generate-link';
+				try {
+					$genName = Route::has($genBase) ? $genBase : (Route::has(Str::kebab($genBase)) ? Str::kebab($genBase) : null);
+					$genUrl = $genName ? (route($genName, ['warning']) ?? '#') : '#';
+					$genGuard = Utility::fetchLinkMessage($lang, VW::WRN, 'ai_generate_content_unavailable') ?? 'AI content generation for warnings is unavailable. Please contact technical support or your domain administrator.';
+				} catch (\Error $e) {
+					NestedLog::error('Error in warnings/edit.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Exception $e) {
+					NestedLog::error('Exception in warnings/edit.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				} catch (\Throwable $e) {
+					NestedLog::error('Throwable in warnings/edit.blade.php AI generate @php block', [
+						'exception_class' => get_class($e),
+						'message' => $e->getMessage(),
+						'file' => $e->getFile(),
+						'line' => $e->getLine(),
+					]);
+				}
+@endphp
+            <div class="{{ VC::TX_END }}">
                 <a id="{{ $genId }}"
                    href="{{ $genUrl }}"
                    data-url="{{ $genUrl }}"
@@ -47,7 +94,7 @@
                    data-size="md"
                    data-title="{{ __('Generate content with AI') }}"
                    data-bs-placement="top"
-                   data-guard-msg="{{ $genGuard }}"
+                   data-guard-msg="{{ base64_encode($genGuard) }}"
                    data-sv-localized="true"
                    class="{{ VC::BT_SM_PM }} btn-icon">
                     <i class="{{ VC::FAS_RB }}"></i>

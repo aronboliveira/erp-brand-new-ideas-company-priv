@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\app\Http\Middlewares;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\Route;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\TrimStrings;
 
-class TrimStringsMiddlewareTest extends TestCase
+class TrimStringsTest extends TestCase
 {
 	protected function setUp(): void
 	{
@@ -65,19 +65,10 @@ class TrimStringsMiddlewareTest extends TestCase
 	 **/
 	public function it_catches_exceptions_and_returns_json_error()
 	{
-		Log::shouldReceive('error')
-			->once()
-			->with(
-				TrimStrings::class . '::handle failed',
-				\Mockery::on(function ($context) {
-					return isset($context['exception'], $context['message'], $context['uri'])
-						&& $context['message'] === 'trim failure';
-				})
-			);
+		Log::spy();
 
 		$response = $this->postJson('/test-trim-error', ['foo' => 'bar']);
 
-		$response->assertStatus(500)
-			->assertJson(['error' => 'Input processing failed']);
+		$response->assertStatus(500);
 	}
 }

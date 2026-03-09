@@ -4,13 +4,18 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\{
-	Database\Eloquent\Relations\HasOne,
+	Database\Eloquent\Relations\BelongsTo,
 	Foundation\Testing\RefreshDatabase
 };
 use App\Models\{Branch, Trainer};
 
 class TrainerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -21,9 +26,19 @@ class TrainerTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'branch', 'firstname', 'lastname',
-			'contact', 'email', 'address',
-			'expertise', 'created_by'
+			'user_id',
+			'branch',
+			'employee_id',
+			'firstname',
+			'lastname',
+			'contact',
+			'email',
+			'address',
+			'presentation',
+			'expertise',
+			'registration',
+			'qualifications',
+			'certificates',
 		];
 		$this->assertEquals($expected, (new Trainer())->getFillable());
 	}
@@ -31,27 +46,27 @@ class TrainerTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** branches() relation returns a HasOne to the Branch model.
+	 ** branch() relation returns a BelongsTo to the Branch model.
 	 **/
-	public function branches_relation_returns_hasone()
+	public function branch_relation_returns_belongsto()
 	{
-		$relation = (new Trainer())->branches();
-		$this->assertInstanceOf(HasOne::class, $relation);
-		$this->assertEquals('id', $relation->getForeignKeyName());
-		$this->assertEquals('branch', $relation->getLocalKeyName());
+		$relation = (new Trainer())->branch();
+		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertEquals('branch', $relation->getForeignKeyName());
+		$this->assertEquals('id', $relation->getOwnerKeyName());
 	}
 
 	/**
 	 ** @test
 	 **
-	 ** branches relation actually returns the related Branch instance.
+	 ** branch relation actually returns the related Branch instance.
 	 **/
-	public function it_resolves_branches_relation_to_branch_model()
+	public function it_resolves_branch_relation_to_branch_model()
 	{
 		$branch = Branch::factory()->create();
 		$trainer = Trainer::factory()->create(['branch' => $branch->id]);
 
-		$this->assertInstanceOf(Branch::class, $trainer->branches);
-		$this->assertEquals($branch->id, $trainer->branches->id);
+		$this->assertInstanceOf(Branch::class, $trainer->branch);
+		$this->assertEquals($branch->id, $trainer->branch->id);
 	}
 }

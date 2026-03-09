@@ -65,16 +65,20 @@ final class PromotionSeeder extends Seeder
 				return;
 			}
 
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
+			$promoCreated = 0;
 			foreach ($employees as $emp) {
+				if ($promoCreated >= $HARD_CAP) break;
 				$qty = random_int(0, self::MAX_PROMOTIONS_PER_EMPLOYEE);
 				if ($qty === 0) {
 					continue;
 				}
 
 				for ($i = 0; $i < $qty; $i++) {
+					if ($promoCreated >= $HARD_CAP) break 2; // Hard cap guard
 					try {
-						(new \Symfony\Component\Console\Output\ConsoleOutput
-						)->writeln("Criando Promoção para funcionário ID: {$emp->id}");
+						// (new \Symfony\Component\Console\Output\ConsoleOutput
+						// )->writeln("Criando Promoção para funcionário ID: {$emp->id}");
 						$now = now('America/Sao_Paulo');
 						// data entre (-PAST_DAYS .. +FUTURE_DAYS)
 						$start = $now
@@ -115,6 +119,7 @@ final class PromotionSeeder extends Seeder
 
 						try {
 							$p->save();
+							$promoCreated++;
 						} catch (\Throwable $e) {
 							Log::warning('PromotionSeeder: falha ao salvar promoção', [
 								'employee_id'   => $emp->id,

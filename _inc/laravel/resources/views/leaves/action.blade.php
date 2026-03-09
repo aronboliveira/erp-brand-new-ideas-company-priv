@@ -1,20 +1,47 @@
 @php
-    use App\Config\Constants\{PermissionsConstants, UsersConstants,
-        ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $changeBase       = VW::LV . '.change_action';
-    $changeKebab      = Str::kebab($changeBase);
-    $changeResolved   = Route::has($changeBase) ? $changeBase : (Route::has($changeKebab) ? $changeKebab : null);
-    $changeActionUrl  = $changeResolved ? route($changeResolved) : '#';
-    $formId           = 'leave-changeaction-form';
-    $guardMsg         = Utility::fetchLinkMessage($lang, VW::LV, 'change_action_leave_unavailable') ?? 'Change leave action route is unavailable. Please contact technical support or your domain administrator.';
-    $formatDate = function($val, $fallback) use ($user) {
-            return ($val && is_object($user) && method_exists($user,'dateFormat')) ? ($user->dateFormat($val) ?? $fallback) : $fallback;
-        };
+$user ??= null;
+	$lang ??= 'en';
+	$changeBase ??= '';
+	$changeKebab ??= '';
+	$changeResolved ??= null;
+	$changeActionUrl ??= '#';
+	$formId ??= 'leave-changeaction-form';
+	$guardMsg ??= '';
+	$formatDate ??= null;
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$changeBase = VW::LV . '.change_action';
+		$changeKebab = Str::kebab($changeBase);
+		$changeResolved = Route::has($changeBase) ? $changeBase : (Route::has($changeKebab) ? $changeKebab : null);
+		$changeActionUrl = $changeResolved ? (route($changeResolved) ?? '#') : '#';
+		$guardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'change_action_leave_unavailable')
+			?? 'Change leave action route is unavailable. Please contact technical support or your domain administrator.';
+		$formatDate = function ($val, $fallback) use ($user) {
+			return ($val && is_object($user) && method_exists($user, 'dateFormat')) ? ($user->dateFormat($val) ?? $fallback) : $fallback;
+		};
+	} catch (\Error $e) {
+		Log::error('Error in leaves/action.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in leaves/action.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in leaves/action.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 {!! Collective\Html\FormFacade::open(['url' => $changeActionUrl, 'method' => 'post', 'id' => $formId, 'data-guard-msg' => $guardMsg]) !!}
     <div class="modal-body">
@@ -64,4 +91,3 @@
     @endif
     <script defer src="{{ asset('assets/js/routes/leaves/changeAction.js') }}"></script>
 {!! Collective\Html\FormFacade::close() !!}
-

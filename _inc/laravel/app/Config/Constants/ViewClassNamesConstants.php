@@ -116,10 +116,14 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::MB0 }}"
 	public const MB1 = 'mb-1';
 	// "{{ ViewClassNamesConstants::MB1 }}"
+	public const MB2 = 'mb-2';
+	// "{{ ViewClassNamesConstants::MB2 }}"
 	public const MB3 = 'mb-3';
 	// "{{ ViewClassNamesConstants::MB3 }}"
 	public const MB4 = 'mb-4';
 	// "{{ ViewClassNamesConstants::MB4 }}"
+	public const MB5 = 'mb-5';
+	// "{{ ViewClassNamesConstants::MB5 }}"
 	public const ME0 = 'me-0';
 	// "{{ ViewClassNamesConstants::ME0 }}"
 	public const ME3 = 'me-3';
@@ -132,6 +136,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::MS2 }}"
 	public const MT1 = 'mt-1';
 	// "{{ ViewClassNamesConstants::MT1 }}"
+	public const MT2 = 'mt-2';
+	// "{{ ViewClassNamesConstants::MT2 }}"
 	public const MT3 = 'mt-3';
 	// "{{ ViewClassNamesConstants::MT3 }}"
 	public const MT4 = 'mt-4';
@@ -150,6 +156,10 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::PX3 }}"
 	public const PY2 = 'py-2';
 	// "{{ ViewClassNamesConstants::PY2 }}"
+	public const PT3 = 'pt-3';
+	// "{{ ViewClassNamesConstants::PT3 }}"
+	public const PS3 = 'ps-3';
+	// "{{ ViewClassNamesConstants::PS3 }}"
 	public const C2 = 'col-2';
 	// "{{ ViewClassNamesConstants::C2 }}"
 	public const C12 = 'col-12';
@@ -170,12 +180,20 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CL3 }}"
 	public const CL4 = 'col-lg-4';
 	// "{{ ViewClassNamesConstants::CL4 }}"
+	public const CL5 = 'col-lg-5';
+	// "{{ ViewClassNamesConstants::CL5 }}"
 	public const CL6 = 'col-lg-6';
 	// "{{ ViewClassNamesConstants::CL6 }}"
+	public const CL7 = 'col-lg-7';
+	// "{{ ViewClassNamesConstants::CL7 }}"
+	public const CL8 = 'col-lg-8';
+	// "{{ ViewClassNamesConstants::CL8 }}"
 	public const CL9 = 'col-lg-9';
 	// "{{ ViewClassNamesConstants::CL9 }}"
 	public const CL10 = 'col-lg-10';
 	// "{{ ViewClassNamesConstants::CL10 }}"
+	public const CL12 = 'col-lg-12';
+	// "{{ ViewClassNamesConstants::CL12 }}"
 	public const CS3 = 'col-sm-3';
 	// "{{ ViewClassNamesConstants::CS3 }}"
 	public const CS4 = 'col-sm-4';
@@ -560,6 +578,14 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::TI_SRC }}"
 	// "{{ VW::TI_SRC }}"
 	// ti ti-search
+	public const TI_COPY = self::TI . ' ' . self::TI . '-copy';
+	// "{{ ViewClassNamesConstants::TI_COPY }}"
+	// "{{ VC::TI_COPY }}"
+	// ti ti-copy
+	public const TI_COPY_WT = self::TI_COPY . ' text-white';
+	// "{{ ViewClassNamesConstants::TI_COPY_WT }}"
+	// "{{ VC::TI_COPY_WT }}"
+	// ti ti-copy text-white
 	public const TI_TRS = self::TI . ' ' . self::TI . '-trash';
 	// "{{ ViewClassNamesConstants::BT_SM_PM }}"
 	// ti ti-trash
@@ -601,6 +627,10 @@ class ViewClassNamesConstants
 	public const TD_DOTV = self::TI . ' ' . self::TI . '-dots-vertical';
 	// "{{ ViewClassNamesConstants::TD_DOTV }}"
 	// ti ti-dots-vertical
+	public const TI_DRP = self::TD_DOTV;
+	// "{{ ViewClassNamesConstants::TI_DRP }}"
+	// "{{ VC::TI_DRP }}"
+	// Alias for dropdown toggle icon (ti ti-dots-vertical)
 	public const TI_FL = self::TI . ' ' . self::TI . '-file';
 	// "{{ ViewClassNamesConstants::TI_FL }}"
 	// "{{ VC::TI_FL }}"
@@ -700,8 +730,246 @@ class ViewClassNamesConstants
 	public const R_FLX_ALC_JCE = self::RW . ' ' . self::DFL . ' ' . self::ALC . ' ' . self::JCE;
 	// "{{ ViewClassNamesConstants::R_FLX_ALC_JCE }}"
 	// row d-flex align-items-center justify-content-end
-}
+	// ── Atomics ────────────────────────────────────────────
+	public const CD_BD = self::CD . '-body';
+	// "{{ ViewClassNamesConstants::CD_BD }}"
+	// "{{ VC::CD_BD }}"
+	// card-body
+	public const CD_HD = self::CD . '-header';
+	// "{{ ViewClassNamesConstants::CD_HD }}"
+	// "{{ VC::CD_HD }}"
+	// card-header
+	public const DRP_IT = 'dropdown-item';
+	// "{{ ViewClassNamesConstants::DRP_IT }}"
+	// "{{ VC::DRP_IT }}"
+	// dropdown-item
+	public const INV_FB = 'invalid-feedback';
+	// "{{ ViewClassNamesConstants::INV_FB }}"
+	// "{{ VC::INV_FB }}"
+	// invalid-feedback
+	public const TB_RSP = 'table-responsive';
+	// "{{ ViewClassNamesConstants::TB_RSP }}"
+	// "{{ VC::TB_RSP }}"
+	// table-responsive
+	public const TABLE_RESPONSIVE = self::TB_RSP;
+	// "{{ ViewClassNamesConstants::TABLE_RESPONSIVE }}"
+	// "{{ VC::TABLE_RESPONSIVE }}"
+	public const IMG_FL = 'img-fluid';
+	// "{{ ViewClassNamesConstants::IMG_FL }}"
+	// "{{ VC::IMG_FL }}"
+	// img-fluid
+	public const D_GR = 'd-grid';
+	// "{{ ViewClassNamesConstants::D_GR }}"
+	// "{{ VC::D_GR }}"
+	// d-grid
+	public const TX_END = 'text-end';
+	// "{{ ViewClassNamesConstants::TX_END }}"
+	// "{{ VC::TX_END }}"
+	// text-end
+	public const TX_PM = 'text-primary';
+	// "{{ ViewClassNamesConstants::TX_PM }}"
+	// "{{ VC::TX_PM }}"
+	// text-primary
+	public const TX_DNG = 'text-danger';
+	// "{{ ViewClassNamesConstants::TX_DNG }}"
+	// "{{ VC::TX_DNG }}"
+	// text-danger
+	public const SM = 'small';
+	// "{{ ViewClassNamesConstants::SM }}"
+	// "{{ VC::SM }}"
+	// small
+	public const BT_OUT_LG = self::BT . ' ' . self::BT . '-outline-light';
+	// "{{ ViewClassNamesConstants::BT_OUT_LG }}"
+	// "{{ VC::BT_OUT_LG }}"
+	// btn btn-outline-light
+	public const CXL10 = 'col-xl-10';
+	// "{{ ViewClassNamesConstants::CXL10 }}"
+	// "{{ VC::CXL10 }}"
+	// col-xl-10
+	public const CXL12 = 'col-xl-12';
+	// "{{ ViewClassNamesConstants::CXL12 }}"
+	// "{{ VC::CXL12 }}"
+	// col-xl-12
+	public const LST_UNSTL = 'list-unstyled';
+	// "{{ ViewClassNamesConstants::LST_UNSTL }}"
+	// "{{ VC::LST_UNSTL }}"
+	// list-unstyled
+	public const NV_IT_ACT = self::NV_IT . ' active';
+	// "{{ ViewClassNamesConstants::NV_IT_ACT }}"
+	// nav-item active
+	// ── Tabler icons (additional) ──────────────────────────
+	public const TI_RPT_MN = self::TI . ' ' . self::TI . '-report-money';
+	// "{{ ViewClassNamesConstants::TI_RPT_MN }}"
+	// "{{ VC::TI_RPT_MN }}"
+	// ti ti-report-money
+	public const TI_USR_PLS = self::TI . ' ' . self::TI . '-user-plus';
+	// "{{ ViewClassNamesConstants::TI_USR_PLS }}"
+	// "{{ VC::TI_USR_PLS }}"
+	// ti ti-user-plus
+	public const TI_INF_CC = self::TI . ' ' . self::TI . '-info-circle';
+	// "{{ ViewClassNamesConstants::TI_INF_CC }}"
+	// "{{ VC::TI_INF_CC }}"
+	// ti ti-info-circle
+	public const TI_INF_CC_PM = self::TI_INF_CC . ' ' . self::TX_PM;
+	// "{{ ViewClassNamesConstants::TI_INF_CC_PM }}"
+	// "{{ VC::TI_INF_CC_PM }}"
+	// ti ti-info-circle text-primary
+	// ── Composites ─────────────────────────────────────────
+	public const CD_BD_TB_BD = self::CD_BD . ' table-border-style';
+	// "{{ ViewClassNamesConstants::CD_BD_TB_BD }}"
+	// "{{ VC::CD_BD_TB_BD }}"
+	// card-body table-border-style
+	public const SM_TX_DNG = self::SM . ' ' . self::TX_DNG;
+	// "{{ ViewClassNamesConstants::SM_TX_DNG }}"
+	// "{{ VC::SM_TX_DNG }}"
+	// small text-danger
+	public const D_GR_TXCT = self::D_GR . ' ' . self::TXCT;
+	// "{{ ViewClassNamesConstants::D_GR_TXCT }}"
+	// "{{ VC::D_GR_TXCT }}"
+	// d-grid text-center
+	public const LST_UNSTL_MY5 = self::LST_UNSTL . ' my-5';
+	// "{{ ViewClassNamesConstants::LST_UNSTL_MY5 }}"
+	// "{{ VC::LST_UNSTL_MY5 }}"
+	// list-unstyled my-5
+	public const MY3_FW600 = self::MY3 . ' ' . self::FW600;
+	// "{{ ViewClassNamesConstants::MY3_FW600 }}"
+	// "{{ VC::MY3_FW600 }}"
+	// my-3 f-w-600
+	public const TXT_MT_MT4 = self::TXT_MT . ' ' . self::MT4;
+	// "{{ ViewClassNamesConstants::TXT_MT_MT4 }}"
+	// "{{ VC::TXT_MT_MT4 }}"
+	// text-muted mt-4
+	public const FAR_EYE = 'far fa-eye';
+	// "{{ ViewClassNamesConstants::FAR_EYE }}"
+	// "{{ VC::FAR_EYE }}"
+	// far fa-eye
+	public const FAS_CART = self::FAS . ' fa-shopping-cart';
+	// "{{ ViewClassNamesConstants::FAS_CART }}"
+	// "{{ VC::FAS_CART }}"
+	// fas fa-shopping-cart
+	// ── Modal ──────────────────────────────────────────────
+	public const MDL_DLG = 'modal-dialog';
+	// "{{ ViewClassNamesConstants::MDL_DLG }}"
+	// "{{ VC::MDL_DLG }}"
+	// modal-dialog
+	public const MDL_CTT = 'modal-content';
+	// "{{ ViewClassNamesConstants::MDL_CTT }}"
+	// "{{ VC::MDL_CTT }}"
+	// modal-content
+	public const MDL_HDR = 'modal-header';
+	// "{{ ViewClassNamesConstants::MDL_HDR }}"
+	// "{{ VC::MDL_HDR }}"
+	// modal-header
+	public const MDL_TTL = 'modal-title';
+	// "{{ ViewClassNamesConstants::MDL_TTL }}"
+	// "{{ VC::MDL_TTL }}"
+	// modal-title
+	public const BT_CL = self::BT . '-close';
+	// "{{ ViewClassNamesConstants::BT_CL }}"
+	// "{{ VC::BT_CL }}"
+	// btn-close
+	public const BT_LNK = self::BT . '-link';
+	// "{{ ViewClassNamesConstants::BT_LNK }}"
+	// "{{ VC::BT_LNK }}"
+	// btn-link
+	// ── App-specific layout ────────────────────────────────
+	public const DSH_CTT = 'dash-content';
+	// "{{ ViewClassNamesConstants::DSH_CTT }}"
+	// "{{ VC::DSH_CTT }}"
+	// dash-content
+	public const PG_HDR = 'page-header';
+	// "{{ ViewClassNamesConstants::PG_HDR }}"
+	// "{{ VC::PG_HDR }}"
+	// page-header
+	public const PG_BLK = 'page-block';
+	// "{{ ViewClassNamesConstants::PG_BLK }}"
+	// "{{ VC::PG_BLK }}"
+	// page-block
 
-// TODO VERY EXTENSIVE REPLACES: 
-// mx-3 btn btn-sm align-items-center
+	// --- Added missing constants referenced in blade views ---
+	public const C3 = 'col-3';
+	public const C6 = 'col-6';
+	public const C9 = 'col-9';
+	// "{{ ViewClassNamesConstants::C9 }}"
+	// "{{ VC::C9 }}"
+	public const CM2 = 'col-md-2';
+	public const CM8 = 'col-md-8';
+	// "{{ ViewClassNamesConstants::CM8 }}"
+	// "{{ VC::CM8 }}"
+	public const JCC = 'justify-content-center';
+	public const DFL_JCE = self::DFL . ' ' . self::JCE;
+	public const TX_MUTED = self::TXT_MT;
+	public const TI_INB = self::TI . ' ' . self::TI . '-inbox';
+	public const FS_3X = 'fs-3x';
+	public const TI_ADJ = self::TI . ' ' . self::TI . '-adjustments-horizontal';
+	public const ALT = 'alert';
+	public const ALT_WRN = self::ALT . ' alert-warning';
+	public const ALT_SUC = self::ALT . ' alert-success';
+	public const ALT_INF = self::ALT . ' alert-info';
+	public const ALT_DNG = self::ALT . ' alert-danger';
+	public const ALT_WRN_MB0 = self::ALT_WRN . ' ' . self::MB0;
+	public const ALT_INF_MB0 = self::ALT_INF . ' ' . self::MB0;
+	public const ALT_SUC_MB3 = self::ALT_SUC . ' ' . self::MB3;
+	public const BD0_ITM_DSC = 'border-0 itm-description';
+	public const TX_DK = 'text-dark';
+	public const TX_DK_LBL = self::TX_DK . ' light_blue';
+	public const TXCT_DK = self::TXCT . ' ' . self::TX_DK;
+	public const TTL_TX_DK = 'total ' . self::TX_DK;
+	public const TXCT_BR1 = self::TXCT . ' br-1px';
+	public const TB_MB0 = self::TB . ' ' . self::MB0;
+	public const INC_TX_DK = 'income ' . self::TX_DK;
+	public const EXP_TX_DK = 'expense ' . self::TX_DK;
+	public const BG_WT = 'bg-white';
+	public const BG_WT_CC_RD = self::BG_WT . ' mx-auto rounded-3 shadow-sm';
+	public const BDR_POS_SM = 'add-border pos-summary';
+	public const BCI_ACT = 'breadcrumb-item active';
+	public const BCI = 'breadcrumb-item';
+	public const BDR_PRC_SM = 'add-border purchase-summary';
+	public const BDR_PPS_SM = 'add-border proposal-summary';
+	public const BDR_INV_SM = 'add-border invoice-summary';
+	public const BDR_BIL_SM = 'add-border bill-summary';
+	public const TX_END_INC_DK = self::TX_END . ' totalIncome ' . self::TX_DK;
+	public const TX_END_EXP_DK = self::TX_END . ' totalExpense ' . self::TX_DK;
+	public const TB_RSP_BDG_DN = self::TB_RSP . ' budget_plan d-none';
+	public const MY2 = 'my-2';
+	public const MY4 = 'my-4';
+	public const MY2_FWB = self::MY2 . ' fw-bold';
+	public const CD_BGN = self::CD . ' bg-none';
+	public const CD_BGN_MB0 = self::CD_BGN . ' ' . self::MB0;
+	public const TX_DNG_PL1 = self::TX_DNG . ' pl-1';
+	public const TAB_FD_SH = 'tab-pane fade show';
+	public const MB3_FWB = self::MB3 . ' fw-bold';
+	public const INV_FB_DNG_XS = self::INV_FB . ' ' . self::TX_DNG . ' ' . self::TXS;
+	public const FM_GCB4 = self::FM_G . ' ' . self::CM4;
+	public const FM_LB_DK = 'col-form-label ' . self::TX_DK;
+	public const TXCT_MT = self::TXCT . ' ' . self::TXT_MT;
+	public const TXCT_PY4 = self::TXCT . ' py-4';
+	public const EMP_TTL = 'emp-title';
+	public const EMP_TTL_MB0 = self::EMP_TTL . ' ' . self::MB0;
+	public const EMP_TTL_BK = self::EMP_TTL . ' black-text';
+	public const BT_PRM_BLK = self::BT_PRM . ' btn-block';
+	public const BT_PRM_BLK_MT2 = self::BT_PRM_BLK . ' ' . self::MT2;
+	public const BT_OUT_SEC = self::BT . ' btn-outline-secondary';
+	public const TX_RT = 'text-right';
+	public const VW_QR = 'view-qrcode';
+	public const VA_TOP = 'vertical-align-top';
+	public const TTL_TB = 'total-table';
+	public const SUB_TTL = 'sub-total';
+	public const NO_SPC = 'no-space';
+	public const CD_BGN_BX = self::CD_BGN . ' card-box';
+	public const CD_BGN_BX_MT3 = self::CD_BGN_BX . ' ' . self::MT3;
+	public const NAV_TB = self::NAV . ' nav-tabs';
+	public const NAV_TB_MY4 = self::NAV_TB . ' ' . self::MY4;
+	public const BT_SEC_LG = self::BT . ' btn-secondary btn-light';
+	public const FM_GB4 = self::FM_G . ' ' . self::MB4;
+	public const FM_CT_LB = 'form-control-label';
+	public const W100 = 'w-100';
+	public const W100_BG_WT = self::W100 . ' ' . self::BG_WT;
+	public const MY4_TXCT = self::MY4 . ' ' . self::TXCT;
+	public const SM_TX_DNG2 = self::SM . ' ' . self::TX_DNG;
+	public const TXT_MT_TXSM_MB0 = self::TXT_MT . ' ' . self::TXSM . ' ' . self::MB0;
+	public const PY4 = 'py-4';
+	public const RW_PY4 = self::RW . ' ' . self::PY4;
+	public const CM3_CL3 = self::CM3 . ' col-lg-3';
+}
 // mx-3 btn btn-sm align-items-center bs-pass-para

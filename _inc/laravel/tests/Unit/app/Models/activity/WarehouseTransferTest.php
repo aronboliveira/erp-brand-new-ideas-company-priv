@@ -9,6 +9,11 @@ use App\Models\{ProductService, User, Warehouse, WarehouseTransfer};
 
 class WarehouseTransferTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -34,9 +39,7 @@ class WarehouseTransferTest extends TestCase
 
 		$transfer = WarehouseTransfer::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $transfer->$field);
-		}
+		$this->assertFillableMatches($data, $transfer);
 	}
 
 	/**

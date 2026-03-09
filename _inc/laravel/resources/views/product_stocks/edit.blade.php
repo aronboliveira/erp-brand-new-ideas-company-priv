@@ -1,22 +1,70 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    use App\Config\Constants\StacksConstants;
-    use App\Models\Utility;
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in product_stocks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in product_stocks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in product_stocks/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($productService) && isset($productService->id))
     @php
-        $productStockUpdateBaseRoute       = ViewsConstants::PRD_STK . '.update';
-        $productStockUpdateKebabRoute      = Str::kebab($productStockUpdateBaseRoute);
-        $productStockUpdateResolvedName    = Route::has($productStockUpdateBaseRoute) ? $productStockUpdateBaseRoute : (Route::has($productStockUpdateKebabRoute) ? $productStockUpdateKebabRoute : null);
-        $productStockUpdateRouteArray      = $productStockUpdateResolvedName ? [$productStockUpdateResolvedName, $productService->id] : ['#'];
-        $productStockUpdateUrl             = $productStockUpdateResolvedName ? route($productStockUpdateResolvedName, $productService->id) : '#';
-        $productStockUpdateGuardMsg        = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_STK, 'product_stock_update_route_unavailable') ?? 'Product stock update route is unavailable. Please contact technical support or your domain administrator.';
-        $productStockUpdateFormId          = 'product-stock-update-form-' . $productService->id;
-    @endphp
+$productStockUpdateBaseRoute ??= '';
+		$productStockUpdateKebabRoute ??= '';
+		$productStockUpdateResolvedName ??= null;
+		$productStockUpdateRouteArray ??= ['#'];
+		$productStockUpdateUrl ??= '#';
+		$productStockUpdateGuardMsg ??= '';
+		$productStockUpdateFormId ??= 'product-stock-update-form';
+		try {
+			$productStockUpdateBaseRoute = ViewsConstants::PRD_STK . '.update';
+			$productStockUpdateKebabRoute = Str::kebab($productStockUpdateBaseRoute);
+			$productStockUpdateResolvedName = Route::has($productStockUpdateBaseRoute) ? $productStockUpdateBaseRoute : (Route::has($productStockUpdateKebabRoute) ? $productStockUpdateKebabRoute : null);
+			$productStockUpdateRouteArray = $productStockUpdateResolvedName ? [$productStockUpdateResolvedName, data_get($productService ?? null, 'id')] : ['#'];
+			$productStockUpdateUrl = $productStockUpdateResolvedName ? (route($productStockUpdateResolvedName, data_get($productService ?? null, 'id')) ?? '#') : '#';
+			$productStockUpdateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_STK, 'product_stock_update_route_unavailable') ?? 'Product stock update route is unavailable. Please contact technical support or your domain administrator.';
+			$productStockUpdateFormId = 'product-stock-update-form-' . data_get($productService ?? null, 'id', 'x');
+		} catch (\Error $e) {
+			FormLog::error('Error in product_stocks/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Exception $e) {
+			FormLog::error('Exception in product_stocks/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Throwable $e) {
+			FormLog::error('Throwable in product_stocks/edit.blade.php form @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		}
+@endphp
     {!! Form::model($productService, [
         'route'          => $productStockUpdateRouteArray,
         'method'         => 'PUT',
@@ -55,28 +103,8 @@
                         if (url !== '#') return;
                         e.preventDefault();
                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bs) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
+                        const RG = window.RouteGuard || {};
+                        (RG.showToast || (m => alert(m)))(msg);
                         form.setAttribute('data-failed-route', 'true');
                     } catch (error) {}
                 });
@@ -84,13 +112,15 @@
         </script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-warning mb-3" role="alert">
+    <div class="{{ VC::ALT_WRN }} {{ VC::MB3 }}" role="alert">
         {{ __('Product information is not available. Please refresh the page and try again. If the problem persists, please contact technical support or your domain administrator.') }}
     </div>
-    @php return; @endphp
+    @php
+ return;
+@endphp
 @endif
-{{--        <div class="form-group quantity">--}}
-{{--            <div class="d-flex radio-check ">--}}
+{{--        <div class="{{ VC::FM_G }} quantity">--}}
+{{--            <div class="{{ VC::DFL }} radio-check">--}}
 {{--                <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP_COLM6 }}">--}}
 {{--                    <input type="radio" id="plus_quantity" value="Add" name="quantity_type" class="form-check-input" checked="checked">--}}
 {{--                    <label class="form-check-label" for="plus_quantity">{{__('Add Quantity')}}</label>--}}

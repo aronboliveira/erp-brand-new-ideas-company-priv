@@ -1,60 +1,54 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\{ProductServiceUnit, Utility};
-    use Illuminate\Support\Facades\{Auth, Crypt, Gate, Route, Storage, URL};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $invoiceIndexRouteName     = ViewsConstants::INV . '.index';
-    $invoiceIndexUrl           = Route::has($invoiceIndexRouteName)
-        ? route($invoiceIndexRouteName)
-        : '#';
-    $invoiceIndexGuardMsg      = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::INV,
-        'invoice_index_route_unavailable'
-    ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
-    $invAv = !empty($invoice) && isset($invoice->invoice_id);
-    $invNumFmtAv = is_callable([$user, 'invoiceNumberFormat']);
-    $valByNameAv = is_callable([Utility::class, 'getValByName']);
-    $canFormatDate = is_callable([$user, 'dateFormat']);
-    $canFormatPrice = is_callable([$user, 'priceFormat']);
-    $settings = Utility::settings();
-    $invHasStatus = $invAv && isset($invoice->status);
-    $user_plan ??= $user?->{UsersConstants::COL_PL};
-    $userPlanAv = !empty($user_plan) && isset($user_plan->id);
-    $invoice_user ??= $invoice?->customer_id;
-    $invoiceUserAv = !empty($invoice_user) && isset($invoice_user->id) ? $invoice_user : null;
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+        $invoiceIndexRouteName     = ViewsConstants::INV . '.index';
+        $invoiceIndexUrl           = Route::has($invoiceIndexRouteName)
+            ? route($invoiceIndexRouteName)
+            : '#';
+        $invoiceIndexGuardMsg      = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::INV,
+            'invoice_index_route_unavailable'
+        ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
+        $invAv = !empty($invoice) && isset($invoice->invoice_id);
+        $invNumFmtAv = is_callable([$user, 'invoiceNumberFormat']);
+        $valByNameAv = is_callable([Utility::class, 'getValByName']);
+        $canFormatDate = is_callable([$user, 'dateFormat']);
+        $canFormatPrice = is_callable([$user, 'priceFormat']);
+        $settings = Utility::settings();
+        $invHasStatus = $invAv && isset($invoice->status);
+        $user_plan ??= $user?->{UsersConstants::COL_PL};
+        $userPlanAv = !empty($user_plan) && isset($user_plan->id);
+        $invoice_user ??= $invoice?->customer_id;
+        $invoiceUserAv = !empty($invoice_user) && isset($invoice_user->id) ? $invoice_user : null;
+    } catch (\Throwable $e) {
+        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Invoice Detail')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="breadcrumb-invoice-link"
             href="{{ $invoiceIndexUrl }}"
             {{ $invoiceIndexUrl === '#' ? 'aria-disabled="true"' : '' }}
             data-url="{{ $invoiceIndexUrl }}"
-            data-guard-msg="{{ $invoiceIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($invoiceIndexGuardMsg) }}"
         >
             {{ __('Invoice') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ $invNumFmtAv ? $user->invoiceNumberFormat($invoice->invoice_id) : __('No invoice available') }}</li>
+    <li class="{{ VC::BCI }}">{{ $invNumFmtAv ? $user->invoiceNumberFormat($invoice->invoice_id) : __('No invoice available') }}</li>
 @endsection
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{ asset('assets/css/routes/invoices/customer-invoice.css') }}" />
@@ -111,12 +105,12 @@
                         toast.setAttribute('aria-live', 'assertive');
                         toast.setAttribute('aria-atomic', 'true');
                         toast.innerHTML = `
-                            <div class="d-flex">
+                            <div class="{{ VC::DFL }}">
                                 <div class="toast-body">${message}</div>
                                 <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
+                                        class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }
@@ -127,7 +121,7 @@
                     alert(message);
                 }
             };
-            
+
             @if(!empty($company_payment_setting))
                 try {
                     if (typeof $ === 'undefined') {
@@ -339,43 +333,47 @@
         @php
             $issueDate = $canFormatDate ? (!empty($invoice->issue_date) ? $user?->dateFormat($invoice->issue_date) : __('No issue date available')) : __('Failed to format date');
             $dueDate  = $canFormatDate ? (!empty($invoice->due_date) ? $user?->dateFormat($invoice->due_date) : __('No due date available')) : __('Failed to format date');
-        @endphp
+@endphp
         @can('send invoice')
             @if($invHasStatus && $invoice->status!=4)
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::C12 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="{{ VC::RW }} timeline-wrapper">
-                                    <div class="col-md-6 col-lg-4 col-xl-4">
+                                    <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                         <div class="timeline-icons">
                                             <span class="timeline-dots"></span>
-                                            <i class="ti ti-plus text-primary"></i>
+                                            <i class="{{ VC::TI_PLS }} {{ VC::TX_PM }}"></i>
                                         </div>
-                                        <h6 class="text-primary my-3">{{ __('Create Invoice') }}</h6>
-                                        <p class="text-muted text-sm mb-3">
+                                        <h6 class="{{ VC::TX_PM }} {{ VC::MY3 }}">{{ __('Create Invoice') }}</h6>
+                                        <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB3 }}">
                                             <i class="ti ti-clock me-2"></i>
                                             {{ __('Created on ') }}{{ $issueDate }}
                                         </p>
                                         @can('edit invoice')
                                             @php
-                                                $editRouteName        = ViewsConstants::INV . '.edit';
-                                                $editUrl              = Route::has($editRouteName)
-                                                    ? route($editRouteName, Crypt::encrypt($invoice->id))
-                                                    : '#';
-                                                $linkId               = 'invoice-edit-link-' . $invoice->id;
-                                                $editGuardMsg         = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::INV,
-                                                    'invoice_edit_route_unavailable'
-                                                ) ?? 'Invoice edit route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
+                                                try {
+                                                    $editRouteName        = ViewsConstants::INV . '.edit';
+                                                    $editUrl              = Route::has($editRouteName)
+                                                        ? route($editRouteName, Crypt::encrypt($invoice->id))
+                                                        : '#';
+                                                    $linkId               = 'invoice-edit-link-' . $invoice->id;
+                                                    $editGuardMsg         = Utility::fetchLinkMessage(
+                                                        $lang,
+                                                        ViewsConstants::INV,
+                                                        'invoice_edit_route_unavailable'
+                                                    ) ?? 'Invoice edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                } catch (\Throwable $e) {
+                                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                }
+@endphp
                                             <a
                                                 id="{{ $linkId }}"
                                                 href="{{ $editUrl }}"
                                                 class="{{ VC::BT_SM_PM }}"
                                                 data-url="{{ $editUrl }}"
-                                                data-guard-msg="{{ $editGuardMsg }}"
+                                                data-guard-msg="{{ base64_encode($editGuardMsg) }}"
                                                 data-bs-toggle="tooltip"
                                                 title="{{ __('Edit') }}"
                                                 {{ $editUrl === '#' ? 'aria-disabled="true"' : '' }}
@@ -393,7 +391,7 @@
                                                                 const url = link.getAttribute('data-url') ?? '#';
                                                                 if (url !== '#') return;
                                                                 event.preventDefault();
-                                            
+
                                                                 const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                                 const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
                                                                 let container       = document.getElementById('toast-container');
@@ -425,14 +423,14 @@
                                             @endpush
                                         @endcan
                                     </div>
-                
-                                    <div class="col-md-6 col-lg-4 col-xl-4">
+
+                                    <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                         <div class="timeline-icons">
                                             <span class="timeline-dots"></span>
                                             <i class="ti ti-mail text-warning"></i>
                                         </div>
-                                        <h6 class="text-warning my-3">{{ __('Send Invoice') }}</h6>
-                                        <p class="text-muted text-sm mb-3">
+                                        <h6 class="text-warning {{ VC::MY3 }}">{{ __('Send Invoice') }}</h6>
+                                        <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB3 }}">
                                             @if($invoice->status != 0)
                                                 <i class="ti ti-clock me-2"></i>
                                                 {{ __('Sent on') }} {{ $canFormatAv ? ($invoice->send_date ? $user?->dateFormat($invoice->send_date) : __('No send date available')) : __('Failed to format send date') }}
@@ -446,23 +444,27 @@
                                         @if($invoice->status == 0)
                                             @can('send bill')
                                                 @php
-                                                    $markSentRouteName       = ViewsConstants::INV . '.sent';
-                                                    $markSentUrl             = Route::has($markSentRouteName)
-                                                        ? route($markSentRouteName, $invoice->id)
-                                                        : '#';
-                                                    $markSentLinkId          = 'invoice-mark-sent-' . $invoice->id;
-                                                    $markSentGuardMsg        = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'invoice_mark_sent_route_unavailable'
-                                                    ) ?? 'Send invoice route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $markSentRouteName       = ViewsConstants::INV . '.sent';
+                                                        $markSentUrl             = Route::has($markSentRouteName)
+                                                            ? route($markSentRouteName, $invoice->id)
+                                                            : '#';
+                                                        $markSentLinkId          = 'invoice-mark-sent-' . $invoice->id;
+                                                        $markSentGuardMsg        = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'invoice_mark_sent_route_unavailable'
+                                                        ) ?? 'Send invoice route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a
                                                     id="{{ $markSentLinkId }}"
                                                     href="{{ $markSentUrl }}"
-                                                    class="btn btn-sm btn-warning"
+                                                    class="{{ VC::BT_SM }} btn-warning"
                                                     data-url="{{ $markSentUrl }}"
-                                                    data-guard-msg="{{ $markSentGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($markSentGuardMsg) }}"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ __('Mark Sent') }}"
                                                     {{ $markSentUrl === '#' ? 'aria-disabled="true"' : '' }}
@@ -475,13 +477,13 @@
                                                             const link = document.getElementById('{{ $markSentLinkId }}');
                                                             if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                             link.setAttribute('data-listener-active', 'true');
-                                                
+
                                                             link.addEventListener('click', event => {
                                                                 try {
                                                                     const url = link.getAttribute('data-url') ?? '#';
                                                                     if (url !== '#') return;
                                                                     event.preventDefault();
-                                                
+
                                                                     const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                                     const bsLink        = document.querySelector('link[href*="bootstrap"]');
                                                                     let container       = document.getElementById('toast-container');
@@ -490,25 +492,25 @@
                                                                         container.id    = 'toast-container';
                                                                         document.body.appendChild(container);
                                                                     }
-                                                
+
                                                                     if (bsLink && window.bootstrap) {
                                                                         const toastEl      = document.createElement('div');
                                                                         toastEl.className  = 'toast';
                                                                         toastEl.setAttribute('role', 'alert');
                                                                         toastEl.setAttribute('aria-live', 'assertive');
                                                                         toastEl.setAttribute('aria-atomic', 'true');
-                                                
+
                                                                         const body         = document.createElement('div');
                                                                         body.className     = 'toast-body';
                                                                         body.textContent   = msg;
-                                                
+
                                                                         toastEl.appendChild(body);
                                                                         container.appendChild(toastEl);
                                                                         bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                                     } else {
                                                                         alert(msg);
                                                                     }
-                                                
+
                                                                     link.setAttribute('data-failed-route', 'true');
                                                                 } catch (e) {}
                                                             });
@@ -518,29 +520,33 @@
                                             @endcan
                                         @endif
                                     </div>
-                                    <div class="col-md-6 col-lg-4 col-xl-4">
+                                    <div class="{{ VC::CM6 }} {{ VC::CL4 }} {{ VC::CXL4 }}">
                                         <div class="timeline-icons">
                                             <span class="timeline-dots"></span>
-                                            <i class="ti ti-report-money text-info"></i>
+                                            <i class="{{ VC::TI_RPT_MN }} text-info"></i>
                                         </div>
-                                        <h6 class="text-info my-3">{{ __('Get Paid') }}</h6>
-                                        <p class="text-muted text-sm mb-3">
+                                        <h6 class="text-info {{ VC::MY3 }}">{{ __('Get Paid') }}</h6>
+                                        <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB3 }}">
                                             {{ __('Status') }} : {{ __('Awaiting payment') }}
                                         </p>
                                         @if($invoice->status != 0)
                                             @can('create payment invoice')
                                                 @php
-                                                    $addPaymentRouteName      = ViewsConstants::INV . '.payment';
-                                                    $addPaymentUrl            = Route::has($addPaymentRouteName)
-                                                        ? route($addPaymentRouteName, $invoice->id)
-                                                        : '#';
-                                                    $addPaymentGuardMsg       = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'invoice_payment_route_unavailable'
-                                                    ) ?? 'Add payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $addPaymentLinkId         = 'add-payment-link-' . $invoice->id;
-                                                @endphp
+                                                    try {
+                                                        $addPaymentRouteName      = ViewsConstants::INV . '.payment';
+                                                        $addPaymentUrl            = Route::has($addPaymentRouteName)
+                                                            ? route($addPaymentRouteName, $invoice->id)
+                                                            : '#';
+                                                        $addPaymentGuardMsg       = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'invoice_payment_route_unavailable'
+                                                        ) ?? 'Add payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $addPaymentLinkId         = 'add-payment-link-' . $invoice->id;
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <a
                                                     id="{{ $addPaymentLinkId }}"
                                                     href="#"
@@ -548,11 +554,11 @@
                                                     data-url="{{ $addPaymentUrl }}"
                                                     data-ajax-popup="true"
                                                     data-title="{{ __('Add Payment') }}"
-                                                    data-guard-msg="{{ $addPaymentGuardMsg }}"
+                                                    data-guard-msg="{{ base64_encode($addPaymentGuardMsg) }}"
                                                     data-bs-toggle="tooltip"
                                                     title="{{ __('Receive Payment') }}"
                                                 >
-                                                    <i class="ti ti-report-money me-2"></i>{{ __('Receive Payment') }}
+                                                    <i class="{{ VC::TI_RPT_MN }} me-2"></i>{{ __('Receive Payment') }}
                                                 </a>
                                                 @push(StacksConstants::ADM_SCR_PG)
                                                     <script defer>
@@ -560,12 +566,12 @@
                                                             const link = document.getElementById('{{ $addPaymentLinkId }}');
                                                             if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                             link.setAttribute('data-listener-active', 'true');
-                                                
+
                                                             link.addEventListener('click', event => {
                                                                 try {
                                                                     const url = link.getAttribute('data-url') ?? '#';
                                                                     if (url !== '#') return; // valid route, let AJAX popup proceed
-                                                
+
                                                                     event.preventDefault();
                                                                     const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                                     const bsLink        = document.querySelector('link[href*="bootstrap"]');
@@ -613,17 +619,21 @@
                         @if(!empty($invoicePayment))
                             <div class="all-button-box mx-2 {{ VC::MR2 }}">
                                 @php
-                                    $addCreditNoteRouteName        = ViewsConstants::INV . '.credit.note';
-                                    $addCreditNoteUrl              = Route::has($addCreditNoteRouteName)
-                                        ? route($addCreditNoteRouteName, $invoice->id)
-                                        : '#';
-                                    $addCreditNoteLinkId           = 'add-credit-note-link-' . $invoice->id;
-                                    $addCreditNoteGuardMsg         = Utility::fetchLinkMessage(
-                                        $lang,
-                                        ViewsConstants::INV,
-                                        'credit_note_route_unavailable'
-                                    ) ?? 'Add Credit Note route is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
+                                    try {
+                                        $addCreditNoteRouteName        = ViewsConstants::INV . '.credit.note';
+                                        $addCreditNoteUrl              = Route::has($addCreditNoteRouteName)
+                                            ? route($addCreditNoteRouteName, $invoice->id)
+                                            : '#';
+                                        $addCreditNoteLinkId           = 'add-credit-note-link-' . $invoice->id;
+                                        $addCreditNoteGuardMsg         = Utility::fetchLinkMessage(
+                                            $lang,
+                                            ViewsConstants::INV,
+                                            'credit_note_route_unavailable'
+                                        ) ?? 'Add Credit Note route is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <a
                                     id="{{ $addCreditNoteLinkId }}"
                                     href="#"
@@ -631,7 +641,7 @@
                                     data-url="{{ $addCreditNoteUrl }}"
                                     data-ajax-popup="true"
                                     data-title="{{ __('Add Credit Note') }}"
-                                    data-guard-msg="{{ $addCreditNoteGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($addCreditNoteGuardMsg) }}"
                                     {{ $addCreditNoteUrl === '#' ? 'aria-disabled="true"' : '' }}
                                 >
                                     {{ __('Add Credit Note') }}
@@ -642,12 +652,12 @@
                                             const link = document.getElementById('{{ $addCreditNoteLinkId }}');
                                             if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                             link.setAttribute('data-listener-active', 'true');
-                                
+
                                             link.addEventListener('click', event => {
                                                 try {
                                                     const url = link.getAttribute('data-url') ?? '#';
                                                     if (url !== '#') return; // valid route, proceed with AJAX popup
-                                
+
                                                     event.preventDefault();
                                                     const msg           = link.getAttribute('data-guard-msg') || '# ERROR';
                                                     const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
@@ -657,25 +667,25 @@
                                                         container.id    = 'toast-container';
                                                         document.body.appendChild(container);
                                                     }
-                                
+
                                                     if (bootstrapLink && window.bootstrap) {
                                                         const toastEl      = document.createElement('div');
                                                         toastEl.className  = 'toast';
                                                         toastEl.setAttribute('role', 'alert');
                                                         toastEl.setAttribute('aria-live', 'assertive');
                                                         toastEl.setAttribute('aria-atomic', 'true');
-                                
+
                                                         const body = document.createElement('div');
                                                         body.className = 'toast-body';
                                                         body.textContent = msg;
                                                         toastEl.appendChild(body);
-                                
+
                                                         container.appendChild(toastEl);
                                                         bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                     } else {
                                                         alert(msg);
                                                     }
-                                
+
                                                     link.setAttribute('data-failed-route', 'true');
                                                 } catch (e) {}
                                             });
@@ -686,26 +696,30 @@
                         @endif
                         @if($invoice->status!= 4)
                             @php
-                                $routeName         = ViewsConstants::INV . '.payment.reminder';
-                                $reminderUrl       = Route::has($routeName)
-                                    ? route($routeName, $invoice->id)
-                                    : (Route::has(Str::kebab($routeName))
-                                        ? route(Str::kebab($routeName), $invoice->id)
-                                        : '#');
-                                $reminderLinkId    = 'receipt-reminder-link-' . $invoice->id;
-                                $guardMsg          = Utility::fetchLinkMessage(
-                                    $lang,
-                                    ViewsConstants::INV,
-                                    'payment_reminder_route_unavailable'
-                                ) ?? 'Receipt reminder route is unavailable. Please contact technical support or your domain administrator.';
-                            @endphp
+                                try {
+                                    $routeName         = ViewsConstants::INV . '.payment.reminder';
+                                    $reminderUrl       = Route::has($routeName)
+                                        ? route($routeName, $invoice->id)
+                                        : (Route::has(Str::kebab($routeName))
+                                            ? route(Str::kebab($routeName), $invoice->id)
+                                            : '#');
+                                    $reminderLinkId    = 'receipt-reminder-link-' . $invoice->id;
+                                    $guardMsg          = Utility::fetchLinkMessage(
+                                        $lang,
+                                        ViewsConstants::INV,
+                                        'payment_reminder_route_unavailable'
+                                    ) ?? 'Receipt reminder route is unavailable. Please contact technical support or your domain administrator.';
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <div class="all-button-box {{ VC::MR2 }}">
                                 <a
                                     id="{{ $reminderLinkId }}"
                                     href="{{ $reminderUrl }}"
                                     class="{{ VC::BT_SM_PM }} me-2"
                                     data-url="{{ $reminderUrl }}"
-                                    data-guard-msg="{{ $guardMsg }}"
+                                    data-guard-msg="{{ base64_encode($guardMsg) }}"
                                 >
                                     {{ __('Receipt Reminder') }}
                                 </a>
@@ -716,38 +730,15 @@
                                         const link = document.getElementById('{{ $reminderLinkId }}');
                                         if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                         link.setAttribute('data-listener-active', 'true');
-                            
+
                                         link.addEventListener('click', event => {
                                             try {
                                                 const url = link.getAttribute('data-url') || '#';
                                                 if (url !== '#') return;
-                            
+
                                                 event.preventDefault();
                                                 const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                                                const bsLink = document.querySelector('link[href*="bootstrap"]');
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                            
-                                                if (bsLink && window.bootstrap) {
-                                                    const toastEl = document.createElement('div');
-                                                    toastEl.className = 'toast';
-                                                    toastEl.setAttribute('role', 'alert');
-                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toastEl.appendChild(body);
-                                                    container.appendChild(toastEl);
-                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                            
+                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                 link.setAttribute('data-failed-route', 'true');
                                             } catch (e) {}
                                         });
@@ -757,23 +748,27 @@
                         @endif
                         <div class="all-button-box {{ VC::MR2 }}">
                             @php
-                                $resendRouteName        = ViewsConstants::INV . '.resent';
-                                $resendUrl              = Route::has($resendRouteName)
-                                    ? route($resendRouteName, $invoice->id)
-                                    : '#';
-                                $resendLinkId           = 'invoice-resend-link-' . $invoice->id;
-                                $resendGuardMsg         = Utility::fetchLinkMessage(
-                                    $lang,
-                                    ViewsConstants::INV,
-                                    'invoice_resend_route_unavailable'
-                                ) ?? 'Resend invoice route is unavailable. Please contact technical support or your domain administrator.';
-                            @endphp
+                                try {
+                                    $resendRouteName        = ViewsConstants::INV . '.resent';
+                                    $resendUrl              = Route::has($resendRouteName)
+                                        ? route($resendRouteName, $invoice->id)
+                                        : '#';
+                                    $resendLinkId           = 'invoice-resend-link-' . $invoice->id;
+                                    $resendGuardMsg         = Utility::fetchLinkMessage(
+                                        $lang,
+                                        ViewsConstants::INV,
+                                        'invoice_resend_route_unavailable'
+                                    ) ?? 'Resend invoice route is unavailable. Please contact technical support or your domain administrator.';
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <a
                                 id="{{ $resendLinkId }}"
                                 href="{{ $resendUrl }}"
                                 class="{{ VC::BT_SM_PM }} me-2"
                                 data-url="{{ $resendUrl }}"
-                                data-guard-msg="{{ $resendGuardMsg }}"
+                                data-guard-msg="{{ base64_encode($resendGuardMsg) }}"
                                 {{ $resendUrl === '#' ? 'aria-disabled="true"' : '' }}
                             >
                                 {{ __('Resend Invoice') }}
@@ -784,13 +779,13 @@
                                         const link = document.getElementById('{{ $resendLinkId }}');
                                         if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                         link.setAttribute('data-listener-active', 'true');
-                            
+
                                         link.addEventListener('click', event => {
                                             try {
                                                 const url = link.getAttribute('data-url') ?? '#';
                                                 if (url !== '#') return;
                                                 event.preventDefault();
-                            
+
                                                 const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                 const bsLink        = document.querySelector('link[href*="bootstrap"]');
                                                 let container       = document.getElementById('toast-container');
@@ -799,7 +794,7 @@
                                                     container.id    = 'toast-container';
                                                     document.body.appendChild(container);
                                                 }
-                            
+
                                                 if (bsLink && window.bootstrap) {
                                                     const toastEl      = document.createElement('div');
                                                     toastEl.className  = 'toast';
@@ -815,7 +810,7 @@
                                                 } else {
                                                     alert(msg);
                                                 }
-                            
+
                                                 link.setAttribute('data-failed-route', 'true');
                                             } catch (e) {}
                                         });
@@ -825,24 +820,28 @@
                         </div>
                         <div class="all-button-box">
                             @php
-                                $pdfRouteName           = ViewsConstants::INV . '.pdf';
-                                $pdfUrl                 = Route::has($pdfRouteName)
-                                    ? route($pdfRouteName, Crypt::encrypt($invoice->id))
-                                    : '#';
-                                $pdfLinkId              = 'invoice-download-link-' . $invoice->id;
-                                $pdfGuardMsg            = Utility::fetchLinkMessage(
-                                    $lang,
-                                    ViewsConstants::INV,
-                                    'invoice_pdf_route_unavailable'
-                                ) ?? 'Download invoice PDF route is unavailable. Please contact technical support or your domain administrator.';
-                            @endphp
+                                try {
+                                    $pdfRouteName           = ViewsConstants::INV . '.pdf';
+                                    $pdfUrl                 = Route::has($pdfRouteName)
+                                        ? route($pdfRouteName, Crypt::encrypt($invoice->id))
+                                        : '#';
+                                    $pdfLinkId              = 'invoice-download-link-' . $invoice->id;
+                                    $pdfGuardMsg            = Utility::fetchLinkMessage(
+                                        $lang,
+                                        ViewsConstants::INV,
+                                        'invoice_pdf_route_unavailable'
+                                    ) ?? 'Download invoice PDF route is unavailable. Please contact technical support or your domain administrator.';
+                                } catch (\Throwable $e) {
+                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                }
+@endphp
                             <a
                                 id="{{ $pdfLinkId }}"
                                 href="{{ $pdfUrl }}"
                                 target="_blank"
                                 class="{{ VC::BT_SM_PM }}"
                                 data-url="{{ $pdfUrl }}"
-                                data-guard-msg="{{ $pdfGuardMsg }}"
+                                data-guard-msg="{{ base64_encode($pdfGuardMsg) }}"
                                 {{ $pdfUrl === '#' ? 'aria-disabled="true"' : '' }}
                             >
                                 {{ __('Download') }}
@@ -858,7 +857,7 @@
                                                 const url = link.getAttribute('data-url') ?? '#';
                                                 if (url !== '#') return;
                                                 event.preventDefault();
-                            
+
                                                 const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                 const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
                                                 let container       = document.getElementById('toast-container');
@@ -867,7 +866,7 @@
                                                     container.id    = 'toast-container';
                                                     document.body.appendChild(container);
                                                 }
-                            
+
                                                 if (bootstrapLink && window.bootstrap) {
                                                     const toastEl      = document.createElement('div');
                                                     toastEl.className  = 'toast';
@@ -883,7 +882,7 @@
                                                 } else {
                                                     alert(msg);
                                                 }
-                            
+
                                                 link.setAttribute('data-failed-route', 'true');
                                             } catch (e) {}
                                         });
@@ -902,10 +901,10 @@
                         <div class="invoice">
                             <div class="invoice-print">
                                 <div class="{{ VC::RW }} invoice-title {{ VC::MT4 }}">
-                                    <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12">
+                                    <div class="{{ VC::CXS12 }} {{ VC::CS12 }} col-nd-6 {{ VC::CL6 }} {{ VC::C12 }}">
                                         <h4>{{__('Invoice')}}</h4>
                                     </div>
-                                    <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12 text-end">
+                                    <div class="{{ VC::CXS12 }} {{ VC::CS12 }} col-nd-6 {{ VC::CL6 }} {{ VC::C12 }} {{ VC::TX_END }}">
                                         <h4 class="invoice-number">{{ $invNumFmtAv ? $user?->invoiceNumberFormat($invoice->invoice_id) : __('Failed to format invoice number') }}</h4>
                                     </div>
                                     <div class="{{ VC::C12 }}">
@@ -913,7 +912,7 @@
                                     </div>
                                 </div>
                                 <div class="{{ VC::RW }}">
-                                    <div class="col text-end">
+                                    <div class="col {{ VC::TX_END }}">
                                         <div class="{{ VC::DFL }} {{ VC::ALC }} {{ VC::JCE }}">
                                             <div class="{{ VC::ME3 }}">
                                                 <small>
@@ -974,27 +973,31 @@
                                     @endif
                                     <div class="col">
                                         @php
-                                            $copyRouteName          = ViewsConstants::INV . '.link.copy';
-                                            $encryptedInvoiceId     = Crypt::encrypt($invoice->id);
-                                            $copyUrl                = Route::has($copyRouteName)
-                                                ? route($copyRouteName, $encryptedInvoiceId)
-                                                : '#';
-                                            $copyGuardMsg           = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::INV,
-                                                'invoice_copy_route_unavailable'
-                                            ) ?? 'Invoice link copy route is unavailable. Please contact technical support or your domain administrator.';
-                                            $copyLinkId             = 'invoice-copy-link-' . $invoice->id;
-                                        @endphp
+                                            try {
+                                                $copyRouteName          = ViewsConstants::INV . '.link.copy';
+                                                $encryptedInvoiceId     = Crypt::encrypt($invoice->id);
+                                                $copyUrl                = Route::has($copyRouteName)
+                                                    ? route($copyRouteName, $encryptedInvoiceId)
+                                                    : '#';
+                                                $copyGuardMsg           = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    ViewsConstants::INV,
+                                                    'invoice_copy_route_unavailable'
+                                                ) ?? 'Invoice link copy route is unavailable. Please contact technical support or your domain administrator.';
+                                                $copyLinkId             = 'invoice-copy-link-' . $invoice->id;
+                                            } catch (\Throwable $e) {
+                                                \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="{{ VC::FEND }} {{ VC::MT3 }}">
                                             <a
                                                 id="{{ $copyLinkId }}"
                                                 href="{{ $copyUrl }}"
                                                 data-url="{{ $copyUrl }}"
-                                                data-guard-msg="{{ $copyGuardMsg }}"
+                                                data-guard-msg="{{ base64_encode($copyGuardMsg) }}"
                                                 {{ $copyUrl === '#' ? 'aria-disabled="true"' : '' }}
                                             >
-                                                {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML($copyUrl, "QRCODE", 2, 2) : __('Failed to generate QR code') !!}
+                                                {!! class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? DNS2D::getBarcodeHTML($copyUrl, "QRCODE", 2, 2) : __('Failed to generate QR code') !!}
                                             </a>
                                         </div>
                                         @push(StacksConstants::ADM_SCR_PG)
@@ -1003,13 +1006,13 @@
                                                     const link = document.getElementById('{{ $copyLinkId }}');
                                                     if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                     link.setAttribute('data-listener-active', 'true');
-                                        
+
                                                     link.addEventListener('click', event => {
                                                         try {
                                                             const url = link.getAttribute('data-url') ?? '#';
                                                             if (url !== '#') return;
                                                             event.preventDefault();
-                                        
+
                                                             const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
                                                             const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
                                                             let container       = document.getElementById('toast-container');
@@ -1018,25 +1021,25 @@
                                                                 container.id    = 'toast-container';
                                                                 document.body.appendChild(container);
                                                             }
-                                        
+
                                                             if (bootstrapLink && window.bootstrap) {
                                                                 const toastEl      = document.createElement('div');
                                                                 toastEl.className  = 'toast';
                                                                 toastEl.setAttribute('role', 'alert');
                                                                 toastEl.setAttribute('aria-live', 'assertive');
                                                                 toastEl.setAttribute('aria-atomic', 'true');
-                                        
+
                                                                 const body         = document.createElement('div');
                                                                 body.className     = 'toast-body';
                                                                 body.textContent   = msg;
-                                        
+
                                                                 toastEl.appendChild(body);
                                                                 container.appendChild(toastEl);
                                                                 bootstrap.Toast.getOrCreateInstance(toastEl).show();
                                                             } else {
                                                                 alert(msg);
                                                             }
-                                        
+
                                                             link.setAttribute('data-failed-route', 'true');
                                                         } catch (e) {}
                                                     });
@@ -1064,7 +1067,7 @@
                                                     <span class="{{ VC::BDG }} {{ VC::BG_S }}">{{ __('Unknown status') }}</span>
                                                 @endif
                                             @else
-                                                <span class="text-muted">{{ __('Failed to get status') }}</span>
+                                                <span class="{{ VC::TXT_MT }}">{{ __('Failed to get status') }}</span>
                                         </small>
                                     </div>
                                     @if(!empty($customFields) && ((is_array($invoice->customField) && count($invoice->customField)) || ($invoice->customField instanceof Collection && $invoice->customField->isNotEmpty())))
@@ -1078,7 +1081,7 @@
                                             </div>
                                         @endforeach
                                     @else
-                                        <div class="text-muted">{{ __('No custom fields available') }}</div>
+                                        <div class="{{ VC::TXT_MT }}">{{ __('No custom fields available') }}</div>
                                     @endif
                                 </div>
                                 <div class="{{ VC::RW }} {{ VC::MT4 }}">
@@ -1087,46 +1090,50 @@
                                         <small>{{__('No items in the table below can be deleted.')}}</small>
                                         @php
                                             $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-                                        @endphp
+@endphp
                                         <div class="table-responsive {{ VC::MT2 }}">
                                             <table class="{{ VC::TB }} {{ VC::MB0 }} table-striped">
                                                 <tr>
-                                                    <th data-width="40" class="text-dark">#</th>
-                                                    <th class="text-dark">{{ __('Product') }}</th>
-                                                    <th class="text-dark">{{ __('Quantity') }}</th>
-                                                    <th class="text-dark">{{ __('Rate') }}</th>
-                                                    <th class="text-dark">{{ __('Discount') }}</th>
-                                                    <th class="text-dark">{{ __('Tax') }}</th>
-                                                    <th class="text-dark">{{ __('Description') }}</th>
-                                                    <th class="{{ VC::TXT_END }} text-dark" width="12%">{{ __('Price') }}<br><small class="text-danger font-weight-bold">{{ __('after tax & discount') }}</small></th>
+                                                    <th data-width="40" class="{{ VC::TX_DK }}">#</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Product') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Quantity') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Rate') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Discount') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Tax') }}</th>
+                                                    <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                                    <th class="{{ VC::TXT_END }} text-dark" width="12%">{{ __('Price') }}<br><small class="{{ VC::TX_DNG }} font-weight-bold">{{ __('after tax & discount') }}</small></th>
                                                 </tr>
                                                 @php
                                                     $itemsSafe = (is_array($items ?? null) && count($items ?? [])) ? $items : (($items ?? null) instanceof Collection && $items->isNotEmpty() ? $items : []);
                                                     $totalQuantity=0; $totalRate=0; $totalTaxPrice=0; $totalDiscount=0; $taxesData=[];
-                                                @endphp
+@endphp
 
                                                 @if(!empty($itemsSafe))
                                                     @foreach($itemsSafe as $idx => $item)
                                                         @php
-                                                            $product      = data_get($item,'product');
-                                                            $productName  = data_get($product,'name', __('No product name available'));
-                                                            $unitId       = data_get($product,'unit_id');
-                                                            $unitName     = optional(ProductServiceUnit::find($unitId))->name ?? __('No unit');
-                                                            $qty          = (float) ($item->quantity ?? 0);
-                                                            $rate         = (float) ($item->price ?? 999999999999.99);
-                                                            $disc         = (float) ($item->discount ?? 0);
-                                                            $totalQuantity += $qty; $totalRate += $rate; $totalDiscount += $disc;
-                                                            $taxRows = []; $itemTaxTotal = 0;
-                                                            $itemTaxes = !empty($item->tax) ? (Utility::tax($item->tax) ?? []) : [];
-                                                            foreach($itemTaxes as $tx){
-                                                                $txPrice = (float) Utility::taxRate($tx->rate, $rate, $qty, $disc);
-                                                                $itemTaxTotal += $txPrice; $totalTaxPrice += $txPrice;
-                                                                $taxesData[$tx->name] = ($taxesData[$tx->name] ?? 0) + $txPrice;
-                                                                $taxRows[] = [$tx->name, $tx->rate, $txPrice];
+                                                            try {
+                                                                $product      = data_get($item,'product');
+                                                                $productName  = data_get($product,'name', __('No product name available'));
+                                                                $unitId       = data_get($product,'unit_id');
+                                                                $unitName     = optional(ProductServiceUnit::find($unitId))->name ?? __('No unit');
+                                                                $qty          = (float) ($item->quantity ?? 0);
+                                                                $rate         = (float) ($item->price ?? 999999999999.99);
+                                                                $disc         = (float) ($item->discount ?? 0);
+                                                                $totalQuantity += $qty; $totalRate += $rate; $totalDiscount += $disc;
+                                                                $taxRows = []; $itemTaxTotal = 0;
+                                                                $itemTaxes = !empty($item->tax) ? (Utility::tax($item->tax) ?? []) : [];
+                                                                foreach($itemTaxes as $tx){
+                                                                    $txPrice = (float) Utility::taxRate($tx->rate, $rate, $qty, $disc);
+                                                                    $itemTaxTotal += $txPrice; $totalTaxPrice += $txPrice;
+                                                                    $taxesData[$tx->name] = ($taxesData[$tx->name] ?? 0) + $txPrice;
+                                                                    $taxRows[] = [$tx->name, $tx->rate, $txPrice];
+                                                                }
+                                                                $rowTotal = ($rate * $qty - $disc) + $itemTaxTotal;
+                                                                $descOut  = trim((string)($item->description ?? '')) !== '' ? $item->description : '-';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                             }
-                                                            $rowTotal = ($rate * $qty - $disc) + $itemTaxTotal;
-                                                            $descOut  = trim((string)($item->description ?? '')) !== '' ? $item->description : '-';
-                                                        @endphp
+@endphp
                                                         <tr>
                                                             <td>{{ $idx + 1 }}</td>
                                                             <td>{{ $productName }}</td>
@@ -1153,18 +1160,22 @@
                                                     @endforeach
                                                 @else
                                                     <tr>
-                                                        <td colspan="8" class="text-center">{{ __('No invoice items found.') }}</td>
+                                                        <td colspan="8" class="{{ VC::TXCT }}">{{ __('No invoice items found.') }}</td>
                                                     </tr>
                                                 @endif
 
                                                 @php
-                                                    $subTotal      = is_callable([$invoice,'getSubTotal'])        ? (float) $invoice->getSubTotal()        : 0.0;
-                                                    $totalDiscountI= is_callable([$invoice,'getTotalDiscount'])   ? (float) $invoice->getTotalDiscount()   : 0.0;
-                                                    $grandTotal    = is_callable([$invoice,'getTotal'])           ? (float) $invoice->getTotal()           : 0.0;
-                                                    $creditNote    = is_callable([$invoice,'invoiceTotalCreditNote']) ? (float) $invoice->invoiceTotalCreditNote() : 0.0;
-                                                    $dueAmt        = is_callable([$invoice,'getDue'])             ? (float) $invoice->getDue()             : max(0, $grandTotal - $creditNote);
-                                                    $paidAmt       = max(0, $grandTotal - $dueAmt - $creditNote);
-                                                @endphp
+                                                    try {
+                                                        $subTotal      = is_callable([$invoice,'getSubTotal'])        ? (float) $invoice->getSubTotal()        : 0.0;
+                                                        $totalDiscountI= is_callable([$invoice,'getTotalDiscount'])   ? (float) $invoice->getTotalDiscount()   : 0.0;
+                                                        $grandTotal    = is_callable([$invoice,'getTotal'])           ? (float) $invoice->getTotal()           : 0.0;
+                                                        $creditNote    = is_callable([$invoice,'invoiceTotalCreditNote']) ? (float) $invoice->invoiceTotalCreditNote() : 0.0;
+                                                        $dueAmt        = is_callable([$invoice,'getDue'])             ? (float) $invoice->getDue()             : max(0, $grandTotal - $creditNote);
+                                                        $paidAmt       = max(0, $grandTotal - $dueAmt - $creditNote);
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
 
                                                 <tfoot>
                                                     <tr>
@@ -1235,7 +1246,7 @@
                             <small>{{ __('Failed to access plans data') }}</small><br />
                         @else
                             @if($user_plan->storage_limit <= $invoice_user->storage_limit)
-                                <small class="text-danger font-bold">{{__('Your plan storage limit is over , so you can not see customer uploaded payment receipt')}}</small><br>
+                                <small class="{{ VC::TX_DNG }} font-bold">{{__('Your plan storage limit is over , so you can not see customer uploaded payment receipt')}}</small><br>
                             @else
                                 <small>{{ __('You can see customer uploaded payment receipt until your plan storage limit is over') }}</small><br />
                             @endif
@@ -1244,40 +1255,44 @@
                             <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
-                                        <th class="text-dark">{{__('Payment Receipt')}}</th>
-                                        <th class="text-dark">{{__('Date')}}</th>
-                                        <th class="text-dark">{{__('Amount')}}</th>
-                                        <th class="text-dark">{{__('Payment Type')}}</th>
-                                        <th class="text-dark">{{__('Account')}}</th>
-                                        <th class="text-dark">{{__('Reference')}}</th>
-                                        <th class="text-dark">{{__('Description')}}</th>
-                                        <th class="text-dark">{{__('Receipt')}}</th>
-                                        <th class="text-dark">{{__('OrderId')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Payment Receipt')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Date')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Amount')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Payment Type')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Account')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Reference')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Description')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Receipt')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('OrderId')}}</th>
                                         @can('delete payment invoice')
-                                            <th class="text-dark">{{__('Action')}}</th>
+                                            <th class="{{ VC::TX_DK }}">{{__('Action')}}</th>
                                         @endcan
                                     </tr>
                                 </thead>
                                 @php
                                     $path = Utility::getFile('uploads/order');
-                                @endphp
+@endphp
                                 @if(Utility::isFilled($invoice->payments) ?? [])
                                     @foreach($invoice->payments as $key =>$payment)
                                         <tr>
                                             <td>
                                                 @if(!empty($payment->add_receipt))
                                                     @php
-                                                        $paymentAddReceipt = $payment->add_receipt;
-                                                        $receiptAssetUrl   = $paymentAddReceipt
-                                                            ? asset(Storage::url("uploads/payment/{$paymentAddReceipt}"))
-                                                            : '#';
-                                                        $linkId            = 'payment-add-receipt-' . $payment->id;
-                                                        $guardMsg          = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::INV,
-                                                            'payment_add_receipt_download_route_unavailable'
-                                                        ) ?? 'Payment receipt download route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $paymentAddReceipt = $payment->add_receipt;
+                                                            $receiptAssetUrl   = $paymentAddReceipt
+                                                                ? asset(Storage::url("uploads/payment/{$paymentAddReceipt}"))
+                                                                : '#';
+                                                            $linkId            = 'payment-add-receipt-' . $payment->id;
+                                                            $guardMsg          = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::INV,
+                                                                'payment_add_receipt_download_route_unavailable'
+                                                            ) ?? 'Payment receipt download route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <td>
                                                         @if($receiptAssetUrl !== '#')
                                                             <a
@@ -1287,7 +1302,7 @@
                                                                 class="{{ VC::BT_SM }} btn-secondary btn-icon rounded-pill"
                                                                 target="_blank"
                                                                 data-url="{{ $receiptAssetUrl }}"
-                                                                data-guard-msg="{{ $guardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                             >
                                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
                                                             </a>
@@ -1354,27 +1369,31 @@
                                             @else
                                                 @if($user_plan->storage_limit <= $invoice_user->storage_limit)
                                                     <td>
-                                                        <small class="text-danger font-bold">{{__('Your plan storage limit is over')}}</small>
+                                                        <small class="{{ VC::TX_DNG }} font-bold">{{__('Your plan storage limit is over')}}</small>
                                                     </td>
                                                 @else
                                                     <td>
                                                         @if(!empty($payment->receipt))
                                                             @php
-                                                                $receiptUrl          = $path . '/' . $payment->receipt;
-                                                                $linkId              = 'payment-receipt-link-' . $payment->id;
-                                                                $guardMsg            = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::INV,
-                                                                    'payment_receipt_view_unavailable'
-                                                                ) ?? 'Receipt view route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $receiptUrl          = $path . '/' . $payment->receipt;
+                                                                    $linkId              = 'payment-receipt-link-' . $payment->id;
+                                                                    $guardMsg            = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::INV,
+                                                                        'payment_receipt_view_unavailable'
+                                                                    ) ?? 'Receipt view route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 id="{{ $linkId }}"
                                                                 href="{{ $receiptUrl }}"
                                                                 target="_blank"
                                                                 class="{{ VC::BT_SM }} btn-secondary btn-icon rounded-pill"
                                                                 data-url="{{ $receiptUrl }}"
-                                                                data-guard-msg="{{ $guardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                             >
                                                                 <i class="{{ VC::TI_FL }}"></i>{{ __('Receipt') }}
                                                             </a>
@@ -1420,24 +1439,28 @@
                                                             @endpush
                                                         @elseif(!empty($payment->add_receipt))
                                                             @php
-                                                                $addReceiptFilename = $payment->add_receipt;
-                                                                $receiptUrl         = $addReceiptFilename
-                                                                    ? asset(Storage::url("uploads/payment/{$addReceiptFilename}"))
-                                                                    : '#';
-                                                                $linkId             = 'payment-add-receipt-view-' . $payment->id;
-                                                                $guardMsg           = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::INV,
-                                                                    'payment_add_receipt_view_unavailable'
-                                                                ) ?? 'Receipt view route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $addReceiptFilename = $payment->add_receipt;
+                                                                    $receiptUrl         = $addReceiptFilename
+                                                                        ? asset(Storage::url("uploads/payment/{$addReceiptFilename}"))
+                                                                        : '#';
+                                                                    $linkId             = 'payment-add-receipt-view-' . $payment->id;
+                                                                    $guardMsg           = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::INV,
+                                                                        'payment_add_receipt_view_unavailable'
+                                                                    ) ?? 'Receipt view route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 id="{{ $linkId }}"
                                                                 href="{{ $receiptUrl }}"
                                                                 target="_blank"
                                                                 class=""
                                                                 data-url="{{ $receiptUrl }}"
-                                                                data-guard-msg="{{ $guardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                 {{ $receiptUrl === '#' ? 'aria-disabled="true"' : '' }}
                                                             >
                                                                 <i class="{{ VC::TI_FL }}"></i>{{ __('Receipt') }}
@@ -1490,18 +1513,22 @@
                                             <td>{{!empty($payment->order_id)?$payment->order_id:__('No order identificator available for payment')}}</td>
                                             @can('delete invoice product')
                                                 @php
-                                                    $destroyRouteName        = ViewsConstants::INV . '.payment.destroy';
-                                                    $destroyUrl              = Route::has($destroyRouteName)
-                                                        ? route($destroyRouteName, [$invoice->id, $payment->id])
-                                                        : '#';
-                                                    $formId                  = 'delete-form-' . $payment->id;
-                                                    $linkId                  = 'delete-payment-link-' . $payment->id;
-                                                    $guardMsg                = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'payment_destroy_route_unavailable'
-                                                    ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $destroyRouteName        = ViewsConstants::INV . '.payment.destroy';
+                                                        $destroyUrl              = Route::has($destroyRouteName)
+                                                            ? route($destroyRouteName, [$invoice->id, $payment->id])
+                                                            : '#';
+                                                        $formId                  = 'delete-form-' . $payment->id;
+                                                        $linkId                  = 'delete-payment-link-' . $payment->id;
+                                                        $guardMsg                = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'payment_destroy_route_unavailable'
+                                                        ) ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <td>
                                                     <div class="{{ VC::ACT_BTN_DNG }} {{ VC::MS2 }}">
                                                         {!! Collective\Html\FormFacade::open([
@@ -1514,7 +1541,7 @@
                                                                 href="#"
                                                                 class="{{ VC::BT_SM_CT_PR }}"
                                                                 data-url="{{ $destroyUrl }}"
-                                                                data-guard-msg="{{ $guardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($guardMsg) }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
                                                             >
@@ -1529,7 +1556,7 @@
                                                             const link = document.getElementById('{{ $linkId }}');
                                                             if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                             link.setAttribute('data-listener-active', 'true');
-                                                
+
                                                             link.addEventListener('click', event => {
                                                                 try {
                                                                     const url = link.getAttribute('data-url') ?? '#';
@@ -1569,7 +1596,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ (Gate::check('delete invoice product') ? '10' : '9') }}" class="text-center text-dark"><p>{{__('No Data Found for Payments')}}</p></td>
+                                        <td colspan="{{ (Gate::check('delete invoice product') ? '10' : '9') }}" class="{{ VC::TXCT_DK }}"><p>{{__('No Data Found for Payments')}}</p></td>
                                     </tr>
                                 @endif
                                 @if(Utility::isFilled($invoice->bankPayments) ?? [])
@@ -1590,27 +1617,31 @@
                                             @else
                                                 @if($user_plan->storage_limit <= $invoice_user->storage_limit)
                                                     <td>
-                                                        <small class="text-danger font-bold">{{__('Your plan storage limit is over')}}</small>
+                                                        <small class="{{ VC::TX_DNG }} font-bold">{{__('Your plan storage limit is over')}}</small>
                                                     </td>
                                                 @else
                                                     <td>
                                                         @if(!empty($bankPayment->receipt))
                                                             @php
-                                                                $receiptUrl               = $path . '/' . $bankPayment->receipt;
-                                                                $receiptLinkId            = 'bankpayment-receipt-link-' . $bankPayment->id;
-                                                                $receiptGuardMsg          = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::INV,
-                                                                    'bankpayment_receipt_route_unavailable'
-                                                                ) ?? 'Bank payment receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $receiptUrl               = $path . '/' . $bankPayment->receipt;
+                                                                    $receiptLinkId            = 'bankpayment-receipt-link-' . $bankPayment->id;
+                                                                    $receiptGuardMsg          = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::INV,
+                                                                        'bankpayment_receipt_route_unavailable'
+                                                                    ) ?? 'Bank payment receipt route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 id="{{ $receiptLinkId }}"
                                                                 href="{{ $receiptUrl }}"
                                                                 target="_blank"
                                                                 class=""
                                                                 data-url="{{ $receiptUrl }}"
-                                                                data-guard-msg="{{ $receiptGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($receiptGuardMsg) }}"
                                                             >
                                                                 <i class="{{ VC::TI_FL }}"></i> {{ __('Receipt') }}
                                                             </a>
@@ -1620,7 +1651,7 @@
                                                                         const link = document.getElementById('{{ $receiptLinkId }}');
                                                                         if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                                         link.setAttribute('data-listener-active', 'true');
-                                                            
+
                                                                         link.addEventListener('click', event => {
                                                                             try {
                                                                                 const url = link.getAttribute('data-url') || '#';
@@ -1664,15 +1695,19 @@
                                                     @if($bankPayment->status == 'Pending')
                                                         <div class="{{ VC::ACT_BTN_WRN }}">
                                                             @php
-                                                                $actionPath              = ViewsConstants::INV . '/' . $bankPayment->id . '/action';
-                                                                $actionUrl               = URL::to($actionPath) ?: '#';
-                                                                $statusLinkId            = 'bankpayment-status-link-' . $bankPayment->id;
-                                                                $statusGuardMsg          = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::INV,
-                                                                    'payment_status_action_route_unavailable'
-                                                                ) ?? 'Payment status action route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
+                                                                try {
+                                                                    $actionPath              = ViewsConstants::INV . '/' . $bankPayment->id . '/action';
+                                                                    $actionUrl               = URL::to($actionPath) ?: '#';
+                                                                    $statusLinkId            = 'bankpayment-status-link-' . $bankPayment->id;
+                                                                    $statusGuardMsg          = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::INV,
+                                                                        'payment_status_action_route_unavailable'
+                                                                    ) ?? 'Payment status action route is unavailable. Please contact technical support or your domain administrator.';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <a
                                                                 id="{{ $statusLinkId }}"
                                                                 href="#"
@@ -1683,7 +1718,7 @@
                                                                 class="{{ VC::BT_SM_CT }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Payment Status') }}"
-                                                                data-guard-msg="{{ $statusGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($statusGuardMsg) }}"
                                                                 {{ $actionUrl === '#' ? 'aria-disabled="true"' : '' }}
                                                             >
                                                                 <i class="{{ VC::TI_CRT_WT }}"></i>
@@ -1694,12 +1729,12 @@
                                                                         const link = document.getElementById('{{ $statusLinkId }}');
                                                                         if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                                         link.setAttribute('data-listener-active', 'true');
-                                                            
+
                                                                         link.addEventListener('click', event => {
                                                                             try {
                                                                                 const url = link.getAttribute('data-url') || '#';
                                                                                 if (url !== '#') return; // valid URL, allow AJAX popup
-                                                            
+
                                                                                 event.preventDefault();
                                                                                 const msg           = link.getAttribute('data-guard-msg') || '# ERROR';
                                                                                 const bsLink        = document.querySelector('link[href*="bootstrap"]');
@@ -1734,18 +1769,22 @@
                                                     @endif
                                                     <div class="{{ VC::ACT_BTN_DNG }} {{ VC::MS2 }}">
                                                         @php
-                                                            $destroyRouteName           = ViewsConstants::INV . '.payment.destroy';
-                                                            $destroyUrl                 = Route::has($destroyRouteName)
-                                                                ? route($destroyRouteName, [$invoice->id, $bankPayment->id])
-                                                                : '#';
-                                                            $formId                     = 'delete-form-' . $bankPayment->id;
-                                                            $linkId                     = 'delete-bankpayment-link-' . $bankPayment->id;
-                                                            $destroyGuardMsg            = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::INV,
-                                                                'payment_destroy_route_unavailable'
-                                                            ) ?? 'Delete payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
+                                                            try {
+                                                                $destroyRouteName           = ViewsConstants::INV . '.payment.destroy';
+                                                                $destroyUrl                 = Route::has($destroyRouteName)
+                                                                    ? route($destroyRouteName, [$invoice->id, $bankPayment->id])
+                                                                    : '#';
+                                                                $formId                     = 'delete-form-' . $bankPayment->id;
+                                                                $linkId                     = 'delete-bankpayment-link-' . $bankPayment->id;
+                                                                $destroyGuardMsg            = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::INV,
+                                                                    'payment_destroy_route_unavailable'
+                                                                ) ?? 'Delete payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method' => 'post',
                                                             'route'  => [ViewsConstants::INV . '.payment.destroy', $invoice->id, $bankPayment->id],
@@ -1756,7 +1795,7 @@
                                                                 href="#"
                                                                 class="{{ VC::BT_SM_CT_PR }}"
                                                                 data-url="{{ $destroyUrl }}"
-                                                                data-guard-msg="{{ $destroyGuardMsg }}"
+                                                                data-guard-msg="{{ base64_encode($destroyGuardMsg) }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
                                                             >
@@ -1769,7 +1808,7 @@
                                                                     const link = document.getElementById('{{ $linkId }}');
                                                                     if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                                     link.setAttribute('data-listener-active', 'true');
-                                                        
+
                                                                     link.addEventListener('click', event => {
                                                                         try {
                                                                             const url = link.getAttribute('data-url') ?? '#';
@@ -1811,7 +1850,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="{{ (Gate::check('delete invoice product') ? '10' : '9') }}" class="text-center text-dark"><p>{{__('No Data Found for Bank Payments')}}</p></td>
+                                        <td colspan="{{ (Gate::check('delete invoice product') ? '10' : '9') }}" class="{{ VC::TXCT_DK }}"><p>{{__('No Data Found for Bank Payments')}}</p></td>
                                     </tr>
                                 @endif
                             </table>
@@ -1825,15 +1864,15 @@
                 <div class="{{ VC::CD }}">
                     <div class="{{ VC::CD }} card-body table-border-style">
                         <h5 class="d-inline-block {{ VC::MB5 }}">{{__('Credit Note Summary')}}</h5>
-                        <div class="table-responsive">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }}">
                                 <thead>
                                 <tr>
-                                    <th class="text-dark">{{__('Date')}}</th>
-                                    <th class="text-dark">{{__('Amount')}}</th>
-                                    <th class="text-dark">{{__('Description')}}</th>
+                                    <th class="{{ VC::TX_DK }}">{{__('Date')}}</th>
+                                    <th class="{{ VC::TX_DK }}">{{__('Amount')}}</th>
+                                    <th class="{{ VC::TX_DK }}">{{__('Description')}}</th>
                                     @if(Gate::check('edit credit note') || Gate::check('delete credit note'))
-                                        <th class="text-dark">{{__('Action')}}</th>
+                                        <th class="{{ VC::TX_DK }}">{{__('Action')}}</th>
                                     @endif
                                 </tr>
                                 </thead>
@@ -1846,17 +1885,21 @@
                                             @can('edit credit note')
                                                 <div class="{{ VC::ACT_BTN_PRIM }} {{ VC::MS2 }}">
                                                     @php
-                                                        $editCreditRouteName        = ViewsConstants::INV . '.edit.credit.note';
-                                                        $editCreditUrl              = Route::has($editCreditRouteName)
-                                                            ? route($editCreditRouteName, [$creditNote->invoice, $creditNote->id])
-                                                            : '#';
-                                                        $editCreditLinkId           = 'edit-credit-note-link-' . $creditNote->id;
-                                                        $editCreditGuardMsg         = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::INV,
-                                                            'edit_credit_note_route_unavailable'
-                                                        ) ?? 'Edit Credit Note route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $editCreditRouteName        = ViewsConstants::INV . '.edit.credit.note';
+                                                            $editCreditUrl              = Route::has($editCreditRouteName)
+                                                                ? route($editCreditRouteName, [$creditNote->invoice, $creditNote->id])
+                                                                : '#';
+                                                            $editCreditLinkId           = 'edit-credit-note-link-' . $creditNote->id;
+                                                            $editCreditGuardMsg         = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::INV,
+                                                                'edit_credit_note_route_unavailable'
+                                                            ) ?? 'Edit Credit Note route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <a
                                                         id="{{ $editCreditLinkId }}"
                                                         href="{{ $editCreditUrl }}"
@@ -1864,7 +1907,7 @@
                                                         data-url="{{ $editCreditUrl }}"
                                                         data-ajax-popup="true"
                                                         data-title="{{ __('Edit Credit Note') }}"
-                                                        data-guard-msg="{{ $editCreditGuardMsg }}"
+                                                        data-guard-msg="{{ base64_encode($editCreditGuardMsg) }}"
                                                         data-bs-toggle="tooltip"
                                                         title="{{ __('Edit') }}"
                                                         {{ $editCreditUrl === '#' ? 'aria-disabled="true"' : '' }}
@@ -1915,18 +1958,22 @@
                                             @endcan
                                             @can('delete credit note')
                                                 @php
-                                                    $deleteCreditRouteName           = ViewsConstants::INV . '.delete.credit.note';
-                                                    $deleteCreditUrl                 = Route::has($deleteCreditRouteName)
-                                                        ? route($deleteCreditRouteName, [$creditNote->invoice, $creditNote->id])
-                                                        : '#';
-                                                    $deleteCreditFormId              = 'delete-creditnote-form-' . $creditNote->id;
-                                                    $deleteCreditLinkId              = 'delete-creditnote-link-' . $creditNote->id;
-                                                    $deleteCreditGuardMsg            = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::INV,
-                                                        'delete_credit_note_route_unavailable'
-                                                    ) ?? 'Delete Credit Note route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
+                                                    try {
+                                                        $deleteCreditRouteName           = ViewsConstants::INV . '.delete.credit.note';
+                                                        $deleteCreditUrl                 = Route::has($deleteCreditRouteName)
+                                                            ? route($deleteCreditRouteName, [$creditNote->invoice, $creditNote->id])
+                                                            : '#';
+                                                        $deleteCreditFormId              = 'delete-creditnote-form-' . $creditNote->id;
+                                                        $deleteCreditLinkId              = 'delete-creditnote-link-' . $creditNote->id;
+                                                        $deleteCreditGuardMsg            = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::INV,
+                                                            'delete_credit_note_route_unavailable'
+                                                        ) ?? 'Delete Credit Note route is unavailable. Please contact technical support or your domain administrator.';
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('invoices/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <div class="{{ VC::ACT_BTN_DNG }} {{ VC::MS2 }}">
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method' => 'DELETE',
@@ -1938,7 +1985,7 @@
                                                             href="#"
                                                             class="{{ VC::BT_SM_CT_PR }}"
                                                             data-url="{{ $deleteCreditUrl }}"
-                                                            data-guard-msg="{{ $deleteCreditGuardMsg }}"
+                                                            data-guard-msg="{{ base64_encode($deleteCreditGuardMsg) }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                         >
@@ -1952,7 +1999,7 @@
                                                             const link = document.getElementById('{{ $deleteCreditLinkId }}');
                                                             if (!link || link.getAttribute('data-listener-active') === 'true') return;
                                                             link.setAttribute('data-listener-active', 'true');
-                                                
+
                                                             link.addEventListener('click', event => {
                                                                 try {
                                                                     const url = link.getAttribute('data-url') || '#';
@@ -1992,8 +2039,8 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center">
-                                            <p class="text-dark">{{__('No Data Found')}}</p>
+                                        <td colspan="4" class="{{ VC::TXCT }}">
+                                            <p class="{{ VC::TX_DK }}">{{__('No Data Found')}}</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -2008,7 +2055,7 @@
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
                     <div class="{{ VC::CD }} card-body">
-                        <div class="text-center">
+                        <div class="{{ VC::TXCT }}">
                             <h3>{{__('No invoice available')}}</h3>
                         </div>
                     </div>

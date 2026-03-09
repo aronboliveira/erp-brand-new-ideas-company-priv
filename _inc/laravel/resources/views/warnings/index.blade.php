@@ -1,11 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
+    try {
+        $lang = Utility::fetchUserLang();
+} catch (\Throwable $e) {
+        $lang ??= 'en';
+        \Log::error('warnings/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -14,20 +13,20 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Warning') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Warning') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create warning')
             <a href="#"
-               data-url="{{ route('warning.create') }}"
+               data-url="{{ route('warnings.create') }}"
                data-size="lg"
                data-ajax-popup="true"
                data-title="{{ __('Create New Warning') }}"
@@ -44,8 +43,8 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
+                <div class="{{ VC::CD_BD_TB_BD }}">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -65,7 +64,7 @@
                                         <td>{{ !empty($warning->WarningBy) ? $warning->WarningBy->name : '' }}</td>
                                         <td>{{ !empty($warning->warningTo) ? $warning->warningTo->name : '' }}</td>
                                         <td>{{ $warning->subject }}</td>
-                                        <td>{{ $user?->dateFormat($warning->warning_date) }}</td>
+                                        <td>{{ isset($user) && $user ? $user->dateFormat($warning->warning_date) : ($warning->warning_date ?? '') }}</td>
                                         <td>{{ $warning->description }}</td>
 
                                         @if(Gate::check('edit warning') || Gate::check('delete warning'))
@@ -90,7 +89,7 @@
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method' => 'DELETE',
-                                                            'route'  => ['warning.destroy', $warning->id],
+                                                            'route'  => ['warnings.destroy', $warning->id],
                                                             'id'     => 'delete-form-'.$warning->id
                                                         ]) !!}
                                                             <a href="#"

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{OtherPayment, Employee};
 
 class OtherPaymentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -26,14 +32,11 @@ class OtherPaymentTest extends TestCase
 			'employee_id' => $employee->id,
 			'title'       => 'Bonus',
 			'amount'      => 250.00,
-			'created_by'  => 'admin_user',
 		];
 
 		$op = OtherPayment::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $op->$field);
-		}
+		$this->assertFillableMatches($data, $op);
 	}
 
 	/**
@@ -45,9 +48,9 @@ class OtherPaymentTest extends TestCase
 	{
 		$op = OtherPayment::factory()->create();
 
-		$this->assertTrue($op->getIncrementing());
-		$this->assertSame('int', $op->getKeyType());
-		$this->assertIsInt($op->getKey());
+		$this->assertFalse($op->getIncrementing());
+		$this->assertSame('string', $op->getKeyType());
+		$this->assertIsString($op->getKey());
 	}
 
 	/**
@@ -73,9 +76,9 @@ class OtherPaymentTest extends TestCase
 	{
 		$relation = (new OtherPayment)->employee();
 
-		$this->assertInstanceOf(HasOne::class,      $relation);
+		$this->assertInstanceOf(BelongsTo::class,      $relation);
 		$this->assertSame(Employee::class,          get_class($relation->getRelated()));
-		$this->assertSame('id',                     $relation->getForeignKeyName());
-		$this->assertSame('employee_id',            $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                     $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 }

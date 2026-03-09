@@ -8,9 +8,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\Leave;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeaveTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -20,8 +26,20 @@ class LeaveTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(Leave::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'employee_id',
+			'leave_type_id',
+			'applied_on',
+			'start_date',
+			'end_date',
+			'total_leave_days',
+			'leave_reason',
+			'remark',
+			'status',
+			'discount',
+			'attachments',
+			'conditions',
+		];
 
 		$this->assertSame($expected, (new Leave)->getFillable());
 	}
@@ -34,14 +52,14 @@ class LeaveTest extends TestCase
 	 **/
 	public function employees_relation_is_has_one(): void
 	{
-		$rel = (new Leave)->employees();
+		$rel = (new Leave)->employee();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',          $rel->getForeignKeyName());
-		$this->assertSame('employee_id', $rel->getLocalKeyName());
+		$this->assertSame('employee_id',          $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 
 	/**
@@ -55,10 +73,10 @@ class LeaveTest extends TestCase
 		$rel = (new Leave)->leaveType();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',           $rel->getForeignKeyName());
-		$this->assertSame('leave_type_id', $rel->getLocalKeyName());
+		$this->assertSame('leave_type_id',           $rel->getForeignKeyName());
+		$this->assertSame('id', $rel->getOwnerKeyName());
 	}
 }

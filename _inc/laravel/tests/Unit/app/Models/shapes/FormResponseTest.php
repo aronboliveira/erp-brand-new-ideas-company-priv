@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\FormResponse;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FormResponseTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,25 @@ class FormResponseTest extends TestCase
 	 **/
 	public function fillable_array_matches_constant(): void
 	{
-		$ref     = new \ReflectionClass(FormResponse::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'form_id',
+			'submitted_at',
+			'submitted_by',
+			'submission_email',
+			'submission_ip',
+			'submission_user_agent',
+			'submission_data_url',
+			'response',
+			'status',
+			'captcha_approved',
+			'consent_checked',
+			'csrf_token_approved',
+			'is_malware_free',
+			'expires_at',
+			'lakes',
+			'edits',
+			'metadata',
+		];
 
 		$this->assertSame($expected, (new FormResponse)->getFillable());
 	}

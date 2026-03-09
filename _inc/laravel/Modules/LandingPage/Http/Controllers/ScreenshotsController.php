@@ -2,15 +2,15 @@
 
 namespace Modules\LandingPage\Http\Controllers;
 
-use App\Config\Constants\{DatabaseConstants, PermissionsConstants};
-use App\Http\Controllers\Controller as AppController;
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC};
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log};
 use Illuminate\Support\Collection;
-use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants as RRC, Entities\LandingPageSetting};
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 
 final class ScreenshotsController extends AppController
@@ -18,11 +18,11 @@ final class ScreenshotsController extends AppController
     use ChecksLogin;
 
     public const ENTITY = 'screenshot';
-    private const LP = RoutesResourcesConstants::LP;
+    private const LP = RRC::LP;
     private const PLURAL = self::ENTITY . 's';
     private const VIEW_BASE = self::LP . '::' . self::LP . '.' . self::PLURAL;
     private const DIR      = 'uploads/landing_page_image';
-    private const NAME     = RoutesResourcesConstants::SST;
+    private const NAME     = RRC::SST;
 
     public function index(Request $request): mixed
     {
@@ -50,7 +50,7 @@ final class ScreenshotsController extends AppController
                 }
                 Log::info("[$action] rendering view", ['count' => count($screenshots), 'user' => $userId]);
                 return view($view, [
-                    DatabaseConstants::TABLE_SETTINGS => $settings,
+                    DC::TABLE_SETTINGS => $settings,
                     'screenshots' => $screenshots
                 ]);
             } catch (\Throwable $e) {
@@ -344,6 +344,14 @@ final class ScreenshotsController extends AppController
     }
 
     public const SST_DEL = 'screenshotsDelete';
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     public function screenshotsDelete(Request $request, string|int $key): RedirectResponse
     {
         $class = static::class;
@@ -353,9 +361,10 @@ final class ScreenshotsController extends AppController
             Log::info("$action called", ['user_id' => Auth::id(), 'key' => $key]);
             $stepStart = microtime(true);
             try {
-                $items = json_decode(LandingPageSetting::settings()[self::NAME], true);
+                $setting = LandingPageSetting::where('name', self::NAME)->first();
+                $items = $setting ? (json_decode($setting->value, true) ?? []) : [];
                 unset($items[$key]);
-                LandingPageSetting::updateOrCreate(['name' => self::NAME], ['value' => $items]);
+                LandingPageSetting::updateOrCreate(['name' => self::NAME], ['value' => json_encode(array_values($items))]);
                 $this->logExecutionTime($stepStart, 'delete setting', 'completed');
                 Log::info("$action deleted " . self::ENTITY, ['key' => $key]);
                 return redirect()->back()->with(['success' => 'Screenshots delete successfully']);

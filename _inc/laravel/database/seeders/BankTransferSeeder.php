@@ -68,7 +68,7 @@ final class BankTransferSeeder extends Seeder
 			// ------------------------------------------------------------------
 			// 4) Gerar transferências
 			// ------------------------------------------------------------------
-			$total    = 40;
+			$total    = 2; /* original: 40 */
 			$created  = 0;
 			$updated  = 0;
 
@@ -79,8 +79,8 @@ final class BankTransferSeeder extends Seeder
 						$to = $faker->randomElement($accounts);
 					} while ($to === $from);
 
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Transferência: De Conta ID {$from} para Conta ID {$to}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Transferência: De Conta ID {$from} para Conta ID {$to}");
 					// Valores
 					$amount  = $faker->randomFloat(2, 10, 50_000);                       // valor principal
 					$svcFee  = $faker->boolean(60) ? $faker->randomFloat(2, 0, 25) : 0;  // taxa serviço
@@ -143,7 +143,7 @@ final class BankTransferSeeder extends Seeder
 					$relPayslip  = $faker->boolean(10) && !empty($payslips)  ? $faker->randomElement($payslips)  : null;
 					$relPSU      = $faker->boolean(15) && !empty($psUnits)   ? $faker->randomElement($psUnits)   : null;
 
-					$creator = !empty($users) ? $faker->randomElement($users) : null;
+					$creator = !empty($users) ? $faker->randomElement($users) : DC::DEFAULT_UUID;
 
 					$payload = [
 						// Identificadores das contas

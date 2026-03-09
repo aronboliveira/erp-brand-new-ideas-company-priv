@@ -1,226 +1,104 @@
-'use strict';
+/**
+ * @file ac-rangeslider.js
+ * @description Bootstrap Slider range slider configurations (Landing Page)
+ * @version 2.0.0
+ */
 
-// [ basic-Slider ]
-(function () {
-    var slider = new Slider('#ex1', {
-        formatter: function (value) {
-            return 'Current value: ' + value;
-        }
-    });
-})();
-// [ Selector-Slider ]
-(function () {
-    var slider = new Slider('#ex2', {});
-    var RGBChange = function () {
-        document.querySelector('#RGB').style.background = 'rgb(' + r.getValue() + ',' + g.getValue() + ',' + b.getValue() + ')'
+(() => {
+  "use strict";
+
+  /**
+   * Range slider controller using Bootstrap Slider
+   * @class LandingRangeSliderController
+   */
+  class LandingRangeSliderController {
+    /** @type {string} */
+    static #DATA_INIT = "data-lp-rangeslider-init";
+    /** @type {string} */
+    static #DATA_APPLIED = "data-slider-applied";
+    /** @type {Object.<string, Object>} */
+    static #CONFIGS = {
+      "#st1": { value: 5, tooltip: "hide" },
+      "#st2": { min: -5, max: 20, value: 5, formatter: (v) => `Current value: ${v}` },
+      "#st3": { value: [14, 75], range: true, tooltip_split: true },
+      "#st4": { min: 0, max: 10, value: [3, 7], range: true },
+      "#st5": { ticks: [0, 100, 200, 300, 400], ticks_labels: ["$0", "$100", "$200", "$300", "$400"], ticks_snap_bounds: 30 },
+      "#st6": { ticks: [0, 1, 2, 3, 4], ticks_positions: [0, 30, 60, 70, 90, 100], ticks_labels: ["0", "1", "2", "3", "4"], ticks_snap_bounds: 20 },
+      "#st7": { reversed: true },
+      "#st8": { reversed: true },
+      "#st9": { tooltip: "always" },
+      "#st10": { tooltip: "always", orientation: "vertical" },
+      "#st11": { min: 0, max: 10, step: 0.1, value: 5.5, precision: 2 },
+      "#st12": { tooltip: "always", orientation: "vertical" },
+      "#st13": { id: "slider12a", min: 0, max: 10, value: 5, tooltip_position: "left", orientation: "vertical" },
+      "#st14": { min: 0, max: 10, value: [3, 7], tooltip: "always", tooltip_position: "bottom" },
+      "#st15": { value: 5, enabled: false },
+      "#st16": { value: [2, 4, 6, 8], ticks: [0, 2, 4, 6, 8, 10] },
+      "#st17": { natural_arrow_keys: true, tooltip: "always" },
     };
-    var r = new Slider("#R", {
-        reversed: true
-    }).on('slide', RGBChange);
-    var g = new Slider("#G", {
-        reversed: true
-    }).on('slide', RGBChange);
-    var b = new Slider("#B", {
-        reversed: true
-    }).on('slide', RGBChange);
+    /** @type {Slider[]} */
+    #sliders = [];
 
-    // [ vertical-slider ]
-    var slider = new Slider("#ex4", {
-        reversed: true
-    });
-})();
-// [ Destroy-Slider ]
-(function () {
-    var slider = new Slider('#ex5');
-    document.querySelector('#destroyEx5Slider').addEventListener('click', function () {
-        slider.destroy();
-    });
-})();
-// [ current-Slider ]
-(function () {
-    var slider = new Slider("#ex6");
-    slider.on("slide", function (sliderValue) {
-        document.getElementById("ex6SliderVal").textContent = sliderValue;
-    });
-})();
-// [ Enable-Slider ]
-(function () {
-    var slider = new Slider("#ex7");
-    document.querySelector('#ex7-enabled').addEventListener('click', function () {
-        if (this.checked) {
-            slider.enable();
-        } else {
-            slider.disable();
-        }
-    });
-})();
-// [ Tooltip-Slider ]
-(function () {
-    var slider = new Slider("#ex8", {
-        tooltip: 'always'
-    });
-})();
-// [ Precision-slider ]
-(function () {
-    var slider = new Slider("#ex9", {
-        precision: 2,
-        value: 8.115 // Slider will instantiate showing 8.12 due to specified precision
-    });
-})();
-// [ handlers-slider ]
-(function () {
-    var slider = new Slider("#ex10", {});
-})();
-// [ step-slider ]
-(function () {
-    var slider = new Slider("#ex11", {
-        step: 20000,
-        min: 0,
-        max: 200000
-    });
-})();
-//[ low & high-slider ]
-(function () {
-    var sliderA = new Slider("#ex12a", {
-        id: "slider12a",
-        min: 0,
-        max: 10,
-        value: 5
-    });
-    var sliderB = new Slider("#ex12b", {
-        id: "slider12b",
-        min: 0,
-        max: 10,
-        range: true,
-        value: [3, 7]
-    });
-    var sliderC = new Slider("#ex12c", {
-        id: "slider12c",
-        min: 0,
-        max: 10,
-        range: true,
-        value: [3, 7]
-    });
-})();
-// [ labels-slider ]
-(function () {
-    var slider = new Slider("#ex13", {
-        ticks: [0, 10, 20, 30, 40],
-        ticks_labels: ['$0', '$10', '$20', '$30', '$40'],
-        ticks_snap_bounds: 95
-    });
-})();
-// [ positions-slider ]
-(function () {
-    var slider = new Slider("#ex14", {
-        ticks: [0, 10, 20, 30, 40],
-        ticks_positions: [0, 30, 60, 80, 100],
-        ticks_labels: ['$0', '$10', '$20', '$30', '$40'],
-        ticks_snap_bounds: 95
-    });
-})();
-// [ logarithmic-slider ]
-(function () {
-    var slider = new Slider('#ex15', {
-        min: 1000,
-        max: 10000000,
-        scale: 'logarithmic',
-        step: 10
-    });
-})();
-// [ Focus-slider ]
-(function () {
-    var sliderA = new Slider("#ex16a", {
-        min: 0,
-        max: 10,
-        value: 0,
-        focus: true
-    });
-    var sliderB = new Slider("#ex16b", {
-        min: 0,
-        max: 10,
-        value: [0, 10],
-        focus: true
-    });
-})();
-// [ Unusual-slider ]
-(function () {
-    var sliderA = new Slider("#ex17a", {
-        min: 0,
-        max: 10,
-        value: 0,
-        tooltip_position: 'bottom'
-    });
-    var sliderB = new Slider("#ex17b", {
-        min: 0,
-        max: 10,
-        value: 0,
-        orientation: 'vertical',
-        tooltip_position: 'left'
-    });
-})();
-// [ Accessibility-slider ]
-(function () {
-    var sliderA = new Slider("#ex18a", {
-        min: 0,
-        max: 10,
-        value: 5,
-        labelledby: 'ex18-label-1'
-    });
-    var sliderB = new Slider("#ex18b", {
-        min: 0,
-        max: 10,
-        value: [3, 6],
-        labelledby: ['ex18-label-2a', 'ex18-label-2b']
-    });
-})();
-// [ Highlight-slider ]
-(function () {
-    var slider = new Slider("#ex22", {
-        id: 'slider22',
-        min: 0,
-        max: 20,
-        step: 1,
-        value: 14,
-        rangeHighlights: [{
-            "start": 2,
-            "end": 5,
-            "class": "category1"
-        },
-        {
-            "start": 7,
-            "end": 8,
-            "class": "category2"
-        },
-        {
-            "start": 17,
-            "end": 19
-        },
-        {
-            "start": 17,
-            "end": 24
-        },
-        {
-            "start": -3,
-            "end": 19
-        }
-        ]
-    });
-})();
-// [ Tick-slider ]
-(function () {
-    var slider = new Slider("#ex23", {
-        ticks: [0, 1, 2, 3, 4],
-        ticks_positions: [0, 30, 70, 90, 100],
-        ticks_snap_bounds: 200,
-        formatter: function (value) {
-            return 'Current value: ' + value;
-        },
-        ticks_tooltip: true,
-        step: 0.01
-    });
-})();
-// [ auto-slider ]
-(function () {
-    var slider = new Slider('#ex24');
+    /**
+     * Initialize range sliders
+     */
+    init() {
+      if (document.body?.hasAttribute(LandingRangeSliderController.#DATA_INIT)) return;
+      if (typeof Slider === "undefined") return console.warn("[LandingRangeSliderController] Slider not loaded");
+
+      document.body?.setAttribute(LandingRangeSliderController.#DATA_INIT, "true");
+      this.#setupSliders();
+    }
+
+    /**
+     * Setup all slider configurations
+     * @private
+     */
+    #setupSliders() {
+      try {
+        Object.entries(LandingRangeSliderController.#CONFIGS).forEach(([selector, config]) => {
+          this.#createSlider(selector, config);
+        });
+      } catch (err) {
+        console.error("[LandingRangeSliderController] Error:", err);
+      }
+    }
+
+    /**
+     * Create single slider instance
+     * @private
+     * @param {string} selector
+     * @param {Object} config
+     */
+    #createSlider(selector, config) {
+      const el = document.querySelector(selector);
+      if (!el || el.hasAttribute(LandingRangeSliderController.#DATA_APPLIED)) return;
+      el.setAttribute(LandingRangeSliderController.#DATA_APPLIED, "true");
+      this.#sliders.push(new Slider(selector, config));
+    }
+
+    /**
+     * Destroy all slider instances
+     */
+    destroy() {
+      this.#sliders.forEach((s) => s?.destroy?.());
+      this.#sliders = [];
+      document.body?.removeAttribute(LandingRangeSliderController.#DATA_INIT);
+    }
+  }
+
+  /**
+   * Initialize when DOM ready
+   */
+  const initRangeSliders = () => {
+    try {
+      new LandingRangeSliderController().init();
+    } catch (err) {
+      console.error("[LandingRangeSliderController] Initialization error:", err);
+    }
+  };
+
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initRangeSliders)
+    : initRangeSliders();
 })();

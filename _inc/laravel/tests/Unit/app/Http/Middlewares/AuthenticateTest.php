@@ -29,7 +29,7 @@ class AuthenticateTest extends TestCase
 		$request->setLaravelSession(session());
 
 		$middleware = new Authenticate(auth());
-		$response = $middleware->_handle($request, fn ($req) => 'NEXT');
+		$response = $middleware->handle($request, fn ($req) => 'NEXT');
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
 		$this->assertEquals(route('login'), $response->headers->get('Location'));
@@ -39,9 +39,9 @@ class AuthenticateTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** This function should return a 401 JSON response for unauthenticated JSON requests and flash an error.
+	 ** This function should redirect unauthenticated JSON requests to login and flash an error.
 	 **/
-	public function returns_401_json_for_unauthenticated_json_request()
+	public function returns_redirect_for_unauthenticated_json_request()
 	{
 		auth()->logout();
 		session()->flush();
@@ -50,11 +50,10 @@ class AuthenticateTest extends TestCase
 		$request->setLaravelSession(session());
 
 		$middleware = new Authenticate(auth());
-		$response = $middleware->_handle($request, fn ($req) => 'NEXT');
+		$response = $middleware->handle($request, fn ($req) => 'NEXT');
 
-		$this->assertInstanceOf(JsonResponse::class, $response);
-		$this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
-		$this->assertEquals(['error' => 'Unauthorized'], $response->getData(true));
+		$this->assertInstanceOf(RedirectResponse::class, $response);
+		$this->assertEquals(route('login'), $response->headers->get('Location'));
 		$this->assertEquals('Authentication required.', session('error'));
 	}
 
@@ -73,7 +72,7 @@ class AuthenticateTest extends TestCase
 		$request->setLaravelSession(session());
 
 		$middleware = new Authenticate(auth());
-		$result = $middleware->_handle($request, fn ($req) => 'OK');
+		$result = $middleware->handle($request, fn ($req) => 'OK');
 
 		$this->assertSame('OK', $result);
 	}

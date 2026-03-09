@@ -16,7 +16,8 @@ class NoteSeeder extends Seeder
 
 	// hard safety caps
 	private const MAX_NOTES_PER_MODULE = 64;
-	private const MAX_TOTAL_NOTES = 128000;
+	private const MAX_TOTAL_NOTES = 128000; // original: 128000
+	private const HARD_CAP = 4;
 
 	// uniqueness loop limits
 	private const TITLE_ATTEMPT_LIMIT = 256;
@@ -85,12 +86,12 @@ class NoteSeeder extends Seeder
 			$targetTotal = self::MAX_TOTAL_NOTES - (self::MAX_TOTAL_NOTES % 64); // keep multiple-of-64
 		}
 
-		$extraNeeded = max(0, $targetTotal - $rawTotal);
+		$extraNeeded = min(2, max(0, $targetTotal - $rawTotal)); // capped to max 2 (was unbounded)
 		if ($extraNeeded > 0) {
 			// distribute extras across random module types while respecting per-module cap (<= 64)
 			$moduleKeys = array_keys($plan);
 			$attempts = 0;
-			while ($extraNeeded > 0 && $attempts < 100000) {
+			while ($extraNeeded > 0 && $attempts < 10) { // was 100000
 				$attempts++;
 				$k = $moduleKeys[array_rand($moduleKeys)];
 				if (($plan[$k] ?? 0) >= self::MAX_NOTES_PER_MODULE) continue;
@@ -128,11 +129,11 @@ class NoteSeeder extends Seeder
 		}
 
 		$this->out->writeln("<info>NotesSeeder plan</info>");
-		$this->out->writeln("Raw total: {$rawTotal}");
-		$this->out->writeln("Final total (multiple-of-64): {$finalTotal}");
-		foreach ($plan as $k => $v) {
-			$this->out->writeln(" - {$k}: {$v}");
-		}
+		// $this->out->writeln("Raw total: {$rawTotal}");
+		// $this->out->writeln("Final total (multiple-of-64): {$finalTotal}");
+		// foreach ($plan as $k => $v) {
+		// 	$this->out->writeln(" - {$k}: {$v}");
+		// }
 
 		// ----------------------------
 		// Create notes via Model::save()
@@ -141,11 +142,13 @@ class NoteSeeder extends Seeder
 		$created = 0;
 
 		foreach ($cases as $case) {
+			if ($created >= self::HARD_CAP) break;
 			$module = $case->value;
 			$count = (int)($plan[$module] ?? 0);
 			if ($count <= 0) continue;
 
 			for ($i = 0; $i < $count; $i++) {
+				if ($created >= self::HARD_CAP) break;
 				$creatorId = $this->pickCreatorId($userIds);
 
 				$title = $this->generateUniqueTitle($table, $module, $i);
@@ -178,12 +181,12 @@ class NoteSeeder extends Seeder
 					}
 				}
 
-				$this->out->writeln(sprintf(
-					"Creating note: module=%s title=%s creator=%s",
-					$module,
-					$title,
-					$creatorId ?? 'NULL'
-				));
+				// $this->out->writeln(sprintf(
+				// 	"Creating note: module=%s title=%s creator=%s",
+				// 	$module,
+				// 	$title,
+				// 	$creatorId ?? 'NULL'
+				// ));
 
 				try {
 					$m->save();

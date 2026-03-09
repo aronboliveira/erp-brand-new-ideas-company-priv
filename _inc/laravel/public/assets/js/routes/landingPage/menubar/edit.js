@@ -1,3 +1,4 @@
+/** @requires ERPGuard */
 (function () {
   if (!window.translations) window.translations = {};
   const t = {
@@ -231,4 +232,3 @@
       start();
     }
   })();
-})();

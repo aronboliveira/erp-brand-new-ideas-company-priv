@@ -1,41 +1,33 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\{Auth,Route};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user:$user);
+    } catch (\Throwable $e) {
+        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Employee Set Salary')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route(ViewsConstants::EMP.'.index')}}">{{__('Employee')}}</a></li>
-    <li class="breadcrumb-item">{{__('Employee Set Salary')}}</li>
+    <li class="{{ VC::BCI }}"><a href="{{route(ViewsConstants::EMP.'.index')}}">{{__('Employee')}}</a></li>
+    <li class="{{ VC::BCI }}">{{__('Employee Set Salary')}}</li>
 @endsection
 @section('content')
     @if(!empty($employee))
     <div class="row">
-        <div class="col-12">
+        <div class="{{ VC::C12 }}">
             <div class="row">
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
                                     <h6 class="{{ VC::H6 }} {{ VC::MB0 }}">
@@ -44,21 +36,25 @@
                                 </div>
                                 @can('create set salary')
                                     @php
-                                        $basicSalaryRoute = Route::has(ViewsConstants::EMP . '.salary.basic')
-                                            ? route(ViewsConstants::EMP . '.salary.basic', $employee->id)
-                                            : '#';
-                                        $basicBtnId = 'salary-basic-' . $employee->id;
-                                        $basicMsg   = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::EMP,
-                                            'salary_basic_route_unavailable'
-                                        ) ?? 'Basic salary route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
-                                    <div class="col text-end">
+                                        try {
+                                            $basicSalaryRoute = Route::has(ViewsConstants::EMP . '.salary.basic')
+                                                ? route(ViewsConstants::EMP . '.salary.basic', $employee->id)
+                                                : '#';
+                                            $basicBtnId = 'salary-basic-' . $employee->id;
+                                            $basicMsg   = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::EMP,
+                                                'salary_basic_route_unavailable'
+                                            ) ?? 'Basic salary route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
+                                    <div class="col {{ VC::TX_END }}">
                                         <a id="{{ $basicBtnId }}"
                                         href="{{ $basicSalaryRoute }}"
                                         data-url="{{ $basicSalaryRoute }}"
-                                        data-guard-msg="{{ $basicMsg }}"
+                                        data-guard-msg="{{ base64_encode($basicMsg) }}"
                                         data-size="md"
                                         data-ajax-popup="true"
                                         data-title="{{ __('Set Basic Salary') }}"
@@ -81,28 +77,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container       = document.createElement('div');
-                                                            container.id    = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -113,12 +88,16 @@
                             </div>
                         </div>
                         @php
-                            $salaryDetails = [
-                                __('Payslip Type') => optional($employee->salary_type)->name ?? '--',
-                                __('Salary')       => $employee->salary       ?? '--',
-                            ];
-                        @endphp
-                        <div class="card-body table-border-style full-card">
+                            try {
+                                $salaryDetails = [
+                                    __('Payslip Type') => optional($employee->salary_type)->name ?? '--',
+                                    __('Salary')       => $employee->salary       ?? '--',
+                                ];
+                            } catch (\Throwable $e) {
+                                \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
                             <div class="project-info {{ VC::DFL }} {{ VC::TXSM }}">
                                 @foreach($salaryDetails as $label => $value)
                                 <div class="project-info-inner {{ VC::ME3 }} col-6">
@@ -139,22 +118,26 @@
                             </div>
                             @can('create allowance')
                                 @php
-                                    $allowanceCreateRoute = Route::has(ViewsConstants::ALW . '.create')
-                                        ? route(ViewsConstants::ALW . '.create', $employee->id)
-                                        : '#';
-                                    $allowanceCreateBtnId = 'allowance-create-' . $employee->id;
-                                    $allowanceCreateMsg   = Utility::fetchLinkMessage(
-                                        $lang,
-                                        ViewsConstants::ALW,
-                                        'allowance_create_route_unavailable'
-                                    ) ?? 'Allowance create route is unavailable. Please contact technical support or your domain administrator.';
-                                @endphp
-                                <div class="col text-end">
+                                    try {
+                                        $allowanceCreateRoute = Route::has(ViewsConstants::ALW . '.create')
+                                            ? route(ViewsConstants::ALW . '.create', $employee->id)
+                                            : '#';
+                                        $allowanceCreateBtnId = 'allowance-create-' . $employee->id;
+                                        $allowanceCreateMsg   = Utility::fetchLinkMessage(
+                                            $lang,
+                                            ViewsConstants::ALW,
+                                            'allowance_create_route_unavailable'
+                                        ) ?? 'Allowance create route is unavailable. Please contact technical support or your domain administrator.';
+                                    } catch (\Throwable $e) {
+                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
+                                <div class="col {{ VC::TX_END }}">
                                     <a
                                         id="{{ $allowanceCreateBtnId }}"
                                         href="{{ $allowanceCreateRoute }}"
                                         data-url="{{ $allowanceCreateRoute }}"
-                                        data-guard-msg="{{ $allowanceCreateMsg }}"
+                                        data-guard-msg="{{ base64_encode($allowanceCreateMsg) }}"
                                         data-size="md"
                                         data-ajax-popup="true"
                                         data-title="{{ __('Create Allowance') }}"
@@ -178,28 +161,7 @@
                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                     event.preventDefault();
                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container       = document.createElement('div');
-                                                        container.id    = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
+                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                     btn.setAttribute('data-failed-route', 'true');
                                                 } catch (e) {}
                                             });
@@ -210,7 +172,7 @@
                         </div>
                         </div>
                         <div class="{{ VC::CD }}-body {{ VC::TB }}">
-                            <div class="table-responsive">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if($allowances->isNotEmpty())
                                 <table class="{{ VC::TB }}">
                                     <thead>
@@ -243,21 +205,25 @@
                                             <td>
                                                 @can('edit allowance')
                                                     @php
-                                                        $editAllowanceRoute = Route::has(ViewsConstants::ALW . '.edit')
-                                                            ? route(ViewsConstants::ALW . '.edit', $allowance->id)
-                                                            : '#';
-                                                        $editAllowanceBtnId = 'allowance-edit-' . $allowance->id;
-                                                        $editAllowanceMsg   = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::ALW,
-                                                            'allowance_edit_route_unavailable'
-                                                        ) ?? 'Allowance edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $editAllowanceRoute = Route::has(ViewsConstants::ALW . '.edit')
+                                                                ? route(ViewsConstants::ALW . '.edit', $allowance->id)
+                                                                : '#';
+                                                            $editAllowanceBtnId = 'allowance-edit-' . $allowance->id;
+                                                            $editAllowanceMsg   = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::ALW,
+                                                                'allowance_edit_route_unavailable'
+                                                            ) ?? 'Allowance edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                         <a id="{{ $editAllowanceBtnId }}"
                                                         href="{{ $editAllowanceRoute }}"
                                                         data-url="{{ $editAllowanceRoute }}"
-                                                        data-guard-msg="{{ $editAllowanceMsg }}"
+                                                        data-guard-msg="{{ base64_encode($editAllowanceMsg) }}"
                                                         data-size="lg"
                                                         data-ajax-popup="true"
                                                         data-title="{{ __('Edit Allowance') }}"
@@ -280,28 +246,7 @@
                                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                                         event.preventDefault();
                                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container       = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container       = document.createElement('div');
-                                                                            container.id    = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl = document.createElement('div');
-                                                                            toastEl.className = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                     } catch (e) {}
                                                                 });
@@ -311,17 +256,21 @@
                                                 @endcan
                                                 @can('delete allowance')
                                                     @php
-                                                        $deleteAllowanceRoute  = Route::has(ViewsConstants::ALW . '.destroy')
-                                                            ? route(ViewsConstants::ALW . '.destroy', $allowance->id)
-                                                            : '#';
-                                                        $deleteAllowanceBtnId  = 'allowance-delete-' . $allowance->id;
-                                                        $deleteAllowanceFormId = 'allowance-delete-form-' . $allowance->id;
-                                                        $deleteAllowanceMsg    = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::ALW,
-                                                            'allowance_destroy_route_unavailable'
-                                                        ) ?? 'Allowance destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
+                                                        try {
+                                                            $deleteAllowanceRoute  = Route::has(ViewsConstants::ALW . '.destroy')
+                                                                ? route(ViewsConstants::ALW . '.destroy', $allowance->id)
+                                                                : '#';
+                                                            $deleteAllowanceBtnId  = 'allowance-delete-' . $allowance->id;
+                                                            $deleteAllowanceFormId = 'allowance-delete-form-' . $allowance->id;
+                                                            $deleteAllowanceMsg    = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::ALW,
+                                                                'allowance_destroy_route_unavailable'
+                                                            ) ?? 'Allowance destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                        } catch (\Throwable $e) {
+                                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                        }
+@endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Form::open([
                                                             'url'            => $deleteAllowanceRoute,
@@ -354,28 +303,7 @@
                                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                                         event.preventDefault();
                                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container       = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container       = document.createElement('div');
-                                                                            container.id    = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl = document.createElement('div');
-                                                                            toastEl.className = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
+                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                         btn.setAttribute('data-failed-route', 'true');
                                                                     } catch (e) {}
                                                                 });
@@ -390,7 +318,7 @@
                                     </tbody>
                                 </table>
                                 @else
-                                <div class="mt-3 text-center text-muted">
+                                <div class="{{ VC::MT3 }} {{ VC::TXCT_MT }}">
                                     {{ __('No Allowance Found!') }}
                                 </div>
                                 @endif
@@ -400,29 +328,33 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Commission') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Commission') }}</h6>
                                 </div>
                                 @can('create commission')
                                     @php
-                                        $commissionCreateRoute     = Route::has(ViewsConstants::COM . '.create')
-                                            ? route(ViewsConstants::COM . '.create', $employee->id)
-                                            : '#';
-                                        $commissionCreateBtnId     = 'commission-create-' . $employee->id;
-                                        $commissionCreateMsg       = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::COM,
-                                            'commission_create_route_unavailable'
-                                        ) ?? 'Commission create route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $commissionCreateRoute     = Route::has(ViewsConstants::COM . '.create')
+                                                ? route(ViewsConstants::COM . '.create', $employee->id)
+                                                : '#';
+                                            $commissionCreateBtnId     = 'commission-create-' . $employee->id;
+                                            $commissionCreateMsg       = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::COM,
+                                                'commission_create_route_unavailable'
+                                            ) ?? 'Commission create route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <div class="col {{ VC::JCE }}">
                                         <a
                                             id="{{ $commissionCreateBtnId }}"
                                             href="{{ $commissionCreateRoute }}"
                                             data-url="{{ $commissionCreateRoute }}"
-                                            data-guard-msg="{{ $commissionCreateMsg }}"
+                                            data-guard-msg="{{ base64_encode($commissionCreateMsg) }}"
                                             data-size="md"
                                             data-ajax-popup="true"
                                             data-title="{{ __('Create Commission') }}"
@@ -447,28 +379,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container       = document.createElement('div');
-                                                            container.id    = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -479,7 +390,7 @@
                             </div>
                         </div>
                         <div class="{{ VC::CD_MT }} table-border-style full-card">
-                            <div class="table-responsive">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$commissions->isEmpty())
                                     <table class="{{ VC::TB }}">
                                         <thead>
@@ -508,22 +419,26 @@
                                                         <td>
                                                             @can('edit commission')
                                                                 @php
-                                                                    $commissionEditRoute    = Route::has(ViewsConstants::COM . '.edit')
-                                                                        ? route(ViewsConstants::COM . '.edit', $commission->id)
-                                                                        : '#';
-                                                                    $commissionEditBtnId    = 'commission-edit-' . $commission->id;
-                                                                    $commissionEditMsg      = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::COM,
-                                                                        'commission_edit_route_unavailable'
-                                                                    ) ?? 'Commission edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $commissionEditRoute    = Route::has(ViewsConstants::COM . '.edit')
+                                                                            ? route(ViewsConstants::COM . '.edit', $commission->id)
+                                                                            : '#';
+                                                                        $commissionEditBtnId    = 'commission-edit-' . $commission->id;
+                                                                        $commissionEditMsg      = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::COM,
+                                                                            'commission_edit_route_unavailable'
+                                                                        ) ?? 'Commission edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         id="{{ $commissionEditBtnId }}"
                                                                         href="{{ $commissionEditRoute }}"
                                                                         data-url="{{ $commissionEditRoute }}"
-                                                                        data-guard-msg="{{ $commissionEditMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($commissionEditMsg) }}"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
                                                                         data-title="{{ __('Edit Commission') }}"
@@ -548,28 +463,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -579,17 +473,21 @@
                                                             @endcan
                                                             @can('delete commission')
                                                                 @php
-                                                                    $commissionDestroyRoute = Route::has(ViewsConstants::COM . '.destroy')
-                                                                        ? route(ViewsConstants::COM . '.destroy', $commission->id)
-                                                                        : '#';
-                                                                    $commissionDeleteBtnId  = 'commission-delete-' . $commission->id;
-                                                                    $commissionDeleteFormId = 'commission-delete-form-' . $commission->id;
-                                                                    $commissionDestroyMsg   = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::COM,
-                                                                        'commission_destroy_route_unavailable'
-                                                                    ) ?? 'Commission destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $commissionDestroyRoute = Route::has(ViewsConstants::COM . '.destroy')
+                                                                            ? route(ViewsConstants::COM . '.destroy', $commission->id)
+                                                                            : '#';
+                                                                        $commissionDeleteBtnId  = 'commission-delete-' . $commission->id;
+                                                                        $commissionDeleteFormId = 'commission-delete-form-' . $commission->id;
+                                                                        $commissionDestroyMsg   = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::COM,
+                                                                            'commission_destroy_route_unavailable'
+                                                                        ) ?? 'Commission destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'route'  => [ViewsConstants::COM . '.destroy', $commission->id],
@@ -599,7 +497,7 @@
                                                                     <a id="{{ $commissionDeleteBtnId }}"
                                                                     href="#"
                                                                     data-url="{{ $commissionDestroyRoute }}"
-                                                                    data-guard-msg="{{ $commissionDestroyMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($commissionDestroyMsg) }}"
                                                                     class="{{ VC::BT_SM_CT_PR }}"
                                                                     data-bs-toggle="tooltip"
                                                                     title="{{ __('Delete') }}"
@@ -623,28 +521,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -659,7 +536,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">
                                         {{ __('No Commission Found!') }}
                                     </div>
                                 @endif
@@ -669,29 +546,33 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Loan') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Loan') }}</h6>
                                 </div>
                                 @can('create loan')
                                     @php
-                                        $loanCreateRoute = Route::has(ViewsConstants::LN . '.create')
-                                            ? route(ViewsConstants::LN . '.create', $employee->id)
-                                            : '#';
-                                        $loanCreateBtnId = 'loan-create-' . $employee->id;
-                                        $loanCreateMsg   = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::LN,
-                                            'loan_create_route_unavailable'
-                                        ) ?? 'Loan create route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $loanCreateRoute = Route::has(ViewsConstants::LN . '.create')
+                                                ? route(ViewsConstants::LN . '.create', $employee->id)
+                                                : '#';
+                                            $loanCreateBtnId = 'loan-create-' . $employee->id;
+                                            $loanCreateMsg   = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::LN,
+                                                'loan_create_route_unavailable'
+                                            ) ?? 'Loan create route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <div class="col {{ VC::JCE }}">
                                         <a
                                             id="{{ $loanCreateBtnId }}"
                                             href="{{ $loanCreateRoute }}"
                                             data-url="{{ $loanCreateRoute }}"
-                                            data-guard-msg="{{ $loanCreateMsg }}"
+                                            data-guard-msg="{{ base64_encode($loanCreateMsg) }}"
                                             data-size="lg"
                                             data-ajax-popup="true"
                                             data-title="{{ __('Create Loan') }}"
@@ -716,28 +597,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container       = document.createElement('div');
-                                                            container.id    = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -747,8 +607,8 @@
                                 @endcan
                             </div>
                         </div>
-                        <div class="card-body table-border-style full-card">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$loans->isEmpty())
                                     <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                         <thead>
@@ -779,24 +639,28 @@
                                                         <td>
                                                             @can('edit loan')
                                                                 @php
-                                                                    $loanEditRoute = Route::has(ViewsConstants::LN . '.edit')
-                                                                        ? route(ViewsConstants::LN . '.edit', $loan->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::LN . '.edit'))
-                                                                            ? route(Str::kebab(ViewsConstants::LN . '.edit'), $loan->id)
-                                                                            : '#');
-                                                                
-                                                                    $loanEditBtnId = 'loan-edit-' . $loan->id;
-                                                                    $loanEditMsg   = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::LN,
-                                                                        'loan_edit_route_unavailable'
-                                                                    ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $loanEditRoute = Route::has(ViewsConstants::LN . '.edit')
+                                                                            ? route(ViewsConstants::LN . '.edit', $loan->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::LN . '.edit'))
+                                                                                ? route(Str::kebab(ViewsConstants::LN . '.edit'), $loan->id)
+                                                                                : '#');
+
+                                                                        $loanEditBtnId = 'loan-edit-' . $loan->id;
+                                                                        $loanEditMsg   = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::LN,
+                                                                            'loan_edit_route_unavailable'
+                                                                        ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a id="{{ $loanEditBtnId }}"
                                                                     href="{{ $loanEditRoute }}"
                                                                     data-url="{{ $loanEditRoute }}"
-                                                                    data-guard-msg="{{ $loanEditMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($loanEditMsg) }}"
                                                                     data-size="lg"
                                                                     data-ajax-popup="true"
                                                                     data-title="{{ __('Edit Loan') }}"
@@ -820,28 +684,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -851,19 +694,23 @@
                                                             @endcan
                                                             @can('delete loan')
                                                                 @php
-                                                                    $loanDestroyRoute  = Route::has(ViewsConstants::LN . '.destroy')
-                                                                        ? route(ViewsConstants::LN . '.destroy', $loan->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
-                                                                            ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
-                                                                            : '#');
-                                                                    $loanDeleteBtnId   = 'loan-delete-' . $loan->id;
-                                                                    $loanDeleteFormId  = 'loan-delete-form-' . $loan->id;
-                                                                    $loanDestroyMsg    = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::LN,
-                                                                        'loan_destroy_route_unavailable'
-                                                                    ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $loanDestroyRoute  = Route::has(ViewsConstants::LN . '.destroy')
+                                                                            ? route(ViewsConstants::LN . '.destroy', $loan->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
+                                                                                ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
+                                                                                : '#');
+                                                                        $loanDeleteBtnId   = 'loan-delete-' . $loan->id;
+                                                                        $loanDeleteFormId  = 'loan-delete-form-' . $loan->id;
+                                                                        $loanDestroyMsg    = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::LN,
+                                                                            'loan_destroy_route_unavailable'
+                                                                        ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'url'            => $loanDestroyRoute,
@@ -873,7 +720,7 @@
                                                                     <a id="{{ $loanDeleteBtnId }}"
                                                                     href="#"
                                                                     data-url="{{ $loanDestroyRoute }}"
-                                                                    data-guard-msg="{{ $loanDestroyMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($loanDestroyMsg) }}"
                                                                     class="{{ VC::BT_SM_CT_PR }}"
                                                                     data-bs-toggle="tooltip"
                                                                     title="{{ __('Delete') }}"
@@ -897,28 +744,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl     = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body        = document.createElement('div');
-                                                                                        body.className    = 'toast-body';
-                                                                                        body.textContent  = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -933,7 +759,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">
                                         {{ __('No Loan Data Found!') }}
                                     </div>
                                 @endif
@@ -943,30 +769,34 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Loan') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Loan') }}</h6>
                                 </div>
                                 @can('create loan')
                                     <div class="col {{ VC::JCE }}">
                                         @php
-                                            $loanCreateRoute    = Route::has(ViewsConstants::LN . '.create')
-                                                ? route(ViewsConstants::LN . '.create', $employee->id)
-                                                : '#';
-                                            $loanCreateBtnId    = 'loan-create-' . $employee->id;
-                                            $loanCreateMsg      = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::LN,
-                                                'loan_create_route_unavailable'
-                                            ) ?? 'Loan create route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
+                                            try {
+                                                $loanCreateRoute    = Route::has(ViewsConstants::LN . '.create')
+                                                    ? route(ViewsConstants::LN . '.create', $employee->id)
+                                                    : '#';
+                                                $loanCreateBtnId    = 'loan-create-' . $employee->id;
+                                                $loanCreateMsg      = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    ViewsConstants::LN,
+                                                    'loan_create_route_unavailable'
+                                                ) ?? 'Loan create route is unavailable. Please contact technical support or your domain administrator.';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <div class="col {{ VC::JCE }}">
                                             <a
                                                 id="{{ $loanCreateBtnId }}"
                                                 href="{{ $loanCreateRoute }}"
                                                 data-url="{{ $loanCreateRoute }}"
-                                                data-guard-msg="{{ $loanCreateMsg }}"
+                                                data-guard-msg="{{ base64_encode($loanCreateMsg) }}"
                                                 data-size="lg"
                                                 data-ajax-popup="true"
                                                 data-title="{{ __('Create Loan') }}"
@@ -991,28 +821,7 @@
                                                             if ((href && href !== '#') || (url && url !== '#')) return;
                                                             event.preventDefault();
                                                             const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container       = document.createElement('div');
-                                                                container.id    = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
+                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                             btn.setAttribute('data-failed-route', 'true');
                                                         } catch (e) {}
                                                     });
@@ -1023,8 +832,8 @@
                                 @endcan
                             </div>
                         </div>
-                        <div class="card-body table-border-style full-card">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$loans->isEmpty())
                                     <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                         <thead>
@@ -1056,22 +865,26 @@
                                                         <td>
                                                             @can('edit loan')
                                                                 @php
-                                                                    $loanEditRoute      = Route::has(ViewsConstants::LN . '.edit')
-                                                                        ? route(ViewsConstants::LN . '.edit', $loan->id)
-                                                                        : '#';
-                                                                    $loanEditBtnId      = 'loan-edit-' . $loan->id;
-                                                                    $loanEditMsg        = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::LN,
-                                                                        'loan_edit_route_unavailable'
-                                                                    ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $loanEditRoute      = Route::has(ViewsConstants::LN . '.edit')
+                                                                            ? route(ViewsConstants::LN . '.edit', $loan->id)
+                                                                            : '#';
+                                                                        $loanEditBtnId      = 'loan-edit-' . $loan->id;
+                                                                        $loanEditMsg        = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::LN,
+                                                                            'loan_edit_route_unavailable'
+                                                                        ) ?? 'Loan edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         id="{{ $loanEditBtnId }}"
                                                                         href="{{ $loanEditRoute }}"
                                                                         data-url="{{ $loanEditRoute }}"
-                                                                        data-guard-msg="{{ $loanEditMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($loanEditMsg) }}"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
                                                                         data-title="{{ __('Edit Loan') }}"
@@ -1096,28 +909,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1127,19 +919,23 @@
                                                             @endcan
                                                             @can('delete loan')
                                                                 @php
-                                                                    $loanDeleteRoute    = Route::has(ViewsConstants::LN . '.destroy')
-                                                                        ? route(ViewsConstants::LN . '.destroy', $loan->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
-                                                                            ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
-                                                                            : '#');
-                                                                    $loanDeleteBtnId    = 'loan-delete-' . $loan->id;
-                                                                    $loanDeleteFormId   = 'loan-delete-form-' . $loan->id;
-                                                                    $loanDeleteMsg      = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::LN,
-                                                                        'loan_destroy_route_unavailable'
-                                                                    ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $loanDeleteRoute    = Route::has(ViewsConstants::LN . '.destroy')
+                                                                            ? route(ViewsConstants::LN . '.destroy', $loan->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::LN . '.destroy'))
+                                                                                ? route(Str::kebab(ViewsConstants::LN . '.destroy'), $loan->id)
+                                                                                : '#');
+                                                                        $loanDeleteBtnId    = 'loan-delete-' . $loan->id;
+                                                                        $loanDeleteFormId   = 'loan-delete-form-' . $loan->id;
+                                                                        $loanDeleteMsg      = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::LN,
+                                                                            'loan_destroy_route_unavailable'
+                                                                        ) ?? 'Loan destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'url'            => $loanDeleteRoute,
@@ -1152,7 +948,7 @@
                                                                         id="{{ $loanDeleteBtnId }}"
                                                                         href="#"
                                                                         data-url="{{ $loanDeleteRoute }}"
-                                                                        data-guard-msg="{{ $loanDeleteMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($loanDeleteMsg) }}"
                                                                         class="{{ VC::BT_SM_CT_PR }}"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Delete') }}"
@@ -1177,28 +973,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1213,7 +988,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">
                                         {{ __('No Loan Data Found!') }}
                                     </div>
                                 @endif
@@ -1223,31 +998,35 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Saturation Deduction') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Saturation Deduction') }}</h6>
                                 </div>
                                 @can('create saturation deduction')
                                     @php
-                                        $sdCreateRoute = Route::has(ViewsConstants::STR_DD . '.create')
-                                            ? route(ViewsConstants::STR_DD . '.create', $employee->id)
-                                            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.create'))
-                                                ? route(Str::kebab(ViewsConstants::STR_DD . '.create'), $employee->id)
-                                                : '#');
-                                        $sdCreateBtnId = 'saturation-deduction-create-' . $employee->id;
-                                        $sdCreateMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::STR_DD,
-                                            'saturation_deduction_create_route_unavailable'
-                                        ) ?? 'Saturation deduction create route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $sdCreateRoute = Route::has(ViewsConstants::STR_DD . '.create')
+                                                ? route(ViewsConstants::STR_DD . '.create', $employee->id)
+                                                : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.create'))
+                                                    ? route(Str::kebab(ViewsConstants::STR_DD . '.create'), $employee->id)
+                                                    : '#');
+                                            $sdCreateBtnId = 'saturation-deduction-create-' . $employee->id;
+                                            $sdCreateMsg = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::STR_DD,
+                                                'saturation_deduction_create_route_unavailable'
+                                            ) ?? 'Saturation deduction create route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <div class="col {{ VC::JCE }}">
                                         <a
                                             id="{{ $sdCreateBtnId }}"
                                             href="{{ $sdCreateRoute }}"
                                             data-url="{{ $sdCreateRoute }}"
-                                            data-guard-msg="{{ $sdCreateMsg }}"
+                                            data-guard-msg="{{ base64_encode($sdCreateMsg) }}"
                                             data-size="lg"
                                             data-ajax-popup="true"
                                             data-title="{{ __('Create Saturation Deduction') }}"
@@ -1272,28 +1051,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container    = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className  = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -1303,8 +1061,8 @@
                                 @endcan
                             </div>
                         </div>
-                        <div class="card-body table-border-style full-card">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$saturationdeductions->isEmpty())
                                     <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                         <thead>
@@ -1335,23 +1093,27 @@
                                                         <td>
                                                             @can('edit saturation deduction')
                                                                 @php
-                                                                    $sdEditRoute     = Route::has(ViewsConstants::STR_DD . '.edit')
-                                                                        ? route(ViewsConstants::STR_DD . '.edit', $deduction->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.edit'))
-                                                                            ? route(Str::kebab(ViewsConstants::STR_DD . '.edit'), $deduction->id)
-                                                                            : '#');
-                                                                    $sdEditBtnId     = 'saturation-deduction-edit-' . $deduction->id;
-                                                                    $sdEditMsg       = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::STR_DD,
-                                                                        'saturation_deduction_edit_route_unavailable'
-                                                                    ) ?? 'Saturation deduction edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $sdEditRoute     = Route::has(ViewsConstants::STR_DD . '.edit')
+                                                                            ? route(ViewsConstants::STR_DD . '.edit', $deduction->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.edit'))
+                                                                                ? route(Str::kebab(ViewsConstants::STR_DD . '.edit'), $deduction->id)
+                                                                                : '#');
+                                                                        $sdEditBtnId     = 'saturation-deduction-edit-' . $deduction->id;
+                                                                        $sdEditMsg       = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::STR_DD,
+                                                                            'saturation_deduction_edit_route_unavailable'
+                                                                        ) ?? 'Saturation deduction edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a id="{{ $sdEditBtnId }}"
                                                                     href="{{ $sdEditRoute }}"
                                                                     data-url="{{ $sdEditRoute }}"
-                                                                    data-guard-msg="{{ $sdEditMsg }}"
+                                                                    data-guard-msg="{{ base64_encode($sdEditMsg) }}"
                                                                     data-size="lg"
                                                                     data-ajax-popup="true"
                                                                     data-title="{{ __('Edit Saturation Deduction') }}"
@@ -1375,28 +1137,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1406,19 +1147,23 @@
                                                             @endcan
                                                             @can('delete saturation deduction')
                                                                 @php
-                                                                    $sdDestroyRoute      = Route::has(ViewsConstants::STR_DD . '.destroy')
-                                                                        ? route(ViewsConstants::STR_DD . '.destroy', $deduction->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.destroy'))
-                                                                            ? route(Str::kebab(ViewsConstants::STR_DD . '.destroy'), $deduction->id)
-                                                                            : '#');
-                                                                    $sdDeleteBtnId       = 'deduction-delete-' . $deduction->id;
-                                                                    $sdDeleteFormId      = 'deduction-delete-form-' . $deduction->id;
-                                                                    $sdDestroyMsg        = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::STR_DD,
-                                                                        'saturation_deduction_destroy_route_unavailable'
-                                                                    ) ?? 'Saturation deduction destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $sdDestroyRoute      = Route::has(ViewsConstants::STR_DD . '.destroy')
+                                                                            ? route(ViewsConstants::STR_DD . '.destroy', $deduction->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::STR_DD . '.destroy'))
+                                                                                ? route(Str::kebab(ViewsConstants::STR_DD . '.destroy'), $deduction->id)
+                                                                                : '#');
+                                                                        $sdDeleteBtnId       = 'deduction-delete-' . $deduction->id;
+                                                                        $sdDeleteFormId      = 'deduction-delete-form-' . $deduction->id;
+                                                                        $sdDestroyMsg        = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::STR_DD,
+                                                                            'saturation_deduction_destroy_route_unavailable'
+                                                                        ) ?? 'Saturation deduction destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'url'            => $sdDestroyRoute,
@@ -1431,7 +1176,7 @@
                                                                         id="{{ $sdDeleteBtnId }}"
                                                                         href="#"
                                                                         data-url="{{ $sdDestroyRoute }}"
-                                                                        data-guard-msg="{{ $sdDestroyMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($sdDestroyMsg) }}"
                                                                         class="{{ VC::BT_SM_CT_PR }}"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Delete') }}"
@@ -1456,28 +1201,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1492,7 +1216,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">
                                         {{ __('No Saturation Deduction Found!') }}
                                     </div>
                                 @endif
@@ -1502,30 +1226,34 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Other Payment') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Other Payment') }}</h6>
                                 </div>
                                 @can('create other payment')
                                     @php
-                                        $otherPaymentCreateRoute  = Route::has(ViewsConstants::OT_PAY . '.create')
-                                            ? route(ViewsConstants::OT_PAY . '.create', $employee->id)
-                                            : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.create'))
-                                                ? route(Str::kebab(ViewsConstants::OT_PAY . '.create'), $employee->id)
-                                                : '#');
-                                        $otherPaymentCreateBtnId  = 'other-payment-create-' . $employee->id;
-                                        $otherPaymentCreateMsg    = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::OT_PAY,
-                                            'other_payment_create_route_unavailable'
-                                        ) ?? 'Other payment create route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $otherPaymentCreateRoute  = Route::has(ViewsConstants::OT_PAY . '.create')
+                                                ? route(ViewsConstants::OT_PAY . '.create', $employee->id)
+                                                : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.create'))
+                                                    ? route(Str::kebab(ViewsConstants::OT_PAY . '.create'), $employee->id)
+                                                    : '#');
+                                            $otherPaymentCreateBtnId  = 'other-payment-create-' . $employee->id;
+                                            $otherPaymentCreateMsg    = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::OT_PAY,
+                                                'other_payment_create_route_unavailable'
+                                            ) ?? 'Other payment create route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <a
                                         id="{{ $otherPaymentCreateBtnId }}"
                                         href="{{ $otherPaymentCreateRoute }}"
                                         data-url="{{ $otherPaymentCreateRoute }}"
-                                        data-guard-msg="{{ $otherPaymentCreateMsg }}"
+                                        data-guard-msg="{{ base64_encode($otherPaymentCreateMsg) }}"
                                         data-size="lg"
                                         data-ajax-popup="true"
                                         data-title="{{ __('Create Other Payment') }}"
@@ -1548,28 +1276,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container       = document.createElement('div');
-                                                            container.id    = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -1579,8 +1286,8 @@
                                 @endcan
                             </div>
                         </div>
-                        <div class="card-body table-border-style full-card">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$otherpayments->isEmpty())
                                     <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                         <thead>
@@ -1609,24 +1316,28 @@
                                                         <td>
                                                             @can('edit other payment')
                                                                 @php
-                                                                    $otherPaymentEditRoute   = Route::has(ViewsConstants::OT_PAY . '.edit')
-                                                                        ? route(ViewsConstants::OT_PAY . '.edit', $p->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.edit'))
-                                                                            ? route(Str::kebab(ViewsConstants::OT_PAY . '.edit'), $p->id)
-                                                                            : '#');
-                                                                    $otherPaymentEditBtnId   = 'other-payment-edit-' . $p->id;
-                                                                    $otherPaymentEditMsg     = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::OT_PAY,
-                                                                        'other_payment_edit_route_unavailable'
-                                                                    ) ?? 'Other payment edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $otherPaymentEditRoute   = Route::has(ViewsConstants::OT_PAY . '.edit')
+                                                                            ? route(ViewsConstants::OT_PAY . '.edit', $p->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::OT_PAY . '.edit'))
+                                                                                ? route(Str::kebab(ViewsConstants::OT_PAY . '.edit'), $p->id)
+                                                                                : '#');
+                                                                        $otherPaymentEditBtnId   = 'other-payment-edit-' . $p->id;
+                                                                        $otherPaymentEditMsg     = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::OT_PAY,
+                                                                            'other_payment_edit_route_unavailable'
+                                                                        ) ?? 'Other payment edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         id="{{ $otherPaymentEditBtnId }}"
                                                                         href="{{ $otherPaymentEditRoute }}"
                                                                         data-url="{{ $otherPaymentEditRoute }}"
-                                                                        data-guard-msg="{{ $otherPaymentEditMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($otherPaymentEditMsg) }}"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
                                                                         data-title="{{ __('Edit Other Payment') }}"
@@ -1651,28 +1362,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1682,22 +1372,21 @@
                                                             @endcan
                                                             @can('delete other payment')
                                                                 @php
-                                                                    use Illuminate\Support\Facades\Route;
-                                                                    use Illuminate\Support\Str;
-                                                                    use App\Config\Constants\{ViewsConstants, StacksConstants};
-                                                                    use App\Models\Utility;
-                                                                
-                                                                    $paymentDeleteRoute   = Route::has(ViewsConstants::OT_PAY . '.destroy')
-                                                                        ? route(ViewsConstants::OT_PAY . '.destroy', $p->id)
-                                                                        : '#';
-                                                                    $paymentDeleteBtnId   = 'payment-delete-' . $p->id;
-                                                                    $paymentDeleteFormId  = 'payment-delete-form-' . $p->id;
-                                                                    $paymentDeleteMsg     = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::OT_PAY,
-                                                                        'other_payment_destroy_route_unavailable'
-                                                                    ) ?? 'Other payment destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+$paymentDeleteRoute   = Route::has(ViewsConstants::OT_PAY . '.destroy')
+                                                                            ? route(ViewsConstants::OT_PAY . '.destroy', $p->id)
+                                                                            : '#';
+                                                                        $paymentDeleteBtnId   = 'payment-delete-' . $p->id;
+                                                                        $paymentDeleteFormId  = 'payment-delete-form-' . $p->id;
+                                                                        $paymentDeleteMsg     = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::OT_PAY,
+                                                                            'other_payment_destroy_route_unavailable'
+                                                                        ) ?? 'Other payment destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'url'            => $paymentDeleteRoute,
@@ -1733,28 +1422,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1769,7 +1437,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">{{ __('No Other Payment Data Found!') }}</div>
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">{{ __('No Other Payment Data Found!') }}</div>
                                 @endif
                             </div>
                         </div>
@@ -1777,28 +1445,32 @@
                 </div>
                 <div class="{{ VC::CM6 }}">
                     <div class="{{ VC::CD }} min-height-253">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="col">
-                                    <h6 class="mb-0">{{ __('Overtime') }}</h6>
+                                    <h6 class="{{ VC::MB0 }}">{{ __('Overtime') }}</h6>
                                 </div>
                                     @php
-                                        $overtimeCreateRoute     = Route::has(ViewsConstants::OVT . '.create')
-                                            ? route(ViewsConstants::OVT . '.create', $employee->id)
-                                            : '#';
-                                        $overtimeCreateBtnId     = 'overtime-create-' . $employee->id;
-                                        $overtimeCreateMsg       = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::OVT,
-                                            'overtime_create_route_unavailable'
-                                        ) ?? 'Overtime create route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+                                        try {
+                                            $overtimeCreateRoute     = Route::has(ViewsConstants::OVT . '.create')
+                                                ? route(ViewsConstants::OVT . '.create', $employee->id)
+                                                : '#';
+                                            $overtimeCreateBtnId     = 'overtime-create-' . $employee->id;
+                                            $overtimeCreateMsg       = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::OVT,
+                                                'overtime_create_route_unavailable'
+                                            ) ?? 'Overtime create route is unavailable. Please contact technical support or your domain administrator.';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <div class="col {{ VC::JCE }}">
                                         <a
                                             id="{{ $overtimeCreateBtnId }}"
                                             href="{{ $overtimeCreateRoute }}"
                                             data-url="{{ $overtimeCreateRoute }}"
-                                            data-guard-msg="{{ $overtimeCreateMsg }}"
+                                            data-guard-msg="{{ base64_encode($overtimeCreateMsg) }}"
                                             data-size="md"
                                             data-ajax-popup="true"
                                             data-title="{{ __('Create Overtime') }}"
@@ -1822,28 +1494,7 @@
                                                         if ((href && href !== '#') || (url && url !== '#')) return;
                                                         event.preventDefault();
                                                         const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
+                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                         btn.setAttribute('data-failed-route', 'true');
                                                     } catch (e) {}
                                                 });
@@ -1853,8 +1504,8 @@
                                 @endcan
                             </div>
                         </div>
-                        <div class="card-body table-border-style full-card">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }} full-card">
+                            <div class="{{ VC::TB_RSP }}">
                                 @if(!$overtimes->isEmpty())
                                     <table class="{{ VC::TB }} table-striped {{ VC::MB0 }}">
                                         <thead>
@@ -1882,22 +1533,26 @@
                                                         <td>
                                                             @can('edit overtime')
                                                                 @php
-                                                                    $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
-                                                                        ? route(ViewsConstants::OVT . '.edit', $o->id)
-                                                                        : '#';
-                                                                    $overtimeEditBtnId    = 'overtime-edit-' . $o->id;
-                                                                    $overtimeEditMsg      = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::OVT,
-                                                                        'overtime_edit_route_unavailable'
-                                                                    ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
+                                                                            ? route(ViewsConstants::OVT . '.edit', $o->id)
+                                                                            : '#';
+                                                                        $overtimeEditBtnId    = 'overtime-edit-' . $o->id;
+                                                                        $overtimeEditMsg      = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::OVT,
+                                                                            'overtime_edit_route_unavailable'
+                                                                        ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     <a
                                                                         id="{{ $overtimeEditBtnId }}"
                                                                         href="{{ $overtimeEditRoute }}"
                                                                         data-url="{{ $overtimeEditRoute }}"
-                                                                        data-guard-msg="{{ $overtimeEditMsg }}"
+                                                                        data-guard-msg="{{ base64_encode($overtimeEditMsg) }}"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
                                                                         data-title="{{ __('Edit Overtime') }}"
@@ -1921,28 +1576,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl    = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body       = document.createElement('div');
-                                                                                        body.className   = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -1952,19 +1586,23 @@
                                                             @endcan
                                                             @can('delete overtime')
                                                                 @php
-                                                                    $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
-                                                                        ? route(ViewsConstants::OVT . '.destroy', $o->id)
-                                                                        : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
-                                                                            ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $o->id)
-                                                                            : '#');
-                                                                    $overtimeDeleteFormId = 'overtime-delete-form-' . $o->id;
-                                                                    $overtimeDeleteBtnId  = 'overtime-delete-' . $o->id;
-                                                                    $overtimeDestroyMsg   = Utility::fetchLinkMessage(
-                                                                        $lang,
-                                                                        ViewsConstants::OVT,
-                                                                        'overtime_destroy_route_unavailable'
-                                                                    ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                                @endphp
+                                                                    try {
+                                                                        $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
+                                                                            ? route(ViewsConstants::OVT . '.destroy', $o->id)
+                                                                            : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
+                                                                                ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $o->id)
+                                                                                : '#');
+                                                                        $overtimeDeleteFormId = 'overtime-delete-form-' . $o->id;
+                                                                        $overtimeDeleteBtnId  = 'overtime-delete-' . $o->id;
+                                                                        $overtimeDestroyMsg   = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::OVT,
+                                                                            'overtime_destroy_route_unavailable'
+                                                                        ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    } catch (\Throwable $e) {
+                                                                        \Log::error('set_salaries/employee_salary — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    }
+@endphp
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     {!! Collective\Html\FormFacade::open([
                                                                         'url'            => $overtimeDestroyRoute,
@@ -1999,28 +1637,7 @@
                                                                                     if ((href && href !== '#') || (url && url !== '#')) return;
                                                                                     event.preventDefault();
                                                                                     const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    let container       = document.getElementById('toast-container');
-                                                                                    if (!container) {
-                                                                                        container       = document.createElement('div');
-                                                                                        container.id    = 'toast-container';
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl      = document.createElement('div');
-                                                                                        toastEl.className  = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body         = document.createElement('div');
-                                                                                        body.className     = 'toast-body';
-                                                                                        body.textContent   = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
+                                                                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                                                     btn.setAttribute('data-failed-route', 'true');
                                                                                 } catch (e) {}
                                                                             });
@@ -2035,7 +1652,7 @@
                                         </tbody>
                                     </table>
                                 @else
-                                    <div class="mt-2 text-center">{{ __('No Overtime Data Found!') }}</div>
+                                    <div class="{{ VC::MT2 }} {{ VC::TXCT }}">{{ __('No Overtime Data Found!') }}</div>
                                 @endif
                             </div>
                         </div>
@@ -2050,7 +1667,7 @@
 @push(StacksConstants::ADM_SCR_PG)
     @if(!empty($employee))
             <script>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -2143,7 +1760,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-         
+
           })();
     </script>
         <script defer>
@@ -2179,28 +1796,7 @@ Object.keys(t).forEach(
 
             function showError(message) {
                 try {
-                let container = document.getElementById('toast-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toast-container';
-                    document.body.appendChild(container);
-                }
-                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                if (bootstrapLink && window.bootstrap) {
-                    const toastEl = document.createElement('div');
-                    toastEl.className = 'toast';
-                    toastEl.setAttribute('role', 'alert');
-                    toastEl.setAttribute('aria-live', 'assertive');
-                    toastEl.setAttribute('aria-atomic', 'true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    body.textContent = message;
-                    toastEl.appendChild(body);
-                    container.appendChild(toastEl);
-                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                } else {
-                    alert(message);
-                }
+                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                 } catch {
                 alert(message);
                 }

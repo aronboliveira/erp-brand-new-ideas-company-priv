@@ -11,6 +11,11 @@ use Tests\TestCase;
 
 class LeaveTypeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -20,7 +25,19 @@ class LeaveTypeTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['title', 'days', 'created_by'];
+		$expected = [
+			'title',
+			'days',
+			'extensible_days',
+			'paid',
+			'is_health_related',
+			'salary_minimum_deduction_percent',
+			'salary_maximum_deduction_percent',
+			'description',
+			'categories',
+			'conditions',
+			'attachments',
+		];
 
 		$this->assertSame($expected, (new LeaveType)->getFillable());
 	}

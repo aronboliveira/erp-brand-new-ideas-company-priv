@@ -4,9 +4,15 @@ namespace Tests\Unit\Models;
 
 use App\Models\UserToDo;
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserToDoTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -14,8 +20,28 @@ class UserToDoTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$ref     = new \ReflectionClass(UserToDo::class);
-		$expected = $ref->getConstant('FILLABLE');
+		$expected = [
+			'title',
+			'description',
+			'user_id',
+			'assigned_by',
+			'assigned_at',
+			'notification',
+			'milestone',
+			'project',
+			'task',
+			'priority',
+			'progress',
+			'order',
+			'estimated_hrs',
+			'due_date',
+			'is_complete',
+			'completed_at',
+			'is_favorite',
+			'tags',
+			'attachments',
+			'updated_by',
+		];
 
 		$this->assertSame($expected, (new UserToDo)->getFillable());
 	}
@@ -30,7 +56,7 @@ class UserToDoTest extends TestCase
 		$rel = (new UserToDo)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
 	}

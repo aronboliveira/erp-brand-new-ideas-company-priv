@@ -1,13 +1,11 @@
 @php
-	use App\Config\Constants\{ViewClassNamesConstants,ViewsConstants};
-	use Illuminate\Support\Facades\{Log,Route};
-	$navItems??=[];
+$navItems??=[];
 	try {
 		$navItems=[
-			['route'=>ViewsConstants::TX.'.index','label'=>__('Taxes')],
-			['route'=>ViewsConstants::PRD_SV_CAT.'.index','label'=>__('Category')],
-			['route'=>ViewsConstants::PRD_SV_UNT.'.index','label'=>__('Unit')],
-			['route'=>ViewsConstants::CST_FD.'.index','label'=>__('Custom Field')],
+			['route'=>VW::TX.'.index','label'=>__('Taxes')],
+			['route'=>VW::PRD_SV_CAT.'.index','label'=>__('Category')],
+			['route'=>VW::PRD_SV_UNT.'.index','label'=>__('Unit')],
+			['route'=>VW::CST_FD.'.index','label'=>__('Custom Field')],
 		];
 	} catch (\Error $e) {
 		Log::error(
@@ -41,8 +39,8 @@
 		);
 	}
 @endphp
-<div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
-    <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="useradd-sidenav">
+<div class="{{ VC::CD_STK }}" style="top:30px">
+    <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
         @foreach($navItems as $item)
         @php
             $routeName??='';
@@ -85,12 +83,12 @@
                     ]
                 );
             }
-        @endphp
+@endphp
             <a href="{{ $url }}"
-            class="list-group-item list-group-item-action border-0 {{ $isActive ? 'active' : '' }}">
+            class="{{ VC::LGI_ACT_NBD }} {{ $isActive ? 'active' : '' }}">
                 {{ $item['label'] }}
-                <div class="float-end">
-                    <i class="{{ ViewClassNamesConstants::TI_CHV_RT }}"></i>
+                <div class="{{ VC::FEND }}">
+                    <i class="{{ VC::TI_CHV_RT }}"></i>
                 </div>
             </a>
         @endforeach

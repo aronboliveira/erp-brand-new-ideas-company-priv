@@ -167,13 +167,15 @@ final class AllowanceOptionSeeder extends Seeder
 				]
 			];
 
+			$HARD_CAP = 2;
 			$created = 0;
 			$updated = 0;
 
 			foreach ($rows as $payload) {
+				if ($created >= $HARD_CAP) break;
 				try {
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Tipo de Reserva: {$payload['name']}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Tipo de Reserva: {$payload['name']}");
 					$model = AllowanceOption::updateOrCreate(
 						['name' => $payload['name']],
 						$payload + [DC::COL_TABLE_CREATOR => $systemUserId]

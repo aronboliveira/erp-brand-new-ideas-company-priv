@@ -34,20 +34,21 @@ class LeadRequestService
 
 		$user = $userOrRedirect;
 
-		if ($user->type === PMC::CPN)
+		if (in_array($user->type, [PMC::CPN, PMC::SA], true))
 			return Lead::where(DC::COL_TABLE_CREATOR, $user->creatorId())
 				->where(PJC::COL_STG_ID, $leadStage->id)
 				->orderBy(AC::COL_OD)
 				->get();
 
-		return Lead::join(
-			DC::TABLE_USR_LD,
-			DC::TABLE_USR_LD . '.' . PJC::COL_LD_ID,
-			'=',
-			DC::TABLE_LEADS . '.id'
-		)
+		return Lead::select(DC::TABLE_LEADS . '.*')
+			->join(
+				DC::TABLE_USR_LD,
+				DC::TABLE_USR_LD . '.' . PJC::COL_LD_ID,
+				'=',
+				DC::TABLE_LEADS . '.id'
+			)
 			->where(DC::TABLE_USR_LD . '.' . UC::COL_USER_ID, $user->id)
-			->where(PJC::COL_STG_ID, $leadStage->id)
+			->where(DC::TABLE_LEADS . '.' . PJC::COL_STG_ID, $leadStage->id)
 			->orderBy(DC::TABLE_LEADS . '.' . AC::COL_OD)
 			->get();
 	}
@@ -65,7 +66,7 @@ class LeadRequestService
 
 		$user = $userOrRedirect;
 
-		if ($user->type === PMC::CPN)
+		if (in_array($user->type, [PMC::CPN, PMC::SA], true))
 			return Lead::where(DC::COL_TABLE_CREATOR, $user->creatorId())
 				->orderBy(AC::COL_OD)
 				->get();

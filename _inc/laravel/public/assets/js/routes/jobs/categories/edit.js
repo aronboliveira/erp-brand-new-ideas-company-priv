@@ -1,45 +1,12 @@
+/**
+ * Job Category Edit Route Guards
+ * Handles job category edit form validation
+ * @module routes/jobs/categories/edit
+ */
 (() => {
-  try {
-    const fm = document.getElementById("jobCategory-edit-form");
-    if (!fm) return;
-    if (fm.getAttribute("data-submit-guarded") === "true") return;
-    fm.setAttribute("data-submit-guarded", "true");
-    fm.addEventListener("submit", e => {
-      try {
-        const url = (
-          fm.getAttribute("data-url") ||
-          fm.getAttribute("action") ||
-          "#"
-        ).trim();
-        if (!url || url === "#") {
-          e.preventDefault();
-          const msg = fm.getAttribute("data-guard-msg") || "Route unavailable.";
-          const hasBs =
-            !!document.querySelector('link[href*="bootstrap"]') &&
-            !!window.bootstrap?.Toast;
-          if (hasBs) {
-            let c = document.getElementById("toast-container");
-            if (!c) {
-              c = document.createElement("div");
-              c.id = "toast-container";
-              document.body.appendChild(c);
-            }
-            const t = document.createElement("div");
-            t.className = "toast";
-            t.setAttribute("role", "alert");
-            t.setAttribute("aria-live", "assertive");
-            t.setAttribute("aria-atomic", "true");
-            const b = document.createElement("div");
-            b.className = "toast-body";
-            b.textContent = msg;
-            t.appendChild(b);
-            c.appendChild(t);
-            window.bootstrap.Toast.getOrCreateInstance(t).show();
-          } else {
-            alert(msg);
-          }
-        }
-      } catch {}
-    });
-  } catch {}
+  const guard = window.ERPGuard;
+  if (!guard) return;
+  guard.bindSubmitGuard("#jobCategory-edit-form", {
+    fallbackMsg: "Route unavailable.",
+  });
 })();

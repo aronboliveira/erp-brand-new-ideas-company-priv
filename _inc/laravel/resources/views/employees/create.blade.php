@@ -1,121 +1,170 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        YieldingConstants,
-        ViewsConstants as VW
-    };
-    use App\Models\{Branch, Designation, Department, Employee, Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    $lang = Utility::fetchUserLang();
+$lang ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? '';
+	} catch (\Error $e) {
+		Log::error('Error in employees/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in employees/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in employees/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-
-@section(YieldingConstants::ADM_PG_TTL)
-    {{ __('Create Employee') }}
+@extends(EL::ADM)
+@section(YC::ADM_PG_TTL)
+	{{ __('Create Employee') }}
 @endsection
-
-@section(YieldingConstants::ADM_BDC)
-    @php
-        $homeBase       = 'home';
-        $homeKebab      = Str::kebab($homeBase);
-        $homeResolved   = Route::has($homeBase) ? $homeBase : (Route::has($homeKebab) ? $homeKebab : null);
-        $homeUrl        = $homeResolved ? route($homeResolved) : '#';
-        $homeGuardMsg   = Utility::fetchLinkMessage($lang, 'generics', 'home_route_unavailable') ?? 'Home route is unavailable. Please contact technical support or your domain administrator.';
-        $empIndexBase   = VW::EMP.'.index';
-        $empIndexKebab  = Str::kebab($empIndexBase);
-        $empIndexName   = Route::has($empIndexBase) ? $empIndexBase : (Route::has($empIndexKebab) ? $empIndexKebab : null);
-        $empIndexUrl    = $empIndexName ? route($empIndexName) : '#';
-        $empIndexGuard  = Utility::fetchLinkMessage($lang, VW::EMP, 'index_employee_route_unavailable') ?? 'Employee index route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
-        <a id="bc-home-link"
-           href="{{ $homeUrl }}"
-           data-url="{{ $homeUrl }}"
-           data-guard-msg="{{ $homeGuardMsg }}"
-           data-sv-localized="true">
-            {{ __('Home') }}
-        </a>
-    </li>
-    <li class="breadcrumb-item">
-        <a id="bc-employee-index-link"
-           href="{{ $empIndexUrl }}"
-           data-url="{{ $empIndexUrl }}"
-           data-guard-msg="{{ $empIndexGuard }}"
-           data-sv-localized="true">
-            {{ __('Employee') }}
-        </a>
-    </li>
-    <li class="breadcrumb-item">{{ __('Create Employee') }}</li>
+@section(YC::ADM_BDC)
+	@php
+		$homeBase ??= 'home';
+		$homeKebab ??= '';
+		$homeResolved ??= null;
+		$homeUrl ??= '#';
+		$homeGuardMsg ??= '';
+		$empIndexBase ??= VW::EMP.'.index';
+		$empIndexKebab ??= '';
+		$empIndexName ??= null;
+		$empIndexUrl ??= '#';
+		$empIndexGuard ??= '';
+		try {
+			$homeKebab = Str::kebab($homeBase);
+			$homeResolved = Route::has($homeBase)
+				? $homeBase
+				: (Route::has($homeKebab) ? $homeKebab : null);
+			$homeUrl = $homeResolved ? (route($homeResolved) ?? '#') : '#';
+			$homeGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'home_route_unavailable')
+				?? 'Home route is unavailable. Please contact technical support or your domain administrator.';
+			$empIndexKebab = Str::kebab($empIndexBase);
+			$empIndexName = Route::has($empIndexBase)
+				? $empIndexBase
+				: (Route::has($empIndexKebab) ? $empIndexKebab : null);
+			$empIndexUrl = $empIndexName ? (route($empIndexName) ?? '#') : '#';
+			$empIndexGuard = Utility::fetchLinkMessage($lang, VW::EMP, 'index_employee_route_unavailable')
+				?? 'Employee index route is unavailable. Please contact technical support or your domain administrator.';
+		} catch (\Throwable $e) {
+			Log::error('Error in employees/create.blade.php breadcrumb @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		}
+@endphp
+	<li class="{{ VC::BCI }}">
+		<a id="bc-home-link"
+		   href="{{ $homeUrl }}"
+		   data-url="{{ $homeUrl }}"
+		   data-guard-msg="{{ base64_encode($homeGuardMsg) }}"
+		   data-sv-localized="true">
+			{{ __('Home') }}
+		</a>
+	</li>
+	<li class="{{ VC::BCI }}">
+		<a id="bc-employee-index-link"
+		   href="{{ $empIndexUrl }}"
+		   data-url="{{ $empIndexUrl }}"
+		   data-guard-msg="{{ base64_encode($empIndexGuard) }}"
+		   data-sv-localized="true">
+			{{ __('Employee') }}
+		</a>
+	</li>
+	<li class="{{ VC::BCI }}">{{ __('Create Employee') }}</li>
 @endsection
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer src="{{ asset('assets/js/routes/employees/home.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/employees/createIndex.js') }}"></script>
+@push(ST::ADM_SCR_PG)
+	<script defer src="{{ asset('assets/js/routes/employees/home.js') }}"></script>
+	<script defer src="{{ asset('assets/js/routes/employees/createIndex.js') }}"></script>
 @endpush
-
-@section(YieldingConstants::ADM_CTT)
-    <div class="{{ VC::RW }}">
-        <div>
-            <div>
-                <div class="{{ VC::RW }}"></div>
-                @php
-                    $empStoreBase     = VW::EMP;
-                    $empStoreKebab    = Str::kebab($empStoreBase);
-                    $empStoreResolved = Route::has($empStoreBase) ? $empStoreBase : (Route::has($empStoreKebab) ? $empStoreKebab : null);
-                    $empStoreUrl      = $empStoreResolved ? route($empStoreResolved) : '#';
-                    $empStoreFormId   = 'employee-store-form';
-                    $empStoreGuardMsg = Utility::fetchLinkMessage($lang, VW::EMP, 'store_employee_route_unavailable') ?? 'Store employee route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
-                {{ Form::open([
-                    'url'               => $empStoreUrl,
-                    'method'            => 'POST',
-                    'enctype'           => 'multipart/form-data',
-                    'id'                => $empStoreFormId,
-                    'data-url'          => $empStoreUrl,
-                    'data-guard-msg'    => $empStoreGuardMsg,
-                    'data-sv-localized' => 'true',
-                ]) }}
+@section(YC::ADM_CTT)
+	<div class="{{ VC::RW }}">
+		<div>
+			<div>
+				<div class="{{ VC::RW }}"></div>
+				@php
+					$empStoreBase ??= VW::EMP;
+					$empStoreKebab ??= '';
+					$empStoreResolved ??= null;
+					$empStoreUrl ??= '#';
+					$empStoreFormId ??= 'employee-store-form';
+					$empStoreGuardMsg ??= '';
+					try {
+						$empStoreKebab = Str::kebab($empStoreBase);
+						$empStoreResolved = Route::has($empStoreBase)
+							? $empStoreBase
+							: (Route::has($empStoreKebab) ? $empStoreKebab : null);
+						$empStoreUrl = $empStoreResolved ? (route($empStoreResolved) ?? '#') : '#';
+						$empStoreGuardMsg = Utility::fetchLinkMessage($lang, VW::EMP, 'store_employee_route_unavailable')
+							?? 'Store employee route is unavailable. Please contact technical support or your domain administrator.';
+					} catch (\Throwable $e) {
+						Log::error('Error in employees/create.blade.php store form @php block', [
+							'exception_class' => get_class($e),
+							'message' => $e->getMessage(),
+							'file' => $e->getFile(),
+							'line' => $e->getLine(),
+						]);
+					}
+@endphp
+				{{ Form::open([
+					'url'               => $empStoreUrl,
+					'method'            => 'POST',
+					'enctype'           => 'multipart/form-data',
+					'id'                => $empStoreFormId,
+					'data-url'          => $empStoreUrl,
+					'data-guard-msg'    => $empStoreGuardMsg,
+					'data-sv-localized' => 'true',
+				]) }}
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::CD }} em-card">
-                                <div class="card-header">
+                                <div class="{{ VC::CD_HD }}">
                                     <h5>{{ __('Personal Detail') }}</h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {!! Form::label('name', __('Name'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                            {!! Form::label('name', __('Name'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                             {!! Form::text('name', old('name'), ['class' => VC::FM_CT, 'required' => 'required', 'placeholder' => 'Enter employee name']) !!}
                                         </div>
 
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {!! Form::label('phone', __('Phone'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                            {!! Form::label('phone', __('Phone'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                             {!! Form::text('phone', old('phone'), ['class' => VC::FM_CT, 'placeholder' => 'Enter employee phone']) !!}
                                         </div>
 
                                         <div class="{{ VC::CM6 }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {!! Form::label('dob', __('Date of Birth'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                                {!! Form::label('dob', __('Date of Birth'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                                 {{ Form::date('dob', null, ['class' => VC::FM_CT, 'required' => 'required', 'autocomplete' => 'off', 'placeholder' => 'Select Date of Birth']) }}
                                             </div>
                                         </div>
 
                                         <div class="{{ VC::CM6 }}">
                                             <div class="{{ VC::FM_G }}">
-                                                {!! Form::label('gender', __('Gender'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                                {!! Form::label('gender', __('Gender'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                                 <div class="{{ VC::DFL }} radio-check">
-                                                    <div class="custom-control custom-radio custom-control-inline">
+                                                    <div class="{{ VC::CST_CTL }} custom-radio custom-control-inline">
                                                         <input type="radio" id="g_male" value="Male" name="gender" class="form-check-input">
                                                         <label class="form-check-label" for="g_male">{{ __('Male') }}</label>
                                                     </div>
-                                                    <div class="custom-control custom-radio ms-1 custom-control-inline">
+                                                    <div class="{{ VC::CST_CTL }} custom-radio ms-1 custom-control-inline">
                                                         <input type="radio" id="g_female" value="Female" name="gender" class="form-check-input">
                                                         <label class="form-check-label" for="g_female">{{ __('Female') }}</label>
                                                     </div>
-                                                    <div class="custom-control custom-radio ms-1 custom-control-inline">
+                                                    <div class="{{ VC::CST_CTL }} custom-radio ms-1 custom-control-inline">
                                                         <input type="radio" id="g_nb" value="Non-Binary" name="gender" class="form-check-input">
                                                         <label class="form-check-label" for="g_nb">{{ __('Non-Binary') }}</label>
                                                     </div>
@@ -124,18 +173,18 @@
                                         </div>
 
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {!! Form::label('email', __('Email'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                            {!! Form::label('email', __('Email'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                             {!! Form::email('email', old('email'), ['class' => VC::FM_CT, 'required' => 'required', 'placeholder' => 'Enter employee email']) !!}
                                         </div>
 
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {!! Form::label('password', __('Password'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                            {!! Form::label('password', __('Password'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                             {!! Form::password('password', ['class' => VC::FM_CT, 'required' => 'required', 'placeholder' => 'Enter employee new password']) !!}
                                         </div>
                                     </div>
 
                                     <div class="{{ VC::FM_G }}">
-                                        {!! Form::label('address', __('Address'), ['class' => VC::FM_LB]) !!}<span class="text-danger ps-1">*</span>
+                                        {!! Form::label('address', __('Address'), ['class' => VC::FM_LB]) !!}<span class="{{ VC::TX_DNG }} ps-1">*</span>
                                         {!! Form::textarea('address', old('address'), ['class' => VC::FM_CT, 'rows' => 2, 'placeholder' => 'Enter employee address']) !!}
                                     </div>
                                 </div>
@@ -144,10 +193,10 @@
 
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::CD }} em-card">
-                                <div class="card-header">
+                                <div class="{{ VC::CD_HD }}">
                                     <h5>{{ __('Company Detail') }}</h5>
                                 </div>
-                                <div class="card-body employee-detail-create-body">
+                                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                                     <div class="{{ VC::RW }}">
                                         @csrf
 
@@ -187,17 +236,21 @@
                         </div>
                     </div>
                     @php
-                        $docsIsArray      = is_array($documents ?? null) && count($documents ?? []) > 0;
-                        $docsIsCollection = ($documents ?? null) instanceof Collection && ($documents->isNotEmpty());
-                        $docs             = ($docsIsArray || $docsIsCollection) ? $documents : [];
-                    @endphp
+                        try {
+                            $docsIsArray      = is_array($documents ?? null) && count($documents ?? []) > 0;
+                            $docsIsCollection = ($documents ?? null) instanceof Collection && ($documents->isNotEmpty());
+                            $docs             = ($docsIsArray || $docsIsCollection) ? $documents : [];
+                        } catch (\Throwable $e) {
+                            \Log::error('employees/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::RW }}">
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::CD }} em-card">
-                                <div class="card-header">
+                                <div class="{{ VC::CD_HD }}">
                                     <h5>{{ __('Document') }}</h5>
                                 </div>
-                                <div class="card-body employee-detail-create-body">
+                                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                                     @forelse ($docs as $key => $document)
                                         <div class="{{ VC::RW }}">
                                             <div class="{{ VC::FM_G }} {{ VC::C12 }} {{ VC::DFL }}">
@@ -205,7 +258,7 @@
                                                     <label class="{{ VC::FM_LB }} pt-1">
                                                         {{ $document->name ?? __('No name available for document') }}
                                                         @if (!empty($document->is_required) && (int)$document->is_required === 1)
-                                                            <span class="text-danger">*</span>
+                                                            <span class="{{ VC::TX_DNG }}">*</span>
                                                         @endif
                                                     </label>
                                                 </div>
@@ -232,7 +285,7 @@
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="text-center text-muted py-3">{{ __('No documents found for this form.') }}</div>
+                                        <div class="{{ VC::TXCT_MT }} py-3">{{ __('No documents found for this form.') }}</div>
                                     @endforelse
                                 </div>
                             </div>
@@ -240,10 +293,10 @@
 
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::CD }} em-card">
-                                <div class="card-header">
+                                <div class="{{ VC::CD_HD }}">
                                     <h5>{{ __('Bank Account Detail') }}</h5>
                                 </div>
-                                <div class="card-body employee-detail-create-body">
+                                <div class="{{ VC::CD_BD }} employee-detail-create-body">
                                     <div class="{{ VC::RW }}">
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
                                             {!! Form::label('account_holder_name', __('Account Holder Name'), ['class' => VC::FM_LB]) !!}
@@ -308,7 +361,7 @@
                 window.translations?.[lang]?.[k] ||
                 window.translations.en[k] ||
                 errFb;
-            
+
             const toast = msg => {
                 const hasBs = [...document.querySelectorAll('link[rel="stylesheet"]')].some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
                 if (hasBs) {
@@ -329,7 +382,7 @@
                 alert(msg);
                 }
             };
-            
+
             let queuedErr = '';
             const flushErr = () => {
                 if (queuedErr) {
@@ -338,13 +391,13 @@
                 }
             };
             document.addEventListener('click', flushErr);
-            
+
             document
                 .querySelectorAll('input[type="file"][data-filename]')
                 .forEach(input => {
                 if (input.dataset.bound === '1') return;
                 input.dataset.bound = '1';
-            
+
                 const changeHandler = e => {
                     try {
                     const name = e.target.files?.[0]?.name;
@@ -355,9 +408,9 @@
                     queuedErr = tr('file_name_append_failed');
                     }
                 };
-            
+
                 input.addEventListener('change', changeHandler);
-            
+
                 new MutationObserver((m, o) => {
                     m.forEach(rec =>
                     rec.removedNodes.forEach(n => {
@@ -369,7 +422,7 @@
                     );
                 }).observe(document.body, { childList: true, subtree: true });
                 });
-            
+
             const loadDesig = id => {
                 try {
                 $.ajax({
@@ -380,7 +433,7 @@
                     const wrap = document.querySelector('.designation_div');
                     if (!wrap) return;
                     wrap.innerHTML =
-                        `<select class="form-control designation_id" name="designation_id" id="choices-designation">
+                        `<select class="{{ VC::FM_CT }} designation_id" name="designation_id" id="choices-designation">
                         <option value="0">{{ __('All') }}</option>
                         </select>`;
                     Object.entries(data || {}).forEach(([k, v]) =>
@@ -396,7 +449,7 @@
                 queuedErr = tr('designation_fetch_failed');
                 }
             };
-            
+
             $(document).ready(() => loadDesig($('.department_id').val()));
             $(document).on('change', 'select[name=department_id]', function () {
                 loadDesig(this.value);

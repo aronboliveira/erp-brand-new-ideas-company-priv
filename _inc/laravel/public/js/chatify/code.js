@@ -741,7 +741,7 @@ function getContacts() {
   $(".listOfContacts").html(listItemLoading(4));
   $.ajax({
     url: url + "/getContacts",
-    method: "GET",
+    method: "POST",
     data: { _token: access_token, messenger_id: messenger.split("_")[1] },
     dataType: "JSON",
     success: data => {

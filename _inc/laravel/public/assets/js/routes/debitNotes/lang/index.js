@@ -1,3 +1,6 @@
+/**
+ * @requires ERPUtils (translations infrastructure)
+ */
 (() => {
   const billPatch = {
     ar: { bill_fetch_failed: "فشل جلب قيمة الفاتورة." },

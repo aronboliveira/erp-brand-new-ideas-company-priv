@@ -50,7 +50,9 @@ class IndicatorSeeder extends Seeder
 				return;
 			}
 
-			$targetTotal = $this->resolveTargetTotal($pairs);
+			// original: $targetTotal = $this->resolveTargetTotal($pairs);
+			$HARD_CAP = 2;
+			$targetTotal = min($HARD_CAP, $this->resolveTargetTotal($pairs));
 
 			$created = 0;
 			$buffer  = [];
@@ -132,7 +134,7 @@ class IndicatorSeeder extends Seeder
 							DC::COL_TABLE_UPDATER => $creatorId,
 						];
 
-						$output->writeln("Created indicator: Level {$levelEnum->value}, Branch {$branchId}");
+						// $output->writeln("Created indicator: Level {$levelEnum->value}, Branch {$branchId}");
 						$created++;
 						if (count($buffer) >= 500) {
 							DB::table(DC::TABLE_IND)->insert($buffer);

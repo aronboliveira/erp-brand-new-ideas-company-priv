@@ -5,7 +5,7 @@ namespace Tests\Unit\Exports;
 use App\Exports\PayrollExport;
 use App\Models\{Employee, Payslip, User};
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 class PayrollExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test
@@ -33,35 +33,35 @@ class PayrollExportTest extends TestCase
 	 **/
 	public function collection_returns_current_users_current_month_rows(): void
 	{
-		// Freeze time so `date('Y-m')` in the export is deterministic
-		Carbon::setTestNow('2025-05-15');
+		// The export uses PHP's native `date('Y-m')`, so use the real current month
+		$currentMonth = date('Y-m');
+		$otherMonth   = date('Y-m', strtotime('-1 month'));
 
 		$user   = User::factory()->create();
 		$other  = User::factory()->create();
+
+		Auth::login($user);
+
 		$employee = Employee::factory()->create();
 
 		// 2 payslips for $user in the current month
 		Payslip::factory()->count(2)->create([
-			'created_by'     => $user?->creatorId(),
 			'employee_id'    => $employee->id,
-			'salary_month'   => '2025-05',
-			'basic_salary'   => 1_000,
-			'net_payble'     => 900,
+			'salary_month'   => $currentMonth,
 			'status'         => 1,
 		]);
 
 		// 1 payslip for $user in a **different** month (should be ignored)
 		Payslip::factory()->create([
-			'created_by'     => $user?->creatorId(),
 			'employee_id'    => $employee->id,
-			'salary_month'   => '2025-04',
+			'salary_month'   => $otherMonth,
 		]);
 
 		// 1 payslip for a **different** user in the current month
+		Auth::login($other);
 		Payslip::factory()->create([
-			'created_by'     => $other->creatorId(),
 			'employee_id'    => $employee->id,
-			'salary_month'   => '2025-05',
+			'salary_month'   => $currentMonth,
 		]);
 
 		Auth::login($user);
@@ -72,17 +72,23 @@ class PayrollExportTest extends TestCase
 		$this->assertInstanceOf(Collection::class, $collection);
 		$this->assertCount(2, $collection); // only 2 valid rows
 
-		$collection->each(function (array $row) {
+		$collection->each(function (array $row) use ($currentMonth) {
 			// Required derived keys must exist
-			foreach ([
-				'employeeId', 'status', 'employeeName',
-				'salary', 'netSalary', 'month'
-			] as $key) {
+			foreach (
+				[
+					'employeeId',
+					'status',
+					'employeeName',
+					'salary',
+					'netSalary',
+					'month'
+				] as $key
+			) {
 				$this->assertArrayHasKey($key, $row, "Missing `{$key}` column.");
 			}
 
 			// Must be current month
-			$this->assertSame('2025-05', $row['month']);
+			$this->assertSame($currentMonth, $row['month']);
 		});
 	}
 
@@ -96,8 +102,12 @@ class PayrollExportTest extends TestCase
 	{
 		$export  = new PayrollExport();
 		$expected = [
-			'Employee Id', 'Status', 'Employee Name',
-			'Salary', 'Net Salary', 'Month',
+			'Employee Id',
+			'Status',
+			'Employee Name',
+			'Salary',
+			'Net Salary',
+			'Month',
 		];
 
 		$this->assertSame($expected, $export->headings());

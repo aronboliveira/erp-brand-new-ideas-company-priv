@@ -1,16 +1,16 @@
 @php
-    use Illuminate\Support\Collection;
-    use Illuminate\Support\Str;
-    use Illuminate\Support\Facades\Auth;
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    $user = Auth::user();
-    $avatarFolder = config('chatify.user_avatar.folder','uploads/avatar');
-    $avatarBase = '/'.$avatarFolder.'/';
-    $avatarUrl = function($u) use ($avatarBase,$avatarFolder){
-        $file = (string) (data_get($u,'avatar') ?: 'avatar.png');
-        $url = \App\Models\Utility::getFile($avatarBase.$file);
-        return $url ?: asset('/storage/'.$avatarFolder.'/'.$file);
-    };
+    try {
+$user = Auth::user();
+        $avatarFolder = config('chatify.user_avatar.folder','uploads/avatar');
+        $avatarBase = '/'.$avatarFolder.'/';
+        $avatarUrl = function($u) use ($avatarBase,$avatarFolder){
+            $file = (string) (data_get($u,'avatar') ?: 'avatar.png');
+            $url = \App\Models\Utility::getFile($avatarBase.$file);
+            return $url ?: asset('/storage/'.$avatarFolder.'/'.$file);
+        };
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/list_item — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @if(($get ?? '') === 'saved')
     <table class="messenger-list-item m-li-divider @if(('user_'.(string)($user?->id ?? '')) === (string)($id ?? '') && (string)($id ?? '') !== '0') m-list-active @endif">
@@ -30,7 +30,9 @@
                 @if((bool) data_get($user,'active_status'))<span class="activeStatus"></span>@endif
                 <div class="{{ VC::AV_CC_SM }}" style="background-image:url('{{ $avatarUrl($user ?? null) }}');"></div>
             </td>
-            @php $lm = $lastMessage ?? null; @endphp
+            @php
+ $lm = $lastMessage ?? null;
+@endphp
             @if($lm)
                 <td>
                     <p data-id="{{ (string)($type ?? 'user') . '_' . (string) data_get($user,'id','') }}">

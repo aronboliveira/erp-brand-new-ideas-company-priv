@@ -6,13 +6,22 @@ use App\Models\{Noc, Utility};
 use Illuminate\Support\Carbon;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class NocTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
+
+	use SafeAliasMock;
+
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 
 	/**
@@ -22,7 +31,10 @@ class NocTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['lang', 'content', 'created_by'];
+		$expected = [
+			'lang',
+			'content',
+		];
 		$this->assertSame($expected, (new Noc)->getFillable());
 	}
 
@@ -49,7 +61,7 @@ class NocTest extends TestCase
 		Carbon::setTestNow(Carbon::create(2025, 12, 31, 0, 0, 0));
 
 		// Mock Utility::settings() to return a company_name
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([
@@ -90,7 +102,7 @@ class NocTest extends TestCase
 		Carbon::setTestNow(Carbon::create(2025, 1, 1, 0, 0, 0));
 
 		// Mock Utility::settings() to return an empty array
-		Mockery::mock('alias:' . Utility::class)
+		$this->aliasMock(Utility::class)
 			->shouldReceive('settings')
 			->once()
 			->andReturn([]);
@@ -118,7 +130,7 @@ class NocTest extends TestCase
 	public function default_noc_certificate_creates_expected_number_of_records(): void
 	{
 		// Count of languages defined in defaultNocCertificate: 16
-		$creator = Mockery::mock('alias:' . Noc::class)
+		$creator = $this->aliasMock(Noc::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)
@@ -143,7 +155,7 @@ class NocTest extends TestCase
 		// Use a sample user ID
 		$userId = 42;
 
-		$creator = Mockery::mock('alias:' . Noc::class)
+		$creator = $this->aliasMock(Noc::class)
 			->shouldAllowMockingProtectedMethods()
 			->shouldReceive('create')
 			->times(16)

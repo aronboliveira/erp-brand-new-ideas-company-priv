@@ -8,6 +8,11 @@ use App\Models\{SupportReply, User};
 
 class SupportReplyTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -18,7 +23,21 @@ class SupportReplyTest extends TestCase
 	public function it_has_expected_fillable_fields()
 	{
 		$expected = [
-			'support_id', 'user', 'description', 'created_by', 'is_read'
+			'code',
+			'support_id',
+			'user',
+			'description',
+			'sent_at',
+			'is_read',
+			'read_at',
+			'email',
+			'notification',
+			'task',
+			'form',
+			'form_response',
+			'log',
+			'attachment',
+			'other_attachments',
 		];
 		$this->assertEquals($expected, (new SupportReply())->getFillable());
 	}

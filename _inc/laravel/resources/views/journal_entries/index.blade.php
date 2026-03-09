@@ -1,25 +1,18 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        PermissionsConstants as PERM,
-        StacksConstants as ST,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth, Route};
+    $journalEntries ??= collect();
+    try {
+$user                 = Auth::user();
+        $hasFetchUserLang     = is_callable([Utility::class, 'fetchUserLang']);
+        $hasFetchLinkMessage  = is_callable([Utility::class, 'fetchLinkMessage']);
+        $lang                 = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
 
-    $user                 = Auth::user();
-    $hasFetchUserLang     = is_callable([Utility::class, 'fetchUserLang']);
-    $hasFetchLinkMessage  = is_callable([Utility::class, 'fetchLinkMessage']);
-    $lang                 = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
-
-    $hasDateFormat             = is_object($user) && method_exists($user, 'dateFormat');
-    $hasTimeFormat             = is_object($user) && method_exists($user, 'timeFormat');
-    $hasPriceFormat            = is_object($user) && method_exists($user, 'priceFormat');
-    $hasJournalNumberFormat    = is_object($user) && method_exists($user, 'journalNumberFormat');
+        $hasDateFormat             = is_object($user) && method_exists($user, 'dateFormat');
+        $hasTimeFormat             = is_object($user) && method_exists($user, 'timeFormat');
+        $hasPriceFormat            = is_object($user) && method_exists($user, 'priceFormat');
+        $hasJournalNumberFormat    = is_object($user) && method_exists($user, 'journalNumberFormat');
+    } catch (\Throwable $e) {
+        \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -29,29 +22,33 @@
 @endsection
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Journal Entry') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Journal Entry') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can(PERM::CR_JNL)
             @php
-                $createBase = VW::JRN_ET.'.create';
-                $createUrl  = Route::has($createBase) ? route($createBase) : '#';
-                $createMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'create_journal_entry_unavailable') : null)
-                              ?? __('Create journal entry route is unavailable. Please contact technical support or your domain administrator.');
-            @endphp
+                try {
+                    $createBase = VW::JRN_ET.'.create';
+                    $createUrl  = Route::has($createBase) ? route($createBase) : '#';
+                    $createMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'create_journal_entry_unavailable') : null)
+                                  ?? __('Create journal entry route is unavailable. Please contact technical support or your domain administrator.');
+                } catch (\Throwable $e) {
+                    \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a  href="{{ $createUrl }}"
                 data-url="{{ $createUrl }}"
                 data-ajax-popup="true"
                 data-title="{{ __('Create New Journal') }}"
                 data-sv-localized="true"
-                data-guard-msg="{{ $createMsg }}"
+                data-guard-msg="{{ base64_encode($createMsg) }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
                 class="{{ VC::BT_SM_PM }}">
@@ -64,16 +61,16 @@
 @section(YW::ADM_CTT)
     @if(!$user)
         <div class="{{ VC::CD }} {{ VC::MB3 }}">
-            <div class="card-body">
-                <div class="alert alert-warning mb-0" role="alert">{{ __('The current user context was not available; data could not be formatted or displayed.') }}</div>
+            <div class="{{ VC::CD_BD }}">
+                <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The current user context was not available; data could not be formatted or displayed.') }}</div>
             </div>
         </div>
     @else
         <div class="{{ VC::RW }}">
-            <div class="col-xl-12">
+            <div class="{{ VC::CXL12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                     <tr>
@@ -87,34 +84,42 @@
                                 <tbody>
                                     @foreach ($journalEntries as $entry)
                                         @php
-                                            $eid            = isset($entry->id) ? (string)$entry->id : '';
-                                            $rawDate        = $entry->date ?? null;
-                                            $dateTxt        = $rawDate
-                                                ? ($hasDateFormat ? $user->dateFormat($rawDate) : __('Failed to format date.'))
-                                                : __('Date was not available.');
-                                            $hasTotalCredit = is_object($entry) && method_exists($entry, 'totalCredit');
-                                            $amountRaw      = $hasTotalCredit ? $entry->totalCredit() : null;
-                                            $amountTxt      = $amountRaw !== null
-                                                ? ($hasPriceFormat ? $user->priceFormat($amountRaw) : number_format((float)$amountRaw, 2))
-                                                : __('Amount total was not available.');
-                                            $descTxt        = isset($entry->description) && $entry->description !== '' ? $entry->description : '-';
-                                        @endphp
+                                            try {
+                                                $eid            = isset($entry->id) ? (string)$entry->id : '';
+                                                $rawDate        = $entry->date ?? null;
+                                                $dateTxt        = $rawDate
+                                                    ? ($hasDateFormat ? $user->dateFormat($rawDate) : __('Failed to format date.'))
+                                                    : __('Date was not available.');
+                                                $hasTotalCredit = is_object($entry) && method_exists($entry, 'totalCredit');
+                                                $amountRaw      = $hasTotalCredit ? $entry->totalCredit() : null;
+                                                $amountTxt      = $amountRaw !== null
+                                                    ? ($hasPriceFormat ? $user->priceFormat($amountRaw) : number_format((float)$amountRaw, 2))
+                                                    : __('Amount total was not available.');
+                                                $descTxt        = isset($entry->description) && $entry->description !== '' ? $entry->description : '-';
+                                            } catch (\Throwable $e) {
+                                                \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             @can(PERM::SHW_JNL)
                                                 @php
-                                                    $showBase = VW::JRN_ET.'.show';
-                                                    $showUrl  = (Route::has($showBase) && $eid !== '') ? route($showBase, $eid) : '#';
-                                                    $showMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'show_journal_entry_unavailable') : null)
-                                                                ?? __('Show journal entry route is unavailable. Please contact technical support or your domain administrator.');
-                                                    $jnRaw    = $entry->journal_id ?? null;
-                                                    $jnTxt    = $jnRaw !== null
-                                                        ? ($hasJournalNumberFormat ? $user->journalNumberFormat($jnRaw) : __('Failed to format journal number.'))
-                                                        : __('Journal number was not available.');
-                                                @endphp
+                                                    try {
+                                                        $showBase = VW::JRN_ET.'.show';
+                                                        $showUrl  = (Route::has($showBase) && $eid !== '') ? route($showBase, $eid) : '#';
+                                                        $showMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'show_journal_entry_unavailable') : null)
+                                                                    ?? __('Show journal entry route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $jnRaw    = $entry->journal_id ?? null;
+                                                        $jnTxt    = $jnRaw !== null
+                                                            ? ($hasJournalNumberFormat ? $user->journalNumberFormat($jnRaw) : __('Failed to format journal number.'))
+                                                            : __('Journal number was not available.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <td class="Id">
                                                     <a  href="{{ $showUrl }}"
                                                         data-url="{{ $showUrl }}"
-                                                        data-guard-msg="{{ $showMsg }}"
+                                                        data-guard-msg="{{ base64_encode($showMsg) }}"
                                                         data-sv-localized="true"
                                                         class="{{ VC::BT_OUTPM }}">
                                                         {{ $jnTxt }}
@@ -122,11 +127,15 @@
                                                 </td>
                                             @else
                                                 @php
-                                                    $jnRaw    = $entry->journal_id ?? null;
-                                                    $jnTxt    = $jnRaw !== null
-                                                        ? ($hasJournalNumberFormat ? $user->journalNumberFormat($jnRaw) : __('Failed to format journal number.'))
-                                                        : __('Journal number was not available.');
-                                                @endphp
+                                                    try {
+                                                        $jnRaw    = $entry->journal_id ?? null;
+                                                        $jnTxt    = $jnRaw !== null
+                                                            ? ($hasJournalNumberFormat ? $user->journalNumberFormat($jnRaw) : __('Failed to format journal number.'))
+                                                            : __('Journal number was not available.');
+                                                    } catch (\Throwable $e) {
+                                                        \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    }
+@endphp
                                                 <td class="Id">{{ $jnTxt }}</td>
                                             @endcan
 
@@ -137,16 +146,20 @@
                                                 <span>
                                                     @can(PERM::ED_JNL)
                                                         @php
-                                                            $editBase = VW::JRN_ET.'.edit';
-                                                            $editUrl  = (Route::has($editBase) && $eid !== '') ? route($editBase, [$eid]) : '#';
-                                                            $editMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'edit_journal_entry_unavailable') : null)
-                                                                        ?? __('Edit journal entry route is unavailable. Please contact technical support or your domain administrator.');
-                                                        @endphp
+                                                            try {
+                                                                $editBase = VW::JRN_ET.'.edit';
+                                                                $editUrl  = (Route::has($editBase) && $eid !== '') ? route($editBase, [$eid]) : '#';
+                                                                $editMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'edit_journal_entry_unavailable') : null)
+                                                                            ?? __('Edit journal entry route is unavailable. Please contact technical support or your domain administrator.');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a  href="{{ $editUrl }}"
                                                                 class="{{ VC::BT_SM_CT }}"
                                                                 data-url="{{ $editUrl }}"
-                                                                data-guard-msg="{{ $editMsg }}"
+                                                                data-guard-msg="{{ base64_encode($editMsg) }}"
                                                                 data-sv-localized="true"
                                                                 data-ajax-popup="true"
                                                                 data-title="{{ __('Edit Journal Entry') }}"
@@ -159,14 +172,18 @@
 
                                                     @can(PERM::DEL_JNL)
                                                         @php
-                                                            $destroyBase = VW::JRN_ET.'.destroy';
-                                                            $destroyUrl  = (Route::has($destroyBase) && $eid !== '') ? route($destroyBase, $eid) : '#';
-                                                            $destroyMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'destroy_journal_entry_unavailable') : null)
-                                                                            ?? __('Delete journal entry route is unavailable. Please contact technical support or your domain administrator.');
-                                                            $delFormId   = 'delete-journal-entry-form-'.($eid === '' ? 'x' : $eid);
-                                                            $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
-                                                            $confirmBody  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
-                                                        @endphp
+                                                            try {
+                                                                $destroyBase = VW::JRN_ET.'.destroy';
+                                                                $destroyUrl  = (Route::has($destroyBase) && $eid !== '') ? route($destroyBase, $eid) : '#';
+                                                                $destroyMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::JRN_ET, 'destroy_journal_entry_unavailable') : null)
+                                                                                ?? __('Delete journal entry route is unavailable. Please contact technical support or your domain administrator.');
+                                                                $delFormId   = 'delete-journal-entry-form-'.($eid === '' ? 'x' : $eid);
+                                                                $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                                $confirmBody  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('journal_entries/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Form::open([
                                                                 'method'            => 'DELETE',

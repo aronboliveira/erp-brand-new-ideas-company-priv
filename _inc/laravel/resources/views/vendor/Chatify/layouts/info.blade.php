@@ -1,11 +1,12 @@
 @php
-    use App\Config\Constants\ViewClassNamesConstants as VC;
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Auth;
-    $profile = Utility::getFile('uploads/avatar/');
-    $avatarUrl = !empty($user?->avatar)
-        ? ($profile . '/' . $user->avatar)
-        : asset('/storage/' . config('chatify.user_avatar.folder') . '/avatar.png');
+    try {
+$profile = Utility::getFile('uploads/avatar/');
+        $avatarUrl = !empty($user?->avatar)
+            ? ($profile . '/' . $user->avatar)
+            : asset('/storage/' . config('chatify.user_avatar.folder') . '/avatar.png');
+    } catch (\Throwable $e) {
+        \Log::error('vendor/Chatify/layouts/info — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 <div class="{{ VC::AV_CC }} av-l"
@@ -25,7 +26,6 @@
     <p class="messenger-title">{{ __('Shared photos') }}</p>
     <div class="shared-photos-list"></div>
 </div>
-
 
 {{-- <a href="#" class="default"><i class="ti ti-camera"></i> default</a> --}}
 {{--    <div class="avatar av-l" style="background-image: url('{{ asset('/storage/'.config('chatify.user_avatar.folder').'/'.Auth::user()->avatar) }}');">--}}

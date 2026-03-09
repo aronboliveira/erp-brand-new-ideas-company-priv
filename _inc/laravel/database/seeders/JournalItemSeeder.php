@@ -14,7 +14,8 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 class JournalItemSeeder extends Seeder
 {
 	private ConsoleOutput $out;
-	private const SECONDS_LIMIT = 4 * 10 ** 2;
+	// private const SECONDS_LIMIT = 4 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 
 	public function __construct()
 	{
@@ -36,7 +37,8 @@ class JournalItemSeeder extends Seeder
 			return;
 		}
 
-		$hardCap = 512;
+		// $hardCap = 512;
+		$hardCap = 2;
 
 		$existing = 0;
 		try {
@@ -316,7 +318,7 @@ class JournalItemSeeder extends Seeder
 					'metadata' => $this->chance(0.50) ? ['seed' => true, 'side' => 'debit', 'line' => $line] : null,
 				];
 
-				$this->out->writeln("[JIT " . ($created + 1) . "/{$totalPlanned}] je={$journalId} line={$line} debit={$amount} currency={$currency} trx=" . ($transactionId ?: 'null'));
+				// $this->out->writeln("[JIT " . ($created + 1) . "/{$totalPlanned}] je={$journalId} line={$line} debit={$amount} currency={$currency} trx=" . ($transactionId ?: 'null'));
 
 				try {
 					$item = new JournalItem();
@@ -432,7 +434,7 @@ class JournalItemSeeder extends Seeder
 					'metadata' => $this->chance(0.50) ? ['seed' => true, 'side' => 'credit', 'line' => $line] : null,
 				];
 
-				$this->out->writeln("[JIT " . ($created + 1) . "/{$totalPlanned}] je={$journalId} line={$line} credit={$amount} currency={$currency} trx=" . ($transactionId ?: 'null'));
+				// $this->out->writeln("[JIT " . ($created + 1) . "/{$totalPlanned}] je={$journalId} line={$line} credit={$amount} currency={$currency} trx=" . ($transactionId ?: 'null'));
 
 				try {
 					$item = new JournalItem();

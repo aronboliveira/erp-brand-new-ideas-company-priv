@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\Indicator;
 use App\Models\Utility;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\{DB, Artisan, Log, Route};
 use Illuminate\Support\Str;
@@ -14,6 +16,8 @@ class DatabaseSeeder extends Seeder
     private const LP = 'LandingPage';
     public function run(): void
     {
+        // Allow seeders to mass-assign guarded attributes (created_by, id, etc.)
+        Model::unguard();
         $output = new ConsoleOutput();
         $output->writeln('<info>Starting the database seeding process</info>');
         $this->call(NotificationSeeder::class);
@@ -31,6 +35,7 @@ class DatabaseSeeder extends Seeder
             $output->writeln('<info>Duration: ' . $finishedIn . ' seconds</info>');
             Log::info('Database seeding completed in ' . $finishedIn . ' seconds, at ' . $finishedAt . ', taking a total of ' . ($finishedIn * 1000) . ' milliseconds');
         } else Utility::languageCreate();
+        Model::reguard();
     }
     private function shouldSeedStandardTables(): bool
     {
@@ -270,6 +275,8 @@ class DatabaseSeeder extends Seeder
                     LogActivitySeeder::class,
                     ActivityLogSeeder::class,
                     StockReportSeeder::class,
+                    DashboardSeeder::class,
+                    AccountStatementSeeder::class,
                 ] as $mockSeeder
             ) {
                 try {
@@ -334,6 +341,21 @@ class DatabaseSeeder extends Seeder
         } catch (\Exception $e) {
             $output->writeln('<error>Seeding mocks failed: ' . $e->getMessage() . ' in ' . $lastSeeder . '</error>');
             Log::warning('Seeding mocks failed: ', ['message' => $e->getMessage(), 'seeder' => $lastSeeder]);
+        }
+        // Re-seed leads: they get wiped during seeding by an unidentified cascade
+        try {
+            $output->writeln('<comment>Re-seeding leads (post-seed fix)...</comment>');
+            $this->call(LeadSeeder::class);
+        } catch (\Throwable $e) {
+            Log::warning('Post-seed LeadSeeder re-run failed: ' . $e->getMessage());
+        }
+
+        // Final pass: ensure every content-validated route has at least some data
+        try {
+            $output->writeln('<info>Running ContentValidationSeeder (gap-fill)...</info>');
+            $this->call(ContentValidationSeeder::class);
+        } catch (\Throwable $e) {
+            Log::warning('ContentValidationSeeder failed: ' . $e->getMessage());
         }
     }
 }

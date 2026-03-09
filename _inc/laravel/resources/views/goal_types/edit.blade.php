@@ -1,22 +1,47 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-    use Collective\Html\FormFacade as Form;
-
-    $lang          = Utility::fetchUserLang();
-    $hasGoalType   = !empty($goalType ?? null) && data_get($goalType, 'id');
-
-    $updateBase     = VW::GL_TP . '.update';
-    $updateKebab    = Str::kebab($updateBase);
-    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
-    $updateUrl      = ($updateResolved && $hasGoalType) ? route($updateResolved, $goalType->id) : '#';
-    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::GL_TP, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+$lang ??= 'en';
+	$hasGoalType ??= false;
+	$updateBase ??= '';
+	$updateKebab ??= '';
+	$updateResolved ??= null;
+	$updateUrl ??= '#';
+	$updateGuardMsg ??= '';
+	$goalTypeId ??= null;
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$goalTypeId = data_get($goalType ?? null, 'id');
+		$hasGoalType = !empty($goalType ?? null) && $goalTypeId;
+		$updateBase = VW::GL_TP . '.update';
+		$updateKebab = Str::kebab($updateBase);
+		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+		$updateUrl = ($updateResolved && $goalTypeId) ? (route($updateResolved, $goalTypeId) ?? '#') : '#';
+		$updateGuardMsg = Utility::fetchLinkMessage($lang, VW::GL_TP, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+	} catch (\\Error $e) {
+		Log::error('Error in goal_types/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\\Exception $e) {
+		Log::error('Exception in goal_types/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\\Throwable $e) {
+		Log::error('Throwable in goal_types/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 @if(!$hasGoalType)
-    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested goal type was not found or is unavailable.') }}</div>
+    <div class="{{ VC::ALT_WRN_MB0 }}" role="alert">{{ __('The requested goal type was not found or is unavailable.') }}</div>
 @else
     {{ Form::model($goalType, [
         'url'               => $updateUrl,
@@ -28,13 +53,13 @@
     ]) }}
         <div class="modal-body">
             <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
+                <div class="{{ VC::CM12 }}">
+                    <div class="{{ VC::FM_G }}">
                         {{ Form::label('name', __('Name'), ['class' => 'form-label']) }}
                         {{ Form::text('name', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Goal Type Name')]) }}
                         @error('name')
                             <span class="invalid-name" role="alert">
-                                <strong class="text-danger">{{ $message }}</strong>
+                                <strong class="{{ VC::TX_DNG }}">{{ $message }}</strong>
                             </span>
                         @enderror
                     </div>

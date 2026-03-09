@@ -1,16 +1,10 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+    $data ??= [];
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('reports/deal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -18,25 +12,25 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Deal Report')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Deal Report')}}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_deals_report_unavailable') ?? 'Download function for deals report is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+@endphp
         <a href="#"
         id="download-deals-pdf-link"
         class="{{ VC::BT_SM_PM }} download-deals-report"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
         title="{{ __('Download') }}"
@@ -55,12 +49,16 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CXL3 }}">
                     @php
-                        $reports = [
-                            ['id' => 'general-report',  'label' => __('General Report')],
-                            ['id' => 'staff-report',    'label' => __('Staff Report')],
-                            ['id' => 'pipeline-report', 'label' => __('Pipelines Report')],
-                        ];
-                    @endphp
+                        try {
+                            $reports = [
+                                ['id' => 'general-report',  'label' => __('General Report')],
+                                ['id' => 'staff-report',    'label' => __('Staff Report')],
+                                ['id' => 'pipeline-report', 'label' => __('Pipelines Report')],
+                            ];
+                        } catch (\Throwable $e) {
+                            \Log::error('reports/deal — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     <div class="{{ VC::CD_STK }}" style="top:30px">
                         <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                             @forelse($reports as $report)
@@ -71,7 +69,7 @@
                                     </div>
                                 </a>
                             @empty
-                                <span class="d-block px-3 py-2">{{ __('No report sections available') }}</span>
+                                <span class="{{ VC::DBL }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ __('No report sections available') }}</span>
                             @endforelse
                         </div>
                     </div>
@@ -80,35 +78,37 @@
                 <div class="col-xl-9">
                     <div id="general-report">
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <h5>{{ __('This Week Deals Conversions') }}</h5>
                             </div>
-                            <div class="card-body pt-0">
+                            <div class="{{ VC::CD_BD }} pt-0">
                                 <div id="deals-this-week" data-color="primary" data-height="280">
-                                    <div class="text-muted small">{{ __('Chart will appear here when data is available') }}</div>
+                                    <div class="{{ VC::TXT_MT }} small">{{ __('Chart will appear here when data is available') }}</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <h5>{{ __('Sources Conversion') }}</h5>
                             </div>
-                            <div class="card-body pt-0">
+                            <div class="{{ VC::CD_BD }} pt-0">
                                 <div class="deals-sources-report" id="deals-sources-report" data-color="primary" data-height="280">
-                                    <div class="text-muted small">{{ __('Chart will appear here when data is available') }}</div>
+                                    <div class="{{ VC::TXT_MT }} small">{{ __('Chart will appear here when data is available') }}</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="{{ VC::CD }}">
-                            <div class="card-header">
+                            <div class="{{ VC::CD_HD }}">
                                 <div class="{{ VC::RW }}">
-                                    <div class="col-9">
+                                    <div class="{{ VC::C9 }}">
                                         <h5>{{ __('Monthly') }}</h5>
                                     </div>
                                     <div class="col-3 {{ VC::FEND }}">
-                                        @php $selMonth = (string)request('month', ''); @endphp
+                                        @php
+ $selMonth = (string)request('month', '');
+@endphp
                                         <select name="month" class="{{ VC::FM_CT }} selectpicker" id="selectmonth" data-none-selected-text="{{ __('Nothing selected') }}">
                                             <option value="">{{ __('Select Month') }}</option>
                                             <option value="1"  {{ $selMonth==='1'  ? 'selected' : '' }}>{{ __('January') }}</option>
@@ -127,10 +127,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
+                            <div class="{{ VC::CD_BD }}">
                                 <div class="{{ VC::MT3 }}">
                                     <div id="deals-monthly" data-color="primary" data-height="280">
-                                        <div class="text-muted small">{{ __('Chart will appear here when data is available') }}</div>
+                                        <div class="{{ VC::TXT_MT }} small">{{ __('Chart will appear here when data is available') }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -138,39 +138,39 @@
                     </div>
 
                     <div id="staff-report" class="{{ VC::CD }}">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <h5>{{ __('Staff Report') }}</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::CM4 }}">
                                     {{ Form::label('from_date', __('From Date'), ['class'=>'col-form-label']) }}
                                     {{ Form::date('from_date', request('from_date'), ['class' => VC::FM_CT.' from_date','id'=>'data_picker1']) }}
-                                    <span id="fromDate" class="d-block small" style="color: red;"></span>
+                                    <span id="fromDate" class="{{ VC::DBL }} small" style="color: red;"></span>
                                 </div>
                                 <div class="{{ VC::CM4 }}">
                                     {{ Form::label('to_date', __('To Date'), ['class'=>'col-form-label']) }}
                                     {{ Form::date('to_date', request('to_date'), ['class' => VC::FM_CT.' to_date','id'=>'data_picker2']) }}
-                                    <span id="toDate" class="d-block small" style="color: red;"></span>
+                                    <span id="toDate" class="{{ VC::DBL }} small" style="color: red;"></span>
                                 </div>
                                 <div class="{{ VC::CM4 }}" id="filter_type" style="padding-top:38px;">
                                     <button class="{{ VC::BT_PRM }} label-margin generate_button" type="button">{{ __('Generate') }}</button>
                                 </div>
                             </div>
                             <div id="deals-staff-report" class="{{ VC::MT3 }}" data-color="primary" data-height="280">
-                                <div class="text-muted small">{{ __('Chart will appear here when data is available') }}</div>
+                                <div class="{{ VC::TXT_MT }} small">{{ __('Chart will appear here when data is available') }}</div>
                             </div>
                         </div>
                     </div>
 
                     <div id="pipeline-report" class="{{ VC::CD }}">
-                        <div class="card-header">
+                        <div class="{{ VC::CD_HD }}">
                             <h5>{{ __('Pipeline Report') }}</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="{{ VC::CD_BD }}">
                             <div class="{{ VC::RW }}">
                                 <div id="deals-piplines-report" data-color="primary" data-height="280">
-                                    <div class="text-muted small">{{ __('Chart will appear here when data is available') }}</div>
+                                    <div class="{{ VC::TXT_MT }} small">{{ __('Chart will appear here when data is available') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -197,7 +197,7 @@
             const dataErrGuard="data-error-guard";
             const dataListenerGuard="data-listener-guard";
             const ensureToastContainer=()=>{const id="np-toast-container";let c=qs("#"+id);if(c){return c;}c=document.createElement("div");c.id=id;c.setAttribute("aria-live","polite");c.setAttribute("aria-atomic","true");c.style.position="fixed";c.style.top="1rem";c.style.right="1rem";document.body.appendChild(c);return c;};
-            const showErrorNow=(message)=>{const hasBootstrap=(qs('link[rel="stylesheet"][href*="bootstrap"]')||qs('link[href*="bootstrap"]'))&&window.bootstrap&&window.bootstrap.Toast;if(hasBootstrap){const container=ensureToastContainer();const tid="np-toast";let t=qs("#"+tid,container);if(!t){t=document.createElement("div");t.id=tid;t.className="toast";t.setAttribute("role","alert");t.setAttribute("aria-live","assertive");t.setAttribute("aria-atomic","true");t.innerHTML='<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';container.appendChild(t);}const body=qs(".toast-body",t);if(body){body.textContent=message??errFb;}try{new window.bootstrap.Toast(t,{autohide:true,delay:4000}).show();}catch(_){alert(message??errFb);}}else{alert(message??errFb);}};
+            const showErrorNow=(message)=>{const hasBootstrap=(qs('link[rel="stylesheet"][href*="bootstrap"]')||qs('link[href*="bootstrap"]'))&&window.bootstrap&&window.bootstrap.Toast;if(hasBootstrap){const container=ensureToastContainer();const tid="np-toast";let t=qs("#"+tid,container);if(!t){t=document.createElement("div");t.id=tid;t.className="toast";t.setAttribute("role","alert");t.setAttribute("aria-live","assertive");t.setAttribute("aria-atomic","true");t.innerHTML='<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';container.appendChild(t);}const body=qs(".toast-body",t);if(body){body.textContent=message??errFb;}try{new window.bootstrap.Toast(t,{autohide:true,delay:4000}).show();}catch(_){alert(message??errFb);}}else{alert(message??errFb);}};
             const scheduleInteractiveError=(message)=>{const host=document.body;if(!host||host.getAttribute(dataErrGuard)==="true"){return;}host.setAttribute(dataErrGuard,"true");const once=()=>{try{showErrorNow(message);}finally{host.removeAttribute(dataErrGuard);}};document.addEventListener("pointerup",once,{once:true});};
             const getMsgFor=(el,key)=>{const errFbL=errFb;const dataClientLocalizedL=dataClientLocalized;const dataGuardMsgL=dataGuardMsg;let msg=errFbL;if(el.getAttribute("data-sv-localized")==="true"||el.getAttribute(dataClientLocalizedL)==="true"){msg=el.getAttribute(dataGuardMsgL)||errFbL;}else{let lang=(window.sessionStorage.getItem("erp-np-lang")||document.documentElement.lang||"en").toLowerCase().replace(/_/g,"-");lang=lang==="pt-br"?lang:lang.slice(0,2);const msgKey=key;msg=window.translations?.[lang]?.[msgKey]||el.getAttribute(dataGuardMsgL)||window.translations?.["en"]?.[msgKey]||errFbL;if(msg!==errFbL){el.setAttribute(dataGuardMsgL,msg);el.setAttribute(dataClientLocalizedL,"true");}}return msg;};
             const bindWithObserver=(el,evt,handler,flag)=>{if(!el||el.getAttribute(flag)==="true"){return;}el.setAttribute(flag,"true");$(el).on(evt,handler);const mo=new MutationObserver((m,o)=>{if(!document.body.contains(el)){$(el).off(evt,handler);o.disconnect();}});mo.observe(document.body,{childList:true,subtree:true});};
@@ -233,4 +233,3 @@
         })();
     </script>
 @endpush
-

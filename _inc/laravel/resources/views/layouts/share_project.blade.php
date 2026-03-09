@@ -1,9 +1,5 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,SettingsConstants,ViewClassNamesConstants};
-	use App\Models\{Project,User,Utility};
-	use Illuminate\Support\Facades\{Crypt,Log,Request};
-	use Symfony\Component\Console\Output\ConsoleOutput;
-	$route??='';
+$route??='';
 	$segment??='';
 	$id??='';
 	$project??=null;
@@ -20,14 +16,14 @@
 		$segment=Request::segment(3)?:'';
 		$id=Crypt::decrypt($segment)?:'';
 		$project=Project::find($id);
-		$user=User::find($project[DatabaseConstants::COL_TABLE_CREATOR]??null);
+		$user=User::find($project[DC::COL_TABLE_CREATOR]??null);
         $lang = Utility::fetchUserLang(user:$user);
 		$data=Utility::prepareCommonViewData($user?->creatorId(),'uploads/logo')?:[];
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$siteRtl=$data[SettingsConstants::RTL]??false;
-		$company_favicon=$data[SettingsConstants::FAV_ICN]??'';
-		$logo=$data[SettingsConstants::LOGO]??'';
-		$color=$data[SettingsConstants::THM_CLR]??'';
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$siteRtl=$data[SC::RTL]??false;
+		$company_favicon=$data[SC::FAV_ICN]??'';
+		$logo=$data[SC::LOGO]??'';
+		$color=$data[SC::THM_CLR]??'';
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 	} catch (\Error $e) {
 		Log::error(
@@ -72,7 +68,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl === 'on'?'rtl':''}}">
+<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG) }}" dir="{{$siteRtl === 'on'?'rtl':''}}">
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>
@@ -90,16 +86,21 @@
         @if ($siteRtl == 'on')
             <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
         @endif
+        {{-- ERP Guard & Utils Initialization (Blocking) --}}
+        <script>
+            window.ERPGuard = window.ERPGuard || null;
+            window.ERPUtils = window.ERPUtils || null;
+        </script>
     </head>
     <body class="{{$color}}">
-        <div class="{{ ViewClassNamesConstants::CT }}">
-        <div class="dash-content">
+        <div class="{{ VC::CT }}">
+        <div class="{{ VC::DSH_CTT }}">
             <!-- [ breadcrumb ] start -->
-            <div class="page-header">
-                <div class="page-block">
-                    <div class="row align-items-center">
-                        <div class="col-md-12 mt-5 mb-4">
-                            <div class="d-block d-sm-flex align-items-center justify-content-between">
+            <div class="{{ VC::PG_HDR }}">
+                <div class="{{ VC::PG_BLK }}">
+                    <div class="{{ VC::R_ALC }}">
+                        <div class="{{ VC::CM12 }} mt-5 {{ VC::MB4 }}">
+                            <div class="d-block d-sm-flex {{ VC::ALC }} {{ VC::JCB }}">
                                 <div>
                                 </div>
                                 <div>
@@ -139,15 +140,19 @@
                 '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
             );
         </script>
+        {{-- ERP Guard & Utils Core Classes (Deferred) --}}
+        <script src="{{ asset('assets/js/core/erp-guard.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
         @stack(StacksConstants::SHR_PRJ_SCR_PG)
+        @include('partials.global-error-handler')
     </body>
-    <div class="{{ ViewClassNamesConstants::MD_FD }}" id="commonModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="{{ VC::MD_FD }}" id="commonModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+        <div class="{{ VC::MDL_DLG }}" role="document">
+            <div class="{{ VC::MDL_CTT }}">
+                <div class="{{ VC::MDL_HDR }}">
+                    <h5 class="{{ VC::MDL_TTL }}" id="exampleModalLabel"></h5>
+                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="body">
                 </div>
@@ -155,4 +160,3 @@
         </div>
     </div>
 </html>
-

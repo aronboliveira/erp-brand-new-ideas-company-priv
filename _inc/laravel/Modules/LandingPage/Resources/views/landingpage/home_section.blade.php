@@ -1,8 +1,5 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants,YieldingConstants};
-	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LandingPageSettingsConstants};
+
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
@@ -79,13 +76,17 @@
                             </div>
                         </div>
                         @php
-                            $uploadRoute = Route::has(R::HM.'.store') ? route(R::HM.'.store') : '#';
-                            $message = Utility::fetchLinkMessage(
-                                $lang,
-                                R::HM,
-                                'store_home_unavailable'
-                            ) ?? 'Home settings save route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
+                            try {
+                                $uploadRoute = Route::has(R::HM.'.store') ? route(R::HM.'.store') : '#';
+                                $message = Utility::fetchLinkMessage(
+                                    $lang,
+                                    R::HM,
+                                    'store_home_unavailable'
+                                ) ?? 'Home settings save route is unavailable. Please contact technical support or your domain administrator.';
+                            } catch (\Throwable $e) {
+                                \Log::error('Modules/LandingPage/Resources/views/landingpage/home_section — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                            }
+@endphp
                         {!! Collective\Html\FormFacade::open([
                             'url'             => $uploadRoute,
                             'method'          => 'post',
@@ -100,7 +101,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Offer Text', __('Offer Text'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_OFF_TXT_K, $lpSettings[LandingPageSettingsConstants::HM_OFF_TXT_K], ['class' => 'form-control', 'placeholder' => __('70% Special Offer')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_OFF_TXT_K, $lpSettings[LPSC::HM_OFF_TXT_K], ['class' => 'form-control', 'placeholder' => __('70% Special Offer')]) }}
                                             @error('mail_driver')
                                                 <span class="invalid-mail_driver" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -111,7 +112,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Title', __('Title'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_TTL_K, $lpSettings[LandingPageSettingsConstants::HM_TTL_K], ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_TTL_K, $lpSettings[LPSC::HM_TTL_K], ['class' => 'form-control', 'placeholder' => __('Enter Title')]) }}
                                             @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -122,7 +123,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_HDG_K, $lpSettings[LandingPageSettingsConstants::HM_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_HDG_K, $lpSettings[LPSC::HM_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                             @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -133,7 +134,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Trusted by', __('Trusted by'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_TRST_BY_K, $lpSettings[LandingPageSettingsConstants::HM_TRST_BY_K], ['class' => 'form-control', 'placeholder' => __('1,000+ customers')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_TRST_BY_K, $lpSettings[LPSC::HM_TRST_BY_K], ['class' => 'form-control', 'placeholder' => __('1,000+ customers')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -144,7 +145,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_DESC_K, $lpSettings[LandingPageSettingsConstants::HM_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_DESC_K, $lpSettings[LPSC::HM_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -156,7 +157,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Live Demo Link', __('Live Demo Link'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_DEMO_LNK_K, $lpSettings[LandingPageSettingsConstants::HM_DEMO_LNK_K], ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_DEMO_LNK_K, $lpSettings[LPSC::HM_DEMO_LNK_K], ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -167,7 +168,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             {{ Collective\Html\FormFacade::label('Buy Now Link', __('Buy Now Link'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::HM_BUY_LNK_K, $lpSettings[LandingPageSettingsConstants::HM_BUY_LNK_K], ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
+                                            {{ Collective\Html\FormFacade::text(LPSC::HM_BUY_LNK_K, $lpSettings[LPSC::HM_BUY_LNK_K], ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
                                                     <strong class="text-danger">{{ $message }}</strong>
@@ -180,7 +181,7 @@
                                             {{ Collective\Html\FormFacade::label('Banner', __('Banner'), ['class' => 'form-label',
                                             'id' => 'banner_image']) }}
                                             <div class="logo-content mt-4">
-                                                <img id="banner_image" src="{{ asset('uploads/landing_page_image/'.$lpSettings[LandingPageSettingsConstants::HM_BNR_K]) }}"
+                                                <img id="banner_image" src="{{ asset('uploads/landing_page_image/'.$lpSettings[LPSC::HM_BNR_K]) }}"
                                                     class="big-logo">
                                             </div>
                                             <div class="choose-files mt-5">
@@ -192,7 +193,7 @@
                                                         class="form-control file" data-filename="home_banner">
                                                 </label>
                                             </div>
-                                            @error(LandingPageSettingsConstants::HM_BNR_K)
+                                            @error(LPSC::HM_BNR_K)
                                                 <div class="row">
                                                     <span class="invalid-logo" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -205,7 +206,7 @@
                                                 <div class="form-group">
                                                     {{ Collective\Html\FormFacade::label('Logo', __('Logo'), ['class' => 'form-label']) }}
                                                     <div class="logo-content mt-4">
-                                                        <img id="image1" src="{{ $logo.'/'. $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}"
+                                                        <img id="image1" src="{{ $logo.'/'. $lpSettings[LPSC::HM_LGO_K] }}"
                                                             class="big-logo img_setting">
                                                     </div>
                                                     <div class="choose-files mt-5">
@@ -216,7 +217,7 @@
                                                             <input type="file" name="home_logo" id="home_logo" class="form-control file" data-filename="home_logo">
                                                         </label>
                                                     </div>
-                                                    @error(LandingPageSettingsConstants::HM_LGO_K)
+                                                    @error(LPSC::HM_LGO_K)
                                                     <div class="row">
                                                         <span class="invalid-logo" role="alert">
                                                             <strong class="text-danger">{{ $message }}</strong>
@@ -243,9 +244,9 @@
                                                                 </div>
                                                                 <div class="col-auto">
                                                                     <p class="card-text small text-muted">
-                                                                        {{-- <img class="rounded" src="{{ $logo.'/placeholder.png' }}" width="70px" alt="{{ __('Image placeholder') }}" data-dz-thumbnail=""> --}}
+                                                                        {{-- <img class="rounded" src="{{ $logo.'/placeholder.png' }}" width="70px" alt="Image placeholder" data-dz-thumbnail=""> --}}
                                                                         <img src="{{ asset('uploads/landing_page_image/home_logo.png') }}" width="70px"
-                                                                            alt="{{ __('Image placeholder') }}" data-dz-thumbnail="">
+                                                                            alt="Image placeholder" data-dz-thumbnail="">
                                                                     </p>
                                                                 </div>
                                                                 <div class="col-auto actions">
@@ -263,23 +264,23 @@
                                             </div>
                                         </div>
 
-                                        @if ($lpSettings[LandingPageSettingsConstants::HM_LGO_K] != '')
+                                        @if ($lpSettings[LPSC::HM_LGO_K] != '')
                                             <div id="imageContainer">
-                                                @foreach (explode(',', $lpSettings[LandingPageSettingsConstants::HM_LGO_K]) as $k => $home_logo)
+                                                @foreach (explode(',', $lpSettings[LPSC::HM_LGO_K]) as $k => $home_logo)
                                                     <div class="{{ ViewClassNamesConstants::CD_NSD }}product_Image">
                                                         <div class="px-2 py-2">
                                                             <div class="row align-items-center">
                                                                 <div class="col ml-n2">
                                                                     <p class="card-text small text-muted">
                                                                         <img src="{{ asset('uploads/landing_page_image/home_logo.png') }}"
-                                                                            width="70px" alt="{{ __('Image placeholder') }}"
+                                                                            width="70px" alt="Image placeholder"
                                                                             data-dz-thumbnail="">
                                                                     </p>
                                                                 </div>
                                                                 <div class="col-auto actions">
                                                                     <a class="action-item {{ ViewClassNamesConstants::BT_SM }} btn-icon btn-light-secondary"
                                                                         href="{{ $logo . '/' . $home_logo }}" download=""
-                                                                        data-toggle="tooltip" data-original-title="{{ __('Download') }}">
+                                                                        data-toggle="tooltip" data-original-title="Download">
                                                                         <i class="{{ ViewClassNamesConstants::TI_DWN }}"></i>
                                                                     </a>
                                                                 </div>
@@ -296,7 +297,7 @@
                                             </div>
                                         @endif
                                         <input type="hidden" class="form-control" id="imageNames" name="savedlogo"
-                                            value="{{ $lpSettings[LandingPageSettingsConstants::HM_LGO_K] }}">
+                                            value="{{ $lpSettings[LPSC::HM_LGO_K] }}">
                                     </div>
                                 </div>
                             </div>
@@ -368,7 +369,7 @@
 
 @push(StacksConstants::ADM_SCR_PG)
         <script>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -509,7 +510,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script async src="{{ asset('assets/js/jquery.repeater.min.js') }}"></script>
@@ -518,7 +519,7 @@ Object.keys(t).forEach(
           const errFb = "# ERROR";
           const dataClientLocalized = "data-client-localized";
           const dataGuardMsg = "data-guard-msg";
-        
+
           const getLocalizedMessage = (el, msgKey) => {
             let msg = errFb;
             if (
@@ -547,7 +548,7 @@ Object.keys(t).forEach(
             }
             return msg;
           };
-        
+
           const showErrorUI = (msg) => {
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (bsLink && window.bootstrap?.Toast) {
@@ -563,7 +564,7 @@ Object.keys(t).forEach(
                   <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                   </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -572,7 +573,7 @@ Object.keys(t).forEach(
               alert(msg);
             }
           };
-        
+
           document.addEventListener("DOMContentLoaded", () => {
             const form = document.querySelector("#imageUploadForm");
             if (!form) return;
@@ -592,7 +593,7 @@ Object.keys(t).forEach(
               showErrorUI(msg);
             }
           });
-        
+
           window.updateImagePreview = (input) => {
             try {
               const img = input.parentElement
@@ -609,7 +610,7 @@ Object.keys(t).forEach(
               showErrorUI(msg);
             }
           };
-        
+
           document.addEventListener("DOMContentLoaded", () => {
             const key = "deleteRepeaterBound";
             if (document.body.dataset[key]) return;
@@ -630,7 +631,7 @@ Object.keys(t).forEach(
         const errFb = "# ERROR";
         const dataClientLocalized = "data-client-localized";
         const dataGuardMsg = "data-guard-msg";
-        
+
         const getLocalizedMessage = (el, msgKey) => {
             let msg = errFb;
             if (
@@ -659,7 +660,7 @@ Object.keys(t).forEach(
             }
             return msg;
         };
-        
+
         const showErrorUI = (msg) => {
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (bsLink && window.bootstrap?.Toast) {
@@ -675,7 +676,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -684,11 +685,11 @@ Object.keys(t).forEach(
             alert(msg);
             }
         };
-        
+
         document.addEventListener("DOMContentLoaded", () => {
             const input = document.getElementById("imageNames");
             if (!input) return;
-        
+
             const bindBtn = (btn) => {
             const flag = "deleteBtnBound";
             if (btn.dataset[flag]) return;
@@ -709,9 +710,9 @@ Object.keys(t).forEach(
             });
             btn.dataset[flag] = "true";
             };
-        
+
             document.querySelectorAll(".delete-button").forEach(bindBtn);
-        
+
             new MutationObserver((mutations) => {
             mutations.forEach((m) => {
                 m.addedNodes.forEach((node) => {
@@ -729,7 +730,7 @@ Object.keys(t).forEach(
         const errFb = "# ERROR";
         const dataClientLocalized = "data-client-localized";
         const dataGuardMsg = "data-guard-msg";
-        
+
         const getLocalizedMessage = (el, msgKey) => {
             let msg = errFb;
             if (
@@ -758,7 +759,7 @@ Object.keys(t).forEach(
             }
             return msg;
         };
-        
+
         const showErrorUI = (msg) => {
             const bsLink = document.querySelector('link[href*="bootstrap"]');
             if (bsLink && window.bootstrap?.Toast) {
@@ -774,7 +775,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -783,7 +784,7 @@ Object.keys(t).forEach(
             alert(msg);
             }
         };
-        
+
         const bindPreview = (inputId, imgId, msgKey) => {
             const inp = document.getElementById(inputId);
             const img = document.getElementById(imgId);
@@ -803,7 +804,7 @@ Object.keys(t).forEach(
             });
             inp.dataset[flag] = "true";
         };
-        
+
         document.addEventListener("DOMContentLoaded", () => {
             bindPreview(
             "home_banner",

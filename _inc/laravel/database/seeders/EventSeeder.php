@@ -74,6 +74,9 @@ class EventSeeder extends Seeder
 				$count = $defaultCount;
 			}
 		}
+		// HARD_CAP: limit iterations for dev/test speed
+		$HARD_CAP = 2;
+		$count = min($HARD_CAP, $count); // original default: 512
 
 		// --------- Utilitários de aleatoriedade ---------
 		$randBool = function (int $pct) use ($faker): bool {
@@ -344,8 +347,8 @@ class EventSeeder extends Seeder
 					$title = $faker->sentence(4);
 					$location = $faker->address();
 					$companyName = User::query()->where('id', $companyId)->value('name') ?? '#EMPRESA_NAO_ENCONTRADA';
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Evento {$title} da empresa {$companyName} no dia {$date} às {$time}, em {$location}, organizado por " . ($responsible ?? 'N/A'));
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Evento {$title} da empresa {$companyName} no dia {$date} às {$time}, em {$location}, organizado por " . ($responsible ?? 'N/A'));
 					Event::query()->create([
 						'id'                      => (string) Str::uuid(),
 						'title'                   => $title,

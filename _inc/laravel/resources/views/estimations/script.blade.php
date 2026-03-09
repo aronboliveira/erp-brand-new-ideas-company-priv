@@ -1,6 +1,6 @@
-@php 
-  use Illuminate\Support\Facades\Auth; 
-  $user = Auth::user();
+@php
+
+$user = Auth::user();
 @endphp
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script type="text/javascript" src="{{ asset('assets/js/html2pdf.bundle.min.js') }}"></script>
@@ -12,7 +12,7 @@
         const toastBoxId  = 'toast-box';
         const langKey     = 'erp-np-lang';
         const msgKey      = 'estimate_pdf_unavailable';
-      
+
         const getMsg = () => {
           let lang = (sessionStorage.getItem(langKey) || document.documentElement.lang || 'en')
             .toLowerCase()
@@ -22,7 +22,7 @@
             || window.translations.en[msgKey]
             || errFb;
         };
-      
+
         const showToast = message => {
           const hasBs = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
             .some(l => /bootstrap/i.test(l.href))
@@ -45,7 +45,7 @@
             alert(message);
           }
         };
-      
+
         const closeScript = () => {
           setTimeout(() => {
             try {
@@ -55,7 +55,7 @@
             }
           }, 1000);
         };
-      
+
         window.addEventListener('load', () => {
           try {
             const element = document.getElementById('boxes');
@@ -80,4 +80,3 @@
   </script>
 @else
   <script data-notice="failed-script"></script>
-    

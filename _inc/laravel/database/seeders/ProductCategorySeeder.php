@@ -13,7 +13,8 @@ class ProductCategorySeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const CAP = 800;
+	// private const CAP = 800;
+	private const CAP = 2;
 	private const UNIQUE_ATTEMPTS = 20;
 	private const WRITE_EVERY = 1;
 
@@ -78,14 +79,14 @@ class ProductCategorySeeder extends Seeder
 				if (($i % 7) === 0) $tags[] = 'seeded';
 				if (($i % 11) === 0) $tags[] = 'priority';
 
-				if (self::WRITE_EVERY === 1) {
-					$this->out->writeln(
-						"<comment>[ProductCategorySeeder] creating name=\"{$name}\" link=" .
-							($linkedProdServCatId ? substr($linkedProdServCatId, 0, 8) : 'null') .
-							" tags=" . count($tags) .
-							"</comment>"
-					);
-				}
+				// if (self::WRITE_EVERY === 1) {
+				// 	$this->out->writeln(
+				// 		"<comment>[ProductCategorySeeder] creating name=\"{$name}\" link=" .
+				// 			($linkedProdServCatId ? substr($linkedProdServCatId, 0, 8) : 'null') .
+				// 			" tags=" . count($tags) .
+				// 			"</comment>"
+				// 	);
+				// }
 
 				$m = new ProductCategory();
 

@@ -1,13 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        YieldingConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Illuminate\Support\Str;
-    $result = json_decode($project->copylinksetting);
+    try {
+$result = json_decode($project->copylinksetting);
+    } catch (\Throwable $e) {
+        \Log::error('projects/copy_link — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::SPJ)
 @section(YieldingConstants::SHR_PRJ_PG_TTL)
@@ -15,7 +11,7 @@
 @endsection
 @push(StacksConstants::SHR_PRJ_SCR_PG)
         <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -44,7 +40,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-     
+
           })();
     </script>
     <script defer>
@@ -76,7 +72,7 @@ Object.keys(t).forEach(
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();
@@ -94,7 +90,7 @@ Object.keys(t).forEach(
 
             const renderChart=(selector, options, key)=>{
             try{
-                if(typeof ApexCharts==='undefined'){ 
+                if(typeof ApexCharts==='undefined'){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -124,7 +120,7 @@ Object.keys(t).forEach(
                 $.ajax({
                 url:'{{ route('project.user') }}',
                 data:{ project_id },
-                beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 text-center pt-5">{{ __("Loading...") }}</th></tr>'); },
+                beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 {{ VC::TXCT }} pt-5">{{ __("Loading...") }}</th></tr>'); },
                 success:(data)=>{ mainEle.html(data.html); $('[id^=fire-modal]').remove(); },
                 error:()=>attachGuardOnce(mainEle.get(0),'users_load_unavailable')
                 });
@@ -132,12 +128,12 @@ Object.keys(t).forEach(
             };
 
             try{
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
             // Initial data
@@ -185,7 +181,7 @@ Object.keys(t).forEach(
             try{
                 if(window.bootstrap?.ScrollSpy){
                 new bootstrap.ScrollSpy(document.body,{ target:'#useradd-sidenav', offset:300 });
-                }else{ 
+                }else{
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -348,7 +344,7 @@ Object.keys(t).forEach(
                     $(`#slide-${id}`).remove();
                     setTimeout(()=>{
                         const total=$('.product-left').find('.swiper-slide').length;
-                        if(total>0){ init_slider(); } else { $('.product-left').html('<div class="no-image"><h5 class="text-muted">Images Not Available .</h5></div>'); }
+                        if(total>0){ init_slider(); } else { $('.product-left').html('<div class="no-image"><h5 class="{{ VC::TXT_MT }}">Images Not Available .</h5></div>'); }
                     },200);
                     }
                     $('#cModal').modal('hide');
@@ -357,7 +353,7 @@ Object.keys(t).forEach(
                 }catch{ attachGuardOnce(el,'image_remove_unavailable'); }
             };
 
-            }catch(e){ 
+            }catch(e){
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -369,8 +365,8 @@ Object.keys(t).forEach(
     </script>
 @endpush
 @section(YieldingConstants::SHR_PRJ_ACT_BTN)
-    <a href="#" class="pt-3">
-        <select name="language" id="language" class="btn btn-primary my-2"
+    <a href="#" class="{{ VC::PT3 }}">
+        <select name="language" id="language" class="{{ VC::BT_PRM }} {{ VC::MY2 }}"
                 onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);">
             @foreach (\App\Models\Utility::languages() as $language)
                 <option @if ($lang == $language) selected @endif
@@ -385,21 +381,25 @@ Object.keys(t).forEach(
 @endphp
 @section(YieldingConstants::SHR_PRJ_CTT)
     <div class="row">
-        <div class="col-xl-3">
+        <div class="{{ VC::CXL3 }}">
         @php
-            $sections = [
-                ['key' => 'basic_details',    'id' => 'basic',           'label' => __('Basic details')],
-                ['key' => 'member',           'id' => 'members',         'label' => __('Members')],
-                ['key' => 'task',             'id' => 'task',            'label' => __('Task')],
-                ['key' => 'milestone',        'id' => 'milestone',       'label' => __('Milestones')],
-                ['key' => 'attachment',       'id' => 'attachment',      'label' => __('Files')],
-                ['key' => 'bug_report',       'id' => 'bug_report',      'label' => __('Bug Report')],
-                ['key' => 'timesheet',        'id' => 'timesheet',       'label' => __('Timesheet')],
-                ['key' => 'tracker_details',  'id' => 'tracker_details', 'label' => __('Tracker details')],
-                ['key' => 'expense',          'id' => 'expense',         'label' => __('Expense')],
-                ['key' => 'activity',         'id' => 'activity',        'label' => __('Activity Log')],
-            ];
-        @endphp
+            try {
+                $sections = [
+                    ['key' => 'basic_details',    'id' => 'basic',           'label' => __('Basic details')],
+                    ['key' => 'member',           'id' => 'members',         'label' => __('Members')],
+                    ['key' => 'task',             'id' => 'task',            'label' => __('Task')],
+                    ['key' => 'milestone',        'id' => 'milestone',       'label' => __('Milestones')],
+                    ['key' => 'attachment',       'id' => 'attachment',      'label' => __('Files')],
+                    ['key' => 'bug_report',       'id' => 'bug_report',      'label' => __('Bug Report')],
+                    ['key' => 'timesheet',        'id' => 'timesheet',       'label' => __('Timesheet')],
+                    ['key' => 'tracker_details',  'id' => 'tracker_details', 'label' => __('Tracker details')],
+                    ['key' => 'expense',          'id' => 'expense',         'label' => __('Expense')],
+                    ['key' => 'activity',         'id' => 'activity',        'label' => __('Activity Log')],
+                ];
+            } catch (\Throwable $e) {
+                \Log::error('projects/copy_link — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         <div class="{{ VC::CD_STK }}" style="top:30px">
             <div class="{{ VC::LG_FLSH }}" id="lead-sidenav">
                 @foreach($sections as $section)
@@ -407,7 +407,7 @@ Object.keys(t).forEach(
                         <a href="#{{ $section['id'] }}"
                            class="{{ VC::LGI_ACT_NBD }}">
                             {{ $section['label'] }}
-                            <div class="float-end">
+                            <div class="{{ VC::FEND }}">
                                 <i class="{{ VC::TI_CHV_RT }}"></i>
                             </div>
                         </a>
@@ -420,46 +420,46 @@ Object.keys(t).forEach(
             @if ( isset($result->basic_details) && $result->basic_details == 'on')
                 <div id="basic" class="">
                     <div class="row">
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="{{ VC::CL4 }} {{ VC::CS6 }}">
                             <div class="card">
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="row">
                                         <div class="theme-avatar bg-warning">
-                                            <i class="ti ti-list"></i>
+                                            <i class="{{ VC::TI_LT }}"></i>
                                         </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Total Task') }}</h6>
-                                            <span class="h6 font-weight-bold mb-0 ">{{$project_data['task']['total'] }}</span>
+                                        <div class="col {{ VC::TX_END }}">
+                                            <h6 class="{{ VC::TXT_MT }} {{ VC::MB1 }}">{{ __('Total Task') }}</h6>
+                                            <span class="h6 font-weight-bold {{ VC::MB0 }}">{{$project_data['task']['total'] }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="{{ VC::CL4 }} {{ VC::CS6 }}">
                             <div class="card">
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="row">
                                         <div class="theme-avatar bg-danger">
                                             <i class="ti ti-check"></i>
                                         </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Done Task') }}</h6>
-                                            <span class="h6 font-weight-bold mb-0 ">{{ $project_data['task']['done'] }}</span>
+                                        <div class="col {{ VC::TX_END }}">
+                                            <h6 class="{{ VC::TXT_MT }} {{ VC::MB1 }}">{{ __('Done Task') }}</h6>
+                                            <span class="h6 font-weight-bold {{ VC::MB0 }}">{{ $project_data['task']['done'] }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-sm-6">
+                        <div class="{{ VC::CL4 }} {{ VC::CS6 }}">
                             <div class="card">
-                                <div class="card-body">
+                                <div class="{{ VC::CD_BD }}">
                                     <div class="row">
                                         <div class="theme-avatar bg-success">
-                                            <i class="ti ti-list"></i>
+                                            <i class="{{ VC::TI_LT }}"></i>
                                         </div>
-                                        <div class="col text-end">
-                                            <h6 class="text-muted mb-1">{{ __('Total Milestone') }}</h6>
-                                            <span class="h6 font-weight-bold mb-0 ">{{ count($project->milestones)}}</span>
+                                        <div class="col {{ VC::TX_END }}">
+                                            <h6 class="{{ VC::TXT_MT }} {{ VC::MB1 }}">{{ __('Total Milestone') }}</h6>
+                                            <span class="h6 font-weight-bold {{ VC::MB0 }}">{{ count($project->milestones)}}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -469,18 +469,18 @@ Object.keys(t).forEach(
                     <div class="row">
                         <div class="{{ VC::CLM4 }}">
                             <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar me-3">
+                                <div class="{{ VC::CD_BD }}">
+                                    <div class="{{ VC::DFL_AIC }}">
+                                        <div class="avatar {{ VC::ME3 }}">
                                             <img {{ $project->img_image }} alt="" class="img-user wid-45 rounded-circle">
                                         </div>
-                                        <div class="d-block  align-items-center justify-content-between w-100">
-                                            <div class="mb-3 mb-sm-0">
-                                                <h5 class="mb-1"> {{$project->project_name}}</h5>
-                                                <p class="mb-0 text-sm">
+                                        <div class="{{ VC::DBL }} {{ VC::ALC }} {{ VC::JCB }} {{ VC::W100 }}">
+                                            <div class="{{ VC::MB3 }} mb-sm-0">
+                                                <h5 class="{{ VC::MB1 }}"> {{$project->project_name}}</h5>
+                                                <p class="{{ VC::MB0 }} {{ VC::TXSM }}">
                                                 <div class="progress-wrapper">
                                                     <span class="progress-percentage"><small class="font-weight-bold">{{__('Completed:')}} : </small>{{ $project->projectProgressCopy($usr->id)['percentage'] }}</span>
-                                                    <div class="progress progress-xs mt-2">
+                                                    <div class="progress progress-xs {{ VC::MT2 }}">
                                                         <div class="progress-bar bg-info" role="progressbar" aria-valuenow="{{ $project->projectProgressCopy($usr->id)['percentage'] }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ $project->projectProgressCopy($usr->id)['percentage'] }};"></div>
                                                     </div>
                                                 </div>
@@ -489,26 +489,26 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                         <div class="row">
-                                            <div class="col-sm-10">
-                                                <h4 class="mt-3 mb-1"></h4>
+                                            <div class="{{ VC::CS10 }}">
+                                                <h4 class="{{ VC::MT3 }} {{ VC::MB1 }}"></h4>
                                                 <p> {{$project->description }}</p>
                                             </div>
                                         </div>
-                                        <div class="card bg-primary mb-0">
-                                            <div class="card-body">
-                                                <div class="d-block d-sm-flex align-items-center justify-content-between">
-                                                    <div class="row align-items-center">
-                                                        <span class="text-white text-sm">{{__('Start Date')}}</span>
-                                                        <h5 class="text-white text-nowrap">{{ Utility::getDateFormated($project->start_date) }}</h5>
+                                        <div class="card {{ VC::BG_P }} {{ VC::MB0 }}">
+                                            <div class="{{ VC::CD_BD }}">
+                                                <div class="{{ VC::DBL }} d-sm-flex {{ VC::ALC }} {{ VC::JCB }}">
+                                                    <div class="{{ VC::R_ALC }}">
+                                                        <span class="{{ VC::TXT_WT }} {{ VC::TXSM }}">{{__('Start Date')}}</span>
+                                                        <h5 class="{{ VC::TXT_WT }} text-nowrap">{{ Utility::getDateFormated($project->start_date) }}</h5>
                                                     </div>
-                                                    <div class="row align-items-center">
-                                                        <span class="text-white text-sm">{{__('End Date')}}</span>
-                                                        <h5 class="text-white text-nowrap">{{ Utility::getDateFormated($project->end_date) }}</h5>
+                                                    <div class="{{ VC::R_ALC }}">
+                                                        <span class="{{ VC::TXT_WT }} {{ VC::TXSM }}">{{__('End Date')}}</span>
+                                                        <h5 class="{{ VC::TXT_WT }} text-nowrap">{{ Utility::getDateFormated($project->end_date) }}</h5>
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <span class="text-white text-sm">{{__('Client')}}</span>
-                                                    <h5 class="text-white text-nowrap">{{ (!empty($project->client)?$project->client->name: '-') }}</h5>
+                                                    <span class="{{ VC::TXT_WT }} {{ VC::TXSM }}">{{__('Client')}}</span>
+                                                    <h5 class="{{ VC::TXT_WT }} text-nowrap">{{ (!empty($project->client)?$project->client->name: '-') }}</h5>
                                                 </div>
                                             </div>
                                         </div>
@@ -517,93 +517,93 @@ Object.keys(t).forEach(
                             </div>
                             <div class="{{ VC::CLM4 }}">
                                 <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-start">
-                                            <div class="theme-avatar bg-primary">
+                                    <div class="{{ VC::CD_BD }}">
+                                        <div class="{{ VC::DFL }} align-items-start">
+                                            <div class="theme-avatar {{ VC::BG_P }}">
                                                 <i class="ti ti-clipboard-list"></i>
                                             </div>
                                             <div class="ms-3">
-                                                <p class="text-muted mb-0">{{__('Last 7 days task done')}}</p>
-                                                <h4 class="mb-0">{{ $project_data['task_chart']['total'] }}</h4>
+                                                <p class="{{ VC::TXT_MT }} {{ VC::MB0 }}">{{__('Last 7 days task done')}}</p>
+                                                <h4 class="{{ VC::MB0 }}">{{ $project_data['task_chart']['total'] }}</h4>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">{{__('Day Left')}}</span>
+                                    <div class="{{ VC::CD_BD }}">
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
+                                                <span class="{{ VC::TXT_MT }}">{{__('Day Left')}}</span>
                                             </div>
                                             <span>{{ $project_data['day_left']['day'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['day_left']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['day_left']['percentage'] }}%"></div>
                                         </div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
 
-                                                <span class="text-muted">{{__('Open Task')}}</span>
+                                                <span class="{{ VC::TXT_MT }}">{{__('Open Task')}}</span>
                                             </div>
                                             <span>{{ $project_data['open_task']['tasks'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['open_task']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['open_task']['percentage'] }}%"></div>
                                         </div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">{{__('Completed Milestone')}}</span>
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
+                                                <span class="{{ VC::TXT_MT }}">{{__('Completed Milestone')}}</span>
                                             </div>
                                             <span>{{ $project_data['milestone']['total'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['milestone']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['milestone']['percentage'] }}%"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="{{ VC::CLM4 }}">
                                 <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-start">
-                                            <div class="theme-avatar bg-primary">
+                                    <div class="{{ VC::CD_BD }}">
+                                        <div class="{{ VC::DFL }} align-items-start">
+                                            <div class="theme-avatar {{ VC::BG_P }}">
                                                 <i class="ti ti-clipboard-list"></i>
                                             </div>
                                             <div class="ms-3">
-                                                <p class="text-muted mb-0">{{__('Last 7 days hours spent')}}</p>
-                                                <h4 class="mb-0">{{ $project_data['timesheet_chart']['total'] }}</h4>
+                                                <p class="{{ VC::TXT_MT }} {{ VC::MB0 }}">{{__('Last 7 days hours spent')}}</p>
+                                                <h4 class="{{ VC::MB0 }}">{{ $project_data['timesheet_chart']['total'] }}</h4>
 
                                             </div>
                                         </div>
 
                                     </div>
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">{{__('Total project time spent')}}</span>
+                                    <div class="{{ VC::CD_BD }}">
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
+                                                <span class="{{ VC::TXT_MT }}">{{__('Total project time spent')}}</span>
                                             </div>
                                             <span>{{ $project_data['time_spent']['total'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['time_spent']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['time_spent']['percentage'] }}%"></div>
                                         </div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
 
-                                                <span class="text-muted">{{__('Allocated hours on task')}}</span>
+                                                <span class="{{ VC::TXT_MT }}">{{__('Allocated hours on task')}}</span>
                                             </div>
                                             <span>{{ $project_data['task_allocated_hrs']['hrs'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['task_allocated_hrs']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['task_allocated_hrs']['percentage'] }}%"></div>
                                         </div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">{{__('User Assigned')}}</span>
+                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                            <div class="{{ VC::DFL_AIC }}">
+                                                <span class="{{ VC::TXT_MT }}">{{__('User Assigned')}}</span>
                                             </div>
                                             <span>{{ $project_data['user_assigned']['total'] }}</span>
                                         </div>
-                                        <div class="progress mb-3">
-                                            <div class="progress-bar bg-primary" style="width: {{ $project_data['user_assigned']['percentage'] }}%"></div>
+                                        <div class="progress {{ VC::MB3 }}">
+                                            <div class="progress-bar {{ VC::BG_P }}" style="width: {{ $project_data['user_assigned']['percentage'] }}%"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -614,18 +614,18 @@ Object.keys(t).forEach(
             @endif
 
             @if ( isset($result->member) && $result->member == 'on')
-                    <div id="members" class="col-md-12">
+                    <div id="members" class="{{ VC::CM12 }}">
                         <div class="card ">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div>
-                                        <h5 class="mb-0">{{ __('Members') }}
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Members') }}
                                         </h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="table table-striped data-table">
                                         <thead>
                                         <tr>
@@ -659,15 +659,15 @@ Object.keys(t).forEach(
                 @if ( isset($result->task) && $result->task == 'on')
                     <div id="task" class="">
                         <div class="card" style="background-color:transparent !important">
-                            <div class="card-header" style="padding: 25px 35px !important; background-color:#ffffff !important">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}" style="padding: 25px 35px !important; background-color:#ffffff !important">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div class="row">
-                                        <h5 class="mb-0">{{ __('Task') }}</h5>
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Task') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="table">
                                         <thead>
                                         <tr>
@@ -692,7 +692,7 @@ Object.keys(t).forEach(
                                                                         @if($users = $task->users())
                                                                             @foreach($users as $key => $user)
                                                                                 @if($key<3)
-                                                                                    <a href="#" class="avatar rounded-circle avatar-sm">
+                                                                                    <a href="#" class="{{ VC::AV_CC_SM }}">
                                                                                         <img data-original-title="{{(!empty($user)?$user->name:'')}}" @if($user->avatar) src="{{asset('/storage/uploads/avatar/'.$user?->avatar)}}" @else src="{{asset('/storage/uploads/avatar/avatar.png')}}" @endif title = "{{ $user?->name }}" class="hweb">
                                                                                     </a>
                                                                                 @else
@@ -701,7 +701,7 @@ Object.keys(t).forEach(
                                                                             @endforeach
                                                                         @endif
                                                                         @if(count($users) > 3)
-                                                                            <a href="#" class="avatar rounded-circle avatar-sm">
+                                                                            <a href="#" class="{{ VC::AV_CC_SM }}">
                                                                                 <img  data-original-title="{{(!empty($user)?$user->name:'')}}" @if($user->avatar) src="{{asset('/storage/uploads/avatar/'.$user?->avatar)}}" @else src = "{{asset('/storage/uploads/avatar/avatar.png')}}" @endif class="hweb">
                                                                             </a>
                                                                         @endif
@@ -711,14 +711,14 @@ Object.keys(t).forEach(
                                                                 </div>
                                                             </td>
                                                     <td>
-                                                        <span class="status_badge badge p-2 px-3 rounded bg-{{__(\App\Models\ProjectTask::$priority_color[$task->priority])}}">{{ __(\App\Models\ProjectTask::$priority[$task->priority]) }}</span>
+                                                        <span class="status_badge badge p-2 {{ VC::PX3 }} rounded bg-{{__(\App\Models\ProjectTask::$priority_color[$task->priority])}}">{{ __(\App\Models\ProjectTask::$priority[$task->priority]) }}</span>
                                                     </td>
                                                     <td class="{{ (strtotime($task->end_date) < time()) ? 'text-danger' : '' }}">{{ Utility::getDateFormated($task->end_date) }}</td>
                                                 </tr>
                                             @endforeach
                                         @else
                                             <tr>
-                                                <th scope="col" colspan="7"><h6 class="text-center">{{__('No tasks found')}}</h6></th>
+                                                <th scope="col" colspan="7"><h6 class="{{ VC::TXCT }}">{{__('No tasks found')}}</h6></th>
                                             </tr>
                                         @endif
                                         </tbody>
@@ -732,16 +732,16 @@ Object.keys(t).forEach(
                 @if ( isset($result->milestone) && $result->milestone == 'on')
                     <div id="milestone" class="">
                         <div class="card" style="overflow-x: none;">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div>
-                                        <h5 class="mb-0">{{ __('Milestones') }}
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Milestones') }}
                                         </h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table id="" class="table  px-2">
                                         <thead>
                                         <tr>
@@ -760,7 +760,7 @@ Object.keys(t).forEach(
                                             <tr>
                                                 <td>{{ $milestone->title }}</td>
                                                 <td>
-                                                    <span class="badge-xs status_badge badge bg-{{\App\Models\Project::$status_color[$milestone->status]}} p-2 px-3 rounded">
+                                                    <span class="badge-xs status_badge badge bg-{{\App\Models\Project::$status_color[$milestone->status]}} p-2 {{ VC::PX3 }} rounded">
                                                         {{ __(\App\Models\Project::$project_status[$milestone->status]) }}
                                                     </span>
                                                 </td>
@@ -796,7 +796,7 @@ Object.keys(t).forEach(
                                         @endforeach
                                         @else
                                             <tr>
-                                                <th scope="col" colspan="7"><h6 class="text-center">{{__('No milestone found')}}</h6></th>
+                                                <th scope="col" colspan="7"><h6 class="{{ VC::TXCT }}">{{__('No milestone found')}}</h6></th>
                                             </tr>
                                         @endif
                                         </tbody>
@@ -810,32 +810,32 @@ Object.keys(t).forEach(
                 @if ( isset($result->attachment) && $result->attachment == 'on')
                     <div id="attachment" class="">
                         <div class="card" style="overflow-x: none;">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div>
-                                        <h5 class="mb-0">{{ __('Files') }}
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Files') }}
                                         </h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <ul class="list-group list-group-flush">
+                            <div class="{{ VC::CD_BD }}">
+                                <ul class="{{ VC::LG_FLSH }}">
                                     @if($project->projectAttachments()->count() > 0)
                                         @foreach($project->projectAttachments() as $attachment)
-                                            <li class="list-group-item px-0">
-                                                <div class="row align-items-center justify-content-between">
-                                                    <div class="col mb-3 mb-sm-0">
-                                                        <div class="d-flex align-items-center">
+                                            <li class="{{ VC::LG_IT }} px-0">
+                                                <div class="{{ VC::R_ALC }} {{ VC::JCB }}">
+                                                    <div class="col {{ VC::MB3 }} mb-sm-0">
+                                                        <div class="{{ VC::DFL_AIC }}">
                                                             <div class="div">
                                                                 <h6 class="m-0">{{ $attachment->name }}</h6>
-                                                                <small class="text-muted">{{ $attachment->file_size }}</small>
+                                                                <small class="{{ VC::TXT_MT }}">{{ $attachment->file_size }}</small>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-auto text-sm-end d-flex align-items-center">
-                                                        <div class="action-btn bg-info ms-2">
-                                                            <a href="{{asset(Storage::url('tasks/'.$attachment->file))}}"  data-bs-toggle="tooltip" title="{{__('Download')}}" class="btn btn-sm" download>
-                                                                <i class="ti ti-download text-white"></i>
+                                                    <div class="{{ VC::C_AT }} text-sm-end {{ VC::DFL_AIC }}">
+                                                        <div class="{{ VC::ACT_BTN_INF }}">
+                                                            <a href="{{asset(Storage::url('tasks/'.$attachment->file))}}"  data-bs-toggle="tooltip" title="{{__('Download')}}" class="{{ VC::BT_SM }}" download>
+                                                                <i class="{{ VC::TI_DWN }} {{ VC::TXT_WT }}"></i>
                                                             </a>
                                                         </div>
                                                     </div>
@@ -844,7 +844,7 @@ Object.keys(t).forEach(
                                         @endforeach
                                     @else
                                         <div class="py-5">
-                                            <h6 class="h6 text-center">{{__('No Attachments Found.')}}</h6>
+                                            <h6 class="h6 {{ VC::TXCT }}">{{__('No Attachments Found.')}}</h6>
                                         </div>
                                     @endif
                                 </ul>
@@ -856,15 +856,15 @@ Object.keys(t).forEach(
                 @if ( isset($result->bug_report) && $result->bug_report == 'on')
                     <div id="bug_report" >
                         <div class="card" style="background-color:transparent !important">
-                            <div class="card-header" style="padding: 25px 35px !important; background-color:#ffffff !important">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}" style="padding: 25px 35px !important; background-color:#ffffff !important">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div class="row">
-                                        <h5 class="mb-0">{{ __('Bug Report') }}</h5>
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Bug Report') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="table ">
                                         <thead>
                                         <tr>
@@ -895,7 +895,7 @@ Object.keys(t).forEach(
                                         @endforeach
                                         @else
                                             <tr>
-                                                <th scope="col" colspan="7"><h6 class="text-center">{{__('No Bug found')}}</h6></th>
+                                                <th scope="col" colspan="7"><h6 class="{{ VC::TXCT }}">{{__('No Bug found')}}</h6></th>
                                             </tr>
                                         @endif
                                         </tbody>
@@ -909,36 +909,36 @@ Object.keys(t).forEach(
                 @if ( isset($result->timesheet) && $result->timesheet == 'on')
                     <div id="timesheet" class="">
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="{{ VC::CM12 }}">
                                 <div class="card notfound-timesheet1">
-                                    <div class="card-header">
-                                        <div class="d-flex justify-content-between align-items-center">
+                                    <div class="{{ VC::CD_HD }}">
+                                        <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                             <div>
-                                                <h5 class="mb-0"> {{ __('Timesheet') }}</h5>
+                                                <h5 class="{{ VC::MB0 }}"> {{ __('Timesheet') }}</h5>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="{{ VC::CD_BD }}">
                                         <div class="" id="timesheets/table-view" style="width:100%;overflow: auto"></div>
                                     </div>
                                 </div>
 
-                                <div class="card notfound-timesheet text-center">
-                                    <div class="card-header">
-                                        <div class="d-flex justify-content-between align-items-center">
+                                <div class="card notfound-timesheet {{ VC::TXCT }}">
+                                    <div class="{{ VC::CD_HD }}">
+                                        <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                             <div>
-                                                <h5 class="mb-0"> {{ __('Timesheet') }}</h5>
+                                                <h5 class="{{ VC::MB0 }}"> {{ __('Timesheet') }}</h5>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body p-3">
+                                    <div class="{{ VC::CD_BD }} p-3">
                                         <div class="page-error">
                                             <div class="page-inner">
                                                 <div class="page-description">
                                                     {{ __("We couldn't find any data") }}
                                                 </div>
                                                 <div class="page-search">
-                                                    <p class="text-muted mt-3">
+                                                    <p class="{{ VC::TXT_MT }} {{ VC::MT3 }}">
                                                         {{ __("Sorry we can't find any timesheet records on this week.") }}
                                                     </p>
                                                 </div>
@@ -954,15 +954,15 @@ Object.keys(t).forEach(
                 @if ( isset($result->tracker_details) && $result->tracker_details == 'on')
                     <div id="tracker_details" class="">
                         <div class="card">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div>
-                                        <h5 class="mb-0">{{ __('Tracker details') }}</h5>
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Tracker details') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class=" table" id="selection-datatable">
                                         <thead>
                                         <tr>
@@ -979,7 +979,7 @@ Object.keys(t).forEach(
                                             @foreach ($treckers as $trecker)
                                             @php
                                                 $total_name = App\Models\Utility::secondToTime($trecker->total_time);
-                                            @endphp
+@endphp
                                             <tr>
                                                 <td>{{ __($trecker->name) }}</td>
                                                 <td>{{ __($trecker->project_name) }}</td>
@@ -1000,15 +1000,15 @@ Object.keys(t).forEach(
                 @if ( isset($result->expense) && $result->expense == 'on')
                     <div id="expense" >
                         <div class="card" style="background-color:transparent !important">
-                            <div class="card-header" style="padding: 25px 35px !important; background-color:#ffffff !important">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}" style="padding: 25px 35px !important; background-color:#ffffff !important">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div class="row">
-                                        <h5 class="mb-0">{{ __('Expense') }}</h5>
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Expense') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive">
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }}">
                                     <table class="table">
                                         <thead>
                                         <tr>
@@ -1025,8 +1025,8 @@ Object.keys(t).forEach(
                                                 <tr>
                                                     <th scope="row">
                                                         @if(!empty($expense->attachment))
-                                                            <a href="{{ asset(Storage::url($expense->attachment)) }}" class="btn btn-sm btn-primary btn-icon rounded-pill" data-bs-toggle="tooltip" title="{{__('Download')}}" download>
-                                                                <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
+                                                            <a href="{{ asset(Storage::url($expense->attachment)) }}" class="{{ VC::BT_SM_PM }} btn-icon rounded-pill" data-bs-toggle="tooltip" title="{{__('Download')}}" download>
+                                                                <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
                                                             </a>
                                                         @else
 
@@ -1041,7 +1041,7 @@ Object.keys(t).forEach(
                                             @endforeach
                                         @else
                                             <tr>
-                                                <th scope="col" colspan="5"><h6 class="text-center">{{__('No Expense Found.')}}</h6></th>
+                                                <th scope="col" colspan="5"><h6 class="{{ VC::TXCT }}">{{__('No Expense Found.')}}</h6></th>
                                             </tr>
                                         @endif
                                         </tbody>
@@ -1055,34 +1055,34 @@ Object.keys(t).forEach(
                 @if ( isset($result->activity) && $result->activity == 'on')
                     <div id="activity" class="">
                         <div class="card  activity-scroll">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <div class="{{ VC::CD_HD }}">
+                                <div class="{{ VC::DFL_JCB }} {{ VC::ALC }}">
                                     <div>
-                                        <h5 class="mb-0">{{ __('Activity') }}</h5>
+                                        <h5 class="{{ VC::MB0 }}">{{ __('Activity') }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body p-3 vertical-scroll-cards">
+                            <div class="{{ VC::CD_BD }} p-3 vertical-scroll-cards">
                                 @if(!empty(count($project->activities)) > 0)
                                     @foreach($project->activities as $activity)
-                                    <div class="card p-2 mb-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div class="d-flex align-items-center">
-                                                <div class="theme-avatar bg-primary">
+                                    <div class="card p-2 {{ VC::MB2 }}">
+                                        <div class="{{ VC::DFL_AIC_JCB }}">
+                                            <div class="{{ VC::DFL_AIC }}">
+                                                <div class="theme-avatar {{ VC::BG_P }}">
                                                     <i class="ti {{$activity->logIcon($activity->log_type)}}"></i>
                                                 </div>
                                                 <div class="ms-3">
-                                                    <h6 class="mb-0">{{ __($activity->log_type) }}</h6>
-                                                    <p class="text-muted text-sm mb-0">{!! $activity->getRemark() !!}</p>
+                                                    <h6 class="{{ VC::MB0 }}">{{ __($activity->log_type) }}</h6>
+                                                    <p class="{{ VC::TXT_MT_TXSM_MB0 }}">{!! $activity->getRemark() !!}</p>
                                                 </div>
                                             </div>
-                                            <p class="text-muted text-sm mb-0">{{$activity->created_at->diffForHumans()}}</p>
+                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}">{{$activity->created_at->diffForHumans()}}</p>
                                         </div>
                                     </div>
                                 @endforeach
                                 @else
                                     <tr>
-                                        <th scope="col" colspan="7"><h6 class="text-center">{{__('No activities found')}}</h6></th>
+                                        <th scope="col" colspan="7"><h6 class="{{ VC::TXCT }}">{{__('No activities found')}}</h6></th>
                                     </tr>
                                 @endif
                             </div>
@@ -1093,10 +1093,9 @@ Object.keys(t).forEach(
         </div>
     </div>
     <div class="{{ VC::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg ss_modale " role="document">
-            <div class="modal-content image_sider_div">
+        <div class="{{ VC::MDL_DLG }} modal-dialog-centered modal-lg ss_modale" role="document">
+            <div class="{{ VC::MDL_CTT }} image_sider_div">
             </div>
         </div>
     </div>
 @endsection
-

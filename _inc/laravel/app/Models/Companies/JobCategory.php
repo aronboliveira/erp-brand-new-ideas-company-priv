@@ -2,16 +2,30 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
+};
 use App\Enums\{JobLevel, WorkContractType, WorkPresence, WorkShift};
-use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, StoresManyRefJson, UsesUuids};
-use Carbon\CarbonImmutable;
+use App\Traits\{
+    FiltersSecureAttachments,
+    HasAuditFields,
+    NormalizesArrays,
+    StoresManyRefJson,
+    UsesUuids
+};
+use Carbon\{CarbonImmutable};
 use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Support\{Str};
 use Illuminate\Support\Facades\{Cache, DB, Log};
-use Illuminate\Support\Str;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class JobCategory extends Model
 {
+    use HasFactory;
+
     use UsesUuids;
     use HasAuditFields;
     use NormalizesArrays;
@@ -43,7 +57,7 @@ class JobCategory extends Model
         PJC::COL_ACP_LVLS,
         PJC::COL_ACP_PRS,
         PJC::COL_ACP_CTC_TP,
-        PJC::COL_SHFT_TP,
+        PJC::COL_ACP_SHFT,
 
         'certifications',
         'attachments',
@@ -62,7 +76,7 @@ class JobCategory extends Model
         PJC::COL_ACP_LVLS => 'array',
         PJC::COL_ACP_PRS => 'array',
         PJC::COL_ACP_CTC_TP => 'array',
-        PJC::COL_SHFT_TP => 'array',
+        PJC::COL_ACP_SHFT => 'array',
 
         'certifications' => 'array',
         'attachments' => 'array',
@@ -92,7 +106,7 @@ class JobCategory extends Model
                     PJC::COL_ACP_LVLS,
                     PJC::COL_ACP_PRS,
                     PJC::COL_ACP_CTC_TP,
-                    PJC::COL_SHFT_TP,
+                    PJC::COL_ACP_SHFT,
                     'certifications',
                     'attachments',
                     'metadata',
@@ -111,188 +125,234 @@ class JobCategory extends Model
 
     private function normalizeIsActiveField(): void
     {
-        $raw = $this->getAttribute(AC::COL_IA);
+        try {
+            $raw = $this->getAttribute(AC::COL_IA);
 
-        if ($raw === null) {
+            if ($raw === null) {
+                $this->setAttribute(AC::COL_IA, true);
+                return;
+            }
+
+            if (is_bool($raw)) {
+                $this->setAttribute(AC::COL_IA, $raw);
+                return;
+            }
+
+            if (is_int($raw) || is_float($raw)) {
+                $this->setAttribute(AC::COL_IA, (bool) $raw);
+                return;
+            }
+
+            if (is_string($raw)) {
+                $v = strtolower(trim($raw));
+                $this->setAttribute(AC::COL_IA, in_array($v, ['1', 'true', 'yes', 'y', 'on'], true));
+                return;
+            }
+
             $this->setAttribute(AC::COL_IA, true);
-            return;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeIsActiveField — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
-
-        if (is_bool($raw)) {
-            $this->setAttribute(AC::COL_IA, $raw);
-            return;
-        }
-
-        if (is_int($raw) || is_float($raw)) {
-            $this->setAttribute(AC::COL_IA, (bool) $raw);
-            return;
-        }
-
-        if (is_string($raw)) {
-            $v = strtolower(trim($raw));
-            $this->setAttribute(AC::COL_IA, in_array($v, ['1', 'true', 'yes', 'y', 'on'], true));
-            return;
-        }
-
-        $this->setAttribute(AC::COL_IA, true);
     }
 
     private function ensureSlugAndCode(): void
     {
-        $title = trim((string) ($this->getAttribute('title') ?? ''));
-        $slug  = trim((string) ($this->getAttribute('slug') ?? ''));
-        $code  = trim((string) ($this->getAttribute('code') ?? ''));
+        try {
+            $title = trim((string) ($this->getAttribute('title') ?? ''));
+            $slug  = trim((string) ($this->getAttribute('slug') ?? ''));
+            $code  = trim((string) ($this->getAttribute('code') ?? ''));
 
-        if ($slug === '') {
-            $base = $title !== '' ? Str::snake(Str::lower(Str::ascii($title))) : '';
-            $base = preg_replace('/[^a-z0-9_]/', '', (string) $base);
-            $base = trim((string) $base, '_');
+            if ($slug === '') {
+                $base = $title !== '' ? Str::snake(Str::lower(Str::ascii($title))) : '';
+                $base = preg_replace('/[^a-z0-9_]/', '', (string) $base);
+                $base = trim((string) $base, '_');
 
-            if ($base === '')
-                $base = 'job_cat_' . CarbonImmutable::now()->format('Ymd_His');
+                if ($base === '')
+                    $base = 'job_cat_' . CarbonImmutable::now()->format('Ymd_His');
 
-            $candidateUrl = Str::limit($base, 254, '') ?: ('job_cat_' . CarbonImmutable::now()->format('Ymd_His'));
-            if (DB::table($this->getTable())->where('slug', $candidateUrl)->where('id', '!=', $this->getAttribute('id') ?? '')->exists()) {
-                $acc = 0;
-                do {
-                    $candidateUrl = Str::limit($base, 196, '') . 'job_cat_' . CarbonImmutable::now()->format('Ymd_His') . Str::uuid()->toString();
-                    $acc++;
-                } while (DB::table($this->getTable())->where('slug', $candidateUrl)->where('id', '!=', $this->getAttribute('id') ?? '')->exists());
-                if ($acc > 64000) throw new \RuntimeException('Failed to generate unique slug for JobCategory after 64000 attempts');
+                $candidateUrl = Str::limit($base, 254, '') ?: ('job_cat_' . CarbonImmutable::now()->format('Ymd_His'));
+                if (DB::table($this->getTable())->where('slug', $candidateUrl)->where('id', '!=', $this->getAttribute('id') ?? '')->exists()) {
+                    $acc = 0;
+                    do {
+                        $candidateUrl = Str::limit($base, 196, '') . 'job_cat_' . CarbonImmutable::now()->format('Ymd_His') . Str::uuid()->toString();
+                        $acc++;
+                    } while (DB::table($this->getTable())->where('slug', $candidateUrl)->where('id', '!=', $this->getAttribute('id') ?? '')->exists());
+                    if ($acc > 64000) throw new \RuntimeException('Failed to generate unique slug for JobCategory after 64000 attempts');
+                }
+                $this->setAttribute('slug', $candidateUrl);
             }
-            $this->setAttribute('slug', $candidateUrl);
-        }
 
-        if ($code === '') {
-            $uuid = method_exists(Utility::class, 'generateUuid') ? Utility::generateUuid() : (string) Str::uuid();
-            $this->setAttribute('code', 'JB-CAT-' . $uuid . '-' . CarbonImmutable::now()->format('YmdHis'));
+            if ($code === '') {
+                $uuid = method_exists(Utility::class, 'generateUuid') ? Utility::generateUuid() : (string) Str::uuid();
+                $this->setAttribute('code', 'JB-CAT-' . $uuid . '-' . CarbonImmutable::now()->format('YmdHis'));
+            }
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::ensureSlugAndCode — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     private function normalizeAcceptedEnums(): void
     {
-        $this->setAttribute(PJC::COL_ACP_LVLS, $this->normalizeJobLevels($this->getAttribute(PJC::COL_ACP_LVLS)));
-        $this->setAttribute(PJC::COL_ACP_PRS, $this->normalizePresenceTypes($this->getAttribute(PJC::COL_ACP_PRS)));
-        $this->setAttribute(PJC::COL_ACP_CTC_TP, $this->normalizeContractTypes($this->getAttribute(PJC::COL_ACP_CTC_TP)));
-        $this->setAttribute(PJC::COL_SHFT_TP, $this->normalizeShiftTypes($this->getAttribute(PJC::COL_SHFT_TP)));
+        try {
+            $this->setAttribute(PJC::COL_ACP_LVLS, $this->normalizeJobLevels($this->getAttribute(PJC::COL_ACP_LVLS)));
+            $this->setAttribute(PJC::COL_ACP_PRS, $this->normalizePresenceTypes($this->getAttribute(PJC::COL_ACP_PRS)));
+            $this->setAttribute(PJC::COL_ACP_CTC_TP, $this->normalizeContractTypes($this->getAttribute(PJC::COL_ACP_CTC_TP)));
+            $this->setAttribute(PJC::COL_ACP_SHFT, $this->normalizeShiftTypes($this->getAttribute(PJC::COL_ACP_SHFT)));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeAcceptedEnums — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     private function normalizeJsonFields(): void
     {
-        $this->setAttribute('certifications', $this->normalizeStringOrIdList($this->getAttribute('certifications')));
-        $this->setAttribute('attachments', $this->normalizeAttachments($this->getAttribute('attachments')));
-        $this->setAttribute('companies', $this->normalizeStringOrIdList($this->getAttribute('companies')));
-        $this->setAttribute('branches', $this->normalizeStringOrIdList($this->getAttribute('branches')));
+        try {
+            $this->setAttribute('certifications', $this->normalizeStringOrIdList($this->getAttribute('certifications')));
+            $this->setAttribute('attachments', $this->normalizeAttachments($this->getAttribute('attachments')));
+            $this->setAttribute('companies', $this->normalizeStringOrIdList($this->getAttribute('companies')));
+            $this->setAttribute('branches', $this->normalizeStringOrIdList($this->getAttribute('branches')));
 
-        $meta = self::normalizeArrayField($this->getAttribute('metadata'));
-        $this->setAttribute('metadata', $meta ?: null);
+            $meta = self::normalizeArrayField($this->getAttribute('metadata'));
+            $this->setAttribute('metadata', $meta ?: null);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeJsonFields — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
     }
 
     private function normalizeJobLevels(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
-            $enum = JobLevel::normalize($v);
-            if ($enum) $out[] = $enum->value;
+            foreach ($arr as $v) {
+                if (!is_scalar($v)) continue;
+                $enum = JobLevel::normalize($v);
+                if ($enum) $out[] = $enum->value;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeJobLevels — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     private function normalizeContractTypes(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
-            $enum = WorkContractType::normalize($v);
-            if ($enum) $out[] = $enum->value;
+            foreach ($arr as $v) {
+                if (!is_scalar($v)) continue;
+                $enum = WorkContractType::normalize($v);
+                if ($enum) $out[] = $enum->value;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeContractTypes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     private function normalizePresenceTypes(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
-            $enum = WorkPresence::normalize($v);
-            if ($enum) $out[] = $enum->value;
+            foreach ($arr as $v) {
+                if (!is_scalar($v)) continue;
+                $enum = WorkPresence::normalize($v);
+                if ($enum) $out[] = $enum->value;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizePresenceTypes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     private function normalizeShiftTypes(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
-            $enum = WorkShift::normalize($v);
-            if ($enum) $out[] = $enum->value;
+            foreach ($arr as $v) {
+                if (!is_scalar($v)) continue;
+                $enum = WorkShift::normalize($v);
+                if ($enum) $out[] = $enum->value;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeShiftTypes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     private function normalizeStringOrIdList(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $v) {
-            if (!is_scalar($v)) continue;
+            foreach ($arr as $v) {
+                if (!is_scalar($v)) continue;
 
-            $s = trim((string) $v);
-            if ($s === '') continue;
+                $s = trim((string) $v);
+                if ($s === '') continue;
 
-            $out[] = $s;
+                $out[] = $s;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeStringOrIdList — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     private function normalizeAttachments(mixed $value): ?array
     {
-        $arr = self::normalizeArrayField($value);
-        $out = [];
+        try {
+            $arr = self::normalizeArrayField($value);
+            $out = [];
 
-        foreach ($arr as $it) {
-            if (is_scalar($it)) {
-                $s = trim((string) $it);
-                if ($s !== '') $out[] = ['id' => $s];
-                continue;
+            foreach ($arr as $it) {
+                if (is_scalar($it)) {
+                    $s = trim((string) $it);
+                    if ($s !== '') $out[] = ['id' => $s];
+                    continue;
+                }
+
+                if (!is_array($it)) continue;
+
+                $id = isset($it['id']) && is_scalar($it['id']) ? trim((string) $it['id']) : null;
+                $name = isset($it['name']) && is_scalar($it['name']) ? trim((string) $it['name']) : null;
+                $filePath = isset($it['file_path']) && is_scalar($it['file_path']) ? trim((string) $it['file_path']) : null;
+
+                $payload = [];
+                if ($id !== null && $id !== '') $payload['id'] = $id;
+                if ($name !== null && $name !== '') $payload['name'] = $name;
+                if ($filePath !== null && $filePath !== '') $payload['file_path'] = $filePath;
+
+                if ($payload !== []) $out[] = $payload;
             }
 
-            if (!is_array($it)) continue;
-
-            $id = isset($it['id']) && is_scalar($it['id']) ? trim((string) $it['id']) : null;
-            $name = isset($it['name']) && is_scalar($it['name']) ? trim((string) $it['name']) : null;
-            $filePath = isset($it['file_path']) && is_scalar($it['file_path']) ? trim((string) $it['file_path']) : null;
-
-            $payload = [];
-            if ($id !== null && $id !== '') $payload['id'] = $id;
-            if ($name !== null && $name !== '') $payload['name'] = $name;
-            if ($filePath !== null && $filePath !== '') $payload['file_path'] = $filePath;
-
-            if ($payload !== []) $out[] = $payload;
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeAttachments — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        return $out ?: null;
     }
 
     public function getLevelsNormalizedAttribute(): array
@@ -312,18 +372,23 @@ class JobCategory extends Model
 
     public function getShiftTypesNormalizedAttribute(): array
     {
-        return $this->normalizeShiftTypes($this->getAttribute(PJC::COL_SHFT_TP)) ?? [];
+        return $this->normalizeShiftTypes($this->getAttribute(PJC::COL_ACP_SHFT)) ?? [];
     }
 
     public function getIsReadyForPostingAttribute(): bool
     {
-        $title = trim((string) ($this->getAttribute('title') ?? ''));
-        $desc  = trim((string) ($this->getAttribute('description') ?? ''));
+        try {
+            $title = trim((string) ($this->getAttribute('title') ?? ''));
+            $desc  = trim((string) ($this->getAttribute('description') ?? ''));
 
-        if ($title === '' || $desc === '') return false;
-        if (!((bool) $this->getAttribute(AC::COL_IA))) return false;
+            if ($title === '' || $desc === '') return false;
+            if (!((bool) $this->getAttribute(AC::COL_IA))) return false;
 
-        return true;
+            return true;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::getIsReadyForPostingAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return false;
+        }
     }
 
     public function setAcceptedLevelsSafe(mixed $value): self
@@ -346,7 +411,7 @@ class JobCategory extends Model
 
     public function setAcceptedShiftTypesSafe(mixed $value): self
     {
-        $this->setAttribute(PJC::COL_SHFT_TP, $this->normalizeShiftTypes($value));
+        $this->setAttribute(PJC::COL_ACP_SHFT, $this->normalizeShiftTypes($value));
         return $this;
     }
 
@@ -379,42 +444,52 @@ class JobCategory extends Model
 
     public static function countActiveCached(int $ttlSeconds = 120): int
     {
-        $key = self::cacheKey('countActive');
+        try {
+            $key = self::cacheKey('countActive');
 
-        return (int) Cache::remember($key, $ttlSeconds, function (): int {
-            try {
-                return (int) self::query()->active()->count();
-            } catch (\Throwable $e) {
-                Log::error(self::class . ' countActiveCached failed', ['error' => $e->getMessage()]);
-                return 0;
-            }
-        });
+            return (int) Cache::remember($key, $ttlSeconds, function (): int {
+                try {
+                    return (int) self::query()->active()->count();
+                } catch (\Throwable $e) {
+                    Log::error(self::class . ' countActiveCached failed', ['error' => $e->getMessage()]);
+                    return 0;
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::countActiveCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return 0;
+        }
     }
 
     public static function countsByFieldCached(int $ttlSeconds = 120): array
     {
-        $key = self::cacheKey('countsByField');
+        try {
+            $key = self::cacheKey('countsByField');
 
-        return Cache::remember($key, $ttlSeconds, function (): array {
-            $out = [];
-            try {
-                $rows = self::query()
-                    ->selectRaw('field, COUNT(*) as aggregate_count')
-                    ->groupBy('field')
-                    ->get();
+            return Cache::remember($key, $ttlSeconds, function (): array {
+                $out = [];
+                try {
+                    $rows = self::query()
+                        ->selectRaw('field, COUNT(*) as aggregate_count')
+                        ->groupBy('field')
+                        ->get();
 
-                foreach ($rows as $row) {
-                    $field = $row->getAttribute('field');
-                    $cnt   = $row->getAttribute('aggregate_count');
+                    foreach ($rows as $row) {
+                        $field = $row->getAttribute('field');
+                        $cnt   = $row->getAttribute('aggregate_count');
 
-                    $fieldStr = is_scalar($field) ? trim((string) $field) : '';
-                    $key = $fieldStr !== '' ? $fieldStr : '#NO_FIELD';
-                    $out[$key] = is_numeric($cnt) ? (int) $cnt : 0;
+                        $fieldStr = is_scalar($field) ? trim((string) $field) : '';
+                        $key = $fieldStr !== '' ? $fieldStr : '#NO_FIELD';
+                        $out[$key] = is_numeric($cnt) ? (int) $cnt : 0;
+                    }
+                } catch (\Throwable $e) {
+                    Log::error(self::class . ' countsByFieldCached failed', ['error' => $e->getMessage()]);
                 }
-            } catch (\Throwable $e) {
-                Log::error(self::class . ' countsByFieldCached failed', ['error' => $e->getMessage()]);
-            }
-            return $out;
-        });
+                return $out;
+            });
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::countsByFieldCached — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 }

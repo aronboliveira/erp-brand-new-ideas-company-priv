@@ -15,7 +15,7 @@
       const original = console[method];
       console[method] = function(...args) {
         const firstArg = args[0];
-        const shouldSuppress = method === 'log' || (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('https://localhost') || window.location.origin.startsWith('http://127.0.0.1') || window.location.origin.startsWith('https://127.0.0.1')) ? suppressPatterns.some(pattern => 
+        const shouldSuppress = method === 'log' || (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('https://localhost') || window.location.origin.startsWith('http://127.0.0.1') || window.location.origin.startsWith('https://127.0.0.1')) ? suppressPatterns.some(pattern =>
           firstArg?.includes?.(pattern)
         ) : false;
         if (shouldSuppress) return;

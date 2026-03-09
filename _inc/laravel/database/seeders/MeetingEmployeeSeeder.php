@@ -38,7 +38,12 @@ class MeetingEmployeeSeeder extends Seeder
 		// Ajusta o teto por reunião ao número de empregados disponível.
 		$this->maxPerMeeting = max(1, min($this->maxPerMeeting, count($employeeIds)));
 
+		// HARD_CAP: limit iterations for dev/test speed
+		$HARD_CAP = 2;
+		$_meetingCount = 0;
 		foreach ($meetingIds as $meetingId) {
+			if ($_meetingCount >= $HARD_CAP) break;
+			$_meetingCount++;
 			DB::transaction(function () use ($meetingId, $employeeIds) {
 				try {
 					// Quantidade de participantes a gerar para esta reunião.
@@ -60,9 +65,9 @@ class MeetingEmployeeSeeder extends Seeder
 							// Garante no máximo 1 host; se não houver, o primeiro vira host.
 							$isHost = $hostAssigned ? false : true;
 							$hostAssigned = $hostAssigned || $isHost;
-							$ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
-							(new \Symfony\Component\Console\Output\ConsoleOutput
-							)->writeln("Criando Funcionário em Chamada para meeting={$meetingId} employee={$ref} como " . ($isHost ? 'host' : 'attendee'));
+							// $ref = $empId instanceof Employee ? ($empId->name ?? $empId->id) : (Employee::query()->where('id', $empId)->value('name') ?? $empId);
+							// (new \Symfony\Component\Console\Output\ConsoleOutput
+							// )->writeln("Criando Funcionário em Chamada para meeting={$meetingId} employee={$ref} como " . ($isHost ? 'host' : 'attendee'));
 
 							// firstOrCreate evita violar a UNIQUE([meeting_id, employee_id]).
 							// Definimos 'id' e 'invitation_code' apenas na criação para não sobrescrever códigos existentes.

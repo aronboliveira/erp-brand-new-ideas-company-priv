@@ -3,30 +3,37 @@
 namespace Modules\LandingPage\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    UsersConstants,
-    ViewsConstants,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    UsersConstants as UC,
+    ViewsConstants as VW,
 };
-use App\Http\Controllers\Controller as AppController;
+use App\Http\Controllers\Abstracts\Controller as AppController;
 use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log};
 use Illuminate\{Support\Str, View\View};
 use Modules\LandingPage\{
-    Config\Constants\SettingsConstants,
+    Config\Constants\SettingsConstants as LPSC,
     Config\Constants\RoutesResourcesConstants as RRC,
     Entities\LandingPageSetting
 };
-use Symfony\Component\Console\Output\ConsoleOutput;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
 class HomeController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    public const ENTITY = ViewsConstants::HM;
+    public const ENTITY = VW::HM;
+    public const IDX = 'index';
+    public const CRT = 'create';
+    public const STR = 'store';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+    public const UPD = 'update';
+    public const DEL = 'destroy';
+
     private const LP = RRC::LP;
     private const REDIRECT_INDEX = RRC::HM . '.index';
 
@@ -35,65 +42,21 @@ class HomeController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $function) {
             try {
-                $method = static::class . '::' . $function;
-                $output = new ConsoleOutput;
-                $steps = [
-                    'start'            => 'Starting home index',
-                    'loginCheck'       => 'Checking login',
-                    'permissionCheck'  => 'Checking permissions',
-                    'loadSettings'     => 'Loading landing page settings',
-                    'settingsLoaded'   => 'Settings loaded',
-                    'renderView'       => 'Rendering home view'
-                ];
-                foreach ([$steps['start'], $steps['loginCheck']] as $msg) {
-                    app()->runningInConsole()
-                        ? $output->writeln("<info> {$msg} </info>")
-                        : $output->writeln("## HOME: {$msg}");
+                if (($ur = static::_checkLogin()) instanceof RedirectResponse) return $ur;
+                if ($ur->type !== 'super admin') {
+                    return redirect()->back()->with('error', __('Permission denied.'));
                 }
-                $startLogin = microtime(true);
-                if (($ur = static::_checkLogin()) instanceof RedirectResponse) {
-                    $this->logExecutionTime($startLogin, $function . '::login', 'failed');
-                    return $ur;
-                }
-                $userId = $ur->id;
-                $this->logExecutionTime($startLogin, $function . '::login', 'completed');
-                $startGuard = microtime(true);
-                // if ($g = static::guard($request, PermissionsConstants::MNG_LP, static::REDIRECT_INDEX)) {
-                //     Log::warning($method . ' permission denied', ['user_id' => $userId]);
-                //     $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
-                //     Log::debug($method . ' debug guard', ['redirect' => $g]);
-                //     return $g;
-                // }
-                // $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
-                Log::debug($method . ' login and permission checks passed', [UsersConstants::COL_USER_ID => $userId]);
-                foreach ([$steps['permissionCheck'], $steps['loadSettings']] as $msg) {
-                    app()->runningInConsole()
-                        ? $output->writeln("<comment> {$msg} </comment>")
-                        : $output->writeln("## HOME: {$msg}");
-                }
-                $startSettings = microtime(true);
                 $settings = LandingPageSetting::landingPageSetting();
-                $this->logExecutionTime($startSettings, $function . '::loadSettings', 'completed');
-                Log::debug($method . ' loaded settings', ['user_id' => $userId, 'keys' => array_keys($settings)]);
-                foreach ([$steps['settingsLoaded'], $steps['renderView']] as $msg) {
-                    app()->runningInConsole()
-                        ? $output->writeln("<info> {$msg} </info>")
-                        : $output->writeln("## HOME: {$msg}");
-                }
-                $startView = microtime(true);
                 $view = self::getFirstExistingView(RRC::HM);
-                $this->logExecutionTime($startView, $function . '::view', 'completed');
-                Log::debug($method . ' succeeded', [UsersConstants::COL_USER_ID => $userId]);
-                return view($view, compact(DatabaseConstants::TABLE_SETTINGS));
+                return view($view, compact(DC::TABLE_SETTINGS));
             } catch (\Throwable $e) {
-                Log::debug(static::class . "::{$function} exception trace", ['exception' => $e, 'request' => $request->all()]);
                 Log::error(static::class . "::{$function} failed", ['error' => $e->getMessage()]);
                 throw $e;
             }
         }, func_get_args());
     }
 
-    public function show(Request $request, int $id): View|RedirectResponse|null
+    public function show(Request $request, string|int $id): View|RedirectResponse|null
     {
         $class = static::class;
         $method = __FUNCTION__;
@@ -126,7 +89,7 @@ class HomeController extends AppController
                 if ($ur instanceof RedirectResponse) return $ur;
                 $user = $ur;
                 $guardStart = microtime(true);
-                $g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
+                $g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX);
                 $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
                 if ($g !== true) {
                     Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
@@ -157,7 +120,7 @@ class HomeController extends AppController
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) {
+            if (($g = self::guard($request, PMC::MNG_LP, self::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => Auth::id()]);
                 return $g;
             }
@@ -167,12 +130,12 @@ class HomeController extends AppController
             $this->logExecutionTime($stepStart, 'logStart', 'completed');
             $data = [];
             $stepStart = microtime(true);
-            if ($request->hasFile(SettingsConstants::HM_BNR_K)) {
+            if ($request->hasFile(LPSC::HM_BNR_K)) {
                 Log::debug($method . ' banner upload detected', ['user_id' => Auth::id()]);
-                $file = $request->file(SettingsConstants::HM_BNR_K);
-                $name = SettingsConstants::HM_BNR_K . '.' . $file->getClientOriginalExtension();
+                $file = $request->file(LPSC::HM_BNR_K);
+                $name = LPSC::HM_BNR_K . '.' . $file->getClientOriginalExtension();
                 $dir = 'uploads/landing_page_image';
-                $path = LandingPageSetting::uploadFile($request, SettingsConstants::HM_BNR_K, $name, $dir, []);
+                $path = LandingPageSetting::uploadFile($request, LPSC::HM_BNR_K, $name, $dir, []);
                 $this->logExecutionTime($stepStart, 'bannerUploadCall', 'completed');
                 if ($path['flag'] !== 1) {
                     Log::error($method . ' banner upload failed', ['user_id' => Auth::id(), 'msg' => $path['msg']]);
@@ -185,17 +148,17 @@ class HomeController extends AppController
                 Log::debug($method . ' no banner uploaded', ['user_id' => Auth::id()]);
             }
             $stepStart = microtime(true);
-            $existing = explode(',', LandingPageSetting::settings()[SettingsConstants::HM_LGO_K] ?? '');
+            $existing = explode(',', LandingPageSetting::settings()[LPSC::HM_LGO_K] ?? '');
             $keep = explode(',', $request->input('savedlogo', ''));
             $logos = array_values(array_intersect($existing, $keep));
             Log::debug($method . ' existing logos filtered', ['user_id' => Auth::id(), 'count' => count($logos)]);
             $this->logExecutionTime($stepStart, 'filterExistingLogos', 'completed');
-            if ($request->has(SettingsConstants::HM_LGO_K)) {
-                foreach ($request->file(SettingsConstants::HM_LGO_K) as $file) {
+            if ($request->has(LPSC::HM_LGO_K)) {
+                foreach ($request->file(LPSC::HM_LGO_K) as $file) {
                     $stepStart = microtime(true);
                     $fname = md5(now()) . '_' . $file->getClientOriginalName();
                     $dir = 'uploads/landing_page_image';
-                    $p = LandingPageSetting::keyWiseUploadFile($request, SettingsConstants::HM_LGO_K, $fname, $dir, 0, []);
+                    $p = LandingPageSetting::keyWiseUploadFile($request, LPSC::HM_LGO_K, $fname, $dir, 0, []);
                     $this->logExecutionTime($stepStart, 'logoUploadCall', 'completed');
                     if ($p['flag'] !== 1) {
                         Log::error($method . ' logo upload failed', ['user_id' => Auth::id(), 'msg' => $p['msg']]);

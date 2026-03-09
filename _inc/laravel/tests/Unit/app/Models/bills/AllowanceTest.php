@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Database\Eloquent\Relations\HasOne,
 	Foundation\Testing\RefreshDatabase
@@ -11,6 +12,11 @@ use App\Models\{Allowance, AllowanceOption, Employee};
 
 class AllowanceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -34,9 +40,7 @@ class AllowanceTest extends TestCase
 
 		$allowance = Allowance::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $allowance->$field);
-		}
+		$this->assertFillableMatches($data, $allowance);
 	}
 
 	/**
@@ -84,10 +88,10 @@ class AllowanceTest extends TestCase
 	{
 		$relation = (new Allowance)->employee();
 
-		$this->assertInstanceOf(HasOne::class,    $relation);
+		$this->assertInstanceOf(BelongsTo::class,    $relation);
 		$this->assertSame(Employee::class,        get_class($relation->getRelated()));
-		$this->assertSame('id',                   $relation->getForeignKeyName());
-		$this->assertSame('employee_id',          $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                   $relation->getForeignKeyName());
+		$this->assertSame('id',          $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -99,10 +103,10 @@ class AllowanceTest extends TestCase
 	{
 		$relation = (new Allowance)->allowanceOption();
 
-		$this->assertInstanceOf(HasOne::class,            $relation);
+		$this->assertInstanceOf(BelongsTo::class,            $relation);
 		$this->assertSame(AllowanceOption::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                            $relation->getForeignKeyName());
-		$this->assertSame('allowance_option',              $relation->getLocalKeyName());
+		$this->assertSame('allowance_option',                            $relation->getForeignKeyName());
+		$this->assertSame('id',              $relation->getOwnerKeyName());
 	}
 
 	/**

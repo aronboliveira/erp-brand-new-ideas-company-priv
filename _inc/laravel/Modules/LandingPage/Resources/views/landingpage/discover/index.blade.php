@@ -1,21 +1,14 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,
-        ViewClassNamesConstants as VC,YieldingConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,
-        RoutesResourcesConstants as R,
-        SettingsConstants as LPC};
-    use Nwidart\Modules\Facades\Module;
+
+
     $discover_of_features ??= [];
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
 	try {
         $lpSettings=\Modules\LandingPage\Entities\LandingPageSetting::landingPageSetting()?:[];
-        $discover_of_features ??= !empty($lpSettings[LPC::DC_OF_FTS_K]) 
-            ? $lpSettings[LPC::DC_OF_FTS_K]
+        $discover_of_features ??= !empty($lpSettings[LPSC::DC_OF_FTS_K])
+            ? $lpSettings[LPSC::DC_OF_FTS_K]
             : [];
 		$logo= Utility::getFile('uploads/landing_page_image')?:'';
 	} catch (\Error $e) {
@@ -113,7 +106,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPC::DC_HDG_K, !empty($lpSettings[LPC::DC_HDG_K]) ? $lpSettings[LPC::DC_HDG_K] : __('No heading found for discover'), ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                                {{ Form::text(LPSC::DC_HDG_K, !empty($lpSettings[LPSC::DC_HDG_K]) ? $lpSettings[LPSC::DC_HDG_K] : __('No heading found for discover'), ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                                 @error('mail_host')
                                                     <span class="invalid-mail_driver" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -124,7 +117,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPC::DC_DESC_K, !empty($lpSettings[LPC::DC_DESC_K]) ? $lpSettings[LPC::DC_DESC_K] : __('No description found for discover'), ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                                {{ Form::text(LPSC::DC_DESC_K, !empty($lpSettings[LPSC::DC_DESC_K]) ? $lpSettings[LPSC::DC_DESC_K] : __('No description found for discover'), ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
                                                 @error('mail_port')
                                                     <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -135,8 +128,8 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Live Demo Link', __('Live Demo Link'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPC::DC_DEMO_LNK_K, !empty($lpSettings[LPC::DC_DEMO_LNK_K]) ?$lpSettings[LPC::DC_DEMO_LNK_K] : __('No demo link available'), ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
-                                                @error(LPC::DC_DEMO_LNK_K)
+                                                {{ Form::text(LPSC::DC_DEMO_LNK_K, !empty($lpSettings[LPSC::DC_DEMO_LNK_K]) ?$lpSettings[LPSC::DC_DEMO_LNK_K] : __('No demo link available'), ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
+                                                @error(LPSC::DC_DEMO_LNK_K)
                                                     <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
                                                     </span>
@@ -146,8 +139,8 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Buy Now Link', __('Buy Now Link'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPC::DC_BUY_LNK_K, !empty($lpSettings[LPC::DC_BUY_LNK_K]) ? $lpSettings[LPC::DC_BUY_LNK_K] : __('No buy now link available'), ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
-                                                @error(LPC::DC_BUY_LNK_K)
+                                                {{ Form::text(LPSC::DC_BUY_LNK_K, !empty($lpSettings[LPSC::DC_BUY_LNK_K]) ? $lpSettings[LPSC::DC_BUY_LNK_K] : __('No buy now link available'), ['class' => 'form-control', 'placeholder' => __('Enter Link')]) }}
+                                                @error(LPSC::DC_BUY_LNK_K)
                                                     <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
                                                     </span>
@@ -167,15 +160,20 @@
                                     <div class="{{ VC::CLMS9 }}">
                                         {{-- <h5>{{ __('Menu Bar') }}</h5> --}}
                                     </div>
-                                    @php 
-                                        $discoverCreateRoute = R::DV.'.create';
-                                        $canCreateDiscover   = Route::has($discoverCreateRoute);
-                                        $discoverCreateUrl   = $canCreateDiscover 
-                                            ? route($discoverCreateRoute) 
-                                            : '#';
-                                    @endphp
+                                    @php
+
+                                        try {
+                                            $discoverCreateRoute = R::DV.'.create';
+                                            $canCreateDiscover   = Route::has($discoverCreateRoute);
+                                            $discoverCreateUrl   = $canCreateDiscover
+                                                ? route($discoverCreateRoute)
+                                                : '#';
+                                        } catch (\Throwable $e) {
+                                            \Log::error('Modules/LandingPage/Resources/views/landingpage/discover/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <div class="{{ VC::CLMS_JCE3 }}">
-                                        <a 
+                                        <a
                                             data-size="lg"
                                             data-url="{{ $discoverCreateUrl }}"
                                             data-ajax-popup="true"
@@ -209,19 +207,23 @@
                                            @if (Utility::isFilled($discover_of_features))
                                                 @php
                                                     $no = 1;
-                                                @endphp
+@endphp
                                                 @foreach ($discover_of_features as $key => $feature)
                                                     @if(Utility::isFilled($feature))
                                                         <tr>
                                                             <td>{{ $no++ }}</td>
-                                                            <td>{{ !empty($feature[LPC::DC_HDG_K]) ? $feature[LPC::DC_HDG_K] : __('Unnamed Feature') }}</td>
+                                                            <td>{{ !empty($feature[LPSC::DC_HDG_K]) ? $feature[LPSC::DC_HDG_K] : __('Unnamed Feature') }}</td>
                                                             @php
-                                                                $editRoute    = R::DV.'.edit';
-                                                                $deleteRoute  = R::DV.'.delete';
-                                                                $canEdit      = Route::has($editRoute);
-                                                                $canDelete    = Route::has($deleteRoute);
-                                                                $editUrl      = $canEdit   ? route($editRoute, $key)    : '#';
-                                                            @endphp
+                                                                try {
+                                                                    $editRoute    = R::DV.'.edit';
+                                                                    $deleteRoute  = R::DV.'.delete';
+                                                                    $canEdit      = Route::has($editRoute);
+                                                                    $canDelete    = Route::has($deleteRoute);
+                                                                    $editUrl      = $canEdit   ? route($editRoute, $key)    : '#';
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('Modules/LandingPage/Resources/views/landingpage/discover/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <td>
                                                                 <span>
                                                                     <div class="action-btn {{ VC::BG_P }} ms-2">
@@ -303,5 +305,3 @@
         </div>
     </div>
 @endsection
-
-

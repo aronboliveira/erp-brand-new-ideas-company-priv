@@ -10,6 +10,11 @@ use App\Models\{Lead, LeadStage, User};
 
 class LeadStageTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -150,8 +155,11 @@ class LeadStageTest extends TestCase
 			'date'         => '2025-05-24',
 		]);
 
-		// attach via pivot
-		$employee->leads()->attach([$leadA->id, $leadB->id]);
+		// attach via pivot — provide explicit UUIDs for char(36) PK
+		\Illuminate\Support\Facades\DB::table('user_leads')->insert([
+			['id' => \Illuminate\Support\Str::uuid()->toString(), 'user_id' => $employee->id, 'lead_id' => $leadA->id, 'created_at' => now(), 'updated_at' => now()],
+			['id' => \Illuminate\Support\Str::uuid()->toString(), 'user_id' => $employee->id, 'lead_id' => $leadB->id, 'created_at' => now(), 'updated_at' => now()],
+		]);
 
 		$result = $stage->lead();
 

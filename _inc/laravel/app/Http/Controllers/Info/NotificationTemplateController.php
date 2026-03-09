@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Info;
+
+use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{
     DatabaseConstants as DC,
@@ -27,6 +29,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
 class NotificationTemplateController extends Controller
 {

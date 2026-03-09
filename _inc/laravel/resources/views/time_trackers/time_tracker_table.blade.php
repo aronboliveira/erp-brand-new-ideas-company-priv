@@ -1,6 +1,5 @@
 @php
 	$i ??= 0;
-	use App\Config\Constants\ActivitiesConstants;
 @endphp
 @forelse ($trackers as $weekKey => $track)
 	@php
@@ -38,9 +37,9 @@
 			$currentWeek = (int) date('W');
 			$lastWeek = (int) date('W', strtotime(date('Y-m-d')) - 7 * 24 * 60 * 60);
 		}
-	@endphp
+@endphp
 	<div class="card">
-		<div class="card-body timetracker_options">
+		<div class="{{ VC::CD_BD }} timetracker_options">
 			<div class="clearfix">
 				<div class="float-left">
 					<h5 class="week-date">
@@ -58,12 +57,12 @@
 				</div>
 				<span class="clearfix"></span>
 			</div>
-			<div class="time-schrdule bg-white p-2 small">
+			<div class="time-schrdule {{ VC::BG_WT }} p-2 small">
 				<div class="row">
-					<div class="col-3"><b>{{ __('Title') }}</b></div>
+					<div class="{{ VC::C3 }}"><b>{{ __('Title') }}</b></div>
 					<div class="col-1"><b>{{ __('Project Name') }}</b></div>
 					<div class="col-1"><b>{{ __('User') }}</b></div>
-					<div class="col-2"><b>{{ __('Tags') }}</b></div>
+					<div class="{{ VC::C2 }}"><b>{{ __('Tags') }}</b></div>
 					<div class="col-1"><b>{{ __('Date') }}</b></div>
 					<div class="col-1"><b>{{ __('Start') }}</b></div>
 					<div class="col-1"><b>{{ __('End') }}</b></div>
@@ -86,7 +85,7 @@
 								$name_group = collect();
 								$class = 'open-accordion';
 							}
-						@endphp
+@endphp
 						@foreach ($name_group->reverse() as $nameKey => $name)
 							@php
 								try {
@@ -130,12 +129,12 @@
 									$class = '';
 									$aicon = 'fa-chevron-down';
 								}
-							@endphp
+@endphp
 							<div class="row acc-mainmenu">
-								<div class="col-3"><i class="ti ti-plus accodian-plus"></i> {{ is_string($nameKey) ? $nameKey : __('Could not find title') }}</div>
+								<div class="{{ VC::C3 }}"><i class="{{ VC::TI_PLS }} accodian-plus"></i> {{ is_string($nameKey) ? $nameKey : __('Could not find title') }}</div>
 								<div class="col-1">{{ $project_name }}</div>
 								<div class="col-1">{{ $user_name }}</div>
-								<div class="col-2">#</div>
+								<div class="{{ VC::C2 }}">#</div>
 								<div class="col-1">{{ $dateStr }}</div>
 								<div class="col-1">{{ $start_time ? date('H:i:s', strtotime($start_time)) : __('No start time available') }}</div>
 								<div class="col-1">{{ $end_time ? date('H:i:s', strtotime($end_time)) : __('No end time available') }}</div>
@@ -146,10 +145,10 @@
 								<div class="acc-sub-menu" style="display: none;">
 									@foreach ($name as $rowKey => $t)
 										<div class="row acc-sub-menu-div">
-											<div class="col-3">{{ (string) data_get($t, 'name', __('Could not find title')) }}</div>
+											<div class="{{ VC::C3 }}">{{ (string) data_get($t, 'name', __('Could not find title')) }}</div>
 											<div class="col-1">{{ (string) data_get($t, 'project_name', __('Could not find project name')) }}</div>
 											<div class="col-1">{{ (string) data_get($t, 'user_name', __('Could not find user name')) }}</div>
-											<div class="col-2">
+											<div class="{{ VC::C2 }}">
 												@if(empty($t->tags_name))
 													<p>#</p>
 												@else
@@ -165,9 +164,9 @@
 											<div class="col-1">{{ data_get($t, 'end_time') ? date('H:i:s', strtotime((string) data_get($t, 'end_time'))) : __('No end time available') }}</div>
 											<div class="col-1">{{ (string) data_get($t, 'total', __('Could not find total time')) }}</div>
 											<div class="col-1">
-												<img alt="{{ __('Image placeholder') }}" src="{{ asset('assets/images/gallery.png') }}" class="avatar view-images rounded-circle avatar-sm" data-toggle="tooltip" data-original-title="{{ __('View Screenshot images') }}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{ (string) data_get($t, 'id', '') }}" id="track-images-{{ (string) data_get($t, 'id', '') }}">
+												<img alt="Image placeholder" src="{{ asset('assets/images/gallery.png') }}" class="avatar view-images rounded-circle avatar-sm" data-toggle="tooltip" data-original-title="{{ __('View Screenshot images') }}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{ (string) data_get($t, 'id', '') }}" id="track-images-{{ (string) data_get($t, 'id', '') }}">
 												<i data-id="{{ (string) data_get($t, 'id', '') }}" data-is_billable="{{ (int) data_get($t, 'is_billable', 0) }}" data-toggle="tooltip" data-original-title="{{ data_get($t, 'is_billable', 0) == 1 ? __('Click to Mark Non-Billable') : __('Click to Mark Billable') }}" class="change_billable ti ti-dollar-sign {{ data_get($t, 'is_billable', 0) == 1 ? 'doller-billable' : 'doller-non-billable' }}"></i>
-												<i class="ti ti-times text-danger mx-2 pointer remove-track" data-toggle="tooltip" data-original-title="{{ __('Delete') }}" data-id="{{ (string) data_get($t, 'id', '') }}" data-url=""></i>
+												<i class="ti ti-times {{ VC::TX_DNG }} mx-2 pointer remove-track" data-toggle="tooltip" data-original-title="{{ __('Delete') }}" data-id="{{ (string) data_get($t, 'id', '') }}" data-url=""></i>
 											</div>
 										</div>
 									@endforeach
@@ -180,8 +179,8 @@
 		</div>
 	</div>
 @empty
-	<div class="timetracker_options card p-5">
-		<div class="selected_date week_total text-center mx-auto">
+	<div class="timetracker_options card {{ VC::P5 }}">
+		<div class="selected_date week_total {{ VC::TXCT }} mx-auto">
 			<span class="week-date">{{ __('Records not found') }}</span>
 		</div>
 	</div>

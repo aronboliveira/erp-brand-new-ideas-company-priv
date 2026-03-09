@@ -154,7 +154,11 @@ class GoalTrackingsSeeder extends Seeder
 		$output  = new ConsoleOutput();
 		$created = 0;
 		$round   = 0;
+		$HARD_CAP = 2; // was unbounded
+		$SECONDS_LIMIT = 32;
+		$clock = microtime(true);
 		foreach ($goalRows as $goalRow) {
+			if ($created >= $HARD_CAP || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 			$perGoal   = fake()->numberBetween(1, 8);
 
 			$goalId   = (string) $goalRow->id;
@@ -226,6 +230,7 @@ class GoalTrackingsSeeder extends Seeder
 			}
 
 			for ($i = 0; $i < $perGoal; $i++) {
+				if ($created >= $HARD_CAP || (microtime(true) - $clock) > $SECONDS_LIMIT) break;
 				if ($goalFrom && $goalTo) {
 					$diffDays = $goalFrom->diffInDays($goalTo);
 					if ($diffDays <= 0) {
@@ -361,14 +366,14 @@ class GoalTrackingsSeeder extends Seeder
 					$companyId = Arr::random($sponsorPool);
 				}
 
-				$output->writeln(sprintf(
-					'Criando GoalTracking "%s" para Goal "%s" (%s) com status "%s" e progresso %.1f%%',
-					$subject,
-					$goalName,
-					$goalId,
-					$status,
-					$progress
-				));
+				// $output->writeln(sprintf(
+				// 	'Criando GoalTracking "%s" para Goal "%s" (%s) com status "%s" e progresso %.1f%%',
+				// 	$subject,
+				// 	$goalName,
+				// 	$goalId,
+				// 	$status,
+				// 	$progress
+				// ));
 
 				GoalTracking::query()->create([
 					'company'             => $companyId,

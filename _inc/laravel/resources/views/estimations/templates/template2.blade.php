@@ -1,12 +1,5 @@
 @php
-# Template 2
-	use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants as VC};
-	use App\Models\{Utility};
-	use Illuminate\Support\Facades\{Auth, Log};
-	use InvalidArgumentException;
-	use RuntimeException;
-	use TypeError;
-	$usr ??= null;
+$usr ??= null;
 	$lang ??= (string)'';
 	$siteRtl ??= (string)'';
 	$color ??= (string)'#ffffff';
@@ -82,10 +75,10 @@
                                 <div data-v-37eeda86 class="d" style="width:800px;margin-left:auto;margin-right:auto;" id="boxes">
                                     <div data-v-37eeda86 class="d-inner">
                                         <div data-v-37eeda86 class="row">
-                                            <div data-v-37eeda86 class="col-2">
+                                            <div data-v-37eeda86 class="{{ VC::C2 }}">
                                                 <img src="{{ isset($img) && $img !== '' ? $img : asset('assets/img/placeholder.png') }}" style="max-width:150px">
                                             </div>
-                                            <div data-v-37eeda86 class="col-2 text-end">
+                                            <div data-v-37eeda86 class="{{ VC::C2 }} {{ VC::TX_END }}">
                                                 <p data-v-37eeda86>{{ isset($settings['company_name']) && $settings['company_name'] !== '' ? $settings['company_name'] : __('No company name available') }}</p>
                                                 <p data-v-37eeda86>
                                                     {{ isset($settings['company_address']) && $settings['company_address'] !== '' ? $settings['company_address'] : __('No address available for company') }}
@@ -112,11 +105,11 @@
                                                     <tbody data-v-37eeda86>
                                                         <tr data-v-37eeda86>
                                                             <td data-v-37eeda86 class="tu">{{ __('Number') }}:</td>
-                                                            <td data-v-37eeda86 class="text-end">{{ isset($estimation->estimation_id) ? ((string)($usr?->estimateNumberFormat($estimation->estimation_id) ?? $estimation->estimation_id)) : __('No estimation number available') }}</td>
+                                                            <td data-v-37eeda86 class="{{ VC::TX_END }}">{{ isset($estimation->estimation_id) ? ((string)($usr?->estimateNumberFormat($estimation->estimation_id) ?? $estimation->estimation_id)) : __('No estimation number available') }}</td>
                                                         </tr>
                                                         <tr data-v-37eeda86>
                                                             <td data-v-37eeda86 class="tu">{{ __('Issue Date') }}:</td>
-                                                            <td data-v-37eeda86 class="text-end">{{ isset($estimation->issue_date) && $estimation->issue_date !== '' ? ((method_exists($usr, 'dateFormat') ? (string)($usr->dateFormat($estimation->issue_date) ?? $estimation->issue_date) : __('No issue date available'))) : __('No issue date available') }}</td>
+                                                            <td data-v-37eeda86 class="{{ VC::TX_END }}">{{ isset($estimation->issue_date) && $estimation->issue_date !== '' ? ((method_exists($usr, 'dateFormat') ? (string)($usr->dateFormat($estimation->issue_date) ?? $estimation->issue_date) : __('No issue date available'))) : __('No issue date available') }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -130,7 +123,7 @@
                                                     <div class="d-table-th w-7">{{ __('Item') }}</div>
                                                     <div class="d-table-th w-5">{{ __('Price') }}</div>
                                                     <div class="d-table-th w-5">{{ __('Quantity') }}</div>
-                                                    <div class="d-table-th w-4 text-end">{{ __('Totals') }}</div>
+                                                    <div class="d-table-th w-4 {{ VC::TX_END }}">{{ __('Totals') }}</div>
                                                 </div>
                                                 <div data-v-37eeda86 class="d-table-body">
                                                     @if(!empty($items))
@@ -140,7 +133,7 @@
                                                                 <div class="d-table-td w-7"><pre data-v-f2a183a6>{{ isset($item->name) && $item->name !== '' ? $item->name : __('No item name available') }}</pre></div>
                                                                 <div class="d-table-td w-5"><pre data-v-f2a183a6>{{ isset($item->pivot->price) ? ((string)($usr?->priceFormat($item->pivot->price) ?? $item->pivot->price)) : __('No price available') }}</pre></div>
                                                                 <div class="d-table-td w-5"><pre data-v-f2a183a6>{{ isset($item->pivot->quantity) ? $item->pivot->quantity : __('No quantity available') }}</pre></div>
-                                                                <div class="d-table-td w-4 text-end"><span>{{ isset($item->pivot->price,$item->pivot->quantity) ? ((string)($usr?->priceFormat($item->pivot->price * $item->pivot->quantity) ?? ($item->pivot->price * $item->pivot->quantity))) : __('No total available') }}</span></div>
+                                                                <div class="d-table-td w-4 {{ VC::TX_END }}"><span>{{ isset($item->pivot->price,$item->pivot->quantity) ? ((string)($usr?->priceFormat($item->pivot->price * $item->pivot->quantity) ?? ($item->pivot->price * $item->pivot->quantity))) : __('No total available') }}</span></div>
                                                             </div>
                                                         @endforeach
                                                     @else
@@ -149,7 +142,7 @@
                                                             <div class="d-table-td w-7"><pre data-v-f2a183a6>-</pre></div>
                                                             <div class="d-table-td w-5"><pre data-v-f2a183a6>-</pre></div>
                                                             <div class="d-table-td w-5"><pre data-v-f2a183a6>-</pre></div>
-                                                            <div class="d-table-td w-4 text-end"><span>-</span></div>
+                                                            <div class="d-table-td w-4 {{ VC::TX_END }}"><span>-</span></div>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -157,12 +150,16 @@
                                                     <div data-v-37eeda86 class="d-table-controls"></div>
                                                     <div class="d-table-summary">
                                                         @php
-                                                            $subtotal = (float)($estimation?->getSubTotal() ?? 0);
-                                                            $discount = (float)($estimation->discount ?? 0);
-                                                            $tax = (float)($estimation?->getTax() ?? 0);
-                                                            $total = $subtotal - $discount + $tax;
-                                                            $priceFormatAvailable = method_exists($usr, 'priceFormat');
-                                                        @endphp
+                                                            try {
+                                                                $subtotal = (float)($estimation?->getSubTotal() ?? 0);
+                                                                $discount = (float)($estimation->discount ?? 0);
+                                                                $tax = (float)($estimation?->getTax() ?? 0);
+                                                                $total = $subtotal - $discount + $tax;
+                                                                $priceFormatAvailable = method_exists($usr, 'priceFormat');
+                                                            } catch (\Throwable $e) {
+                                                                \Log::error('estimations/templates/template2 — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                            }
+@endphp
                                                         <div class="d-table-summary-item">
                                                             <div class="tu d-table-label">{{ __('Subtotal') }}:</div>
                                                             <div class="d-table-value">{{ (string)($priceFormatAvailable ? $usr->priceFormat($subtotal) : number_format($subtotal,2)) }}</div>
@@ -194,7 +191,7 @@
                                     </div>
                                 </div>
                                 @if(empty($estimation) || empty($client))
-                                    <div class="text-center mt-3">{{ __('Some estimation or client data is missing') }}</div>
+                                    <div class="{{ VC::TXCT }} {{ VC::MT3 }}">{{ __('Some estimation or client data is missing') }}</div>
                                 @endif
                             </div>
                         </div>

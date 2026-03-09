@@ -9,6 +9,11 @@ use App\Models\Pipeline;
 
 class PipelineTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -25,9 +30,7 @@ class PipelineTest extends TestCase
 
 		$pl = Pipeline::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $pl->$field);
-		}
+		$this->assertFillableMatches($data, $pl);
 	}
 
 	/**

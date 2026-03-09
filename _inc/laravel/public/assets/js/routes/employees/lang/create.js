@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   if (!window.translations) {
     window.translations = {};
@@ -26,10 +27,6 @@
     fr: {
       file_name_append_failed: "Impossible d’afficher le nom du fichier.",
       designation_fetch_failed: "Échec de la récupération des intitulés.",
-    },
-    he: {
-      file_name_append_failed: "לא ניתן להציג את שם הקובץ.",
-      designation_fetch_failed: "לא ניתן לאחזר תפקידים.",
     },
     it: {
       file_name_append_failed: "Impossibile mostrare il nome del file.",
@@ -73,6 +70,6 @@
       (window.translations[k] = {
         ...(window.translations[k] || {}),
         ...t[k],
-      })
+      }),
   );
 })();

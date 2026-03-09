@@ -1,9 +1,9 @@
+/** @requires ERPGuard */
 (function () {
+  const { guard } = window.ERPBootstrap.require("ERPGuard");
+  if (!guard) return;
   const $ = window.jQuery;
-  const errFb = "# ERROR";
-  const dataClientLocalized = "data-client-localized";
-  const dataGuardMsg = "data-guard-msg";
-  const dataSvLocalized = "data-sv-localized";
+
   const dataErrGuard = "data-error-guard";
   const dataBoundCopy = "data-bound-copy";
   const dataBoundSel = "data-bound-sel";
@@ -18,49 +18,6 @@
     (qs('link[href*="bootstrap"]') &&
       window.bootstrap &&
       window.bootstrap.Toast);
-  const ensureToastContainer = () => {
-    let c = qs("#np-toast-container");
-    if (c) {
-      return c;
-    }
-    c = document.createElement("div");
-    c.id = "np-toast-container";
-    c.setAttribute("aria-live", "polite");
-    c.setAttribute("aria-atomic", "true");
-    c.style.position = "fixed";
-    c.style.top = "1rem";
-    c.style.right = "1rem";
-    document.body.appendChild(c);
-    return c;
-  };
-  const showErrorNow = message => {
-    if (hasBootstrap()) {
-      const container = ensureToastContainer();
-      let t = qs("#np-toast", container);
-      if (!t) {
-        t = document.createElement("div");
-        t.id = "np-toast";
-        t.className = "toast";
-        t.setAttribute("role", "alert");
-        t.setAttribute("aria-live", "assertive");
-        t.setAttribute("aria-atomic", "true");
-        t.innerHTML =
-          '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
-        container.appendChild(t);
-      }
-      const body = qs(".toast-body", t);
-      if (body) {
-        body.textContent = message ?? errFb;
-      }
-      try {
-        new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-      } catch (_) {
-        alert(message ?? errFb);
-      }
-    } else {
-      alert(message ?? errFb);
-    }
-  };
   const scheduleInteractiveErrorClick = message => {
     const host = document.body;
     if (!host || host.getAttribute(dataErrGuard) === "true") {
@@ -69,7 +26,7 @@
     host.setAttribute(dataErrGuard, "true");
     const once = () => {
       try {
-        showErrorNow(message);
+        guard.error(message);
       } finally {
         host.removeAttribute(dataErrGuard);
       }
@@ -82,35 +39,6 @@
       }
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-  };
-  const getMsg = (el, key) => {
-    let msg = errFb;
-    if (
-      el?.getAttribute?.(dataSvLocalized) === "true" ||
-      el?.getAttribute?.(dataClientLocalized) === "true"
-    ) {
-      msg = el.getAttribute(dataGuardMsg) || errFb;
-    } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute?.(dataGuardMsg) ||
-        window.translations?.["en"]?.[msgKey] ||
-        errFb;
-      if (msg !== errFb && el) {
-        el.setAttribute(dataGuardMsg, msg);
-        el.setAttribute(dataClientLocalized, "true");
-      }
-    }
-    return msg;
   };
   const resolveRoute = (el, explicit) => {
     const url = el?.getAttribute?.("data-url") || "";
@@ -181,7 +109,7 @@
     const span = document.createElement("span");
     span.id = copiedMsgId;
     span.style.marginLeft = "0.5rem";
-    span.textContent = getMsg(afterEl || document.body, "copied_label");
+    span.textContent = guard.getMsg("copied_label");
     (afterEl?.parentNode || document.body).insertBefore(
       span,
       afterEl?.nextSibling || null
@@ -195,14 +123,14 @@
       const copied = $("#ai-description").val() ?? "";
       if (!selected) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          guard.getMsg("copy_unavailable")
         );
         return;
       }
       const ok = writeField(selected, copied);
       if (!ok) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          guard.getMsg("copy_unavailable")
         );
         return;
       }
@@ -217,7 +145,7 @@
       }
       $("#commonModalOver").modal("hide");
     } catch (_) {
-      scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
+      scheduleInteractiveErrorClick(guard.getMsg("copy_unavailable"));
     }
   };
   const copySelectedText = () => {
@@ -228,20 +156,20 @@
         (window.getSelection && window.getSelection().toString()) || "";
       if (!selected) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          guard.getMsg("copy_unavailable")
         );
         return;
       }
       if (!selText) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "selection_unavailable")
+          guard.getMsg("selection_unavailable")
         );
         return;
       }
       const ok = writeField(selected, selText);
       if (!ok) {
         scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable")
+          guard.getMsg("copy_unavailable")
         );
         return;
       }
@@ -256,7 +184,7 @@
       }
       $("#commonModalOver").modal("hide");
     } catch (_) {
-      scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
+      scheduleInteractiveErrorClick(guard.getMsg("copy_unavailable"));
     }
   };
   const bindTemplateChange = () => {
@@ -274,7 +202,7 @@
         );
       const endpoint = resolveRoute(this, explicit);
       if (!endpoint) {
-        scheduleInteractiveErrorClick(getMsg(this, "keywords_unavailable"));
+        scheduleInteractiveErrorClick(guard.getMsg("keywords_unavailable"));
         return;
       }
       $.ajax({
@@ -296,13 +224,13 @@
             $("#getkeywords").append(data?.template ?? "");
           } catch (_) {
             scheduleInteractiveErrorClick(
-              getMsg(document.body, "keywords_unavailable")
+              guard.getMsg("keywords_unavailable")
             );
           }
         },
         error: function () {
           scheduleInteractiveErrorClick(
-            getMsg(document.body, "server_unavailable")
+            guard.getMsg("server_unavailable")
           );
         },
       });
@@ -329,7 +257,7 @@
       const explicit = '{{ route("generate.response") }}';
       const endpoint = resolveRoute(form.get(0), explicit);
       if (!endpoint) {
-        scheduleInteractiveErrorClick(getMsg(this, "generate_unavailable"));
+        scheduleInteractiveErrorClick(guard.getMsg("generate_unavailable"));
         return;
       }
       $.ajax({
@@ -360,13 +288,13 @@
             }
           } catch (_) {
             scheduleInteractiveErrorClick(
-              getMsg(document.body, "generate_unavailable")
+              guard.getMsg("generate_unavailable")
             );
           }
         },
         error: function () {
           scheduleInteractiveErrorClick(
-            getMsg(document.body, "server_unavailable")
+            guard.getMsg("server_unavailable")
           );
         },
       });
@@ -393,7 +321,7 @@
         console.log("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveErrorClick(
-        getMsg(document.body, "plugin_unavailable")
+        guard.getMsg("plugin_unavailable")
       );
       return;
     }

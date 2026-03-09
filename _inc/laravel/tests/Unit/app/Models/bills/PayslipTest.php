@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -11,6 +12,11 @@ use App\Models\{Payslip, Employee};
 
 class PayslipTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -39,9 +45,7 @@ class PayslipTest extends TestCase
 
 		$payslip = Payslip::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $payslip->$field);
-		}
+		$this->assertFillableMatches($data, $payslip);
 	}
 
 	/**
@@ -88,9 +92,9 @@ class PayslipTest extends TestCase
 	{
 		$relation = (new Payslip)->employees();
 
-		$this->assertInstanceOf(HasOne::class,      $relation);
+		$this->assertInstanceOf(BelongsTo::class,      $relation);
 		$this->assertSame(Employee::class,          get_class($relation->getRelated()));
-		$this->assertSame('id',                     $relation->getForeignKeyName());
-		$this->assertSame('employee_id',            $relation->getLocalKeyName());
+		$this->assertSame('employee_id',                     $relation->getForeignKeyName());
+		$this->assertSame('id',            $relation->getOwnerKeyName());
 	}
 }

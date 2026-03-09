@@ -1,28 +1,23 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use App\Config\Constants\{
-        ViewsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC
-    };
-    use Collective\Html\FormFacade as Form;
-
-    $lang               = Utility::fetchUserLang();
-    $importRouteName    = ViewsConstants::CST . '.import';
-    $importUrl          = Route::has($importRouteName)
-        ? route($importRouteName)
-        : '#';
-    $formId             = 'customer-csv-import-form';
-    $guardMsg           = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CST,
-        'customers_import_route_unavailable'
-    ) ?? 'Customer CSV import route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang               = Utility::fetchUserLang();
+        $importRouteName    = ViewsConstants::CST . '.import';
+        $importUrl          = Route::has($importRouteName)
+            ? route($importRouteName)
+            : '#';
+        $formId             = 'customer-csv-import-form';
+        $guardMsg           = Utility::fetchLinkMessage(
+            $lang,
+            ViewsConstants::CST,
+            'customers_import_route_unavailable'
+        ) ?? 'Customer CSV import route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('customers/import — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {{ Form::open([
-    'route'            => $importUrl,
+    'url'            => $importUrl,
     'method'         => 'post',
     'enctype'        => 'multipart/form-data',
     'id'             => $formId,
@@ -72,4 +67,3 @@
     </div>
     <script defer src="{{ asset('assets/js/routes/customers/import.js') }}"></script>
 {{ Form::close() }}
-

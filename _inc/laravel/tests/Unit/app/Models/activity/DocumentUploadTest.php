@@ -8,6 +8,11 @@ use App\Models\DocumentUpload;
 
 class DocumentUploadTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	use RefreshDatabase;
 
 	/**
@@ -22,14 +27,11 @@ class DocumentUploadTest extends TestCase
 			'role'        => 'Manager',
 			'document'    => '/docs/contract.pdf',
 			'description' => 'Signed employment contract',
-			'created_by'  => 'user_001',
 		];
 
 		$upload = DocumentUpload::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $upload->$field);
-		}
+		$this->assertFillableMatches($data, $upload);
 	}
 
 	/**
@@ -44,7 +46,6 @@ class DocumentUploadTest extends TestCase
 			'role'        => 'Employee',
 			'document'    => '/docs/policy.pdf',
 			'description' => 'Company policy',
-			'created_by'  => 'user_002',
 		]);
 
 		$key = $upload->getKey();

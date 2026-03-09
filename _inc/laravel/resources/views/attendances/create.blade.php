@@ -1,10 +1,5 @@
 @php
-	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants};
-	use App\Models\Utility;
-	use Collective\Html\FormFacade as Form;
-	use Illuminate\Support\{Facades\Log, Facades\Route, Str};
-	use InvalidArgumentException;
-	$employees ??= [];
+$employees ??= [];
 	$lang = Utility::fetchUserLang();
 	$formId = 'store-employee-attendance-form';
 	$empAtdBaseName = ViewsConstants::EMP_ATD;
@@ -80,16 +75,20 @@
 	'data-guard-msg'       => $empAtdGuardMsg,
 	'data-sv-localized'    => 'true',
 ]) }}
-	<div class="card-body p-0">
+	<div class="{{ VC::CD_BD }} p-0">
 		<div class="{{ VC::RW }}">
 			@foreach(($fields ?? []) as $f)
 				@php
-					$fname = data_get($f, 'name') ?? 'unknown';
-					$ftype = data_get($f, 'type') ?? 'text';
-					$flabel = data_get($f, 'label') ?? __('No label available');
-					$fclass = data_get($f, 'class') ?? 'form-control';
-					$fopts = data_get($f, 'options') ?? [];
-				@endphp
+					try {
+					    $fname = data_get($f, 'name') ?? 'unknown';
+					    $ftype = data_get($f, 'type') ?? 'text';
+					    $flabel = data_get($f, 'label') ?? __('No label available');
+					    $fclass = data_get($f, 'class') ?? 'form-control';
+					    $fopts = data_get($f, 'options') ?? [];
+					} catch (\Throwable $e) {
+					    \Log::error('attendances/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+					}
+@endphp
 				<div class="{{ VC::FM_G }} {{ VC::C6 }}">
 					{{ Form::label($fname, $flabel, ['class' => VC::FM_LB]) }}
 					@if($ftype === 'select')

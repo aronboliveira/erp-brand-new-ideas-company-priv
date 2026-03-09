@@ -1,15 +1,9 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants as VC,
-        ViewsConstants,
-        YieldingConstants
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    $lang = 
+    try {
+$lang =
+    } catch (\Throwable $e) {
+        \Log::error('customers/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -21,17 +15,21 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="card-body table-border-style">
+                <div class="{{ VC::CD_BD_TB_BD }}">
                     @php
-                        $transactionRoute = Route::has(ViewsConstants::CST . '.transaction')
-                            ? route(ViewsConstants::CST . '.transaction')
-                            : '#';
-                        $transactionGuardMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::CST,
-                            'customers_transaction_route_unavailable'
-                        ) ?? 'Customer transaction route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                        try {
+                            $transactionRoute = Route::has(ViewsConstants::CST . '.transaction')
+                                ? route(ViewsConstants::CST . '.transaction')
+                                : '#';
+                            $transactionGuardMsg = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::CST,
+                                'customers_transaction_route_unavailable'
+                            ) ?? 'Customer transaction route is unavailable. Please contact technical support or your domain administrator.';
+                        } catch (\Throwable $e) {
+                            \Log::error('customers/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                        }
+@endphp
                     {{ Form::open(['url' => $transactionRoute, 'method' => 'GET', 'id' => 'frm_submit']) }}
                         <div class="{{ VC::RW }} justify-content-end mt-2">
                             <div class="{{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }}">
@@ -64,7 +62,7 @@
                                     id="transaction-reset-btn"
                                     href="{{ $transactionRoute }}"
                                     data-url="{{ $transactionRoute }}"
-                                    data-guard-msg="{{ $transactionGuardMsg }}"
+                                    data-guard-msg="{{ base64_encode($transactionGuardMsg) }}"
                                     class="reset-btn"
                                     data-bs-toggle="tooltip"
                                     title="{{ __('Reset') }}"
@@ -78,7 +76,7 @@
                         <script defer src="{{ asset('assets/js/routes/customers/transactions/apply.js') }}"></script>
                         <script defer src="{{ asset('assets/js/routes/customers/transactions/reset.js') }}"></script>
                     @endpush
-                    <div class="table-responsive">
+                    <div class="{{ VC::TB_RSP }}">
                         <table class="{{ VC::TB }} dataTable">
                             <thead>
                                 <tr>
@@ -92,22 +90,30 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $txns = ((is_array($transactions ?? null) && count($transactions ?? [])) || (($transactions ?? null) instanceof Collection && $transactions->isNotEmpty())) ? $transactions : [];
-                                    $isDateFormatAvailable  = method_exists($user,'dateFormat');
-                                    $isPriceFormatAvailable = method_exists($user,'priceFormat');
-                                @endphp
+                                    try {
+                                        $txns = ((is_array($transactions ?? null) && count($transactions ?? [])) || (($transactions ?? null) instanceof Collection && $transactions->isNotEmpty())) ? $transactions : [];
+                                        $isDateFormatAvailable  = method_exists($user,'dateFormat');
+                                        $isPriceFormatAvailable = method_exists($user,'priceFormat');
+                                    } catch (\Throwable $e) {
+                                        \Log::error('customers/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 @if(!empty($txns))
                                     @foreach($txns as $transaction)
                                         @php
-                                            $date        = $transaction->date ?? null;
-                                            $amount      = $transaction->amount ?? null;
-                                            $bankName    = data_get($transaction,'bankAccount.bank_name');
-                                            $holderName  = data_get($transaction,'bankAccount.holder_name');
-                                            $bankLabel   = trim(($bankName ?: '').' '.($holderName ?: ''));
-                                            $type        = $transaction->type ?? null;
-                                            $category    = $transaction->category ?? null;
-                                            $description = $transaction->description ?? null;
-                                        @endphp
+                                            try {
+                                                $date        = $transaction->date ?? null;
+                                                $amount      = $transaction->amount ?? null;
+                                                $bankName    = data_get($transaction,'bankAccount.bank_name');
+                                                $holderName  = data_get($transaction,'bankAccount.holder_name');
+                                                $bankLabel   = trim(($bankName ?: '').' '.($holderName ?: ''));
+                                                $type        = $transaction->type ?? null;
+                                                $category    = $transaction->category ?? null;
+                                                $description = $transaction->description ?? null;
+                                            } catch (\Throwable $e) {
+                                                \Log::error('customers/transaction — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $date ? ($isDateFormatAvailable ? $user?->dateFormat($date) : __('Failed to format date')) : __('No transaction date available') }}</td>
                                             <td>{{ is_numeric($amount) ? ($isPriceFormatAvailable ? $user?->priceFormat($amount) : __('Failed to format amount')) : __('No amount available') }}</td>

@@ -1,29 +1,43 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\{Auth,Route};
-    use Illuminate\Support\{Collection, Str};
-
-    $user           = Auth::user();
-    $lang           = Utility::fetchUserLang(user: $user);
-    $currSymbol = is_callable([$user, 'fetchCurrencySymbol']) ? fetchCurrencySymbol() : __('Failed to get currency symbol');
-    $invoiceIndexRouteName     = ViewsConstants::INV . '.index';
-    $invoiceIndexUrl           = Route::has($invoiceIndexRouteName)
-        ? route($invoiceIndexRouteName)
-        : '#';
-    $invoiceIndexGuardMsg      = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::INV,
-        'invoice_index_route_unavailable'
-    ) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
+$user ??= null;
+	$lang ??= 'en';
+	$currSymbol ??= '$';
+	$invoiceIndexRouteName ??= '';
+	$invoiceIndexUrl ??= '#';
+	$invoiceIndexGuardMsg ??= '';
+	try {
+		$user = Auth::user();
+		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
+		$currSymbol = is_callable([$user, 'fetchCurrencySymbol']) ? fetchCurrencySymbol() : __('Failed to get currency symbol');
+		$invoiceIndexRouteName = ViewsConstants::INV . '.index';
+		$invoiceIndexUrl = Route::has($invoiceIndexRouteName) ? (route($invoiceIndexRouteName) ?? '#') : '#';
+		$invoiceIndexGuardMsg = Utility::fetchLinkMessage(
+			$lang,
+			ViewsConstants::INV,
+			'invoice_index_route_unavailable'
+		) ?? 'Invoice index route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in invoices/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in invoices/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in invoices/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -31,19 +45,19 @@
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a
             id="breadcrumb-invoice-link"
             href="{{ $invoiceIndexUrl }}"
             {{ $invoiceIndexUrl === '#' ? 'aria-disabled="true"' : '' }}
             data-url="{{ $invoiceIndexUrl }}"
-            data-guard-msg="{{ $invoiceIndexGuardMsg }}"
+            data-guard-msg="{{ base64_encode($invoiceIndexGuardMsg) }}"
         >
             {{ __('Invoice') }}
         </a>
@@ -51,7 +65,7 @@
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{asset('assets/js/routes/invoice/createIndex.js')}}"></script>
     @endpush
-    <li class="breadcrumb-item">{{__('Invoice Edit')}}</li>
+    <li class="{{ VC::BCI }}">{{__('Invoice Edit')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
@@ -59,67 +73,11 @@
     <script async src="{{ asset('assets/js/routes/invoices/lang/edit.js') }}"></script>
     <script defer>
         (() => {
-            const DATA_LISTENER_ADDED   = 'data-listener-added';
-            const ERR_FB                = '# ERROR';
-            const DATA_CLIENT_LOCALIZED = 'data-client-localized';
-            const DATA_GUARD_MSG        = 'data-guard-msg';
-
-            const getLocalizedMessage = (el, key) => {
-                let msg = ERR_FB;
-                if (el?.getAttribute('data-sv-localized') === 'true' ||
-                    el?.getAttribute(DATA_CLIENT_LOCALIZED) === 'true') {
-                    msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-                } else {
-                    let lang = (sessionStorage.getItem('erp-np-lang') ||
-                                document.documentElement.lang ||
-                                'en')
-                                .toLowerCase()
-                                .replace(/_/g, '-');
-                    lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-                    msg = window.translations?.[lang]?.[key] ||
-                        el.getAttribute(DATA_GUARD_MSG) ||
-                        window.translations?.['en']?.[key] ||
-                        ERR_FB;
-                    if (msg !== ERR_FB) {
-                        el.setAttribute(DATA_GUARD_MSG, msg);
-                        el.setAttribute(DATA_CLIENT_LOCALIZED, 'true');
-                    }
-                }
-                return msg;
-            };
-
-            const handleErrorDisplay = (el, key) => {
-                const message = el
-                    ? getLocalizedMessage(el, key)
-                    : ERR_FB;
-                const hasBootstrap = document.querySelector('link[href*="bootstrap"]')
-                                    && window.bootstrap?.Toast;
-                if (hasBootstrap) {
-                    if (!document.querySelector('#error-toast')) {
-                        const toast = document.createElement('div');
-                        toast.id        = 'error-toast';
-                        toast.className = 'toast align-items-center text-bg-danger border-0';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
-                            </div>`;
-                        document.body.appendChild(toast);
-                    }
-                    new bootstrap.Toast(
-                        document.querySelector('#error-toast')
-                    ).show();
-                } else {
-                    alert(message);
-                }
-            };
-
+            const DATA_LISTENER_ADDED = 'data-listener-added';
+            const RG = window.RouteGuard || {};
+            const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '# ERROR');
+            const showError = RG.showToast || (m => alert(m));
+            const handleErrorDisplay = (el, key) => showError(getMsg(key, el));
             try {
                 if (typeof $ === 'undefined') {
                     if (
@@ -310,7 +268,7 @@
                                                 // taxes
                                                 let html = '', rate = 0, ids = [];
                                                 item.taxes.forEach(t => {
-                                                    html += `<span class="badge bg-primary p-2 px-3 rounded mt-1 mr-1">`
+                                                    html += `<span class="badge {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded {{ VC::MT1 }} mr-1">`
                                                         + `${t.name} (${t.rate}%)</span>`;
                                                     ids.push(t.id);
                                                     rate += parseFloat(t.rate) || 0;
@@ -415,17 +373,21 @@
     <div class="row">
         @if(!empty($invoice) && isset($invoice->id))
                 @php
-            $updateRouteName         = ViewsConstants::INV . '.update';
-            $updateActionUrl         = Route::has($updateRouteName)
-                ? route($updateRouteName, $invoice->id)
-                : '#';
-            $formId                  = 'invoice-update-form-' . $invoice->id;
-            $updateGuardMsg          = Utility::fetchLinkMessage(
-                $lang,
-                ViewsConstants::INV,
-                'invoice_update_route_unavailable'
-            ) ?? 'Invoice update route is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+            try {
+                $updateRouteName         = ViewsConstants::INV . '.update';
+                $updateActionUrl         = Route::has($updateRouteName)
+                    ? route($updateRouteName, $invoice->id)
+                    : '#';
+                $formId                  = 'invoice-update-form-' . $invoice->id;
+                $updateGuardMsg          = Utility::fetchLinkMessage(
+                    $lang,
+                    ViewsConstants::INV,
+                    'invoice_update_route_unavailable'
+                ) ?? 'Invoice update route is unavailable. Please contact technical support or your domain administrator.';
+            } catch (\Throwable $e) {
+                \Log::error('invoices/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+@endphp
         {{ Form::model($invoice, [
             'route'           => $updateActionUrl,
             'method'        => 'PUT',
@@ -437,7 +399,7 @@
             <div class="{{ VC::C12 }}">
                 <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body">
+                    <div class="{{ VC::CD_BD }}">
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CM6 }}">
                                 <div class="{{ VC::FM_G }}" id="customer-box">
@@ -506,7 +468,7 @@
                                     </div>
                                     @if(Utility::isFilled($customFields) ?? [])
                                         <div class="{{ VC::CM6 }}">
-                                            <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                                            <div class="{{ VC::TAB_FD_SH }}" id="tab-2" role="tabpanel">
                                                 @include(ViewsConstants::CST_FD . '.formBuilder')
                                             </div>
                                         </div>
@@ -525,7 +487,7 @@
                     <div class="{{ VC::CD }} repeater" data-value='{!! json_encode($invoice->items) !!}'>
                         <div class="item-section {{ VC::PY2 }}">
                             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                                <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
+                                <div class="{{ VC::CM12 }} {{ VC::DFL_AIC_JCB }} justify-content-md-end">
                                     <div class="all-button-box me-2">
                                         <a href="#" data-repeater-create="" class="{{ VC::BT_PRM }}" data-bs-toggle="modal" data-target="#add-bank">
                                             <i class="{{ VC::TI_PLS }}"></i> {{ __('Add item') }}
@@ -535,8 +497,8 @@
                             </div>
                         </div>
 
-                        <div class="card-body table-border-style">
-                            <div class="table-responsive">
+                        <div class="{{ VC::CD_BD_TB_BD }}">
+                            <div class="{{ VC::TB_RSP }}">
                                 <table class="{{ VC::TB }} mb-0 table-custom-style"
                                     data-repeater-list="items"
                                     id="sortable-table">
@@ -547,7 +509,7 @@
                                         <th>{{ __('Price') }}</th>
                                         <th>{{ __('Discount') }}</th>
                                         <th>{{ __('Tax') }}</th>
-                                        <th class="text-end">{{ __('Amount') }}</th>
+                                        <th class="{{ VC::TX_END }}">{{ __('Amount') }}</th>
                                         <th></th>
                                     </tr>
                                     </thead>
@@ -555,14 +517,18 @@
                                     <tr>
                                         {{ Form::hidden('id', null, ['class' => VC::FM_CT . ' id']) }}
                                         @php
-                                            $invProductBase        = VW::INV.'.product';
-                                            $invProductKebab       = Str::kebab($invProductBase);
-                                            $invProductResolved    = Route::has($invProductBase) ? $invProductBase : (Route::has($invProductKebab) ? $invProductKebab : null);
-                                            $invProductUrl         = $invProductResolved ? route($invProductResolved) : '#';
-                                            $invProductGuardMsg    = Utility::fetchLinkMessage($lang, VW::INV, 'invoice_product_route_unavailable') ?? 'Invoice product route is unavailable. Please contact technical support or your domain administrator.';
-                                            $psIsList              = (is_array($product_services ?? null) && count($product_services ?? []) > 0) || (($product_services ?? null) instanceof Collection && $product_services->isNotEmpty());
-                                            $psOptions             = $psIsList ? (is_array($product_services) ? $product_services : $product_services->toArray()) : [__('No services available')];
-                                        @endphp
+                                            try {
+                                                $invProductBase        = VW::INV.'.product';
+                                                $invProductKebab       = Str::kebab($invProductBase);
+                                                $invProductResolved    = Route::has($invProductBase) ? $invProductBase : (Route::has($invProductKebab) ? $invProductKebab : null);
+                                                $invProductUrl         = $invProductResolved ? route($invProductResolved) : '#';
+                                                $invProductGuardMsg    = Utility::fetchLinkMessage($lang, VW::INV, 'invoice_product_route_unavailable') ?? 'Invoice product route is unavailable. Please contact technical support or your domain administrator.';
+                                                $psIsList              = (is_array($product_services ?? null) && count($product_services ?? []) > 0) || (($product_services ?? null) instanceof Collection && $product_services->isNotEmpty());
+                                                $psOptions             = $psIsList ? (is_array($product_services) ? $product_services : $product_services->toArray()) : [__('No services available')];
+                                            } catch (\Throwable $e) {
+                                                \Log::error('invoices/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <td width="25%" class="{{ VC::FM_G }} pt-0">
                                             {{ Form::select('item', $psOptions, null, [
                                                 'class'             => VC::FM_CT_SL.' item invoice-product-select',
@@ -575,7 +541,7 @@
                                             <script defer src="{{ asset('assets/js/routes/invoices/product.js') }}"></script>
                                         @endpush
                                         <td>
-                                            <div class="form-group price-input input-group search-form">
+                                            <div class="{{ VC::FM_G }} price-input input-group search-form">
                                                 {{ Form::text('quantity', null, [
                                                     'class'       => VC::FM_CT . ' quantity',
                                                     'required'    => 'required',
@@ -585,7 +551,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="form-group price-input input-group search-form">
+                                            <div class="{{ VC::FM_G }} price-input input-group search-form">
                                                 {{ Form::text('price', null, [
                                                     'class'       => VC::FM_CT . ' price',
                                                     'required'    => 'required',
@@ -595,7 +561,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="form-group price-input input-group search-form">
+                                            <div class="{{ VC::FM_G }} price-input input-group search-form">
                                                 {{ Form::text('discount', null, [
                                                     'class'       => VC::FM_CT . ' discount',
                                                     'required'    => 'required',
@@ -605,7 +571,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="form-group">
+                                            <div class="{{ VC::FM_G }}">
                                                 <div class="input-group colorpickerinput">
                                                     <div class="taxes"></div>
                                                     {{ Form::hidden('tax', null, ['class' => 'form-control tax']) }}
@@ -614,7 +580,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-end amount">0.00</td>
+                                        <td class="{{ VC::TX_END }} amount">0.00</td>
                                         <td>
                                             <a href="#" class="{{ VC::TRS_M2 }} delete_item" data-repeater-delete></a>
                                         </td>
@@ -636,25 +602,25 @@
                                     <tr>
                                         <td colspan="4"></td>
                                         <td><strong>{{ __('Sub Total') }} ({{ $currSymbol }})</strong></td>
-                                        <td class="text-end subTotal">0.00</td>
+                                        <td class="{{ VC::TX_END }} subTotal">0.00</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="4"></td>
                                         <td><strong>{{ __('Discount') }} ({{ $currSymbol }})</strong></td>
-                                        <td class="text-end totalDiscount">0.00</td>
+                                        <td class="{{ VC::TX_END }} totalDiscount">0.00</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="4"></td>
                                         <td><strong>{{ __('Tax') }} ({{ $currSymbol }})</strong></td>
-                                        <td class="text-end totalTax">0.00</td>
+                                        <td class="{{ VC::TX_END }} totalTax">0.00</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="4"></td>
                                         <td class="blue-text"><strong>{{ __('Total Amount') }} ({{ $currSymbol }})</strong></td>
-                                        <td class="text-end totalAmount blue-text">0.00</td>
+                                        <td class="{{ VC::TX_END }} totalAmount blue-text">0.00</td>
                                         <td></td>
                                     </tr>
                                     </tfoot>
@@ -669,14 +635,14 @@
             <div class="modal-footer">
                 @php
                     $cancelBtnId = 'cancel-invoice-btn-' . $invoice->id
-                @endphp
+@endphp
                 <input
                     type="button"
                     id="{{ $cancelBtnId }}"
                     value="{{ __('Cancel') }}"
                     class="{{ VC::BT_LG }} {{ VC::ME3 }}"
                     data-url="{{ $invoiceIndexUrl }}"
-                    data-guard-msg="{{ $invoiceIndexGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($invoiceIndexGuardMsg) }}"
                 >
                 @push(StacksConstants::ADM_SCR_PG)
                     <script defer>
@@ -692,29 +658,8 @@
                                         return;
                                     }
                                     event.preventDefault();
-                                    const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                    let container       = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container       = document.createElement('div');
-                                        container.id    = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (bootstrapLink && window.bootstrap) {
-                                        const toastEl      = document.createElement('div');
-                                        toastEl.className  = 'toast';
-                                        toastEl.setAttribute('role', 'alert');
-                                        toastEl.setAttribute('aria-live', 'assertive');
-                                        toastEl.setAttribute('aria-atomic', 'true');
-                                        const body         = document.createElement('div');
-                                        body.className     = 'toast-body';
-                                        body.textContent   = msg;
-                                        toastEl.appendChild(body);
-                                        container.appendChild(toastEl);
-                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                    } else {
-                                        alert(msg);
-                                    }
+                                    const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
+                                    (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                     btn.setAttribute('data-failed-route', 'true');
                                 } catch (e) {}
                             });
@@ -727,10 +672,9 @@
             </div>
         {{ Form::close() }}
         @else
-            <div class="alert alert-danger d-block w-100" role="alert">
+            <div class="{{ VC::ALT_DNG }} {{ VC::DBL }} {{ VC::W100 }}" role="alert">
                 {{ __('Invoice data is not available.') }}
             </div>
         @endif
     </div>
 @endsection
-

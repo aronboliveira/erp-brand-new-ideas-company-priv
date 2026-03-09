@@ -1,6 +1,29 @@
 .navbar-wrapper {
-  height: 95%;
+  height: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.navbar-wrapper > .navbar-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  /* Override theme's hardcoded height that defeats flexbox layout */
+  height: auto !important;
+}
+.navbar-footer {
+  flex-shrink: 0;
+  position: relative;
+  bottom: 0;
+  background: inherit;
+  z-index: 1;
+}
+.navbar-footer .text-truncate {
+  max-width: 140px;
+}
+.navbar-footer .small {
+  font-size: 0.75rem;
 }
 .navbar-wrapper li {
   list-style: none;

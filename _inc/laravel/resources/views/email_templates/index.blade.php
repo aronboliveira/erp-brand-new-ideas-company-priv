@@ -1,18 +1,11 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\{Collection, Str};
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+    } catch (\Throwable $e) {
+        \Log::error('email_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+    $lang ??= 'en';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -31,14 +24,14 @@
     <div class="d-inline-block">
         @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA ||
                                         $user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
-            <h5 class="h4 d-inline-block font-weight-400 mb-0">{{__('Email Notification')}}</h5>
+            <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB0 }}">{{__('Email Notification')}}</h5>
         @else
-            <h5 class="h4 d-inline-block font-weight-400 mb-0">{{__('Email Templates')}}</h5>
+            <h5 class="h4 d-inline-block font-weight-400 {{ VC::MB0 }}">{{__('Email Templates')}}</h5>
         @endif
     </div>
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
@@ -46,57 +39,65 @@
     </li>
     @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA ||
         $user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
-        <li class="breadcrumb-item active" aria-current="page">{{__('Email Notification')}}</li>
+        <li class="{{ VC::BCI_ACT }}" aria-current="page">{{__('Email Notification')}}</li>
     @else
-        <li class="breadcrumb-item active" aria-current="page">{{__('Email Template')}}</li>
+        <li class="{{ VC::BCI_ACT }}" aria-current="page">{{__('Email Template')}}</li>
     @endif
 @endsection
 {{--@section('action-btn')--}}
-{{--    <div class="float-end">--}}
-{{--        <a href="#" class="btn btn-sm btn-primary" data-ajax-popup="true"--}}
+{{--    <div class="{{ VC::FEND }}">--}}
+{{--        <a href="#" class="{{ VC::BT_SM_PM }}" data-ajax-popup="true"--}}
 {{--                   data-title="{{__('Create New Email Template')}}" title="{{__('Create')}}" data-url="{{route('email_template.create')}}">--}}
-{{--                    <i class="ti ti-plus"></i> </a>--}}
+{{--                    <i class="{{ VC::TI_PLS }}"></i> </a>--}}
 {{--    </div>--}}
 
 {{--@endsection--}}
 @section(YieldingConstants::ADM_CTT)
     @php
-        $isSA   = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::SA);
-        $isCPN  = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN);
-        $locale = $user->lang ?? app()->getLocale();
-        $isArray       = is_array($EmailTemplates ?? null) && count($EmailTemplates ?? []) > 0;
-        $isCollection  = ($EmailTemplates ?? null) instanceof Collection && ($EmailTemplates->isNotEmpty());
-        $list          = ($isArray || $isCollection) ? $EmailTemplates : [];
-    @endphp
+        try {
+            $isSA   = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::SA);
+            $isCPN  = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN);
+            $locale = $user->lang ?? app()->getLocale();
+            $isArray       = is_array($EmailTemplates ?? null) && count($EmailTemplates ?? []) > 0;
+            $isCollection  = ($EmailTemplates ?? null) instanceof Collection && ($EmailTemplates->isNotEmpty());
+            $list          = ($isArray || $isCollection) ? $EmailTemplates : [];
+        } catch (\Throwable $e) {
+            \Log::error('email_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
 
-    <div class="col-xl-12">
+    <div class="{{ VC::CXL12 }}">
         <div class="{{ VC::CD }}">
             <div class="{{ VC::CD }}-header {{ VC::CD }}-body table-border-style">
                 <h5></h5>
-                <div class="table-responsive">
+                <div class="{{ VC::TB_RSP }}">
                     <table class="{{ VC::TB }}" id="pc-dt-simple">
                         <thead>
                             <tr>
                                 <th scope="col" class="sort" data-sort="name">{{ __('Name') }}</th>
                                 @if($isSA || $isCPN)
-                                    <th class="text-end">{{ __('On / Off') }}</th>
+                                    <th class="{{ VC::TX_END }}">{{ __('On / Off') }}</th>
                                 @else
-                                    <th class="text-end">{{ __('Action') }}</th>
+                                    <th class="{{ VC::TX_END }}">{{ __('Action') }}</th>
                                 @endif
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($list as $EmailTemplate)
                                 @php
-                                    $hasTemplate = isset($EmailTemplate->template) && is_object($EmailTemplate->template);
-                                    $tplId       = $hasTemplate && isset($EmailTemplate->template->id) ? $EmailTemplate->template->id : null;
-                                    $isActive    = $hasTemplate && isset($EmailTemplate->template->is_active) && ((int) $EmailTemplate->template->is_active === 1);
-                                @endphp
+                                    try {
+                                        $hasTemplate = isset($EmailTemplate->template) && is_object($EmailTemplate->template);
+                                        $tplId       = $hasTemplate && isset($EmailTemplate->template->id) ? $EmailTemplate->template->id : null;
+                                        $isActive    = $hasTemplate && isset($EmailTemplate->template->is_active) && ((int) $EmailTemplate->template->is_active === 1);
+                                    } catch (\Throwable $e) {
+                                        \Log::error('email_templates/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                    }
+@endphp
                                 <tr>
                                     <td>{{ $EmailTemplate->name ?? __('No name available for template') }}</td>
                                     <td>
                                         @if($isSA)
-                                            <div class="text-end mb-2">
+                                            <div class="{{ VC::TX_END }} {{ VC::MB2 }}">
                                                 <div class="{{ VC::ACT_BTN_WRN }}">
                                                     <a href="{{ route(VW::EMLS . '.manage.language', [$EmailTemplate->id, $locale]) }}"
                                                        class="{{ VC::BT_SM_FL_CT }}"
@@ -109,8 +110,8 @@
                                         @endif
 
                                         @if($isSA || $isCPN)
-                                            <div class="text-end">
-                                                <div class="form-check form-switch d-inline-block">
+                                            <div class="{{ VC::TX_END }}">
+                                                <div class="{{ VC::FM_CHK }} form-switch d-inline-block">
                                                     <label class="form-check-label form-switch">
                                                         <input
                                                             type="checkbox"
@@ -126,13 +127,13 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <div class="text-end">—</div>
+                                            <div class="{{ VC::TX_END }}">—</div>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="2" class="text-center text-muted">{{ __('No Email Templates Found') }}</td>
+                                    <td colspan="2" class="{{ VC::TXCT_MT }}">{{ __('No Email Templates Found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

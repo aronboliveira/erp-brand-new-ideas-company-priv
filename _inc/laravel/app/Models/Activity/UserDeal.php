@@ -18,9 +18,9 @@ class UserDeal extends Model
     private const FK_DEAL = 'deal_id';
     private const FK_USER = 'user_id';
 
-    public function getDealUser(): HasOne
+    public function getDealUser(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function deal(): BelongsTo // * ADDED

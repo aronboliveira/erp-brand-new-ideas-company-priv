@@ -1,27 +1,56 @@
 @php
-    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
-    use App\Models\{Estimation, Utility};
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection, Str};
-
-    $lang               = Utility::fetchUserLang();
-
-    $estId              = data_get($estimation ?? null, 'id');
-    $estUpdateBase      = VW::EST . '.update';
-    $estUpdateKebab     = Str::kebab($estUpdateBase);
-    $estUpdateResolved  = Route::has($estUpdateBase) ? $estUpdateBase : (Route::has($estUpdateKebab) ? $estUpdateKebab : null);
-    $estUpdateUrl       = ($estUpdateResolved && $estId) ? route($estUpdateResolved, $estId) : '#';
-    $estUpdateFormId    = 'estimate-update-form';
-    $estUpdateGuardMsg  = Utility::fetchLinkMessage($lang, VW::EST, 'update_estimate_route_unavailable') ?? 'Update estimate route is unavailable. Please contact technical support or your domain administrator.';
-    $clientsIsList      = (is_array($client ?? null) && count($client ?? []) > 0) || (($client ?? null) instanceof Collection && $client->isNotEmpty());
-    $taxesIsList        = (is_array($taxes  ?? null) && count($taxes  ?? []) > 0) || (($taxes  ?? null) instanceof Collection && $taxes->isNotEmpty());
-    $statuses           = Estimation::$statuses ?? [];
-    $statusIsList       = is_array($statuses) && count($statuses) > 0;
-
-    $clientOptions      = $clientsIsList ? (is_array($client) ? $client : $client->toArray()) : [__('No clients available')];
-    $taxOptions         = $taxesIsList   ? (is_array($taxes)  ? $taxes  : $taxes->toArray())  : [__('No taxes available')];
-    $statusOptions      = $statusIsList  ? $statuses : [__('No statuses available')];
+$lang ??= 'en';
+	$estId ??= null;
+	$estUpdateBase ??= '';
+	$estUpdateKebab ??= '';
+	$estUpdateResolved ??= null;
+	$estUpdateUrl ??= '#';
+	$estUpdateFormId ??= 'estimate-update-form';
+	$estUpdateGuardMsg ??= '';
+	$clientsIsList ??= false;
+	$taxesIsList ??= false;
+	$statuses ??= [];
+	$statusIsList ??= false;
+	$clientOptions ??= [];
+	$taxOptions ??= [];
+	$statusOptions ??= [];
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$estId = data_get($estimation ?? null, 'id');
+		$estUpdateBase = VW::EST . '.update';
+		$estUpdateKebab = Str::kebab($estUpdateBase);
+		$estUpdateResolved = Route::has($estUpdateBase) ? $estUpdateBase : (Route::has($estUpdateKebab) ? $estUpdateKebab : null);
+		$estUpdateUrl = ($estUpdateResolved && $estId) ? (route($estUpdateResolved, $estId) ?? '#') : '#';
+		$estUpdateGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'update_estimate_route_unavailable') ?? 'Update estimate route is unavailable. Please contact technical support or your domain administrator.';
+		$clientsIsList = (is_array($client ?? null) && count($client ?? []) > 0) || (($client ?? null) instanceof Collection && $client->isNotEmpty());
+		$taxesIsList = (is_array($taxes ?? null) && count($taxes ?? []) > 0) || (($taxes ?? null) instanceof Collection && $taxes->isNotEmpty());
+		$statuses = Estimation::$statuses ?? [];
+		$statusIsList = is_array($statuses) && count($statuses) > 0;
+		$clientOptions = $clientsIsList ? (is_array($client) ? $client : $client->toArray()) : [__('No clients available')];
+		$taxOptions = $taxesIsList ? (is_array($taxes) ? $taxes : $taxes->toArray()) : [__('No taxes available')];
+		$statusOptions = $statusIsList ? $statuses : [__('No statuses available')];
+	} catch (\Error $e) {
+		Log::error('Error in estimations/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in estimations/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in estimations/edit.blade.php @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
 <div class="{{ VC::CD }} bg-none card-box">

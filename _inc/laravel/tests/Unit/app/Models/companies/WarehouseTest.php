@@ -12,6 +12,11 @@ use App\Models\{Warehouse, User};
 
 class WarehouseTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -27,15 +32,13 @@ class WarehouseTest extends TestCase
 			'name'       => 'Main Warehouse',
 			'address'    => '123 Industrial Ave',
 			'city'       => 'Metropolis',
-			'city_zip'   => '12345',
+			'zip'        => '12345',
 			'created_by' => $user?->id,
 		];
 
 		$wh = Warehouse::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $wh->$field);
-		}
+		$this->assertFillableMatches($data, $wh);
 	}
 
 	/**

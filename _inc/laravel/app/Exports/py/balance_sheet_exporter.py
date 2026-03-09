@@ -11,12 +11,14 @@ Handles Excel export for balance sheet reports with:
 - Print-ready professional formatting
 """
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from openpyxl.chart import PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
 from base_exporter import BaseExporter, ExportStyle, parse_number, safe_get
 
@@ -459,7 +461,7 @@ class BalanceSheetExporter(BaseExporter):
             self.freeze_pane(f"A{data_start}")
             self._apply_row_styling(df)
             self._add_formulas_and_filters(df)
-
+            
             # Add outlier detection for Total column
             data_end = data_start + len(df) - 1
             self.add_outlier_formatting(
@@ -468,7 +470,7 @@ class BalanceSheetExporter(BaseExporter):
                 outlier_color="FFC7CE",
                 outlier_font_color="9C0006"
             )
-
+            
             # Add statistical summary for Total column
             summary_start = data_end + 5
             self.add_statistical_summary(

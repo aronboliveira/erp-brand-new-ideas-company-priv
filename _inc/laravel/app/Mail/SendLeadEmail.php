@@ -31,6 +31,6 @@ class SendLeadEmail extends Mailable
     public function build()
     {
 
-        return $this->view('email.lead_mail')->with('lArr', $this->lArr)->subject($this->subject);
+        return $this->view('email.lead_mail')->with('lArr', $this->lArr)->subject($this->subject ?? 'Lead Notification');
     }
 }

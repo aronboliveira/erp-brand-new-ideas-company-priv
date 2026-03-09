@@ -2,19 +2,20 @@
 
 namespace App\Enums;
 
-use App\Config\Constants\PermissionsConstants as PC;
+use App\Config\Constants\PermissionsConstants as PMC;
 use App\Config\Constants\DatabaseConstants;
 
 enum UserType: string
 {
-	case SuperAdmin = PC::SA;
-	case Admin      = PC::ADM;
-	case Company    = PC::CPN;
-	case Client     = PC::CL;
-	case Customer   = PC::CT;
-	case Vendor     = PC::VD;
-	case Accountant = PC::ACT;
-	case Hr         = PC::HR;
+	case SuperAdmin = PMC::SA;
+	case Admin      = PMC::ADM;
+	case Company    = PMC::CPN;
+	case Client     = PMC::CL;
+	case Customer   = PMC::CT;
+	case Vendor     = PMC::VD;
+	case Accountant = PMC::ACT;
+	case Hr         = PMC::HR;
+	case Employee   = PMC::EMP;
 
 	public static function normalize(string|null|self $value): self
 	{
@@ -64,12 +65,12 @@ enum UserType: string
 			'enterprise'            => self::Company,
 			'corporation'           => self::Company,
 			'cpn'                   => self::Company,
-			'emp'                   => self::Company,
 
 			// Client
 			'client'                => self::Client,
 			'cliente'               => self::Client,
 			'cl'                    => self::Client,
+			'customer'              => self::Client,
 			'buyer'                 => self::Client,
 			'purchaser'             => self::Client,
 			'comprador'             => self::Client,
@@ -80,6 +81,7 @@ enum UserType: string
 			'consumer'              => self::Customer,
 			'cust'                  => self::Customer,
 			'ct'                    => self::Customer,
+			'consumer'              => self::Customer,
 			'end_user'              => self::Customer,
 			'usuário_final'         => self::Customer,
 			'usuario_final'         => self::Customer,
@@ -124,6 +126,20 @@ enum UserType: string
 			'risorseumane'          => self::Hr,
 			'risorse umane'         => self::Hr,
 			'personalabteilung'     => self::Hr,
+
+			// Employee
+			'employee'              => self::Employee,
+			'funcionário'           => self::Employee,
+			'funcionario'           => self::Employee,
+			'empleado'              => self::Employee,
+			'collaborator'          => self::Employee,
+			'colaborador'           => self::Employee,
+			'mitarbeiter'           => self::Employee,
+			'dipendente'            => self::Employee,
+			'employé'               => self::Employee,
+			'werknemer'             => self::Employee,
+			'pracownik'             => self::Employee,
+			'сотрудник'             => self::Employee,
 		];
 
 		return $map[$v] ?? self::Customer;
@@ -155,6 +171,7 @@ enum UserType: string
 			self::Vendor     => 'Vendor',
 			self::Accountant => 'Accountant',
 			self::Hr         => 'HR',
+			self::Employee   => 'Employee',
 		};
 	}
 
@@ -191,6 +208,7 @@ enum UserType: string
 			self::Vendor->value     => 'Fornecedor',
 			self::Accountant->value => 'Contador',
 			self::Hr->value         => 'RH',
+			self::Employee->value   => 'Funcionário',
 		];
 	}
 
@@ -205,6 +223,7 @@ enum UserType: string
 			self::Vendor->value     => 'Vendor',
 			self::Accountant->value => 'Accountant',
 			self::Hr->value         => 'HR',
+			self::Employee->value   => 'Employee',
 		];
 	}
 
@@ -219,6 +238,7 @@ enum UserType: string
 			self::Vendor->value     => 'Proveedor',
 			self::Accountant->value => 'Contador',
 			self::Hr->value         => 'RRHH',
+			self::Employee->value   => 'Empleado',
 		];
 	}
 
@@ -233,6 +253,7 @@ enum UserType: string
 			self::Vendor->value     => 'بائع',
 			self::Accountant->value => 'محاسب',
 			self::Hr->value         => 'موارد بشرية',
+			self::Employee->value   => 'موظف',
 		];
 	}
 
@@ -247,6 +268,7 @@ enum UserType: string
 			self::Vendor->value     => 'Leverandør',
 			self::Accountant->value => 'Revisor',
 			self::Hr->value         => 'HR',
+			self::Employee->value   => 'Medarbejder',
 		];
 	}
 
@@ -261,6 +283,7 @@ enum UserType: string
 			self::Vendor->value     => 'Lieferant',
 			self::Accountant->value => 'Buchhalter',
 			self::Hr->value         => 'Personalabteilung',
+			self::Employee->value   => 'Mitarbeiter',
 		];
 	}
 
@@ -275,6 +298,7 @@ enum UserType: string
 			self::Vendor->value     => 'Fournisseur',
 			self::Accountant->value => 'Comptable',
 			self::Hr->value         => 'RH',
+			self::Employee->value   => 'Employé',
 		];
 	}
 
@@ -289,6 +313,7 @@ enum UserType: string
 			self::Vendor->value     => 'ספק',
 			self::Accountant->value => 'רואה חשבון',
 			self::Hr->value         => 'משאבי אנוש',
+			self::Employee->value   => 'עובד',
 		];
 	}
 
@@ -303,6 +328,7 @@ enum UserType: string
 			self::Vendor->value     => 'Fornitore',
 			self::Accountant->value => 'Contabile',
 			self::Hr->value         => 'Risorse Umane',
+			self::Employee->value   => 'Dipendente',
 		];
 	}
 
@@ -317,6 +343,7 @@ enum UserType: string
 			self::Vendor->value     => 'ベンダー',
 			self::Accountant->value => '会計士',
 			self::Hr->value         => '人事',
+			self::Employee->value   => '従業員',
 		];
 	}
 
@@ -331,6 +358,7 @@ enum UserType: string
 			self::Vendor->value     => 'Leverancier',
 			self::Accountant->value => 'Accountant',
 			self::Hr->value         => 'HR',
+			self::Employee->value   => 'Werknemer',
 		];
 	}
 
@@ -345,6 +373,7 @@ enum UserType: string
 			self::Vendor->value     => 'Dostawca',
 			self::Accountant->value => 'Księgowy',
 			self::Hr->value         => 'Kadry',
+			self::Employee->value   => 'Pracownik',
 		];
 	}
 
@@ -359,6 +388,7 @@ enum UserType: string
 			self::Vendor->value     => 'Поставщик',
 			self::Accountant->value => 'Бухгалтер',
 			self::Hr->value         => 'Кадры',
+			self::Employee->value   => 'Сотрудник',
 		];
 	}
 
@@ -373,6 +403,7 @@ enum UserType: string
 			self::Vendor->value     => 'Satıcı',
 			self::Accountant->value => 'Muhasebeci',
 			self::Hr->value         => 'İnsan Kaynakları',
+			self::Employee->value   => 'Çalışan',
 		];
 	}
 
@@ -387,6 +418,7 @@ enum UserType: string
 			self::Vendor->value     => '供应商',
 			self::Accountant->value => '会计师',
 			self::Hr->value         => '人力资源',
+			self::Employee->value   => '员工',
 		];
 	}
 
@@ -402,7 +434,7 @@ enum UserType: string
 	public function isBusiness(): bool
 	{
 		return match ($this) {
-			self::Company, self::Client, self::Customer, self::Vendor, self::Accountant, self::Hr => true,
+			self::Company, self::Client, self::Customer, self::Vendor, self::Accountant, self::Hr, self::Employee => true,
 			default => false,
 		};
 	}
@@ -410,7 +442,7 @@ enum UserType: string
 	public function isInternal(): bool
 	{
 		return match ($this) {
-			self::SuperAdmin, self::Admin, self::Company, self::Hr => true,
+			self::SuperAdmin, self::Admin, self::Company, self::Hr, self::Employee => true,
 			default => false,
 		};
 	}
@@ -447,6 +479,7 @@ enum UserType: string
 			self::Company    => 80,
 			self::Accountant => 70,
 			self::Hr         => 65,
+			self::Employee   => 55,
 			self::Vendor     => 60,
 			self::Client     => 50,
 			self::Customer   => 40,
@@ -464,6 +497,7 @@ enum UserType: string
 			self::Vendor     => 'truck',
 			self::Accountant => 'calculator',
 			self::Hr         => 'users',
+			self::Employee   => 'id-badge',
 		};
 	}
 
@@ -478,6 +512,7 @@ enum UserType: string
 			self::Vendor     => 'orange',
 			self::Accountant => 'red',
 			self::Hr         => 'pink',
+			self::Employee   => 'cyan',
 		};
 	}
 }

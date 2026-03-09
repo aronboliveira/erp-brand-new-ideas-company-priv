@@ -1,36 +1,80 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+$lang ??= 'en';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+	} catch (\Error $e) {
+		Log::error('Error in deals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in deals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in deals/edit.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 @if(!empty($deal) && isset($deal->id))
     @php
-        $routeKey          = ViewsConstants::DL . '.update';
-        $kebabRouteKey     = Str::kebab($routeKey);
-        $updateRouteName   = Route::has($routeKey)
-            ? $routeKey
-            : (Route::has($kebabRouteKey)
-                ? $kebabRouteKey
-                : null);
-        $updateRouteArray  = $updateRouteName
-            ? [$updateRouteName, $deal->id]
-            : ['#'];
-        $updateRouteUrl    = $updateRouteName
-            ? route($updateRouteName, $deal->id)
-            : '#';
-        $updateGuardMsg    = Utility::fetchLinkMessage(
-            $lang,
-            ViewsConstants::DL,
-            'deal_update_route_unavailable'
-        ) ?? 'Update route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
+		$routeKey ??= '';
+		$kebabRouteKey ??= '';
+		$updateRouteName ??= null;
+		$updateRouteArray ??= ['#'];
+		$updateRouteUrl ??= '#';
+		$updateGuardMsg ??= '';
+		try {
+			$routeKey = ViewsConstants::DL . '.update';
+			$kebabRouteKey = Str::kebab($routeKey);
+			$updateRouteName = Route::has($routeKey)
+				? $routeKey
+				: (Route::has($kebabRouteKey)
+					? $kebabRouteKey
+					: null);
+			$updateRouteArray = $updateRouteName
+				? [$updateRouteName, $deal->id]
+				: ['#'];
+			$updateRouteUrl = $updateRouteName
+				? (route($updateRouteName, $deal->id) ?? '#')
+				: '#';
+			$updateGuardMsg = Utility::fetchLinkMessage(
+				$lang,
+				ViewsConstants::DL,
+				'deal_update_route_unavailable'
+			) ?? 'Update route is unavailable. Please contact technical support or your domain administrator.';
+		} catch (\Error $e) {
+			Log::error('Error in deals/edit.blade.php route @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Exception $e) {
+			Log::error('Exception in deals/edit.blade.php route @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		} catch (\Throwable $e) {
+			Log::error('Throwable in deals/edit.blade.php route @php block', [
+				'exception_class' => get_class($e),
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			]);
+		}
+@endphp
     {!! Form::model($deal, [
         'route'          => $updateRouteArray,
         'method'         => 'PUT',
@@ -41,24 +85,28 @@
     <div class="modal-body">
         @php
             $plan = Utility::getChatGPTSettings();
-        @endphp
+@endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 @php
-                    $generateRoute = Route::has('generate')
-                        ? route('generate', ['deal' => $deal->id])
-                        : '#';
-                    $generateGuardMsg = Utility::fetchLinkMessage(
-                        $lang,
-                        ViewsConstants::DL,
-                        'generate_route_unavailable'
-                    ) ?? 'Generate content for deals with AI route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
+                    try {
+                        $generateRoute = Route::has('generate')
+                            ? route('generate', ['deal' => $deal->id])
+                            : '#';
+                        $generateGuardMsg = Utility::fetchLinkMessage(
+                            $lang,
+                            ViewsConstants::DL,
+                            'generate_route_unavailable'
+                        ) ?? 'Generate content for deals with AI route is unavailable. Please contact technical support or your domain administrator.';
+                    } catch (\Throwable $e) {
+                        \Log::error('deals/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
                 <a
                     id="generate-ai-btn-{{ $deal->id }}"
                     href="{{ $generateRoute }}"
                     data-url="{{ $generateRoute }}"
-                    data-guard-msg="{{ $generateGuardMsg }}"
+                    data-guard-msg="{{ base64_encode($generateGuardMsg) }}"
                     data-size="md"
                     class="{{ VC::BT_PRM }} btn-icon btn-sm"
                     data-ajax-popup-over="true"
@@ -78,28 +126,7 @@
                                 if (url !== '#') return;
                                 e.preventDefault();
                                 const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (bs) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role','alert');
-                                    toast.setAttribute('aria-live','assertive');
-                                    toast.setAttribute('aria-atomic','true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
+                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                 btn.setAttribute('data-failed-route','true');
                             } catch {}
                         });
@@ -154,7 +181,7 @@
             const DS_GUARD  = 'data-guard-msg';
             const LANG_KEY  = 'erp-np-lang';
             let errorMessage = '';
-            
+
             const getMsg = (key, el) => {
                 let msg = ERR_FB;
                 if (el.getAttribute(DS_CLIENT) === 'true') {
@@ -174,36 +201,11 @@
                 }
                 return msg;
             };
-            
+
             const showError = message => {
-                try {
-                let c = document.getElementById('toast-container');
-                if (!c) {
-                    c = document.createElement('div');
-                    c.id = 'toast-container';
-                    document.body.appendChild(c);
-                }
-                const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-                if (bs) {
-                    const t = document.createElement('div');
-                    t.className = 'toast';
-                    t.setAttribute('role','alert');
-                    t.setAttribute('aria-live','assertive');
-                    t.setAttribute('aria-atomic','true');
-                    const b = document.createElement('div');
-                    b.className = 'toast-body';
-                    b.textContent = message;
-                    t.appendChild(b);
-                    c.appendChild(t);
-                    bootstrap.Toast.getOrCreateInstance(t).show();
-                } else {
-                    alert(message);
-                }
-                } catch {
-                alert(message);
-                }
+                (window.RouteGuard?.showToast || (m => alert(m)))(message);
             };
-            
+
             const onUp = () => {
                 if (errorMessage) {
                 showError(errorMessage);
@@ -219,12 +221,12 @@
                 }
                 }));
             }).observe(document.body,{ childList:true, subtree:true });
-            
+
             document.addEventListener('DOMContentLoaded', () => {
                 const stageId = '{{ $deal->stage_id }}';
                 const pipelineSelect = document.querySelector('#commonModal select[name=pipeline_id]');
                 const stageSelect    = document.getElementById('stage_id');
-            
+
                 if (pipelineSelect) {
                 pipelineSelect.addEventListener('change', () => {
                     const pid = pipelineSelect.value ?? '';
@@ -265,7 +267,7 @@
     </script>
     {{ Form::close() }}
 @else
-    <div class="alert alert-warning">
+    <div class="{{ VC::ALT_WRN }}">
         {{ __('Failed to fetch deal data.') }}
     </div>
 @endif

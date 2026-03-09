@@ -1,39 +1,32 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        ViewClassNamesConstants as VC,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route};
-    use Illuminate\Support\Str;
+    try {
+$authUser = Auth::user();
+        $lang = Utility::fetchUserLang(user: $authUser);
+        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
 
-    $authUser = Auth::user();
-    $lang = Utility::fetchUserLang(user: $authUser);
-    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+        function resolveRoute(string $base): ?string {
+            $k = Str::kebab($base);
+            return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+        }
 
-    function resolveRoute(string $base): ?string {
-        $k = Str::kebab($base);
-        return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+        $dashBase = 'dashboard';
+        $dashUrl = Route::has($dashBase) ? route($dashBase) : '#';
+        $dashGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+
+        $indexBase = VW::LD . '.index';
+        $indexResolved = resolveRoute($indexBase);
+        $indexUrl = $indexResolved ? route($indexResolved) : '#';
+        $indexGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,VW::LD,'lead_index_route_unavailable') : 'Lead index route is unavailable. Please contact technical support or your domain administrator.') ?? 'Lead index route is unavailable. Please contact technical support or your domain administrator.');
+
+        $createBase = VW::LD . '.create';
+        $createResolved = resolveRoute($createBase);
+        $createUrl = $createResolved ? route($createResolved) : '#';
+        $createGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,VW::LD,'lead_create_route_unavailable') : 'Create lead route is unavailable. Please contact technical support or your domain administrator.') ?? 'Create lead route is unavailable. Please contact technical support or your domain administrator.');
+
+        $pipelineName = !empty($pipeline) ? (data_get($pipeline,'name', __('No name for pipeline available'))) : null;
+    } catch (\Throwable $e) {
+        \Log::error('leads/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
-
-    $dashBase = 'dashboard';
-    $dashUrl = Route::has($dashBase) ? route($dashBase) : '#';
-    $dashGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') : 'Dashboard route is unavailable. Please contact technical support or your domain administrator.') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.');
-
-    $indexBase = VW::LD . '.index';
-    $indexResolved = resolveRoute($indexBase);
-    $indexUrl = $indexResolved ? route($indexResolved) : '#';
-    $indexGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,VW::LD,'lead_index_route_unavailable') : 'Lead index route is unavailable. Please contact technical support or your domain administrator.') ?? 'Lead index route is unavailable. Please contact technical support or your domain administrator.');
-
-    $createBase = VW::LD . '.create';
-    $createResolved = resolveRoute($createBase);
-    $createUrl = $createResolved ? route($createResolved) : '#';
-    $createGuard = __(($canFetchMsg ? Utility::fetchLinkMessage($lang,VW::LD,'lead_create_route_unavailable') : 'Create lead route is unavailable. Please contact technical support or your domain administrator.') ?? 'Create lead route is unavailable. Please contact technical support or your domain administrator.');
-
-    $pipelineName = !empty($pipeline) ? (data_get($pipeline,'name', __('No name for pipeline available'))) : null;
 @endphp
 
 @extends(EL::ADM)
@@ -53,24 +46,24 @@
 @endpush
 
 @section(YW::ADM_BDC)
-    <li class="breadcrumb-item">
+    <li class="{{ VC::BCI }}">
         <a href="{{ $dashUrl }}"
            data-url="{{ $dashUrl }}"
-           data-guard-msg="{{ $dashGuard }}"
+           data-guard-msg="{{ base64_encode($dashGuard) }}"
            data-sv-localized="true"
            class="lead-route-guard"
            {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Lead') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Lead') }}</li>
 @endsection
 
 @section(YW::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         <a href="{{ $indexUrl }}"
            data-url="{{ $indexUrl }}"
-           data-guard-msg="{{ $indexGuard }}"
+           data-guard-msg="{{ base64_encode($indexGuard) }}"
            data-sv-localized="true"
            data-bs-toggle="tooltip"
            title="{{ __('Kanban View') }}"
@@ -83,10 +76,10 @@
            data-ajax-popup="true"
            data-bs-toggle="tooltip"
            title="{{ __('Create New Lead') }}"
-           data-guard-msg="{{ $createGuard }}"
+           data-guard-msg="{{ base64_encode($createGuard) }}"
            data-sv-localized="true"
            class="{{ VC::BT_SM_PM }} lead-route-guard">
-            <i class="ti ti-plus"></i>
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     </div>
 @endsection
@@ -94,10 +87,10 @@
 @section(YW::ADM_CTT)
     @if(!empty($pipeline))
         <div class="{{ VC::RW }}">
-            <div class="col-xl-12">
+            <div class="{{ VC::CXL12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
+                    <div class="{{ VC::CD_BD_TB_BD }}">
+                        <div class="{{ VC::TB_RSP }}">
                             <table class="{{ VC::TB }} datatable">
                                 <thead>
                                 <tr>
@@ -112,16 +105,20 @@
                                 @if(Utility::isFilled($leads) ?? [])
                                     @foreach ($leads as $lead)
                                         @php
-                                            $lid = data_get($lead,'id');
-                                            $isActive = (bool) data_get($lead,'is_active',false);
-                                            $name = data_get($lead,'name', __('No name available'));
-                                            $subject = data_get($lead,'subject', __('No subject available'));
-                                            $stageName = data_get($lead,'stage.name','-');
-                                            $showBase = VW::LD . '.show';
-                                            $showResolved = resolveRoute($showBase);
-                                            $showUrl = ($showResolved && $lid) ? route($showResolved,$lid) : '#';
-                                            $showGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_show_route_unavailable') ?? 'Show lead route is unavailable. Please contact technical support or your domain administrator.'));
-                                        @endphp
+                                            try {
+                                                $lid = data_get($lead,'id');
+                                                $isActive = (bool) data_get($lead,'is_active',false);
+                                                $name = data_get($lead,'name', __('No name available'));
+                                                $subject = data_get($lead,'subject', __('No subject available'));
+                                                $stageName = data_get($lead,'stage.name','-');
+                                                $showBase = VW::LD . '.show';
+                                                $showResolved = resolveRoute($showBase);
+                                                $showUrl = ($showResolved && $lid) ? route($showResolved,$lid) : '#';
+                                                $showGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_show_route_unavailable') ?? 'Show lead route is unavailable. Please contact technical support or your domain administrator.'));
+                                            } catch (\Throwable $e) {
+                                                \Log::error('leads/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                            }
+@endphp
                                         <tr>
                                             <td>{{ $name }}</td>
                                             <td>{{ $subject }}</td>
@@ -129,7 +126,7 @@
                                             <td>
                                                 @foreach(data_get($lead,'users',[]) as $assignee)
                                                     <a href="#" class="{{ VC::BT_SM }} p-0 rounded-circle">
-                                                        <img alt="{{ __('image') }}"
+                                                        <img alt="image"
                                                              data-bs-toggle="tooltip"
                                                              title="{{ data_get($assignee,'name','') }}"
                                                              src="{{ data_get($assignee,'avatar')
@@ -147,7 +144,7 @@
                                                                 <div class="{{ VC::ACT_BTN_WRN }}">
                                                                     <a href="{{ $showUrl }}"
                                                                        data-url="{{ $showUrl }}"
-                                                                       data-guard-msg="{{ $showGuard }}"
+                                                                       data-guard-msg="{{ base64_encode($showGuard) }}"
                                                                        data-sv-localized="true"
                                                                        class="{{ VC::BT_SM_FL_CT }} lead-route-guard"
                                                                        data-size="xl"
@@ -161,11 +158,15 @@
                                                         @endcan
                                                         @can('edit lead')
                                                             @php
-                                                                $editBase = VW::LD . '.edit';
-                                                                $editResolved = resolveRoute($editBase);
-                                                                $editUrl = ($editResolved && $lid) ? route($editResolved,$lid) : '#';
-                                                                $editGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_edit_route_unavailable') ?? 'Edit lead route is unavailable. Please contact technical support or your domain administrator.'));
-                                                            @endphp
+                                                                try {
+                                                                    $editBase = VW::LD . '.edit';
+                                                                    $editResolved = resolveRoute($editBase);
+                                                                    $editUrl = ($editResolved && $lid) ? route($editResolved,$lid) : '#';
+                                                                    $editGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_edit_route_unavailable') ?? 'Edit lead route is unavailable. Please contact technical support or your domain administrator.'));
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('leads/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_INF }}">
                                                                 <a href="#"
                                                                    class="{{ VC::BT_SM_FL_CT }} lead-route-guard"
@@ -175,7 +176,7 @@
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Edit') }}"
                                                                    data-title="{{ __('Lead Edit') }}"
-                                                                   data-guard-msg="{{ $editGuard }}"
+                                                                   data-guard-msg="{{ base64_encode($editGuard) }}"
                                                                    data-sv-localized="true">
                                                                     <i class="{{ VC::TI_PC_WT }}"></i>
                                                                 </a>
@@ -183,13 +184,17 @@
                                                         @endcan
                                                         @can('delete lead')
                                                             @php
-                                                                $destroyBase = VW::LD . '.destroy';
-                                                                $destroyResolved = resolveRoute($destroyBase);
-                                                                $destroyUrl = ($destroyResolved && $lid) ? route($destroyResolved,$lid) : '#';
-                                                                $destroyGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_destroy_route_unavailable') ?? 'Delete lead route is unavailable. Please contact technical support or your domain administrator.'));
-                                                                $confirmTitle = __((Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?'));
-                                                                $confirmBody  = __((Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?'));
-                                                            @endphp
+                                                                try {
+                                                                    $destroyBase = VW::LD . '.destroy';
+                                                                    $destroyResolved = resolveRoute($destroyBase);
+                                                                    $destroyUrl = ($destroyResolved && $lid) ? route($destroyResolved,$lid) : '#';
+                                                                    $destroyGuard = __((Utility::fetchLinkMessage($lang,VW::LD,'leads_destroy_route_unavailable') ?? 'Delete lead route is unavailable. Please contact technical support or your domain administrator.'));
+                                                                    $confirmTitle = __((Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?'));
+                                                                    $confirmBody  = __((Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?'));
+                                                                } catch (\Throwable $e) {
+                                                                    \Log::error('leads/list — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                }
+@endphp
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                 {!! Collective\Html\FormFacade::open([
                                                                     'method' => 'DELETE',
@@ -201,7 +206,7 @@
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Delete') }}"
                                                                    data-url="{{ $destroyUrl }}"
-                                                                   data-guard-msg="{{ $destroyGuard }}"
+                                                                   data-guard-msg="{{ base64_encode($destroyGuard) }}"
                                                                    data-sv-localized="true"
                                                                    data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
                                                                    data-confirm-yes="document.getElementById('delete-form-{{ $lid }}').submit();">
@@ -217,7 +222,7 @@
                                     @endforeach
                                 @else
                                     <tr class="font-style">
-                                        <td colspan="6" class="text-center">{{ __('No data available in table') }}</td>
+                                        <td colspan="6" class="{{ VC::TXCT }}">{{ __('No data available in table') }}</td>
                                     </tr>
                                 @endif
                                 </tbody>
@@ -228,6 +233,6 @@
             </div>
         </div>
     @else
-        <div class="text-center text-muted py-4">{{ __('Failed to mount this view because the pipeline was not available.') }}</div>
+        <div class="{{ VC::TXCT_MT }} {{ VC::PY4 }}">{{ __('Failed to mount this view because the pipeline was not available.') }}</div>
     @endif
 @endsection

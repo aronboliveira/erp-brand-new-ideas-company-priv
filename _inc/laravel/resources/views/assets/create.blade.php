@@ -1,34 +1,67 @@
 @php
-    use App\Config\Constants\{PlansConstants, ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $chatEnabled = Utility::getChatGPTSettings()?->{PlansConstants::COL_GPT} ?? 0;
-    $row = VC::RW;
-    $colMd6 = VC::CM6;
-    $col12 = VC::C12;
-    $formGroup = VC::FM_G;
-    $formControl = VC::FM_CT;
-    $formLabel = VC::FM_LB;
-    $aiGenBase = 'generate';
-    $aiGenKebab = Str::kebab($aiGenBase);
-    $aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
-    $aiGenUrl = $aiGenResolved ? route($aiGenResolved, ['account asset']) : '#';
-    $aiGenMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'generate_account_asset_unavailable') ?? 'Generate account asset route is unavailable. Please contact technical support or your domain administrator.';
-    $aiGenId = 'account-asset-generate-link';
-    $formId = 'store-account-asset-form';
-    $storeBase = ViewsConstants::ACC_AST;
-    $storeKebab = Str::kebab($storeBase);
-    $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
-    $storeResolvedUrl = $storeResolved ? route($storeResolved) : '#';
-    $storeGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'store_account_asset_unavailable') ?? 'Store account asset route is unavailable. Please contact technical support or your domain administrator.';
+$lang ??= 'en';
+$employee ??= [];
+	$chatEnabled ??= 0;
+	$row ??= VC::RW;
+	$colMd6 ??= VC::CM6;
+	$col12 ??= VC::C12;
+	$formGroup ??= VC::FM_G;
+	$formControl ??= VC::FM_CT;
+	$formLabel ??= VC::FM_LB;
+	$aiGenBase ??= 'generate';
+	$aiGenKebab ??= '';
+	$aiGenResolved ??= null;
+	$aiGenUrl ??= '#';
+	$aiGenMsg ??= '';
+	$aiGenId ??= 'account-asset-generate-link';
+	$formId ??= 'store-account-asset-form';
+	$storeBase ??= '';
+	$storeKebab ??= '';
+	$storeResolved ??= null;
+	$storeResolvedUrl ??= '#';
+	$storeGuardMsg ??= '';
+	try {
+		$lang = Utility::fetchUserLang() ?? 'en';
+		$chatEnabled = Utility::getChatGPTSettings()?->{PlansConstants::COL_GPT} ?? 0;
+		$aiGenKebab = Str::kebab($aiGenBase);
+		$aiGenResolved = Route::has($aiGenBase) ? $aiGenBase : (Route::has($aiGenKebab) ? $aiGenKebab : null);
+		$aiGenUrl = $aiGenResolved ? (route($aiGenResolved, ['account asset']) ?? '#') : '#';
+		$aiGenMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'generate_account_asset_unavailable')
+			?? 'Generate account asset route is unavailable. Please contact technical support or your domain administrator.';
+		$storeBase = ViewsConstants::ACC_AST;
+		$storeKebab = Str::kebab($storeBase);
+		$storeResolved = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+		$storeResolvedUrl = $storeResolved ? (route($storeResolved) ?? '#') : '#';
+		$storeGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::ACC_AST, 'store_account_asset_unavailable')
+			?? 'Store account asset route is unavailable. Please contact technical support or your domain administrator.';
+	} catch (\Error $e) {
+		Log::error('Error in assets/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Exception $e) {
+		Log::error('Exception in assets/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	} catch (\Throwable $e) {
+		Log::error('Throwable in assets/create.blade.php main @php block', [
+			'exception_class' => get_class($e),
+			'message' => $e->getMessage(),
+			'file' => $e->getFile(),
+			'line' => $e->getLine(),
+		]);
+	}
 @endphp
 
-{{ Form::open(['route' => [$storeResolvedUrl], 'method' => 'post', 'id' => $formId, 'data-resolved-action' => $storeResolvedUrl, 'data-guard-msg' => $storeGuardMsg, 'data-sv-localized' => 'true']) }}
+{{ Form::open(['url' => $storeResolvedUrl, 'method' => 'post', 'id' => $formId, 'data-resolved-action' => $storeResolvedUrl, 'data-guard-msg' => $storeGuardMsg, 'data-sv-localized' => 'true']) }}
     <div class="modal-body">
         @if($chatEnabled)
-            <div class="text-end">
+            <div class="{{ VC::TX_END }}">
                 <a href="{{ $aiGenUrl }}"
                    id="{{ $aiGenId }}"
                    class="{{ VC::BT_SM_PM }} btn-icon"
@@ -37,7 +70,7 @@
                    data-url="{{ $aiGenUrl }}"
                    data-bs-placement="top"
                    title="{{ __('Generate with AI') }}"
-                   data-guard-msg="{{ $aiGenMsg }}"
+                   data-guard-msg="{{ base64_encode($aiGenMsg) }}"
                    data-sv-localized="true">
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>

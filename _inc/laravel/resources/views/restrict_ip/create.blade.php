@@ -1,15 +1,15 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
-    $lang = Utility::fetchUserLang();
-    $ipCreateBaseName = ViewsConstants::SYS . '.ip.create';
-    $ipCreateKebabName = Str::kebab($ipCreateBaseName);
-    $ipCreateResolvedName = Route::has($ipCreateBaseName) ? $ipCreateBaseName : (Route::has($ipCreateKebabName) ? $ipCreateKebabName : null);
-    $ipCreateUrl = $ipCreateResolvedName ? route($ipCreateResolvedName) : '#';
-    $ipCreateGuardMsg = Utility::fetchLinkMessage($lang, 'ip', 'create_ip_route_unavailable') ?? 'Create IP route is unavailable. Please contact technical support or your domain administrator.';
-    $ipFormId = 'ip-create-form';
+    try {
+$lang = Utility::fetchUserLang();
+        $ipCreateBaseName = ViewsConstants::SYS . '.ip.create';
+        $ipCreateKebabName = Str::kebab($ipCreateBaseName);
+        $ipCreateResolvedName = Route::has($ipCreateBaseName) ? $ipCreateBaseName : (Route::has($ipCreateKebabName) ? $ipCreateKebabName : null);
+        $ipCreateUrl = $ipCreateResolvedName ? route($ipCreateResolvedName) : '#';
+        $ipCreateGuardMsg = Utility::fetchLinkMessage($lang, 'ip', 'create_ip_route_unavailable') ?? 'Create IP route is unavailable. Please contact technical support or your domain administrator.';
+        $ipFormId = 'ip-create-form';
+    } catch (\Throwable $e) {
+        \Log::error('restrict_ip/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::open([

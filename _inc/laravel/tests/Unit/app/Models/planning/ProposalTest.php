@@ -6,9 +6,12 @@ use App\Models\Proposal;
 use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
+use Tests\Concerns\SafeAliasMock;
 
 class ProposalTest extends TestCase
 {
+	use SafeAliasMock;
+
 	/**
 	 ** A reusable fake collection of proposal
 	 ** items (price × qty minus discount).
@@ -18,6 +21,7 @@ class ProposalTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// Build three stub items
 		$this->items = collect([
@@ -27,7 +31,7 @@ class ProposalTest extends TestCase
 		]);
 
 		// Stub Utility::totalTaxRate() → 10 % for any tax code
-		Mockery::mock('alias:App\Models\Utility')
+		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('totalTaxRate')
 			->andReturn(10);
 	}
@@ -111,7 +115,7 @@ class ProposalTest extends TestCase
 			->andReturnTrue();
 
 		// Intercept Proposal::find()
-		Mockery::mock('alias:' . Proposal::class)
+		$this->aliasMock(Proposal::class)
 			->shouldReceive('find')
 			->once()
 			->with(7)
@@ -125,6 +129,6 @@ class ProposalTest extends TestCase
 	protected function tearDown(): void
 	{
 		Mockery::close();
-		parent::tearDown();
+        parent::tearDown();
 	}
 }

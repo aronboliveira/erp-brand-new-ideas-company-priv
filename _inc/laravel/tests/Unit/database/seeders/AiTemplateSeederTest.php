@@ -10,6 +10,11 @@ use Illuminate\Support\{Carbon, Str};
 
 class AiTemplateSeederTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**

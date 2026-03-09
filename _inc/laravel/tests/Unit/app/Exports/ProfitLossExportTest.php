@@ -5,14 +5,14 @@ namespace Tests\Unit\Exports;
 use App\Exports\ProfitLossExport;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Events\{AfterSheet, BeforeWriting};
 use Tests\TestCase;
 
 class ProfitLossExportTest extends TestCase
 {
-	use RefreshDatabase;
+	use DatabaseTransactions;
 
 	/**
 	 ** @test

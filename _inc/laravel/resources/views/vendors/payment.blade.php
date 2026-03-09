@@ -1,26 +1,20 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants as EL,
-        StacksConstants as ST,
-        YieldingConstants as YW,
-        ViewsConstants as VW
-    };
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Collection, Facades\Route, Str};
+    try {
+$user = Auth::user();
+        $lang = Utility::fetchUserLang(user: $user);
+        $indexBase  = VW::VND . '.payment';
+        $indexKebab = Str::kebab($indexBase);
+        $indexName  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+        $indexUrl   = $indexName ? route($indexName) : '#';
+        $indexGuard = Utility::fetchLinkMessage($lang, VW::VND, 'vendor_payment_route_unavailable')
+            ?? 'Vendor payment route is unavailable. Please contact technical support or your domain administrator.';
+        $formId     = 'vendor-payment-filter-form';
+        $resetId    = 'vendor-payment-reset-link';
 
-    $user = Auth::user();
-    $lang = Utility::fetchUserLang(user: $user);
-    $indexBase  = VW::VND . '.payment';
-    $indexKebab = Str::kebab($indexBase);
-    $indexName  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
-    $indexUrl   = $indexName ? route($indexName) : '#';
-    $indexGuard = Utility::fetchLinkMessage($lang, VW::VND, 'vendor_payment_route_unavailable')
-        ?? 'Vendor payment route is unavailable. Please contact technical support or your domain administrator.';
-    $formId     = 'vendor-payment-filter-form';
-    $resetId    = 'vendor-payment-reset-link';
-
-    $categoryOptions = (($category ?? null) instanceof Collection) ? $category->toArray() : (is_array($category ?? null) ? $category : []);
+        $categoryOptions = (($category ?? null) instanceof Collection) ? $category->toArray() : (is_array($category ?? null) ? $category : []);
+    } catch (\Throwable $e) {
+        \Log::error('vendors/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 @extends(EL::ADM)
@@ -34,9 +28,9 @@
 
 @section('content')
     <div class="row">
-        <div class="col-md-12">
+        <div class="{{ VC::CM12 }}">
             <div class="card">
-                <div class="card-body table-border-style">
+                <div class="{{ VC::CD_BD_TB_BD }}">
                     {!! Form::open([
                         'url'                  => $indexUrl,
                         'method'               => 'GET',
@@ -45,8 +39,8 @@
                         'data-guard-msg'       => $indexGuard,
                         'data-sv-localized'    => 'true',
                     ]) !!}
-                        <div class="row d-flex justify-content-end mt-2">
-                            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                        <div class="row {{ VC::DFL_JCE }} {{ VC::MT2 }}">
+                            <div class="{{ VC::CL_XL3 }}">
                                 <div class="all-select-box">
                                     <div class="btn-box">
                                         {{ Form::label('date', __('Date'), ['class' => 'text-type']) }}
@@ -54,7 +48,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                            <div class="{{ VC::CL_XL3 }}">
                                 <div class="all-select-box">
                                     <div class="btn-box">
                                         {{ Form::label('category', __('Category'), ['class' => 'text-type']) }}
@@ -62,14 +56,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-auto my-auto">
+                            <div class="{{ VC::C_AT }} my-auto">
                                 <button type="submit" class="apply-btn" data-bs-toggle="tooltip" title="{{ __('apply') }}">
-                                    <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
+                                    <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                 </button>
                                 <a id="{{ $resetId }}"
                                    href="{{ $indexUrl }}"
                                    data-url="{{ $indexUrl }}"
-                                   data-guard-msg="{{ $indexGuard }}"
+                                   data-guard-msg="{{ base64_encode($indexGuard) }}"
                                    data-sv-localized="true"
                                    class="reset-btn"
                                    data-bs-toggle="tooltip"
@@ -80,8 +74,8 @@
                         </div>
                     {!! Form::close() !!}
 
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped mb-0 dataTable">
+                    <div class="{{ VC::TB_RSP }} {{ VC::MT3 }}">
+                        <table class="table table-striped {{ VC::MB0 }} dataTable">
                             <thead>
                                 <tr>
                                     <th>{{ __('Date') }}</th>
@@ -93,25 +87,29 @@
                             <tbody>
                                 @php
                                     $rows = (($payments ?? null) instanceof Collection || is_array($payments ?? null)) ? $payments : [];
-                                @endphp
+@endphp
                                 @forelse($rows as $pmt)
                                     @php
-                                        $dateRaw = data_get($pmt, 'date');
-                                        $dateStr = $dateRaw
-                                            ? (method_exists($user, 'dateFormat') ? ($user->dateFormat($dateRaw) ?? (string)$dateRaw) : (string)$dateRaw)
-                                            : __('No date available');
+                                        try {
+                                            $dateRaw = data_get($pmt, 'date');
+                                            $dateStr = $dateRaw
+                                                ? (method_exists($user, 'dateFormat') ? ($user->dateFormat($dateRaw) ?? (string)$dateRaw) : (string)$dateRaw)
+                                                : __('No date available');
 
-                                        $amtRaw  = data_get($pmt, 'amount');
-                                        $amtStr  = (isset($amtRaw) && $amtRaw !== '' && is_numeric($amtRaw))
-                                            ? (method_exists($user, 'priceFormat') ? ($user->priceFormat($amtRaw) ?? (string)$amtRaw) : (string)$amtRaw)
-                                            : __('No amount available');
+                                            $amtRaw  = data_get($pmt, 'amount');
+                                            $amtStr  = (isset($amtRaw) && $amtRaw !== '' && is_numeric($amtRaw))
+                                                ? (method_exists($user, 'priceFormat') ? ($user->priceFormat($amtRaw) ?? (string)$amtRaw) : (string)$amtRaw)
+                                                : __('No amount available');
 
-                                        $catRaw  = data_get($pmt, 'category');
-                                        $catStr  = (isset($catRaw) && $catRaw !== '') ? (string)$catRaw : __('No category available');
+                                            $catRaw  = data_get($pmt, 'category');
+                                            $catStr  = (isset($catRaw) && $catRaw !== '') ? (string)$catRaw : __('No category available');
 
-                                        $descRaw = data_get($pmt, 'description');
-                                        $descStr = (isset($descRaw) && $descRaw !== '') ? (string)$descRaw : __('No description available');
-                                    @endphp
+                                            $descRaw = data_get($pmt, 'description');
+                                            $descStr = (isset($descRaw) && $descRaw !== '') ? (string)$descRaw : __('No description available');
+                                        } catch (\Throwable $e) {
+                                            \Log::error('vendors/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                        }
+@endphp
                                     <tr>
                                         <td>{{ $dateStr }}</td>
                                         <td>{{ $amtStr }}</td>
@@ -120,7 +118,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">
+                                        <td colspan="4" class="{{ VC::TXCT_MT }}">
                                             {{ __('No payment information available') }}
                                         </td>
                                     </tr>

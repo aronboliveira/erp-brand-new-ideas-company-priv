@@ -8,8 +8,8 @@ use App\Config\Constants\{
     BillsConstants as BC,
     DatabaseConstants as DC
 };
-use App\Enums\ConsumableType;
-use App\Services\ProductOrServiceRequestService;
+use App\Enums\{ConsumableType};
+use App\Services\{ProductOrServiceRequestService};
 use App\Traits\{
     HasAuditFields,
     NormalizesArrays,
@@ -17,26 +17,17 @@ use App\Traits\{
 };
 use Illuminate\Database\Eloquent\{
     Collection,
+    Factories\HasFactory,
     Model,
     Relations\BelongsTo,
     Relations\HasMany
 };
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Http\RedirectResponse;
 
-/**
- * @property int|string $id
- * @property string|null $name
- * @property string|null $type
- * @property string|null $color
- * @property int|string|null $chart_account_id
- * @property int|string|null $created_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- */
 class ProductServiceCategory extends Model
 {
-    use HasAuditFields, NormalizesArrays, UsesUuids;
+    use HasFactory, HasAuditFields, NormalizesArrays, UsesUuids;
 
     public const TABLE = DC::TABLE_PROD_SERV_CATS;
 
@@ -121,55 +112,64 @@ class ProductServiceCategory extends Model
 
     protected static function normalizeType(mixed $value): int
     {
-        if ($value === null)
+        try {
+            if ($value === null)
+                return 0;
+            if (is_string($value))
+                $value = trim($value);
+            if (!is_numeric($value))
+                return 0;
+            $int = (int) $value;
+            if ($int < 0)
+                $int = 0;
+            elseif ($int > 9)
+                $int = 9;
+            return $int;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeType — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return 0;
-        if (is_string($value))
-            $value = trim($value);
-        if (!is_numeric($value))
-            return 0;
-        $int = (int) $value;
-        if ($int < 0)
-            $int = 0;
-        elseif ($int > 9)
-            $int = 9;
-        return $int;
+        }
     }
 
     protected static function normalizeAndFilterRelatedCategories(mixed $value): array
     {
-        $items = self::normalizeArrayField($value);
-        $items = array_values(array_filter(
-            $items,
-            fn($item): bool =>
-            is_array($item) && isset($item['id']) && is_string($item['id']) && trim($item['id']) !== ''
-        ));
-        if (!$items)
+        try {
+            $items = self::normalizeArrayField($value);
+            $items = array_values(array_filter(
+                $items,
+                fn($item): bool =>
+                is_array($item) && isset($item['id']) && is_string($item['id']) && trim($item['id']) !== ''
+            ));
+            if (!$items)
+                return [];
+            $ids = array_values(array_unique(array_map(
+                fn(array $item): string => $item['id'],
+                $items
+            )));
+            $existingIds = self::query()
+                ->whereIn('id', $ids)
+                ->pluck('id')
+                ->all();
+            if (!$existingIds)
+                return [];
+            $existingMap = array_flip($existingIds);
+            $filtered = [];
+            foreach ($items as $item) {
+                $id = $item['id'];
+                if (isset($existingMap[$id]))
+                    $filtered[] = $item;
+            }
+            return $filtered;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeAndFilterRelatedCategories — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
             return [];
-        $ids = array_values(array_unique(array_map(
-            fn(array $item): string => $item['id'],
-            $items
-        )));
-        $existingIds = self::query()
-            ->whereIn('id', $ids)
-            ->pluck('id')
-            ->all();
-        if (!$existingIds)
-            return [];
-        $existingMap = array_flip($existingIds);
-        $filtered = [];
-        foreach ($items as $item) {
-            $id = $item['id'];
-            if (isset($existingMap[$id]))
-                $filtered[] = $item;
         }
-        return $filtered;
     }
 
     public function categories(): HasMany
     {
         return $this->hasMany(Revenue::class, BC::COL_CAT_ID, 'id');
-        // * relação original mantida para compatibilidade
-    }
+            }
 
     public function incomeCategoryRevenueAmount(): float|RedirectResponse
     {

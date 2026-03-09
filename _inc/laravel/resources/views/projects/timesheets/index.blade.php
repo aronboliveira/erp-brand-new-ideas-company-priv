@@ -1,20 +1,14 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
-    $projectIndexBaseName = VW::PRJ . '.index';
-    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    try {
+$lang = Utility::fetchUserLang();
+        $projectIndexBaseName = VW::PRJ . '.index';
+        $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+        $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+        $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+        $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    } catch (\Throwable $e) {
+        \Log::error('projects/timesheets/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -24,126 +18,47 @@
     @endsection
 
     @section(YieldingConstants::ADM_BDC)
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
             {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
                 {{ __('Dashboard') }}
             </a>
         </li>
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             <a
-                id="project-index-link"
                 href="{{ $projectIndexUrl }}"
                 data-url="{{ $projectIndexUrl }}"
-                data-guard-msg="{{ $projectIndexGuardMsg }}"
+                data-guard-msg="{{ base64_encode($projectIndexGuardMsg) }}"
+                data-route-guard
             >
                 {{ __('Project') }}
             </a>
         </li>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const link = document.getElementById('project-index-link');
-                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                    link.setAttribute('data-listener-active', 'true');
-                    link.addEventListener('click', e => {
-                        try {
-                            const url = link.getAttribute('data-url') || '#';
-                            if (url !== '#') return;
-                            e.preventDefault();
-                            const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            link.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                })();
-            </script>
-        @endpush
-        <li class="breadcrumb-item">
+        <li class="{{ VC::BCI }}">
             @php
-                $projectShowBaseName     = VW::PRJ.'.show';
-                $projectShowKebabName    = Str::kebab($projectShowBaseName);
-                $projectShowResolvedName = Route::has($projectShowBaseName)
-                    ? $projectShowBaseName
-                    : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
-                $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
-                $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
-                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRJ, 'open_project_route_unavailable') ?? 'Open project route is unavailable. Please contact technical support or your domain administrator.';
-                $projectShowLinkId       = 'project-show-link';
-                $projectNameText         = ucwords($project->project_name ?? '');
-            @endphp
+                try {
+                    $projectShowBaseName     = VW::PRJ.'.show';
+                    $projectShowKebabName    = Str::kebab($projectShowBaseName);
+                    $projectShowResolvedName = Route::has($projectShowBaseName)
+                        ? $projectShowBaseName
+                        : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
+                    $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
+                    $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
+                    $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRJ, 'open_project_route_unavailable') ?? 'Open project route is unavailable. Please contact technical support or your domain administrator.';
+                    $projectShowLinkId       = 'project-show-link';
+                    $projectNameText         = ucwords($project->project_name ?? '');
+                } catch (\Throwable $e) {
+                    \Log::error('projects/timesheets/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             <a href="{{ $projectShowUrl }}"
-            id="{{ $projectShowLinkId }}"
             data-url="{{ $projectShowUrl }}"
-            data-guard-msg="{{ $projectShowGuardMsg }}">
+            data-guard-msg="{{ base64_encode($projectShowGuardMsg) }}"
+            data-route-guard>
                 {{ $projectNameText }}
             </a>
-            @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        try {
-                            const l = document.getElementById('{{ $projectShowLinkId }}');
-                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                            l.setAttribute('data-listener-active', 'true');
-                            l.addEventListener('click', e => {
-                                try {
-                                    const href = l.getAttribute('href') || '#';
-                                    const url = l.getAttribute('data-url') || href || '#';
-                                    if (href !== '#' || url !== '#') return;
-                                    e.preventDefault();
-                                    const msg = l.getAttribute('data-guard-msg') || 'Open project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role', 'alert');
-                                        toast.setAttribute('aria-live', 'assertive');
-                                        toast.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    l.setAttribute('data-failed-route', 'true');
-                                } catch (err) {}
-                            });
-                        } catch (error) {}
-                    })();
-                </script>
-            @endpush
         </li>
-        <li class="breadcrumb-item">{{__('Timesheet')}}</li>
+        <li class="{{ VC::BCI }}">{{__('Timesheet')}}</li>
     @endsection
 
     @section(YieldingConstants::ADM_ACT_BTN)
@@ -189,10 +104,10 @@
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::C12 }}">
                         <div class="{{ VC::CD_NSD }}">
-                            <div class="card-body table-border-style">
-                                <div class="table-responsive project-timesheet overflow-auto"></div>
-                                <div class="text-center notfound-timesheet">
-                                    <div class="empty-project-text text-center p-3 min-h-300">
+                            <div class="{{ VC::CD_BD_TB_BD }}">
+                                <div class="{{ VC::TB_RSP }} project-timesheet overflow-auto"></div>
+                                <div class="{{ VC::TXCT }} notfound-timesheet">
+                                    <div class="empty-project-text {{ VC::TXCT }} p-3 min-h-300">
                                         <h5 class="pt-5">{{ __("We couldn't find any data") }}</h5>
                                         <p class="m-0">{{ __("Sorry we can't find any timesheet records on this week.") }}</p>
                                         <p class="m-0">{{ __("To add timesheet record go to Add Task on Timesheet") }}</p>
@@ -208,7 +123,7 @@
 
     @push(StacksConstants::ADM_SCR_PG)
             <script async>
-          (() => { 
+          (() => {
               if (!window.translations) {
   window.translations = {};
 }
@@ -237,7 +152,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-         
+
           })();
     </script>
         <script defer>
@@ -278,9 +193,9 @@ Object.keys(t).forEach(
                     toast.setAttribute("aria-live", "assertive");
                     toast.setAttribute("aria-atomic", "true");
                     toast.innerHTML = `
-                        <div class="d-flex">
+                        <div class="{{ VC::DFL }}">
                         <div class="toast-body">${text}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>`;
                     document.body.appendChild(toast);
                     }
@@ -323,12 +238,12 @@ Object.keys(t).forEach(
                 };
 
                 try {
-                if(typeof $==="undefined"){ 
+                if(typeof $==="undefined"){
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
-                    ) console.error("jQuery unavailable");     
-                    return; 
+                    ) console.error("jQuery unavailable");
+                    return;
                 }
 
                 const $doc = $(document);
@@ -366,10 +281,10 @@ Object.keys(t).forEach(
                             (res?.sectiontasks ?? []).forEach((sec) => {
                             let html = "";
                             if (sec?.section_id !== 0 && sec?.section_name && Array.isArray(sec?.tasks) && sec.tasks.length > 0) {
-                                html += `<a href="#" class="dropdown-item select-sub-heading" data-tasks-count="${sec.tasks.length}">${sec.section_name}</a>`;
+                                html += `<a href="#" class="{{ VC::DRP_IT }} select-sub-heading" data-tasks-count="${sec.tasks.length}">${sec.section_name}</a>`;
                             }
                             (sec?.tasks ?? []).forEach((t) => {
-                                html += `<a href="#" class="dropdown-item select-task" data-task-id="${t.task_id}">${t.task_name}</a>`;
+                                html += `<a href="#" class="{{ VC::DRP_IT }} select-task" data-task-id="${t.task_id}">${t.task_name}</a>`;
                             });
                             $list.append(html);
                             });
@@ -536,6 +451,54 @@ Object.keys(t).forEach(
             })();
         </script>
     @endpush
+    @push(StacksConstants::ADM_SCR_PG)
+        <script>
+            if (typeof window.TimesheetsIndexHandler === 'undefined') {
+                window.TimesheetsIndexHandler = {
+                    init() {
+                        document.querySelectorAll('[data-route-guard]').forEach(el => this.attachHandler(el));
+                    },
+                    attachHandler(el) {
+                        el.addEventListener('click', (e) => {
+                            try {
+                                const href = el.getAttribute('href') || '#';
+                                const url = el.getAttribute('data-url') || href || '#';
+                                if (href !== '#' && url !== '#') return;
+                                e.preventDefault();
+                                const msg = el.getAttribute('data-guard-msg') || 'Route is unavailable. Please contact technical support or your domain administrator.';
+                                this.showToast(msg);
+                            } catch (err) {}
+                        }, { passive: false });
+                    },
+                    showToast(msg) {
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                    }
+                };
+                document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.TimesheetsIndexHandler.init()) : window.TimesheetsIndexHandler.init();
+            }
+        </script>
+    @endpush
 @else
-    <div class="alert alert-info">{{ __('No timesheet data available.') }}</div>
+    <div class="{{ VC::ALT_INF }}">{{ __('No timesheet data available.') }}</div>
 @endif

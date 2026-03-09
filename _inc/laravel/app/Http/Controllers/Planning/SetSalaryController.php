@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Planning;
 
-use App\Config\Constants\{
-    DatabaseConstants,
-    UsersConstants,
-    ViewsConstants
-};
+use App\Http\Controllers\Abstracts\Controller;
+
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC, ViewsConstants as VW};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Http\{RedirectResponse, Request};
@@ -20,37 +18,37 @@ use App\Models\{
     Allowance,
     AllowanceOption,
     Commission,
-    DeductionOption,
     Employee,
     Loan,
     LoanOption,
     OtherPayment,
     Overtime,
-    PayslipType,
-    SaturationDeduction
+    PayslipType
 };
+use App\Models\{DeductionOption, SaturationDeduction};
+use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
 class SetSalaryController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_ROUTE = ViewsConstants::S_SLR . '.index';
+    private const REDIRECT_ROUTE = VW::S_SLR . '.index';
 
-    public function index(Request $request): ViewContract|RedirectResponse
+    public function index(Request $request): ViewContract|RedirectResponse|bool
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::S_SLR . '.index';
+        $view   = VW::S_SLR . '.index';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
 
             Log::info('Entering ' . $action, ['user' => $user?->id]);
 
-            if ($denial = $this->guard($request, 'manage set salary', self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($request, 'manage set salary', self::REDIRECT_ROUTE)) !== true) {
                 return $denial;
             }
 
-            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+            $employees = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                 ->with('salary_type')
                 ->get();
 
@@ -64,41 +62,41 @@ class SetSalaryController extends Controller
         });
     }
 
-    public function show(Request $request, int|string $id): ViewContract|RedirectResponse
+    public function show(Request $request, int|string $id): ViewContract|RedirectResponse|bool
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::S_SLR . '.employee_salary';
+        $view   = VW::S_SLR . '.employee_salary';
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
 
-            Log::info($action, [UsersConstants::COL_USER_ID => $user?->id, 'employee' => $id]);
+            Log::info($action, [UC::COL_USER_ID => $user?->id, 'employee' => $id]);
 
-            if ($denial = $this->guard($request, 'view set salary', self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($request, 'view set salary', self::REDIRECT_ROUTE)) !== true) {
                 return $denial;
             }
 
             // dropdowns
-            $payslipTypes     = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $allowanceOptions = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $loanOptions      = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $deductionOptions = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes     = PayslipType::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $allowanceOptions = AllowanceOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $loanOptions      = LoanOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $deductionOptions = DeductionOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             // Which employee?
-            $empId = strtolower($user[UsersConstants::COL_TP]) === 'employee'
-                ? Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id')
+            $empId = strtolower($user[UC::COL_TP]) === 'employee'
+                ? Employee::where(UC::COL_USER_ID, $user?->id)->value('id')
                 : $id;
 
             $employee = Employee::with('salary_type')->findOrFail($empId);
 
             // Related collections
             $relations = [
-                'allowances'           => Allowance::where(UsersConstants::COL_EMP_ID, $empId)->with('allowanceOption')->get(),
-                'commissions'          => Commission::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'loans'                => Loan::where(UsersConstants::COL_EMP_ID, $empId)->with('loanOption')->get(),
-                'saturationDeductions' => SaturationDeduction::where(UsersConstants::COL_EMP_ID, $empId)->with('deductionOption')->get(),
-                'otherPayments'        => OtherPayment::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'overtimes'            => Overtime::where(UsersConstants::COL_EMP_ID, $empId)->get(),
+                'allowances'           => Allowance::where(UC::COL_EMP_ID, $empId)->with('allowanceOption')->get(),
+                'commissions'          => Commission::where(UC::COL_EMP_ID, $empId)->get(),
+                'loans'                => Loan::where(UC::COL_EMP_ID, $empId)->with('loanOption')->get(),
+                'saturationDeductions' => SaturationDeduction::where(UC::COL_EMP_ID, $empId)->with('deductionOption')->get(),
+                'otherPayments'        => OtherPayment::where(UC::COL_EMP_ID, $empId)->get(),
+                'overtimes'            => Overtime::where(UC::COL_EMP_ID, $empId)->get(),
             ];
 
             // Percentage totals
@@ -136,7 +134,7 @@ class SetSalaryController extends Controller
         });
     }
 
-    public function edit(Request $request, string|int $id): ViewContract|RedirectResponse
+    public function edit(Request $request, string|int $id): ViewContract|RedirectResponse|bool
     {
         $action = __METHOD__;
 
@@ -145,19 +143,19 @@ class SetSalaryController extends Controller
 
             Log::info('Entering ' . $action, ['user' => $user?->id, 'employee' => $id]);
 
-            if ($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) !== true) {
                 return $denial;
             }
 
             // Common dropdowns
-            $payslipTypes     = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $allowanceOptions = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $loanOptions      = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $deductionOptions = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes     = PayslipType::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $allowanceOptions = AllowanceOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $loanOptions      = LoanOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $deductionOptions = DeductionOption::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             // Which employee?
-            $empId = strtolower($user[UsersConstants::COL_TP]) === 'employee'
-                ? Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id')
+            $empId = strtolower($user[UC::COL_TP]) === 'employee'
+                ? Employee::where(UC::COL_USER_ID, $user?->id)->value('id')
                 : $id;
 
             $employee = Employee::with('salary_type')->findOrFail($empId);
@@ -165,17 +163,17 @@ class SetSalaryController extends Controller
 
             // Related data (simple lists here)
             $relations = [
-                'allowances'           => Allowance::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'commissions'          => Commission::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'loans'                => Loan::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'saturationDeductions' => SaturationDeduction::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'otherPayments'        => OtherPayment::where(UsersConstants::COL_EMP_ID, $empId)->get(),
-                'overtimes'            => Overtime::where(UsersConstants::COL_EMP_ID, $empId)->get(),
+                'allowances'           => Allowance::where(UC::COL_EMP_ID, $empId)->get(),
+                'commissions'          => Commission::where(UC::COL_EMP_ID, $empId)->get(),
+                'loans'                => Loan::where(UC::COL_EMP_ID, $empId)->get(),
+                'saturationDeductions' => SaturationDeduction::where(UC::COL_EMP_ID, $empId)->get(),
+                'otherPayments'        => OtherPayment::where(UC::COL_EMP_ID, $empId)->get(),
+                'overtimes'            => Overtime::where(UC::COL_EMP_ID, $empId)->get(),
             ];
 
-            $view = strtolower($user[UsersConstants::COL_TP]) === 'employee'
-                ? ViewsConstants::S_SLR . '.employee_salary'
-                : ViewsConstants::S_SLR . '.edit';
+            $view = strtolower($user[UC::COL_TP]) === 'employee'
+                ? VW::S_SLR . '.employee_salary'
+                : VW::S_SLR . '.edit';
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_ROUTE));
@@ -204,7 +202,7 @@ class SetSalaryController extends Controller
 
             Log::info('Entering ' . $action, ['user' => $user?->id, 'employee' => $id]);
 
-            if ($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) !== true) {
                 return $denial;
             }
 
@@ -243,18 +241,18 @@ class SetSalaryController extends Controller
     public function employeeSalary(Request $request): ViewContract|RedirectResponse
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::S_SLR . '.index';
+        $view   = VW::S_SLR . '.index';
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
 
             Log::info('Entering ' . $action, ['user' => $user?->id]);
 
-            if (strtolower($user->{UsersConstants::COL_TP} ?? '') !== 'employee') {
+            if (strtolower($user->{UC::COL_TP} ?? '') !== 'employee') {
                 return redirect()->route(self::REDIRECT_ROUTE);
             }
 
-            $employees = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->get();
+            $employees = Employee::where(UC::COL_USER_ID, $user?->id)->get();
             Log::info('Fetched own employee records', ['count' => $employees->count()]);
 
             if (!ViewFacade::exists($view)) {
@@ -266,21 +264,25 @@ class SetSalaryController extends Controller
     }
 
     public const EMP_SL_BASIC = 'employeeBasicSalary';
-    public function employeeBasicSalary(Request $request, string|int $id): ViewContract|RedirectResponse
+    public const IDX = 'index';
+    public const SHW = 'show';
+    public const EDT = 'edit';
+
+    public function employeeBasicSalary(Request $request, string|int $id): ViewContract|RedirectResponse|bool
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::S_SLR . '.gross_salary';
+        $view   = VW::S_SLR . '.gross_salary';
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
 
             Log::info('Entering ' . $action, ['user' => $user?->id, 'employee' => $id]);
 
-            if ($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) !== true) {
                 return $denial;
             }
 
-            $payslipTypes = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes = PayslipType::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
             $employee     = Employee::findOrFail($id);
 
             if (!ViewFacade::exists($view)) {
@@ -297,5 +299,23 @@ class SetSalaryController extends Controller
             return $u;
         }
         return $u; // returns the authenticated user object
+    }
+
+    /**
+     * Create stub — salary configuration is set through the show/edit pages.
+     */
+    public function create(Request $request): ViewContract|RedirectResponse|bool
+    {
+        $action = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action) {
+            if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
+            if (($denial = $this->guard($request, 'create set salary', self::REDIRECT_ROUTE)) !== true) return $denial;
+            $employees = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Employee', '');
+            $view = VW::S_SLR . '.create';
+            if (!ViewFacade::exists($view)) {
+                return redirect()->route(self::REDIRECT_ROUTE)->with('info', __('Salary setup is managed per employee. Select an employee from the list.'));
+            }
+            return view($view, compact('employees'));
+        });
     }
 }

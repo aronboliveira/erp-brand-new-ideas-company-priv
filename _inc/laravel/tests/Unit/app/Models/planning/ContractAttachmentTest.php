@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class ContractAttachmentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	/**
 	 ** @test
 	 *
@@ -16,7 +21,7 @@ class ContractAttachmentTest extends TestCase
 	public function it_uses_the_correct_table_name(): void
 	{
 		$this->assertSame(
-			'contract_attachment',
+			'contract_attachments',
 			(new ContractAttachment)->getTable()
 		);
 	}
@@ -29,8 +34,36 @@ class ContractAttachmentTest extends TestCase
 	 **/
 	public function fillable_array_matches_declared_constant(): void
 	{
-		$ref     = new \ReflectionClass(ContractAttachment::class);
-		$expected = $ref->getConstant('FILLABLE_FIELDS');
+		$expected = [
+			'code',
+			'contract_id',
+			'user_id',
+			'submitted_at',
+			'approved_by',
+			'approved_at',
+			'rejected_by',
+			'rejected_at',
+			'file_path',
+			'url',
+			'name',
+			'extension',
+			'mime_type',
+			'last_accessed',
+			'size',
+			'description',
+			'notes',
+			'download_count',
+			'file_size',
+			'permission_rules',
+			'viewers',
+			'editors',
+			'executors',
+			'expiration_date',
+			'type',
+			'attachment_type',
+			'files',
+			'metadata',
+		];
 
 		$this->assertSame($expected, (new ContractAttachment)->getFillable());
 	}

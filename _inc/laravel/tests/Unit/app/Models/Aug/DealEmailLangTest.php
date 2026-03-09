@@ -1,13 +1,19 @@
 <?php
 
-namespace Tests\Unit\Models\Aug;
+namespace Tests\Unit\app\Models\Aug;
 
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class DealEmailLangTest extends TestCase
 {
-    public function test_placeholder(): void
+    protected function setUp(): void
     {
-        $this->markTestSkipped('Stub — no test logic implemented yet.');
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
+	/** @test */
+	public function model_class_pending_implementation(): void
+	{
+		$this->markTestSkipped("DealEmailLang model not yet implemented — stub placeholder.");
+	}
 }

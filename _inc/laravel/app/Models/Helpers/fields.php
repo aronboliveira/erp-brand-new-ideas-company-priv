@@ -9,12 +9,6 @@ use Illuminate\{
 };
 use Carbon\Carbon;
 
-/*
-|--------------------------------------------------------------------------
-| Configuration Constants
-|--------------------------------------------------------------------------
-*/
-
 const VOID = ['blank' => true, 'null' => true];
 const TINY_BLANK_CHAR = ['max_length' => 63, 'blank' => true];
 const SHORT_BLANK_CHAR = ['max_length' => 126, 'blank' => true];
@@ -181,16 +175,9 @@ const NAMED_COLORS = [
     'darkslategrey', 'black', 'transparent',
 ];
 
-/*
-|--------------------------------------------------------------------------
-| Validation Functions
-|--------------------------------------------------------------------------
-*/
-
 function worded_name_validator(string $value): bool
 {
-    // only letters, combining marks, spaces, hyphens
-    if (!preg_match('/^[\p{L}\p{M} \-]+$/u', $value)) {
+        if (!preg_match('/^[\p{L}\p{M} \-]+$/u', $value)) {
         throw ValidationException::withMessages([
             'value' => "Invalid character in name."
         ]);
@@ -326,12 +313,6 @@ function color_name_validator(string $color): bool
     ]);
 }
 
-/*
-|--------------------------------------------------------------------------
-| Miscellaneous Helpers
-|--------------------------------------------------------------------------
-*/
-
 function max_safe_decimal(): array
 {
     return [
@@ -362,8 +343,7 @@ function defalt_decimal_10(
     string $column,
     array $options = []
 ) {
-    // note the original Python had a typo; this matches name
-    $col = $table->decimal($column, 10, 2);
+        $col = $table->decimal($column, 10, 2);
     foreach ($options as $method => $value) {
         if (method_exists($col, $method)) {
             $col->{$method}($value);

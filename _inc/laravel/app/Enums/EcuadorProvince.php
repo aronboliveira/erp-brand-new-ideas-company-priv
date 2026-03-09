@@ -345,15 +345,27 @@ enum EcuadorProvince: string
 	{
 		$code = (int) $areaCode;
 
-		// Note: Ecuador area codes are shared between multiple provinces
-		// This map returns the primary/default province for each code
 		$map = [
-			4 => self::G,  // Guayas
-			2 => self::P,  // Pichincha (also covers Santo Domingo)
-			7 => self::A,  // Azuay (also covers El Oro, Loja, Cañar, Morona Santiago, Zamora Chinchipe)
-			5 => self::M,  // Manabí (also covers Los Ríos, Galápagos)
-			3 => self::T,  // Tungurahua (also covers Cotopaxi, Chimborazo, Bolívar)
-			6 => self::E,  // Esmeraldas (also covers Carchi, Imbabura, Sucumbíos, Orellana, Napo)
+			// Guayas
+			4 => self::G,
+			// Pichincha
+			2 => self::P,
+			// Azuay
+			7 => self::A,
+			// Manabí
+			5 => self::M,
+			// Tungurahua, Cotopaxi, Chimborazo, Bolívar
+			3 => self::T, // Default to Tungurahua
+			// Esmeraldas, Carchi, Imbabura, Sucumbíos, Orellana, Napo
+			6 => self::E, // Default to Esmeraldas
+			// El Oro, Loja, Cañar, Morona Santiago, Zamora Chinchipe
+			7 => self::O, // Default to El Oro
+			// Los Ríos
+			5 => self::R,
+			// Santo Domingo de los Tsáchilas
+			2 => self::W,
+			// Galápagos
+			5 => self::U,
 		];
 
 		return $map[$code] ?? null;

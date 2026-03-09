@@ -5,13 +5,13 @@ namespace App\Models;
 use App\Config\Constants\{
     ActivitiesConstants as AC,
     DatabaseConstants as DC,
-    ProjectsConstants as PC,
+    ProjectsConstants as PJC,
     UsersConstants as UC
 };
-use App\Enums\UserType;
+use App\Enums\{UserType};
 use App\Traits\{FiltersSecureAttachments, HasAuditFields, NormalizesArrays, UsesUuids};
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\{HasFactory};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 
 class ContractComment extends Comment
@@ -80,161 +80,185 @@ class ContractComment extends Comment
 
     protected static function fillableFields(): array
     {
-        $base = [];
         try {
-            $base = is_callable('parent::fillableFields') ? parent::fillableFields() : [];
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' failed reading parent fillableFields', [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'error' => $e->getMessage(),
-            ]);
-        }
+            $base = [];
+            try {
+                $base = is_callable('parent::fillableFields') ? parent::fillableFields() : [];
+            } catch (\Throwable $e) {
+                Log::notice(static::class . ' failed reading parent fillableFields', [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
-        $out = array_merge($base, [PC::COL_CTC_ID]);
-        return array_values(array_unique($out));
+            $out = array_merge($base, [PJC::COL_CTC_ID]);
+            return array_values(array_unique($out));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::fillableFields — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     protected static function withRelations(): array
     {
-        $base = [];
         try {
-            $base = is_callable('parent::withRelations') ? parent::withRelations() : [];
-        } catch (\Throwable $e) {
-            Log::notice(static::class . ' failed reading parent withRelations', [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'error' => $e->getMessage(),
-            ]);
-        }
+            $base = [];
+            try {
+                $base = is_callable('parent::withRelations') ? parent::withRelations() : [];
+            } catch (\Throwable $e) {
+                Log::notice(static::class . ' failed reading parent withRelations', [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
-        $out = array_merge($base, ['contract']);
-        return array_values(array_unique($out));
+            $out = array_merge($base, ['contract']);
+            return array_values(array_unique($out));
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::withRelations — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
+        }
     }
 
     public function contract(): ?BelongsTo
     {
-        return $this->belongsTo(Contract::class, PC::COL_CTC_ID, 'id');
+        return $this->belongsTo(Contract::class, PJC::COL_CTC_ID, 'id');
     }
 
     public function scopeForContract($query, string $contractId)
     {
-        return $query->where(PC::COL_CTC_ID, $contractId);
+        return $query->where(PJC::COL_CTC_ID, $contractId);
     }
 
     public function setAttachmentsAttribute(mixed $value): void
     {
-        $arr = self::normalizeAttachmentListSmart($value);
-
-        if ($arr === null) {
-            $this->attributes['attachments'] = null;
-            return;
-        }
-
-        $out = [];
-        foreach ($arr as $v) {
-            $sv = self::sanitizeCommentAttachmentValue($v, $this);
-            if ($sv !== null) $out[] = $sv;
-        }
-
-        $out = $out ? array_values(array_unique($out)) : null;
-
-        if ($out === null) {
-            $this->attributes['attachments'] = null;
-            return;
-        }
-
         try {
-            $this->attributes['attachments'] = json_encode($out, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            $arr = self::normalizeAttachmentListSmart($value);
+
+            if ($arr === null) {
+                $this->attributes['attachments'] = null;
+                return;
+            }
+
+            $out = [];
+            foreach ($arr as $v) {
+                $sv = self::sanitizeCommentAttachmentValue($v, $this);
+                if ($sv !== null) $out[] = $sv;
+            }
+
+            $out = $out ? array_values(array_unique($out)) : null;
+
+            if ($out === null) {
+                $this->attributes['attachments'] = null;
+                return;
+            }
+
+            try {
+                $this->attributes['attachments'] = json_encode($out, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            } catch (\Throwable $e) {
+                Log::error(static::class . ' failed encoding attachments json', [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'error' => $e->getMessage(),
+                    'table' => $this->getTable(),
+                    'model_id' => $this->getKey(),
+                ]);
+                $this->attributes['attachments'] = json_encode($out);
+            }
         } catch (\Throwable $e) {
-            Log::error(static::class . ' failed encoding attachments json', [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'error' => $e->getMessage(),
-                'table' => $this->getTable(),
-                'model_id' => $this->getKey(),
-            ]);
-            $this->attributes['attachments'] = json_encode($out);
+            Log::error(static::class . '::setAttachmentsAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
         }
     }
 
     protected static function normalizeAttachmentListSmart(mixed $value): ?array
     {
-        if ($value === null)
-            return null;
-
-        if (is_string($value)) {
-            $trim = trim($value);
-            if ($trim === '')
+        try {
+            if ($value === null)
                 return null;
 
-            try {
-                $decoded = json_decode($trim, true, 512, JSON_THROW_ON_ERROR);
-                $value = $decoded;
-            } catch (\Throwable) {
-                $parts = preg_split('/[\r\n,]+/', $trim) ?: [];
-                $value = $parts;
+            if (is_string($value)) {
+                $trim = trim($value);
+                if ($trim === '')
+                    return null;
+
+                try {
+                    $decoded = json_decode($trim, true, 512, JSON_THROW_ON_ERROR);
+                    $value = $decoded;
+                } catch (\Throwable) {
+                    $parts = preg_split('/[\r\n,]+/', $trim) ?: [];
+                    $value = $parts;
+                }
             }
+
+            if (!is_array($value))
+                $value = (array) $value;
+
+            $out = [];
+            foreach ($value as $v) {
+                if (!is_scalar($v))
+                    continue;
+                $s = trim((string) $v);
+                if ($s === '')
+                    continue;
+                $out[] = $s;
+            }
+
+            $out = array_values(array_unique($out));
+            return $out ?: null;
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::normalizeAttachmentListSmart — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
         }
-
-        if (!is_array($value))
-            $value = (array) $value;
-
-        $out = [];
-        foreach ($value as $v) {
-            if (!is_scalar($v))
-                continue;
-            $s = trim((string) $v);
-            if ($s === '')
-                continue;
-            $out[] = $s;
-        }
-
-        $out = array_values(array_unique($out));
-        return $out ?: null;
     }
 
     protected static function sanitizeCommentAttachmentValue(mixed $value, self $m): ?string
     {
-        $v = trim((string) $value);
-        if ($v === '')
-            return null;
+        try {
+            $v = trim((string) $value);
+            if ($v === '')
+                return null;
 
-        if (Utility::looksLikeUuid($v)) {
-            try {
-                if (DB::table(DC::TABLE_DOCS)->where('id', $v)->exists())
-                    return $v;
-            } catch (\Throwable $e) {
-                Log::error(static::class . ' failed checking Document uuid attachment', [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'error' => $e->getMessage(),
-                    'doc_id' => $v,
-                    'table' => $m->getTable(),
-                    'model_id' => $m->getKey(),
-                ]);
+            if (Utility::looksLikeUuid($v)) {
+                try {
+                    if (DB::table(DC::TABLE_DOCS)->where('id', $v)->exists())
+                        return $v;
+                } catch (\Throwable $e) {
+                    Log::error(static::class . ' failed checking Document uuid attachment', [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'error' => $e->getMessage(),
+                        'doc_id' => $v,
+                        'table' => $m->getTable(),
+                        'model_id' => $m->getKey(),
+                    ]);
+                }
+
+                try {
+                    if (DB::table(DC::TABLE_CTC_ATC)->where('id', $v)->exists())
+                        return $v;
+                } catch (\Throwable $e) {
+                    Log::error(static::class . ' failed checking ContractAttachment uuid attachment', [
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'error' => $e->getMessage(),
+                        'attachment_id' => $v,
+                        'table' => $m->getTable(),
+                        'model_id' => $m->getKey(),
+                    ]);
+                }
+
+                return null;
             }
 
-            try {
-                if (DB::table(DC::TABLE_CTC_ATC)->where('id', $v)->exists())
-                    return $v;
-            } catch (\Throwable $e) {
-                Log::error(static::class . ' failed checking ContractAttachment uuid attachment', [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'error' => $e->getMessage(),
-                    'attachment_id' => $v,
-                    'table' => $m->getTable(),
-                    'model_id' => $m->getKey(),
-                ]);
-            }
+            if (str_starts_with($v, 'https://'))
+                return self::validateSafeUrl($v);
 
-            return null;
+            return self::validatePath($v);
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::sanitizeCommentAttachmentValue — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return '';
         }
-
-        if (str_starts_with($v, 'https://'))
-            return self::validateSafeUrl($v);
-
-        return self::validatePath($v);
     }
 }

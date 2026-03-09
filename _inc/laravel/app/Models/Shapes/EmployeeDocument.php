@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants as DC, TemplatesConstants as TC, UsersConstants as UC};
-use Illuminate\Database\Eloquent\{Relations\BelongsTo, SoftDeletes};
+use Illuminate\Database\Eloquent\{SoftDeletes};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class EmployeeDocument extends AbstractDocument
 {
+    use HasFactory;
+
     use SoftDeletes;
 
     protected $table = DC::TABLE_EDOCS;

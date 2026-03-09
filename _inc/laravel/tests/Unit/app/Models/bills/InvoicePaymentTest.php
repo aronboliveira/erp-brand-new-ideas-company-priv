@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use Tests\TestCase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\{
 	Foundation\Testing\RefreshDatabase,
 	Database\Eloquent\Relations\HasOne
@@ -16,6 +17,11 @@ use App\Models\{
 
 class InvoicePaymentTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -49,9 +55,7 @@ class InvoicePaymentTest extends TestCase
 
 		$ip = InvoicePayment::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $ip->$field);
-		}
+		$this->assertFillableMatches($data, $ip);
 	}
 
 	/**
@@ -83,9 +87,9 @@ class InvoicePaymentTest extends TestCase
 	{
 		$relation = (new InvoicePayment)->bankAccount();
 
-		$this->assertInstanceOf(HasOne::class,        $relation);
+		$this->assertInstanceOf(BelongsTo::class,        $relation);
 		$this->assertSame(BankAccount::class,         get_class($relation->getRelated()));
-		$this->assertSame('id',                       $relation->getForeignKeyName());
-		$this->assertSame('account_id',               $relation->getLocalKeyName());
+		$this->assertSame('account_id',                       $relation->getForeignKeyName());
+		$this->assertSame('id',               $relation->getOwnerKeyName());
 	}
 }

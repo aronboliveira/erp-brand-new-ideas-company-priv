@@ -10,9 +10,11 @@ use Illuminate\Support\Str;
 
 class FormFieldResponseSeeder extends Seeder
 {
-	private const HARD_CAP = 1600;
+	// private const HARD_CAP = 1600;
+	private const HARD_CAP = 2;
 
-	private const SECONDS_LIMIT = 3 * 10 ** 2;
+	// private const SECONDS_LIMIT = 3 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$created = 0;
@@ -26,10 +28,10 @@ class FormFieldResponseSeeder extends Seeder
 				return;
 			}
 
-			$fieldIds = DB::table(DC::TABLE_FORM_FIELDS)->pluck('id')->all();
+			$fieldIds = DB::table(DC::TABLE_FM_FD)->pluck('id')->all();
 			if (!$fieldIds) {
 				$out->writeln('<comment>FormFieldResponseSeeder: no form fields found, skipping seeding.</comment>');
-				Log::warning(static::class . ' aborting: no form fields found', ['table' => DC::TABLE_FORM_FIELDS]);
+				Log::warning(static::class . ' aborting: no form fields found', ['table' => DC::TABLE_FM_FD]);
 				return;
 			}
 

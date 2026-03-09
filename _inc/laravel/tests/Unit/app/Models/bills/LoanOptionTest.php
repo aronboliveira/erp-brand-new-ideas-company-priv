@@ -8,6 +8,11 @@ use App\Models\{LoanOption};
 
 class LoanOptionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -19,13 +24,11 @@ class LoanOptionTest extends TestCase
 	{
 		$data = [
 			'name'       => 'Pension Plan',
-			'created_by' => 'user_123',
 		];
 
 		$option = LoanOption::create($data);
 
 		$this->assertEquals('Pension Plan', $option->name);
-		$this->assertEquals('user_123',      $option->created_by);
 	}
 
 	/**
@@ -37,7 +40,6 @@ class LoanOptionTest extends TestCase
 	{
 		$option = LoanOption::create([
 			'name'       => 'Education Loan',
-			'created_by' => 'user_456',
 		]);
 
 		$key = $option->getKey();

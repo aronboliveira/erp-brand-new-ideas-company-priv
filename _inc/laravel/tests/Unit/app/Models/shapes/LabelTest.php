@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class LabelTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+	}
 	/**
 	 ** @test
 	 **
@@ -26,7 +31,11 @@ class LabelTest extends TestCase
 	 **/
 	public function fillable_array_is_correct(): void
 	{
-		$expected = ['name', 'color', 'pipeline_id', 'created_by'];
+		$expected = [
+			'name',
+			'color',
+			'pipeline_id',
+		];
 		$this->assertSame($expected, (new Label)->getFillable());
 	}
 
@@ -38,8 +47,12 @@ class LabelTest extends TestCase
 	public function colors_array_is_intact(): void
 	{
 		$expected = [
-			'primary', 'secondary', 'danger',
-			'warning', 'info', 'success',
+			'primary',
+			'secondary',
+			'danger',
+			'warning',
+			'info',
+			'success',
 		];
 		$this->assertSame($expected, Label::$colors);
 	}

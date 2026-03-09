@@ -1,3 +1,4 @@
+/** @requires ERPUtils (translations) */
 (() => {
   const mailPatch = {
     ar: {

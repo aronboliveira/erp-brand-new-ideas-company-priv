@@ -61,7 +61,7 @@ class ProjectUserSeeder extends Seeder
 		}
 
 		$usersCount = $this->safeCountUsers();
-		$hardCap = (int) floor(max(0, $usersCount) * 0.25);
+		$hardCap = 2; // was (int) floor(max(0, $usersCount) * 0.25)
 
 		$existing = $this->safeCountExisting($table);
 		$remainingCap = max(0, $hardCap - $existing);
@@ -290,7 +290,8 @@ class ProjectUserSeeder extends Seeder
 				if ($created >= $targetTotal) break;
 
 				$this->out->writeln(
-					"[PRJUSR " . ($created + 1) . "/{$targetTotal}] pj={$payload[PJC::COL_PJ_ID]} usr={$payload[UC::COL_USER_ID]} role={$payload['role']} leader=" . ((bool) ($payload[PJC::COL_IS_PRJ_LD] ?? false) ? 1 : 0) . " stt={$payload[PJC::COL_INV_STT]}"
+					// "[PRJUSR " . ($created + 1) . "/{$targetTotal}] pj={$payload[PJC::COL_PJ_ID]} usr={$payload[UC::COL_USER_ID]} role={$payload['role']} leader=" . ((bool) ($payload[PJC::COL_IS_PRJ_LD] ?? false) ? 1 : 0) . " stt={$payload[PJC::COL_INV_STT]}"
+					"[PRJUSR " . ($created + 1) . "/{$targetTotal}]"
 				);
 
 				try {

@@ -12,13 +12,16 @@ class SupportReplySeeder extends Seeder
 {
 	private ConsoleOutput $out;
 
-	private const SECONDS_LIMIT = 6 * 10 ** 2;
+	// private const SECONDS_LIMIT = 6 * 10 ** 2;
+	private const SECONDS_LIMIT = 32;
 	public function run(): void
 	{
 		$clock = microtime(true);
 		$this->out = new ConsoleOutput();
 
-		$cap = 3200;
+		// $cap = 3200;
+		$cap = 2;
+		$HARD_CAP = 2;
 
 		$supportRows = $this->fetchSupportsForSeeding();
 		$supportCount = count($supportRows);
@@ -57,6 +60,7 @@ class SupportReplySeeder extends Seeder
 			$targetTotal = $up <= $cap ? $up : ($targetTotal - $rem);
 		}
 
+		if ($targetTotal <= 0 || $targetTotal > $HARD_CAP) $targetTotal = $HARD_CAP;
 		if ($targetTotal <= 0) {
 			$this->out->writeln('<comment>[SupportReplySeeder]</comment> Target total is 0 after adjustment.');
 			return;
@@ -90,14 +94,14 @@ class SupportReplySeeder extends Seeder
 				}
 				$attrs = $this->buildReplyAttributes($support, $eligibleReplierIds);
 
-				$this->out->writeln(
-					'<comment>[SupportReplySeeder]</comment> create reply'
-						. ' support=' . ($attrs[SC::COL_SPT_ID] ?? '#NO_SUPPORT')
-						. ' user=' . ($attrs['user'] ?? '#NO_USER')
-						. ' sent_at=' . ($attrs[MC::COL_SNT_AT] ? '1' : '0')
-						. ' is_read=' . (((bool) ($attrs[MC::COL_IS_RD] ?? false)) ? '1' : '0')
-						. ' attachment=' . (($attrs['attachment'] ?? null) ? '1' : '0')
-				);
+				// $this->out->writeln(
+				// 	'<comment>[SupportReplySeeder]</comment> create reply'
+				// 		. ' support=' . ($attrs[SC::COL_SPT_ID] ?? '#NO_SUPPORT')
+				// 		. ' user=' . ($attrs['user'] ?? '#NO_USER')
+				// 		. ' sent_at=' . ($attrs[MC::COL_SNT_AT] ? '1' : '0')
+				// 		. ' is_read=' . (((bool) ($attrs[MC::COL_IS_RD] ?? false)) ? '1' : '0')
+				// 		. ' attachment=' . (($attrs['attachment'] ?? null) ? '1' : '0')
+				// );
 
 				try {
 					SupportReply::create($attrs);

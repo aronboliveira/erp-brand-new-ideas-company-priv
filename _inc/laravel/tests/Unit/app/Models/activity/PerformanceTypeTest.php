@@ -10,6 +10,11 @@ use App\Models\Competencies;
 
 class PerformanceTypeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -21,13 +26,11 @@ class PerformanceTypeTest extends TestCase
 	{
 		$data = [
 			'name'       => 'Technical Skills',
-			'created_by' => 'admin_user',
 		];
 
 		$pt = PerformanceType::create($data);
 
 		$this->assertEquals('Technical Skills', $pt->name);
-		$this->assertEquals('admin_user',       $pt->created_by);
 	}
 
 	/**
@@ -40,7 +43,6 @@ class PerformanceTypeTest extends TestCase
 	{
 		$pt = PerformanceType::create([
 			'name'       => 'Soft Skills',
-			'created_by' => 'user_123',
 		]);
 
 		$key = $pt->getKey();
@@ -63,7 +65,7 @@ class PerformanceTypeTest extends TestCase
 	{
 		$relation = (new PerformanceType)->types();
 
-		$this->assertInstanceOf(HasMany::class, get_class($relation));
+		$this->assertInstanceOf(HasMany::class, $relation);
 		$this->assertSame(
 			Competencies::class,
 			get_class($relation->getRelated())

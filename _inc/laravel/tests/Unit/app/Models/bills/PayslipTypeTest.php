@@ -8,6 +8,11 @@ use App\Models\{PayslipType};
 
 class PayslipTypeTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -19,13 +24,11 @@ class PayslipTypeTest extends TestCase
 	{
 		$data = [
 			'name'       => 'Yearly Summary',
-			'created_by' => 'admin_user',
 		];
 
 		$type = PayslipType::create($data);
 
 		$this->assertEquals('Yearly Summary', $type->name);
-		$this->assertEquals('admin_user',      $type->created_by);
 	}
 
 	/**
@@ -37,7 +40,6 @@ class PayslipTypeTest extends TestCase
 	{
 		$type = PayslipType::factory()->create([
 			'name'       => 'Monthly',
-			'created_by' => 'user123',
 		]);
 
 		$key = $type->getKey();

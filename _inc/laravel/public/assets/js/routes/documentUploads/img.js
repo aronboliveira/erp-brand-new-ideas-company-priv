@@ -1,24 +1,15 @@
 (() => {
+  const { scheduleError } = window.ERPGuard ?? {};
+  const { getMsg } = window.ERPUtils ?? {};
+
+  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
+    
+    return;
+  }
+
   const fileInput = document.getElementById("document");
   const imgEl = document.getElementById("image");
   if (!fileInput || !imgEl) return;
-
-  const langShort = () => {
-    const l = (
-      sessionStorage.getItem("erp-np-lang") ||
-      document.documentElement.lang ||
-      "en"
-    )
-      .toLowerCase()
-      .replace(/_/g, "-");
-    return l === "pt-br" ? l : l.slice(0, 2);
-  };
-  const t = k =>
-    window.translations?.[langShort()]?.[k] ??
-    window.translations?.en?.[k] ??
-    "# ERROR";
-  const toast = m =>
-    window.show_toastr ? window.show_toastr("error", m, "error") : alert(m);
 
   let lastUrl = "";
 
@@ -30,7 +21,8 @@
       lastUrl = URL.createObjectURL(file);
       imgEl.src = lastUrl;
     } catch {
-      toast(t("image_preview_failed"));
+      const msg = getMsg("image_preview_failed");
+      scheduleError(msg, "change");
     }
   };
 
@@ -43,7 +35,7 @@
           if (lastUrl) URL.revokeObjectURL(lastUrl);
           obs.disconnect();
         }
-      })
+      }),
     );
   }).observe(document.body, { childList: true, subtree: true });
 })();

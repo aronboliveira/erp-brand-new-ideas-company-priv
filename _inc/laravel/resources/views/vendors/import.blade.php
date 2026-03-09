@@ -1,21 +1,17 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{
-        ViewsConstants as VW,
-        ViewClassNamesConstants as VC
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\{Facades\Route, Str, Facades\Storage};
+    try {
+$lang = Utility::fetchUserLang();
 
-    $lang = Utility::fetchUserLang();
-
-    $importBase  = VW::VND . '.import';
-    $importKebab = Str::kebab($importBase);
-    $importName  = Route::has($importBase) ? $importBase : (Route::has($importKebab) ? $importKebab : null);
-    $importUrl   = $importName ? route($importName) : '#';
-    $importGuard = Utility::fetchLinkMessage($lang, VW::VND, 'import_vendor_route_unavailable')
-        ?? 'Import vendor route is unavailable. Please contact technical support or your domain administrator.';
-    $formId = 'vendor-import-form';
+        $importBase  = VW::VND . '.import';
+        $importKebab = Str::kebab($importBase);
+        $importName  = Route::has($importBase) ? $importBase : (Route::has($importKebab) ? $importKebab : null);
+        $importUrl   = $importName ? route($importName) : '#';
+        $importGuard = Utility::fetchLinkMessage($lang, VW::VND, 'import_vendor_route_unavailable')
+            ?? 'Import vendor route is unavailable. Please contact technical support or your domain administrator.';
+        $formId = 'vendor-import-form';
+    } catch (\Throwable $e) {
+        \Log::error('vendors/import — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 
 {!! Form::open([
@@ -56,8 +52,8 @@
     </div>
 
     <div class="modal-footer">
-        <input type="button" value="{{ __('Cancel') }}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Upload') }}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Upload') }}" class="{{ VC::BT_PRM }}">
     </div>
 
     <script defer src="{{ asset('assets/js/routes/vendors/import.js') }}"></script>

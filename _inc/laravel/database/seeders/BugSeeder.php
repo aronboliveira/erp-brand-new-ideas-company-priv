@@ -35,15 +35,18 @@ final class BugSeeder extends Seeder
 
 			$userIds = Usr::query()->pluck('id')->all();
 
-			$quantity = 512;
+			$quantity = 512; // original
+			$HARD_CAP = 2; // Hard cap to prevent excessive record creation
+			$created = 0;
 			$priorities = array_keys(\App\Models\Bug::$priority);
 			$statuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
 
 			for ($i = 0; $i < $quantity; $i++) {
+				if ($created >= $HARD_CAP) break; // Hard cap guard
 				try {
 					$nm = $faker->sentence(6);
-					(new \Symfony\Component\Console\Output\ConsoleOutput
-					)->writeln("Criando Relato de Bug: {$nm}");
+					// (new \Symfony\Component\Console\Output\ConsoleOutput
+					// )->writeln("Criando Relato de Bug: {$nm}");
 					do $bugId = Str::uuid()->toString();
 					while (Bg::where('id', $bugId)->exists());
 
@@ -69,6 +72,7 @@ final class BugSeeder extends Seeder
 					$b->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 					$b->save();
+					$created++;
 				} catch (\Exception $e) {
 					Log::warning(get_class($this) . ' failed: ' . $e->getMessage());
 					continue;

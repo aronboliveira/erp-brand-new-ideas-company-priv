@@ -11,6 +11,11 @@ use App\Models\{Coupon, UserCoupon};
 
 class CouponTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -31,9 +36,7 @@ class CouponTest extends TestCase
 
 		$coupon = Coupon::create($data);
 
-		foreach ($data as $field => $value) {
-			$this->assertEquals($value, $coupon->$field);
-		}
+		$this->assertFillableMatches($data, $coupon);
 	}
 
 	/**

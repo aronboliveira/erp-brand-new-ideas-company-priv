@@ -1,59 +1,14 @@
+/**
+ * @file User Store Route Guard
+ * @description Guards the user creation form using ERPGuard singleton
+ */
+
 (() => {
-  try {
-    const f = document.getElementById("user-store-form");
-    if (!f || f.getAttribute("data-listener-active") === "true") return;
-    f.setAttribute("data-listener-active", "true");
+  const guard = window.ERPGuard;
+  if (!guard) return;
 
-    const resolved = f.getAttribute("data-resolved-action") || "#";
-    if (
-      (f.getAttribute("action") === "#" || !f.getAttribute("action")) &&
-      resolved !== "#"
-    ) {
-      f.setAttribute("action", resolved);
-    }
-
-    f.addEventListener("submit", e => {
-      try {
-        const action = f.getAttribute("action") || "#";
-        if (action && action !== "#") return;
-        e.preventDefault();
-
-        const msg =
-          f.getAttribute("data-guard-msg") ??
-          "Store user route is unavailable. Please contact technical support or your domain administrator.";
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        const hasBS =
-          document.querySelector('link[href*="bootstrap"]') &&
-          window.bootstrap?.Toast;
-        if (hasBS) {
-          const toast = document.createElement("div");
-          toast.className = "toast";
-          toast.setAttribute("role", "alert");
-          toast.setAttribute("aria-live", "assertive");
-          toast.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toast.appendChild(body);
-          container.appendChild(toast);
-          try {
-            window.bootstrap.Toast.getOrCreateInstance(toast).show();
-          } catch {
-            alert(msg);
-          }
-        } else {
-          alert(msg);
-        }
-        f.setAttribute("data-failed-route", "true");
-      } catch {}
-    });
-  } catch {}
+  guard.bindSubmitGuard('#user-store-form', {
+    msgKey: 'store_user_unavailable',
+    fallbackMsg: 'Store user route is unavailable. Please contact technical support or your domain administrator.',
+  });
 })();

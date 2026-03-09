@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\ContractNote;
+use App\Models\ContractNotes;
 use Tests\TestCase;
 
 class ContractNotesTest extends TestCase
@@ -10,22 +10,19 @@ class ContractNotesTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** Validate the BelongsTo "user" relation
-	 ** user_id → users.id.
+	 ** Validate the HasOne “user” relation
+	 ** created_by → users.id.
 	 **/
-	public function user_relation_is_belongs_to(): void
+	public function user_relation_is_has_one(): void
 	{
-		$rel = (new ContractNote)->user();
+		$rel = (new ContractNotes)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+			\Illuminate\Database\Eloquent\Relations\HasOne::class,
 			$rel
 		);
-		$this->assertSame(
-			\App\Config\Constants\UsersConstants::COL_USER_ID,
-			$rel->getForeignKeyName()
-		);
-		$this->assertSame('id', $rel->getOwnerKeyName());
+		$this->assertSame('id',         $rel->getForeignKeyName());
+		$this->assertSame('created_by', $rel->getLocalKeyName());
 	}
 
 	/**
@@ -36,9 +33,9 @@ class ContractNotesTest extends TestCase
 	 **/
 	public function fillable_fields_are_correct(): void
 	{
-		$ref     = new \ReflectionClass(ContractNote::class);
+		$ref     = new \ReflectionClass(ContractNotes::class);
 		$expected = $ref->getConstant('FILLABLE');
 
-		$this->assertSame($expected, (new ContractNote)->getFillable());
+		$this->assertSame($expected, (new ContractNotes)->getFillable());
 	}
 }

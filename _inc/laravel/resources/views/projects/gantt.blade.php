@@ -1,105 +1,75 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        PermissionsConstants,
-        ProjectsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
-        YieldingConstants,
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
-    $lang = Utility::fetchUserLang();
+    try {
+$lang = Utility::fetchUserLang();
+    } catch (\Throwable $e) {
+        \Log::error('projects/gantt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL) {{__('Gantt Chart')}} @endsection
 @section(YieldingConstants::ADM_BDC)
     @php
-        $dashboardBaseName = 'dashboard';
-        $dashboardKebabName = Str::kebab($dashboardBaseName);
-        $dashboardResolvedName = Route::has($dashboardBaseName) ? $dashboardBaseName : (Route::has($dashboardKebabName) ? $dashboardKebabName : null);
-        $dashboardUrl = $dashboardResolvedName ? route($dashboardResolvedName) : '#';
-        $dashboardLinkId = 'dashboard-breadcrumb-link';
-        $dashboardGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
-        $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
-        $projectNameVal = isset($project) && !empty(data_get($project, 'project_name')) ? data_get($project, 'project_name') : '';
-        $prjIndexBaseName = VW::PRJ . '.index';
-        $prjIndexKebabName = Str::kebab($prjIndexBaseName);
-        $prjIndexResolvedName = Route::has($prjIndexBaseName) ? $prjIndexBaseName : (Route::has($prjIndexKebabName) ? $prjIndexKebabName : null);
-        $prjIndexUrl = $prjIndexResolvedName ? route($prjIndexResolvedName) : '#';
-        $prjIndexLinkId = 'projects-index-breadcrumb-link';
-        $prjIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Index project route is unavailable. Please contact technical support or your domain administrator.';
-        $prjShowBaseName = VW::PRJ . '.show';
-        $prjShowKebabName = Str::kebab($prjShowBaseName);
-        $prjShowResolvedName = Route::has($prjShowBaseName) ? $prjShowBaseName : (Route::has($prjShowKebabName) ? $prjShowKebabName : null);
-        $prjShowParams = $projectIdVal ? [$projectIdVal] : ['#'];
-        $prjShowUrl = ($prjShowResolvedName && $projectIdVal) ? route($prjShowResolvedName, $prjShowParams) : '#';
-        $prjShowLinkId = 'projects-show-breadcrumb-link-' . ($projectIdVal ?? 'x');
-        $prjShowGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-    @endphp
-    <li class="breadcrumb-item">
-        <a href="{{ $dashboardUrl }}" id="{{ $dashboardLinkId }}" data-url="{{ $dashboardUrl }}" data-guard-msg="{{ $dashboardGuardMsg }}" {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Dashboard') }}</a>
+        $dashboardBaseName ??= 'dashboard';
+        try {
+            $dashboardKebabName = Str::kebab($dashboardBaseName);
+            $dashboardResolvedName = Route::has($dashboardBaseName) ? $dashboardBaseName : (Route::has($dashboardKebabName) ? $dashboardKebabName : null);
+            $dashboardUrl = $dashboardResolvedName ? route($dashboardResolvedName) : '#';
+            $dashboardLinkId = 'dashboard-breadcrumb-link';
+            $dashboardGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+            $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
+            $projectNameVal = isset($project) && !empty(data_get($project, 'project_name')) ? data_get($project, 'project_name') : '';
+            $prjIndexBaseName = VW::PRJ . '.index';
+            $prjIndexKebabName = Str::kebab($prjIndexBaseName);
+            $prjIndexResolvedName = Route::has($prjIndexBaseName) ? $prjIndexBaseName : (Route::has($prjIndexKebabName) ? $prjIndexKebabName : null);
+            $prjIndexUrl = $prjIndexResolvedName ? route($prjIndexResolvedName) : '#';
+            $prjIndexLinkId = 'projects-index-breadcrumb-link';
+            $prjIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Index project route is unavailable. Please contact technical support or your domain administrator.';
+            $prjShowBaseName = VW::PRJ . '.show';
+            $prjShowKebabName = Str::kebab($prjShowBaseName);
+            $prjShowResolvedName = Route::has($prjShowBaseName) ? $prjShowBaseName : (Route::has($prjShowKebabName) ? $prjShowKebabName : null);
+            $prjShowParams = $projectIdVal ? [$projectIdVal] : ['#'];
+            $prjShowUrl = ($prjShowResolvedName && $projectIdVal) ? route($prjShowResolvedName, $prjShowParams) : '#';
+            $prjShowLinkId = 'projects-show-breadcrumb-link-' . ($projectIdVal ?? 'x');
+            $prjShowGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+        } catch (\Throwable $e) {
+            \Log::error('projects/gantt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+        }
+@endphp
+    <li class="{{ VC::BCI }}">
+        <a href="{{ $dashboardUrl }}" data-url="{{ $dashboardUrl }}" data-guard-msg="{{ base64_encode($dashboardGuardMsg) }}" data-route-guard {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Dashboard') }}</a>
     </li>
-    <li class="breadcrumb-item">
-        <a href="{{ $prjIndexUrl }}" id="{{ $prjIndexLinkId }}" data-url="{{ $prjIndexUrl }}" data-guard-msg="{{ $prjIndexGuardMsg }}" {{ $prjIndexUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Project') }}</a>
+    <li class="{{ VC::BCI }}">
+        <a href="{{ $prjIndexUrl }}" data-url="{{ $prjIndexUrl }}" data-guard-msg="{{ base64_encode($prjIndexGuardMsg) }}" data-route-guard {{ $prjIndexUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Project') }}</a>
     </li>
-    <li class="breadcrumb-item">
-        <a href="{{ $prjShowUrl }}" id="{{ $prjShowLinkId }}" data-url="{{ $prjShowUrl }}" data-guard-msg="{{ $prjShowGuardMsg }}" {{ $prjShowUrl === '#' ? 'aria-disabled=true' : '' }}>{{ ucwords($projectNameVal) }}</a>
+    <li class="{{ VC::BCI }}">
+        <a href="{{ $prjShowUrl }}" data-url="{{ $prjShowUrl }}" data-guard-msg="{{ base64_encode($prjShowGuardMsg) }}" data-route-guard {{ $prjShowUrl === '#' ? 'aria-disabled=true' : '' }}>{{ ucwords($projectNameVal) }}</a>
     </li>
-    <li class="breadcrumb-item">{{ __('Gantt Chart') }}</li>
+    <li class="{{ VC::BCI }}">{{ __('Gantt Chart') }}</li>
     @push(StacksConstants::ADM_SCR_PG)
         <script>
-            (() => {
-                try {
-                    const ids = ['{{ $dashboardLinkId }}','{{ $prjIndexLinkId }}','{{ $prjShowLinkId }}'];
-                    for (let i = 0; i < ids.length; i++) {
-                        try {
-                            const el = document.getElementById(ids[i]);
-                            if (!el) continue;
-                            const flag = 'data-breadcrumb-listener';
-                            if (el.hasAttribute(flag) && el.getAttribute(flag) === 'true') continue;
-                            el.setAttribute(flag, 'true');
-                            el.addEventListener('click', function (e) {
-                                try {
-                                    const href = el.getAttribute('href') || '#';
-                                    const url = el.getAttribute('data-url') || href || '#';
-                                    if (href !== '#' || url !== '#') return;
-                                    e.preventDefault();
-                                    const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        container.className = 'position-fixed top-0 end-0 p-3';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role', 'alert');
-                                        toast.setAttribute('aria-live', 'assertive');
-                                        toast.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                                        toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                                        inst.show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    el.setAttribute('data-failed-route', 'true');
-                                } catch (err) {}
-                            }, { passive: false });
-                        } catch (innerErr) {}
+            if (typeof window.GanttBreadcrumbHandler === 'undefined') {
+                window.GanttBreadcrumbHandler = {
+                    init() {
+                        document.querySelectorAll('[data-route-guard]').forEach(el => this.attachHandler(el));
+                    },
+                    attachHandler(el) {
+                        el.addEventListener('click', (e) => {
+                            try {
+                                const href = el.getAttribute('href') || '#';
+                                const url = el.getAttribute('data-url') || href || '#';
+                                if (href !== '#' && url !== '#') return;
+                                e.preventDefault();
+                                const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
+                                this.showToast(msg);
+                            } catch (err) {}
+                        }, { passive: false });
+                    },
+                    showToast(msg) {
+                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                     }
-                } catch (error) {}
-            })();
+                };
+                document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', () => window.GanttBreadcrumbHandler.init()) : window.GanttBreadcrumbHandler.init();
+            }
         </script>
     @endpush
 @endsection
@@ -107,38 +77,50 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
         $durations = ['Quarter Day','Half Day','Day','Week','Month'];
-    @endphp
+@endphp
     <div class="{{ VC::FEND }}">
         <div class="btn-group {{ VC::MR2 }}" id="change_view" role="group">
             @php
-                $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
-                $ganttBaseName = VW::PRJ . '.gantt';
-                $ganttKebabName = Str::kebab($ganttBaseName);
-                $ganttResolvedName = Route::has($ganttBaseName) ? $ganttBaseName : (Route::has($ganttKebabName) ? $ganttKebabName : null);
-                $ganttGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'gantt_project_unavailable') ?? 'Gantt project route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+                try {
+                    $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
+                    $ganttBaseName = VW::PRJ . '.gantt';
+                    $ganttKebabName = Str::kebab($ganttBaseName);
+                    $ganttResolvedName = Route::has($ganttBaseName) ? $ganttBaseName : (Route::has($ganttKebabName) ? $ganttKebabName : null);
+                    $ganttGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'gantt_project_unavailable') ?? 'Gantt project route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('projects/gantt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
             @foreach($durations as $d)
                 @php
-                    $dSlug = Str::slug($d, '-');
-                    $ganttLinkId = 'projects-gantt-link-' . $dSlug . '-' . ($projectIdVal ?? 'x');
-                    $ganttParams = ($projectIdVal && !empty($d)) ? [$projectIdVal, $d] : ['#'];
-                    $ganttUrl = ($ganttResolvedName && $projectIdVal && !empty($d)) ? route($ganttResolvedName, $ganttParams) : '#';
-                    $isActive = isset($duration) && $duration === $d;
-                @endphp
-                <a href="{{ $ganttUrl }}" id="{{ $ganttLinkId }}" class="{{ VC::BT_SM_PM }} {{ $isActive ? 'active' : '' }}" data-url="{{ $ganttUrl }}" data-value="{{ $d }}" data-guard-msg="{{ $ganttGuardMsg }}">{{ __($d) }}</a>
+                    try {
+                        $dSlug = Str::slug($d, '-');
+                        $ganttLinkId = 'projects-gantt-link-' . $dSlug . '-' . ($projectIdVal ?? 'x');
+                        $ganttParams = ($projectIdVal && !empty($d)) ? [$projectIdVal, $d] : ['#'];
+                        $ganttUrl = ($ganttResolvedName && $projectIdVal && !empty($d)) ? route($ganttResolvedName, $ganttParams) : '#';
+                        $isActive = isset($duration) && $duration === $d;
+                    } catch (\Throwable $e) {
+                        \Log::error('projects/gantt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                    }
+@endphp
+                <a href="{{ $ganttUrl }}" id="{{ $ganttLinkId }}" class="{{ VC::BT_SM_PM }} {{ $isActive ? 'active' : '' }}" data-url="{{ $ganttUrl }}" data-value="{{ $d }}" data-guard-msg="{{ base64_encode($ganttGuardMsg) }}">{{ __($d) }}</a>
             @endforeach
         </div>
         @can(PermissionsConstants::MNG_PRJ)
             @php
-                $backBaseName = VW::PRJ . '.show';
-                $backKebabName = Str::kebab($backBaseName);
-                $backResolvedName = Route::has($backBaseName) ? $backBaseName : (Route::has($backKebabName) ? $backKebabName : null);
-                $backParams = $projectIdVal ? [$projectIdVal] : ['#'];
-                $backUrl = ($backResolvedName && $projectIdVal) ? route($backResolvedName, $backParams) : '#';
-                $backLinkId = 'projects-show-back-link-' . ($projectIdVal ?? 'x');
-                $backGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
-            <a href="{{ $backUrl }}" id="{{ $backLinkId }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $backUrl }}" data-bs-toggle="tooltip" title="{{ __('Back') }}" data-guard-msg="{{ $backGuardMsg }}"><span class="btn-inner--icon"><i class="{{ VC::TI }} ti-arrow-left"></i></span></a>
+                try {
+                    $backBaseName = VW::PRJ . '.show';
+                    $backKebabName = Str::kebab($backBaseName);
+                    $backResolvedName = Route::has($backBaseName) ? $backBaseName : (Route::has($backKebabName) ? $backKebabName : null);
+                    $backParams = $projectIdVal ? [$projectIdVal] : ['#'];
+                    $backUrl = ($backResolvedName && $projectIdVal) ? route($backResolvedName, $backParams) : '#';
+                    $backLinkId = 'projects-show-back-link-' . ($projectIdVal ?? 'x');
+                    $backGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+                } catch (\Throwable $e) {
+                    \Log::error('projects/gantt — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                }
+@endphp
+            <a href="{{ $backUrl }}" id="{{ $backLinkId }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $backUrl }}" data-bs-toggle="tooltip" title="{{ __('Back') }}" data-guard-msg="{{ base64_encode($backGuardMsg) }}"><span class="btn-inner--icon"><i class="{{ VC::TI }} ti-arrow-left"></i></span></a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script>
                     (() => {
@@ -158,31 +140,7 @@
                                                 if (href !== '#' || url !== '#') return;
                                                 e.preventDefault();
                                                 const msg = el.getAttribute('data-guard-msg') || 'Gantt project route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    container.className = 'position-fixed top-0 end-0 p-3';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role', 'alert');
-                                                    toast.setAttribute('aria-live', 'assertive');
-                                                    toast.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                                                    toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                                                    inst.show();
-                                                } else {
-                                                    alert(msg);
-                                                }
+                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                                 el.setAttribute('data-failed-route', 'true');
                                             } catch (err) {}
                                         }, { passive: false });
@@ -201,31 +159,7 @@
                                             if (href !== '#' || url !== '#') return;
                                             e.preventDefault();
                                             const msg = backEl.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
-                                            let container = document.getElementById('toast-container');
-                                            if (!container) {
-                                                container = document.createElement('div');
-                                                container.id = 'toast-container';
-                                                container.className = 'position-fixed top-0 end-0 p-3';
-                                                document.body.appendChild(container);
-                                            }
-                                            if (hasBootstrap) {
-                                                const toast = document.createElement('div');
-                                                toast.className = 'toast';
-                                                toast.setAttribute('role', 'alert');
-                                                toast.setAttribute('aria-live', 'assertive');
-                                                toast.setAttribute('aria-atomic', 'true');
-                                                const body = document.createElement('div');
-                                                body.className = 'toast-body';
-                                                body.textContent = msg;
-                                                toast.appendChild(body);
-                                                container.appendChild(toast);
-                                                const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
-                                                toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
-                                                inst.show();
-                                            } else {
-                                                alert(msg);
-                                            }
+                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
                                             backEl.setAttribute('data-failed-route', 'true');
                                         } catch (err) {}
                                     }, { passive: false });
@@ -239,12 +173,11 @@
     </div>
 @endsection
 
-
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
-        <div class="col-12">
+        <div class="{{ VC::C12 }}">
             <div class="card card-stats border-0">
-                <div class="card-body"></div>
+                <div class="{{ VC::CD_BD }}"></div>
                 @if($project)
                     <div class="gantt-target"></div>
                 @else
@@ -253,8 +186,8 @@
                         {{ __('Page Not Found') }}
                     </div>
                     <div class="page-search">
-                        <p class="text-muted mt-3">{{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the best of us. Here's a little tip that might help you get back on track.")}}</p>
-                        <div class="mt-3">
+                        <p class="{{ VC::TXT_MT }} {{ VC::MT3 }}">{{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the best of us. Here's a little tip that might help you get back on track.")}}</p>
+                        <div class="{{ VC::MT3 }}">
                             <a class="btn-return-home badge-blue" href="{{route('home')}}"><i class="ti ti-reply"></i> {{ __('Return Home')}}</a>
                         </div>
                     </div>
@@ -270,7 +203,7 @@
     @push(StacksConstants::ADM_SCR_PG)
         @php
             $currentLang = basename(App::getLocale());
-        @endphp
+@endphp
         <script async>
             const month_names = {
                 "{{$currentLang}}": [

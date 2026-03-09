@@ -1,48 +1,19 @@
 (() => {
-  const attachGuard = (el, eventType) => {
-    if (!el || el.getAttribute("data-listener-active") === "true") return;
-    el.setAttribute("data-listener-active", "true");
-    el.addEventListener(eventType, event => {
-      try {
-        const href = el.tagName === "A" ? el.getAttribute("href") : null;
-        const url = el.getAttribute("data-url");
-        if ((href && href !== "#") || (url && url !== "#")) return;
-        event.preventDefault();
-        const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
-        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-        let container = document.getElementById("toast-container");
-        if (!container) {
-          container = document.createElement("div");
-          container.id = "toast-container";
-          container.className =
-            "toast-container position-fixed top-0 end-0 p-3";
-          container.style.zIndex = "1080";
-          document.body.appendChild(container);
-        }
-        if (bootstrapLink && window.bootstrap) {
-          const toastEl = document.createElement("div");
-          toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toastEl.appendChild(body);
-          container.appendChild(toastEl);
-          bootstrap.Toast.getOrCreateInstance(toastEl).show();
-        } else {
-          alert(msg);
-        }
-        el.setAttribute("data-failed-route", "true");
-      } catch (e) {}
-    });
-  };
-  attachGuard(document.getElementById("award-create-button"), "click");
-  document.querySelectorAll('[id^="award-edit-"]').forEach(el => {
-    attachGuard(el, "click");
+  const guard = window.ERPGuard;
+  if (!guard) return;
+  guard.bindClickGuard("#award-create-button", {
+    msgKey: "action_unavailable",
+    fallbackMsg:
+      "Create award route is unavailable. Please contact technical support or your domain administrator.",
   });
-  document.querySelectorAll('[id^="award-delete-"]').forEach(el => {
-    attachGuard(el, "click");
+  guard.bindClickGuard('[id^="award-edit-"]', {
+    msgKey: "action_unavailable",
+    fallbackMsg:
+      "Edit award route is unavailable. Please contact technical support or your domain administrator.",
+  });
+  guard.bindClickGuard('[id^="award-delete-"]', {
+    msgKey: "action_unavailable",
+    fallbackMsg:
+      "Delete award route is unavailable. Please contact technical support or your domain administrator.",
   });
 })();
