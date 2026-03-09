@@ -1,0 +1,27 @@
+# TypeScript Type-Safety — Quick Reference
+
+declarations:
+  separate_module: "write interface/type in dedicated types.ts or models.d.ts"
+  prefer_interface: "use interface for object shapes; type for unions/intersections/mapped"
+  jsx_import: "import { JSX } from 'react' — never rely on global JSX namespace"
+
+variables:
+  never_type: "flag with // ! NEVER — indicates unreachable logic or narrowing error"
+  unknown_type: "flag with // ! UNKNOWN — narrow or cast before use"
+  no_unflagged: "never ship code with unflagged never or unknown"
+
+iterables:
+  explicit_types: "always declare element type"
+  nested_arrays: "use alternating generics: Array<Array<string[]>[]>"
+  avoid_ambiguous: "avoid string[][][] — use generic syntax for clarity"
+
+frameworks:
+  mui_select: "use SelectChangeEvent from @mui/material, not React.ChangeEvent<HTMLSelectElement>"
+  jsx_return: "JSX.Element or React.ReactNode — import JSX from react"
+
+async:
+  async_function: "Promise<void>"
+  non_async: ": void"
+  complex_inferred: "eslint-disable-next-line with reason comment"
+  suppression_rule: "@typescript-eslint/explicit-function-return-type"
+  preference: "annotate when practical; suppress as last resort"

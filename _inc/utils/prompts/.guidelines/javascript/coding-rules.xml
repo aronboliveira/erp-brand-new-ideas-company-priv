@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coding-rules lang="javascript" version="1.0">
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="dry-refactor" title="DRY Refactoring">
+    <step n="1">Scan the file for ≥3 consecutive setAttribute calls on the same element.</step>
+    <step n="2">
+      Build an object literal mapping attribute names to values:
+      <template><![CDATA[
+const attrs = {
+  role: "alert",
+  "aria-live": "polite",
+  "data-visible": "true",
+};
+      ]]></template>
+    </step>
+    <step n="3">
+      Replace the calls with an Object.entries loop:
+      <template><![CDATA[
+Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      ]]></template>
+    </step>
+    <step n="4">Apply the same pattern to ≥3 property assignments using Object.assign.</step>
+    <step n="5">Verify no setAttribute / property-set sequence survives above the threshold.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="cache-strings" title="Cache Repeated String Literals">
+    <step n="1">Search the file for duplicate string literals (≥2 occurrences).</step>
+    <step n="2">
+      For each duplicate, declare a const at the top of the enclosing scope:
+      <template><![CDATA[
+const dataGuardMsg = "data-guard-msg";
+      ]]></template>
+    </step>
+    <step n="3">Replace every occurrence with the named constant.</step>
+    <step n="4">
+      If the string is used across files, move it to <code>.constants.ts</code>:
+      <template><![CDATA[
+export const STRINGS = Object.freeze({
+  dataGuardMsg: "data-guard-msg",
+  dataClientLocalized: "data-client-localized",
+} as const);
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="jsdoc-add" title="Add Minimal JSDoc">
+    <step n="1">Identify all function declarations and named function expressions lacking JSDoc.</step>
+    <step n="2">
+      Add a JSDoc block with a one-line description. Do NOT duplicate TS types:
+      <template><![CDATA[
+/** Initializes the dashboard widgets. */
+function initDashboard(): void {
+      ]]></template>
+    </step>
+    <step n="3">Skip arrow callbacks and self-documenting one-liner arrows.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="collapse-declarations" title="Collapse Sequential Declarations">
+    <step n="1">Find ≤3 adjacent const (or let) declarations with simple initialisers.</step>
+    <step n="2">
+      Merge them using trailing commas:
+      <template><![CDATA[
+const a = 1,
+  b = 2,
+  c = 3;
+      ]]></template>
+    </step>
+    <step n="3">Leave complex destructuring declarations separate.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="remove-brackets" title="Remove Single-Statement Braces">
+    <step n="1">Find if/else blocks whose body is a single statement.</step>
+    <step n="2">
+      Remove the curly braces:
+      <template><![CDATA[
+// Before
+if (ready) {
+  init();
+}
+
+// After
+if (ready) init();
+      ]]></template>
+    </step>
+    <step n="3">
+      For guard + call, convert to short-circuit:
+      <template><![CDATA[
+el && el.focus();
+      ]]></template>
+    </step>
+    <step n="4">
+      For symmetric branches, convert to ternary:
+      <template><![CDATA[
+const label = isNew ? "Create" : "Update";
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="iife-wrap" title="IIFE + try/catch Wrapping">
+    <step n="1">Identify the module / route script boundaries.</step>
+    <step n="2">
+      Wrap the entire body in an IIFE with try/catch:
+      <template><![CDATA[
+(function erpModuleName() {
+  try {
+    // …entire body…
+  } catch (e) {
+    console.error("[erpModuleName]", e);
+  }
+})();
+      ]]></template>
+    </step>
+    <step n="3">Replace "erpModuleName" with the actual module/route name.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="dom-query-optimize" title="Optimize DOM Queries">
+    <step n="1">List all DOM queries in the file (querySelector, querySelectorAll, etc.).</step>
+    <step n="2">
+      For each, check if a faster API applies:
+      <priority-list>
+        <item rank="1">getElementById — if selecting by ID</item>
+        <item rank="2">getElementsByClassName — if selecting by class</item>
+        <item rank="3">getElementsByTagName — if selecting by tag</item>
+        <item rank="4">form.elements / namedItem() — if inside a form</item>
+        <item rank="5">querySelector — single CSS-selector match (keep)</item>
+        <item rank="6">querySelectorAll — multi CSS-selector match (keep)</item>
+      </priority-list>
+    </step>
+    <step n="3">Replace the call with the higher-ranked API.</step>
+    <step n="4">
+      For form fields, convert:
+      <template><![CDATA[
+// Before
+const input = document.querySelector('#myForm input[name="email"]');
+
+// After
+const input = document.forms.myForm.elements.namedItem("email");
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="event-listener-guard" title="Add Event-Listener Guards">
+    <step n="1">Find every addEventListener call.</step>
+    <step n="2">
+      Wrap with a dataset guard:
+      <template><![CDATA[
+if (!el.dataset.submitBound) {
+  el.addEventListener("submit", handler);
+  el.dataset.submitBound = "1";
+}
+      ]]></template>
+    </step>
+    <step n="3">
+      Choose a descriptive dataset key: <code>&lt;eventType&gt;Bound</code>
+      (e.g., clickBound, changeBound, submitBound).
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="vendor-mark" title="Mark Vendor Files">
+    <step n="1">Identify non-project files (libraries, third-party scripts).</step>
+    <step n="2">
+      Insert as the first non-empty line:
+      <template><![CDATA[
+// # ! VENDOR FILE — DO NOT EDIT
+      ]]></template>
+    </step>
+    <step n="3">Add the file path to the exclude list in tsconfig.json.</step>
+    <step n="4">Add the file path to the ignores array in eslint.config.mjs.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="api-call-wrap" title="Wrap API Calls">
+    <step n="1">Identify raw axios/fetch calls that aren't in a dedicated function.</step>
+    <step n="2">
+      Create a named wrapper function:
+      <template><![CDATA[
+export async function tasksGet(): Promise<void> {
+  try {
+    const res = await axios.get(resolveUrl("/api/tasks"));
+    if (!res || res.status !== 200) {
+      guard.error("Request failed");
+      return;
+    }
+    // …process res.data…
+  } catch (e) {
+    console.error("[tasksGet]", e);
+  }
+}
+      ]]></template>
+    </step>
+    <step n="3">Name the function as &lt;endpoint&gt;&lt;Method&gt; (e.g., tasksGet, invoicePost).</step>
+    <step n="4">Move the function to an api/ module or a clearly delineated block.</step>
+    <step n="5">Replace the original call site with a call to the new function.</step>
+    <step n="6">If fetch is used, replace with axios.</step>
+  </procedure>
+
+</coding-rules>

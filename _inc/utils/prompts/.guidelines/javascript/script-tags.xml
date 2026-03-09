@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<script-tag-guidelines version="1.0">
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="rewriting-script-tag" title="Rewrite Inline Script Tag (ES6+)">
+    <step n="1">
+      Identify the inline &lt;script&gt; block in the Blade template.
+      Note the page/route it belongs to.
+    </step>
+    <step n="2">
+      Wrap the entire body in an IIFE with try/catch:
+      <template><![CDATA[
+(function erpPageName() {
+  try {
+    // …body…
+  } catch (e) {
+    console.error("[erpPageName]", e);
+  }
+})();
+      ]]></template>
+    </step>
+    <step n="3">
+      Convert all var → const/let. Use const by default; let only when
+      reassigned.
+    </step>
+    <step n="4">
+      Convert function expressions and callbacks to arrow functions.
+    </step>
+    <step n="5">
+      Replace string concatenation with template literals.
+    </step>
+    <step n="6">
+      Add null guards for every DOM query:
+      <template><![CDATA[
+const el = document.getElementById("target");
+if (!el) return;
+      ]]></template>
+    </step>
+    <step n="7">
+      Add event-listener guards (dataset check) for every addEventListener call.
+    </step>
+    <step n="8">
+      Replace boilerplate functions with guard.* singleton calls.
+    </step>
+    <step n="9">
+      If the script exceeds ~30 lines, extract to an external .js file
+      loaded with defer.
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="route-verification" title="Route Verification">
+    <step n="1">
+      Determine the expected pathname for this page (e.g., "/admin/tasks").
+    </step>
+    <step n="2">
+      Add a guard at the start of the IIFE body:
+      <template><![CDATA[
+if (!window.location.pathname.startsWith("/admin/tasks")) return;
+      ]]></template>
+    </step>
+    <step n="3">
+      This prevents the script from executing on unrelated pages when
+      Blade caching or Turbolinks is active.
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="toast-fallback" title="Toast / Alert Fallback">
+    <step n="1">
+      Check if the singleton toast system is available:
+      <template><![CDATA[
+const toast = window.erpGuard?.showToast;
+      ]]></template>
+    </step>
+    <step n="2">
+      Use it if available; otherwise fall back to alert():
+      <template><![CDATA[
+if (toast) toast("error", msg);
+else alert(msg);
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="translation-script-setup" title="Translation Dictionary Setup">
+    <step n="1">
+      In the Blade template (or a shared partial), render the translation
+      dictionary from PHP:
+      <template><![CDATA[
+<script>
+  window.translations = @json($translations);
+</script>
+      ]]></template>
+    </step>
+    <step n="2">
+      In the JS file, resolve the message using the full algorithm:
+      <template><![CDATA[
+const errFb = "# ERROR";
+const dataClientLocalized = "data-client-localized";
+const dataGuardMsg = "data-guard-msg";
+let msg = errFb;
+
+if (
+  el.getAttribute("data-sv-localized") === "true" ||
+  el.getAttribute(dataClientLocalized) === "true"
+)
+  msg = el.getAttribute(dataGuardMsg) || errFb;
+else {
+  let lang = (
+    window.sessionStorage.getItem("erp-np-lang") ||
+    document.documentElement.lang ||
+    "en"
+  )
+    .toLowerCase()
+    .replace(/_/g, "-");
+  lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+  const msgKey = /* context-specific key */;
+  msg =
+    window.translations?.[lang]?.[msgKey] ||
+    el.getAttribute(dataGuardMsg) ||
+    window.translations?.["en"]?.[msgKey] ||
+    errFb;
+  if (msg !== errFb) {
+    el.setAttribute(dataGuardMsg, msg);
+    el.setAttribute(dataClientLocalized, "true");
+  }
+}
+      ]]></template>
+    </step>
+    <step n="3">
+      Replace <code>/* context-specific key */</code> with the actual
+      translation key for the field or action (e.g., "task.name.required").
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="listener-cleanup" title="MutationObserver Listener Cleanup">
+    <step n="1">
+      Create the MutationObserver and start observing:
+      <template><![CDATA[
+const observer = new MutationObserver(mutations => {
+  for (const m of mutations) {
+    if (!document.contains(targetEl)) {
+      observer.disconnect();
+      return;
+    }
+    // …handle mutations…
+  }
+});
+observer.observe(targetEl, { childList: true, subtree: true });
+      ]]></template>
+    </step>
+    <step n="2">
+      Inside the callback, always check document.contains(targetEl).
+      If the target has been removed, call observer.disconnect() and return.
+    </step>
+    <step n="3">
+      Alternatively, if using a parent observer, check whether the
+      removed nodes include the target and disconnect accordingly.
+    </step>
+  </procedure>
+
+</script-tag-guidelines>

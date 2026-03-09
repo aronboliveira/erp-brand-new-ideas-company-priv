@@ -1,0 +1,46 @@
+# Django → Laravel Transpilation Rules
+# Layer-specific deltas + shared rules
+
+# --- Shared rules ---
+naming_php: "camelCase for identifiers"
+naming_classes: "PascalCase for class names"
+naming_db: "snake_case for database fields"
+coding_standard: "PSR-12"
+uuid_pks: "All main IDs are UUIDs — use UsesUuids trait"
+
+# --- Helper functions ---
+helper_getRedirectUrl: "getRedirectUrl(routeName, params) — replaces Django reverse()"
+helper_defaultPermissionDenial: "defaultPermissionDenial() — standardized 403 response"
+helper_defaultUndefinedException: "defaultUndefinedException(message) — standardized 500 error"
+helper_emailValidation: "emailValidation(email) — replaces Django EmailValidator"
+helper_userIdValidation: "userIdValidation(id) — validates UUID and user existence"
+helper_permissionRequiredCustom: "permissionRequiredCustom(permission) — middleware closure"
+
+# --- Traits ---
+trait_checks_login: "ChecksLogin — replaces LoginRequiredMixin"
+trait_checks_permissions: "ChecksPermissions — replaces PermissionRequiredMixin"
+
+# --- Controller deltas ---
+controller_one_view_one_route: "One Django view = one Laravel controller method = one route"
+controller_repetitive_args: "Repetitive endpoint args as private const on controller"
+
+# --- Middleware deltas ---
+middleware_extensive_logging: "Log request entry, permission checks, and outcomes"
+middleware_defensive: "Validate all inputs, check all preconditions"
+middleware_principles: "DRY, ACID, RESTful"
+
+# --- Model deltas ---
+model_no_query_changes: "Never change querying logic — comment suggestions instead"
+model_field_change_marker: "// ! CHANGED for every renamed field"
+model_uuid_trait: "UsesUuids trait for UUID PKs"
+
+# --- Export deltas ---
+export_laravel_centered: "Maatwebsite\\Excel for spreadsheet generation"
+export_python_endpoint: "Python microservice via HTTP for complex transforms"
+export_styling: "Headers bold, borders, column widths"
+export_excel_functions: "Use Excel functions for calculated cells"
+export_chunk_read: "Chunk reading for memory efficiency"
+
+# --- Cross-references ---
+general_guidelines: "See general/ for cross-language rules"
+js_guidelines: "See javascript/ for JS-specific rules"

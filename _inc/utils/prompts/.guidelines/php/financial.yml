@@ -1,0 +1,13 @@
+# Financial Rules
+# Flat key-value reference
+
+acid_transactions: "Wrap all financial operations in DB::transaction — all or nothing"
+no_partial_state: "Partial financial state is never acceptable"
+log_before_state: "Log account balance / status before mutation"
+log_after_state: "Log state immediately after committed transaction"
+log_exceptions_full: "Log all exceptions with amount, currency, account IDs, user, timestamp"
+structured_context: "Use structured arrays, never string interpolation for financial data"
+review_final_classes: "Review final classes — cannot be extended, base must be complete"
+review_public_methods: "Each public method on financial services is a contract"
+rounding_method: "Use bcmath or round($val, 2, PHP_ROUND_HALF_UP)"
+currency_precision: "Ensure currency precision matches database column scale"

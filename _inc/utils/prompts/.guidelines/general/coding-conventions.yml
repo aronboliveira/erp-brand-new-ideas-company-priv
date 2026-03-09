@@ -1,0 +1,25 @@
+comments: descriptive_forbidden
+comments: only_logic_stubs_and_refactor_pointers
+punctuation:
+  trailing_semicolons: always
+  readability_newlines: never
+spacing:
+  print_width: 80
+  tab_width: 2
+  trailing_whitespace: remove
+  multiple_whitespaces: forbidden
+  argument_separation: single_space_only
+statements:
+  if_else_single_to_ternary: true
+  hardcoded_names: forbidden
+  repetitive_lines_to_loops: true
+imports:
+  sort: alphabetical
+  depth: all
+classes:
+  single_method_to_static: true
+  never_convert_to_function: true
+routes:
+  inline_comments: forbidden
+static_methods:
+  only_when: no_class_or_instance_references_needed

@@ -1,0 +1,15 @@
+# Route Rules
+# Flat sorting and guard rules
+
+id_type: "UUID only — never integers"
+sort_primary: "Number of subpaths ascending"
+sort_secondary: "Alphabetical ascending within same depth"
+sort_static_before_dynamic: "Static paths before dynamic at equal depth"
+preserve_comments: "Keep existing route-file comments as-is"
+route_has_guard: "Use Route::has() before rendering links or forms"
+naming_convention: "dot notation — module.resource.action"
+naming_fallback: "kebab-case for multi-word segments"
+localized_messages: "Utility::fetchLinkMessage(url, key, lang)"
+script_push: "@push(StacksConstants::ADM_SCRP_PG)"
+localization_marker: "data-sv-localized attribute on translatable elements"
+uuid_regex: "[0-9a-f\\-]{36}"

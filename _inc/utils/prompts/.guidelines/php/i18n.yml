@@ -1,0 +1,12 @@
+# i18n Rules
+# Language list and format specs
+
+supported_count: 16
+languages: "ar, da, de, en, es, fr, he, it, ja, nl, pl, pt, pt-br, ru, tr, zh"
+js_global_object: "window.translations"
+js_access_pattern: "window.translations[lang][key]"
+php_array_structure: "$translations[main_key][lang][key] = translated_sentence"
+php_access_pattern: "$translations[$mainKey][$lang][$key]"
+delegation_pattern: "DELEGATION_{SCENARIO}_{LANG}"
+delegation_all_langs: "All 16 language variants must be created simultaneously"
+no_partial_translations: "Never add a key for only a subset of languages"

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<singleton-guidelines version="1.0">
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="batch-refactor" title="Batch Route-File Refactoring">
+    <step n="1">
+      Classify the file: heavy / medium / light / namespace.
+      Heavy = contains getMsg + showToast + getCsrfToken + safeFetch.
+      Medium = contains a subset. Light = no boilerplate. Namespace = exports public API.
+    </step>
+    <step n="2">
+      Add ERPBootstrap.require at the top of the IIFE body:
+      <template><![CDATA[
+const [guard] = ERPBootstrap.require("guard");
+      ]]></template>
+    </step>
+    <step n="3">
+      Replace all boilerplate function bodies with guard.* calls using the delegation map:
+      <delegation-map>
+        <entry old="showErrorNow(msg)"       new="guard.error(msg)" />
+        <entry old="showSuccessMsg(msg)"     new="guard.success(msg)" />
+        <entry old="showWarningMsg(msg)"     new="guard.warning(msg)" />
+        <entry old="showInfoMsg(msg)"        new="guard.info(msg)" />
+        <entry old="showToast(type, msg)"    new="guard.showToast(type, msg)" />
+        <entry old="getMsg(el, key)"         new="guard.getMsg(key)" />
+        <entry old="getCsrfToken()"          new="guard.getCsrfToken()" />
+        <entry old="safeFetch(url, opts)"    new="guard.safeFetch(url, opts)" />
+        <entry old="ajaxPost(url, data)"     new="guard.ajaxPost(url, data)" />
+        <entry old="ajaxDelete(url)"         new="guard.ajaxDelete(url)" />
+        <entry old="resolveUrl(path)"        new="guard.resolveUrl(path)" />
+        <entry old="isInvalidUrl(url)"       new="guard.isInvalidUrl(url)" />
+        <entry old="bindSubmitGuard(form)"   new="guard.bindSubmitGuard(form)" />
+      </delegation-map>
+    </step>
+    <step n="4">
+      Delete the inlined boilerplate function declarations that are now unused.
+    </step>
+    <step n="5">
+      Ensure the IIFE has try/catch wrapping the entire body, with
+      console.error("[moduleName]", e).
+    </step>
+    <step n="6">
+      Run eslint + tsc --noEmit to verify no regressions.
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="namespace-module-refactor" title="Namespace Module Refactoring">
+    <step n="1">
+      Identify all symbols exported on the window/global namespace
+      (e.g., window.TaskUtils = { ... }).
+    </step>
+    <step n="2">
+      For each exported method, determine if it duplicates guard/utils functionality.
+    </step>
+    <step n="3">
+      Delegate duplicated methods to guard.* while preserving the export signature:
+      <template><![CDATA[
+window.TaskUtils = {
+  getMsg: (el, key) => guard.getMsg(key),   // delegated
+  formatDate(d) { /* unique — keep as-is */ },
+};
+      ]]></template>
+    </step>
+    <step n="4">
+      Leave unique (non-duplicated) methods unchanged.
+    </step>
+    <step n="5">
+      Test that all callers of the namespace module still work.
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="verification-checklist" title="Post-Refactor Verification Checklist">
+    <step n="1">Confirm guard, utils, bootstrap scripts are loaded (defer) in the layout.</step>
+    <step n="2">Confirm no local getMsg / showToast / getCsrfToken / safeFetch declarations remain.</step>
+    <step n="3">Run all toast types in the browser: error, warning, success, info.</step>
+    <step n="4">Submit a form to verify bindSubmitGuard prevents double-submit.</step>
+    <step n="5">Verify CSRF token is attached to all axios requests.</step>
+    <step n="6">Check that namespace module exports are unchanged (public API preserved).</step>
+    <step n="7">Run jest + playwright tests for the affected routes.</step>
+    <step n="8">Run eslint + tsc --noEmit with zero errors.</step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="blade-integration" title="Blade Layout Integration">
+    <step n="1">
+      Open the target layout file (admin.blade.php, auth.blade.php, or landing.blade.php).
+    </step>
+    <step n="2">
+      Locate the closing &lt;/body&gt; tag or the existing script block.
+    </step>
+    <step n="3">
+      Insert the singleton scripts in order, before any route-specific scripts:
+      <template><![CDATA[
+<script src="{{ asset('js/erp-guard.js') }}" defer></script>
+<script src="{{ asset('js/erp-utils.js') }}" defer></script>
+<script src="{{ asset('js/erp-bootstrap.js') }}" defer></script>
+      ]]></template>
+    </step>
+    <step n="4">
+      Verify with browser DevTools that window.erpGuard, window.erpUtils,
+      and window.ERPBootstrap are defined after page load.
+    </step>
+  </procedure>
+
+</singleton-guidelines>

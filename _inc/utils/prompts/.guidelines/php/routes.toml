@@ -1,0 +1,33 @@
+# Route Configuration
+
+[sorting]
+primary_key       = "subpath_count_asc"
+secondary_key     = "alphabetical_asc"
+static_priority   = true
+preserve_comments = true
+
+[guards]
+check_method      = "Route::has()"
+apply_before      = ["links", "forms"]
+prevent           = "runtime exceptions from missing routes"
+
+[naming]
+convention        = "dot_notation"
+pattern           = "module.resource.action"
+fallback          = "kebab-case"
+example           = "project-tasks.index"
+
+[scripts]
+push_directive    = "@push"
+stack_constant    = "StacksConstants::ADM_SCRP_PG"
+script_location   = "page-specific"
+
+[ids]
+type              = "uuid"
+regex             = "[0-9a-f\\-]{36}"
+never             = "integer"
+
+[localization]
+helper            = "Utility::fetchLinkMessage"
+args              = ["url", "key", "lang"]
+marker_attribute  = "data-sv-localized"

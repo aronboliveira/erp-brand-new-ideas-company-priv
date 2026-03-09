@@ -1,7 +1,0 @@
-<chunks>
-	- I will give you chunks of the module;
-	- Keep the indentation consistent across responses;
-	- Rewrite the signature of the class in each new block;
-	- For the methods already written, comment ### preced by {name of the methods already written}
-	- For the imports, only write newly imported ones;
-</chunks>

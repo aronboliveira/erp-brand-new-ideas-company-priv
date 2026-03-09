@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Financial Review                                   -->
+  <!-- ============================================================ -->
+  <procedure id="financial-review">
+    <title>Financial Code Review Procedure</title>
+    <steps>
+      <step order="1">
+        <description>Verify all financial operations use DB::transaction.</description>
+        <action>Search for financial service methods and confirm each is wrapped in a transaction.</action>
+        <code><![CDATA[
+// CORRECT
+DB::transaction(function () use ($invoice, $payment) {
+    Log::info('Payment processing started', [
+        'invoice_id'      => $invoice->id,
+        'amount'          => $payment->amount,
+        'balance_before'  => $invoice->balance,
+    ]);
+
+    $invoice->applyPayment($payment);
+    $ledgerEntry = LedgerEntry::create([...]);
+
+    Log::info('Payment committed', [
+        'invoice_id'     => $invoice->id,
+        'balance_after'  => $invoice->fresh()->balance,
+        'ledger_entry'   => $ledgerEntry->id,
+    ]);
+});
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Confirm rounding consistency.</description>
+        <action>Grep for round(), number_format(), and bcmath functions. Ensure all use the same precision and rounding mode.</action>
+        <code><![CDATA[
+// Consistent rounding
+$amount = round($rawAmount, 2, PHP_ROUND_HALF_UP);
+
+// Or with bcmath
+$amount = bcadd($subtotal, $tax, 2);
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>Verify exception logging includes full financial context.</description>
+        <code><![CDATA[
+try {
+    DB::transaction(function () use ($data) {
+        // financial logic
+    });
+} catch (\Throwable $e) {
+    Log::error('Financial operation failed', [
+        'operation'  => 'payment_processing',
+        'amount'     => $data['amount'] ?? null,
+        'currency'   => $data['currency'] ?? null,
+        'account_id' => $data['account_id'] ?? null,
+        'user_id'    => auth()->id(),
+        'error'      => $e->getMessage(),
+        'file'       => $e->getFile(),
+        'line'       => $e->getLine(),
+    ]);
+    throw $e; // re-throw after logging
+}
+        ]]></code>
+      </step>
+      <step order="4">
+        <description>Review final classes and public method contracts.</description>
+        <action>List all final classes in financial modules. Verify no missing functionality that would require extension.</action>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

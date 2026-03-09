@@ -1,0 +1,31 @@
+[logging]
+required_in_catch = true
+include_file_and_line = true
+
+[logging.message]
+format = "{method}::{function} failed {task}: {error}"
+never_describe = "function purpose"
+
+[logging.user_facing]
+allowed = ["error_message", "status_code"]
+forbidden = ["stack_trace", "internals"]
+
+[try_catch]
+api_calls = "always"
+rethrow = "never_unless_explicit"
+base_exception_fallback = "always"
+
+[defensive]
+optional_chaining = "always"
+nullish_coalescing = "always"
+immediate_destructuring = "forbidden"
+test_response_first = true
+
+[returns]
+explicit_types = "all_methods"
+
+[critical]
+scope = ["financial", "high_complexity"]
+rollback = true
+acid = true
+design_patterns = ["Strategy", "Observer"]

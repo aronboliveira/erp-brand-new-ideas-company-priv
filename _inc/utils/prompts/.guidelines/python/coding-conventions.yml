@@ -1,0 +1,55 @@
+importing:
+  - never use importlib unless strictly demanded
+  - use standard import or from-import statements only
+  - get_redirect_url must come from .._helpers.http
+
+type_hinting:
+  - all functions must have complete type hints for parameters and return
+  - all methods must have explicitly typed returns
+  - no exceptions — includes private, classmethods, staticmethods, nested
+
+string_references:
+  - never hardcode function or method names as strings
+  - use inspect.currentframe().f_code.co_name inside functions
+  - use traceback.extract_stack() for traceback contexts
+
+classes:
+  - never convert classes to standalone functions
+  - use @classmethod for auth, error handling, factory logic
+  - use @staticmethod only when no class references and no auth/error_handler calls
+  - store __class__.__name__ in an acronym constant
+  - chain acronym with self, cls, or None depending on method type
+
+replacement_patterns:
+  permission_denial: >
+    default_permission_denial(request, err=e,
+    ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}',
+    logger=logger)
+  undefined_exception: >
+    default_undefined_exception(request, err=e,
+    ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}',
+    logger=logger)
+
+indentation:
+  - never more than one whitespace to separate arguments
+  - maintain foldable indentation pattern
+  - multi-line strings use triple-quoted with consistent indent
+
+semicolons: forbidden — use newlines only
+
+static_methods: only when no class references needed
+
+private_methods: abstract repetitive procedures like permission checks
+
+exceptions:
+  - all methods raising non-base exceptions must also handle generic Exception
+  - use default_undefined_exception for catch-all blocks
+  - handle each expected exception type separately
+
+strict:
+  - type hinting always
+  - detailed server logging with context
+  - proper multi-exception handling per type
+  - ACID and rollback for all financial operations
+  - Strategy pattern for interchangeable algorithms
+  - Observer pattern for event-driven complex methods

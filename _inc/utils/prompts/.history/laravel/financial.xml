@@ -1,0 +1,4 @@
+<important>
+	- Review finanl classes/method for applying fallback, rollback and ACID principles that follow best practices for financial processing,	since it's tied to financial data
+	- There is a need for very clear and detailed logging for future-prof debugging and monitoring;
+</important>

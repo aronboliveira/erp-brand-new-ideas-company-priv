@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Abstract Controller Pattern                        -->
+  <!-- ============================================================ -->
+  <procedure id="abstract-controller-pattern">
+    <title>Abstract Controller with Performance Measurement</title>
+    <steps>
+      <step order="1">
+        <description>Create the abstract base controller.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
+abstract class MeasuredController extends Controller
+{
+    protected ?ConsoleOutput $consoleOutput = null;
+
+    /**
+     * Wrap every action call in performance measurement.
+     */
+    public function callAction($method, $parameters)
+    {
+        return $this->measure($method, fn () => parent::callAction($method, $parameters));
+    }
+
+    /**
+     * Measure wall-clock time for a closure.
+     */
+    protected function measure(string $label, \Closure $callback): mixed
+    {
+        $start  = microtime(true);
+        $result = $callback();
+        $ms     = (microtime(true) - $start) * 1000;
+
+        $this->logExecutionTime($label, $ms);
+
+        return $result;
+    }
+
+    /**
+     * Profile a sub-action within a controller action.
+     */
+    protected function measureProfile(string $label, \Closure $callback): mixed
+    {
+        return $this->measure("profile:{$label}", $callback);
+    }
+
+    /**
+     * Log execution time with threshold-based severity.
+     */
+    protected function logExecutionTime(string $label, float $ms): void
+    {
+        $context = [
+            'action'     => $label,
+            'ms'         => round($ms, 2),
+            'controller' => static::class,
+        ];
+
+        if ($ms <= 50) {
+            Log::debug('Action timing', $context);
+        } elseif ($ms <= 150) {
+            Log::info('Action timing', $context);
+        } elseif ($ms <= 300) {
+            Log::warning('Slow action', $context);
+        } else {
+            Log::error('Critical slow action', $context);
+        }
+
+        // Console output for artisan context
+        if ($this->consoleOutput) {
+            $tag = $ms > 300 ? 'error' : ($ms > 150 ? 'comment' : 'info');
+            $this->consoleOutput->writeln("<{$tag}>[{$ms}ms] {$label}</{$tag}>");
+        }
+    }
+
+    /**
+     * Safely return a view with existence guard.
+     */
+    protected function safeView(string $viewName, array $data = [])
+    {
+        if (!View::exists($viewName)) {
+            abort(404, "View [{$viewName}] not found.");
+        }
+        return view($viewName, $data);
+    }
+}
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Extend in module controllers.</description>
+        <code><![CDATA[
+<?php
+
+namespace Modules\Invoicing\Http\Controllers;
+
+use App\Http\Controllers\MeasuredController;
+
+class InvoiceController extends MeasuredController
+{
+    public function index()
+    {
+        $invoices = $this->measureProfile('fetch-invoices', function () {
+            return Invoice::with('items')->paginate(25);
+        });
+
+        return $this->safeView('invoicing::index', compact('invoices'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $this->validateInvoice($request);
+        // ...
+    }
+
+    protected function validateInvoice(Request $request): array
+    {
+        return $request->validate([
+            'customer_id' => 'required|uuid|exists:customers,id',
+            'due_date'    => 'required|date|after:today',
+        ]);
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Add Missing Endpoints                             -->
+  <!-- ============================================================ -->
+  <procedure id="add-missing-endpoints">
+    <title>Adding Missing Endpoints</title>
+    <steps>
+      <step order="1">
+        <description>Identify all resource routes registered for the module.</description>
+        <action>Run: php artisan route:list --path=module-prefix</action>
+      </step>
+      <step order="2">
+        <description>Compare against RESTful actions: index, show, store, update, destroy.</description>
+      </step>
+      <step order="3">
+        <description>Add missing methods following the existing pattern.</description>
+        <code><![CDATA[
+// If 'show' is missing:
+public function show(string $id)
+{
+    $entity = $this->measureProfile('find-entity', function () use ($id) {
+        return Entity::findOrFail($id);
+    });
+
+    return $this->safeView('module::show', compact('entity'));
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

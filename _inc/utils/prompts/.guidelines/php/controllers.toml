@@ -1,0 +1,38 @@
+# Controller Configuration
+
+[performance]
+wrapper_method    = "callAction"
+timing_method     = "measure"
+profiling_method  = "measureProfile"
+clock_function    = "microtime(true)"
+unit              = "milliseconds"
+
+[performance.thresholds]
+debug_max_ms      = 50
+info_max_ms       = 150
+warning_max_ms    = 300
+error_above_ms    = 300
+
+[performance.logging]
+facade            = "Log"
+method            = "logExecutionTime"
+context_keys      = ["action", "ms"]
+
+[validation]
+location          = "controller"
+visibility        = "protected"
+scope             = "tightly coupled to action business logic"
+
+[endpoints]
+missing_strategy  = "follow existing module pattern"
+fallback          = "RESTful design"
+restful_actions   = ["index", "show", "store", "update", "destroy"]
+naming            = "match sibling controllers"
+
+[console]
+output_class      = "Symfony\\Component\\Console\\Output\\ConsoleOutput"
+use_for           = "artisan-triggered controllers"
+
+[views]
+guard_method      = "View::exists()"
+on_missing        = "abort(404)"

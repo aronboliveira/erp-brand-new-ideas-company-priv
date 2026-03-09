@@ -1,0 +1,21 @@
+# Financial Configuration
+
+[transactions]
+wrapper           = "DB::transaction"
+auto_rollback     = true
+manual_allowed    = true
+partial_state     = "never"
+
+[logging]
+facade            = "Log"
+before_mutation   = true
+after_commit      = true
+exception_context = ["amount", "currency", "account_ids", "user_id", "timestamp"]
+format            = "structured_array"
+no_interpolation  = true
+
+[review]
+final_classes     = "Verify base implementation is complete"
+public_methods    = "Each is a contract — review before deploy"
+rounding          = "bcmath or round($val, 2, PHP_ROUND_HALF_UP)"
+precision_match   = "currency precision must match DB column scale"

@@ -1,0 +1,43 @@
+# Script Tag Rewriting — Settings
+
+[translations]
+window_object         = "window.translations"
+structure             = "{ lang: { key: value } }"
+server_localized_attr = "data-sv-localized"
+client_localized_attr = "data-client-localized"
+message_attr          = "data-guard-msg"
+error_fallback        = "# ERROR"
+lang_storage_key      = "erp-np-lang"
+lang_default          = "en"
+lang_special_case     = "pt-br"
+lang_truncate_to      = 2
+
+[translations.fallback_chain]
+order = [
+  "translations[lang][key]",
+  "el.getAttribute('data-guard-msg')",
+  "translations['en'][key]",
+  "'# ERROR'",
+]
+
+[route_verification]
+method                = "window.location.pathname.startsWith(expectedPath)"
+reason                = "prevents scripts from running on unrelated pages"
+required_when         = ["Blade caching", "Turbolinks"]
+
+[listeners]
+guard_dataset_key     = "el.dataset.<eventType>Bound"
+guard_value           = "1"
+check_before_bind     = true
+common_keys           = ["submitBound", "clickBound", "changeBound", "inputBound"]
+
+[loading]
+route_scripts         = "defer"
+third_party           = "async"
+singletons            = "defer (ordered)"
+inline_externalize_at = 30  # lines
+
+[toast_fallback]
+primary               = "window.erpGuard?.showToast"
+fallback              = "alert()"
+condition             = "singleton unavailable"

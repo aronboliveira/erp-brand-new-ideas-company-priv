@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================
+       PROCEDURE: Header Detection
+       ============================================================ -->
+  <procedure id="header-detection">
+    <title>Header Detection</title>
+    <description>
+      Detect header rows in spreadsheets with unknown structure by
+      matching cell values against known form-field patterns.
+    </description>
+
+    <step order="1">
+      <action>Load the workbook with openpyxl (data_only=False to preserve formulas).</action>
+      <template><![CDATA[
+from openpyxl import load_workbook
+
+wb = load_workbook(filepath, data_only=False)
+ws = wb.active
+]]></template>
+    </step>
+
+    <step order="2">
+      <action>
+        Define known header patterns: personal fields (name, age, gender),
+        organizational fields (role, title, department), and temporal
+        fields (created_at, updated_at, date, timestamp).
+      </action>
+      <template><![CDATA[
+KNOWN_HEADERS: set[str] = {
+    "name", "first_name", "last_name", "age", "gender", "date_of_birth",
+    "role", "title", "department", "position", "employee_id",
+    "created_at", "updated_at", "date", "timestamp", "start_date", "end_date",
+}
+]]></template>
+    </step>
+
+    <step order="3">
+      <action>
+        Iterate each row. Normalise cell values to lowercase stripped strings.
+        Count how many cells match KNOWN_HEADERS.
+      </action>
+    </step>
+
+    <step order="4">
+      <action>
+        If a row has at least two filled cells matching known patterns,
+        mark it as a header candidate. Record its row index.
+      </action>
+      <template><![CDATA[
+header_rows: list[int] = []
+for row_idx, row in enumerate(ws.iter_rows(values_only=False), start=1):
+    matches = sum(
+        1 for cell in row
+        if cell.value and str(cell.value).strip().lower() in KNOWN_HEADERS
+    )
+    if matches >= 2:
+        header_rows.append(row_idx)
+]]></template>
+    </step>
+
+    <step order="5">
+      <action>
+        Return the list of detected header row indexes for downstream
+        multi-table extraction.
+      </action>
+    </step>
+  </procedure>
+
+  <!-- ============================================================
+       PROCEDURE: Multi-Table Extraction
+       ============================================================ -->
+  <procedure id="multi-table-extraction">
+    <title>Multi-Table Extraction from Single Worksheet</title>
+    <description>
+      Extract multiple independent data tables from a single worksheet,
+      handling index correction and bounding-box detection.
+    </description>
+
+    <step order="1">
+      <action>
+        Run the header-detection procedure to locate all header rows
+        in the worksheet.
+      </action>
+    </step>
+
+    <step order="2">
+      <action>
+        For each detected header row, read the header cell values to
+        determine column names. Skip empty cells at the edges.
+      </action>
+    </step>
+
+    <step order="3">
+      <action>
+        Determine the start column and end column of the table by
+        finding the first and last non-empty header cell.
+      </action>
+    </step>
+
+    <step order="4">
+      <action>
+        Scan downward from the header row to find the end row: the
+        last consecutive row with at least one non-empty cell within
+        the column range. An entirely empty row signals table boundary.
+      </action>
+    </step>
+
+    <step order="5">
+      <action>
+        Record the bounding box: (start_row, end_row, start_col, end_col).
+      </action>
+    </step>
+
+    <step order="6">
+      <action>
+        Apply index correction factors: subtract start_row and start_col
+        offsets so the resulting DataFrame uses zero-based indexing
+        independent of its position in the original sheet.
+      </action>
+    </step>
+
+    <step order="7">
+      <action>
+        Read the bounded region into a pandas DataFrame using openpyxl
+        as the engine. Treat NaN/nan as empty values.
+      </action>
+      <template><![CDATA[
+import pandas as pd
+
+df = pd.read_excel(
+    filepath,
+    sheet_name=ws.title,
+    header=header_row_idx - 1,  # zero-based for pandas
+    usecols=range(start_col - 1, end_col),
+    nrows=end_row - header_row_idx,
+    engine="openpyxl"
+)
+df = df.fillna("")
+]]></template>
+    </step>
+
+    <step order="8">
+      <action>
+        Identify derivative columns (those that should contain formulas).
+        Assign Excel formula expressions — SUM, VLOOKUP, array functions —
+        instead of raw computed values. Suggest appropriate Excel functions
+        based on column relationships.
+      </action>
+      <template><![CDATA[
+# Example: total column as SUM formula
+for row in range(2, end_row - header_row_idx + 2):
+    ws_out[f"E{row}"] = f"=SUM(B{row}:D{row})"
+]]></template>
+    </step>
+
+    <step order="9">
+      <action>
+        Offer to save each extracted table as a separate .json file
+        using df.to_json(orient="records", indent=2).
+      </action>
+    </step>
+  </procedure>
+
+  <!-- ============================================================
+       PROCEDURE: Apply Formatting
+       ============================================================ -->
+  <procedure id="apply-formatting">
+    <title>Apply Standard Spreadsheet Formatting</title>
+    <description>
+      Apply the project's standard formatting rules to a workbook:
+      bold headers, cold header fill, frozen panes, opaque row colours,
+      and correct border styles.
+    </description>
+
+    <step order="1">
+      <action>Define style constants.</action>
+      <template><![CDATA[
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+
+header_font = Font(bold=True, color="FFFFFF")
+header_fill = PatternFill(start_color="2E5A88", end_color="2E5A88", fill_type="solid")
+
+even_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+odd_fill  = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+
+thin_h = Side(style="hair", color="D0D0D0")
+opaque_v = Side(style="thin", color="808080")
+header_v = Side(style="thin", color="333333")
+
+data_border = Border(top=thin_h, bottom=thin_h, left=opaque_v, right=opaque_v)
+header_border = Border(top=thin_h, bottom=thin_h, left=header_v, right=header_v)
+]]></template>
+    </step>
+
+    <step order="2">
+      <action>Apply header formatting to the first row.</action>
+      <template><![CDATA[
+for cell in ws[1]:
+    cell.font = header_font
+    cell.fill = header_fill
+    cell.border = header_border
+    cell.alignment = Alignment(horizontal="center")
+]]></template>
+    </step>
+
+    <step order="3">
+      <action>Freeze the header row.</action>
+      <template><![CDATA[
+ws.freeze_panes = "A2"
+]]></template>
+    </step>
+
+    <step order="4">
+      <action>Apply alternating row fills and data borders.</action>
+      <template><![CDATA[
+for row_idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+    fill = even_fill if row_idx % 2 == 0 else odd_fill
+    for cell in row:
+        cell.fill = fill
+        cell.border = data_border
+]]></template>
+    </step>
+
+    <step order="5">
+      <action>Save the workbook.</action>
+      <template><![CDATA[
+wb.save(output_path)
+]]></template>
+    </step>
+  </procedure>
+
+</procedures>

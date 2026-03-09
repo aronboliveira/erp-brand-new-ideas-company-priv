@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Add New Translation Keys                           -->
+  <!-- ============================================================ -->
+  <procedure id="add-translation-keys">
+    <title>Adding New Translation Keys</title>
+    <steps>
+      <step order="1">
+        <description>Define the key name and English value first.</description>
+      </step>
+      <step order="2">
+        <description>Add entries for ALL 16 languages simultaneously.</description>
+        <code><![CDATA[
+// PHP format — all 16 languages
+$translations['invoicing']['ar']['new_invoice'] = 'فاتورة جديدة';
+$translations['invoicing']['da']['new_invoice'] = 'Ny faktura';
+$translations['invoicing']['de']['new_invoice'] = 'Neue Rechnung';
+$translations['invoicing']['en']['new_invoice'] = 'New Invoice';
+$translations['invoicing']['es']['new_invoice'] = 'Nueva Factura';
+$translations['invoicing']['fr']['new_invoice'] = 'Nouvelle Facture';
+$translations['invoicing']['he']['new_invoice'] = 'חשבונית חדשה';
+$translations['invoicing']['it']['new_invoice'] = 'Nuova Fattura';
+$translations['invoicing']['ja']['new_invoice'] = '新しい請求書';
+$translations['invoicing']['nl']['new_invoice'] = 'Nieuwe Factuur';
+$translations['invoicing']['pl']['new_invoice'] = 'Nowa Faktura';
+$translations['invoicing']['pt']['new_invoice'] = 'Nova Fatura';
+$translations['invoicing']['pt-br']['new_invoice'] = 'Nova Fatura';
+$translations['invoicing']['ru']['new_invoice'] = 'Новый счёт';
+$translations['invoicing']['tr']['new_invoice'] = 'Yeni Fatura';
+$translations['invoicing']['zh']['new_invoice'] = '新发票';
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>Add the JS counterpart.</description>
+        <code><![CDATA[
+// JS format
+window.translations = {
+    ...window.translations,
+    ar:    { ...window.translations?.ar,    new_invoice: 'فاتورة جديدة' },
+    da:    { ...window.translations?.da,    new_invoice: 'Ny faktura' },
+    de:    { ...window.translations?.de,    new_invoice: 'Neue Rechnung' },
+    en:    { ...window.translations?.en,    new_invoice: 'New Invoice' },
+    es:    { ...window.translations?.es,    new_invoice: 'Nueva Factura' },
+    fr:    { ...window.translations?.fr,    new_invoice: 'Nouvelle Facture' },
+    he:    { ...window.translations?.he,    new_invoice: 'חשבונית חדשה' },
+    it:    { ...window.translations?.it,    new_invoice: 'Nuova Fattura' },
+    ja:    { ...window.translations?.ja,    new_invoice: '新しい請求書' },
+    nl:    { ...window.translations?.nl,    new_invoice: 'Nieuwe Factuur' },
+    pl:    { ...window.translations?.pl,    new_invoice: 'Nowa Faktura' },
+    pt:    { ...window.translations?.pt,    new_invoice: 'Nova Fatura' },
+    'pt-br': { ...window.translations?.['pt-br'], new_invoice: 'Nova Fatura' },
+    ru:    { ...window.translations?.ru,    new_invoice: 'Новый счёт' },
+    tr:    { ...window.translations?.tr,    new_invoice: 'Yeni Fatura' },
+    zh:    { ...window.translations?.zh,    new_invoice: '新发票' },
+};
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: DELEGATION_ Constants                              -->
+  <!-- ============================================================ -->
+  <procedure id="delegation-constants">
+    <title>DELEGATION_ Constants for All 16 Languages</title>
+    <steps>
+      <step order="1">
+        <description>Define delegation constants in the dedicated class.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Config\Constants;
+
+class DelegationConstants
+{
+    // ESCALATION scenario
+    public const DELEGATION_ESCALATION_AR = 'تم تصعيد التذكرة إلى المستوى التالي';
+    public const DELEGATION_ESCALATION_DA = 'Sagen er eskaleret til næste niveau';
+    public const DELEGATION_ESCALATION_DE = 'Das Ticket wurde an die nächste Ebene eskaliert';
+    public const DELEGATION_ESCALATION_EN = 'The ticket has been escalated to the next level';
+    public const DELEGATION_ESCALATION_ES = 'El ticket ha sido escalado al siguiente nivel';
+    public const DELEGATION_ESCALATION_FR = 'Le ticket a été transmis au niveau supérieur';
+    public const DELEGATION_ESCALATION_HE = 'הפנייה הועברה לרמה הבאה';
+    public const DELEGATION_ESCALATION_IT = 'Il ticket è stato inoltrato al livello successivo';
+    public const DELEGATION_ESCALATION_JA = 'チケットは次のレベルにエスカレーションされました';
+    public const DELEGATION_ESCALATION_NL = 'Het ticket is geëscaleerd naar het volgende niveau';
+    public const DELEGATION_ESCALATION_PL = 'Zgłoszenie zostało eskalowane na wyższy poziom';
+    public const DELEGATION_ESCALATION_PT = 'O ticket foi encaminhado para o próximo nível';
+    public const DELEGATION_ESCALATION_PTBR = 'O chamado foi escalado para o próximo nível';
+    public const DELEGATION_ESCALATION_RU = 'Заявка передана на следующий уровень';
+    public const DELEGATION_ESCALATION_TR = 'Talep bir üst seviyeye iletildi';
+    public const DELEGATION_ESCALATION_ZH = '工单已升级至下一级别';
+
+    // REASSIGNMENT scenario
+    public const DELEGATION_REASSIGNMENT_AR = 'تمت إعادة تعيين المهمة';
+    public const DELEGATION_REASSIGNMENT_DA = 'Opgaven er blevet omtildelt';
+    public const DELEGATION_REASSIGNMENT_DE = 'Die Aufgabe wurde neu zugewiesen';
+    public const DELEGATION_REASSIGNMENT_EN = 'The task has been reassigned';
+    public const DELEGATION_REASSIGNMENT_ES = 'La tarea ha sido reasignada';
+    public const DELEGATION_REASSIGNMENT_FR = 'La tâche a été réassignée';
+    public const DELEGATION_REASSIGNMENT_HE = 'המשימה שויכה מחדש';
+    public const DELEGATION_REASSIGNMENT_IT = 'Il compito è stato riassegnato';
+    public const DELEGATION_REASSIGNMENT_JA = 'タスクが再割り当てされました';
+    public const DELEGATION_REASSIGNMENT_NL = 'De taak is opnieuw toegewezen';
+    public const DELEGATION_REASSIGNMENT_PL = 'Zadanie zostało ponownie przypisane';
+    public const DELEGATION_REASSIGNMENT_PT = 'A tarefa foi reatribuída';
+    public const DELEGATION_REASSIGNMENT_PTBR = 'A tarefa foi reatribuída';
+    public const DELEGATION_REASSIGNMENT_RU = 'Задача была переназначена';
+    public const DELEGATION_REASSIGNMENT_TR = 'Görev yeniden atandı';
+    public const DELEGATION_REASSIGNMENT_ZH = '任务已重新分配';
+
+    /**
+     * Get delegation message by scenario and language code.
+     */
+    public static function getMessage(string $scenario, string $lang): string
+    {
+        $constName = 'DELEGATION_' . strtoupper($scenario) . '_' . strtoupper(str_replace('-', '', $lang));
+        return defined("static::{$constName}") ? constant("static::{$constName}") : '';
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Route Sorting                                      -->
+  <!-- ============================================================ -->
+  <procedure id="route-sorting">
+    <title>Sort Routes by Convention</title>
+    <steps>
+      <step order="1">
+        <description>Count the number of path segments for each route.</description>
+        <action>Group routes by segment count.</action>
+      </step>
+      <step order="2">
+        <description>Within each group, sort alphabetically.</description>
+      </step>
+      <step order="3">
+        <description>At equal depth, place static paths before dynamic paths.</description>
+        <code><![CDATA[
+// CORRECT order:
+Route::get('/companies',               [CompanyController::class, 'index']);
+Route::get('/companies/export',        [CompanyController::class, 'export']);
+Route::get('/companies/{id}',          [CompanyController::class, 'show'])
+     ->where('id', '[0-9a-f\-]{36}');
+Route::get('/companies/{id}/departments',        [DeptController::class, 'index']);
+Route::post('/companies/{id}/departments',       [DeptController::class, 'store']);
+Route::get('/companies/{id}/departments/{deptId}', [DeptController::class, 'show']);
+        ]]></code>
+      </step>
+      <step order="4">
+        <description>Preserve all existing comments during reordering.</description>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Route::has Guard Template                          -->
+  <!-- ============================================================ -->
+  <procedure id="route-has-guard">
+    <title>Route::has Guard for Links and Forms</title>
+    <steps>
+      <step order="1">
+        <description>Wrap every route-dependent link or form in a Route::has check.</description>
+        <code><![CDATA[
+{{-- Link guard --}}
+@if (Route::has('invoices.show'))
+    <a href="{{ route('invoices.show', $invoice->id) }}"
+       data-sv-localized>
+        {{ Utility::fetchLinkMessage(route('invoices.show', $invoice->id), 'view_invoice', app()->getLocale()) }}
+    </a>
+@endif
+
+{{-- Form guard --}}
+@if (Route::has('invoices.update'))
+    {!! Form::model($invoice, [
+        'route'  => ['invoices.update', $invoice->id],
+        'method' => 'PUT',
+    ]) !!}
+        {{-- form fields --}}
+    {!! Form::close() !!}
+@endif
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Push page-specific scripts using the stack constant.</description>
+        <code><![CDATA[
+@push(\App\Config\Constants\StacksConstants::ADM_SCRP_PG)
+    <script>
+        (function () {
+            'use strict';
+            // page-specific JS
+        })();
+    </script>
+@endpush
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

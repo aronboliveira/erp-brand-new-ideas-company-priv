@@ -1,0 +1,53 @@
+# ERPGuard / ERPUtils / ERPBootstrap — Categorized Config
+
+[guard]
+file             = "public/js/erp-guard.js"
+pattern          = "IIFE + Object.freeze singleton"
+global           = "window.erpGuard"
+idempotent       = true
+methods          = [
+  "getMsg", "showToast", "error", "warning", "success", "info",
+  "confirm", "getCsrfToken", "resolveUrl", "safeFetch",
+  "ajaxPost", "ajaxDelete", "isInvalidUrl", "bindSubmitGuard",
+]
+
+[utils]
+file             = "public/js/erp-utils.js"
+pattern          = "constructor-check singleton (ERPUtils.instance)"
+global           = "window.erpUtils"
+scope            = "DOM helpers, formatting, date utilities"
+
+[bootstrap]
+file             = "public/js/erp-bootstrap.js"
+pattern          = "IIFE registry"
+global           = "window.ERPBootstrap"
+methods          = ["register", "require", "ensureSingletons"]
+
+[bootstrap.default_registry]
+guard            = "window.erpGuard"
+utils            = "window.erpUtils"
+
+[blade]
+layouts          = [
+  "resources/views/layouts/admin.blade.php",
+  "resources/views/layouts/auth.blade.php",
+  "resources/views/layouts/landing.blade.php",
+]
+load_attribute   = "defer"
+load_order       = ["erp-guard.js", "erp-utils.js", "erp-bootstrap.js"]
+
+[categories]
+heavy            = "all 4 boilerplate functions → full delegation"
+medium           = "subset (getMsg only etc.) → partial delegation"
+light            = "already clean → no change"
+namespace        = "exports public API → preserve exports, delegate internally"
+
+[categories.boilerplate_functions]
+list             = ["getMsg", "showToast", "getCsrfToken", "safeFetch"]
+
+[refactoring]
+wrapper          = "IIFE with try/catch"
+bootstrap_call   = "const [guard] = ERPBootstrap.require('guard')"
+error_template   = "console.error('[{moduleName}]', e)"
+namespace_rule   = "preserve all exported symbols; delegate internal implementation only"
+duplication_size = "~60KB across 1100+ files"

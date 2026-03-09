@@ -1,0 +1,60 @@
+# Script Tag Rewriting — Quick Reference
+
+translation_pattern:
+  window_object: "window.translations"
+  structure: "{ lang: { key: value } }"
+  server_flag: "data-sv-localized"
+  client_flag: "data-client-localized"
+  message_attr: "data-guard-msg"
+  error_fallback: "# ERROR"
+  lang_detection_order:
+    - "sessionStorage('erp-np-lang')"
+    - "document.documentElement.lang"
+    - "'en' (default)"
+  lang_special_case: "pt-br kept as-is; others truncated to 2 chars"
+  fallback_chain:
+    - "translations[lang][key]"
+    - "el.getAttribute('data-guard-msg')"
+    - "translations['en'][key]"
+    - "'# ERROR'"
+
+localization_keys:
+  erp_np_lang: "sessionStorage key for language preference"
+  data_sv_localized: "server already set the message"
+  data_client_localized: "JS already resolved the message"
+  data_guard_msg: "attribute holding the resolved message"
+
+listener_guard_keys:
+  pattern: "el.dataset.<eventType>Bound"
+  value: "'1'"
+  examples:
+    - "submitBound"
+    - "clickBound"
+    - "changeBound"
+    - "inputBound"
+    - "keydownBound"
+
+route_verification:
+  check: "window.location.pathname.startsWith(expectedPath)"
+  reason: "prevents scripts from running on unrelated pages"
+  when: "Blade caching or Turbolinks active"
+
+loading_strategy:
+  route_scripts: "defer"
+  third_party_non_critical: "async"
+  singletons: "defer, loaded in order"
+  inline_threshold: "~30 lines → externalize"
+
+iife_wrapping:
+  required: true
+  try_catch: true
+  error_log: "console.error('[moduleName]', e)"
+
+toast_fallback:
+  primary: "window.erpGuard?.showToast"
+  fallback: "alert()"
+  condition: "singleton unavailable (standalone auth pages)"
+
+mutation_observer:
+  cleanup: "disconnect when target removed from DOM"
+  check: "document.contains(targetEl)"

@@ -1,0 +1,58 @@
+# ERPGuard / ERPUtils / ERPBootstrap — Quick Reference
+
+files:
+  erp_guard: "public/js/erp-guard.js"
+  erp_utils: "public/js/erp-utils.js"
+  erp_bootstrap: "public/js/erp-bootstrap.js"
+
+global_exports:
+  erpGuard: "window.erpGuard"
+  erpUtils: "window.erpUtils"
+  ERPBootstrap: "window.ERPBootstrap"
+
+guard_methods:
+  - getMsg: "resolve translated message from dictionary"
+  - showToast: "display toast notification (type, msg)"
+  - error: "showToast('error', msg)"
+  - warning: "showToast('warning', msg)"
+  - success: "showToast('success', msg)"
+  - info: "showToast('info', msg)"
+  - confirm: "confirmation dialog with callback"
+  - getCsrfToken: "CSRF token from <meta>"
+  - resolveUrl: "prepend app base URL to relative path"
+  - safeFetch: "axios wrapper with try/catch + error toast"
+  - ajaxPost: "POST shorthand via safeFetch"
+  - ajaxDelete: "DELETE shorthand via safeFetch"
+  - isInvalidUrl: "basic URL validation"
+  - bindSubmitGuard: "prevent double-submit on <form>"
+
+bootstrap_methods:
+  - register: "register(key, factory) — add to registry"
+  - require: "require(...keys) — retrieve by key"
+  - ensureSingletons: "assert all expected keys registered"
+
+default_registry:
+  guard: "window.erpGuard"
+  utils: "window.erpUtils"
+
+blade_layouts:
+  admin: "resources/views/layouts/admin.blade.php"
+  auth: "resources/views/layouts/auth.blade.php"
+  landing: "resources/views/layouts/landing.blade.php"
+
+loading:
+  attribute: "defer"
+  order: ["erp-guard.js", "erp-utils.js", "erp-bootstrap.js"]
+
+categories:
+  heavy: "all 4 boilerplate functions → full delegation"
+  medium: "subset (e.g., getMsg only) → partial delegation"
+  light: "already clean → no change"
+  namespace: "exports public API → preserve exports, delegate internally"
+
+route_file_shape:
+  wrapper: "IIFE with try/catch"
+  bootstrap: "const [guard] = ERPBootstrap.require('guard')"
+  error_log: "console.error('[moduleName]', e)"
+
+namespace_module_rule: "preserve all exported symbols; only delegate internal implementation"

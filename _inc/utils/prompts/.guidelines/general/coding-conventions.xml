@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<conventions scope="cross-language">
+  <procedure name="replace-hardcoded-names">
+    <step order="1">Search for hardcoded namespace, class, function, or method name strings</step>
+    <step order="2">
+      Replace with dynamic reflection:
+      <lang name="php">__CLASS__ . '::' . __FUNCTION__</lang>
+      <lang name="python">f'{cls.__name__}::{inspect.currentframe().f_code.co_name}'</lang>
+      <lang name="javascript">this.constructor.name (or function.name for declarations)</lang>
+    </step>
+    <step order="3">Store class name acronym in a constant for brevity when repeated</step>
+  </procedure>
+  <procedure name="replace-repetitive-assignments">
+    <step order="1">Identify 3+ consecutive assignments to the same target (attributes, properties, style values)</step>
+    <step order="2">Collect key-value pairs into an iterable structure (array of tuples, Object.entries, dict)</step>
+    <step order="3">Replace with a loop:
+      <lang name="javascript">Object.entries(attrs).forEach(([k, v]) =&gt; el.setAttribute(k, v));</lang>
+      <lang name="php">foreach ($attrs as $k =&gt; $v) $model-&gt;setAttribute($k, $v);</lang>
+      <lang name="python">for k, v in attrs.items(): setattr(obj, k, v)</lang>
+    </step>
+  </procedure>
+  <procedure name="convert-if-else-to-ternary">
+    <precondition>Both branches produce exactly one statement (assignment or return)</precondition>
+    <step order="1">Verify branches are single-statement and symmetric</step>
+    <step order="2">Replace with: condition ? branchA : branchB</step>
+    <step order="3">For JS: avoid ternary ending in nullish when it's a standalone expression (triggers no-unused-expressions)</step>
+  </procedure>
+  <procedure name="suggest-snippets">
+    <trigger>The same code generation pattern appears 3+ times in a session</trigger>
+    <step order="1">Identify the repeated pattern and its variable placeholders</step>
+    <step order="2">Generate a VS Code snippet definition (JSON) with $1/$2 tab-stops</step>
+    <step order="3">Present to user for confirmation before saving</step>
+  </procedure>
+</conventions>

@@ -1,0 +1,23 @@
+# PHPUnit Test Configuration
+
+[annotations]
+required          = "@test"
+better_comments   = "** prefix"
+method_style      = "camelCase with descriptive verb"
+
+[config]
+file              = "phpunit.xml"
+location          = "Laravel root"
+suites            = ["Unit", "Feature", "per-module"]
+env_app           = "testing"
+env_db            = "sqlite"
+coverage_element  = "<coverage>"
+
+[autoload]
+section           = "autoload-dev"
+format            = "psr-4"
+tests_namespace   = "Tests\\"
+tests_path        = "tests/"
+module_pattern    = "Modules\\{Name}\\Tests\\"
+module_path       = "Modules/{Name}/Tests/"
+post_add_command  = "composer dump-autoload"

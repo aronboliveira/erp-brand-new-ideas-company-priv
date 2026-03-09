@@ -1,0 +1,41 @@
+[comments]
+policy = "stubs-and-refactor-pointers-only"
+descriptive = false
+
+[punctuation]
+trailing_semicolons = true
+readability_only_newlines = false
+
+[spacing]
+print_width = 80
+tab_width = 2
+trailing_whitespace = "remove"
+max_consecutive_spaces = 1
+
+[spacing.indentation]
+foldable_blocks = true
+note = "Maintain indent patterns that enable IDE folding for blocks, statements, dict keys, and array elements"
+
+[statements]
+if_else_single = "ternary"
+hardcoded_names = "forbidden"
+repetitive_assignments = "iterative"
+
+[imports]
+sort_order = "alphabetical"
+sort_depth = "all"
+
+[classes]
+single_method = "static"
+convert_to_function = false
+
+[routes]
+inline_comments = false
+
+[static_methods]
+condition = "no class or instance references needed"
+
+[snippets]
+auto_suggest = true
+format = "vscode-json"
+trigger = "repetitive-pattern-detected"

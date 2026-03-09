@@ -1,0 +1,34 @@
+# TypeScript Type-Safety — Categorized Settings
+
+[declarations]
+separate_module        = true
+module_names           = ["types.ts", "models.d.ts"]
+prefer_interface       = true
+type_alias_for         = ["unions", "intersections", "mapped types", "utility types"]
+jsx_import_from        = "react"
+jsx_global_namespace   = "deprecated in React 19+"
+
+[variables]
+never_flag             = "// ! NEVER"
+unknown_flag           = "// ! UNKNOWN"
+ship_unflagged         = false
+never_indicates        = "unreachable logic or narrowing error"
+unknown_requires       = "explicit narrow or cast before use"
+
+[iterables]
+explicit_element_type  = true
+nested_style           = "alternating generics: Array<Array<string[]>[]>"
+avoid_bracket_nesting  = "string[][][] — ambiguous beyond 2 levels"
+
+[frameworks]
+mui_select_event       = "SelectChangeEvent"
+mui_select_import      = "@mui/material"
+wrong_select_type      = "React.ChangeEvent<HTMLSelectElement>"
+jsx_return_types       = ["JSX.Element", "React.ReactNode"]
+
+[async]
+async_annotation       = "Promise<void>"
+non_async_annotation   = ": void"
+complex_suppress_rule  = "@typescript-eslint/explicit-function-return-type"
+suppress_requires      = "reason comment"
+preference             = "annotate > suppress"

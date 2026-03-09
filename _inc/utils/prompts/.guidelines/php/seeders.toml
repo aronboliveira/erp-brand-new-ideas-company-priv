@@ -1,0 +1,54 @@
+# Seeder Configuration
+
+[null_handling]
+array_filter_allowed  = false
+use_collection        = true
+manual_encode_raw     = true
+description           = "Eloquent handles nullable; raw insert needs manual work"
+
+[loops]
+require_break_out     = true
+attempt_counter       = true
+clock_limiter         = true
+
+[clock_limiter]
+financial_seconds     = 600
+default_seconds       = 300
+
+[hardcap_limiter]
+base                  = 512
+multiplier_min        = 1
+multiplier_max        = 6
+# complexity 1: 512, complexity 6: 3072
+
+[entity_count]
+power_of_2            = true
+formula               = "log(count, 2) % 1 === 0"
+min_per_subtype       = 1
+
+[uniqueness]
+strategy              = "do_while_exists"
+uuid_collision_check  = true
+max_attempts_unique   = 50
+max_attempts_uuid     = 30
+
+[console_output]
+type                  = "Symfony\\Component\\Console\\Output\\ConsoleOutput"
+visibility            = "private"
+call_before           = "save/create"
+method                = "writeln"
+
+[logging]
+facade                = "Log"
+cycle_method          = "info"
+include_count         = true
+include_elapsed       = true
+
+[error_handling]
+helper                = "ErrorHandler"
+method                = "report"
+context_key           = "seeder"
+
+[code_style]
+alias_threshold       = 3
+comments              = "critical-only"

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: FK Loop Pattern                                    -->
+  <!-- ============================================================ -->
+  <procedure id="fk-loop-pattern">
+    <title>Foreign Key Loop Pattern</title>
+    <steps>
+      <step order="1">
+        <description>Identify all FK columns in the migration.</description>
+        <action>If more than one FK exists, collect them into an array.</action>
+      </step>
+      <step order="2">
+        <description>Apply foreach for multiple FKs.</description>
+        <code><![CDATA[
+use App\Config\Constants\UsersConstants as UC;
+use App\Config\Constants\CompaniesConstants as CC;
+
+Schema::create('departments', function (Blueprint $table) {
+    $table->uuid('id')->primary();
+    $table->string('name');
+
+    // Multiple FKs — loop
+    $fkColumns = [
+        UC::COL_USER_ID    => UC::TABLE,
+        CC::COL_COMPANY_ID => CC::TABLE,
+    ];
+    foreach ($fkColumns as $col => $refTable) {
+        $table->foreignUuid($col)
+              ->nullable()
+              ->constrained($refTable)
+              ->nullOnDelete();
+    }
+
+    $table->timestamps();
+    $table->softDeletes();
+});
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>For single FK, write inline.</description>
+        <code><![CDATA[
+$table->foreignUuid(UC::COL_USER_ID)
+      ->constrained(UC::TABLE)
+      ->cascadeOnDelete();
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Example Migration Structure                        -->
+  <!-- ============================================================ -->
+  <procedure id="example-migration">
+    <title>Standard Migration Structure</title>
+    <steps>
+      <step order="1">
+        <description>Use constants for table and column names.</description>
+      </step>
+      <step order="2">
+        <description>Apply UUID primary key.</description>
+      </step>
+      <step order="3">
+        <description>Apply traits for audit columns.</description>
+      </step>
+      <step order="4">
+        <description>Full example.</description>
+        <code><![CDATA[
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\UsersConstants as UC;
+use App\Config\Constants\CompaniesConstants as CC;
+use App\Enums\DocumentKind;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create(DC::TABLE_DOCUMENTS, function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->string(DC::COL_TITLE);
+            $table->text(DC::COL_DESCRIPTION)->nullable();
+            $table->string(DC::COL_KIND)->default(DocumentKind::General->value);
+
+            // FK loop for multiple references
+            $fks = [
+                UC::COL_CREATED_BY => UC::TABLE,
+                CC::COL_COMPANY_ID => CC::TABLE,
+            ];
+            foreach ($fks as $col => $ref) {
+                $table->foreignUuid($col)
+                      ->nullable()
+                      ->constrained($ref)
+                      ->nullOnDelete();
+            }
+
+            // Audit columns
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists(DC::TABLE_DOCUMENTS);
+    }
+};
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Drop FK Loop in down()                             -->
+  <!-- ============================================================ -->
+  <procedure id="drop-fk-loop">
+    <title>Drop Foreign Keys in down()</title>
+    <steps>
+      <step order="1">
+        <description>Mirror the creation loop when dropping.</description>
+        <code><![CDATA[
+public function down(): void
+{
+    Schema::table(DC::TABLE_DOCUMENTS, function (Blueprint $table) {
+        $fkColumns = [UC::COL_CREATED_BY, CC::COL_COMPANY_ID];
+        foreach ($fkColumns as $col) {
+            $table->dropForeign([$col]);
+            $table->dropColumn($col);
+        }
+    });
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

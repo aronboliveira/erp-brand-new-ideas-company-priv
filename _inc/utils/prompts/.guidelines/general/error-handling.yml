@@ -1,0 +1,30 @@
+catch_blocks:
+  logging_required: true
+  log_method:
+    javascript: console.error
+    php: Log::error
+    python: logger.error
+  message_format: "Failed to {HTTP_METHOD} for {entity}: {error.message}"
+  rethrow: never_unless_asked
+  base_exception_fallback: always
+api_calls:
+  wrap_in_try_catch: always
+  includes: [fetch, axios, Http, guzzle, requests]
+destructuring:
+  immediate_on_response: forbidden
+  test_truthiness_first: true
+defensive:
+  optional_chaining: always
+  nullish_coalescing: always
+  explicit_return_types: always
+user_facing_messages:
+  allowed: [error_message, status_code]
+  forbidden: [stack_trace, internal_details, function_description]
+console_messages:
+  format: "{MethodName} failed {task}: {error_data}"
+  never: function_descriptions
+critical_methods:
+  rollback: required
+  acid: required
+  logging: detailed
+  patterns: [Strategy, Observer]

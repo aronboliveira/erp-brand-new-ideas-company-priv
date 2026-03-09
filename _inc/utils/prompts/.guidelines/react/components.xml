@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<react-guidelines version="1.0">
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="naming-from-blade-path" title="Component Naming from Blade Path">
+    <step n="1">
+      Identify the Blade view path relative to <code>resources/views/</code>.
+      Example: <code>admin/tasks/index.blade.php</code>.
+    </step>
+    <step n="2">
+      Strip the <code>.blade.php</code> extension and the <code>resources/views/</code> prefix.
+      Result: <code>admin/tasks/index</code>.
+    </step>
+    <step n="3">
+      Convert each segment to PascalCase and concatenate:
+      <code>admin</code> → <code>Admin</code>,
+      <code>tasks</code> → <code>Tasks</code>,
+      <code>index</code> → <code>Index</code>.
+      Result: <code>AdminTasksIndex</code>.
+    </step>
+    <step n="4">
+      If the last segment is "index", you may drop it:
+      <code>AdminTasks</code>.
+    </step>
+    <step n="5">
+      If the path is ambiguous or doesn't suggest a clear name:
+      <template><![CDATA[
+// ? NO CLEAR NAME — derived from admin/misc/x.blade.php
+export default function AdminMiscX(): JSX.Element { /* … */ }
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="memo-toggling-component" title="React.memo for Toggling Components">
+    <step n="1">
+      Identify components that toggle (mount/unmount) frequently:
+      modals, accordions, dialogs, dropdowns, tooltips.
+    </step>
+    <step n="2">
+      Wrap the component in React.memo using a named function expression:
+      <template><![CDATA[
+import { memo, JSX } from "react";
+
+interface ConfirmModalProps {
+  open: boolean;
+  onClose: () => void;
+  message: string;
+}
+
+const ConfirmModal = memo(function ConfirmModal({
+  open,
+  onClose,
+  message,
+}: ConfirmModalProps): JSX.Element | null {
+  if (!open) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <p>{message}</p>
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+});
+
+export default ConfirmModal;
+      ]]></template>
+    </step>
+    <step n="3">
+      Optionally provide a custom comparison function as the second
+      argument to <code>memo</code> if shallow comparison is insufficient.
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="create-portal-modal" title="Create a Portal-Based Modal">
+    <step n="1">
+      Import createPortal:
+      <template><![CDATA[
+import { createPortal } from "react-dom";
+      ]]></template>
+    </step>
+    <step n="2">
+      Define the modal component, rendering children into document.body:
+      <template><![CDATA[
+import { JSX, ReactNode } from "react";
+import { createPortal } from "react-dom";
+
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}
+
+export default function Modal({ open, onClose, children }: ModalProps): JSX.Element | null {
+  if (!open) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-lg p-6 max-w-md" onClick={e => e.stopPropagation()}>
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+      ]]></template>
+    </step>
+    <step n="3">
+      Use the modal in a parent component:
+      <template><![CDATA[
+<Modal open={showModal} onClose={() => setShowModal(false)}>
+  <h2>Are you sure?</h2>
+  <button onClick={handleConfirm}>Confirm</button>
+</Modal>
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="react-query-invalidation" title="React Query — invalidateQueries">
+    <step n="1">
+      Get the queryClient from useQueryClient():
+      <template><![CDATA[
+import { useQueryClient } from "@tanstack/react-query";
+const queryClient = useQueryClient();
+      ]]></template>
+    </step>
+    <step n="2">
+      Call invalidateQueries with a queryKey dictionary — never a plain string:
+      <template><![CDATA[
+// ✅ Correct
+queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
+// ❌ Wrong
+queryClient.invalidateQueries("tasks");
+queryClient.invalidateQueries(["tasks"]);
+      ]]></template>
+    </step>
+    <step n="3">
+      For more specific invalidation, add segments to the key array:
+      <template><![CDATA[
+queryClient.invalidateQueries({ queryKey: ["tasks", taskId] });
+      ]]></template>
+    </step>
+  </procedure>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <procedure id="error-boundary-setup" title="Error Boundary Setup">
+    <step n="1">
+      Install react-error-boundary (if not already):
+      <template><![CDATA[
+npm install react-error-boundary
+      ]]></template>
+    </step>
+    <step n="2">
+      Create or reuse a fallback component:
+      <template><![CDATA[
+function ErrorFallback({ error, resetErrorBoundary }: {
+  error: Error;
+  resetErrorBoundary: () => void;
+}): JSX.Element {
+  return (
+    <div className="p-8 text-center">
+      <h2 className="text-xl font-bold text-red-600">Something went wrong</h2>
+      <pre className="mt-2 text-sm text-gray-600">{error.message}</pre>
+      <button className="mt-4 btn" onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  );
+}
+      ]]></template>
+    </step>
+    <step n="3">
+      Wrap the target component tree:
+      <template><![CDATA[
+import { ErrorBoundary } from "react-error-boundary";
+
+<ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => { /* reset state */ }}>
+  <TaskDashboard />
+</ErrorBoundary>
+      ]]></template>
+    </step>
+    <step n="4">
+      Place error boundaries at route/feature level — not around every
+      individual component. Typically in layout.tsx or route wrappers.
+    </step>
+  </procedure>
+
+</react-guidelines>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================
+       PROCEDURE: Replace Permission Denial Blocks
+       ============================================================ -->
+  <procedure id="replace-permission-denial">
+    <title>Replace Permission Denial Blocks</title>
+    <description>
+      Convert ad-hoc permission denial handling into the standardized
+      default_permission_denial helper pattern.
+    </description>
+
+    <step order="1">
+      <action>Locate all except blocks catching PermissionError (or equivalent).</action>
+      <command>grep -rn "except PermissionError" --include="*.py"</command>
+    </step>
+
+    <step order="2">
+      <action>Ensure inspect is imported at the top of the file.</action>
+      <template><![CDATA[
+import inspect
+]]></template>
+    </step>
+
+    <step order="3">
+      <action>Replace the permission denial block.</action>
+      <before><![CDATA[
+except PermissionError as e:
+    return HttpResponseForbidden(str(e))
+]]></before>
+      <after><![CDATA[
+except PermissionError as e:
+    return default_permission_denial(
+        request,
+        err=e,
+        ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}',
+        logger=logger
+    )
+]]></after>
+    </step>
+
+    <step order="4">
+      <action>Add a catch-all Exception handler immediately after, if not present.</action>
+      <template><![CDATA[
+except Exception as e:
+    return default_undefined_exception(
+        request,
+        err=e,
+        ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}',
+        logger=logger
+    )
+]]></template>
+    </step>
+
+    <step order="5">
+      <action>Verify the method has an explicitly typed return annotation.</action>
+    </step>
+  </procedure>
+
+  <!-- ============================================================
+       PROCEDURE: Setup Class Conventions
+       ============================================================ -->
+  <procedure id="setup-class-conventions">
+    <title>Setup Class Conventions</title>
+    <description>
+      Apply standard class structure: acronym constant, @classmethod
+      pattern, and proper name references.
+    </description>
+
+    <step order="1">
+      <action>Add the class-name acronym constant in the class body.</action>
+      <template><![CDATA[
+class MyService:
+    _CN: str = ""
+
+    def __init__(self) -> None:
+        self._CN = self.__class__.__name__
+]]></template>
+    </step>
+
+    <step order="2">
+      <action>Convert factory or auth-dependent methods to @classmethod.</action>
+      <template><![CDATA[
+    @classmethod
+    def create(cls, data: dict) -> "MyService":
+        cn = cls.__name__
+        fn = inspect.currentframe().f_code.co_name
+        logger.info(f"{cn}::{fn} invoked")
+        instance = cls()
+        # ... build from data ...
+        return instance
+]]></template>
+    </step>
+
+    <step order="3">
+      <action>
+        Audit existing @staticmethod decorators. If the method references
+        cls, self, auth utilities, or error handlers, convert to @classmethod.
+      </action>
+    </step>
+
+    <step order="4">
+      <action>
+        Replace all hardcoded class-name strings with the _CN constant
+        (instance methods) or cls.__name__ (classmethods).
+      </action>
+    </step>
+
+    <step order="5">
+      <action>
+        Abstract repetitive permission checks into a private method.
+      </action>
+      <template><![CDATA[
+    def _check_permission(self, request: HttpRequest, action: str) -> None:
+        if not request.user.has_perm(action):
+            raise PermissionError(f"User lacks permission: {action}")
+]]></template>
+    </step>
+  </procedure>
+
+  <!-- ============================================================
+       PROCEDURE: Type Hinting Audit
+       ============================================================ -->
+  <procedure id="type-hinting-audit">
+    <title>Type Hinting Audit</title>
+    <description>
+      Systematically audit and fix missing type hints across all Python
+      files in the project.
+    </description>
+
+    <step order="1">
+      <action>Run a search for functions/methods missing return annotations.</action>
+      <command>grep -rn "def .*(.*):" --include="*.py" | grep -v "\->"</command>
+    </step>
+
+    <step order="2">
+      <action>Run a search for parameters missing type annotations (excluding self/cls).</action>
+      <command><![CDATA[grep -rPn "def \w+\((?!self|cls)[^:)]+\)" --include="*.py"]]></command>
+    </step>
+
+    <step order="3">
+      <action>For each match, determine the correct types from usage context, docstrings, or tests.</action>
+    </step>
+
+    <step order="4">
+      <action>Add type hints. Use Union or Optional where needed. Use concrete types over Any.</action>
+      <before><![CDATA[
+def process(data, flag):
+    ...
+]]></before>
+      <after><![CDATA[
+def process(data: dict[str, Any], flag: bool) -> ProcessResult:
+    ...
+]]></after>
+    </step>
+
+    <step order="5">
+      <action>Run mypy or pyright to validate all annotations are correct.</action>
+      <command>mypy --strict path/to/module.py</command>
+    </step>
+
+    <step order="6">
+      <action>
+        Confirm no function uses semicolons as statement separators.
+        Replace with newlines if found.
+      </action>
+      <command>grep -rn ";" --include="*.py" | grep -v "#" | grep -v "'"</command>
+    </step>
+  </procedure>
+
+</procedures>

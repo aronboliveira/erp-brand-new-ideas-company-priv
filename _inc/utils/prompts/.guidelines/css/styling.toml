@@ -1,0 +1,27 @@
+[pseudo_classes]
+always = [":active", ":hover"]
+targets = ["highlighted-tags", "buttons", "button-mimics", "links"]
+optional = [":checked", ":disabled", ":enabled", ":invalid", ":valid", ":empty", ":nth-child", ":nth-of-type", ":required"]
+
+[pseudo_elements]
+optional = ["::selection", "::placeholder", "::marker", "::details-content", "::first-letter", "::first-line"]
+
+[scss]
+nesting = "broad"
+variables = "repeated-values"
+mixins = "repeated-blocks"
+
+[scss.modern]
+features = ["box-shadow", "text-shadow", "gradients", "border-radius", "clipped-images"]
+
+[ordering]
+selectors = "alphabetical"
+rules = "functional-groups"
+
+[libraries]
+primary = "material-ui"
+secondary = "tailwind-css"
+context = "react"
+
+[visual]
+match_reference = true

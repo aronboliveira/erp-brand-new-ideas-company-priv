@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Variable Initialization Hardening                  -->
+  <!-- ============================================================ -->
+  <procedure id="blade-variable-init">
+    <title>Blade Variable Initialization</title>
+    <steps>
+      <step order="1">
+        <description>Before (unsafe):</description>
+        <code><![CDATA[
+<h1>{{ $title }}</h1>
+@foreach ($items as $item)
+    <p>{{ $item->name }}</p>
+@endforeach
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>After (hardened):</description>
+        <code><![CDATA[
+@php
+    $title    ??= '';
+    $items    ??= [];
+    $customer ??= null;
+    $canEdit  ??= false;
+    $authUser = Auth::user();
+@endphp
+
+<h1>{{ $title }}</h1>
+
+@if (isset($items) && is_array($items) && !empty($items))
+    @foreach ($items as $item)
+        <p>{{ data_get($item, 'name', 'N/A') }}</p>
+    @endforeach
+@endif
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Try/Catch in Blade                                -->
+  <!-- ============================================================ -->
+  <procedure id="blade-try-catch">
+    <title>Exception Handling in Blade</title>
+    <steps>
+      <step order="1">
+        <description>Before (no protection):</description>
+        <code><![CDATA[
+<span>{{ $invoice->computeTotal() }}</span>
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>After (protected):</description>
+        <code><![CDATA[
+@php
+    $total = 0;
+    try {
+        $total = $invoice ? $invoice->computeTotal() : 0;
+    } catch (\InvalidArgumentException $e) {
+        Log::warning($e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    } catch (\Exception $e) {
+        Log::error($e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    } catch (\Throwable $e) {
+        Log::critical($e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    }
+@endphp
+
+<span>{{ number_format($total, 2) }}</span>
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Form with Guards                                  -->
+  <!-- ============================================================ -->
+  <procedure id="blade-form-pattern">
+    <title>Form with Route Guard and Submit Protection</title>
+    <steps>
+      <step order="1">
+        <description>Before (unguarded):</description>
+        <code><![CDATA[
+{!! Form::model($invoice, ['route' => ['invoices.update', $invoice->id], 'method' => 'PUT']) !!}
+    {!! Form::text('title') !!}
+    {!! Form::submit('Save') !!}
+{!! Form::close() !!}
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>After (guarded):</description>
+        <code><![CDATA[
+@php
+    use App\Config\Constants\StacksConstants as SC;
+    $invoice ??= null;
+@endphp
+
+@if ($invoice && Route::has('invoices.update'))
+    {!! Form::model($invoice, [
+        'route'  => ['invoices.update', $invoice->id],
+        'method' => 'PUT',
+        'id'     => 'invoice-form',
+    ]) !!}
+        {!! Form::text('title', null, ['class' => 'form-control', 'required' => true]) !!}
+        {!! Form::submit('Save', ['class' => 'btn btn-primary']) !!}
+    {!! Form::close() !!}
+@endif
+
+@push(SC::ADM_SCRP_PG)
+<script>
+(function () {
+    'use strict';
+    var form = document.getElementById('invoice-form');
+    if (!form) return;
+    var submitted = false;
+    form.addEventListener('submit', function (e) {
+        if (submitted) { e.preventDefault(); return; }
+        submitted = true;
+    });
+})();
+</script>
+@endpush
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Import Aliasing                                   -->
+  <!-- ============================================================ -->
+  <procedure id="blade-import-aliasing">
+    <title>Constants Aliasing in Blade</title>
+    <steps>
+      <step order="1">
+        <description>Place use statements in an @php block at the top of the template.</description>
+        <code><![CDATA[
+@php
+    use App\Config\Constants\InvoicesConstants as IC;
+    use App\Config\Constants\UsersConstants as UC;
+    use App\Config\Constants\StacksConstants as SC;
+@endphp
+
+{{-- Now use aliases throughout the template --}}
+<input type="hidden" name="{{ IC::COL_INVOICE_ID }}" value="{{ $invoice->id ?? '' }}">
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

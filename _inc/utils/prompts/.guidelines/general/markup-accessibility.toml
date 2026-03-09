@@ -1,0 +1,27 @@
+[tags]
+preference = "semantic"
+self_closing = "always"
+ids = "required"
+
+[aria]
+scope = "non-redundant + essential elements"
+essential = ["button", "a", "input", "select", "textarea"]
+
+[aria.emoji]
+wrapper = "span"
+role = "img"
+label_source = "unicode character name"
+
+[text]
+bare_text = false
+minimum_wrapper = "span"
+confirm = true
+
+[jsx]
+templated_attrs = "template-literal"
+other_attrs = "single-quotes"
+double_quotes = "only-when-necessary"
+
+[repetition]
+tag_sequences = "map"
+error_boundaries = "suggest"

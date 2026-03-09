@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: ErrorHandler Class Template                        -->
+  <!-- ============================================================ -->
+  <procedure id="error-handler-template">
+    <title>ErrorHandler Helper Class</title>
+    <steps>
+      <step order="1">
+        <description>Place in App\Helpers namespace. Used by all seeders for centralized error reporting.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Helpers;
+
+use Illuminate\Support\Facades\Log;
+
+class ErrorHandler
+{
+    /**
+     * Report an exception with contextual data.
+     *
+     * @param \Throwable $e
+     * @param array<string, mixed> $context
+     * @return void
+     */
+    public static function report(\Throwable $e, array $context = []): void
+    {
+        Log::error($e->getMessage(), array_merge($context, [
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+            'trace' => array_slice($e->getTrace(), 0, 5),
+        ]));
+    }
+
+    /**
+     * Report and optionally rethrow.
+     *
+     * @param \Throwable $e
+     * @param array<string, mixed> $context
+     * @param bool $rethrow
+     * @return void
+     * @throws \Throwable
+     */
+    public static function handle(\Throwable $e, array $context = [], bool $rethrow = false): void
+    {
+        static::report($e, $context);
+        if ($rethrow) {
+            throw $e;
+        }
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: do/while Uniqueness Pattern                        -->
+  <!-- ============================================================ -->
+  <procedure id="uniqueness-pattern">
+    <title>Unique Column Generation with do/while</title>
+    <steps>
+      <step order="1">
+        <description>Define the table, column, and attempt limit.</description>
+      </step>
+      <step order="2">
+        <description>Implement the loop.</description>
+        <code><![CDATA[
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+
+$table       = 'vouchers';
+$column      = 'code';
+$maxAttempts = 50;
+$attempts    = 0;
+
+do {
+    $value = strtoupper(Str::random(8));
+    $exists = DB::selectOne(
+        "SELECT 1 FROM {$table} WHERE {$column} = ? LIMIT 1",
+        [$value]
+    );
+    $attempts++;
+} while ($exists && $attempts < $maxAttempts);
+
+if ($attempts >= $maxAttempts) {
+    Log::warning("Unique generation exhausted for {$table}.{$column}");
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: UUID Collision Check                               -->
+  <!-- ============================================================ -->
+  <procedure id="uuid-collision-check">
+    <title>UUID Collision Check</title>
+    <steps>
+      <step order="1">
+        <description>Generate UUID and verify no collision in target table.</description>
+        <code><![CDATA[
+$maxAttempts = 30;
+$attempts    = 0;
+
+do {
+    $uuid      = (string) Str::uuid();
+    $collision = DB::selectOne(
+        "SELECT 1 FROM {$table} WHERE id = ? LIMIT 1",
+        [$uuid]
+    );
+    $attempts++;
+} while ($collision && $attempts < $maxAttempts);
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Seeder Skeleton                                    -->
+  <!-- ============================================================ -->
+  <procedure id="seeder-skeleton">
+    <title>Standard Seeder Structure</title>
+    <steps>
+      <step order="1">
+        <description>Full seeder with console output, clock limiter, and error handling.</description>
+        <code><![CDATA[
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use App\Helpers\ErrorHandler;
+
+class ExampleSeeder extends Seeder
+{
+    private ConsoleOutput $output;
+    private const MAX_SECONDS  = 300;
+    private const HARD_CAP     = 512; // complexity 1
+
+    public function __construct()
+    {
+        $this->output = new ConsoleOutput();
+    }
+
+    public function run(): void
+    {
+        $start    = microtime(true);
+        $created  = 0;
+
+        try {
+            while ($created < self::HARD_CAP) {
+                $elapsed = microtime(true) - $start;
+                if ($elapsed >= self::MAX_SECONDS) {
+                    Log::info("Clock limit reached", [
+                        'seeder'  => static::class,
+                        'created' => $created,
+                        'elapsed' => round($elapsed, 2),
+                    ]);
+                    break;
+                }
+
+                // Generate unique code
+                $attempts = 0;
+                do {
+                    $code = strtoupper(Str::random(8));
+                    $exists = DB::selectOne(
+                        "SELECT 1 FROM examples WHERE code = ? LIMIT 1",
+                        [$code]
+                    );
+                    $attempts++;
+                } while ($exists && $attempts < 50);
+
+                $this->output->writeln("<info>Creating example #{$created}: {$code}</info>");
+
+                DB::table('examples')->insert([
+                    'id'         => (string) Str::uuid(),
+                    'code'       => $code,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $created++;
+            }
+
+            Log::info("Seeder completed", [
+                'seeder'  => static::class,
+                'created' => $created,
+                'elapsed' => round(microtime(true) - $start, 2),
+            ]);
+        } catch (\Throwable $e) {
+            ErrorHandler::report($e, ['seeder' => static::class]);
+        }
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

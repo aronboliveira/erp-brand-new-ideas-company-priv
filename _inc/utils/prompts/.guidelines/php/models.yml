@@ -1,0 +1,23 @@
+# Eloquent Model Rules
+# Format: flat key-value pairs for quick reference
+
+use_getAttribute_setAttribute: "Always use $this->getAttribute() and $this->setAttribute() inside model scope"
+casts_trigger: "getAttribute/setAttribute ensure casts and booted hooks fire"
+null_handling_raw: "Typecast and null-check every value when using raw DB or insert()"
+try_catch_required: "Wrap non-trivial operations in try/catch with Log facade"
+log_with_file_line: "Log exceptions with file and line context"
+eager_loading_names: "Eager loading $with names must match actual relationship method names"
+one_relationship_per_table: "Only one relationship method per related table"
+never_fillable_id: "Never include 'id' in $fillable"
+never_fillable_created_by: "Never include 'created_by' in $fillable"
+remove_redundant_consts: "Remove private consts created solely for $fillable"
+trait_has_audit_fields: "Models with HasNullableAuditColumns migration use HasAuditFields trait"
+trait_normalizes_addresses: "Include NormalizesAddresses when migration has email/phone/zip columns"
+trait_normalizes_arrays: "Include NormalizesArrays for JSON columns"
+cache_queries: "Cache queries and aggregations for business logic"
+use_appends: "Rely on $appends for computed values in serialization"
+guard_clause_no_braces: "Boolean guard clauses leading to one-liners suppress curly brackets"
+unique_slug_do_while: "Use do/while with attempt limit for unique slug/field assignment"
+attempt_limit_max: 20
+uuid_primary_keys: "All main IDs are UUIDs"
+business_helpers: "Add aggregator methods and $appends-connected accessors"

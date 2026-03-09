@@ -1,0 +1,45 @@
+# Blade Configuration
+
+[initialization]
+method            = "??="
+location          = "@php block at template top"
+all_variables     = true
+default_string    = "''"
+default_array     = "[]"
+default_null      = "null"
+default_bool      = "false"
+
+[guards]
+isset             = true
+empty             = true
+is_array          = true
+data_get          = true
+data_get_default  = "N/A"
+
+[imports]
+aliasing          = true
+pattern           = "use App\\Config\\Constants\\XConstants as XC"
+location          = "@php block"
+
+[forms]
+helper            = "Form::open / Form::model"
+route_resolution  = true
+route_guard       = "Route::has()"
+method_spoofing   = true
+
+[scripts]
+directive         = "@push"
+stack_constant    = "StacksConstants::ADM_SCRP_PG"
+iife_guard        = true
+no_inline         = true
+
+[exception_handling]
+order             = ["specific", "Exception", "Throwable"]
+log_facade        = "Log"
+include_file      = true
+include_line      = true
+
+[auth]
+cache_user        = true
+variable          = "$authUser"
+method            = "Auth::user()"

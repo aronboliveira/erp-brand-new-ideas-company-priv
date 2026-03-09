@@ -1,0 +1,137 @@
+# JavaScript / TypeScript Coding Rules — Categorized Settings
+
+[dry]
+set_attribute_threshold      = 3          # consecutive setAttribute → Object.entries
+property_assignment_threshold = 3         # sequential assignments → Object.assign
+string_reuse_threshold       = 2          # same literal ≥2 → named const
+cross_file_module            = ".constants.ts"
+cross_file_export            = "Object.freeze({} as const)"
+
+[formatting]
+blank_lines_between_related  = 0
+blank_lines_top_level        = 1
+blank_lines_after_imports    = 1
+max_collapsed_declarations   = 3          # merge ≤3 const/let with comma
+skip_collapse_for            = "complex destructuring"
+bracketless_oneliners        = true
+short_circuit_guard          = true       # && for guard + call
+ternary_symmetric            = true
+remove_single_statement_braces = true
+
+[jsdoc]
+required_on                  = ["function declarations", "named function expressions"]
+not_required_on              = ["arrow callbacks", "inline one-liners"]
+repeat_ts_types              = false
+
+[iife]
+wrap_route_scripts           = true
+catch_log_function           = "console.error"
+catch_template               = "'[{moduleName}]', e"
+
+[dom]
+form_field_access            = "form.elements + namedItem()"
+
+[dom.query_preference]
+getElementById               = { rank = 1, notes = "Fastest — unique IDs" }
+getElementsByClassName       = { rank = 2, notes = "Live HTMLCollection" }
+getElementsByTagName         = { rank = 3, notes = "Live HTMLCollection" }
+formElements                 = { rank = 4, notes = "form.elements + namedItem()" }
+querySelector                = { rank = 5, notes = "CSS selector — single" }
+querySelectorAll             = { rank = 6, notes = "CSS selector — list" }
+
+[es]
+target                       = "ES6+"
+arrow_functions              = true
+template_literals            = true
+const_let_only               = true
+destructuring                = true
+spread_rest                  = true
+optional_chaining            = true
+nullish_coalescing           = true
+object_entries               = true
+array_from                   = true
+for_of                       = true
+
+[browser]
+targets                      = ["Chromium", "Gecko"]
+avoid_webkit_only            = true
+
+[testing]
+runners                      = ["jest", "playwright"]
+lint                         = "eslint"
+typecheck                    = "tsc --noEmit"
+run_after                    = "every meaningful change"
+
+[cache]
+regex_scope                  = "module or outer function level"
+regex_never_in               = "loops or hot paths"
+shared_strings_module        = ".constants.ts"
+
+[sequential]
+append_child                 = "for…of over pairs / DocumentFragment"
+style                        = "Object.assign(el.style, { … })"
+jquery_remove_class          = "space-separated class string"
+
+[events]
+guard_dataset_key            = "el.dataset.<name>Bound"
+guard_value                  = "1"
+check_before_bind            = true
+
+[inline]
+single_use_variables         = "inline unless name adds significant clarity"
+dont_assign_once             = true
+
+[vendor]
+marker_line                  = "// # ! VENDOR FILE — DO NOT EDIT"
+marker_position              = "first non-empty line"
+exclude_from                 = ["tsconfig.json", "eslint.config.mjs"]
+
+[eslint]
+migration_phase              = true
+
+[eslint.disabled_rules]
+strict_boolean_expressions   = "disabled during JS→TS migration"
+no_unnecessary_condition     = "disabled during JS→TS migration"
+
+[eslint.vars_ignore_pattern]
+pattern                      = "jQuery|\\$|bootstrap|feather|SimpleBar|dragula"
+
+[eslint.disable_next_line]
+never_in_template_literals   = true
+combine_multiple_rules       = true
+add_reason_when_nonobvious   = true
+prefer_fix_over_suppress     = true
+
+[async_returns]
+async_function               = "Promise<void>"
+non_async                    = ": void"
+complex_inferred             = "eslint-disable-next-line with reason"
+
+[variables]
+inline_single_use            = true
+chain_const_let              = "trailing commas when simple"
+flag_const_reassignment      = "// * Constant reassignment"
+flag_var                     = "suggest const or let"
+unused_comment_out           = true
+unused_flag                  = "// * Unused variable"
+pseudohex_replace            = "replace with semantic names"
+
+[statements]
+dummy_true_replace           = "replace !![] or !0 with true or remove"
+and_chaining                 = "use && instead of if() for direct expression chaining"
+no_ternary_nullish_standalone = true
+
+[functions]
+global_scope                 = "function declarations"
+nested_scope                 = "arrow functions"
+forEach_only_chaining        = true
+expensive_dom_loop           = "C-style for"
+arrow_parens_single_untyped  = "remove"
+
+[api_calls]
+http_client                  = "axios"
+never_use                    = "fetch"
+destructure_response         = "never immediately; test res first"
+wrap_in_try_catch            = true
+naming_convention            = "<endpoint><Method>"
+separation                   = "separate module or block"

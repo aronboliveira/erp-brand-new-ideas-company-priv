@@ -1,0 +1,41 @@
+# Eloquent Model Configuration
+
+[getters_mutators]
+internal_access       = "getAttribute"
+internal_mutation     = "setAttribute"
+bypass_risk           = "Direct property access bypasses casts and booted hooks"
+raw_db_risk           = "Raw DB / insert() skips Eloquent lifecycle"
+
+[fillable]
+never_include         = ["id", "created_by"]
+remove_redundant      = true
+redundant_description = "Remove private consts created solely to feed $fillable"
+
+[eager_loading]
+match_model_classes   = true
+one_method_per_table  = true
+redundancy_check      = "Do not create multiple relationships to the same table"
+
+[traits]
+has_audit_fields      = { condition = "HasNullableAuditColumns in migration", trait = "HasAuditFields" }
+normalizes_addresses  = { condition = "email/phone/zip columns exist", trait = "NormalizesAddresses" }
+normalizes_arrays     = { condition = "JSON columns exist", trait = "NormalizesArrays" }
+
+[business_logic]
+cache_queries         = true
+use_appends           = true
+add_aggregators       = true
+guard_clause_style    = "no_braces_for_one_liners"
+
+[slugs]
+strategy              = "do_while"
+max_attempts          = 20
+collision_check       = "exists()"
+randomness            = "Str::random(4)"
+
+[logging]
+facade                = "Log"
+include_file          = true
+include_line          = true
+wrap_in_try_catch     = true
+exception_types       = ["Throwable"]

@@ -1,0 +1,20 @@
+# i18n Configuration
+
+[languages]
+count    = 16
+codes    = [
+    "ar", "da", "de", "en", "es", "fr", "he", "it",
+    "ja", "nl", "pl", "pt", "pt-br", "ru", "tr", "zh",
+]
+
+[formats]
+js_object       = "window.translations"
+js_access       = "window.translations[lang][key]"
+php_structure   = "$translations[main_key][lang][key]"
+php_access      = "$translations[$mainKey][$lang][$key]"
+
+[delegation_constants]
+naming_pattern  = "DELEGATION_{SCENARIO}_{LANG}"
+all_langs_required = true
+location        = "dedicated constants class"
+scenarios       = ["ESCALATION", "REASSIGNMENT", "NOTIFICATION", "REMINDER"]

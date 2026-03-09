@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Transpile Django Controller (View) to Laravel      -->
+  <!-- ============================================================ -->
+  <procedure id="transpile-controller">
+    <title>Transpile Django View → Laravel Controller</title>
+    <steps>
+      <step order="1">
+        <description>Map each Django view function/class to a Laravel controller method.</description>
+        <action>One Django view = one controller method = one route.</action>
+      </step>
+      <step order="2">
+        <description>Extract repetitive arguments into private constants.</description>
+        <code><![CDATA[
+<?php
+
+namespace Modules\Sales\Http\Controllers;
+
+use App\Http\Controllers\MeasuredController;
+use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
+
+class OrderController extends MeasuredController
+{
+    use ChecksLogin, ChecksPermissions;
+
+    private const ROUTE_PREFIX = 'sales.orders';
+    private const MIDDLEWARE   = ['auth', 'verified'];
+
+    public function __construct()
+    {
+        $this->middleware(self::MIDDLEWARE);
+    }
+
+    public function index()
+    {
+        $this->authorizePermission('view_orders');
+        $orders = Order::paginate(25);
+        return view('sales::orders.index', compact('orders'));
+    }
+
+    public function store(Request $request)
+    {
+        $this->authorizePermission('create_orders');
+        // Transpiled from Django's OrderCreateView.post()
+        $validated = $request->validate([...]);
+        $order = Order::create($validated);
+        return redirect(getRedirectUrl(self::ROUTE_PREFIX . '.show', ['id' => $order->id]));
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Transpile Django Middleware                         -->
+  <!-- ============================================================ -->
+  <procedure id="transpile-middleware">
+    <title>Transpile Django Middleware → Laravel Middleware</title>
+    <steps>
+      <step order="1">
+        <description>Create Laravel middleware with extensive logging.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class LogActivity
+{
+    public function handle(Request $request, Closure $next)
+    {
+        Log::info('Request entry', [
+            'method' => $request->method(),
+            'path'   => $request->path(),
+            'user'   => $request->user()?->id,
+            'ip'     => $request->ip(),
+        ]);
+
+        $response = $next($request);
+
+        Log::info('Request completed', [
+            'method' => $request->method(),
+            'path'   => $request->path(),
+            'status' => $response->getStatusCode(),
+        ]);
+
+        return $response;
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Transpile Django Model                             -->
+  <!-- ============================================================ -->
+  <procedure id="transpile-model">
+    <title>Transpile Django Model → Laravel Model</title>
+    <steps>
+      <step order="1">
+        <description>Map Django model fields to Eloquent properties. Mark field name changes.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Models;
+
+use App\Traits\UsesUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Order extends Model
+{
+    use UsesUuids, SoftDeletes;
+
+    protected $fillable = [
+        'order_number',   // ! CHANGED from 'order_no' in Django
+        'total_amount',
+        'status',
+        'customer_id',    // ! CHANGED from 'client_id' in Django
+    ];
+
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'metadata'     => 'array',
+    ];
+
+    // Never change querying logic from Django.
+    // TODO: Consider adding scope for active orders (was filtered in Django manager)
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Transpile Django Exports                           -->
+  <!-- ============================================================ -->
+  <procedure id="transpile-exports">
+    <title>Transpile Django Exports → Laravel Exports</title>
+    <steps>
+      <step order="1">
+        <description>Approach A: Laravel-centered with Maatwebsite\Excel.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Exports;
+
+use App\Models\Order;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class OrdersExport implements FromQuery, WithHeadings, WithStyles
+{
+    public function query()
+    {
+        return Order::query()->with('customer');
+    }
+
+    public function headings(): array
+    {
+        return ['ID', 'Order Number', 'Customer', 'Total', 'Status', 'Created'];
+    }
+
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => [
+                'font' => ['bold' => true, 'size' => 12],
+                'borders' => [
+                    'bottom' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
+                ],
+            ],
+        ];
+    }
+}
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Approach B: Python-endpoint for complex transformations.</description>
+        <code><![CDATA[
+// Call Python microservice
+$response = Http::timeout(30)->post(config('services.python_export.url'), [
+    'type'    => 'orders',
+    'filters' => $filters,
+    'format'  => 'xlsx',
+]);
+
+if ($response->successful()) {
+    return response()->streamDownload(
+        fn () => print($response->body()),
+        'orders_export.xlsx',
+        ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    );
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Helper Function Templates                          -->
+  <!-- ============================================================ -->
+  <procedure id="helper-functions">
+    <title>Shared Helper Functions</title>
+    <steps>
+      <step order="1">
+        <description>All helper functions used across transpiled layers.</description>
+        <code><![CDATA[
+<?php
+
+namespace App\Helpers;
+
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
+use App\Models\User;
+
+class TranspilationHelpers
+{
+    /**
+     * Get redirect URL for a named route. Replaces Django reverse().
+     */
+    public static function getRedirectUrl(string $routeName, array $params = []): string
+    {
+        if (!Route::has($routeName)) {
+            return url('/');
+        }
+        return route($routeName, $params);
+    }
+
+    /**
+     * Standardized 403 response. Replaces Django PermissionDenied.
+     */
+    public static function defaultPermissionDenial(): Response
+    {
+        return response('Permission denied.', 403);
+    }
+
+    /**
+     * Standardized 500 error for unexpected states.
+     */
+    public static function defaultUndefinedException(string $message = ''): Response
+    {
+        $msg = $message ?: 'An unexpected error occurred.';
+        return response($msg, 500);
+    }
+
+    /**
+     * Validate email format. Replaces Django EmailValidator.
+     */
+    public static function emailValidation(string $email): bool
+    {
+        return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
+    }
+
+    /**
+     * Validate UUID format and user existence.
+     */
+    public static function userIdValidation(string $id): bool
+    {
+        if (!Str::isUuid($id)) {
+            return false;
+        }
+        return User::where('id', $id)->exists();
+    }
+
+    /**
+     * Returns middleware closure for permission checking.
+     * Replaces Django @permission_required.
+     */
+    public static function permissionRequiredCustom(string $permission): \Closure
+    {
+        return function ($request, $next) use ($permission) {
+            if (!$request->user()?->can($permission)) {
+                abort(403, 'Permission denied.');
+            }
+            return $next($request);
+        };
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

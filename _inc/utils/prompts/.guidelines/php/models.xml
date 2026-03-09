@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Setup Model Traits                                 -->
+  <!-- ============================================================ -->
+  <procedure id="setup-model-traits">
+    <title>Setup Model Traits</title>
+    <steps>
+      <step order="1">
+        <description>Check the migration file for nullable audit columns.</description>
+        <action>If the migration uses HasNullableAuditColumns, add HasAuditFields to the model's use block.</action>
+        <code><![CDATA[
+use App\Traits\HasAuditFields;
+
+class Invoice extends Model
+{
+    use HasAuditFields;
+}
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Check the migration for email, phone, or zip columns.</description>
+        <action>If any exist, add NormalizesAddresses.</action>
+        <code><![CDATA[
+use App\Traits\NormalizesAddresses;
+
+class Customer extends Model
+{
+    use NormalizesAddresses;
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $model) {
+            $model->normalizeEmail('email');
+            $model->normalizePhone('phone');
+            $model->normalizeZip('zip_code');
+        });
+    }
+}
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>Check the migration for JSON or array columns.</description>
+        <action>If any exist, add NormalizesArrays.</action>
+        <code><![CDATA[
+use App\Traits\NormalizesArrays;
+
+class Setting extends Model
+{
+    use NormalizesArrays;
+
+    protected $casts = [
+        'options' => 'array',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $model) {
+            $model->ensureJsonAttributesAreEncoded(['options']);
+        });
+    }
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Unique Slug Generation                             -->
+  <!-- ============================================================ -->
+  <procedure id="unique-slug-generation">
+    <title>Unique Slug Generation with do/while</title>
+    <steps>
+      <step order="1">
+        <description>Prepare base slug from a source field.</description>
+      </step>
+      <step order="2">
+        <description>Loop with do/while and an attempt counter.</description>
+        <code><![CDATA[
+use Illuminate\Support\Str;
+
+public function generateUniqueSlug(string $source): string
+{
+    $base     = Str::slug($source);
+    $slug     = $base;
+    $attempts = 0;
+    $maxAttempts = 20;
+
+    do {
+        if ($attempts > 0) {
+            $slug = $base . '-' . Str::random(4);
+        }
+        $attempts++;
+    } while (static::where('slug', $slug)->exists() && $attempts < $maxAttempts);
+
+    if ($attempts >= $maxAttempts) {
+        Log::warning("Slug generation hit attempt limit for base: {$base}");
+        $slug = $base . '-' . Str::uuid()->toString();
+    }
+
+    return $slug;
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Normalize Addresses                                -->
+  <!-- ============================================================ -->
+  <procedure id="normalize-addresses">
+    <title>Normalize Addresses Trait Usage</title>
+    <steps>
+      <step order="1">
+        <description>Import and apply the trait.</description>
+        <code><![CDATA[
+use App\Traits\NormalizesAddresses;
+
+class Contact extends Model
+{
+    use NormalizesAddresses;
+}
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Register normalizations in booted().</description>
+        <code><![CDATA[
+protected static function booted(): void
+{
+    static::saving(function (self $model) {
+        $model->normalizeEmail('email');
+        $model->normalizeEmail('billing_email');
+        $model->normalizePhone('phone');
+        $model->normalizePhone('mobile');
+        $model->normalizeZip('zip_code');
+        $model->normalizeZip('billing_zip');
+        $model->normalizeBillingCountry('billing_country');
+        $model->normalizeShippingCountry('shipping_country');
+        $model->normalizeStateField('state');
+    });
+}
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>Use contact-key helpers when the field type is ambiguous.</description>
+        <code><![CDATA[
+$key = $this->getAttribute('contact_key');
+if ($this->keyIsEmail($key)) {
+    $this->normalizeEmail('contact_key');
+} elseif ($this->keyIsPhone($key)) {
+    $this->normalizePhone('contact_key');
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Add Business Helpers                               -->
+  <!-- ============================================================ -->
+  <procedure id="add-business-helpers">
+    <title>Add Business Logic Helpers</title>
+    <steps>
+      <step order="1">
+        <description>Identify computed properties needed in JSON output.</description>
+        <action>Add them to $appends.</action>
+        <code><![CDATA[
+protected $appends = ['total_amount', 'is_overdue'];
+        ]]></code>
+      </step>
+      <step order="2">
+        <description>Create accessor methods using getAttribute internally.</description>
+        <code><![CDATA[
+public function getTotalAmountAttribute(): float
+{
+    return (float) $this->items()->sum('amount');
+}
+
+public function getIsOverdueAttribute(): bool
+{
+    $dueDate = $this->getAttribute('due_date');
+    if (!$dueDate) return false;
+    return now()->greaterThan($dueDate);
+}
+        ]]></code>
+      </step>
+      <step order="3">
+        <description>Cache expensive aggregations.</description>
+        <code><![CDATA[
+public function getCachedTotalAttribute(): float
+{
+    return cache()->remember(
+        "model_{$this->getKey()}_total",
+        now()->addMinutes(10),
+        fn () => (float) $this->items()->sum('amount')
+    );
+}
+        ]]></code>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

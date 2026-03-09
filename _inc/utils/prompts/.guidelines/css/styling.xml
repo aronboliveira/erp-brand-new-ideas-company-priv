@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<styling scope="css-scss">
+  <procedure name="apply-pseudo-class-styling">
+    <step order="1">For each interactive element (buttons, links, highlighted tags), ensure :active and :hover styles exist</step>
+    <step order="2">Review remaining pseudo-classes (:checked, :disabled, :enabled, :invalid, :valid, :empty, :nth-child, :nth-of-type, :required) and add styling where it improves UI/UX</step>
+  </procedure>
+  <procedure name="apply-pseudo-element-styling">
+    <step order="1">Review ::selection, ::placeholder, ::marker, ::details-content, ::first-letter, ::first-line</step>
+    <step order="2">Add styling for those that improve UX (e.g., ::selection with brand color, ::placeholder with muted tone)</step>
+  </procedure>
+  <procedure name="modernize-scss">
+    <step order="1">Convert flat selectors to nested SCSS structure</step>
+    <step order="2">Extract repeated values into SCSS variables</step>
+    <step order="3">Extract repeated rule blocks into @mixin definitions</step>
+    <step order="4">Add modern visual effects: box-shadow, text-shadow, subtle gradients, border-radius</step>
+    <step order="5">Add reactive pseudo-class/pseudo-element styles</step>
+  </procedure>
+  <procedure name="sort-stylesheet">
+    <step order="1">Sort selectors alphabetically within each scope/nesting level</step>
+    <step order="2">Within each selector, group rules by function: spacing → fonts → colors → borders → layout → effects</step>
+  </procedure>
+</styling>

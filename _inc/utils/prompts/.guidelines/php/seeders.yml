@@ -1,0 +1,22 @@
+# Seeder Rules
+# Flat key-value reference
+
+no_array_filter_nullable: "Don't use array_filter for null removal on nullable columns (Eloquent handles it)"
+collection_methods: "Use Collection methods or array_values/array_column for non-null filtering with raw insert"
+break_out_strategy: "Every while loop must have a break-out strategy (attempt counter or clock limiter)"
+console_output: "Create private Symfony ConsoleOutput, writeln before save/create"
+raw_sql_read_only: "Optimize read-only queries with raw SQL"
+encode_for_raw_insert: "Manually encode JSON fields and cast types for insert() or raw DB"
+unique_do_while: "Unique columns use do/while checking EXISTS"
+uuid_collision_check: "UUID do/while collision check before insert"
+attempt_limit: "Create attempt limit for every while loop"
+min_iterations: "At least 1 entity per possible subtype/type"
+entity_count_power_of_2: "Entity count should satisfy log(count, 2) % 1 === 0"
+clock_limiter_financial: 600
+clock_limiter_default: 300
+hardcap_base: 512
+hardcap_multiplier_range: "1-6 based on module complexity"
+alias_imports: "Alias imports for 3+ repetitions"
+critical_comments_only: "Only critical-purpose comments"
+log_cycle_completion: "Log::info for cycle completion with count and time"
+use_error_handler: "Use ErrorHandler helper for catching/logging"

@@ -1,0 +1,12 @@
+# PHPUnit Test Rules
+# Flat key-value reference
+
+annotation_required: "@test PHPDoc annotation on all test methods"
+better_comments_prefix: "** prefix in PHPDoc for Better Comments highlighting"
+phpunit_xml_location: "Laravel root phpunit.xml"
+suites_organized_by: "module (Unit, Feature, per-module)"
+env_vars_in_php_block: "APP_ENV=testing, DB_CONNECTION=sqlite etc."
+autoload_dev_psr4: "Tests\\ mapped to tests/ in composer.json autoload-dev"
+module_autoload: "Modules\\ModuleName\\Tests\\ mapped to Modules/ModuleName/Tests/"
+dump_autoload: "Run composer dump-autoload after adding new test namespaces"
+method_naming: "camelCase starting with descriptive verb (itCreates, itRejects)"

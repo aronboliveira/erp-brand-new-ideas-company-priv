@@ -1,0 +1,20 @@
+# Controller Rules
+# Flat key-value reference
+
+abstract_base: "All module controllers extend an abstract base with callAction wrapper"
+call_action_wrapper: "Override callAction to wrap every action in measure()"
+measure_method: "measure() captures wall-clock time via microtime(true)"
+measure_profile: "measureProfile() for sub-action profiling within an action"
+threshold_debug_ms: 50
+threshold_info_ms: 150
+threshold_warning_ms: 300
+threshold_error_ms: 301
+log_execution_time: "logExecutionTime() delegates to Log facade with threshold-based level"
+validation_in_controller: "Validation lives in controller methods when tightly coupled to action logic"
+validation_visibility: "protected"
+missing_endpoints_pattern: "Follow same pattern as existing module endpoints"
+missing_endpoints_fallback: "Use RESTful design (index, show, store, update, destroy)"
+console_output_timing: "Use Symfony ConsoleOutput for artisan-triggered controllers"
+view_exists_guard: "Always check View::exists() before returning a view"
+view_missing_abort: "abort(404) when view does not exist"
+naming_convention: "Match sibling controller naming"

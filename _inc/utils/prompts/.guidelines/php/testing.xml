@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<procedures>
+
+  <!-- ============================================================ -->
+  <!-- PROCEDURE: Create a PHPUnit Test                              -->
+  <!-- ============================================================ -->
+  <procedure id="create-phpunit-test">
+    <title>Creating a PHPUnit Test</title>
+    <steps>
+      <step order="1">
+        <description>Determine the correct test suite (Unit or Feature) and module.</description>
+        <action>Check phpunit.xml for the matching testsuite directory.</action>
+      </step>
+      <step order="2">
+        <description>Verify autoload-dev has the namespace mapped in composer.json.</description>
+        <code><![CDATA[
+// composer.json
+"autoload-dev": {
+    "psr-4": {
+        "Tests\\": "tests/",
+        "Modules\\Invoicing\\Tests\\": "Modules/Invoicing/Tests/"
+    }
+}
+        ]]></code>
+        <action>Run `composer dump-autoload` if you added a new mapping.</action>
+      </step>
+      <step order="3">
+        <description>Create the test class with @test annotations and Better Comments.</description>
+        <code><![CDATA[
+<?php
+
+namespace Tests\Feature\Invoicing;
+
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Invoice;
+use App\Models\User;
+
+class InvoiceCreationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /**
+     * @test
+     * ** Verifies that an authenticated user can create a new invoice.
+     */
+    public function itCreatesAnInvoice(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->postJson(route('invoices.store'), [
+                'title'    => 'Test Invoice',
+                'due_date' => now()->addDays(30)->toDateString(),
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('invoices', ['title' => 'Test Invoice']);
+    }
+
+    /**
+     * @test
+     * ** Verifies that validation rejects missing required fields.
+     */
+    public function itRejectsInvalidData(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->postJson(route('invoices.store'), []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['title', 'due_date']);
+    }
+}
+        ]]></code>
+      </step>
+      <step order="4">
+        <description>Run the test to confirm it passes.</description>
+        <action>Execute: php artisan test --filter=InvoiceCreationTest</action>
+      </step>
+    </steps>
+  </procedure>
+
+</procedures>

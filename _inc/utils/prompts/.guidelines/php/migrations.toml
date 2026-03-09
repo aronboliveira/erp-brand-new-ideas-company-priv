@@ -1,0 +1,43 @@
+# Migration Configuration
+
+[fk_loops]
+use_foreach_for       = "multiple FK columns"
+no_loop_for           = "single FK column"
+loop_body             = "foreignUuid()->nullable()->constrained()->nullOnDelete()"
+
+[traits]
+IsNumericBenefit      = "Scale calculation for monetary benefit columns"
+HasNullableAuditColumns = "Nullable created_at, updated_at, deleted_at"
+HasAuditFields        = "Standardized created_by, updated_by, deleted_by"
+EmployeeConnected     = "Employee-owner relationship logic"
+
+[enums]
+list = [
+    "Frequency",
+    "CalculationBase",
+    "DeductionType",
+    "DocumentKind",
+    "Gender",
+    "MimeType",
+    "SalaryType",
+    "UserType",
+]
+all_have_normalize    = true
+
+[constants]
+DatabaseConstants     = { alias = "DC", scope = "core DB schema" }
+UsersConstants        = { alias = "UC", scope = "user-related" }
+CompaniesConstants    = { alias = "CC", scope = "company-related" }
+ProjectsConstants     = { alias = "PC", scope = "project-related" }
+BillsConstants        = { alias = "BC", scope = "billing-related" }
+naming_pattern        = "TABLE_* and COL_*"
+
+[columns]
+primary_key_type      = "uuid"
+created_by_on_delete  = "restrictOnDelete"
+created_by_nullable   = false
+
+[notes]
+uuid_pks              = "All main entity tables use UUID primary keys"
+constants_required    = "Always reference constants for table and column names"
+created_by_rule       = "created_by must NOT use nullOnDelete"

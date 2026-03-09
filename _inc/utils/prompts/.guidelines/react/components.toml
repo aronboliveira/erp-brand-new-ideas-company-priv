@@ -1,0 +1,66 @@
+# React Component Rules — Categorized Settings
+
+[hooks]
+dependency_caution         = true
+exclude_reassigned_vars    = true
+exclude_batched_dispatch   = true
+useMemo_for                = "expensive calculations"
+useCallback_for            = "functions in deps or passed as props"
+
+[components]
+style                      = "function declarations"
+avoid_arrow_assigned       = true
+error_boundary             = "wrap route/feature trees"
+error_boundary_package     = "react-error-boundary"
+
+[naming]
+source                     = "Blade view path → PascalCase"
+unclear_flag               = "// ? NO CLEAR NAME"
+
+[naming.examples]
+"admin/page"               = "AdminPage"
+"employee/create"          = "EmployeeCreate"
+"invoice/edit"             = "InvoiceEdit"
+"project/settings/general" = "ProjectSettingsGeneral"
+
+[memo]
+target                     = ["modals", "accordions", "dialogs", "dropdowns"]
+pattern                    = "React.memo(function Name(props) { … })"
+reason                     = "prevent re-renders when parent state changes but props haven't"
+
+[exports]
+single_component           = "export default function"
+multiple_items             = "named exports"
+
+[modals]
+use_portal                 = true
+portal_target              = "document.body"
+portal_import              = "import { createPortal } from 'react-dom'"
+reason                     = "avoids z-index and overflow clipping issues"
+
+[imports]
+direct_from_react          = true
+avoid_chaining             = "React.useState() → import { useState }"
+jsx_import                 = "import { JSX } from 'react'"
+
+[mui]
+components                 = "Material UI"
+styling                    = "Tailwind CSS utility classes"
+theme_override_only        = "spacing, layout, small overrides"
+
+[tags]
+repetitive_threshold       = 3
+replace_with               = ".map()"
+require_key                = true
+
+[query]
+invalidate_format          = "{ queryKey: ['key'] }"
+not_plain_string           = true
+library                    = "@tanstack/react-query"
+
+[next]
+router                     = "App Router"
+directory                  = "app/"
+layout_separate_from_page  = true
+use_client_only_when       = "browser APIs or interactivity needed"
+default_component_type     = "Server Component"

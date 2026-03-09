@@ -1,0 +1,45 @@
+dependencies:
+  - pandas for all dataframing
+  - openpyxl as Excel engine
+
+formatting:
+  headers:
+    - bold via openpyxl.styles.Font(bold=True)
+    - frozen header row (freeze_panes = "A2")
+    - cold background colour with low R value
+  rows:
+    - opaque background colours
+    - alternating fills for even/odd rows
+  borders:
+    horizontal: near-transparent, hair style, light grey
+    vertical_data: opaque grey
+    vertical_header: deep grey or black
+
+nan_handling:
+  - treat NaN and nan as empty values
+  - convert to empty strings before writing
+  - use pd.isna() for detection
+
+header_detection:
+  trigger: at least two filled cells in same row matching known patterns
+  known_patterns:
+    - name, first_name, last_name
+    - age, gender, date_of_birth
+    - role, title, department, position, employee_id
+    - created_at, updated_at, date, timestamp
+    - start_date, end_date
+
+multi_table:
+  - scan for distinct header rows
+  - determine bounding box per table
+  - extract each as independent DataFrame
+  - apply index correction factors for subtable offsets
+
+formulas:
+  - assign derivative cells as Excel formula expressions not raw values
+  - supported: SUM, VLOOKUP, HLOOKUP, INDEX/MATCH, COUNTIF, SUMIF, AVERAGE
+  - modern array functions: FILTER, SORT, UNIQUE
+
+output:
+  - always offer to save as .json
+  - use df.to_json(orient="records", indent=2)

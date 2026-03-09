@@ -1,0 +1,52 @@
+[importing]
+importlib = "forbidden unless strictly demanded"
+get_redirect_url_source = ".._helpers.http"
+style = "standard import or from-import only"
+
+[functions]
+type_hinting = "mandatory on all parameters and return types"
+explicit_returns = true
+name_references = "inspect.currentframe().f_code.co_name or traceback.extract_stack()"
+hardcoded_name_strings = "forbidden"
+semicolons = "forbidden"
+statement_separator = "newline only"
+
+[classes]
+convert_to_functions = false
+name_string_source = "__class__.__name__"
+name_storage = "acronym constant"
+chaining = "self | cls | None depending on method type"
+
+[classes.classmethod]
+scope = "auth, error handling, factory logic, operations needing cls"
+
+[classes.staticmethod]
+scope = "pure procedures only"
+requires_class_reference = false
+requires_auth = false
+requires_error_handler = false
+
+[replacement_patterns]
+permission_denial_function = "default_permission_denial"
+permission_denial_args = ["request", "err=e", "ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}'", "logger=logger"]
+undefined_exception_function = "default_undefined_exception"
+undefined_exception_args = ["request", "err=e", "ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}'", "logger=logger"]
+
+[indentation]
+max_whitespace_between_args = 1
+foldable_pattern = true
+multiline_string_style = "triple-quoted with consistent indent"
+
+[strict]
+type_hinting = "always"
+server_logging = "detailed with context"
+multi_exception_handling = "separate handlers per exception type"
+financial_operations = "ACID with explicit rollback"
+complex_algorithms = "Strategy pattern"
+event_driven_flows = "Observer pattern"
+
+[exceptions]
+non_base_must_handle_generic = true
+catch_all_handler = "default_undefined_exception"
+repetitive_checks = "abstract into private methods"
+each_type_handled_separately = true

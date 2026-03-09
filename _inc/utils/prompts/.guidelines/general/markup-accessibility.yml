@@ -1,0 +1,19 @@
+semantic_tags: prefer_over_div
+self_closing: always_written_as_such
+ids: required_on_all_tags
+ids_missing: present_suggestions_to_user
+aria:
+  non_redundant_tags: always
+  essential_elements: [button, a, input, select, textarea]
+  emoji_pattern: '<span role="img" aria-label="{unicode_name}">'
+text_wrapping:
+  bare_text: forbidden
+  minimum_wrapper: span
+  confirm_with_user: true
+jsx_quoting:
+  templated_attrs: "={`${...}`}"
+  other_attrs: single_quotes
+  double_only: when_strictly_necessary
+repetitive_tags:
+  convert_to: map_iteration
+  suggest: ErrorBoundary

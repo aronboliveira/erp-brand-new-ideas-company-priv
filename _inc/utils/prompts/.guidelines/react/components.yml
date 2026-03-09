@@ -1,0 +1,55 @@
+# React Component Rules — Quick Reference
+
+hooks:
+  dependency_arrays: "be mindful; exclude reassigned and batched dispatch variables"
+  useMemo: "expensive calculations"
+  useCallback: "functions in dependency arrays or passed as props"
+  no_reassigned_deps: "don't include let variables reassigned in same render"
+  no_batched_deps: "don't include batched dispatch variables"
+
+components:
+  declaration: "function declarations, not arrow-assigned"
+  default_export: "single isolated component → export default"
+  named_export: "multiple exports → named"
+  error_boundary: "wrap route/feature trees in ErrorBoundary"
+
+naming:
+  source: "Blade path → PascalCase component name"
+  admin_page: "admin/page.blade.php → AdminPage"
+  employee_create: "employee/create.blade.php → EmployeeCreate"
+  unclear_name: "mark with // ? NO CLEAR NAME"
+
+memo:
+  target: "frequently mounted/unmounted components"
+  examples: ["modals", "accordions", "dialogs", "dropdowns"]
+  pattern: "React.memo(function ComponentName(props) { … })"
+
+exports:
+  single_component: "export default function"
+  multi_component: "named exports"
+
+modals:
+  portal: "ReactDOM.createPortal to document.body"
+  reason: "avoids z-index and overflow clipping issues"
+
+imports:
+  direct: "import { useState, useEffect, JSX } from 'react'"
+  avoid: "React.useState(), React.useEffect() chaining"
+
+mui:
+  styling: "Material UI components + Tailwind CSS utility classes"
+  theme: "don't fight MUI theme; Tailwind for spacing/layout/overrides"
+
+tags:
+  repetitive: "replace repetitive JSX sequences with .map()"
+  key: "always provide a unique key prop"
+
+query:
+  invalidate: "queryClient.invalidateQueries({ queryKey: ['key'] })"
+  not_string: "don't pass plain string to invalidateQueries"
+
+next:
+  router: "App Router always (app/ directory)"
+  layout_page: "separate layout.tsx from page.tsx"
+  use_client: "only when genuinely needed (browser APIs / interactivity)"
+  default: "Server Components by default"

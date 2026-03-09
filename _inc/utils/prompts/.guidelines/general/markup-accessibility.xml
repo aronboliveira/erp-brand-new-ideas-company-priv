@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<markup scope="html-jsx-blade">
+  <procedure name="audit-tag-ids">
+    <step order="1">Scan all tags in the template</step>
+    <step order="2">For each tag missing an id attribute, generate a semantic suggestion based on context/content</step>
+    <step order="3">Present the full list of suggestions to the user for approval</step>
+    <step order="4">Apply approved IDs</step>
+  </procedure>
+  <procedure name="wrap-emoji">
+    <step order="1">Find all raw emoji characters in template text</step>
+    <step order="2">Look up the Unicode character name for each emoji</step>
+    <step order="3">Wrap in: &lt;span role="img" aria-label="{unicode_name}"&gt;{emoji}&lt;/span&gt;</step>
+  </procedure>
+  <procedure name="convert-repetitive-tags">
+    <step order="1">Identify 3+ sibling tags with identical structure but different data</step>
+    <step order="2">Extract the varying data into an array</step>
+    <step order="3">Replace with: {items.map((item, i) =&gt; &lt;Tag key={i} {...item} /&gt;)}</step>
+  </procedure>
+  <procedure name="wrap-bare-text">
+    <step order="1">Search for text nodes that are direct children of block-level containers</step>
+    <step order="2">Propose wrapping each in a &lt;span&gt; tag</step>
+    <step order="3">Ask user which cases to apply</step>
+  </procedure>
+</markup>

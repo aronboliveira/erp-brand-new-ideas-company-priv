@@ -1,0 +1,17 @@
+# Blade Rules
+# Flat key-value reference
+
+initialize_variables: "Use ??= in @php blocks at template top for safe defaults"
+try_catch_diverse: "Wrap risky sections in try/catch with specific, Exception, and Throwable types"
+isset_guard: "Check isset() before accessing variables"
+empty_guard: "Check empty() for falsy values"
+is_array_guard: "Confirm is_array() before iteration"
+data_get_nested: "Use data_get() for safe nested property access"
+auth_cache_local: "Cache Auth::user() in a local variable"
+import_aliasing: "Alias constants classes (e.g., InvoicesConstants as IC)"
+form_open_model: "Use Form::open/Form::model with route resolution"
+form_route_guard: "Wrap forms in Route::has() check"
+js_iife_guard: "Use IIFE for form submit double-click prevention"
+push_scripts: "Use @push with StacksConstants::ADM_SCRP_PG for page scripts"
+no_inline_scripts: "Never inline scripts outside @push blocks"
+log_with_file_line: "Log exceptions with file and line in catch blocks"

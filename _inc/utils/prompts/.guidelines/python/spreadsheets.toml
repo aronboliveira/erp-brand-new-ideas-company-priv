@@ -1,0 +1,59 @@
+[dependencies]
+dataframing = "pandas"
+excel_engine = "openpyxl"
+styling_module = "openpyxl.styles"
+
+[formatting]
+header_bold = true
+row_colors = "opaque"
+row_alternation = "even/odd fills"
+
+[formatting.header]
+font_bold = true
+font_color = "FFFFFF"
+fill_type = "solid"
+fill_color_family = "cold — low R value"
+fill_examples = ["4472C4", "5B6F8A", "2E5A88", "2E86AB"]
+freeze_panes = "A2"
+
+[formatting.borders]
+horizontal_style = "hair"
+horizontal_color = "D0D0D0"
+horizontal_opacity = "near-transparent"
+vertical_data_style = "thin"
+vertical_data_color = "808080"
+vertical_data_opacity = "opaque grey"
+vertical_header_style = "thin"
+vertical_header_color = "333333"
+vertical_header_opacity = "deep grey/black"
+
+[detection]
+method = "pattern matching on known form fields"
+min_filled_cells = 2
+personal_fields = ["name", "first_name", "last_name", "age", "gender", "date_of_birth"]
+organizational_fields = ["role", "title", "department", "position", "employee_id"]
+temporal_fields = ["created_at", "updated_at", "date", "timestamp", "start_date", "end_date"]
+
+[tables]
+multi_table_support = true
+extraction = "independent DataFrames per subtable"
+index_correction = "offset row/col indexes for each subtable"
+bounding_box = "start_row, end_row, start_col, end_col"
+
+[formulas]
+assign_as = "Excel formula expressions"
+raw_values = "forbidden for derivative cells"
+supported_functions = [
+    "SUM", "VLOOKUP", "HLOOKUP",
+    "INDEX", "MATCH", "COUNTIF",
+    "SUMIF", "AVERAGE"
+]
+modern_array_functions = ["FILTER", "SORT", "UNIQUE"]
+
+[output]
+offer_json = true
+json_orient = "records"
+json_indent = 2
+nan_treatment = "empty value"
+nan_write_as = "empty string or blank cell"
+nan_detection = "pd.isna()"

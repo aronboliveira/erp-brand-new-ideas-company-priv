@@ -1,0 +1,20 @@
+pseudo_classes:
+  always_style: [":active", ":hover"]
+  when_valuable: [":checked", ":disabled", ":enabled", ":invalid", ":valid", ":empty", ":nth-child", ":nth-of-type", ":required"]
+  mandatory_targets: [highlighted_tags, buttons, button_mimics, links]
+pseudo_elements:
+  when_valuable: ["::selection", "::placeholder", "::marker", "::details-content", "::first-letter", "::first-line"]
+scss:
+  nesting: broad
+  variables: when_values_repeat
+  mixins: when_blocks_repeat
+  modern_patterns: [box-shadow, text-shadow, gradients, border-radius, clipped-images]
+ordering:
+  selectors: alphabetical
+  rules: functional_groups
+libraries:
+  priority: material_ui
+  supplement: tailwind_css
+  context: react
+visual_identity:
+  match_attached: true

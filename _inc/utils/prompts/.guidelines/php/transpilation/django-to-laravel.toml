@@ -1,0 +1,47 @@
+# Django → Laravel Transpilation Configuration
+
+[general]
+naming_php        = "camelCase"
+naming_classes    = "PascalCase"
+naming_db         = "snake_case"
+standard          = "PSR-12"
+uuid_pks          = true
+uuid_trait        = "UsesUuids"
+
+[helpers]
+getRedirectUrl              = { replaces = "Django reverse()", returns = "string" }
+defaultPermissionDenial     = { replaces = "PermissionDenied", returns = "Response 403" }
+defaultUndefinedException   = { replaces = "unexpected state", returns = "Response 500" }
+emailValidation             = { replaces = "EmailValidator", returns = "bool" }
+userIdValidation            = { replaces = "UUID + existence check", returns = "bool" }
+permissionRequiredCustom    = { replaces = "@permission_required", returns = "Closure" }
+
+[traits]
+ChecksLogin       = { replaces = "LoginRequiredMixin", applies_to = "controllers" }
+ChecksPermissions = { replaces = "PermissionRequiredMixin", method = "authorizePermission" }
+
+[controllers]
+one_view_one_route     = true
+repetitive_args        = "private const"
+endpoint_creation      = "Create new endpoint for each Django view lacking its own route"
+
+[middleware]
+logging_level          = "extensive"
+log_events             = ["request_entry", "permission_checks", "outcomes"]
+defensive_programming  = true
+principles             = ["DRY", "ACID", "RESTful"]
+
+[models]
+no_query_changes       = true
+query_suggestion       = "comment only"
+field_change_marker    = "// ! CHANGED"
+uuid_primary_keys      = true
+
+[exports]
+approach_laravel       = "Maatwebsite\\Excel"
+approach_python        = "Python microservice via HTTP"
+styling_headers        = "bold"
+styling_borders        = true
+styling_column_widths  = true
+excel_functions        = true
+chunk_reading          = true

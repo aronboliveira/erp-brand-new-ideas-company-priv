@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<errorHandling scope="cross-language">
+  <procedure name="wrap-api-call">
+    <step order="1">Identify every API/HTTP client call (fetch, axios, Http, guzzle, requests)</step>
+    <step order="2">Wrap in try/catch (or try/except for Python)</step>
+    <step order="3">In catch: log with method name + task description + error data</step>
+    <step order="4">Show user-facing message with error message only (never internals)</step>
+    <step order="5">Do NOT rethrow unless explicitly requested</step>
+  </procedure>
+  <procedure name="safe-destructure-response">
+    <step order="1">Assign response to a variable (e.g., const res = await axios.get(...))</step>
+    <step order="2">Test for truthiness: if (!res?.data) return;</step>
+    <step order="3">Only then destructure: const { items } = res.data;</step>
+  </procedure>
+  <procedure name="handle-critical-method">
+    <precondition>Method involves financial data or has O(n²+) complexity</precondition>
+    <step order="1">Open a database transaction (DB::beginTransaction / atomic)</step>
+    <step order="2">Execute operations within the transaction</step>
+    <step order="3">On success: commit + log summary</step>
+    <step order="4">On failure: rollback + log full exception (file, line, message) + return error response</step>
+    <step order="5">Consider Strategy/Observer patterns for severe complexity</step>
+  </procedure>
+  <procedure name="permission-denial-pattern">
+    <context>Used in both PHP and Python controllers/views</context>
+    <step order="1">Catch PermissionDenied / AuthorizationException</step>
+    <step order="2">Call default_permission_denial(request, exception, ClassName::Method)</step>
+    <step order="3">For undefined exceptions: call default_undefined_exception(request, exception, ClassName::Method)</step>
+    <step order="4">Both helpers handle logging + redirect + user message internally</step>
+    <template lang="php"><![CDATA[
+return default_permission_denial($request, $e, __CLASS__.'::'.__FUNCTION__);
+    ]]></template>
+    <template lang="python"><![CDATA[
+default_permission_denial(request, err=e, ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}', logger=logger)
+    ]]></template>
+  </procedure>
+</errorHandling>

@@ -1,8 +1,0 @@
-<-- TO APPEND AT THE BEGINNING OF THE SESSION -->
-Their testimonials are related to an ERP
-- testimonials_title (should be a brazilian complete name)
-- testimonials_description (should be a good review from a mock user, written in brazilian portuguese)
-- testimonials_user (should be a reasonable user name for the person)
-- testimonials_designation (should be a fictional company, not necessarily in portuguese)
-- testimonials_star (either 4 or 5)
-- make the image ratio squared.

@@ -1,0 +1,120 @@
+# JavaScript / TypeScript Coding Rules — Quick Reference
+# Flat key-value pairs grouped by category
+
+dry:
+  set_attribute_threshold: "≥3 consecutive setAttribute calls → Object.entries loop"
+  property_assignment_threshold: "≥3 sequential property assignments → Object.assign or spread"
+  string_literal_cache: "string used ≥2 times → named const"
+  cross_file_strings: "shared strings → .constants.ts with Object.freeze({} as const)"
+
+formatting:
+  blank_lines_related: "no extra blank lines between related statements"
+  blank_lines_top_level: "one blank line between top-level functions/classes"
+  blank_lines_imports: "one blank line after import block"
+  collapse_declarations: "merge ≤3 simple const/let with trailing comma; skip complex destructuring"
+  bracketless_oneliners: "single-statement if/else → omit curly braces"
+  short_circuit: "&& for guard + single call"
+  ternary: "symmetric value branches → ternary; avoid nullish ':' in standalone expressions"
+  remove_single_statement_braces: "remove curly brackets from single-statement blocks"
+
+jsdoc:
+  required_on: "function declarations and named function expressions"
+  not_required_on: "arrow callbacks, inline one-liners"
+  no_type_repetition: "never repeat TS types in @param/@returns"
+
+iife:
+  wrap: "every route-level script in IIFE with try/catch over entire body"
+  catch_pattern: "console.error('[moduleName]', e)"
+
+dom:
+  query_rank_1: "getElementById"
+  query_rank_2: "getElementsByClassName"
+  query_rank_3: "getElementsByTagName"
+  query_rank_4: "HTMLFormElement.elements / namedItem()"
+  query_rank_5: "querySelector"
+  query_rank_6: "querySelectorAll"
+  form_fields: "use form.elements and namedItem() for form field access"
+
+es:
+  target: "ES6+"
+  arrow_functions: "use for callbacks and nested closures"
+  template_literals: "instead of string concatenation"
+  const_let: "const/let only — never var"
+  destructuring: "object and array destructuring"
+  spread_rest: "spread/rest operators"
+  optional_chaining: "?. for safe property access"
+  nullish_coalescing: "?? for default values"
+  utilities: "Object.entries, Array.from, for…of"
+
+browser:
+  targets: "Chromium + Gecko"
+  avoid: "WebKit-only features unless polyfilled"
+
+testing:
+  unit: "jest"
+  e2e: "playwright"
+  lint: "eslint"
+  typecheck: "tsc --noEmit"
+  when: "after every meaningful change"
+
+cache:
+  regex: "declare at scope level, never inside loops or hot paths"
+  strings: "cross-file → .constants.ts with Object.freeze({} as const)"
+
+sequential:
+  append_child: "multiple appendChild → for…of over fragment/pairs"
+  style: "multiple style.* → Object.assign(el.style, { … })"
+  jquery_remove_class: "space-separated class string"
+
+events:
+  guard_check: "check el.dataset.<name>Bound before addEventListener"
+  guard_set: "set el.dataset.<name>Bound = '1' after binding"
+
+inline:
+  single_use_variables: "inline unless name adds significant clarity"
+  dont_assign_once: "don't assign variables used only once"
+
+vendor:
+  marker: "// # ! VENDOR FILE — DO NOT EDIT as first non-empty line"
+  exclude_from: "tsconfig.json and eslint.config.mjs"
+
+eslint:
+  disabled_strict_bool: "strict-boolean-expressions disabled during migration"
+  disabled_unnecessary: "no-unnecessary-condition disabled during migration"
+  vars_ignore: "jQuery|\\$|bootstrap|feather|SimpleBar|dragula"
+  disable_next_line_never_in_template: "never inside template literals"
+  disable_combine_rules: "combine multiple rules on single directive"
+  disable_add_reason: "add reason when non-obvious"
+  disable_prefer_fix: "prefer fixing root cause over suppressing"
+
+async_returns:
+  async_function: "Promise<void>"
+  non_async: ": void"
+  complex_inferred: "eslint-disable-next-line with reason"
+
+variables:
+  inline_single_use: "inline variables used only once"
+  chain_declarations: "chain const/let with trailing commas when simple"
+  flag_const_reassignment: "// * Constant reassignment"
+  flag_var: "suggest const or let replacement"
+  unused_variables: "comment out, preserve ordering, flag // * Unused variable"
+  pseudohex_names: "replace with semantic names"
+
+statements:
+  dummy_replacement: "replace !![] or !0 with true or remove"
+  and_chaining: "use && for simple direct-expression chaining instead of if()"
+  no_unused_ternary_nullish: "avoid ternary ':' ending in nullish for standalone expressions"
+
+functions:
+  global_scope: "function declarations"
+  nested_scope: "arrow functions"
+  forEach_only_chaining: "use forEach only when chaining and not expensive; prefer for…of"
+  expensive_dom: "traditional C-style for loop"
+  arrow_parens: "remove parentheses for single untyped parameter"
+
+api_calls:
+  http_client: "always axios, never fetch"
+  response_handling: "never destructure immediately; test res variable first"
+  try_catch: "wrap each call in try/catch"
+  naming: "<endpoint><Method> — e.g., tasksGet(), invoicePost()"
+  separation: "API call functions in separate module/block"
