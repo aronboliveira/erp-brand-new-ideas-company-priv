@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Models\Customer;
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
@@ -8,10 +9,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithHeadings};
+
 final class CustomerExport implements FromCollection, WithHeadings
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const EXPORT_FIELDS = [
         'balance',
         'billing_address',
@@ -53,7 +56,9 @@ final class CustomerExport implements FromCollection, WithHeadings
         'Shipping Zip',
         'Shipping Address',
         'Balance'
+    ];
     private const PYTHON_EXPORTER = 'CustomerExport';
+
     public function collection(): Collection
     {
         $rows ??= collect();
@@ -70,6 +75,8 @@ final class CustomerExport implements FromCollection, WithHeadings
             $user = $userOrRedirect;
             if (empty($user)) {
                 Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return collect();
+            }
             Log::info(__METHOD__ . ' started', [
                 'user_id' => $user->id ?? null,
                 'class' => static::class
@@ -96,22 +103,46 @@ final class CustomerExport implements FromCollection, WithHeadings
                     $c->shipping_zip ?? '',
                     $c->shipping_address ?? '',
                     $user->priceFormat($c->balance ?? 0)
+                ]);
             Log::info(__METHOD__ . ' completed', [
                 'count' => $rows->count(),
+                'class' => static::class
+            ]);
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $rows = collect();
         }
         return $rows;
     }
+
     public function headings(): array
+    {
         return self::HEADINGS;
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
+        $user ??= null;
+        $userOrRedirect ??= null;
         $data ??= [];
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if ($userOrRedirect instanceof RedirectResponse) {
+                Log::warning(__METHOD__ . ' auth redirect', [
+                    'class' => static::class
+                ]);
                 return '';
+            }
+            $user = $userOrRedirect;
+            if (empty($user)) {
+                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return '';
+            }
             $customers = Customer::where('created_by', $user->creatorId())
                 ->get(self::EXPORT_FIELDS);
             $data = [
@@ -141,11 +172,20 @@ final class CustomerExport implements FromCollection, WithHeadings
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('customers');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }

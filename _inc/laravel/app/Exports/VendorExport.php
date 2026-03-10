@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Models\Vendor;
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
@@ -10,10 +11,12 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithEvents, WithHeadings};
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\{Border, Fill};
+
 final class VendorExport implements FromCollection, WithHeadings, WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const HEADERS = [
         'ID',
         'Name',
@@ -48,7 +51,10 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
         'remember_token',
         'tax_number',
         'updated_at'
+    ];
+
     private int $projectId;
+
     public function collection(): Collection
     {
         $rows ??= collect();
@@ -66,6 +72,8 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
             $user = $userOrRedirect;
             if (empty($user)) {
                 Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return collect();
+            }
             Log::info(__METHOD__ . ' started', [
                 'user_id' => $user->id ?? null,
                 'class' => static::class
@@ -99,17 +107,26 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
             });
             Log::info(__METHOD__ . ' completed', [
                 'count' => $rows->count(),
+                'class' => static::class
+            ]);
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $rows = collect();
         }
         return $rows;
     }
+
     public function headings(): array
+    {
         return self::HEADERS;
+    }
+
     public function registerEvents(): array
+    {
         return [
             AfterSheet::class => function (AfterSheet $event): void {
                 try {
@@ -139,16 +156,41 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
                                 'color' => ['argb' => 'FF333333']
                             ]
                         ]
+                    ]);
                     $sheet->freezePane('A2');
                     Log::info(__METHOD__ . ' styling completed', [
+                        'class' => static::class
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
+                        'class' => static::class
+                    ]);
+                }
+            }
         ];
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
+        $user ??= null;
+        $userOrRedirect ??= null;
         $data ??= [];
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if ($userOrRedirect instanceof RedirectResponse) {
+                Log::warning(__METHOD__ . ' auth redirect', [
+                    'class' => static::class
+                ]);
                 return '';
+            }
+            $user = $userOrRedirect;
+            if (empty($user)) {
+                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return '';
+            }
+            $vendors = Vendor::where('created_by', $user->creatorId())->get();
             $data = [
                 'vendors' => $vendors->map(fn($v) => [
                     'vendor_id' => $user->vendorNumberFormat((int)($v->vendor_id ?? 0)),
@@ -176,11 +218,20 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('vendors');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }

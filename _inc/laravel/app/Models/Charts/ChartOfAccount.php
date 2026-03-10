@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\DB;
  * @property bool|null $is_system_account
  * @property int|null $responsible_id
 
- * @property int|null $currency_id
+ * @property string|null $currency_id
  * @property mixed $restrictions
  */
 class ChartOfAccount extends Model
@@ -105,8 +105,14 @@ class ChartOfAccount extends Model
 
     protected static function enforceTypeAndSubtypeConstraints(self $coa): void
     {
-        $typeId    = $coa->{CHTC::COL_TP} ?? null;
-        $subTypeId = $coa->{CHTC::COL_SUBTP} ?? null;
+        // Use getAttributes() to read raw column values.
+        // Accessing $coa->{COL_SUBTP} ($coa->sub_type) resolves to the
+        // sub_type() relation method instead of the raw attribute when
+        // attributes are empty (e.g. factory make), causing infinite
+        // recursion and OOM.  Same risk applies to COL_TP vs types().
+        $attrs     = $coa->getAttributes();
+        $typeId    = $attrs[CHTC::COL_TP] ?? null;
+        $subTypeId = $attrs[CHTC::COL_SUBTP] ?? null;
 
         if (!$typeId || !$subTypeId)
             throw new \InvalidArgumentException('Chart of account must have both type and subtype defined.');
@@ -277,9 +283,9 @@ class ChartOfAccount extends Model
         );
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\ChartOfAccountSubType> */
-    public function sub_type(): HasOne
-    {
-        return $this->subType();
-    }
+    // NOTE: A sub_type() alias was removed here because the method name
+    // collides with the database column 'sub_type' (CHTC::COL_SUBTP).
+    // When Eloquent resolves $model->sub_type it finds the method before
+    // the attribute, causing infinite recursion during HasOne constraint
+    // resolution → OOM.  Use $model->subType for the relation instead.
 }

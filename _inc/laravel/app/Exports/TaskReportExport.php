@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Config\Constants\{
     ActivitiesConstants,
     DatabaseConstants,
@@ -15,10 +16,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithEvents, WithHeadings};
 use Maatwebsite\Excel\Events\AfterSheet;
+
 final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const HEADINGS = [
         'ID',
         'Title',
@@ -43,12 +46,17 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
         ProjectsConstants::COL_PGR,
         DatabaseConstants::COL_C_AT,
         DatabaseConstants::COL_U_AT
+    ];
+
     private string $projectId;
+
     public function __construct(string|int $id)
     {
         $this->projectId = (string) $id;
     }
+
     public function collection(): Collection
+    {
         try {
             $userOrRedirect = self::_checkLogin();
             if ($userOrRedirect instanceof RedirectResponse) {
@@ -83,18 +91,29 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
                     'milestone' => ProjectReport::milestone($task[ProjectsConstants::COL_ML_ID] ?? 0),
                     ActivitiesConstants::COL_TSK_STT => ProjectReport::status($task[ProjectsConstants::COL_STAGE_ID] ?? 0),
                 ];
+            });
             Log::info(__METHOD__ . ' completed', [
                 'count' => $result->count(),
+                'class' => static::class
+            ]);
             return $result;
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             return collect();
         }
+    }
+
     public function headings(): array
+    {
         return self::HEADINGS;
+    }
+
     public function registerEvents(): array
+    {
         return [
             AfterSheet::class => function (AfterSheet $event): void {
                 try {
@@ -124,15 +143,26 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
                                 'color' => ['argb' => 'FF333333']
                             ]
                         ]
+                    ]);
                     $sheet->freezePane('A2');
                     Log::info(__METHOD__ . ' styling completed', [
+                        'class' => static::class
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
+                        'class' => static::class
+                    ]);
+                }
+            }
         ];
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
         $data ??= [];
+        try {
             $collection = $this->collection();
             $data = [
                 'tasks' => $collection->toArray(),
@@ -141,11 +171,20 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('task_report');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }

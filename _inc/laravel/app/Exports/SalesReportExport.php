@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
 use Illuminate\Http\RedirectResponse;
@@ -17,12 +18,18 @@ use Maatwebsite\Excel\Concerns\{
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 final class SalesReportExport implements
+    FromArray,
+    WithHeadings,
     WithStyles,
+    WithCustomStartCell,
+    WithColumnWidths,
     WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const COLUMN_WIDTHS = ['A' => 30, 'B' => 15, 'C' => 15, 'D' => 20];
     private const HEADER_ROW    = 6;
     private const HEADINGS_CUSTOMER = [
@@ -36,14 +43,17 @@ final class SalesReportExport implements
         'Quantity Sold',
         'Amount',
         'Average Amount'
+    ];
     private const MERGE_RANGES    = ['A2:D2', 'A3:D3', 'A4:D4'];
     private const PYTHON_EXPORTER = 'SalesReportExport';
     private const START_CELL      = 'A6';
+
     private array  $data;
     private string $startDate;
     private string $endDate;
     private string $companyName;
     private string $reportName;
+
     public function __construct(
         array $data,
         string $startDate,
@@ -81,37 +91,69 @@ final class SalesReportExport implements
                     ];
                 }
             } else {
+                foreach ($data as $v) {
+                    $formatted[] = [
                         'Customer Name' => $v['name'] ?? '',
                         'Invoice Count' => $v['invoice_count'] ?? 0,
                         'Sales' => $v['price'] ?? 0,
                         'Sales With Tax' => ($v['price'] ?? 0) + ($v['total_tax'] ?? 0)
+                    ];
+                }
+            }
             $this->data = $formatted;
             Log::info(__METHOD__ . ' completed', [
                 'rows' => count($formatted),
+                'class' => static::class
+            ]);
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $this->data = [];
         }
     }
+
     public function array(): array
     {
         return $this->data;
+    }
+
     public function startCell(): string
+    {
         return self::START_CELL;
+    }
+
     public function columnWidths(): array
+    {
         return self::COLUMN_WIDTHS;
+    }
+
     public function styles(Worksheet $sheet): void
+    {
+        try {
             foreach (['A', 'B', 'C', 'D'] as $col) {
                 $sheet->getStyle("{$col}" . self::HEADER_ROW)
                     ->getFont()->setBold(true);
+            }
+        } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' styles exception', [
+                'error' => $e->getMessage(),
+                'class' => static::class
+            ]);
+        }
+    }
+
     public function headings(): array
+    {
         return $this->reportName === 'Item'
             ? self::HEADINGS_ITEM
             : self::HEADINGS_CUSTOMER;
+    }
+
     public function registerEvents(): array
+    {
         return [
             AfterSheet::class => function (AfterSheet $e): void {
                 try {
@@ -128,28 +170,42 @@ final class SalesReportExport implements
                     }
                     foreach (self::MERGE_RANGES as $rng) {
                         $sheet->mergeCells($rng);
+                    }
                     $sheet->setCellValue(
                         'A2',
                         "Sales By {$this->reportName} - {$this->companyName}"
                     )->getStyle('A2')->getFont()->setBold(true);
+                    $sheet->setCellValue(
                         'A3',
                         "Print Out Date : " . date('Y-m-d H:i')
                     );
+                    $sheet->setCellValue(
                         'A4',
                         "Date : {$this->startDate} - {$this->endDate}"
+                    );
                     $sheet->freezePane(self::START_CELL);
                     $lastRow = $sheet->getHighestRow();
                     $sheet->getStyle("A2:D{$lastRow}")
                         ->getAlignment()
                         ->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     Log::info(__METHOD__ . ' styling completed', [
+                        'class' => static::class
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
+                        'class' => static::class
+                    ]);
+                }
+            }
         ];
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
         $data ??= [];
+        try {
             $data = [
                 'sales' => $this->data,
                 'company_name' => $this->companyName,
@@ -162,11 +218,20 @@ final class SalesReportExport implements
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('sales_report');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }

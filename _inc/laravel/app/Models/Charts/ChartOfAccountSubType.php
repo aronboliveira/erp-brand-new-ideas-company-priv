@@ -104,18 +104,21 @@ class ChartOfAccountSubType extends Model
                 CHTC::COL_DR_TP,
                 static::normalizeDrawingConfig($drawingConfig)
             );
-            $typeKey = $m->getAttribute(CHTC::COL_TP);
+            // Use getAttributes() to safely read the 'type' column value.
+            // $m->getAttribute('type') would resolve to the type() relation
+            // when attributes are empty, causing infinite recursion → OOM.
+            $typeKey = $m->getAttributes()[CHTC::COL_TP] ?? null;
             if ($typeKey) {
                 /** @var \App\Models\ChartOfAccountType|null $type */
                 $type = $m->type()->first();
                 if ($type)
                     static::applyTypeConstraints($m, $type);
             }
-            $code = $m->getAttribute(CHTC::COL_CD);
+            $code = $m->getAttributes()[CHTC::COL_CD] ?? null;
             if (empty($code)) {
                 $prefix = '';
-                if ($m->relationLoaded('type') && $m->type) {
-                    $typeCode = $m->type->getAttribute(CHTC::COL_CD);
+                if ($m->relationLoaded('type') && $m->getRelation('type') instanceof \App\Models\ChartOfAccountType) {
+                    $typeCode = $m->getRelation('type')->getAttribute(CHTC::COL_CD);
                     $prefix   = strtoupper(Str::snake((string) $typeCode));
                     $prefix   = $prefix !== '' ? $prefix . '_' : '';
                 }

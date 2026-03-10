@@ -116,14 +116,9 @@ class Bug extends Model
         // ! ALERT BUG: likely should reference Project::class here
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
-    public function created_by(): HasOne
-    {
-        return $this->createdBy();
-    }
-
-    public function project_bug(): BelongsTo
-    {
-        return $this->projectBug();
-    }
+    // NOTE: created_by() and project_bug() aliases were removed.
+    // They collided with the 'created_by' / 'project_bug' column names,
+    // causing Eloquent to resolve $model->created_by as a relation
+    // instead of an attribute → infinite recursion → OOM.
+    // Use $model->createdBy (relation) or $model->getAttributes()['created_by'] (column).
 }

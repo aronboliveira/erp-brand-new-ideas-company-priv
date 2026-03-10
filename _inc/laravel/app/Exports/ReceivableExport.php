@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
 use Illuminate\Http\RedirectResponse;
@@ -16,10 +17,12 @@ use Maatwebsite\Excel\Concerns\{
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\{Alignment, Fill};
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 final class ReceivableExport implements FromArray, WithHeadings, WithStyles, WithCustomStartCell, WithColumnWidths, WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const BODY_FILL_OPACITY       = '33FFFFFF';
     private const COLUMN_WIDTHS           = ['A' => 30, 'B' => 20, 'C' => 20, 'D' => 20];
     private const DATE_CELL               = 'A4';
@@ -37,10 +40,12 @@ final class ReceivableExport implements FromArray, WithHeadings, WithStyles, Wit
     private const START_CELL              = 'A6';
     private const TITLE_CELL              = 'A2';
     private const VERTICAL_BORDER_COLOR   = '808080';
+
     private array  $data;
     private string $companyName;
     private string $endDate;
     private string $startDate;
+
     public function __construct(array $data, string $startDate, string $endDate, string $companyName)
     {
         $this->startDate = $startDate;
@@ -63,10 +68,13 @@ final class ReceivableExport implements FromArray, WithHeadings, WithStyles, Wit
                 ];
             }
             if (!empty($formatted)) {
+                $formatted[] = [
                     'Customer Name' => 'Total',
                     'Invoice Balance' => '',
                     'Available Credits' => '',
                     'Balance' => $total
+                ];
+            }
             $this->data = $formatted;
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
@@ -77,19 +85,43 @@ final class ReceivableExport implements FromArray, WithHeadings, WithStyles, Wit
             $this->data = [];
         }
     }
+
     public function array(): array
+    {
         return $this->data;
+    }
+
     public function headings(): array
+    {
         return self::HEADINGS;
+    }
+
     public function startCell(): string
+    {
         return self::START_CELL;
+    }
+
     public function columnWidths(): array
+    {
         return self::COLUMN_WIDTHS;
+    }
+
     public function styles(Worksheet $sheet)
+    {
+        try {
             foreach (array_keys(self::COLUMN_WIDTHS) as $col) {
                 $sheet->getStyle("{$col}" . self::START_CELL[1])->getFont()->setBold(true);
+            }
+        } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' styles exception', [
+                'error' => $e->getMessage(),
+                'class' => static::class
+            ]);
+        }
+    }
+
     public function registerEvents(): array
+    {
         return [
             AfterSheet::class => function ($event) {
                 try {
@@ -121,22 +153,36 @@ final class ReceivableExport implements FromArray, WithHeadings, WithStyles, Wit
                         $sheet->getStyle("A{$r}:D{$r}")->getFill()
                             ->setFillType(Fill::FILL_SOLID)
                             ->getStartColor()->setARGB(self::BODY_FILL_OPACITY);
+                    }
                     $sheet->getStyle("A2:D{$highest}")
                         ->getBorders()->getInsideHorizontal()->getColor()->setARGB(self::HORIZONTAL_BORDER_COLOR);
+                    $sheet->getStyle("A2:D{$highest}")
                         ->getBorders()->getInsideVertical()->getColor()->setARGB(self::VERTICAL_BORDER_COLOR);
                     $sheet->getStyle("A2:D2")
                         ->getBorders()->getAllBorders()->getColor()->setARGB(self::HEADER_BORDER_COLOR);
                     Log::info(__METHOD__ . ' styling completed', [
+                        'class' => static::class
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
+                        'class' => static::class
+                    ]);
                 }
+            }
         ];
+    }
+
     private static function columnLetter(string $cell): string
+    {
         return preg_replace('/\d+$/', '', $cell) ?? '';
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
         $data ??= [];
+        try {
             $data = [
                 'receivables' => $this->data,
                 'company_name' => $this->companyName,
@@ -146,11 +192,20 @@ final class ReceivableExport implements FromArray, WithHeadings, WithStyles, Wit
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('receivable');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }

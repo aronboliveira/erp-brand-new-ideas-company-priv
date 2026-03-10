@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use App\Models\{Branch, Department, Designation, Employee};
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
@@ -10,10 +11,12 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithEvents, WithHeadings};
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 class EmployeeExport implements FromCollection, WithHeadings, WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
+
     private const HEADINGS = [
         'Name',
         'Date of Birth',
@@ -45,6 +48,8 @@ class EmployeeExport implements FromCollection, WithHeadings, WithEvents
         'tax_payer_id',
         'updated_at',
         'user_id'
+    ];
+
     public function collection(): Collection
     {
         $data ??= collect();
@@ -61,6 +66,8 @@ class EmployeeExport implements FromCollection, WithHeadings, WithEvents
             $user = $userOrRedirect;
             if (empty($user)) {
                 Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return collect();
+            }
             Log::info(__METHOD__ . ' started', [
                 'user_id' => $user->id ?? null,
                 'class' => static::class
@@ -74,17 +81,26 @@ class EmployeeExport implements FromCollection, WithHeadings, WithEvents
             $data->each(fn($emp, $i) => $this->enrich($emp, $i, $data));
             Log::info(__METHOD__ . ' completed', [
                 'count' => $data->count(),
+                'class' => static::class
+            ]);
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $data = collect();
         }
         return $data;
     }
+
     public function headings(): array
+    {
         return self::HEADINGS;
+    }
+
     public function registerEvents(): array
+    {
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 try {
@@ -114,23 +130,56 @@ class EmployeeExport implements FromCollection, WithHeadings, WithEvents
                                 'color' => ['argb' => 'FF333333']
                             ]
                         ]
+                    ]);
                     $sheet->freezePane('A2');
                     Log::info(__METHOD__ . ' styling completed', [
+                        'class' => static::class
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
+                        'class' => static::class
+                    ]);
+                }
+            }
         ];
+    }
+
     private function enrich($emp, int $i, Collection &$data): void
+    {
+        try {
             $data[$i]['branch'] = $emp->branch->name ?? '-';
             $data[$i]['department'] = $emp->department->name ?? '-';
             $data[$i]['designation'] = $emp->designation->name ?? '-';
             $data[$i]['salary'] = Employee::employeeSalary($emp->salary ?? 0);
+        } catch (\Throwable $e) {
             Log::warning(__METHOD__ . ' enrich failed', [
                 'index' => $i,
+                'error' => $e->getMessage(),
+                'class' => static::class
+            ]);
+        }
+    }
+
     public function exportViaPython(?string $outputPath = null): string
+    {
         $result ??= '';
+        $user ??= null;
+        $userOrRedirect ??= null;
         $data ??= [];
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if ($userOrRedirect instanceof RedirectResponse) {
+                Log::warning(__METHOD__ . ' auth redirect', [
+                    'class' => static::class
+                ]);
                 return '';
+            }
+            $user = $userOrRedirect;
+            if (empty($user)) {
+                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
+                return '';
+            }
             $employees = Employee::where('created_by', $user->creatorId())->get();
             $data = [
                 'employees' => $employees->map(fn($e) => [
@@ -156,11 +205,20 @@ class EmployeeExport implements FromCollection, WithHeadings, WithEvents
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('employees');
+            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
             $result = '';
+        }
         return $result;
+    }
 }
