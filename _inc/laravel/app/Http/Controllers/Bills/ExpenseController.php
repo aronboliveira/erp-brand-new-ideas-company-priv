@@ -115,7 +115,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
-    public function create(string|int $refId): mixed
+    public function create(string|int $refId = ''): mixed
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

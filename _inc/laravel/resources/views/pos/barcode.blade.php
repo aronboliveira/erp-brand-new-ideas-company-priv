@@ -1,12 +1,19 @@
 @php
-    try {
-$lang = Utility::fetchUserLang();
-        $guardMsgPrint = Utility::fetchLinkMessage($lang, VW::POS, 'store_print_barcode_missing_route') ?? __('Action unavailable');
-        $guardMsgSetting = Utility::fetchLinkMessage($lang, VW::POS, 'store_barcode_setting_missing_route') ?? __('Action unavailable');
-        $isList = fn($v) => (is_array($v ?? null) && count($v ?? [])) || (($v ?? null) instanceof Collection && $v->isNotEmpty());
-    } catch (\Throwable $e) {
-        \Log::error('pos/barcode — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        PermissionsConstants,
+        StacksConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants
+    };
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
+    $lang = Utility::fetchUserLang();
+    $guardMsgPrint = Utility::fetchLinkMessage($lang, VW::POS, 'store_print_barcode_missing_route') ?? __('Action unavailable');
+    $guardMsgSetting = Utility::fetchLinkMessage($lang, VW::POS, 'store_barcode_setting_missing_route') ?? __('Action unavailable');
+    $isList = fn($v) => (is_array($v ?? null) && count($v ?? [])) || (($v ?? null) instanceof Collection && $v->isNotEmpty());
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -16,12 +23,12 @@ $lang = Utility::fetchUserLang();
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}">{{ __('POS Product Barcode') }}</li>
+    <li class="breadcrumb-item">{{ __('POS Product Barcode') }}</li>
 @endsection
 
 @push(StacksConstants::ADM_CSS)
@@ -29,33 +36,29 @@ $lang = Utility::fetchUserLang();
 @endpush
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="{{ VC::FEND }}">
+    <div class="float-end">
         @can(PermissionsConstants::CR_BC)
             @php
-                try {
-                    $posPrintBase      = VW::POS.'.print';
-                    $posPrintKebab     = Str::kebab($posPrintBase);
-                    $posPrintResolved  = Route::has($posPrintBase) ? $posPrintBase : (Route::has($posPrintKebab) ? $posPrintKebab : null);
-                    $posPrintUrl       = $posPrintResolved ? route($posPrintResolved) : '#';
-                    $posPrintGuard     = Utility::fetchLinkMessage($lang, VW::POS, 'pos_print_route_unavailable') ?? 'Print POS barcode route is unavailable. Please contact technical support or your domain administrator.';
-                    $posSettingBase     = VW::POS.'.setting';
-                    $posSettingKebab    = Str::kebab($posSettingBase);
-                    $posSettingResolved = Route::has($posSettingBase) ? $posSettingBase : (Route::has($posSettingKebab) ? $posSettingKebab : null);
-                    $posSettingUrl      = $posSettingResolved ? route($posSettingResolved) : '#';
-                    $posSettingGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'pos_setting_route_unavailable') ?? 'POS barcode setting route is unavailable. Please contact technical support or your domain administrator.';
-                } catch (\Throwable $e) {
-                    \Log::error('pos/barcode — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                }
-@endphp
+                $posPrintBase      = VW::POS.'.print';
+                $posPrintKebab     = Str::kebab($posPrintBase);
+                $posPrintResolved  = Route::has($posPrintBase) ? $posPrintBase : (Route::has($posPrintKebab) ? $posPrintKebab : null);
+                $posPrintUrl       = $posPrintResolved ? route($posPrintResolved) : '#';
+                $posPrintGuard     = Utility::fetchLinkMessage($lang, VW::POS, 'pos_print_route_unavailable') ?? 'Print POS barcode route is unavailable. Please contact technical support or your domain administrator.';
+                $posSettingBase     = VW::POS.'.setting';
+                $posSettingKebab    = Str::kebab($posSettingBase);
+                $posSettingResolved = Route::has($posSettingBase) ? $posSettingBase : (Route::has($posSettingKebab) ? $posSettingKebab : null);
+                $posSettingUrl      = $posSettingResolved ? route($posSettingResolved) : '#';
+                $posSettingGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'pos_setting_route_unavailable') ?? 'POS barcode setting route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
             <a href="{{ $posPrintUrl }}"
             id="pos-print-btn"
             class="{{ VC::BT_SM_PM }}"
             data-url="{{ $posPrintUrl }}"
             data-bs-toggle="tooltip"
             title="{{ __('Print Barcode') }}"
-            data-guard-msg="{{ base64_encode($posPrintGuard) }}"
+            data-guard-msg="{{ $posPrintGuard }}"
             data-sv-localized="true">
-                <i class="ti ti-scan {{ VC::TXT_WT }}"></i>
+                <i class="ti ti-scan text-white"></i>
             </a>
             <a href="{{ $posSettingUrl }}"
             id="pos-setting-btn"
@@ -65,9 +68,9 @@ $lang = Utility::fetchUserLang();
             data-title="{{ __('Barcode Setting') }}"
             title="{{ __('Barcode Setting') }}"
             class="{{ VC::BT_SM_PM }}"
-            data-guard-msg="{{ base64_encode($posSettingGuard) }}"
+            data-guard-msg="{{ $posSettingGuard }}"
             data-sv-localized="true">
-                <i class="ti ti-settings {{ VC::TXT_WT }}"></i>
+                <i class="ti ti-settings text-white"></i>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script defer src="{{ asset('assets/js/routes/pos/linkBarcodePrint.js') }}"></script>
@@ -78,11 +81,11 @@ $lang = Utility::fetchUserLang();
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row {{ VC::MT3 }}">
-        <div class="{{ VC::CM12 }}">
+    <div class="row mt-3">
+        <div class="col-md-12">
             <div class="card">
-                <div class="{{ VC::CD_BD_TB_BD }}">
-                    <div class="{{ VC::TB_RSP }}">
+                <div class="card-body table-border-style">
+                    <div class="table-responsive">
                         <table class="table datatable-barcode">
                             <thead>
                                 <tr>
@@ -95,15 +98,11 @@ $lang = Utility::fetchUserLang();
                                 @if($isList($productServices))
                                     @foreach ($productServices as $productService)
                                         @php
-                                            try {
-                                                $psName = data_get($productService, 'name') ?: __('Data unavailable');
-                                                $psSku  = data_get($productService, 'sku') ?: __('Data unavailable');
-                                                $psId   = data_get($productService, 'id');
-                                                $divId  = $psId ?: ('ps-'.$loop->index);
-                                            } catch (\Throwable $e) {
-                                                \Log::error('pos/barcode — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
+                                            $psName = data_get($productService, 'name') ?: __('Data unavailable');
+                                            $psSku  = data_get($productService, 'sku') ?: __('Data unavailable');
+                                            $psId   = data_get($productService, 'id');
+                                            $divId  = $psId ?: ('ps-'.$loop->index);
+                                        @endphp
                                         <tr>
                                             <td>{{ $psName }}</td>
                                             <td>{{ $psSku }}</td>
@@ -114,7 +113,7 @@ $lang = Utility::fetchUserLang();
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="3" class="{{ VC::TXCT_DK }}"><p>{{ __('No Product Services found') }}</p></td>
+                                        <td colspan="3" class="text-center text-dark"><p>{{ __('No Product Services found') }}</p></td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -173,7 +172,7 @@ $lang = Utility::fetchUserLang();
             t.setAttribute("role", "alert");
             t.setAttribute("aria-live", "assertive");
             t.setAttribute("aria-atomic", "true");
-            t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body">' + message + '</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+            t.innerHTML = '<div class="d-flex"><div class="toast-body">' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
             document.getElementById(wrapId).appendChild(t);
             new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
             } else {

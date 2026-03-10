@@ -712,4 +712,26 @@ final class PayslipController extends Controller
             return Excel::download(new PayslipExport($request), $fileName);
         });
     }
+
+    public function show(int|string $id): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        $req = request();
+        return $this->measureProfile($action, function () use ($id, $action, $class, $req) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($req, 'manage payslip')) !== true) return $r;
+            try {
+                $viewPath = 'payslips.show';
+                if (!\Illuminate\Support\Facades\View::exists($viewPath))
+                    return redirect()->route('dashboard')->with('error', 'Payslip show view not found.');
+                $payslip = \App\Models\Bills\Payslip::findOrFail($id);
+                return view($viewPath, ['payslip' => $payslip]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, "$class::$action");
+            }
+        });
+    }
+
 }

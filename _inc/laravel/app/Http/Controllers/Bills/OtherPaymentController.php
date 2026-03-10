@@ -288,4 +288,25 @@ final class OtherPaymentController extends Controller
         ]);
         return null;
     }
+
+    public function index(Request $req): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        return $this->measureProfile($action, function () use ($req, $action, $class) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($req, 'manage other payment')) !== true) return $r;
+            try {
+                $viewPath = 'other_payments.index';
+                if (!\Illuminate\Support\Facades\View::exists($viewPath))
+                    return redirect()->route('dashboard')->with('error', 'Other payments index view not found.');
+                $payments = \App\Models\Bills\OtherPayment::where('created_by', $u->creatorId())->get();
+                return response()->view($viewPath, ['payments' => $payments]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, "$class::$action");
+            }
+        });
+    }
+
 }

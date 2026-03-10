@@ -1,45 +1,27 @@
 @php
-	try {
-try {
-				} catch (\\Error $e) {
-			Log::error('Error in purchases/edit.blade.php main @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		} catch (\\Exception $e) {
-			Log::error('Exception in purchases/edit.blade.php main @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		} catch (\\Throwable $e) {
-			Log::error('Throwable in purchases/edit.blade.php main @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		}
-	} catch (\Throwable $e) {
-		\Log::error('purchases/edit — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-	}
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        SettingsConstants,
+        StacksConstants,
+        ViewsConstants,
+        ViewClassNamesConstants,
+        YieldingConstants,
+    };
+    use Illuminate\Support\Facades\Route;
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Purchase Edit')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}"><a href="{{route(ViewsConstants::PRC.'.index')}}">{{__('Purchase')}}</a></li>
-    <li class="{{ VC::BCI }}">{{__('Purchase Edit')}}</li>
+    <li class="breadcrumb-item"><a href="{{route(ViewsConstants::PRC.'.index')}}">{{__('Purchase')}}</a></li>
+    <li class="breadcrumb-item">{{__('Purchase Edit')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
 
@@ -198,7 +180,7 @@ try {
                             var totalItemTaxRate = 0;
                             for (var i = 0; i < item.taxes.length; i++) {
 
-                                taxes += '<span class="badge {{ VC::BG_P }} p-2 {{ VC::PX3 }} rounded {{ VC::MT1 }} mr-1">' + item.taxes[i].name + ' ' + '(' + item.taxes[i].rate + '%)' + '</span>';
+                                taxes += '<span class="badge bg-primary p-2 px-3 rounded mt-1 mr-1">' + item.taxes[i].name + ' ' + '(' + item.taxes[i].rate + '%)' + '</span>';
                                 tax.push(item.taxes[i].id);
                                 totalItemTaxRate += parseFloat(item.taxes[i].rate);
 
@@ -212,11 +194,14 @@ try {
                                 var itemTaxPrice = parseFloat((totalItemTaxRate / 100)) * parseFloat((item.product.purchase_price * 1)- discount);
                             }
 
+
+
                             $(el.parent().parent().parent().find('.itemTaxPrice')).val(itemTaxPrice.toFixed(2));
                             $(el.parent().parent().parent().find('.itemTaxRate')).val(totalItemTaxRate.toFixed(2));
                             $(el.parent().parent().parent().find('.taxes')).html(taxes);
                             $(el.parent().parent().parent().find('.tax')).val(tax);
                             $(el.parent().parent().parent().find('.unit')).html(item.unit);
+
 
                             var inputs = $(".amount");
                             var subTotal = 0;
@@ -231,6 +216,8 @@ try {
                                 totalItemPrice += (parseFloat(priceInput[j].value) * parseFloat(inputs_quantity[j].value));
                             }
 
+
+
                             var totalItemTaxPrice = 0;
                             var itemTaxPriceInput = $('.itemTaxPrice');
                             for (var j = 0; j < itemTaxPriceInput.length; j++) {
@@ -243,12 +230,14 @@ try {
 
                             }
 
+
                             var totalItemDiscountPrice = 0;
                             var itemDiscountPriceInput = $('.discount');
 
                             for (var k = 0; k < itemDiscountPriceInput.length; k++) {
                                 totalItemDiscountPrice += parseFloat(itemDiscountPriceInput[k].value);
                             }
+
 
                             $('.subTotal').html(totalItemPrice.toFixed(2));
                             $('.totalTax').html(totalItemTaxPrice.toFixed(2));
@@ -257,6 +246,7 @@ try {
 
                         }
                     });
+
 
                 },
             });
@@ -282,6 +272,7 @@ try {
 
             var amount = (totalItemPrice);
 
+
             var totalItemTaxRate = $(el.find('.itemTaxRate')).val();
             var itemTaxPrice = parseFloat((totalItemTaxRate / 100) * (totalItemPrice));
             $(el.find('.itemTaxPrice')).val(itemTaxPrice.toFixed(2));
@@ -293,6 +284,7 @@ try {
             for (var j = 0; j < itemTaxPriceInput.length; j++) {
                 totalItemTaxPrice += parseFloat(itemTaxPriceInput[j].value);
             }
+
 
             var totalItemPrice = 0;
             var inputs_quantity = $(".quantity");
@@ -327,6 +319,7 @@ try {
                 discount = 0 ;
             }
 
+
             var totalItemPrice = (quantity * price)-discount;
 
             var amount = (totalItemPrice);
@@ -342,6 +335,7 @@ try {
             for (var j = 0; j < itemTaxPriceInput.length; j++) {
                 totalItemTaxPrice += parseFloat(itemTaxPriceInput[j].value);
             }
+
 
             var totalItemPrice = 0;
             var inputs_quantity = $(".quantity");
@@ -385,11 +379,13 @@ try {
 
             $(el.find('.amount')).html(parseFloat(itemTaxPrice)+parseFloat(amount));
 
+
             var totalItemTaxPrice = 0;
             var itemTaxPriceInput = $('.itemTaxPrice');
             for (var j = 0; j < itemTaxPriceInput.length; j++) {
                 totalItemTaxPrice += parseFloat(itemTaxPriceInput[j].value);
             }
+
 
             var totalItemPrice = 0;
             var inputs_quantity = $(".quantity");
@@ -406,6 +402,7 @@ try {
                 subTotal = parseFloat(subTotal) + parseFloat($(inputs[i]).html());
             }
 
+
             var totalItemDiscountPrice = 0;
             var itemDiscountPriceInput = $('.discount');
 
@@ -419,6 +416,7 @@ try {
 
             $('.totalAmount').html((parseFloat(subTotal)).toFixed(2));
             $('.totalDiscount').html(totalItemDiscountPrice.toFixed(2));
+
 
         })
 
@@ -465,52 +463,53 @@ try {
     <div class="row">
 
         {{ Collective\Html\FormFacade::model($purchase, array('route' => array(ViewsConstants::PRC.'.update', $purchase->id), 'method' => 'PUT','class'=>'w-100')) }}
-        <div class="{{ VC::C12 }}">
+        <div class="col-12">
             <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
             <div class="card">
-                <div class="{{ VC::CD_BD }}">
+                <div class="card-body">
                     <div class="row">
-                        <div class="{{ VC::CM6 }}">
-                            <div class="{{ VC::FM_G }}" id="vendor-box">
+                        <div class="col-md-6">
+                            <div class="form-group" id="vendor-box">
                                 {{ Collective\Html\FormFacade::label('vendor_id', __('Vendor'),['class'=>'form-label']) }}
                                 {{ Collective\Html\FormFacade::select('vendor_id', $vendors,null, array('class' => 'form-control select','id'=>'vendor','data-url'=>route(ViewsConstants::PRC.'.vendor'),'required'=>'required')) }}
                             </div>
                             <div id="vendor_detail" class="d-none">
                             </div>
                         </div>
-                        <div class="{{ VC::CM6 }}">
+                        <div class="col-md-6">
                             <div class="row">
-                                <div class="{{ VC::CM6 }}">
-                                <div class="{{ VC::FM_G }}">
+                                <div class="col-md-6">
+                                <div class="form-group">
                                     {{ Collective\Html\FormFacade::label('warehouse_id', __('Warehouse'),['class'=>'form-label']) }}
                                     {{ Collective\Html\FormFacade::select('warehouse_id', $warehouse,null, array('class' => 'form-control select','required'=>'required')) }}
                                 </div>
                             </div>
-                                <div class="{{ VC::CM6 }}">
-                                    <div class="{{ VC::FM_G }}">
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         {{ Collective\Html\FormFacade::label('category_id', __('Category'),['class'=>'form-label']) }}
                                         {{ Collective\Html\FormFacade::select('category_id', $category,null, array('class' => 'form-control select','required'=>'required')) }}
                                     </div>
                                 </div>
 
+
                             </div>
                             <div class="row">
 
-                                <div class="{{ VC::CM6 }}">
-                                    <div class="{{ VC::FM_G }}">
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         {{ Collective\Html\FormFacade::label('purchase_date', __('Purchase Date'),['class'=>'form-label']) }}
                                         {{Collective\Html\FormFacade::date('purchase_date',null,array('class'=>'form-control','required'=>'required'))}}
                                     </div>
                                 </div>
-                                <div class="{{ VC::CM6 }}">
-                                    <div class="{{ VC::FM_G }}">
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         {{ Collective\Html\FormFacade::label('purchase_number', __('Purchase Number'),['class'=>'form-label']) }}
-                                        <input type="text" class="{{ VC::FM_CT }}" value="{{$purchase_number}}" readonly>
+                                        <input type="text" class="form-control" value="{{$purchase_number}}" readonly>
                                     </div>
                                 </div>
 
                             </div>
-{{--                            <div class="{{ VC::FM_CHK }} {{ VC::CST_CB }} {{ VC::MT4 }}">--}}
+{{--                            <div class="form-check custom-checkbox mt-4">--}}
 {{--                                        <input class="form-check-input" type="checkbox" name="discount_apply" id="discount_apply" {{$purchase->discount_apply==1?'checked':''}}>--}}
 {{--                                        <label class="form-check-label" for="discount_apply">{{__('Discount Apply')}}</label>--}}
 {{--                                    </div>--}}
@@ -520,23 +519,23 @@ try {
                 </div>
             </div>
         </div>
-        <div class="{{ VC::C12 }}">
-            <h5 class="d-inline-block {{ VC::MB4 }}">{{__('Product & Services')}}</h5>
+        <div class="col-12">
+            <h5 class="d-inline-block mb-4">{{__('Product & Services')}}</h5>
             <div class="card repeater" data-value='{!! json_encode($purchase->items) !!}'>
-                <div class="item-section {{ VC::PY2 }}">
-                    <div class="row {{ VC::JCB }} {{ VC::ALC }}">
-                        <div class="{{ VC::CM12 }} {{ VC::DFL_AIC_JCB }} justify-content-md-end">
+                <div class="item-section py-2">
+                    <div class="row justify-content-between align-items-center">
+                        <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
                             <div class="all-button-box me-2">
-                                <a href="#" data-repeater-create="" class="{{ VC::BT_PRM }}" data-bs-toggle="modal" data-target="#add-bank">
-                                    <i class="{{ VC::TI_PLS }}"></i> {{__('Add item')}}
+                                <a href="#" data-repeater-create="" class="btn btn-primary" data-bs-toggle="modal" data-target="#add-bank">
+                                    <i class="ti ti-plus"></i> {{__('Add item')}}
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="{{ VC::CD_BD_TB_BD }}">
-                    <div class="{{ VC::TB_RSP }}">
-                        <table class="table {{ VC::MB0 }}" data-repeater-list="items" id="sortable-table">
+                <div class="card-body table-border-style ">
+                    <div class="table-responsive">
+                        <table class="table  mb-0" data-repeater-list="items" id="sortable-table">
                             <thead>
                             <tr>
                                 <th>{{__('Items')}}</th>
@@ -545,7 +544,7 @@ try {
                                 <th>{{__('Discount')}}</th>
                                 <th>{{__('Tax')}} (%)</th>
 
-                                <th class="{{ VC::TX_END }}">{{__('Amount')}} <br><small class="{{ VC::TX_DNG }} font-weight-bold">{{__('after tax & discount')}}</small></th>
+                                <th class="text-end">{{__('Amount')}} <br><small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small></th>
                                 <th></th>
                             </tr>
                             </thead>
@@ -553,30 +552,30 @@ try {
                             <tr>
                                 {{ Collective\Html\FormFacade::hidden('id',null, array('class' => 'form-control id')) }}
                                 <td width="25%">
-                                    <div class="{{ VC::FM_G }}">
+                                    <div class="form-group">
                                         {{ Collective\Html\FormFacade::select('item', $product_services,null, array('class' => 'form-control select item','data-url'=>route(ViewsConstants::PRC.'.product'))) }}
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="{{ VC::FM_G }} price-input input-group search-form">
+                                    <div class="form-group price-input input-group search-form">
                                         {{ Collective\Html\FormFacade::text('quantity',null, array('class' => 'form-control quantity','required'=>'required','placeholder'=>__('Qty'),'required'=>'required')) }}
-                                        <span class="unit {{ VC::TXTS_TRP }}"></span>
+                                        <span class="unit input-group-text bg-transparent"></span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="{{ VC::FM_G }} price-input input-group search-form">
+                                    <div class="form-group price-input input-group search-form">
                                         {{ Collective\Html\FormFacade::text('price',null, array('class' => 'form-control price','required'=>'required','placeholder'=>__('Price'),'required'=>'required')) }}
-                                        <span class="{{ VC::TXTS_TRP }}">{{\Auth::user()->currencySymbol()}}</span>
+                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="{{ VC::FM_G }} price-input input-group search-form">
+                                    <div class="form-group price-input input-group search-form">
                                         {{ Collective\Html\FormFacade::text('discount',null, array('class' => 'form-control discount','required'=>'required','placeholder'=>__('Discount'))) }}
-                                        <span class="{{ VC::TXTS_TRP }}">{{\Auth::user()->currencySymbol()}}</span>
+                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="{{ VC::FM_G }}">
+                                    <div class="form-group">
                                         <div class="input-group">
                                             <div class="taxes"></div>
                                             {{ Collective\Html\FormFacade::hidden('tax','', array('class' => 'form-control tax')) }}
@@ -586,7 +585,7 @@ try {
                                     </div>
                                 </td>
 
-                                <td class="{{ VC::TX_END }} amount">
+                                <td class="text-end amount">
                                     0.00
                                 </td>
 
@@ -598,7 +597,7 @@ try {
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <div class="{{ VC::FM_G }}">
+                                    <div class="form-group">
                                         {{ Collective\Html\FormFacade::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'2','placeholder'=>__('Description')]) }}
                                     </div>
                                 </td>
@@ -612,7 +611,7 @@ try {
                                 <td>&nbsp;</td>
                                 <td></td>
                                 <td><strong>{{__('Sub Total')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="{{ VC::TX_END }} subTotal">0.00</td>
+                                <td class="text-end subTotal">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
@@ -621,7 +620,7 @@ try {
                                 <td>&nbsp;</td>
                                 <td></td>
                                 <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="{{ VC::TX_END }} totalDiscount">0.00</td>
+                                <td class="text-end totalDiscount">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
@@ -630,7 +629,7 @@ try {
                                 <td>&nbsp;</td>
                                 <td></td>
                                 <td><strong>{{__('Tax')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="{{ VC::TX_END }} totalTax">0.00</td>
+                                <td class="text-end totalTax">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
@@ -639,7 +638,7 @@ try {
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td class="blue-text"><strong>{{__('Total Amount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="blue-text {{ VC::TX_END }} totalAmount">0.00</td>
+                                <td class="blue-text text-end totalAmount">0.00</td>
                                 <td></td>
                             </tr>
                             </tfoot>
@@ -650,9 +649,10 @@ try {
         </div>
 
         <div class="modal-footer">
-            <input type="button" value="{{__('Cancel')}}" onclick="location.href = ' {{ route('purchase.index') }}';" class="{{ VC::BT_LG }}">
-            <input type="submit" value="{{__('Update')}}" class="{{ VC::BT_PRM }}">
+            <input type="button" value="{{__('Cancel')}}" onclick="location.href = ' {{ route('purchase.index') }}';" class="btn btn-light">
+            <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
         </div>
         {{ Collective\Html\FormFacade::close() }}
     </div>
 @endsection
+

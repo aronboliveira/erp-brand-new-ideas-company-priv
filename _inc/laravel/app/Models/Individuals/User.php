@@ -1253,7 +1253,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $settings['barcode_type'] ?? 'css';
     }
 
-    public static function employeeIdFormat(int $number): string
+    public static function employeeIdFormat(int|string $number): string
     {
         $settings = Utility::settings();
         return $settings[SC::EMP_PFX] . sprintf('%05d', $number);

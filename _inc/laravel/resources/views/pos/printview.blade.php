@@ -1,35 +1,38 @@
 @php
-    try {
-$user     = Auth::user();
-        $lang     = Utility::fetchUserLang(user: $user);
-        $settings = Utility::settings();
+    use App\Config\Constants\{
+        SettingsConstants,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\Auth;
 
-        $posId          = data_get($details, 'pos_id', '');
-        $dateOfPos      = data_get($details, 'date', '');
-        $customer       = data_get($details, 'customer', []);
-        $custDetails    = data_get($customer, 'details', '');
-        $custName       = data_get($customer, 'name', '');
-        $custAddress    = data_get($customer, 'address', '');
-        $custEmail      = data_get($customer, 'email', '');
-        $custPhone      = data_get($customer, 'phone_number', '');
+    $user     = Auth::user();
+    $lang     = Utility::fetchUserLang(user: $user);
+    $settings = Utility::settings();
 
-        $warehouse      = data_get($details, 'warehouse', []);
-        $warehouseDet   = data_get($warehouse, 'details', '');
+    $posId          = data_get($details, 'pos_id', '');
+    $dateOfPos      = data_get($details, 'date', '');
+    $customer       = data_get($details, 'customer', []);
+    $custDetails    = data_get($customer, 'details', '');
+    $custName       = data_get($customer, 'name', '');
+    $custAddress    = data_get($customer, 'address', '');
+    $custEmail      = data_get($customer, 'email', '');
+    $custPhone      = data_get($customer, 'phone_number', '');
 
-        $items          = data_get($sales, 'data', []);
-        $hasItems       = is_array($items) && count($items) > 0;
+    $warehouse      = data_get($details, 'warehouse', []);
+    $warehouseDet   = data_get($warehouse, 'details', '');
 
-        $discount       = data_get($sales, 'discount', 0);
-        $total          = data_get($sales, 'total', 0);
-    } catch (\Throwable $e) {
-        \Log::error('pos/printview — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    $items          = data_get($sales, 'data', []);
+    $hasItems       = is_array($items) && count($items) > 0;
+
+    $discount       = data_get($sales, 'discount', 0);
+    $total          = data_get($sales, 'total', 0);
 @endphp
 
 <div class="pt-0 pb-3 modal-body pos-module" id="printarea">
     <table class="table pos-module-tbl">
         <tbody>
-            <div class="{{ VC::TXCT }}">
+            <div class="text-center">
                 <h3>{{ !empty($settings['company_name']) ? $settings['company_name'] : __('No company value available') }}</h3>
             </div>
             <br>
@@ -46,7 +49,7 @@ $user     = Auth::user();
                 {{ !empty($settings['company_country']) ? $settings['company_country'] : __('No country value available') }}<br>
                 {{ !empty($settings['company_telephone']) ? $settings['company_telephone'] : __('No telephone value available') }}<br>
             </div>
-            <div class="invoice-to {{ VC::MT2 }} product-border">
+            <div class="invoice-to mt-2 product-border">
                 {!! empty($custName) ? ($custDetails ?: '') : '' !!}
             </div>
             <br>
@@ -61,63 +64,63 @@ $user     = Auth::user();
         </tbody>
     </table>
 
-    <div class="text-black text-left fs-5 mt-0 {{ VC::MB0 }}">{{ __('Items') }}</div>
+    <div class="text-black text-left fs-5 mt-0 mb-0">{{ __('Items') }}</div>
 
     @if($hasItems)
         @foreach ($items as $value)
             @php
-                try {
-                    $name      = data_get($value, 'name', __('No name available'));
-                    $qty       = data_get($value, 'quantity', __('No quantity available'));
-                    $price     = data_get($value, 'price', __('No price available'));
-                    $tax       = data_get($value, 'tax', __('No tax available'));
-                    $taxAmount = data_get($value, 'tax_amount', __('No tax amount available'));
-                    $subtotal  = data_get($value, 'subtotal', __('No subtotal available'));
-                } catch (\Throwable $e) {
-                    \Log::error('pos/printview — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                }
-@endphp
-            <div class="{{ VC::MT2 }}">
+                $name      = data_get($value, 'name', __('No name available'));
+                $qty       = data_get($value, 'quantity', __('No quantity available'));
+                $price     = data_get($value, 'price', __('No price available'));
+                $tax       = data_get($value, 'tax', __('No tax available'));
+                $taxAmount = data_get($value, 'tax_amount', __('No tax amount available'));
+                $subtotal  = data_get($value, 'subtotal', __('No subtotal available'));
+            @endphp
+            <div class="mt-2">
                 <div class="p-0"><b>{{ $name }}</b></div>
-                <div class="{{ VC::DFL }} product-border">
+                <div class="d-flex product-border">
                     <div>{{ __('Quantity:') }}</div>
-                    <div class="{{ VC::TX_END }} ms-auto">{{ $qty }}</div>
+                    <div class="text-end ms-auto">{{ $qty }}</div>
                 </div>
             </div>
-            <div class="{{ VC::DFL }} product-border">
+            <div class="d-flex product-border">
                 <div>{{ __('Price:') }}</div>
-                <div class="{{ VC::TX_END }} ms-auto">{{ $price }}</div>
+                <div class="text-end ms-auto">{{ $price }}</div>
             </div>
-            <div class="{{ VC::DFL }} product-border">
+            <div class="d-flex product-border">
                 <div>{{ __('Tax:') }}</div>
-                <div class="{{ VC::TX_END }} ms-auto">{{ $tax }}</div>
+                <div class="text-end ms-auto">{{ $tax }}</div>
             </div>
-            <div class="{{ VC::DFL }} product-border {{ VC::MB2 }}">
+            <div class="d-flex product-border mb-2">
                 <div>{{ __('Tax Amount:') }}</div>
-                <div class="{{ VC::TX_END }} ms-auto">{{ $taxAmount }}</div>
+                <div class="text-end ms-auto">{{ $taxAmount }}</div>
             </div>
-            <div class="{{ VC::DFL }} product-border {{ VC::MB2 }}">
+            <div class="d-flex product-border mb-2">
                 <div>{{ __('Sub Total:') }}</div>
-                <div class="{{ VC::TX_END }} ms-auto">{{ $subtotal }}</div>
+                <div class="text-end ms-auto">{{ $subtotal }}</div>
             </div>
         @endforeach
     @else
-        <div class="{{ VC::MT2 }}">{{ __('No items to display') }}</div>
+        <div class="mt-2">{{ __('No items to display') }}</div>
     @endif
 
-    <div class="{{ VC::DFL }} product-border {{ VC::MB2 }} {{ VC::MT4 }}">
+    <div class="d-flex product-border mb-2 mt-4">
         <div><b>{{ __('Discount:') }}</b></div>
-        <div class="{{ VC::TX_END }} ms-auto">{{ $discount }}</div>
+        <div class="text-end ms-auto">{{ $discount }}</div>
     </div>
-    <div class="{{ VC::DFL }} product-border {{ VC::MB2 }}">
+    <div class="d-flex product-border mb-2">
         <div><b>{{ __('Total:') }}</b></div>
-        <div class="{{ VC::TX_END }} ms-auto">{{ $total }}</div>
+        <div class="text-end ms-auto">{{ $total }}</div>
     </div>
 
-    <h5 class="{{ VC::TXCT }} {{ VC::MT3 }} font-label">{{ __('Thank You For Shopping With Us. Please visit again.') }}</h5>
+    <h5 class="text-center mt-3 font-label">{{ __('Thank You For Shopping With Us. Please visit again.') }}</h5>
 </div>
-<div class="{{ VC::JCC }} pt-2 modal-footer">
+<div class="justify-content-center pt-2 modal-footer">
     <a href="#" id="print" class="{{ VC::BT_SM_PM }} text-right float-right mb-3">{{ __('Print') }}</a>
     <script async src="{{ asset('assets/js/routes/pos/lang/print.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/pos/print.js') }}"></script>
 </div>
+
+
+
+

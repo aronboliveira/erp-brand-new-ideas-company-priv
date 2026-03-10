@@ -1,56 +1,62 @@
 @php
-    try {
-function resolveRoute(string $base): ?string {
-            $k = Str::kebab($base);
-            return Route::has($base) ? $base : (Route::has($k) ? $k : null);
-        }
-        function safeDate($user, $v) {
-            return (is_object($user) && method_exists($user,'dateFormat') && !empty($v))
-                ? $user->dateFormat($v)
-                : __('Failed to format date');
-        }
+    use App\Config\Constants\{
+        SettingsConstants,
+        ViewClassNamesConstants as VC,
+        ViewsConstants as VW,
+        StacksConstants as ST
+    };
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
 
-        $user = Auth::user();
-        $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
-        $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
-
-        $logoDir = Utility::getFile('uploads/logo');
-        $companyLogo = Utility::getValByName(SettingsConstants::CPN_LG);
-        $logoFile = !empty($companyLogo) ? $companyLogo : SettingsConstants::CPN_LG_DK_DEF;
-        $logoSrc = (is_string($logoDir) && $logoDir !== '') ? ($logoDir . '/' . $logoFile) : '#';
-
-        $printBase = VW::POS . '.printview';
-        $printResolved = resolveRoute($printBase);
-        $printUrl = $printResolved ? route($printResolved) : '#';
-        $printGuardMsg = __(($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::POS, 'pos_printview_route_unavailable') : 'POS print view route is unavailable. Please contact technical support or your domain administrator.') ?? 'POS print view route is unavailable. Please contact technical support or your domain administrator.');
-
-        $sales = (is_array($sales ?? null) && count($sales ?? [])) ? $sales : (($sales ?? null) instanceof Collection && $sales->isNotEmpty() ? $sales->toArray() : []);
-        $details = is_array($details ?? null) ? $details : [];
-    } catch (\Throwable $e) {
-        \Log::error('pos/show — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    function resolveRoute(string $base): ?string {
+        $k = Str::kebab($base);
+        return Route::has($base) ? $base : (Route::has($k) ? $k : null);
     }
+    function safeDate($user, $v) {
+        return (is_object($user) && method_exists($user,'dateFormat') && !empty($v))
+            ? $user->dateFormat($v)
+            : __('Failed to format date');
+    }
+
+    $user = Auth::user();
+    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+
+    $logoDir = Utility::getFile('uploads/logo');
+    $companyLogo = Utility::getValByName(SettingsConstants::CPN_LG);
+    $logoFile = !empty($companyLogo) ? $companyLogo : SettingsConstants::CPN_LG_DK_DEF;
+    $logoSrc = (is_string($logoDir) && $logoDir !== '') ? ($logoDir . '/' . $logoFile) : '#';
+
+    $printBase = VW::POS . '.printview';
+    $printResolved = resolveRoute($printBase);
+    $printUrl = $printResolved ? route($printResolved) : '#';
+    $printGuardMsg = __(($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::POS, 'pos_printview_route_unavailable') : 'POS print view route is unavailable. Please contact technical support or your domain administrator.') ?? 'POS print view route is unavailable. Please contact technical support or your domain administrator.');
+
+    $sales = (is_array($sales ?? null) && count($sales ?? [])) ? $sales : (($sales ?? null) instanceof Collection && $sales->isNotEmpty() ? $sales->toArray() : []);
+    $details = is_array($details ?? null) ? $details : [];
 @endphp
 
 @if (!empty($sales) && count($sales) > 0)
     <div class="{{ VC::CD }}">
-        <div class="{{ VC::CD_BD }}">
+        <div class="card-body">
             <div class="{{ VC::RW }} mt-2">
-                <div class="{{ VC::C6 }}">
+                <div class="col-6">
                     <img src="{{ $logoSrc }}" width="120" alt="{{ __('Company logo') }}">
                 </div>
             </div>
             <div id="printableArea">
                 <div class="{{ VC::RW }} {{ VC::MT3 }}">
-                    <div class="{{ VC::C6 }}">
+                    <div class="col-6">
                         <h1 class="invoice-id {{ VC::H6 }}">{{ data_get($details, 'pos_id', __('No POS identifier available')) }}</h1>
                         <div class="date"><b>{{ __('Date') }}: </b>{{ safeDate($user, data_get($details, 'date')) }}</div>
                     </div>
-                    <div class="{{ VC::C6 }} {{ VC::TX_END }}">
-                        <div class="{{ VC::TX_DK }}"><b>{{ __('Warehouse Name') }}: </b>{!! data_get($details, 'warehouse.details') ?: e(__('No warehouse details available')) !!}</div>
+                    <div class="col-6 text-end">
+                        <div class="text-dark"><b>{{ __('Warehouse Name') }}: </b>{!! data_get($details, 'warehouse.details') ?: e(__('No warehouse details available')) !!}</div>
                     </div>
                 </div>
                 <div class="{{ VC::RW }} mt-2">
-                    <div class="col contacts {{ VC::DFL_JCB }} pb-4">
+                    <div class="col contacts d-flex justify-content-between pb-4">
                         <div class="invoice-to">
                             <div class="text-dark {{ VC::H6 }}"><b>{{ __('Billed To :') }}</b></div>
                             {!! data_get($details, 'customer.details') ?: e(__('No customer billing details available')) !!}
@@ -73,10 +79,10 @@ function resolveRoute(string $base): ?string {
                         <tr>
                             <th class="text-left">{{ __('Items') }}</th>
                             <th>{{ __('Quantity') }}</th>
-                            <th class="{{ VC::TX_RT }}">{{ __('Price') }}</th>
-                            <th class="{{ VC::TX_RT }}">{{ __('Tax') }}</th>
-                            <th class="{{ VC::TX_RT }}">{{ __('Tax Amount') }}</th>
-                            <th class="{{ VC::TX_RT }}">{{ __('Total') }}</th>
+                            <th class="text-right">{{ __('Price') }}</th>
+                            <th class="text-right">{{ __('Tax') }}</th>
+                            <th class="text-right">{{ __('Tax Amount') }}</th>
+                            <th class="text-right">{{ __('Total') }}</th>
                         </tr>
                         </thead>
                         <tbody class="font-style">
@@ -84,10 +90,10 @@ function resolveRoute(string $base): ?string {
                             <tr>
                                 <td class="cart-summary-table text-left">{{ data_get($value, 'name', __('No item name available')) }}</td>
                                 <td class="cart-summary-table">{{ data_get($value, 'quantity', __('N/A')) }}</td>
-                                <td class="{{ VC::TX_RT }} cart-summary-table">{{ data_get($value, 'price', __('N/A')) }}</td>
-                                <td class="{{ VC::TX_RT }} cart-summary-table">{!! data_get($value, 'product_tax') ?: e(__('No tax available')) !!}</td>
-                                <td class="{{ VC::TX_RT }} cart-summary-table">{{ data_get($value, 'tax_amount', __('N/A')) }}</td>
-                                <td class="{{ VC::TX_RT }} cart-summary-table">{{ data_get($value, 'subtotal', __('N/A')) }}</td>
+                                <td class="text-right cart-summary-table">{{ data_get($value, 'price', __('N/A')) }}</td>
+                                <td class="text-right cart-summary-table">{!! data_get($value, 'product_tax') ?: e(__('No tax available')) !!}</td>
+                                <td class="text-right cart-summary-table">{{ data_get($value, 'tax_amount', __('N/A')) }}</td>
+                                <td class="text-right cart-summary-table">{{ data_get($value, 'subtotal', __('N/A')) }}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -95,17 +101,17 @@ function resolveRoute(string $base): ?string {
                         <tr>
                             <td>{{ __('Sub Total') }}</td>
                             <td></td><td></td><td></td><td></td>
-                            <td class="{{ VC::TX_RT }}">{{ data_get($sales, 'sub_total', __('No subtotal available')) }}</td>
+                            <td class="text-right">{{ data_get($sales, 'sub_total', __('No subtotal available')) }}</td>
                         </tr>
                         <tr>
                             <td>{{ __('Discount') }}</td>
                             <td></td><td></td><td></td><td></td>
-                            <td class="{{ VC::TX_RT }}">{{ data_get($sales, 'discount', __('No discount available')) }}</td>
+                            <td class="text-right">{{ data_get($sales, 'discount', __('No discount available')) }}</td>
                         </tr>
                         <tr class="pos-header">
                             <td>{{ __('Total') }}</td>
                             <td></td><td></td><td></td><td></td>
-                            <td class="{{ VC::TX_RT }}">{{ data_get($sales, 'total', __('No total available')) }}</td>
+                            <td class="text-right">{{ data_get($sales, 'total', __('No total available')) }}</td>
                         </tr>
                         </tfoot>
                     </table>
@@ -120,7 +126,7 @@ function resolveRoute(string $base): ?string {
                     data-size="sm"
                     data-bs-toggle="tooltip"
                     data-title="{{ __('POS Invoice') }}"
-                    data-guard-msg="{{ base64_encode($printGuardMsg) }}"
+                    data-guard-msg="{{ $printGuardMsg }}"
                     data-sv-localized="true"
                     title="{{ __('Cash Payment') }}"
                 >{{ __('Cash Payment') }}</button>
@@ -216,19 +222,20 @@ function resolveRoute(string $base): ?string {
     </script>
 @else
     <div class="{{ VC::CD }}">
-        <div class="{{ VC::CD_BD }}">
+        <div class="card-body">
             <div class="{{ VC::RW }}">
-                <div class="{{ VC::C12 }} {{ VC::TXCT }}">
-                    <h4 class="{{ VC::TX_DK }}">{{ __('No data found for sales') }}</h4>
+                <div class="col-12 text-center">
+                    <h4 class="text-dark">{{ __('No data found for sales') }}</h4>
                 </div>
             </div>
         </div>
     </div>
 @endif
 
-{{--                <div class="{{ VC::C6 }} {{ VC::TX_END }}">--}}
-{{--                    <a href="#" class="{{ VC::BT_SM_PM }}" onclick="saveAsPDF()"><span class="{{ VC::TI_DWN }}"></span></a>--}}
+
+{{--                <div class="col-6 text-end">--}}
+{{--                    <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()"><span class="ti ti-download"></span></a>--}}
 {{--                </div>--}}
 {{--                            @dd($value)--}}
-{{--                <a href="#" class="btn btn-success btn-done-payment rounded {{ VC::MT2 }} float-right"--}}
+{{--                <a href="#" class="btn btn-success btn-done-payment rounded mt-2 float-right"--}}
 {{--                   data-url="{{ route('pos.data.store') }}">{{ __('Cash Payment') }}</a>--}}

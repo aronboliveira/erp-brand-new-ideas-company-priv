@@ -1,11 +1,19 @@
 @php
-    try {
-$user = Auth::user();
-        $lang = Utility::fetchUserLang(user:$user);
-        $settings = Utility::settings();
-    } catch (\Throwable $e) {
-        \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        PermissionsConstants,
+        StacksConstants,
+        UsersConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
+    };
+    use App\Config\Constants\{DatabaseConstants, SettingsConstants};
+    use App\Models\{Purchase, User, Utility};
+    use Illuminate\Support\Facades\{Auth, Crypt, Route};
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
+    $settings = Utility::settings();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -40,7 +48,7 @@ $user = Auth::user();
         <script defer>
             (function () {
                 const $ = window.jQuery;
-                if (!$) { try {
+                if (!$) { try { 
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -91,7 +99,7 @@ $user = Auth::user();
                     t.setAttribute("role", "alert");
                     t.setAttribute("aria-live", "assertive");
                     t.setAttribute("aria-atomic", "true");
-                    t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                    t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                     container.appendChild(t);
                     }
                     const body = qs(".toast-body", t);
@@ -136,50 +144,42 @@ $user = Auth::user();
         </script>
     @endpush
     @section(YieldingConstants::ADM_BDC)
-        <li class="{{ VC::BCI }}">
+        <li class="breadcrumb-item">
             <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
             {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
                 {{ __('Dashboard') }}
             </a>
         </li>
         @php
-            try {
-                $purchaseIndexBase              = ViewsConstants::PRC.'.index';
-                $purchaseIndexKebab             = Str::kebab($purchaseIndexBase);
-                $purchaseIndexResolved          = Route::has($purchaseIndexBase) ? $purchaseIndexBase : (Route::has($purchaseIndexKebab) ? $purchaseIndexKebab : null);
-                $purchaseIndexUrl               = $purchaseIndexResolved ? route($purchaseIndexResolved) : '#';
-                $purchaseIndexGuardMsg          = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'purchase_index_route_unavailable') ?? 'Purchase index route is unavailable. Please contact technical support or your domain administrator.';
-                $purchaseIndexLinkId            = 'purchase-index-breadcrumb-link';
-            } catch (\Throwable $e) {
-                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            }
-@endphp
-        <li class="{{ VC::BCI }}">
-            <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ base64_encode($purchaseIndexGuardMsg) }}" data-sv-localized="true">{{ __('Purchase') }}</a>
+            $purchaseIndexBase              = ViewsConstants::PRC.'.index';
+            $purchaseIndexKebab             = Str::kebab($purchaseIndexBase);
+            $purchaseIndexResolved          = Route::has($purchaseIndexBase) ? $purchaseIndexBase : (Route::has($purchaseIndexKebab) ? $purchaseIndexKebab : null);
+            $purchaseIndexUrl               = $purchaseIndexResolved ? route($purchaseIndexResolved) : '#';
+            $purchaseIndexGuardMsg          = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'purchase_index_route_unavailable') ?? 'Purchase index route is unavailable. Please contact technical support or your domain administrator.';
+            $purchaseIndexLinkId            = 'purchase-index-breadcrumb-link';
+        @endphp
+        <li class="breadcrumb-item">
+            <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ $purchaseIndexGuardMsg }}" data-sv-localized="true">{{ __('Purchase') }}</a>
         </li>
         @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/purchases/index.js') }}" defer></script>
         @endpush
-        <li class="{{ VC::BCI }}">{{ ($user instanceof User && method_exists($user, 'purchaseNumberFormat')) ? $user->purchaseNumberFormat($purchase->id) : __('Failed to format purchase number') }}</li>
+        <li class="breadcrumb-item">{{ ($user instanceof User && method_exists($user, 'purchaseNumberFormat')) ? $user->purchaseNumberFormat($purchase->id) : __('Failed to format purchase number') }}</li>
     @endsection
     @section('content')
         @php
-            try {
-                $purchaseId = data_get($purchase,'id');
-                $purchaseStatus = (int)(data_get($purchase,'status') ?? -1);
-                $fmtDate = function($val,$fb) use($user){ return ($val && $user && method_exists($user,'dateFormat')) ? ($user->dateFormat($val) ?? $fb) : $fb; };
-                $fmtMoney = function($val){ return request()->user()?->priceFormat($val) ?? number_format((float)$val,2); };
-                $numberFmt = function($v){ return number_format((float)$v,2); };
-            } catch (\Throwable $e) {
-                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            }
-@endphp
+            $purchaseId = data_get($purchase,'id');
+            $purchaseStatus = (int)(data_get($purchase,'status') ?? -1);
+            $fmtDate = function($val,$fb) use($user){ return ($val && $user && method_exists($user,'dateFormat')) ? ($user->dateFormat($val) ?? $fb) : $fb; };
+            $fmtMoney = function($val){ return request()->user()?->priceFormat($val) ?? number_format((float)$val,2); };
+            $numberFmt = function($v){ return number_format((float)$v,2); };
+        @endphp
         @can('send purchase')
             @if($purchaseStatus !== 4)
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::C12 }}">
                         <div class="{{ VC::CD }}">
-                            <div class="{{ VC::CD_BD }}">
+                            <div class="card-body">
                                 <div class="{{ VC::RW }} timeline-wrapper">
                                     <div class="{{ VC::CM6 }} {{ VC::CL4 }} col-xl-4">
                                         <div class="timeline-icons"><span class="timeline-dots"></span><i class="{{ VC::TI_PLS }} text-primary"></i></div>
@@ -187,24 +187,20 @@ $user = Auth::user();
                                         <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB3 }}"><i class="ti ti-clock {{ VC::MR2 }}"></i>{{ __('Created on ') }}{{ $fmtDate(data_get($purchase,'purchase_date'), __('No purchase date available')) }}</p>
                                         @can('edit purchase')
                                             @php
-                                                try {
-                                                    $purchaseIdVal          = isset($purchaseId) ? $purchaseId : null;
-                                                    $purchaseEncId          = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
-                                                    $purchaseEditBase       = VW::PRC.'.edit';
-                                                    $purchaseEditKebab      = Str::kebab($purchaseEditBase);
-                                                    $purchaseEditResolved   = Route::has($purchaseEditBase) ? $purchaseEditBase : (Route::has($purchaseEditKebab) ? $purchaseEditKebab : null);
-                                                    $purchaseEditUrl        = ($purchaseEditResolved && $purchaseEncId) ? route($purchaseEditResolved, [$purchaseEncId]) : '#';
-                                                    $purchaseEditGuardMsg   = Utility::fetchLinkMessage($lang, VW::PRC, 'edit_purchase_route_unavailable') ?? 'Edit purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $purchaseIdVal          = isset($purchaseId) ? $purchaseId : null;
+                                                $purchaseEncId          = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
+                                                $purchaseEditBase       = VW::PRC.'.edit';
+                                                $purchaseEditKebab      = Str::kebab($purchaseEditBase);
+                                                $purchaseEditResolved   = Route::has($purchaseEditBase) ? $purchaseEditBase : (Route::has($purchaseEditKebab) ? $purchaseEditKebab : null);
+                                                $purchaseEditUrl        = ($purchaseEditResolved && $purchaseEncId) ? route($purchaseEditResolved, [$purchaseEncId]) : '#';
+                                                $purchaseEditGuardMsg   = Utility::fetchLinkMessage($lang, VW::PRC, 'edit_purchase_route_unavailable') ?? 'Edit purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                            @endphp
                                             <a href="{{ $purchaseEditUrl }}"
                                             class="{{ VC::BT_SM_PM }} edit-purchase"
                                             data-bs-toggle="tooltip"
                                             data-original-title="{{ __('Edit') }}"
                                             data-url="{{ $purchaseEditUrl }}"
-                                            data-guard-msg="{{ base64_encode($purchaseEditGuardMsg) }}"
+                                            data-guard-msg="{{ $purchaseEditGuardMsg }}"
                                             data-sv-localized="true">
                                                 <i class="{{ VC::TI_PC }} {{ VC::MR2 }}"></i>{{ __('Edit') }}
                                             </a>
@@ -228,24 +224,20 @@ $user = Auth::user();
                                         @if($purchaseStatus === 0)
                                             @can('send purchase')
                                                 @php
-                                                    try {
-                                                        $purchaseIdVal            = isset($purchaseId) ? $purchaseId : null;
-                                                        $purchaseSentBase         = VW::PRC.'.sent';
-                                                        $purchaseSentKebab        = Str::kebab($purchaseSentBase);
-                                                        $purchaseSentResolved     = Route::has($purchaseSentBase) ? $purchaseSentBase : (Route::has($purchaseSentKebab) ? $purchaseSentKebab : null);
-                                                        $purchaseSentParams       = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
-                                                        $purchaseSentUrl          = ($purchaseSentResolved && $purchaseIdVal) ? route($purchaseSentResolved, $purchaseSentParams) : '#';
-                                                        $purchaseSentGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRC, 'sent_purchase_route_unavailable') ?? 'Sent purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                                    } catch (\Throwable $e) {
-                                                        \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                    }
-@endphp
+                                                    $purchaseIdVal            = isset($purchaseId) ? $purchaseId : null;
+                                                    $purchaseSentBase         = VW::PRC.'.sent';
+                                                    $purchaseSentKebab        = Str::kebab($purchaseSentBase);
+                                                    $purchaseSentResolved     = Route::has($purchaseSentBase) ? $purchaseSentBase : (Route::has($purchaseSentKebab) ? $purchaseSentKebab : null);
+                                                    $purchaseSentParams       = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
+                                                    $purchaseSentUrl          = ($purchaseSentResolved && $purchaseIdVal) ? route($purchaseSentResolved, $purchaseSentParams) : '#';
+                                                    $purchaseSentGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRC, 'sent_purchase_route_unavailable') ?? 'Sent purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 <a href="{{ $purchaseSentUrl }}"
                                                 class="{{ VC::BT_SM }} btn-warning mark-sent-purchase"
                                                 data-bs-toggle="tooltip"
                                                 data-original-title="{{ __('Mark Sent') }}"
                                                 data-url="{{ $purchaseSentUrl }}"
-                                                data-guard-msg="{{ base64_encode($purchaseSentGuardMsg) }}"
+                                                data-guard-msg="{{ $purchaseSentGuardMsg }}"
                                                 data-sv-localized="true">
                                                     <i class="ti ti-send {{ VC::MR2 }}"></i>{{ __('Send') }}
                                                 </a>
@@ -256,31 +248,27 @@ $user = Auth::user();
                                         @endif
                                     </div>
                                     <div class="{{ VC::CM6 }} {{ VC::CL4 }} col-xl-4">
-                                        <div class="timeline-icons"><span class="timeline-dots"></span><i class="{{ VC::TI_RPT_MN }} text-info"></i></div>
+                                        <div class="timeline-icons"><span class="timeline-dots"></span><i class="ti ti-report-money text-info"></i></div>
                                         <h6 class="text-info {{ VC::MY3 }}">{{ __('Get Paid') }}</h6>
                                         <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB3 }}">{{ __('Status') }} : {{ __('Awaiting payment') }}</p>
                                         @if($purchaseStatus !== 0)
                                             @can('create payment purchase')
                                                 @php
-                                                    try {
-                                                        $purchaseIdVal        = isset($purchaseId) ? $purchaseId : null;
-                                                        $paymentBase          = VW::PRC.'.payment';
-                                                        $paymentKebab         = Str::kebab($paymentBase);
-                                                        $paymentResolved      = Route::has($paymentBase) ? $paymentBase : (Route::has($paymentKebab) ? $paymentKebab : null);
-                                                        $paymentParams        = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
-                                                        $purchasePaymentUrl   = ($paymentResolved && $purchaseIdVal) ? route($paymentResolved, $paymentParams) : '#';
-                                                        $purchasePaymentMsg   = Utility::fetchLinkMessage($lang, VW::PRC, 'add_payment_purchase_route_unavailable') ?? 'Add payment for purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                                    } catch (\Throwable $e) {
-                                                        \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                    }
-@endphp
+                                                    $purchaseIdVal        = isset($purchaseId) ? $purchaseId : null;
+                                                    $paymentBase          = VW::PRC.'.payment';
+                                                    $paymentKebab         = Str::kebab($paymentBase);
+                                                    $paymentResolved      = Route::has($paymentBase) ? $paymentBase : (Route::has($paymentKebab) ? $paymentKebab : null);
+                                                    $paymentParams        = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
+                                                    $purchasePaymentUrl   = ($paymentResolved && $purchaseIdVal) ? route($paymentResolved, $paymentParams) : '#';
+                                                    $purchasePaymentMsg   = Utility::fetchLinkMessage($lang, VW::PRC, 'add_payment_purchase_route_unavailable') ?? 'Add payment for purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 <a href="{{ $purchasePaymentUrl }}"
                                                 data-url="{{ $purchasePaymentUrl }}"
                                                 data-ajax-popup="true"
                                                 data-title="{{ __('Add Payment') }}"
                                                 class="{{ VC::BT_SM }} btn-info add-purchase-payment"
                                                 data-original-title="{{ __('Add Payment') }}"
-                                                data-guard-msg="{{ base64_encode($purchasePaymentMsg) }}"
+                                                data-guard-msg="{{ $purchasePaymentMsg }}"
                                                 data-sv-localized="true">
                                                     <i class="ti ti-report-money {{ VC::MR2 }}"></i>{{ __('Add Payment') }}
                                                 </a>
@@ -302,30 +290,26 @@ $user = Auth::user();
                 <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }} {{ VC::MB3 }}">
                     <div class="{{ VC::CM12 }} {{ VC::DFL_AIC }} {{ VC::JCB }} justify-content-md-end">
                         @php
-                            try {
-                                $purchaseIdVal               = isset($purchaseId) ? $purchaseId : null;
-                                $resentBase                  = VW::PRC.'.resent';
-                                $resentKebab                 = Str::kebab($resentBase);
-                                $resentResolved              = Route::has($resentBase) ? $resentBase : (Route::has($resentKebab) ? $resentKebab : null);
-                                $resentParams                = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
-                                $purchaseResentUrl           = ($resentResolved && $purchaseIdVal) ? route($resentResolved, $resentParams) : '#';
-                                $purchaseResentGuardMsg      = Utility::fetchLinkMessage($lang, VW::PRC, 'resent_purchase_route_unavailable') ?? 'Resend purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                $encId                       = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
-                                $pdfBase                     = VW::PRC.'.pdf';
-                                $pdfKebab                    = Str::kebab($pdfBase);
-                                $pdfResolved                 = Route::has($pdfBase) ? $pdfBase : (Route::has($pdfKebab) ? $pdfKebab : null);
-                                $pdfParams                   = $encId ? [$encId] : ['#'];
-                                $purchasePdfUrl              = ($pdfResolved && $encId) ? route($pdfResolved, $pdfParams) : '#';
-                                $purchasePdfGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRC, 'pdf_purchase_route_unavailable') ?? 'PDF purchase route is unavailable. Please contact technical support or your domain administrator.';
-                            } catch (\Throwable $e) {
-                                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                            }
-@endphp
+                            $purchaseIdVal               = isset($purchaseId) ? $purchaseId : null;
+                            $resentBase                  = VW::PRC.'.resent';
+                            $resentKebab                 = Str::kebab($resentBase);
+                            $resentResolved              = Route::has($resentBase) ? $resentBase : (Route::has($resentKebab) ? $resentKebab : null);
+                            $resentParams                = $purchaseIdVal ? [$purchaseIdVal] : ['#'];
+                            $purchaseResentUrl           = ($resentResolved && $purchaseIdVal) ? route($resentResolved, $resentParams) : '#';
+                            $purchaseResentGuardMsg      = Utility::fetchLinkMessage($lang, VW::PRC, 'resent_purchase_route_unavailable') ?? 'Resend purchase route is unavailable. Please contact technical support or your domain administrator.';
+                            $encId                       = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
+                            $pdfBase                     = VW::PRC.'.pdf';
+                            $pdfKebab                    = Str::kebab($pdfBase);
+                            $pdfResolved                 = Route::has($pdfBase) ? $pdfBase : (Route::has($pdfKebab) ? $pdfKebab : null);
+                            $pdfParams                   = $encId ? [$encId] : ['#'];
+                            $purchasePdfUrl              = ($pdfResolved && $encId) ? route($pdfResolved, $pdfParams) : '#';
+                            $purchasePdfGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRC, 'pdf_purchase_route_unavailable') ?? 'PDF purchase route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
                         <div class="all-button-box mx-2">
                             <a href="{{ $purchaseResentUrl }}"
                             class="{{ VC::BT_SM_PM }} resent-purchase"
                             data-url="{{ $purchaseResentUrl }}"
-                            data-guard-msg="{{ base64_encode($purchaseResentGuardMsg) }}"
+                            data-guard-msg="{{ $purchaseResentGuardMsg }}"
                             data-sv-localized="true">{{ __('Resend Purchase') }}</a>
                         </div>
                         <div class="all-button-box">
@@ -333,7 +317,7 @@ $user = Auth::user();
                             target="_blank"
                             class="{{ VC::BT_SM_PM }} purchase-pdf"
                             data-url="{{ $purchasePdfUrl }}"
-                            data-guard-msg="{{ base64_encode($purchasePdfGuardMsg) }}"
+                            data-guard-msg="{{ $purchasePdfGuardMsg }}"
                             data-sv-localized="true">{{ __('Download') }}</a>
                         </div>
                         @push(StacksConstants::ADM_SCR_PG)
@@ -354,12 +338,12 @@ $user = Auth::user();
                                     <div class="col-xs-12 col-sm-12 col-nd-6 {{ VC::CL6 }} {{ VC::C12 }}"><h4>{{ __('Purchase') }}</h4></div>
                                     @php
                                         $pnum = $user?->purchaseNumberFormat(data_get($purchase,'purchase_id')) ?? __('No purchase number available');
-@endphp
+                                    @endphp
                                     <div class="col-xs-12 col-sm-12 col-nd-6 {{ VC::CL6 }} {{ VC::C12 }} text-end"><h4 class="invoice-number">{{ $pnum }}</h4></div>
                                     <div class="{{ VC::C12 }}"><hr></div>
                                 </div>
                                 <div class="{{ VC::RW }}">
-                                    <div class="col {{ VC::TX_END }}">
+                                    <div class="col text-end">
                                         <div class="{{ VC::DFL_AIC }} {{ VC::JCE }}">
                                             <div class="me-4">
                                                 <small><strong>{{ __('Issue Date') }} :</strong><br>{{ $fmtDate(data_get($purchase,'purchase_date'), __('No issue date available')) }}<br><br></small>
@@ -369,29 +353,25 @@ $user = Auth::user();
                                 </div>
                                 <div class="{{ VC::RW }}">
                                     @php
-                                        try {
-                                            $vatSwitch = (is_array($settings ?? null) || $settings instanceof \ArrayAccess) ? (data_get($settings,'vat_gst_number_switch') === 'on') : false;
-                                            $b = $vendor ?? null;
-                                            $s = $vendor ?? null;
-                                            $bName = data_get($b,'billing_name');
-                                            $bAddr = data_get($b,'billing_address');
-                                            $bCity = data_get($b,'billing_city');
-                                            $bState = data_get($b,'billing_state');
-                                            $bZip = data_get($b,'billing_zip');
-                                            $bCountry = data_get($b,'billing_country');
-                                            $bPhone = data_get($b,'billing_phone');
-                                            $bTax = data_get($b,'tax_number');
-                                            $sName = data_get($s,'shipping_name');
-                                            $sAddr = data_get($s,'shipping_address');
-                                            $sCity = data_get($s,'shipping_city');
-                                            $sState = data_get($s,'shipping_state');
-                                            $sZip = data_get($s,'shipping_zip');
-                                            $sCountry = data_get($s,'shipping_country');
-                                            $sPhone = data_get($s,'shipping_phone');
-                                        } catch (\Throwable $e) {
-                                            \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                        }
-@endphp
+                                        $vatSwitch = (is_array($settings ?? null) || $settings instanceof \ArrayAccess) ? (data_get($settings,'vat_gst_number_switch') === 'on') : false;
+                                        $b = $vendor ?? null;
+                                        $s = $vendor ?? null;
+                                        $bName = data_get($b,'billing_name');
+                                        $bAddr = data_get($b,'billing_address');
+                                        $bCity = data_get($b,'billing_city');
+                                        $bState = data_get($b,'billing_state');
+                                        $bZip = data_get($b,'billing_zip');
+                                        $bCountry = data_get($b,'billing_country');
+                                        $bPhone = data_get($b,'billing_phone');
+                                        $bTax = data_get($b,'tax_number');
+                                        $sName = data_get($s,'shipping_name');
+                                        $sAddr = data_get($s,'shipping_address');
+                                        $sCity = data_get($s,'shipping_city');
+                                        $sState = data_get($s,'shipping_state');
+                                        $sZip = data_get($s,'shipping_zip');
+                                        $sCountry = data_get($s,'shipping_country');
+                                        $sPhone = data_get($s,'shipping_phone');
+                                    @endphp
                                     <div class="col">
                                         <small class="font-style">
                                             <strong>{{ __('Billed To') }} :</strong><br>
@@ -431,22 +411,18 @@ $user = Auth::user();
                                     @endif
                                     <div class="col">
                                         @php
-                                            try {
-                                                $purchaseIdVal          = isset($purchaseId) ? $purchaseId : null;
-                                                $encId                  = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
-                                                $copyLinkBase           = VW::PRC.'.link.copy';
-                                                $copyLinkKebab          = Str::kebab($copyLinkBase);
-                                                $copyLinkResolved       = Route::has($copyLinkBase) ? $copyLinkBase : (Route::has($copyLinkKebab) ? $copyLinkKebab : null);
-                                                $copyLinkParams         = $encId ? [$encId] : ['#'];
-                                                $purchaseCopyLinkUrl    = ($copyLinkResolved && $encId) ? route($copyLinkResolved, $copyLinkParams) : '#';
-                                                $purchaseCopyLinkMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'copy_link_purchase_route_unavailable') ?? 'Copy link for purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                                $qrElId                 = 'purchase-copy-link-qrcode';
-                                            } catch (\Throwable $e) {
-                                                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
-                                        <div id="{{ $qrElId }}" data-url="{{ $purchaseCopyLinkUrl }}" data-guard-msg="{{ base64_encode($purchaseCopyLinkMsg) }}" data-sv-localized="true">
-                                            {!! DNS2D::getBarcodeHTML($purchaseCopyLinkUrl, 'QRCODE', 2, 2) !!}
+                                            $purchaseIdVal          = isset($purchaseId) ? $purchaseId : null;
+                                            $encId                  = $purchaseIdVal ? Crypt::encrypt($purchaseIdVal) : null;
+                                            $copyLinkBase           = VW::PRC.'.link.copy';
+                                            $copyLinkKebab          = Str::kebab($copyLinkBase);
+                                            $copyLinkResolved       = Route::has($copyLinkBase) ? $copyLinkBase : (Route::has($copyLinkKebab) ? $copyLinkKebab : null);
+                                            $copyLinkParams         = $encId ? [$encId] : ['#'];
+                                            $purchaseCopyLinkUrl    = ($copyLinkResolved && $encId) ? route($copyLinkResolved, $copyLinkParams) : '#';
+                                            $purchaseCopyLinkMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'copy_link_purchase_route_unavailable') ?? 'Copy link for purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                            $qrElId                 = 'purchase-copy-link-qrcode';
+                                        @endphp
+                                        <div id="{{ $qrElId }}" data-url="{{ $purchaseCopyLinkUrl }}" data-guard-msg="{{ $purchaseCopyLinkMsg }}" data-sv-localized="true">
+                                            {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($purchaseCopyLinkUrl, 'QRCODE', 2, 2) !!}
                                         </div>
                                         @push(StacksConstants::ADM_SCR_PG)
                                             <script defer>
@@ -460,7 +436,32 @@ $user = Auth::user();
                                                         const url = el.getAttribute('data-url') || '#';
                                                         if (url !== '#') return;
                                                         const msg = el.getAttribute('data-guard-msg') || 'Copy link for purchase route is unavailable. Please contact technical support or your domain administrator.';
-                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                        const linkEl = document.querySelector('link[href*="bootstrap"]');
+                                                        const hasBootstrapToast = (typeof window !== 'undefined' && window.bootstrap && typeof window.bootstrap.Toast === 'function');
+                                                        let container = document.getElementById('toast-container');
+                                                        if (!container) {
+                                                            container = document.createElement('div');
+                                                            container.id = 'toast-container';
+                                                            container.className = 'position-fixed top-0 end-0 p-3';
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (linkEl && hasBootstrapToast) {
+                                                            const toast = document.createElement('div');
+                                                            toast.className = 'toast';
+                                                            toast.setAttribute('role', 'alert');
+                                                            toast.setAttribute('aria-live', 'assertive');
+                                                            toast.setAttribute('aria-atomic', 'true');
+                                                            const body = document.createElement('div');
+                                                            body.className = 'toast-body';
+                                                            body.textContent = msg;
+                                                            toast.appendChild(body);
+                                                            container.appendChild(toast);
+                                                            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                                                            toast.addEventListener('hidden.bs.toast', function() { try { toast.remove(); } catch (_) {} });
+                                                            inst.show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
                                                         el.setAttribute('data-failed-route', 'true');
                                                     } catch (_) {}
                                                 })();
@@ -471,53 +472,45 @@ $user = Auth::user();
                                 <div class="{{ VC::RW }} {{ VC::MT3 }}">
                                     <div class="col">
                                         @php
-                                            try {
-                                                $statusClasses = [0=>'bg-secondary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-success'];
-                                                $statusIdx = $purchaseStatus;
-                                                $badgeClass = $statusClasses[$statusIdx] ?? 'bg-secondary';
-                                                $statusText = __(Purchase::$statuses[$statusIdx] ?? 'Unknown status');
-                                            } catch (\Throwable $e) {
-                                                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
+                                            $statusClasses = [0=>'bg-secondary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-success'];
+                                            $statusIdx = $purchaseStatus;
+                                            $badgeClass = $statusClasses[$statusIdx] ?? 'bg-secondary';
+                                            $statusText = __(Purchase::$statuses[$statusIdx] ?? 'Unknown status');
+                                        @endphp
                                         <small><strong>{{ __('Status') }} :</strong><br><span class="{{ VC::BDG }} {{ $badgeClass }} p-2 {{ VC::PX3 }} rounded">{{ $statusText }}</span></small>
                                     </div>
                                 </div>
                                 <div class="{{ VC::RW }} {{ VC::MT4 }}">
                                     <div class="{{ VC::CM12 }}">
-                                        <div class="font-bold {{ VC::MB2 }}">{{ __('Product Summary') }}</div>
-                                        <small class="{{ VC::MB2 }}">{{ __('All items here cannot be deleted.') }}</small>
+                                        <div class="font-bold mb-2">{{ __('Product Summary') }}</div>
+                                        <small class="mb-2">{{ __('All items here cannot be deleted.') }}</small>
                                         <div class="table-responsive {{ VC::MT3 }}">
                                             <table class="{{ VC::TB }}">
                                                 <thead>
                                                     <tr>
-                                                        <th class="{{ VC::TX_DK }}" data-width="40">#</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Product') }}</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Quantity') }}</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Rate') }}</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Discount') }}</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Tax') }}</th>
-                                                        <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
-                                                        <th class="{{ VC::TX_END }} {{ VC::TX_DK }}" width="12%">{{ __('Price') }}<br><small class="{{ VC::TX_DNG }} font-weight-bold">{{ __('after tax & discount') }}</small></th>
+                                                        <th class="text-dark" data-width="40">#</th>
+                                                        <th class="text-dark">{{ __('Product') }}</th>
+                                                        <th class="text-dark">{{ __('Quantity') }}</th>
+                                                        <th class="text-dark">{{ __('Rate') }}</th>
+                                                        <th class="text-dark">{{ __('Discount') }}</th>
+                                                        <th class="text-dark">{{ __('Tax') }}</th>
+                                                        <th class="text-dark">{{ __('Description') }}</th>
+                                                        <th class="text-end text-dark" width="12%">{{ __('Price') }}<br><small class="text-danger font-weight-bold">{{ __('after tax & discount') }}</small></th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
                                                 @php
                                                     $items = is_iterable($items ?? null) ? $items : [];
                                                     $totalQuantity=0; $totalRate=0; $totalTaxPrice=0; $totalDiscount=0; $taxesData=[];
-@endphp
+                                                @endphp
                                                 @foreach($items as $key => $item)
                                                     @php
-                                                        try {
-                                                            $qty = (float)(data_get($item,'quantity') ?? 0);
-                                                            $price = (float)(data_get($item,'price') ?? 0);
-                                                            $disc = (float)(data_get($item,'discount') ?? 0);
-                                                            $totalQuantity += $qty; $totalRate += $price; $totalDiscount += $disc;
-                                                            $taxes = !empty(data_get($item,'tax')) ? App\Models\Utility::tax(data_get($item,'tax')) : [];
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $qty = (float)(data_get($item,'quantity') ?? 0);
+                                                        $price = (float)(data_get($item,'price') ?? 0);
+                                                        $disc = (float)(data_get($item,'discount') ?? 0);
+                                                        $totalQuantity += $qty; $totalRate += $price; $totalDiscount += $disc;
+                                                        $taxes = !empty(data_get($item,'tax')) ? App\Models\Utility::tax(data_get($item,'tax')) : [];
+                                                    @endphp
                                                     <tr>
                                                         <td>{{ $key+1 }}</td>
                                                         <td>{{ data_get($item,'product.name') ?? __('No product name available') }}</td>
@@ -527,21 +520,15 @@ $user = Auth::user();
                                                         <td>
                                                             @if(!empty($taxes))
                                                                 <table>
-                                                                    @php
- $rowTaxPrice=0;
-@endphp
+                                                                    @php $rowTaxPrice=0; @endphp
                                                                     @foreach($taxes as $tax)
                                                                         @php
-                                                                            try {
-                                                                                $rate = (float)($tax->rate ?? 0);
-                                                                                $tprice = App\Models\Utility::taxRate($rate,$price,$qty,$disc);
-                                                                                $rowTaxPrice += $tprice;
-                                                                                $tname = $tax->name ?? __('Tax');
-                                                                                $taxesData[$tname] = ($taxesData[$tname] ?? 0) + $tprice;
-                                                                            } catch (\Throwable $e) {
-                                                                                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                                            }
-@endphp
+                                                                            $rate = (float)($tax->rate ?? 0);
+                                                                            $tprice = App\Models\Utility::taxRate($rate,$price,$qty,$disc);
+                                                                            $rowTaxPrice += $tprice;
+                                                                            $tname = $tax->name ?? __('Tax');
+                                                                            $taxesData[$tname] = ($taxesData[$tname] ?? 0) + $tprice;
+                                                                        @endphp
                                                                         <tr><td>{{ $tname.' ('.$rate.'%)' }}</td><td>{{ $user?->priceFormat($tprice) }}</td></tr>
                                                                     @endforeach
                                                                 </table>
@@ -550,10 +537,8 @@ $user = Auth::user();
                                                             @endif
                                                         </td>
                                                         <td>{{ data_get($item,'description') ?? '-' }}</td>
-                                                        @php
- $lineTotal = ($price * $qty - $disc) + ($rowTaxPrice ?? 0);
-@endphp
-                                                        <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($lineTotal) }}</td>
+                                                        @php $lineTotal = ($price * $qty - $disc) + ($rowTaxPrice ?? 0); @endphp
+                                                        <td class="text-end">{{ $user?->priceFormat($lineTotal) }}</td>
                                                     </tr>
                                                 @endforeach
                                                 <tfoot>
@@ -567,48 +552,44 @@ $user = Auth::user();
                                                     </tr>
                                                     <tr>
                                                         @php
-                                                            try {
-                                                                $subTotal = method_exists($purchase,'getSubTotal') ? $purchase->getSubTotal() : 0;
-                                                                $totalDiscountVal = method_exists($purchase,'getTotalDiscount') ? $purchase->getTotalDiscount() : 0;
-                                                                $grandTotal = method_exists($purchase,'getTotal') ? $purchase->getTotal() : 0;
-                                                                $due = method_exists($purchase,'getDue') ? $purchase->getDue() : 0;
-                                                                $paid = $grandTotal - $due;
-                                                            } catch (\Throwable $e) {
-                                                                \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                            }
-@endphp
+                                                            $subTotal = method_exists($purchase,'getSubTotal') ? $purchase->getSubTotal() : 0;
+                                                            $totalDiscountVal = method_exists($purchase,'getTotalDiscount') ? $purchase->getTotalDiscount() : 0;
+                                                            $grandTotal = method_exists($purchase,'getTotal') ? $purchase->getTotal() : 0;
+                                                            $due = method_exists($purchase,'getDue') ? $purchase->getDue() : 0;
+                                                            $paid = $grandTotal - $due;
+                                                        @endphp
                                                         <td colspan="6"></td>
-                                                        <td class="{{ VC::TX_END }}"><b>{{ __('Sub Total') }}</b></td>
-                                                        <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($subTotal) }}</td>
+                                                        <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
+                                                        <td class="text-end">{{ $user?->priceFormat($subTotal) }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td colspan="6"></td>
-                                                        <td class="{{ VC::TX_END }}"><b>{{ __('Discount') }}</b></td>
-                                                        <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($totalDiscountVal) }}</td>
+                                                        <td class="text-end"><b>{{ __('Discount') }}</b></td>
+                                                        <td class="text-end">{{ $user?->priceFormat($totalDiscountVal) }}</td>
                                                     </tr>
                                                     @if(!empty($taxesData))
                                                         @foreach($taxesData as $taxName => $taxPrice)
                                                             <tr>
                                                                 <td colspan="6"></td>
-                                                                <td class="{{ VC::TX_END }}"><b>{{ $taxName }}</b></td>
-                                                                <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($taxPrice) }}</td>
+                                                                <td class="text-end"><b>{{ $taxName }}</b></td>
+                                                                <td class="text-end">{{ $user?->priceFormat($taxPrice) }}</td>
                                                             </tr>
                                                         @endforeach
                                                     @endif
                                                     <tr>
                                                         <td colspan="6"></td>
-                                                        <td class="blue-text {{ VC::TX_END }}"><b>{{ __('Total') }}</b></td>
-                                                        <td class="blue-text {{ VC::TX_END }}">{{ $user?->priceFormat($grandTotal) }}</td>
+                                                        <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
+                                                        <td class="blue-text text-end">{{ $user?->priceFormat($grandTotal) }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td colspan="6"></td>
-                                                        <td class="{{ VC::TX_END }}"><b>{{ __('Paid') }}</b></td>
-                                                        <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($paid) }}</td>
+                                                        <td class="text-end"><b>{{ __('Paid') }}</b></td>
+                                                        <td class="text-end">{{ $user?->priceFormat($paid) }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td colspan="6"></td>
-                                                        <td class="{{ VC::TX_END }}"><b>{{ __('Due') }}</b></td>
-                                                        <td class="{{ VC::TX_END }}">{{ $user?->priceFormat($due) }}</td>
+                                                        <td class="text-end"><b>{{ __('Due') }}</b></td>
+                                                        <td class="text-end">{{ $user?->priceFormat($due) }}</td>
                                                     </tr>
                                                 </tfoot>
                                             </table>
@@ -624,40 +605,36 @@ $user = Auth::user();
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::CD }}">
-                    <div class="{{ VC::CD_BD_TB_BD }}">
-                        <h5 class="d-inline-block {{ VC::MB5 }}">{{ __('Payment Summary') }}</h5>
-                        <div class="{{ VC::TB_RSP }}">
+                    <div class="card-body table-border-style">
+                        <h5 class=" d-inline-block mb-5">{{ __('Payment Summary') }}</h5>
+                        <div class="table-responsive">
                             <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Payment Receipt') }}</th>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Date') }}</th>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Amount') }}</th>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Account') }}</th>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Reference') }}</th>
-                                        <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                        <th class="text-dark">{{ __('Payment Receipt') }}</th>
+                                        <th class="text-dark">{{ __('Date') }}</th>
+                                        <th class="text-dark">{{ __('Amount') }}</th>
+                                        <th class="text-dark">{{ __('Account') }}</th>
+                                        <th class="text-dark">{{ __('Reference') }}</th>
+                                        <th class="text-dark">{{ __('Description') }}</th>
                                         @can('delete payment purchase')
-                                            <th class="{{ VC::TX_DK }}">{{ __('Action') }}</th>
+                                            <th class="text-dark">{{ __('Action') }}</th>
                                         @endcan
                                     </tr>
                                 </thead>
                                 @php
                                     $payments = is_iterable(data_get($purchase,'payments')) ? data_get($purchase,'payments') : [];
-@endphp
+                                @endphp
                                 @forelse($payments as $key => $payment)
                                     @php
-                                        try {
-                                            $receipt = data_get($payment,'add_receipt');
-                                            $pDate = $fmtDate(data_get($payment,'date'), __('No date available'));
-                                            $pAmount = $fmtMoney(data_get($payment,'amount') ?? 0);
-                                            $accName = trim(((data_get($payment,'bankAccount.bank_name') ?? '').' '.(data_get($payment,'bankAccount.holder_name') ?? '')));
-                                            $ref = data_get($payment,'reference') ?? '-';
-                                            $desc = data_get($payment,'description') ?? '-';
-                                            $paymentId = data_get($payment,'id');
-                                        } catch (\Throwable $e) {
-                                            \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                        }
-@endphp
+                                        $receipt = data_get($payment,'add_receipt');
+                                        $pDate = $fmtDate(data_get($payment,'date'), __('No date available'));
+                                        $pAmount = $fmtMoney(data_get($payment,'amount') ?? 0);
+                                        $accName = trim(((data_get($payment,'bankAccount.bank_name') ?? '').' '.(data_get($payment,'bankAccount.holder_name') ?? '')));
+                                        $ref = data_get($payment,'reference') ?? '-';
+                                        $desc = data_get($payment,'description') ?? '-';
+                                        $paymentId = data_get($payment,'id');
+                                    @endphp
                                     <tr>
                                         <td>
                                             @if(!empty($receipt))
@@ -672,25 +649,21 @@ $user = Auth::user();
                                         <td>{{ $ref }}</td>
                                         <td>{{ $desc }}</td>
                                         @can('delete payment purchase')
-                                            <td class="{{ VC::TX_DK }}">
+                                            <td class="text-dark">
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     @php
-                                                        try {
-                                                            $purchaseIdVal                = isset($purchaseId) ? $purchaseId : null;
-                                                            $paymentIdVal                 = isset($paymentId) ? $paymentId : null;
-                                                            $deleteFormId                 = 'delete-form-'.($paymentIdVal ?? 'x');
-                                                            $paymentDestroyBase           = VW::PRC.'.payment.destroy';
-                                                            $paymentDestroyKebab          = Str::kebab($paymentDestroyBase);
-                                                            $paymentDestroyResolved       = Route::has($paymentDestroyBase) ? $paymentDestroyBase : (Route::has($paymentDestroyKebab) ? $paymentDestroyKebab : null);
-                                                            $paymentDestroyParams         = ($purchaseIdVal && $paymentIdVal) ? [$purchaseIdVal, $paymentIdVal] : ['#'];
-                                                            $paymentDestroyUrl            = ($paymentDestroyResolved && $purchaseIdVal && $paymentIdVal) ? route($paymentDestroyResolved, $paymentDestroyParams) : '#';
-                                                            $paymentDestroyGuardMsg       = Utility::fetchLinkMessage($lang, VW::PRC, 'destroy_purchase_payment_route_unavailable') ?? 'Destroy purchase payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                            $confirmTitle                 = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
-                                                            $confirmBody                  = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('purchases/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $purchaseIdVal                = isset($purchaseId) ? $purchaseId : null;
+                                                        $paymentIdVal                 = isset($paymentId) ? $paymentId : null;
+                                                        $deleteFormId                 = 'delete-form-'.($paymentIdVal ?? 'x');
+                                                        $paymentDestroyBase           = VW::PRC.'.payment.destroy';
+                                                        $paymentDestroyKebab          = Str::kebab($paymentDestroyBase);
+                                                        $paymentDestroyResolved       = Route::has($paymentDestroyBase) ? $paymentDestroyBase : (Route::has($paymentDestroyKebab) ? $paymentDestroyKebab : null);
+                                                        $paymentDestroyParams         = ($purchaseIdVal && $paymentIdVal) ? [$purchaseIdVal, $paymentIdVal] : ['#'];
+                                                        $paymentDestroyUrl            = ($paymentDestroyResolved && $purchaseIdVal && $paymentIdVal) ? route($paymentDestroyResolved, $paymentDestroyParams) : '#';
+                                                        $paymentDestroyGuardMsg       = Utility::fetchLinkMessage($lang, VW::PRC, 'destroy_purchase_payment_route_unavailable') ?? 'Destroy purchase payment route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $confirmTitle                 = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                        $confirmBody                  = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                    @endphp
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method'            => 'POST',
                                                         'url'               => $paymentDestroyUrl,
@@ -705,7 +678,7 @@ $user = Auth::user();
                                                         title="{{ __('Delete') }}"
                                                         data-original-title="{{ __('Delete') }}"
                                                         data-url="{{ $paymentDestroyUrl }}"
-                                                        data-guard-msg="{{ base64_encode($paymentDestroyGuardMsg) }}"
+                                                        data-guard-msg="{{ $paymentDestroyGuardMsg }}"
                                                         data-sv-localized="true"
                                                         data-confirm="{{ __($confirmTitle) }}|{{ __($confirmBody) }}"
                                                         data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
@@ -721,7 +694,7 @@ $user = Auth::user();
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="{{ VC::TXCT_DK }}"><p>{{ __('No Data Found') }}</p></td>
+                                        <td colspan="7" class="text-center text-dark"><p>{{ __('No Data Found') }}</p></td>
                                     </tr>
                                 @endforelse
                             </table>
@@ -732,5 +705,5 @@ $user = Auth::user();
         </div>
     @endsection
 @else
-    <div class="{{ VC::ALT_WRN }}">{{__('No purchase found')}}</div>
+    <div class="alert alert-warning">{{__('No purchase found')}}</div>
 @endif

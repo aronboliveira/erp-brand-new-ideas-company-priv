@@ -326,6 +326,27 @@ final class AllowanceController extends Controller
       __CLASS__ . '::' . debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function']
     );
   }
+
+    public function index(Request $req): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        return $this->measureProfile($action, function () use ($req, $action, $class) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($req, 'manage allowance')) !== true) return $r;
+            try {
+                $allowances = \App\Models\Bills\Allowance::where('created_by', $u->creatorId())->get();
+                $viewPath = 'allowances.index';
+                if (!\Illuminate\Support\Facades\View::exists($viewPath))
+                    return redirect()->route('dashboard')->with('error', 'Allowances index view not found.');
+                return response()->view($viewPath, ['allowances' => $allowances]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, "$class::$action");
+            }
+        });
+    }
+
 }
 
 // ! ALERT store and update accept raw amount; consider casting to numeric and validating range to prevent injection or overflow.

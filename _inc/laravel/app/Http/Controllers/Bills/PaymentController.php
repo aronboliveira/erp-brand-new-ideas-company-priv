@@ -438,4 +438,24 @@ final class PaymentController extends Controller
         }
         return null;
     }
+
+    public function show(Request $req, \App\Models\Bills\Payment $payment): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        return $this->measureProfile($action, function () use ($req, $payment, $action, $class) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($req, 'manage payment')) !== true) return $r;
+            try {
+                $viewPath = 'payments.show';
+                if (!\Illuminate\Support\Facades\View::exists($viewPath))
+                    return redirect()->route('dashboard')->with('error', 'Payment show view not found.');
+                return response()->view($viewPath, ['payment' => $payment]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, "$class::$action");
+            }
+        });
+    }
+
 }

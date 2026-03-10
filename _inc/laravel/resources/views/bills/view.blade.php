@@ -1,20 +1,27 @@
 @php
-    try {
-$settings = Utility::settings();
-        $user = Auth::user();
-        $lang = Utility::fetchUserLang(user:$user);
-        $billIndexRoute = Route::has(ViewsConstants::BIL . '.index')
-            ? route(ViewsConstants::BIL . '.index')
-            : '#';
-        $billIndexId  = 'bill-index-link';
-        $billIndexMsg = Utility::fetchLinkMessage(
-            $lang,
-            ViewsConstants::BIL,
-            'bill_index_route_unavailable'
-        ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
-    } catch (\Throwable $e) {
-        \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        StacksConstants,
+        ViewsConstants,
+        ViewsClassNamesConstants as VC
+        YieldingConstants,
+    };
+    use Form as Form;
+    use App\Models\{Bill,ChartOfAccount,Utility};
+    use Illuminate\Support\Facades\{Auth,Crypt,Route};
+    use Illuminate\Support\{Collection, Str};
+    $settings = Utility::settings();
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
+    $billIndexRoute = Route::has(VW::BIL . '.index')
+        ? route(VW::BIL . '.index')
+        : '#';
+    $billIndexId  = 'bill-index-link';
+    $billIndexMsg = Utility::fetchLinkMessage(
+        $lang,
+        VW::BIL,
+        'bill_index_route_unavailable'
+    ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -22,7 +29,7 @@ $settings = Utility::settings();
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
         <script>
-          (() => {
+          (() => { 
               if (!window.translations) {
   window.translations = {};
 }
@@ -51,7 +58,7 @@ Object.keys(t).forEach(
       ...t[k],
     })
 );
-
+     
           })();
     </script>
     <script defer>
@@ -62,7 +69,7 @@ Object.keys(t).forEach(
         const guardMsg = 'data-guard-msg';
         const clientFlag = 'data-client-localized';
         const langKey = 'erp-np-lang';
-
+        
         function getLocalizedMessage(key, el) {
             let msg = '# ERROR';
             if (el.getAttribute(clientFlag) === 'true') {
@@ -86,11 +93,36 @@ Object.keys(t).forEach(
             }
             return msg;
         }
-
+        
         function showError(message) {
-            (window.RouteGuard?.showToast || (m => alert(m)))(message);
+            try {
+            let container = document.getElementById(toastId);
+            if (!container) {
+                container = document.createElement('div');
+                container.id = toastId;
+                document.body.appendChild(container);
+            }
+            const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+            if (bs) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                const body = document.createElement('div');
+                body.className = 'toast-body';
+                body.textContent = message;
+                toast.appendChild(body);
+                container.appendChild(toast);
+                bootstrap.Toast.getOrCreateInstance(toast).show();
+            } else {
+                alert(message);
+            }
+            } catch {
+            alert(message);
+            }
         }
-
+        
         let errorMessage = '';
         const onPointerUp = () => {
             if (errorMessage) {
@@ -107,7 +139,7 @@ Object.keys(t).forEach(
             }
             }));
         }).observe(document.body, { childList: true, subtree: true });
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.querySelector(selector);
             if (!el || el.getAttribute(flag) === 'true') return;
@@ -122,7 +154,7 @@ Object.keys(t).forEach(
             }));
             }).observe(document.body, { childList: true, subtree: true });
         });
-
+        
         function onClick(event) {
             try {
             const el = event.currentTarget;
@@ -145,23 +177,23 @@ Object.keys(t).forEach(
 @php
 @endphp
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a
             id="{{ $billIndexId }}"
             href="{{ $billIndexRoute }}"
             data-url="{{ $billIndexRoute }}"
-            data-guard-msg="{{ base64_encode($billIndexMsg) }}"
+            data-guard-msg="{{ $billIndexMsg }}"
         >
             {{ __('Bill') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}">{{$user?->billNumberFormat($bill->bill_id) }}</li>
+    <li class="breadcrumb-item">{{$user?->billNumberFormat($bill->bill_id) }}</li>
     @push(StacksConstants::ADM_SCR_PG)
         <script defer>
             (() => {
@@ -175,7 +207,28 @@ Object.keys(t).forEach(
                         if ((href && href !== '#') || (url && url !== '#')) return;
                         event.preventDefault();
                         const msg = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (bootstrapLink && window.bootstrap) {
+                            const toastEl = document.createElement('div');
+                            toastEl.className = 'toast';
+                            toastEl.setAttribute('role', 'alert');
+                            toastEl.setAttribute('aria-live', 'assertive');
+                            toastEl.setAttribute('aria-atomic', 'true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toastEl.appendChild(body);
+                            container.appendChild(toastEl);
+                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                        } else {
+                            alert(msg);
+                        }
                         link.setAttribute('data-failed-route', 'true');
                     } catch (e) {}
                 });
@@ -205,25 +258,21 @@ Object.keys(t).forEach(
                                     </p>
                                     @can('edit bill')
                                         @php
-                                            try {
-                                                $billEditRoute    = Route::has(ViewsConstants::BIL . '.edit')
-                                                    ? route(ViewsConstants::BIL . '.edit', Crypt::encrypt($bill->id))
-                                                    : '#';
-                                                $billEditLinkId   = 'bill-edit-link-' . $bill->id;
-                                                $billEditGuardMsg = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::BIL,
-                                                    'bill_edit_route_unavailable'
-                                                ) ?? 'Bill edit route is unavailable. Please contact technical support or your domain administrator.';
-                                            } catch (\Throwable $e) {
-                                                \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
+                                            $billEditRoute    = Route::has(VW::BIL . '.edit')
+                                                ? route(VW::BIL . '.edit', Crypt::encrypt($bill->id))
+                                                : '#';
+                                            $billEditLinkId   = 'bill-edit-link-' . $bill->id;
+                                            $billEditGuardMsg = Utility::fetchLinkMessage(
+                                                $lang,
+                                                VW::BIL,
+                                                'bill_edit_route_unavailable'
+                                            ) ?? 'Bill edit route is unavailable. Please contact technical support or your domain administrator.';
+                                        @endphp
                                         <a
                                             id="{{ $billEditLinkId }}"
                                             href="{{ $billEditRoute }}"
                                             data-url="{{ $billEditRoute }}"
-                                            data-guard-msg="{{ base64_encode($billEditGuardMsg) }}"
+                                            data-guard-msg="{{ $billEditGuardMsg }}"
                                             class="{{ VC::BT_SM_PM }}"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Edit') }}"
@@ -243,7 +292,31 @@ Object.keys(t).forEach(
                                                         if ((href && href !== "#") || (url && url !== "#")) return;
                                                         event.preventDefault();
                                                         const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
-                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                        let container = document.getElementById("toast-container");
+                                                        if (!container) {
+                                                            container = document.createElement("div");
+                                                                      container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (bootstrapLink && window.bootstrap) {
+                                                            const toastEl = document.createElement("div");
+                                                            toastEl.className = "toast";
+                                                            toastEl.setAttribute("role", "alert");
+                                                            toastEl.setAttribute("aria-live", "assertive");
+                                                            toastEl.setAttribute("aria-atomic", "true");
+                                                            const body = document.createElement("div");
+                                                            body.className = "toast-body";
+                                                            body.textContent = msg;
+                                                            toastEl.appendChild(body);
+                                                            container.appendChild(toastEl);
+                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
                                                         btn.setAttribute("data-failed-route", "true");
                                                         } catch (e) {}
                                                     });
@@ -271,25 +344,21 @@ Object.keys(t).forEach(
                                     @if($bill->status == 0)
                                         @can('send bill')
                                             @php
-                                                try {
-                                                    $sendRoute    = Route::has(ViewsConstants::BIL . '.sent')
-                                                        ? route(ViewsConstants::BIL . '.sent', $bill->id)
-                                                        : '#';
-                                                    $sendBtnId    = 'bill-send-btn-' . $bill->id;
-                                                    $sendGuardMsg = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::BIL,
-                                                        'bill_sent_route_unavailable'
-                                                    ) ?? 'Bill send route is unavailable. Please contact technical support or your domain administrator.';
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $sendRoute    = Route::has(VW::BIL . '.sent')
+                                                    ? route(VW::BIL . '.sent', $bill->id)
+                                                    : '#';
+                                                $sendBtnId    = 'bill-send-btn-' . $bill->id;
+                                                $sendGuardMsg = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    VW::BIL,
+                                                    'bill_sent_route_unavailable'
+                                                ) ?? 'Bill send route is unavailable. Please contact technical support or your domain administrator.';
+                                            @endphp
                                             <a
                                                 id="{{ $sendBtnId }}"
                                                 href="{{ $sendRoute }}"
                                                 data-url="{{ $sendRoute }}"
-                                                data-guard-msg="{{ base64_encode($sendGuardMsg) }}"
+                                                data-guard-msg="{{ $sendGuardMsg }}"
                                                 class="{{ VC::BT_SM_WRN }}"
                                                 data-bs-toggle="tooltip"
                                                 title="{{ __('Send') }}"
@@ -309,7 +378,31 @@ Object.keys(t).forEach(
                                                             if ((href && href !== "#") || (url && url !== "#")) return;
                                                             event.preventDefault();
                                                             const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
-                                                            (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                            let container = document.getElementById("toast-container");
+                                                            if (!container) {
+                                                                container = document.createElement("div");
+                                                                          container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+                                                                document.body.appendChild(container);
+                                                            }
+                                                            if (bootstrapLink && window.bootstrap) {
+                                                                const toastEl = document.createElement("div");
+                                                                toastEl.className = "toast";
+                                                                toastEl.setAttribute("role", "alert");
+                                                                toastEl.setAttribute("aria-live", "assertive");
+                                                                toastEl.setAttribute("aria-atomic", "true");
+                                                                const body = document.createElement("div");
+                                                                body.className = "toast-body";
+                                                                body.textContent = msg;
+                                                                toastEl.appendChild(body);
+                                                                container.appendChild(toastEl);
+                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                            } else {
+                                                                alert(msg);
+                                                            }
                                                             btn.setAttribute("data-failed-route", "true");
                                                             } catch (e) {}
                                                         });
@@ -331,25 +424,21 @@ Object.keys(t).forEach(
                                     @if($bill->status != 0)
                                         @can('create payment bill')
                                             @php
-                                                try {
-                                                    $paymentRoute    = Route::has(ViewsConstants::BIL . '.payment')
-                                                        ? route(ViewsConstants::BIL . '.payment', $bill->id)
-                                                        : '#';
-                                                    $paymentBtnId    = 'bill-payment-btn-' . $bill->id;
-                                                    $paymentGuardMsg = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::BIL,
-                                                        'bill_payment_route_unavailable'
-                                                    ) ?? 'Add Payment route is unavailable. Please contact technical support or your domain administrator.';
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $paymentRoute    = Route::has(VW::BIL . '.payment')
+                                                    ? route(VW::BIL . '.payment', $bill->id)
+                                                    : '#';
+                                                $paymentBtnId    = 'bill-payment-btn-' . $bill->id;
+                                                $paymentGuardMsg = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    VW::BIL,
+                                                    'bill_payment_route_unavailable'
+                                                ) ?? 'Add Payment route is unavailable. Please contact technical support or your domain administrator.';
+                                            @endphp
                                             <a
                                                 id="{{ $paymentBtnId }}"
                                                 href="#"
                                                 data-url="{{ $paymentRoute }}"
-                                                data-guard-msg="{{ base64_encode($paymentGuardMsg) }}"
+                                                data-guard-msg="{{ $paymentGuardMsg }}"
                                                 data-ajax-popup="true"
                                                 data-title="{{ __('Add Payment') }}"
                                                 class="{{ VC::BT_SM_INF }}"
@@ -370,7 +459,31 @@ Object.keys(t).forEach(
                                                             if (!url || url === "#") {
                                                                 event.preventDefault();
                                                                 const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
-                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                let container = document.getElementById("toast-container");
+                                                                if (!container) {
+                                                                container = document.createElement("div");
+                                                                          container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+                                                                document.body.appendChild(container);
+                                                                }
+                                                                if (bootstrapLink && window.bootstrap) {
+                                                                const toastEl = document.createElement("div");
+                                                                toastEl.className = "toast";
+                                                                toastEl.setAttribute("role", "alert");
+                                                                toastEl.setAttribute("aria-live", "assertive");
+                                                                toastEl.setAttribute("aria-atomic", "true");
+                                                                const body = document.createElement("div");
+                                                                body.className = "toast-body";
+                                                                body.textContent = msg;
+                                                                toastEl.appendChild(body);
+                                                                container.appendChild(toastEl);
+                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                } else {
+                                                                alert(msg);
+                                                                }
                                                                 btn.setAttribute("data-failed-route", "true");
                                                             }
                                                             } catch (e) {}
@@ -396,25 +509,21 @@ Object.keys(t).forEach(
                         @can('create debit note')
                             <div class="all-button-box mx-2">
                                 @php
-                                    try {
-                                        $debitNoteRoute    = Route::has(ViewsConstants::BIL . '.debit.note')
-                                            ? route(ViewsConstants::BIL . '.debit.note', $bill->id)
-                                            : '#';
-                                        $debitNoteBtnId    = 'bill-debit-note-btn-' . $bill->id;
-                                        $debitNoteGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::BIL,
-                                            'bill_debit_note_route_unavailable'
-                                        ) ?? 'Add Debit Note route is unavailable. Please contact technical support or your domain administrator.';
-                                    } catch (\Throwable $e) {
-                                        \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $debitNoteRoute    = Route::has(VW::BIL . '.debit.note')
+                                        ? route(VW::BIL . '.debit.note', $bill->id)
+                                        : '#';
+                                    $debitNoteBtnId    = 'bill-debit-note-btn-' . $bill->id;
+                                    $debitNoteGuardMsg = Utility::fetchLinkMessage(
+                                        $lang,
+                                        VW::BIL,
+                                        'bill_debit_note_route_unavailable'
+                                    ) ?? 'Add Debit Note route is unavailable. Please contact technical support or your domain administrator.';
+                                @endphp
                                 <a
                                     id="{{ $debitNoteBtnId }}"
                                     href="#"
                                     data-url="{{ $debitNoteRoute }}"
-                                    data-guard-msg="{{ base64_encode($debitNoteGuardMsg) }}"
+                                    data-guard-msg="{{ $debitNoteGuardMsg }}"
                                     data-ajax-popup="true"
                                     data-title="{{ __('Add Debit Note') }}"
                                     class="{{ VC::BT_SM_PM }}"
@@ -472,25 +581,21 @@ Object.keys(t).forEach(
                     @can('send bill')
                         <div class="all-button-box mx-2">
                             @php
-                                try {
-                                    $resentRoute    = Route::has(ViewsConstants::BIL . '.resent')
-                                        ? route(ViewsConstants::BIL . '.resent', $bill->id)
-                                        : '#';
-                                    $resentBtnId    = 'bill-resent-btn-' . $bill->id;
-                                    $resentGuardMsg = Utility::fetchLinkMessage(
-                                        $lang,
-                                        ViewsConstants::BIL,
-                                        'bill_resent_route_unavailable'
-                                    ) ?? 'Resend Bill route is unavailable. Please contact technical support or your domain administrator.';
-                                } catch (\Throwable $e) {
-                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                }
-@endphp
+                                $resentRoute    = Route::has(VW::BIL . '.resent')
+                                    ? route(VW::BIL . '.resent', $bill->id)
+                                    : '#';
+                                $resentBtnId    = 'bill-resent-btn-' . $bill->id;
+                                $resentGuardMsg = Utility::fetchLinkMessage(
+                                    $lang,
+                                    VW::BIL,
+                                    'bill_resent_route_unavailable'
+                                ) ?? 'Resend Bill route is unavailable. Please contact technical support or your domain administrator.';
+                            @endphp
                             <a
                                 id="{{ $resentBtnId }}"
                                 href="{{ $resentRoute }}"
                                 data-url="{{ $resentRoute }}"
-                                data-guard-msg="{{ base64_encode($resentGuardMsg) }}"
+                                data-guard-msg="{{ $resentGuardMsg }}"
                                 class="{{ VC::BT_SM_PM }}"
                                 data-bs-toggle="tooltip"
                                 title="{{ __('Resend Bill') }}"
@@ -543,27 +648,23 @@ Object.keys(t).forEach(
                     @can('show bill')
                         <div class="all-button-box">
                             @php
-                                try {
-                                    $downloadRoute    = Route::has(ViewsConstants::BIL . '.pdf')
-                                        ? route(ViewsConstants::BIL . '.pdf', Crypt::encrypt($bill->id))
-                                        : '#';
-                                    $downloadLinkId   = 'bill-download-' . $bill->id;
-                                    $downloadGuardMsg = Utility::fetchLinkMessage(
-                                        $lang,
-                                        ViewsConstants::BIL,
-                                        'bill_pdf_route_unavailable'
-                                    ) ?? 'Bill PDF route is unavailable. Please contact technical support or your domain administrator.';
-                                } catch (\Throwable $e) {
-                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                }
-@endphp
+                                $downloadRoute    = Route::has(VW::BIL . '.pdf')
+                                    ? route(VW::BIL . '.pdf', Crypt::encrypt($bill->id))
+                                    : '#';
+                                $downloadLinkId   = 'bill-download-' . $bill->id;
+                                $downloadGuardMsg = Utility::fetchLinkMessage(
+                                    $lang,
+                                    VW::BIL,
+                                    'bill_pdf_route_unavailable'
+                                ) ?? 'Bill PDF route is unavailable. Please contact technical support or your domain administrator.';
+                            @endphp
                             <a
                                 id="{{ $downloadLinkId }}"
                                 href="{{ $downloadRoute }}"
                                 target="_blank"
                                 class="{{ VC::BT_SM_PM }}"
                                 data-url="{{ $downloadRoute }}"
-                                data-guard-msg="{{ base64_encode($downloadGuardMsg) }}"
+                                data-guard-msg="{{ $downloadGuardMsg }}"
                             >
                                 {{ __('Download') }}
                             </a>
@@ -615,12 +716,12 @@ Object.keys(t).forEach(
         @endif
     @endif
     <div class="row">
-        <div class="{{ VC::C12 }}">
+        <div class="col-12">
             <div class="card">
-                <div class="{{ VC::CD_BD }}">
+                <div class="card-body">
                     <div class="invoice">
                         <div class="invoice-print">
-                            <div class="row invoice-title {{ VC::MT2 }}">
+                            <div class="row invoice-title mt-2">
                                 <div class="{{ VC::CLMS3 }} {{ VC::DFL }} {{ VC::ALC }}">
                                     <div class="{{ VC::C12 }} {{ VC::CL3 }}">
                                         <h4>{{ __('Bill') }}</h4>
@@ -629,12 +730,12 @@ Object.keys(t).forEach(
                                         @php
                                             $formattedBillNumber = ($user ?? null) && method_exists($user, 'billNumberFormat') && isset($bill->bill_id) ? (string) $user->billNumberFormat($bill->bill_id) : '';
                                             $billNumberOutput    = $formattedBillNumber !== '' ? $formattedBillNumber : __('No Bill Identifier available');
-@endphp
+                                        @endphp
                                         <h4 class="{{ VC::H6 }} {{ VC::TXT_WT }} invoice-number">
                                             {{ $billNumberOutput }}
                                         </h4>
                                     </div>
-                                    <div class="{{ VC::C12 }}">
+                                    <div class="col-12">
                                         <hr>
                                     </div>
                                 </div>
@@ -642,15 +743,11 @@ Object.keys(t).forEach(
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::C12 }} {{ VC::DFL_AIC_JCB }}">
                                     @php
-                                        try {
-                                            $formattedIssue = ($user ?? null) && method_exists($user, 'dateFormat') && !empty($bill->bill_date) ? (string) $user->dateFormat($bill->bill_date) : '';
-                                            $issueOutput    = $formattedIssue !== '' ? $formattedIssue : __('No issue date available');
-                                            $formattedDue   = ($user ?? null) && method_exists($user, 'dateFormat') && !empty($bill->due_date) ? (string) $user->dateFormat($bill->due_date) : '';
-                                            $dueOutput      = $formattedDue !== '' ? $formattedDue : __('No due date available');
-                                        } catch (\Throwable $e) {
-                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                        }
-@endphp
+                                        $formattedIssue = ($user ?? null) && method_exists($user, 'dateFormat') && !empty($bill->bill_date) ? (string) $user->dateFormat($bill->bill_date) : '';
+                                        $issueOutput    = $formattedIssue !== '' ? $formattedIssue : __('No issue date available');
+                                        $formattedDue   = ($user ?? null) && method_exists($user, 'dateFormat') && !empty($bill->due_date) ? (string) $user->dateFormat($bill->due_date) : '';
+                                        $dueOutput      = $formattedDue !== '' ? $formattedDue : __('No due date available');
+                                    @endphp
                                     <div class="{{ VC::ME4 }}">
                                         <small>
                                             <strong>{{ __('Issue Date') }} :</strong><br>
@@ -678,7 +775,7 @@ Object.keys(t).forEach(
                                         {{ (!empty($vendor) && !empty($vendor->billing_phone)) ? $vendor->billing_phone : __('No billing phone available') }}<br>
                                         @php
                                             $vatSwitchOn = isset($settings['vat_gst_number_switch']) && $settings['vat_gst_number_switch'] === 'on';
-@endphp
+                                        @endphp
                                         @if($vatSwitchOn)
                                             <strong>{{ __('Tax Number') }} : </strong>{{ (!empty($vendor) && !empty($vendor->tax_number)) ? $vendor->tax_number : __('No tax number available') }}
                                         @endif
@@ -700,22 +797,18 @@ Object.keys(t).forEach(
                                 @endif
                                 <div class="col">
                                     @php
-                                        try {
-                                            $qrRoute    = Route::has(ViewsConstants::BIL . '.link.copy') ? route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt($bill->id)) : '#';
-                                            $qrId       = 'bill-qr-copy-' . $bill->id;
-                                            $qrGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_link_copy_route_unavailable') ?? 'Bill link copy route is unavailable. Please contact technical support or your domain administrator.';
-                                        } catch (\Throwable $e) {
-                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                        }
-@endphp
+                                        $qrRoute    = Route::has(VW::BIL . '.link.copy') ? route(VW::BIL . '.link.copy', Crypt::encrypt($bill->id)) : '#';
+                                        $qrId       = 'bill-qr-copy-' . $bill->id;
+                                        $qrGuardMsg = Utility::fetchLinkMessage($lang, VW::BIL, 'bill_link_copy_route_unavailable') ?? 'Bill link copy route is unavailable. Please contact technical support or your domain administrator.';
+                                    @endphp
                                     <div
                                         id="{{ $qrId }}"
-                                        class="{{ VC::FEND }} {{ VC::MT3 }}"
+                                        class="float-end mt-3"
                                         data-url="{{ $qrRoute }}"
-                                        data-guard-msg="{{ base64_encode($qrGuardMsg) }}"
+                                        data-guard-msg="{{ $qrGuardMsg }}"
                                         style="cursor: pointer;"
                                     >
-                                        {!! DNS2D::getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
+                                        {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
                                     </div>
                                     @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
@@ -765,27 +858,23 @@ Object.keys(t).forEach(
                                     @endpush
                                 </div>
                             </div>
-                            <div class="row {{ VC::MT3 }}">
+                            <div class="row mt-3">
                                 @php
-                                    try {
-                                        $statusClasses = [
-                                            0 => 'bg-primary',
-                                            1 => 'bg-warning',
-                                            2 => 'bg-danger',
-                                            3 => 'bg-info',
-                                            4 => 'bg-primary'
-                                        ];
-                                        $statusIndex = isset($bill->status) ? (int) $bill->status : -1;
-                                        $badgeClass  = $statusClasses[$statusIndex] ?? 'bg-secondary';
-                                        $statusLabel = isset(Bill::$statuses[$statusIndex]) ? (string) Bill::$statuses[$statusIndex] : __('No status available');
-                                    } catch (\Throwable $e) {
-                                        \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $statusClasses = [
+                                        0 => 'bg-primary',
+                                        1 => 'bg-warning',
+                                        2 => 'bg-danger',
+                                        3 => 'bg-info',
+                                        4 => 'bg-primary'
+                                    ];
+                                    $statusIndex = isset($bill->status) ? (int) $bill->status : -1;
+                                    $badgeClass  = $statusClasses[$statusIndex] ?? 'bg-secondary';
+                                    $statusLabel = isset(Bill::$statuses[$statusIndex]) ? (string) Bill::$statuses[$statusIndex] : __('No status available');
+                                @endphp
                                 <div class="col">
                                     <small>
                                         <strong>{{ __('Status') }} :</strong><br>
-                                        <span class="badge {{ $badgeClass }} p-2 {{ VC::PX3 }} rounded">
+                                        <span class="badge {{ $badgeClass }} p-2 px-3 rounded">
                                             {{ __($statusLabel) }}
                                         </span>
                                     </small>
@@ -793,7 +882,7 @@ Object.keys(t).forEach(
                                 @php
                                     $hasCustomFields = (is_array($customFields ?? null) && count($customFields ?? []) > 0) || (($customFields ?? null) instanceof Collection && ($customFields)->isNotEmpty());
                                     $billCustomData  = is_array($bill->customField ?? null) ? $bill->customField : [];
-@endphp
+                                @endphp
                                 @if($hasCustomFields)
                                     @foreach($customFields as $field)
                                         <div class="col text-md-end">
@@ -806,31 +895,27 @@ Object.keys(t).forEach(
                                     @endforeach
                                 @endif
                             </div>
-                            <div class="row {{ VC::MT4 }}">
-                                <div class="{{ VC::CM12 }}">
-                                    <div class="font-bold {{ VC::MB2 }}">{{ __('Product Summary') }}</div>
-                                    <small class="{{ VC::MB2 }}">{{ __('All items here cannot be deleted.') }}</small>
-                                    <div class="{{ VC::TB_RSP }} {{ VC::MT3 }}">
-                                        <table class="{{ VC::TB_MB0 }} table-striped">
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="font-bold mb-2">{{ __('Product Summary') }}</div>
+                                    <small class="mb-2">{{ __('All items here cannot be deleted.') }}</small>
+                                    <div class="table-responsive mt-3">
+                                        <table class="table mb-0 table-striped">
                                             @php
-                                                try {
-                                                    $headers = [
-                                                        ['text' => '#', 'data-width' => '40'],
-                                                        ['text' => __('Product')],
-                                                        ['text' => __('Quantity')],
-                                                        ['text' => __('Rate')],
-                                                        ['text' => __('Discount')],
-                                                        ['text' => __('Tax')],
-                                                        ['text' => __('Chart Of Account')],
-                                                        ['text' => __('Account Amount')],
-                                                        ['text' => __('Description')],
-                                                        ['text' => __('Price'), 'class' => 'text-end text-dark', 'width' => '12%', 'subtitle' => __('after tax & discount')],
-                                                        ['text' => '', 'class' => '']
-                                                    ];
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $headers = [
+                                                    ['text' => '#', 'data-width' => '40'],
+                                                    ['text' => __('Product')],
+                                                    ['text' => __('Quantity')],
+                                                    ['text' => __('Rate')],
+                                                    ['text' => __('Discount')],
+                                                    ['text' => __('Tax')],
+                                                    ['text' => __('Chart Of Account')],
+                                                    ['text' => __('Account Amount')],
+                                                    ['text' => __('Description')],
+                                                    ['text' => __('Price'), 'class' => 'text-end text-dark', 'width' => '12%', 'subtitle' => __('after tax & discount')],
+                                                    ['text' => '', 'class' => '']
+                                                ];
+                                            @endphp
                                             <tr>
                                                 @foreach($headers as $header)
                                                     <th class="{{ $header['class'] ?? 'text-dark' }}"
@@ -838,64 +923,56 @@ Object.keys(t).forEach(
                                                         @if(isset($header['data-width'])) data-width="{{ $header['data-width'] }}" @endif>
                                                         {{ $header['text'] }}
                                                         @if(isset($header['subtitle']))
-                                                            <br><small class="{{ VC::TX_DNG }} font-weight-bold">{{ $header['subtitle'] }}</small>
+                                                            <br><small class="text-danger font-weight-bold">{{ $header['subtitle'] }}</small>
                                                         @endif
                                                     </th>
                                                 @endforeach
                                             </tr>
                                             @php
-                                                $totalQuantity  ??= 0.0;
-                                                $totalRate      ??= 0.0;
-                                                $totalTaxAmount ??= 0.0;
-                                                $totalDiscount  ??= 0.0;
-                                                $taxesSummary   ??= [];
-                                                try {
-                                                    $priceFmtAvail  = ($user ?? null) && method_exists($user, 'priceFormat');
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $totalQuantity  = 0.0;
+                                                $totalRate      = 0.0;
+                                                $totalTaxAmount = 0.0;
+                                                $totalDiscount  = 0.0;
+                                                $taxesSummary   = [];
+                                                $priceFmtAvail  = ($user ?? null) && method_exists($user, 'priceFormat');
+                                            @endphp
                                             @php
                                                 $itemsIterable = (is_array($items ?? null) && count($items ?? []) > 0) || (($items ?? null) instanceof Collection && ($items)->isNotEmpty());
-@endphp
+                                            @endphp
                                             @if($itemsIterable)
                                                 @foreach($items as $index => $item)
                                                     @php
-                                                        try {
-                                                            $qty   = is_numeric($item->quantity ?? null) ? (float) $item->quantity : 0.0;
-                                                            $rate  = is_numeric($item->price ?? null) ? (float) $item->price : 0.0;
-                                                            $disc  = is_numeric($item->discount ?? null) ? (float) $item->discount : 0.0;
-                                                            $totalQuantity += $qty;
-                                                            $totalRate     += $rate;
-                                                            $totalDiscount += $disc;
-                                                            $taxList = [];
-                                                            if (!empty($item->tax)) {
-                                                                $tmp = Utility::tax($item->tax);
-                                                                if (is_iterable($tmp)) {
-                                                                    foreach ($tmp as $t) {
-                                                                        $taxList[] = $t;
-                                                                    }
+                                                        $qty   = is_numeric($item->quantity ?? null) ? (float) $item->quantity : 0.0;
+                                                        $rate  = is_numeric($item->price ?? null) ? (float) $item->price : 0.0;
+                                                        $disc  = is_numeric($item->discount ?? null) ? (float) $item->discount : 0.0;
+                                                        $totalQuantity += $qty;
+                                                        $totalRate     += $rate;
+                                                        $totalDiscount += $disc;
+                                                        $taxList = [];
+                                                        if (!empty($item->tax)) {
+                                                            $tmp = Utility::tax($item->tax);
+                                                            if (is_iterable($tmp)) {
+                                                                foreach ($tmp as $t) {
+                                                                    $taxList[] = $t;
                                                                 }
                                                             }
-                                                            $lineTaxTotal = 0.0;
-                                                            foreach ($taxList as $taxObj) {
-                                                                $taxName       = isset($taxObj->name) && $taxObj->name !== '' ? (string) $taxObj->name : __('Tax');
-                                                                $taxRate       = is_numeric($taxObj->rate ?? null) ? (float) $taxObj->rate : 0.0;
-                                                                $taxAmount     = Utility::taxRate($taxRate, $rate, $qty, $disc);
-                                                                $lineTaxTotal += $taxAmount;
-                                                                $taxesSummary[$taxName] = ($taxesSummary[$taxName] ?? 0.0) + $taxAmount;
-                                                            }
-                                                            $totalTaxAmount += $lineTaxTotal;
-                                                            $linePrice = max(0, ($rate * $qty) - $disc) + $lineTaxTotal;
-                                                            $product   = method_exists($item, 'product') ? $item->product() : null;
-                                                            $unitId    = !empty($product) ? ($product->unit_id ?? null) : null;
-                                                            $unitModel = $unitId ? \App\Models\ProductServiceUnit::find($unitId) : null;
-                                                            $chart     = isset($item->chart_account_id) ? \App\Models\ChartOfAccount::find($item->chart_account_id) : null;
-                                                            $accountAmount = is_numeric($item->amount ?? null) ? (float) $item->amount : 0.0;
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                         }
-@endphp
+                                                        $lineTaxTotal = 0.0;
+                                                        foreach ($taxList as $taxObj) {
+                                                            $taxName       = isset($taxObj->name) && $taxObj->name !== '' ? (string) $taxObj->name : __('Tax');
+                                                            $taxRate       = is_numeric($taxObj->rate ?? null) ? (float) $taxObj->rate : 0.0;
+                                                            $taxAmount     = Utility::taxRate($taxRate, $rate, $qty, $disc);
+                                                            $lineTaxTotal += $taxAmount;
+                                                            $taxesSummary[$taxName] = ($taxesSummary[$taxName] ?? 0.0) + $taxAmount;
+                                                        }
+                                                        $totalTaxAmount += $lineTaxTotal;
+                                                        $linePrice = max(0, ($rate * $qty) - $disc) + $lineTaxTotal;
+                                                        $product   = method_exists($item, 'product') ? $item->product() : null;
+                                                        $unitId    = !empty($product) ? ($product->unit_id ?? null) : null;
+                                                        $unitModel = $unitId ? \App\Models\ProductServiceUnit::find($unitId) : null;
+                                                        $chart     = isset($item->chart_account_id) ? \App\Models\ChartOfAccount::find($item->chart_account_id) : null;
+                                                        $accountAmount = is_numeric($item->amount ?? null) ? (float) $item->amount : 0.0;
+                                                    @endphp
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
                                                         <td>{{ !empty($product) ? $product->name : __('No product available') }}</td>
@@ -907,14 +984,10 @@ Object.keys(t).forEach(
                                                                 <table>
                                                                     @foreach($taxList as $tx)
                                                                         @php
-                                                                            try {
-                                                                                $txName  = isset($tx->name) && $tx->name !== '' ? (string) $tx->name : __('Tax');
-                                                                                $txRate  = is_numeric($tx->rate ?? null) ? (float) $tx->rate : 0.0;
-                                                                                $txPrice = Utility::taxRate($txRate, $rate, $qty, $disc);
-                                                                            } catch (\Throwable $e) {
-                                                                                \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                                            }
-@endphp
+                                                                            $txName  = isset($tx->name) && $tx->name !== '' ? (string) $tx->name : __('Tax');
+                                                                            $txRate  = is_numeric($tx->rate ?? null) ? (float) $tx->rate : 0.0;
+                                                                            $txPrice = Utility::taxRate($txRate, $rate, $qty, $disc);
+                                                                        @endphp
                                                                         <tr>
                                                                             <td>{{ $txName . ' (' . $txRate . '%)' }}</td>
                                                                             <td>{{ $priceFmtAvail ? $user->priceFormat($txPrice) : number_format($txPrice, 2) }}</td>
@@ -928,28 +1001,24 @@ Object.keys(t).forEach(
                                                         <td>{{ !empty($chart) ? $chart->name : __('No account available') }}</td>
                                                         <td>{{ $priceFmtAvail ? $user->priceFormat($accountAmount) : number_format($accountAmount, 2) }}</td>
                                                         <td>{{ !empty($item->description) ? $item->description : __('No description available') }}</td>
-                                                        <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($linePrice) : number_format($linePrice, 2) }}</td>
+                                                        <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($linePrice) : number_format($linePrice, 2) }}</td>
                                                         <td></td>
                                                     </tr>
                                                 @endforeach
                                             @else
                                                 <tr>
-                                                    <td colspan="11" class="{{ VC::TXCT }}">{{ __('No items available') }}</td>
+                                                    <td colspan="11" class="text-center">{{ __('No items available') }}</td>
                                                 </tr>
                                             @endif
                                             @php
-                                                try {
-                                                    $accountTotal = ($bill ?? null) && method_exists($bill, 'getAccountTotal') ? (float) $bill->getAccountTotal() : 0.0;
-                                                    $subTotal     = ($bill ?? null) && method_exists($bill, 'getSubTotal') ? (float) $bill->getSubTotal() : 0.0;
-                                                    $totalDisc    = ($bill ?? null) && method_exists($bill, 'getTotalDiscount') ? (float) $bill->getTotalDiscount() : 0.0;
-                                                    $grandTotal   = ($bill ?? null) && method_exists($bill, 'getTotal') ? (float) $bill->getTotal() : 0.0;
-                                                    $dueAmount    = ($bill ?? null) && method_exists($bill, 'getDue') ? (float) $bill->getDue() : 0.0;
-                                                    $debitNotes   = ($bill ?? null) && method_exists($bill, 'billTotalDebitNote') ? (float) $bill->billTotalDebitNote() : 0.0;
-                                                    $paidAmount   = max(0, ($grandTotal - $dueAmount) - $debitNotes);
-                                                } catch (\Throwable $e) {
-                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                }
-@endphp
+                                                $accountTotal = ($bill ?? null) && method_exists($bill, 'getAccountTotal') ? (float) $bill->getAccountTotal() : 0.0;
+                                                $subTotal     = ($bill ?? null) && method_exists($bill, 'getSubTotal') ? (float) $bill->getSubTotal() : 0.0;
+                                                $totalDisc    = ($bill ?? null) && method_exists($bill, 'getTotalDiscount') ? (float) $bill->getTotalDiscount() : 0.0;
+                                                $grandTotal   = ($bill ?? null) && method_exists($bill, 'getTotal') ? (float) $bill->getTotal() : 0.0;
+                                                $dueAmount    = ($bill ?? null) && method_exists($bill, 'getDue') ? (float) $bill->getDue() : 0.0;
+                                                $debitNotes   = ($bill ?? null) && method_exists($bill, 'billTotalDebitNote') ? (float) $bill->billTotalDebitNote() : 0.0;
+                                                $paidAmount   = max(0, ($grandTotal - $dueAmount) - $debitNotes);
+                                            @endphp
                                             <tfoot>
                                                 <tr>
                                                     <td></td>
@@ -963,45 +1032,45 @@ Object.keys(t).forEach(
                                                 </tr>
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Sub Total') }}</b></td>
-                                                    <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($subTotal) : number_format($subTotal, 2) }}</td>
+                                                    <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
+                                                    <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($subTotal) : number_format($subTotal, 2) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Discount') }}</b></td>
-                                                    <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($totalDisc) : number_format($totalDisc, 2) }}</td>
+                                                    <td class="text-end"><b>{{ __('Discount') }}</b></td>
+                                                    <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($totalDisc) : number_format($totalDisc, 2) }}</td>
                                                 </tr>
                                                 @php
                                                     $hasTaxSummary = !empty($taxesSummary);
-@endphp
+                                                @endphp
                                                 @if($hasTaxSummary)
                                                     @foreach($taxesSummary as $taxName => $taxValue)
                                                         <tr>
                                                             <td colspan="8"></td>
-                                                            <td class="{{ VC::TX_END }}"><b>{{ $taxName }}</b></td>
-                                                            <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($taxValue) : number_format($taxValue, 2) }}</td>
+                                                            <td class="text-end"><b>{{ $taxName }}</b></td>
+                                                            <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($taxValue) : number_format($taxValue, 2) }}</td>
                                                         </tr>
                                                     @endforeach
                                                 @endif
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="blue-text {{ VC::TX_END }}"><b>{{ __('Total') }}</b></td>
-                                                    <td class="blue-text {{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($grandTotal) : number_format($grandTotal, 2) }}</td>
+                                                    <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
+                                                    <td class="blue-text text-end">{{ $priceFmtAvail ? $user->priceFormat($grandTotal) : number_format($grandTotal, 2) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Paid') }}</b></td>
-                                                    <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($paidAmount) : number_format($paidAmount, 2) }}</td>
+                                                    <td class="text-end"><b>{{ __('Paid') }}</b></td>
+                                                    <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($paidAmount) : number_format($paidAmount, 2) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Debit Note') }}</b></td>
-                                                    <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($debitNotes) : number_format($debitNotes, 2) }}</td>
+                                                    <td class="text-end"><b>{{ __('Debit Note') }}</b></td>
+                                                    <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($debitNotes) : number_format($debitNotes, 2) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="8"></td>
-                                                    <td class="{{ VC::TX_END }}"><b>{{ __('Due') }}</b></td>
-                                                    <td class="{{ VC::TX_END }}">{{ $priceFmtAvail ? $user->priceFormat($dueAmount) : number_format($dueAmount, 2) }}</td>
+                                                    <td class="text-end"><b>{{ __('Due') }}</b></td>
+                                                    <td class="text-end">{{ $priceFmtAvail ? $user->priceFormat($dueAmount) : number_format($dueAmount, 2) }}</td>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -1017,78 +1086,62 @@ Object.keys(t).forEach(
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD_BD_TB_BD }}">
-                    <h5 class="d-inline-block {{ VC::MB5 }}">{{ __('Payment Summary') }}</h5>
-                    <div class="{{ VC::TB_RSP }}">
+                <div class="card-body table-border-style">
+                    <h5 class="d-inline-block mb-5">{{ __('Payment Summary') }}</h5>
+                    <div class="table-responsive">
                         <table class="{{ VC::TB }}">
                             <thead>
                                 <tr>
                                     @php
-                                        try {
-                                            $paymentHeaders = [
-                                                __('Payment Receipt'),
-                                                __('Date'),
-                                                __('Amount'),
-                                                __('Account'),
-                                                __('Reference'),
-                                                __('Description'),
-                                            ];
-                                        } catch (\Throwable $e) {
-                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                        }
-@endphp
+                                        $paymentHeaders = [
+                                            __('Payment Receipt'),
+                                            __('Date'),
+                                            __('Amount'),
+                                            __('Account'),
+                                            __('Reference'),
+                                            __('Description'),
+                                        ];
+                                    @endphp
                                     @foreach ($paymentHeaders as $header)
-                                        <th class="{{ VC::TX_DK }}">{{ $header }}</th>
+                                        <th class="text-dark">{{ $header }}</th>
                                     @endforeach
                                     @can('delete payment bill')
-                                        <th class="{{ VC::TX_DK }}">{{ __('Action') }}</th>
+                                        <th class="text-dark">{{ __('Action') }}</th>
                                     @endcan
                                 </tr>
                             </thead>
                             <tbody>
                                 @php
-                                    try {
-                                        $paymentsSource           = $bill->payments ?? null;
-                                        $paymentsIsArray          = is_array($paymentsSource) && count($paymentsSource) > 0;
-                                        $paymentsIsCollection     = ($paymentsSource instanceof Collection) && $paymentsSource->isNotEmpty();
-                                        $paymentsIterable         = $paymentsIsArray || $paymentsIsCollection;
-                                        $hasUserDateFormatter     = ($user ?? null) && method_exists($user, 'dateFormat');
-                                        $hasUserPriceFormatter    = ($user ?? null) && method_exists($user, 'priceFormat');
-                                    } catch (\Throwable $e) {
-                                        \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $paymentsSource           = $bill->payments ?? null;
+                                    $paymentsIsArray          = is_array($paymentsSource) && count($paymentsSource) > 0;
+                                    $paymentsIsCollection     = ($paymentsSource instanceof Collection) && $paymentsSource->isNotEmpty();
+                                    $paymentsIterable         = $paymentsIsArray || $paymentsIsCollection;
+                                    $hasUserDateFormatter     = ($user ?? null) && method_exists($user, 'dateFormat');
+                                    $hasUserPriceFormatter    = ($user ?? null) && method_exists($user, 'priceFormat');
+                                @endphp
                                 @if($paymentsIterable)
                                     @foreach(($paymentsIsCollection ? $paymentsSource : collect($paymentsSource)) as $payment)
                                         @php
-                                            try {
-                                                $receiptPresent   = !empty($payment->add_receipt);
-                                                $dateValue        = !empty($payment->date) ? ($hasUserDateFormatter ? (string) $user->dateFormat($payment->date) : (string) $payment->date) : '';
-                                                $dateOutput       = $dateValue !== '' ? $dateValue : __('No date available');
-                                                $amountIsNumeric  = is_numeric($payment->amount ?? null);
-                                                $amountValue      = $amountIsNumeric ? (float) $payment->amount : null;
-                                                $amountOutput     = $amountIsNumeric ? ($hasUserPriceFormatter ? $user->priceFormat($amountValue) : number_format($amountValue, 2)) : __('No amount available');
-                                                $bankName         = optional($payment->bankAccount)->bank_name;
-                                                $holderName       = optional($payment->bankAccount)->holder_name;
-                                                $accountOutput    = ($bankName || $holderName) ? trim(($bankName ?? '').' '.($holderName ?? '')) : __('No account available');
-                                                $referenceOutput  = isset($payment->reference) && $payment->reference !== '' ? $payment->reference : __('No reference available');
-                                                $descriptionOutput= isset($payment->description) && $payment->description !== '' ? $payment->description : __('No description available');
-                                            } catch (\Throwable $e) {
-                                                \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
+                                            $receiptPresent   = !empty($payment->add_receipt);
+                                            $dateValue        = !empty($payment->date) ? ($hasUserDateFormatter ? (string) $user->dateFormat($payment->date) : (string) $payment->date) : '';
+                                            $dateOutput       = $dateValue !== '' ? $dateValue : __('No date available');
+                                            $amountIsNumeric  = is_numeric($payment->amount ?? null);
+                                            $amountValue      = $amountIsNumeric ? (float) $payment->amount : null;
+                                            $amountOutput     = $amountIsNumeric ? ($hasUserPriceFormatter ? $user->priceFormat($amountValue) : number_format($amountValue, 2)) : __('No amount available');
+                                            $bankName         = optional($payment->bankAccount)->bank_name;
+                                            $holderName       = optional($payment->bankAccount)->holder_name;
+                                            $accountOutput    = ($bankName || $holderName) ? trim(($bankName ?? '').' '.($holderName ?? '')) : __('No account available');
+                                            $referenceOutput  = isset($payment->reference) && $payment->reference !== '' ? $payment->reference : __('No reference available');
+                                            $descriptionOutput= isset($payment->description) && $payment->description !== '' ? $payment->description : __('No description available');
+                                        @endphp
                                         <tr>
                                             <td>
                                                 @if($receiptPresent)
                                                     @php
-                                                        try {
-                                                            $receiptUrl      = asset(\Storage::url('uploads/payment').'/'.$payment->add_receipt);
-                                                            $receiptLinkId   = 'payment-receipt-'.$payment->id;
-                                                            $receiptGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'payment_receipt_unavailable') ?? 'Payment receipt is unavailable. Please contact technical support or your domain administrator.';
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $receiptUrl      = asset(\Storage::url('uploads/payment').'/'.$payment->add_receipt);
+                                                        $receiptLinkId   = 'payment-receipt-'.$payment->id;
+                                                        $receiptGuardMsg = Utility::fetchLinkMessage($lang, VW::BIL, 'payment_receipt_unavailable') ?? 'Payment receipt is unavailable. Please contact technical support or your domain administrator.';
+                                                    @endphp
                                                     <a
                                                         id="{{ $receiptLinkId }}"
                                                         href="{{ $receiptUrl }}"
@@ -1096,9 +1149,9 @@ Object.keys(t).forEach(
                                                         target="_blank"
                                                         class="{{ VC::BT }} {{ VC::BT_SM }} btn-secondary btn-icon rounded-pill"
                                                         data-url="{{ $receiptUrl }}"
-                                                        data-guard-msg="{{ base64_encode($receiptGuardMsg) }}"
+                                                        data-guard-msg="{{ $receiptGuardMsg }}"
                                                     >
-                                                        <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
+                                                        <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
                                                     </a>
                                                     @push(StacksConstants::ADM_SCR_PG)
                                                         <script defer>
@@ -1156,17 +1209,13 @@ Object.keys(t).forEach(
                                             @can('delete bill product')
                                                 <td>
                                                     @php
-                                                        try {
-                                                            $deletePaymentRoute    = Route::has(ViewsConstants::BIL . '.payment.destroy')
-                                                                ? route(ViewsConstants::BIL . '.payment.destroy', [$bill->id, $payment->id])
-                                                                : '#';
-                                                            $deletePaymentFormId   = 'delete-form-' . $payment->id;
-                                                            $deletePaymentBtnId    = 'delete-payment-btn-' . $payment->id;
-                                                            $deletePaymentGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'payment_destroy_route_unavailable') ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $deletePaymentRoute    = Route::has(VW::BIL . '.payment.destroy')
+                                                            ? route(VW::BIL . '.payment.destroy', [$bill->id, $payment->id])
+                                                            : '#';
+                                                        $deletePaymentFormId   = 'delete-form-' . $payment->id;
+                                                        $deletePaymentBtnId    = 'delete-payment-btn-' . $payment->id;
+                                                        $deletePaymentGuardMsg = Utility::fetchLinkMessage($lang, VW::BIL, 'payment_destroy_route_unavailable') ?? 'Payment delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Form::open([
                                                             'route'            => $deletePaymentRoute,
@@ -1240,8 +1289,8 @@ Object.keys(t).forEach(
                                     <tr>
                                         @php
                                             $paymentCols = 6 + (Gate::check('delete payment bill') ? 1 : 0);
-@endphp
-                                        <td colspan="{{ $paymentCols }}" class="{{ VC::TXCT_DK }}">{{ __('No payments found') }}</td>
+                                        @endphp
+                                        <td colspan="{{ $paymentCols }}" class="text-center text-dark">{{ __('No payments found') }}</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -1254,45 +1303,37 @@ Object.keys(t).forEach(
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD_BD_TB_BD }}">
-                    <h5 class="{{ VC::MB5 }}">{{ __('Debit Note Summary') }}</h5>
-                    <div class="{{ VC::TB_RSP }}">
+                <div class="card-body table-border-style">
+                    <h5 class="mb-5">{{ __('Debit Note Summary') }}</h5>
+                    <div class="table-responsive">
                         <table class="{{ VC::TB }}">
                             <thead>
                                 <tr>
-                                    <th class="{{ VC::TX_DK }}">{{ __('Date') }}</th>
-                                    <th class="{{ VC::TX_DK }}">{{ __('Amount') }}</th>
-                                    <th class="{{ VC::TX_DK }}">{{ __('Description') }}</th>
+                                    <th class="text-dark">{{ __('Date') }}</th>
+                                    <th class="text-dark">{{ __('Amount') }}</th>
+                                    <th class="text-dark">{{ __('Description') }}</th>
                                     @if(Gate::check('edit debit note') || Gate::check('delete debit note'))
-                                        <th class="{{ VC::TX_DK }}">{{ __('Action') }}</th>
+                                        <th class="text-dark">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
                                 @php
-                                    try {
-                                        $debitNotesSource          = $bill->debitNote ?? null;
-                                        $debitNotesIsArray         = is_array($debitNotesSource) && count($debitNotesSource) > 0;
-                                        $debitNotesIsCollection    = ($debitNotesSource instanceof Collection) && $debitNotesSource->isNotEmpty();
-                                        $debitNotesIterable        = $debitNotesIsArray || $debitNotesIsCollection;
-                                    } catch (\Throwable $e) {
-                                        \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $debitNotesSource          = $bill->debitNote ?? null;
+                                    $debitNotesIsArray         = is_array($debitNotesSource) && count($debitNotesSource) > 0;
+                                    $debitNotesIsCollection    = ($debitNotesSource instanceof Collection) && $debitNotesSource->isNotEmpty();
+                                    $debitNotesIterable        = $debitNotesIsArray || $debitNotesIsCollection;
+                                @endphp
                                 @if($debitNotesIterable)
                                     @foreach(($debitNotesIsCollection ? $debitNotesSource : collect($debitNotesSource)) as $debitNote)
                                         @php
-                                            try {
-                                                $dnDateValue   = !empty($debitNote->date) ? ($hasUserDateFormatter ? (string) $user->dateFormat($debitNote->date) : (string) $debitNote->date) : '';
-                                                $dnDateOutput  = $dnDateValue !== '' ? $dnDateValue : __('No date available');
-                                                $dnAmtNumeric  = is_numeric($debitNote->amount ?? null);
-                                                $dnAmtValue    = $dnAmtNumeric ? (float) $debitNote->amount : null;
-                                                $dnAmtOutput   = $dnAmtNumeric ? ($hasUserPriceFormatter ? $user->priceFormat($dnAmtValue) : number_format($dnAmtValue, 2)) : __('No amount available');
-                                                $dnDescOutput  = isset($debitNote->description) && $debitNote->description !== '' ? $debitNote->description : __('No description available');
-                                            } catch (\Throwable $e) {
-                                                \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                            }
-@endphp
+                                            $dnDateValue   = !empty($debitNote->date) ? ($hasUserDateFormatter ? (string) $user->dateFormat($debitNote->date) : (string) $debitNote->date) : '';
+                                            $dnDateOutput  = $dnDateValue !== '' ? $dnDateValue : __('No date available');
+                                            $dnAmtNumeric  = is_numeric($debitNote->amount ?? null);
+                                            $dnAmtValue    = $dnAmtNumeric ? (float) $debitNote->amount : null;
+                                            $dnAmtOutput   = $dnAmtNumeric ? ($hasUserPriceFormatter ? $user->priceFormat($dnAmtValue) : number_format($dnAmtValue, 2)) : __('No amount available');
+                                            $dnDescOutput  = isset($debitNote->description) && $debitNote->description !== '' ? $debitNote->description : __('No description available');
+                                        @endphp
                                         <tr>
                                             <td>{{ $dnDateOutput }}</td>
                                             <td>{{ $dnAmtOutput }}</td>
@@ -1301,20 +1342,16 @@ Object.keys(t).forEach(
                                                 <td>
                                                     @can('edit debit note')
                                                         @php
-                                                            try {
-                                                                $billDebitNoteEditRouteBase = ViewsConstants::BIL.'.edit.debit.note';
-                                                                $billDebitNoteEditRouteKebab = Str::kebab($billDebitNoteEditRouteBase);
-                                                                $billIdForEditDebitNote = (string) data_get($debitNote,'bill','');
-                                                                $debitNoteIdForEdit = (string) data_get($debitNote,'id','');
-                                                                $billDebitNoteEditRouteResolved = Route::has($billDebitNoteEditRouteBase) ? $billDebitNoteEditRouteBase : (Route::has($billDebitNoteEditRouteKebab) ? $billDebitNoteEditRouteKebab : null);
-                                                                $billDebitNoteEditUrl = ($billDebitNoteEditRouteResolved && $billIdForEditDebitNote !== '' && $debitNoteIdForEdit !== '') ? route($billDebitNoteEditRouteResolved, [$billIdForEditDebitNote, $debitNoteIdForEdit]) : '#';
-                                                                $activeLangForDebitNoteEdit = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                $billDebitNoteEditGuardMsg = Utility::fetchLinkMessage($activeLangForDebitNoteEdit, ViewsConstants::BIL, 'edit_bill_debit_note_route_unavailable') ?? 'Edit bill debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $billDebitNoteEditAnchorId = 'bill-debit-note-edit-'.$billIdForEditDebitNote.'-'.$debitNoteIdForEdit;
-                                                            } catch (\Throwable $e) {
-                                                                \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                            }
-@endphp
+                                                            $billDebitNoteEditRouteBase = VW::BIL.'.edit.debit.note';
+                                                            $billDebitNoteEditRouteKebab = Str::kebab($billDebitNoteEditRouteBase);
+                                                            $billIdForEditDebitNote = (string) data_get($debitNote,'bill','');
+                                                            $debitNoteIdForEdit = (string) data_get($debitNote,'id','');
+                                                            $billDebitNoteEditRouteResolved = Route::has($billDebitNoteEditRouteBase) ? $billDebitNoteEditRouteBase : (Route::has($billDebitNoteEditRouteKebab) ? $billDebitNoteEditRouteKebab : null);
+                                                            $billDebitNoteEditUrl = ($billDebitNoteEditRouteResolved && $billIdForEditDebitNote !== '' && $debitNoteIdForEdit !== '') ? route($billDebitNoteEditRouteResolved, [$billIdForEditDebitNote, $debitNoteIdForEdit]) : '#';
+                                                            $activeLangForDebitNoteEdit = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $billDebitNoteEditGuardMsg = Utility::fetchLinkMessage($activeLangForDebitNoteEdit, VW::BIL, 'edit_bill_debit_note_route_unavailable') ?? 'Edit bill debit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $billDebitNoteEditAnchorId = 'bill-debit-note-edit-'.$billIdForEditDebitNote.'-'.$debitNoteIdForEdit;
+                                                        @endphp
                                                         <a
                                                             id="{{ $billDebitNoteEditAnchorId }}"
                                                             href="{{ $billDebitNoteEditUrl }}"
@@ -1324,7 +1361,7 @@ Object.keys(t).forEach(
                                                             class="{{ VC::BT_SM_CT }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Edit') }}"
-                                                            data-guard-msg="{{ base64_encode($billDebitNoteEditGuardMsg) }}"
+                                                            data-guard-msg="{{ $billDebitNoteEditGuardMsg }}"
                                                             data-sv-localized="true"
                                                         >
                                                             <i class="{{ VC::TI_PC_WT }}"></i>
@@ -1344,7 +1381,28 @@ Object.keys(t).forEach(
                                                                                 if (url !== '#' && href !== '#') { return; }
                                                                                 e.preventDefault();
                                                                                 const msg = el.getAttribute('data-guard-msg') ?? 'Edit bill debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                let container = document.getElementById('toast-container');
+                                                                                if (!container) {
+                                                                                    container = document.createElement('div');
+                                                                                    container.id = 'toast-container';
+                                                                                    document.body.appendChild(container);
+                                                                                }
+                                                                                if (hasBootstrap) {
+                                                                                    const toast = document.createElement('div');
+                                                                                    toast.className = 'toast';
+                                                                                    toast.setAttribute('role','alert');
+                                                                                    toast.setAttribute('aria-live','assertive');
+                                                                                    toast.setAttribute('aria-atomic','true');
+                                                                                    const body = document.createElement('div');
+                                                                                    body.className = 'toast-body';
+                                                                                    body.textContent = msg;
+                                                                                    toast.appendChild(body);
+                                                                                    container.appendChild(toast);
+                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                } else {
+                                                                                    alert(msg);
+                                                                                }
                                                                                 el.setAttribute('data-failed-route','true');
                                                                             } catch (err) {}
                                                                         });
@@ -1356,26 +1414,22 @@ Object.keys(t).forEach(
                                                     @can('delete debit note')
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             @php
-                                                                try {
-                                                                    $billDebitNoteDeleteRouteBase   = ViewsConstants::BIL.'.delete.debit.note';
-                                                                    $billDebitNoteDeleteRouteKebab  = Str::kebab($billDebitNoteDeleteRouteBase);
-                                                                    $billIdForDeleteDebitNote       = (string) data_get($debitNote,'bill','');
-                                                                    $debitNoteIdForDelete           = (string) data_get($debitNote,'id','');
-                                                                    $billDebitNoteDeleteRouteName   = Route::has($billDebitNoteDeleteRouteBase)
-                                                                        ? $billDebitNoteDeleteRouteBase
-                                                                        : (Route::has($billDebitNoteDeleteRouteKebab) ? $billDebitNoteDeleteRouteKebab : null);
-                                                                    $billDebitNoteDeleteUrl         = ($billDebitNoteDeleteRouteName && $billIdForDeleteDebitNote !== '' && $debitNoteIdForDelete !== '')
-                                                                        ? route($billDebitNoteDeleteRouteName, [$billIdForDeleteDebitNote, $debitNoteIdForDelete])
-                                                                        : '#';
-                                                                    $activeLangForDebitNoteDelete   = isset($lang) ? $lang : Utility::fetchUserLang();
-                                                                    $billDebitNoteDeleteGuardMsg    = Utility::fetchLinkMessage($activeLangForDebitNoteDelete, ViewsConstants::BIL, 'destroy_bill_debit_note_route_unavailable')
-                                                                        ?? 'Destroy bill debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    $billDebitNoteDeleteFormId      = 'bill-debit-note-delete-form-'.($debitNoteIdForDelete === '' ? 'x' : $debitNoteIdForDelete);
-                                                                    $billDebitNoteDeleteLinkId      = 'bill-debit-note-delete-link-'.($debitNoteIdForDelete === '' ? 'x' : $debitNoteIdForDelete);
-                                                                } catch (\Throwable $e) {
-                                                                    \Log::error('bills/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                                }
-@endphp
+                                                                $billDebitNoteDeleteRouteBase   = VW::BIL.'.delete.debit.note';
+                                                                $billDebitNoteDeleteRouteKebab  = Str::kebab($billDebitNoteDeleteRouteBase);
+                                                                $billIdForDeleteDebitNote       = (string) data_get($debitNote,'bill','');
+                                                                $debitNoteIdForDelete           = (string) data_get($debitNote,'id','');
+                                                                $billDebitNoteDeleteRouteName   = Route::has($billDebitNoteDeleteRouteBase)
+                                                                    ? $billDebitNoteDeleteRouteBase
+                                                                    : (Route::has($billDebitNoteDeleteRouteKebab) ? $billDebitNoteDeleteRouteKebab : null);
+                                                                $billDebitNoteDeleteUrl         = ($billDebitNoteDeleteRouteName && $billIdForDeleteDebitNote !== '' && $debitNoteIdForDelete !== '')
+                                                                    ? route($billDebitNoteDeleteRouteName, [$billIdForDeleteDebitNote, $debitNoteIdForDelete])
+                                                                    : '#';
+                                                                $activeLangForDebitNoteDelete   = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $billDebitNoteDeleteGuardMsg    = Utility::fetchLinkMessage($activeLangForDebitNoteDelete, VW::BIL, 'destroy_bill_debit_note_route_unavailable')
+                                                                    ?? 'Destroy bill debit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $billDebitNoteDeleteFormId      = 'bill-debit-note-delete-form-'.($debitNoteIdForDelete === '' ? 'x' : $debitNoteIdForDelete);
+                                                                $billDebitNoteDeleteLinkId      = 'bill-debit-note-delete-link-'.($debitNoteIdForDelete === '' ? 'x' : $debitNoteIdForDelete);
+                                                            @endphp
                                                             {!! Form::open([
                                                                 'method'         => 'DELETE',
                                                                 'url'            => $billDebitNoteDeleteUrl,
@@ -1393,10 +1447,10 @@ Object.keys(t).forEach(
                                                                     data-confirm="{{ __(Utility::fetchLinkMessage($activeLangForDebitNoteDelete, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($activeLangForDebitNoteDelete, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                     data-confirm-yes="document.getElementById('{{ $billDebitNoteDeleteFormId }}').submit();"
                                                                     data-form-id="{{ $billDebitNoteDeleteFormId }}"
-                                                                    data-guard-msg="{{ base64_encode($billDebitNoteDeleteGuardMsg) }}"
+                                                                    data-guard-msg="{{ $billDebitNoteDeleteGuardMsg }}"
                                                                     data-sv-localized="true"
                                                                 >
-                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                    <i class="ti ti-trash text-white"></i>
                                                                 </a>
                                                             {!! Form::close() !!}
                                                             @push(StacksConstants::ADM_SCR_PG)
@@ -1420,7 +1474,33 @@ Object.keys(t).forEach(
                                                                                         e.preventDefault();
 
                                                                                         const msg = linkEl.getAttribute('data-guard-msg') ?? 'Destroy bill debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+
                                                                                         linkEl.setAttribute('data-failed-route','true');
                                                                                         if (fm) { fm.setAttribute('data-failed-route','true'); }
                                                                                     } catch (err) {}
@@ -1437,7 +1517,33 @@ Object.keys(t).forEach(
                                                                                         e.preventDefault();
 
                                                                                         const msg = formEl.getAttribute('data-guard-msg') ?? 'Destroy bill debit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        (window.RouteGuard?.showToast || (m => alert(m)))(msg);
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+
                                                                                         formEl.setAttribute('data-failed-route','true');
                                                                                     } catch (err) {}
                                                                                 });
@@ -1455,9 +1561,9 @@ Object.keys(t).forEach(
                                 @else
                                     @php
                                         $debitCols = 3 + ((Gate::check('edit debit note') || Gate::check('delete debit note')) ? 1 : 0);
-@endphp
+                                    @endphp
                                     <tr>
-                                        <td colspan="{{ $debitCols }}" class="{{ VC::TXCT_DK }}">{{ __('No debit notes found') }}</td>
+                                        <td colspan="{{ $debitCols }}" class="text-center text-dark">{{ __('No debit notes found') }}</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -1469,7 +1575,7 @@ Object.keys(t).forEach(
     </div>
     @else
         <div class="{{ VC::C12 }}">
-            <div class="{{ VC::ALT_DNG }}">
+            <div class="alert alert-danger">
                 {{ __('Bill record not found.') }}
             </div>
         </div>

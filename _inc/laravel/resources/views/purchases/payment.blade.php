@@ -1,28 +1,29 @@
 @php
-    try {
-$lang        = Utility::fetchUserLang();
-        $purchaseId  = isset($purchase) && !empty(data_get($purchase, 'id')) ? data_get($purchase, 'id') : null;
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
+    use App\Models\Utility;
+    use Illuminate\Support\{Facades\Route, Str};
+    use Collective\Html\FormFacade as Form;
 
-        $payBase     = VW::PRC . '.payment';
-        $payKebab    = Str::kebab($payBase);
-        $payResolved = Route::has($payBase) ? $payBase : (Route::has($payKebab) ? $payKebab : null);
+    $lang        = Utility::fetchUserLang();
+    $purchaseId  = isset($purchase) && !empty(data_get($purchase, 'id')) ? data_get($purchase, 'id') : null;
 
-        $formId      = 'purchase-payment-form';
-        $guardMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'payment_purchase_unavailable') ?? 'Purchase payment route is unavailable. Please contact technical support or your domain administrator.';
+    $payBase     = VW::PRC . '.payment';
+    $payKebab    = Str::kebab($payBase);
+    $payResolved = Route::has($payBase) ? $payBase : (Route::has($payKebab) ? $payKebab : null);
 
-        $formOpen = [
-            'method'         => 'post',
-            'enctype'        => 'multipart/form-data',
-            'id'             => $formId,
-            'data-guard-msg' => $guardMsg,
-        ];
-        if ($payResolved && $purchaseId) {
-            $formOpen['route'] = [$payResolved, $purchaseId];
-        } else {
-            $formOpen['url'] = '#';
-        }
-    } catch (\Throwable $e) {
-        \Log::error('purchases/payment — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+    $formId      = 'purchase-payment-form';
+    $guardMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'payment_purchase_unavailable') ?? 'Purchase payment route is unavailable. Please contact technical support or your domain administrator.';
+
+    $formOpen = [
+        'method'         => 'post',
+        'enctype'        => 'multipart/form-data',
+        'id'             => $formId,
+        'data-guard-msg' => $guardMsg,
+    ];
+    if ($payResolved && $purchaseId) {
+        $formOpen['route'] = [$payResolved, $purchaseId];
+    } else {
+        $formOpen['url'] = '#';
     }
 @endphp
 

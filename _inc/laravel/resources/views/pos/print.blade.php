@@ -1,73 +1,70 @@
 @php
-    try {
-} catch (\Throwable $e) {
-        \Log::error('pos/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        StacksConstants,
+        YieldingConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
+    };
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('POS Barcode Print')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-        try {
-            $posProductBarcodeBaseName     = ViewsConstants::POS.'.barcode';
-            $posProductBarcodeKebabName    = Str::kebab($posProductBarcodeBaseName);
-            $posProductBarcodeResolvedName = Route::has($posProductBarcodeBaseName)
-                ? $posProductBarcodeBaseName
-                : (Route::has($posProductBarcodeKebabName) ? $posProductBarcodeKebabName : null);
-            $posProductBarcodeUrl          = $posProductBarcodeResolvedName ? route($posProductBarcodeResolvedName) : '#';
-            $posProductBarcodeGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'pos_product_barcode_route_unavailable') ?? 'Access POS product barcode route is unavailable. Please contact technical support or your domain administrator.';
-            $posProductBarcodeLinkId       = 'pos-product-barcode-link';
-        } catch (\Throwable $e) {
-            \Log::error('pos/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-        }
-@endphp
-    <li class="{{ VC::BCI }}">
+        $posProductBarcodeBaseName     = ViewsConstants::POS.'.barcode';
+        $posProductBarcodeKebabName    = Str::kebab($posProductBarcodeBaseName);
+        $posProductBarcodeResolvedName = Route::has($posProductBarcodeBaseName)
+            ? $posProductBarcodeBaseName
+            : (Route::has($posProductBarcodeKebabName) ? $posProductBarcodeKebabName : null);
+        $posProductBarcodeUrl          = $posProductBarcodeResolvedName ? route($posProductBarcodeResolvedName) : '#';
+        $posProductBarcodeGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'pos_product_barcode_route_unavailable') ?? 'Access POS product barcode route is unavailable. Please contact technical support or your domain administrator.';
+        $posProductBarcodeLinkId       = 'pos-product-barcode-link';
+    @endphp
+    <li class="breadcrumb-item">
         <a href="{{ $posProductBarcodeUrl }}"
         id="{{ $posProductBarcodeLinkId }}"
             data-url="{{ $posProductBarcodeUrl }}"
-            data-guard-msg="{{ base64_encode($posProductBarcodeGuardMsg) }}">
+            data-guard-msg="{{ $posProductBarcodeGuardMsg }}">
             {{ __('POS Product Barcode') }}
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/pos/productBarcode.js') }}"></script>
     @endpush
-    <li class="{{ VC::BCI }}">{{__('POS Barcode Print')}}</li>
+    <li class="breadcrumb-item">{{__('POS Barcode Print')}}</li>
 @endsection
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{ asset('css/datatable/buttons.dataTables.min.css') }}">
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        try {
-            $posBarcodeRouteBase = VW::POS.'.barcode';
-            $posBarcodeRouteKebab = Str::kebab($posBarcodeRouteBase);
-            $posBarcodeRouteResolved = Route::has($posBarcodeRouteBase) ? $posBarcodeRouteBase : (Route::has($posBarcodeRouteKebab) ? $posBarcodeRouteKebab : null);
-            $posBarcodeUrl = $posBarcodeRouteResolved ? route($posBarcodeRouteResolved) : '#';
-            $posBarcodeUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
-            $posBarcodeGuardMsg = Utility::fetchLinkMessage($posBarcodeUserLang, VW::POS, 'barcode_pos_route_unavailable') ?? 'POS barcode route is unavailable. Please contact technical support or your domain administrator.';
-            $posBarcodeBackLinkId = 'pos-barcode-back-link';
-        } catch (\Throwable $e) {
-            \Log::error('pos/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-        }
-@endphp
+        $posBarcodeRouteBase = VW::POS.'.barcode';
+        $posBarcodeRouteKebab = Str::kebab($posBarcodeRouteBase);
+        $posBarcodeRouteResolved = Route::has($posBarcodeRouteBase) ? $posBarcodeRouteBase : (Route::has($posBarcodeRouteKebab) ? $posBarcodeRouteKebab : null);
+        $posBarcodeUrl = $posBarcodeRouteResolved ? route($posBarcodeRouteResolved) : '#';
+        $posBarcodeUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
+        $posBarcodeGuardMsg = Utility::fetchLinkMessage($posBarcodeUserLang, VW::POS, 'barcode_pos_route_unavailable') ?? 'POS barcode route is unavailable. Please contact technical support or your domain administrator.';
+        $posBarcodeBackLinkId = 'pos-barcode-back-link';
+    @endphp
     <a href="{{ $posBarcodeUrl }}"
     id="{{ $posBarcodeBackLinkId }}"
     class="{{ VC::BT_SM_PM }}"
     data-url="{{ $posBarcodeUrl }}"
-    data-guard-msg="{{ base64_encode($posBarcodeGuardMsg) }}"
+    data-guard-msg="{{ $posBarcodeGuardMsg }}"
     data-sv-localized="true"
     data-bs-toggle="tooltip"
     title="{{ __('Back') }}">
-        <i class="ti ti-arrow-left {{ VC::TXT_WT }}"></i>
+        <i class="ti ti-arrow-left text-white"></i>
     </a>
     @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/pos/barcode.js') }}"></script>
@@ -78,22 +75,18 @@
     <div class="{{ VC::RW }} {{ VC::MT3 }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD_BD }}">
+                <div class="card-body">
                     @php
-                        try {
-                            $posReceiptBaseName     = ViewsConstants::POS.'.receipt';
-                            $posReceiptKebabName    = Str::kebab($posReceiptBaseName);
-                            $posReceiptResolvedName = Route::has($posReceiptBaseName)
-                                ? $posReceiptBaseName
-                                : (Route::has($posReceiptKebabName) ? $posReceiptKebabName : null);
-                            $posReceiptRouteArray   = $posReceiptResolvedName ? [$posReceiptResolvedName] : ['#'];
-                            $posReceiptUrl          = $posReceiptResolvedName ? route($posReceiptResolvedName) : '#';
-                            $posReceiptGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'create_pos_receipt_route_unavailable') ?? 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
-                            $posReceiptFormId       = 'pos-receipt-form';
-                        } catch (\Throwable $e) {
-                            \Log::error('pos/print — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                        }
-@endphp
+                        $posReceiptBaseName     = ViewsConstants::POS.'.receipt';
+                        $posReceiptKebabName    = Str::kebab($posReceiptBaseName);
+                        $posReceiptResolvedName = Route::has($posReceiptBaseName)
+                            ? $posReceiptBaseName
+                            : (Route::has($posReceiptKebabName) ? $posReceiptKebabName : null);
+                        $posReceiptRouteArray   = $posReceiptResolvedName ? [$posReceiptResolvedName] : ['#'];
+                        $posReceiptUrl          = $posReceiptResolvedName ? route($posReceiptResolvedName) : '#';
+                        $posReceiptGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'create_pos_receipt_route_unavailable') ?? 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
+                        $posReceiptFormId       = 'pos-receipt-form';
+                    @endphp
                     {!! Form::open([
                         'route'          => $posReceiptRouteArray,
                         'method'         => 'post',
@@ -107,20 +100,20 @@
                             <script defer src="{{ asset('assets/js/routes/pos/receipt.js') }}"></script>
                         @endpush
                         <div class="{{ VC::RW }}" id="printableArea">
-                            <div class="{{ VC::CM4 }}">
+                            <div class="col-md-4">
                                 <div class="{{ VC::FM_G }}">
                                     {{ Form::label('warehouse_id', __('Warehouse'), ['class' => VC::FM_LB]) }}
                                     {{ Form::select('warehouse_id', $warehouses, '', ['class' => VC::FM_CT_SL, 'id' => 'warehouse_id', 'required' => 'required']) }}
                                 </div>
                             </div>
-                            <div class="{{ VC::CM4 }}">
+                            <div class="col-md-4">
                                 <div class="{{ VC::FM_G }}" id="product_div">
                                     {{ Form::label('product_id', __('Product'), ['class' => VC::FM_LB]) }}
                                     <select class="{{ VC::FM_CT_SL }}" name="product_id[]" id="product_id" required></select>
                                 </div>
                             </div>
                             <div class="{{ VC::FM_G }} col-md-4">
-                                {{ Form::label('quantity', __('Quantity'), ['class' => VC::FM_LB]) }}<span class="{{ VC::TX_DNG }}">*</span>
+                                {{ Form::label('quantity', __('Quantity'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
                                 {{ Form::text('quantity', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                             </div>
                         </div>
@@ -171,7 +164,7 @@
                     toast.setAttribute("role","alert");
                     toast.setAttribute("aria-live","assertive");
                     toast.setAttribute("aria-atomic","true");
-                    toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
                     document.body.appendChild(toast);
                 }
                 new bootstrap.Toast(toast).show();
@@ -198,7 +191,7 @@
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
                 ) console.error("jQuery unavailable");
-                return;
+                return; 
             }
 
             const csrf=$('meta[name="csrf-token"]').attr('content') ?? "";
@@ -210,21 +203,21 @@
                 if(!$sel.length){
                 const id="product_id";
                 if(!$wrap.find("label[for='product_id']").length){
-                    $wrap.append('<label for="product_id" class="{{ VC::FM_LB }}">{{__('Product')}}</label>');
+                    $wrap.append('<label for="product_id" class="form-label">{{__('Product')}}</label>');
                 }
-                $wrap.append('<select class="{{ VC::FM_LB }}" id="product_id" name="product_id[]" multiple></select>');
+                $wrap.append('<select class="form-label" id="product_id" name="product_id[]" multiple></select>');
                 $sel=$("#product_id");
                 }
                 return $sel;
             };
 
             const applyChoices=(selector)=>{
-                if(typeof Choices!=="function"){
+                if(typeof Choices!=="function"){ 
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
                     ) console.error("Choices unavailable");
-                    return null;
+                    return null; 
                 }
                 const el=document.querySelector(selector);
                 if(!el) return null;

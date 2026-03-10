@@ -1,14 +1,13 @@
 <?php
 # Template 9
-use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
+use App\Config\Constants\{DatabaseConstants as DC, SettingsConstants as SC, ViewsConstants as VW};
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TemplateHelper;
 
-if (!function_exists('e')) {
-    function e($v)
+if (!function_exists('e')) {function e($v)
     {
-        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
-    }
+        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');}
 }
 
 $bill           ??= null;
@@ -24,41 +23,28 @@ $font_color     ??= '#000000';
 $img            ??= '';
 $preview        ??= null;
 
-if (trim((string)$themeCSS) === '') {
-    $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+if (trim((string)$themeCSS) === '') {$themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
 }
 
-try {
-    $lang = \App\Models\Utility::fetchUserLang();
-} catch (\Throwable $e) {
-    $lang = null;
-}
+try {$lang = \App\Models\Utility::fetchUserLang();} catch (\Throwable $e) {$lang = null;}
 
-try {
-    $docLang ??= $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
-} catch (\Throwable $e) {
-    Log::error('DocLang Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '"');
-    $docLang = DatabaseConstants::DEFAULT_LANG;
-}
+try {$docLang ??= $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG);} catch (\InvalidArgumentException $e) {Log::warning('DocLang InvalidArgument: ' . get_class($e) . ' | "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;} catch (\Exception $e) {Log::error('DocLang Exception: ' . get_class($e) . ' | "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;} catch (\Throwable $e) {Log::critical('DocLang Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;}
 
-if (empty($bill)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BILL</title></head><body><div class="{{ VC::ALT_WRN }}">No BILL data available.</div></body></html>';
-    return;
-}
+if (empty($bill)) {echo TemplateHelper::getNoDataHtml('bill', $docLang);
+    return;}
 
-try {
-    $settings_data = \App\Models\Utility::settingsById(data_get($bill, DatabaseConstants::COL_TABLE_CREATOR));
-} catch (\Throwable $e) {
-    Log::error('settingsById Throwable: ' . $e->getMessage());
-    $settings_data = [];
-}
+try {$settings_data = \App\Models\Utility::settingsById(data_get($bill, DC::COL_TABLE_CREATOR));} catch (\InvalidArgumentException $e) {Log::warning('settingsById InvalidArgument: ' . $e->getMessage());
+    $settings_data = [];} catch (\Exception $e) {Log::error('settingsById Exception: ' . $e->getMessage());
+    $settings_data = [];} catch (\Throwable $e) {Log::critical('settingsById Throwable: ' . $e->getMessage());
+    $settings_data = [];}
 
-try {
-    $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
-} catch (\Throwable $e) {
-    Log::error('RTL Throwable: ' . $e->getMessage());
-    $dir = '';
-}
+try {$dir = (data_get($settings_data, SC::RTL) === 'on') ? 'rtl' : '';} catch (\InvalidArgumentException $e) {Log::warning('RTL InvalidArgument: ' . $e->getMessage());
+    $dir = '';} catch (\Exception $e) {Log::error('RTL Exception: ' . $e->getMessage());
+    $dir = '';} catch (\Throwable $e) {Log::critical('RTL Throwable: ' . $e->getMessage());
+    $dir = '';}
 
 ?>
 <!DOCTYPE html>
@@ -66,177 +52,109 @@ try {
 
 <head>
     <?php
-    try {
-        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
-    } catch (\Throwable $e) {
-        Log::error('Meta view Throwable: ' . $e->getMessage());
-    }
+    try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\InvalidArgumentException $e) {Log::warning('Meta view InvalidArgument: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Meta view Exception: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Meta view Throwable: ' . $e->getMessage());}
     ?>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <style>
         <?= $themeCSS ?>
     </style>
     <style type="text/css">
-        body {
-            font-family: 'Lato', sans-serif
-        }
+        body {font-family: 'Lato', sans-serif}
 
         p,
         li,
         ul,
-        ol {
-            margin: 0;
+        ol {margin: 0;
             padding: 0;
             list-style: none;
-            line-height: 1.5
-        }
+            line-height: 1.5}
 
-        * {
-            margin: 0;
+        * {margin: 0;
             padding: 0;
-            box-sizing: border-box
-        }
+            box-sizing: border-box}
 
-        table {
-            width: 100%;
-            border-collapse: collapse
-        }
+        table {width: 100%;
+            border-collapse: collapse}
 
-        table tr th {
-            padding: .75rem;
-            text-align: left
-        }
+        table tr th {padding: .75rem;
+            text-align: left}
 
-        table tr td {
-            padding: .75rem;
-            text-align: left
-        }
+        table tr td {padding: .75rem;
+            text-align: left}
 
-        table th small {
-            display: block;
-            font-size: 12px
-        }
+        table th small {display: block;
+            font-size: 12px}
 
-        .bill-preview-main {
-            max-width: 700px;
+        .bill-preview-main {max-width: 700px;
             width: 100%;
             margin: 0 auto;
             background: #ffff;
-            box-shadow: 0 0 10px #ddd
-        }
+            box-shadow: 0 0 10px #ddd}
 
-        .bill-logo {
-            max-width: 200px;
-            width: 100%
-        }
+        .bill-logo {max-width: 200px;
+            width: 100%}
 
-        .bill-header table td {
-            padding: 15px 30px
-        }
+        .bill-header table td {padding: 15px 30px}
 
-        .text-right {
-            text-align: right
-        }
+        .text-right {text-align: right}
 
-        .no-space tr td {
-            padding: 0
-        }
+        .no-space tr td {padding: 0}
 
-        .vertical-align-top td {
-            vertical-align: top
-        }
+        .vertical-align-top td {vertical-align: top}
 
-        .view-qrcode {
-            max-width: 114px;
+        .view-qrcode {max-width: 114px;
             height: 114px;
             margin-left: auto;
             margin-top: 15px;
-            background: var(--white)
-        }
+            background: var(--white)}
 
-        .view-qrcode img {
-            width: 100%;
-            height: 100%
-        }
+        .view-qrcode img {width: 100%;
+            height: 100%}
 
-        .bill-body {
-            padding: 30px 25px 0
-        }
+        .bill-body {padding: 30px 25px 0}
 
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color)
-        }
+        table.add-border tr {border-top: 1px solid var(--theme-color)}
 
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color)
-        }
+        tfoot tr:first-of-type {border-bottom: 1px solid var(--theme-color)}
 
-        .total-table tr:first-of-type td {
-            padding-top: 0
-        }
+        .total-table tr:first-of-type td {padding-top: 0}
 
-        .total-table tr:first-of-type {
-            border-top: 0
-        }
+        .total-table tr:first-of-type {border-top: 0}
 
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0
-        }
+        .sub-total {padding-right: 0;
+            padding-left: 0}
 
-        .border-0 {
-            border: none !important
-        }
+        .border-0 {border: none !important}
 
         .bill-summary td,
-        .bill-summary th {
-            font-size: 13px;
-            font-weight: 600
-        }
+        .bill-summary th {font-size: 13px;
+            font-weight: 600}
 
-        .total-table td:last-of-type {
-            width: 146px
-        }
+        .total-table td:last-of-type {width: 146px}
 
-        .bill-footer {
-            padding: 15px 20px
-        }
+        .bill-footer {padding: 15px 20px}
 
-        .itm-description td {
-            padding-top: 0
-        }
+        .itm-description td {padding-top: 0}
 
         html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th {
-            text-align: right
-        }
+        html[dir="rtl"] table tr th {text-align: right}
 
-        html[dir="rtl"] .text-right {
-            text-align: left
-        }
+        html[dir="rtl"] .text-right {text-align: left}
 
-        html[dir="rtl"] .view-qrcode {
-            margin-left: 0;
-            margin-right: auto
-        }
+        html[dir="rtl"] .view-qrcode {margin-left: 0;
+            margin-right: auto}
 
-        p:not(:last-of-type) {
-            margin-bottom: 15px
-        }
+        p:not(:last-of-type) {margin-bottom: 15px}
 
-        .bill-summary p {
-            margin-bottom: 0
-        }
+        .bill-summary p {margin-bottom: 0}
 
-        .bill-footer h6 {
-            font-size: 45px;
+        .bill-footer h6 {font-size: 45px;
             line-height: 1.2em;
             font-weight: 400;
             margin-top: 15px;
-            color: var(--theme-color)
-        }
+            color: var(--theme-color)}
     </style>
-    <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+    <?php if (data_get($settings_data, SC::RTL) === 'on'): ?>
         <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
     <?php endif; ?>
 </head>
@@ -249,46 +167,40 @@ try {
                     <tr>
                         <td>
                             <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;color:var(--theme-color);margin-bottom:10px;"><?= e(__('BILL')) ?></h3>
-                            <table class="{{ VC::NO_SPC }}" style="width:70%;">
+                            <table class="no-space" style="width:70%;">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?php try {
-                                                                    echo e(\App\Models\Utility::billNumberFormat($settings, data_get($bill, 'bill_id')));
-                                                                } catch (\Throwable $e) {
-                                                                    Log::error('Bill num fmt: ' . $e->getMessage());
-                                                                    echo e(__('Unavailable'));
-                                                                } ?></td>
+                                        <td class="text-right"><?php try {echo e(\App\Models\Utility::billNumberFormat($settings, data_get($bill, 'bill_id')));} catch (\InvalidArgumentException $e) {Log::warning('Bill num fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Exception $e) {Log::error('Bill num fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Throwable $e) {Log::critical('Bill num fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Bill Date')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?php try {
-                                                                    echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'issue_date')));
-                                                                } catch (\Throwable $e) {
-                                                                    Log::error('Issue date fmt: ' . $e->getMessage());
-                                                                    echo e(__('Unavailable'));
-                                                                } ?></td>
+                                        <td class="text-right"><?php try {echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'issue_date')));} catch (\InvalidArgumentException $e) {Log::warning('Issue date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Exception $e) {Log::error('Issue date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Throwable $e) {Log::critical('Issue date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Due Date')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?php try {
-                                                                    echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'due_date')));
-                                                                } catch (\Throwable $e) {
-                                                                    Log::error('Due date fmt: ' . $e->getMessage());
-                                                                    echo e(__('Unavailable'));
-                                                                } ?></td>
+                                        <td class="text-right"><?php try {echo e(\App\Models\Utility::dateFormat($settings, data_get($bill, 'due_date')));} catch (\InvalidArgumentException $e) {Log::warning('Due date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Exception $e) {Log::error('Due date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} catch (\Throwable $e) {Log::critical('Due date fmt: ' . $e->getMessage());
+                                                                    echo e(__('Unavailable'));} ?></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </td>
-                        <td class="{{ VC::TX_RT }}">
+                        <td class="text-right">
                             <img class="bill-logo" src="<?= e($img) ?>" alt="">
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <table class="{{ VC::VA_TOP }}">
+            <table class="vertical-align-top">
                 <tbody>
                     <tr>
                         <td>
@@ -302,27 +214,19 @@ try {
                                 <?= !empty($settings['company_country']) ? '<br>' . e($settings['company_country']) : __('No company country available') ?>
                                 <?= !empty($settings['company_telephone']) ? e($settings['company_telephone']) : __('No company telephone available') ?><br>
                                 <?php
-                                if (!empty($settings['registration_number'])) {
-                                    echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' ';
-                                }
+                                if (!empty($settings['registration_number'])) {echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' ';}
                                 echo '<br>';
-                                if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {
-                                    echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';
-                                }
+                                if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';}
                                 ?>
                             </p>
                         </td>
                         <td>
-                            <table class="{{ VC::NO_SPC }}">
+                            <table class="no-space">
                                 <tbody>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="{{ VC::VW_QR }}" style="margin-top:0;">
-                                                <?php try {
-                                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
-                                                } catch (\Throwable $e) {
-                                                    Log::error('QR gen Throwable: ' . $e->getMessage());
-                                                } ?>
+                                            <div class="view-qrcode" style="margin-top:0;">
+                                                <?php try {echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(VW::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');} catch (\InvalidArgumentException $e) {Log::warning('QR gen InvalidArgument: ' . $e->getMessage());} catch (\Exception $e) {Log::error('QR gen Exception: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('QR gen Throwable: ' . $e->getMessage());} ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -349,7 +253,7 @@ try {
                             </p>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="{{ VC::TX_RT }}">
+                            <td class="text-right">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <p>
                                     <?= e(data_get($vendor, 'shipping_name', __('No name for shipping available.'))) ?><br>
@@ -368,7 +272,7 @@ try {
         </div>
 
         <div class="bill-body" style="padding-right:0;">
-            <table class="{{ VC::BDR_BIL_SM }}">
+            <table class="add-border bill-summary">
                 <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                     <tr>
                         <th><?= e(__('Item')) ?></th>
@@ -391,20 +295,16 @@ try {
                             <tr>
                                 <td><?= e(data_get($item, 'name', '')) ?></td>
                                 <td><?php
-                                    try {
-                                        $unitName = \App\Models\ProductServiceUnit::find(data_get($item, 'unit'));
-                                        echo e((string)$qty . ' (' . (string) data_get($unitName, 'name', '') . ')');
-                                    } catch (\Throwable $e) {
-                                        Log::error('Unit find Throwable: ' . $e->getMessage());
-                                        echo e((string)$qty);
-                                    }
+                                    try {$unitName = \App\Models\ProductServiceUnit::find(data_get($item, 'unit'));
+                                        echo e((string)$qty . ' (' . (string) data_get($unitName, 'name', '') . ')');} catch (\InvalidArgumentException $e) {Log::warning('Unit find InvalidArgument: ' . $e->getMessage());
+                                        echo e((string)$qty);} catch (\Exception $e) {Log::error('Unit find Exception: ' . $e->getMessage());
+                                        echo e((string)$qty);} catch (\Throwable $e) {Log::critical('Unit find Throwable: ' . $e->getMessage());
+                                        echo e((string)$qty);}
                                     ?></td>
-                                <td><?php try {
-                                        echo e(\App\Models\Utility::priceFormat($settings, $price));
-                                    } catch (\Throwable $e) {
-                                        Log::error('Rate fmt: ' . $e->getMessage());
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $price));} catch (\InvalidArgumentException $e) {Log::warning('Rate fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Exception $e) {Log::error('Rate fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Throwable $e) {Log::critical('Rate fmt: ' . $e->getMessage());
+                                        echo '0';} ?></td>
                                 <td><?= $disc != 0 ? e(\App\Models\Utility::priceFormat($settings, $disc)) : '-' ?></td>
                                 <td>
                                     <?php if (!empty(data_get($item, 'itemTax'))): ?>
@@ -416,15 +316,13 @@ try {
                                         <span>-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php try {
-                                        echo e(\App\Models\Utility::priceFormat($settings, ($price * $qty) - $disc + $itemtax));
-                                    } catch (\Throwable $e) {
-                                        Log::error('Line total fmt: ' . $e->getMessage());
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, ($price * $qty) - $disc + $itemtax));} catch (\InvalidArgumentException $e) {Log::warning('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Exception $e) {Log::error('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Throwable $e) {Log::critical('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} ?></td>
                             </tr>
                             <?php if (!empty(data_get($item, 'description'))): ?>
-                                <tr class="{{ VC::BD0_ITM_DSC }}">
+                                <tr class="border-0 itm-description">
                                     <td colspan="6" style="border-bottom:1px solid <?= e($color) ?>"> <?= e((string) $item->description) ?></td>
                                 </tr>
                             <?php endif; ?>
@@ -435,103 +333,81 @@ try {
                     <tr>
                         <td><?= e(__('Total')) ?></td>
                         <td><?= e((string) data_get($bill, 'totalQuantity', 0)) ?></td>
-                        <td><?php try {
-                                echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalRate', 0)));
-                            } catch (\Throwable $e) {
-                                Log::error('totalRate fmt: ' . $e->getMessage());
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalDiscount', 0)));
-                            } catch (\Throwable $e) {
-                                Log::error('totalDiscount fmt: ' . $e->getMessage());
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalTaxPrice', 0)));
-                            } catch (\Throwable $e) {
-                                Log::error('totalTaxPrice fmt: ' . $e->getMessage());
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal()));
-                            } catch (\Throwable $e) {
-                                Log::error('subtotal fmt: ' . $e->getMessage());
-                                echo '0';
-                            } ?></td>
+                        <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalRate', 0)));} catch (\InvalidArgumentException $e) {Log::warning('totalRate fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Exception $e) {Log::error('totalRate fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Throwable $e) {Log::critical('totalRate fmt: ' . $e->getMessage());
+                                echo '0';} ?></td>
+                        <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalDiscount', 0)));} catch (\InvalidArgumentException $e) {Log::warning('totalDiscount fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Exception $e) {Log::error('totalDiscount fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Throwable $e) {Log::critical('totalDiscount fmt: ' . $e->getMessage());
+                                echo '0';} ?></td>
+                        <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, data_get($bill, 'totalTaxPrice', 0)));} catch (\InvalidArgumentException $e) {Log::warning('totalTaxPrice fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Exception $e) {Log::error('totalTaxPrice fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Throwable $e) {Log::critical('totalTaxPrice fmt: ' . $e->getMessage());
+                                echo '0';} ?></td>
+                        <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal()));} catch (\InvalidArgumentException $e) {Log::warning('subtotal fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Exception $e) {Log::error('subtotal fmt: ' . $e->getMessage());
+                                echo '0';} catch (\Throwable $e) {Log::critical('subtotal fmt: ' . $e->getMessage());
+                                echo '0';} ?></td>
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="{{ VC::SUB_TTL }}">
-                            <table class="{{ VC::TTL_TB }}">
+                        <td colspan="2" class="sub-total">
+                            <table class="total-table">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal()));
-                                        } catch (\Throwable $e) {
-                                            Log::error('subTotal fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal()));} catch (\InvalidArgumentException $e) {Log::warning('subTotal fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('subTotal fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('subTotal fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                                 <?php if ($bill->getTotalDiscount()): ?>
                                     <tr>
                                         <td><?= e(__('Discount')) ?>:</td>
-                                        <td><?php try {
-                                                echo e(\App\Models\Utility::priceFormat($settings, $bill->getTotalDiscount()));
-                                            } catch (\Throwable $e) {
-                                                Log::error('totDisc fmt: ' . $e->getMessage());
-                                                echo '0';
-                                            } ?></td>
+                                        <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->getTotalDiscount()));} catch (\InvalidArgumentException $e) {Log::warning('totDisc fmt: ' . $e->getMessage());
+                                                echo '0';} catch (\Exception $e) {Log::error('totDisc fmt: ' . $e->getMessage());
+                                                echo '0';} catch (\Throwable $e) {Log::critical('totDisc fmt: ' . $e->getMessage());
+                                                echo '0';} ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if (!empty($bill->taxesData)): ?>
                                     <?php foreach ($bill->taxesData as $taxName => $taxPrice): ?>
                                         <tr>
                                             <td><?= e($taxName) ?> :</td>
-                                            <td><?php try {
-                                                    echo e(\App\Models\Utility::priceFormat($settings, $taxPrice));
-                                                } catch (\Throwable $e) {
-                                                    Log::error('tax row fmt: ' . $e->getMessage());
-                                                    echo '0';
-                                                } ?></td>
+                                            <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $taxPrice));} catch (\InvalidArgumentException $e) {Log::warning('tax row fmt: ' . $e->getMessage());
+                                                    echo '0';} catch (\Exception $e) {Log::error('tax row fmt: ' . $e->getMessage());
+                                                    echo '0';} catch (\Throwable $e) {Log::critical('tax row fmt: ' . $e->getMessage());
+                                                    echo '0';} ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                                 <tr>
                                     <td><?= e(__('Total')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal() - $bill->getTotalDiscount() + $bill->getTotalTax()));
-                                        } catch (\Throwable $e) {
-                                            Log::error('grand total fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->getSubTotal() - $bill->getTotalDiscount() + $bill->getTotalTax()));} catch (\InvalidArgumentException $e) {Log::warning('grand total fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('grand total fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('grand total fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Paid')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(\App\Models\Utility::priceFormat($settings, ($bill->getTotal() - $bill->getDue()) - ($bill->billTotalDebitNote())));
-                                        } catch (\Throwable $e) {
-                                            Log::error('paid fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, ($bill->getTotal() - $bill->getDue()) - ($bill->billTotalDebitNote())));} catch (\InvalidArgumentException $e) {Log::warning('paid fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('paid fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('paid fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Debit Note')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(\App\Models\Utility::priceFormat($settings, $bill->billTotalDebitNote()));
-                                        } catch (\Throwable $e) {
-                                            Log::error('debit note fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->billTotalDebitNote()));} catch (\InvalidArgumentException $e) {Log::warning('debit note fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('debit note fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('debit note fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Due Amount')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(\App\Models\Utility::priceFormat($settings, $bill->getDue()));
-                                        } catch (\Throwable $e) {
-                                            Log::error('due fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(\App\Models\Utility::priceFormat($settings, $bill->getDue()));} catch (\InvalidArgumentException $e) {Log::warning('due fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('due fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('due fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                             </table>
                         </td>
@@ -540,21 +416,13 @@ try {
             </table>
             <div class="bill-footer">
                 <b><?= e(data_get($settings, 'footer_title', '')) ?></b> <br>
-                <?php try {
-                    echo (string) data_get($settings, 'footer_notes', '');
-                } catch (\Throwable $e) {
-                    Log::error('Footer notes Throwable: ' . $e->getMessage());
-                } ?>
+                <?php try {echo (string) data_get($settings, 'footer_notes', '');} catch (\InvalidArgumentException $e) {Log::warning('Footer notes InvalidArgument: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Footer notes Exception: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Footer notes Throwable: ' . $e->getMessage());} ?>
             </div>
         </div>
     </div>
 
     <?php if (!isset($preview)): ?>
-        <?php try {
-            echo view(ViewsConstants::BIL . '.script')->render();
-        } catch (\Throwable $e) {
-            Log::error('BIL script include Throwable: ' . $e->getMessage());
-        } ?>
+        <?php try {echo view(VW::BIL . '.script')->render();} catch (\InvalidArgumentException $e) {Log::warning('BIL script include InvalidArgument: ' . $e->getMessage());} catch (\Exception $e) {Log::error('BIL script include Exception: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('BIL script include Throwable: ' . $e->getMessage());} ?>
     <?php endif; ?>
 </body>
 

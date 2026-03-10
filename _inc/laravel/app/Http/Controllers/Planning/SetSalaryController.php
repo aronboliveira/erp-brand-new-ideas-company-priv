@@ -49,7 +49,7 @@ class SetSalaryController extends Controller
             }
 
             $employees = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-                ->with('salary_type')
+                ->with('salaryType')
                 ->get();
 
             Log::info('Fetched employees for salary list', ['count' => $employees->count()]);
@@ -87,7 +87,7 @@ class SetSalaryController extends Controller
                 ? Employee::where(UC::COL_USER_ID, $user?->id)->value('id')
                 : $id;
 
-            $employee = Employee::with('salary_type')->findOrFail($empId);
+            $employee = Employee::with('salaryType')->findOrFail($empId);
 
             // Related collections
             $relations = [
@@ -158,7 +158,7 @@ class SetSalaryController extends Controller
                 ? Employee::where(UC::COL_USER_ID, $user?->id)->value('id')
                 : $id;
 
-            $employee = Employee::with('salary_type')->findOrFail($empId);
+            $employee = Employee::with('salaryType')->findOrFail($empId);
             Log::info('Loaded employee for edit', ['employee' => $empId]);
 
             // Related data (simple lists here)

@@ -1,14 +1,13 @@
 <?php
 # Template 4
-use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
+use App\Config\Constants\{DatabaseConstants as DC, SettingsConstants as SC, ViewsConstants as VW};
 use App\Models\{ProductServiceUnit, Utility};
 use Illuminate\Support\Facades\Log;
+use App\Helpers\TemplateHelper;
 
-if (!function_exists('e')) {
-    function e($v)
+if (!function_exists('e')) {function e($v)
     {
-        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
-    }
+        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');}
 }
 
 $pos           ??= null;
@@ -25,224 +24,143 @@ $img           ??= '';
 $preview       ??= null;
 $posPayment    ??= (object)['amount' => 0, 'discount' => 0];
 
-if (trim((string)$themeCSS) === '') {
-    $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+if (trim((string)$themeCSS) === '') {$themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
 }
 
-try {
-    $docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
-} catch (\Throwable $e) {
-    Log::error('DocLang: ' . get_class($e) . ' "' . $e->getMessage() . '"');
-    $docLang = DatabaseConstants::DEFAULT_LANG;
-}
+try {$docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG);} catch (\InvalidArgumentException $e) {Log::warning('DocLang: ' . get_class($e) . ' "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;} catch (\Exception $e) {Log::error('DocLang: ' . get_class($e) . ' "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;} catch (\Throwable $e) {Log::critical('DocLang: ' . get_class($e) . ' "' . $e->getMessage() . '"');
+    $docLang = DC::DEFAULT_LANG;}
 
-if (empty($pos)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>POS</title></head><body><div class="{{ VC::ALT_WRN }}">No POS data available.</div></body></html>';
-    return;
-}
+if (empty($pos)) {echo TemplateHelper::getNoDataHtml('pos', $docLang);
+    return;}
 
-try {
-    $settings_data = Utility::settingsById(data_get($pos, 'created_by'));
-} catch (\Throwable $e) {
-    Log::error('settingsById: ' . $e->getMessage());
-    $settings_data = [];
-}
-try {
-    $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
-} catch (\Throwable $e) {
-    Log::error('RTL: ' . $e->getMessage());
-    $dir = '';
-}
+try {$settings_data = Utility::settingsById(data_get($pos, 'created_by'));} catch (\InvalidArgumentException $e) {Log::warning('settingsById: ' . $e->getMessage());
+    $settings_data = [];} catch (\Exception $e) {Log::error('settingsById: ' . $e->getMessage());
+    $settings_data = [];} catch (\Throwable $e) {Log::critical('settingsById: ' . $e->getMessage());
+    $settings_data = [];}
+try {$dir = (data_get($settings_data, SC::RTL) === 'on') ? 'rtl' : '';} catch (\InvalidArgumentException $e) {Log::warning('RTL: ' . $e->getMessage());
+    $dir = '';} catch (\Exception $e) {Log::error('RTL: ' . $e->getMessage());
+    $dir = '';} catch (\Throwable $e) {Log::critical('RTL: ' . $e->getMessage());
+    $dir = '';}
 
-try {
-    $posNumber = Utility::posNumberFormat($settings, data_get($pos, 'pos_id')) ?: __('Could not find POS number');
-} catch (\Throwable $e) {
-    Log::error('POS Number: ' . $e->getMessage());
-    $posNumber = __('Could not find POS number');
-}
-try {
-    $issueDate = Utility::dateFormat($settings, data_get($pos, 'issue_date')) ?: __('Failed to get issue date');
-} catch (\Throwable $e) {
-    Log::error('Issue Date: ' . $e->getMessage());
-    $issueDate = __('Failed to get issue date');
-}
+try {$posNumber = Utility::posNumberFormat($settings, data_get($pos, 'pos_id')) ?: __('Could not find POS number');} catch (\InvalidArgumentException $e) {Log::warning('POS Number: ' . $e->getMessage());
+    $posNumber = __('Could not find POS number');} catch (\Exception $e) {Log::error('POS Number: ' . $e->getMessage());
+    $posNumber = __('Could not find POS number');} catch (\Throwable $e) {Log::critical('POS Number: ' . $e->getMessage());
+    $posNumber = __('Could not find POS number');}
+try {$issueDate = Utility::dateFormat($settings, data_get($pos, 'issue_date')) ?: __('Failed to get issue date');} catch (\InvalidArgumentException $e) {Log::warning('Issue Date: ' . $e->getMessage());
+    $issueDate = __('Failed to get issue date');} catch (\Exception $e) {Log::error('Issue Date: ' . $e->getMessage());
+    $issueDate = __('Failed to get issue date');} catch (\Throwable $e) {Log::critical('Issue Date: ' . $e->getMessage());
+    $issueDate = __('Failed to get issue date');}
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
 <head>
-    <?php try {
-        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
-    } catch (\Throwable $e) {
-        Log::error('Meta view: ' . $e->getMessage());
-    } ?>
+    <?php try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\InvalidArgumentException $e) {Log::warning('Meta view: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Meta view: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Meta view: ' . $e->getMessage());} ?>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <style>
         <?= $themeCSS ?>
     </style>
     <style type="text/css">
-        body {
-            font-family: 'Lato', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
+        body {font-family: 'Lato', sans-serif;
+            -webkit-font-smoothing: antialiased;}
 
         p,
         li,
         ul,
-        ol {
-            margin: 0;
+        ol {margin: 0;
             padding: 0;
             list-style: none;
-            line-height: 1.5;
-        }
+            line-height: 1.5;}
 
-        * {
-            margin: 0;
+        * {margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
+            box-sizing: border-box;}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        table {width: 100%;
+            border-collapse: collapse;}
 
-        table tr th {
-            padding: .75rem;
-            text-align: left;
-        }
+        table tr th {padding: .75rem;
+            text-align: left;}
 
-        table tr td {
-            padding: .75rem;
-            text-align: left;
-        }
+        table tr td {padding: .75rem;
+            text-align: left;}
 
-        table th small {
-            display: block;
-            font-size: 12px;
-        }
+        table th small {display: block;
+            font-size: 12px;}
 
-        .pos-preview-main {
-            max-width: 700px;
+        .pos-preview-main {max-width: 700px;
             width: 100%;
             margin: 0 auto;
             background: #ffff;
-            box-shadow: 0 0 10px #ddd;
-        }
+            box-shadow: 0 0 10px #ddd;}
 
-        .pos-logo {
-            max-width: 200px;
-            width: 100%;
-        }
+        .pos-logo {max-width: 200px;
+            width: 100%;}
 
-        .pos-header table td {
-            padding: 15px 30px;
-        }
+        .pos-header table td {padding: 15px 30px;}
 
-        .text-right {
-            text-align: right;
-        }
+        .text-right {text-align: right;}
 
-        .no-space tr td {
-            padding: 0;
-        }
+        .no-space tr td {padding: 0;}
 
-        .vertical-align-top td {
-            vertical-align: top;
-        }
+        .vertical-align-top td {vertical-align: top;}
 
-        .view-qrcode {
-            max-width: 114px;
+        .view-qrcode {max-width: 114px;
             height: 114px;
             margin-left: auto;
             margin-top: 15px;
-            background: var(--white);
-        }
+            background: var(--white);}
 
-        .view-qrcode img {
-            width: 100%;
-            height: 100%;
-        }
+        .view-qrcode img {width: 100%;
+            height: 100%;}
 
-        .pos-body {
-            padding: 30px 25px 0;
-        }
+        .pos-body {padding: 30px 25px 0;}
 
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color);
-        }
+        table.add-border tr {border-top: 1px solid var(--theme-color);}
 
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color);
-        }
+        tfoot tr:first-of-type {border-bottom: 1px solid var(--theme-color);}
 
-        .total-table tr:first-of-type td {
-            padding-top: 0;
-        }
+        .total-table tr:first-of-type td {padding-top: 0;}
 
-        .total-table tr:first-of-type {
-            border-top: 0;
-        }
+        .total-table tr:first-of-type {border-top: 0;}
 
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0;
-        }
+        .sub-total {padding-right: 0;
+            padding-left: 0;}
 
-        .border-0 {
-            border: none !important;
-        }
+        .border-0 {border: none !important;}
 
         .pos-summary td,
-        .pos-summary th {
-            font-size: 13px;
-            font-weight: 600;
-        }
+        .pos-summary th {font-size: 13px;
+            font-weight: 600;}
 
-        .total-table td:last-of-type {
-            width: 146px;
-        }
+        .total-table td:last-of-type {width: 146px;}
 
-        .pos-footer {
-            padding: 15px 20px;
-        }
+        .pos-footer {padding: 15px 20px;}
 
-        .itm-description td {
-            padding-top: 0;
-        }
+        .itm-description td {padding-top: 0;}
 
         html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th {
-            text-align: right;
-        }
+        html[dir="rtl"] table tr th {text-align: right;}
 
-        html[dir="rtl"] .text-right {
-            text-align: left;
-        }
+        html[dir="rtl"] .text-right {text-align: left;}
 
-        html[dir="rtl"] .view-qrcode {
-            margin-left: 0;
-            margin-right: auto;
-        }
+        html[dir="rtl"] .view-qrcode {margin-left: 0;
+            margin-right: auto;}
 
-        p:not(:last-of-type) {
-            margin-bottom: 15px;
-        }
+        p:not(:last-of-type) {margin-bottom: 15px;}
 
-        .pos-footer h6 {
-            font-size: 45px;
+        .pos-footer h6 {font-size: 45px;
             line-height: 1.2em;
             font-weight: 400;
             text-align: center;
             font-style: italic;
-            color: var(--theme-color);
-        }
+            color: var(--theme-color);}
 
-        .pos-summary p {
-            margin-bottom: 0;
-        }
+        .pos-summary p {margin-bottom: 0;}
     </style>
-    <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+    <?php if (data_get($settings_data, SC::RTL) === 'on'): ?>
         <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
     <?php endif; ?>
 </head>
@@ -250,7 +168,7 @@ try {
 <body>
     <div class="pos-preview-main" id="boxes">
         <div class="pos-header">
-            <table class="{{ VC::VA_TOP }}">
+            <table class="vertical-align-top">
                 <tbody>
                     <tr>
                         <td>
@@ -265,27 +183,23 @@ try {
                                 <?= !empty($settings['company_country']) ? '<br>' . e($settings['company_country']) : __('No company country available') ?>
                                 <?= !empty($settings['company_telephone']) ? e($settings['company_telephone']) : __('No company telephone available') ?><br>
                                 <?php
-                                if (!empty($settings['registration_number'])) {
-                                    echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' ';
-                                }
+                                if (!empty($settings['registration_number'])) {echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' ';}
                                 echo '<br>';
-                                if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {
-                                    echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';
-                                }
+                                if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';}
                                 ?>
                             </p>
                         </td>
                         <td>
                             <img class="pos-logo" src="<?= e($img) ?>" alt="" style="margin-bottom:15px;">
-                            <table class="{{ VC::NO_SPC }}">
+                            <table class="no-space">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?= e($posNumber) ?></td>
+                                        <td class="text-right"><?= e($posNumber) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Issue Date')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?= e($issueDate) ?></td>
+                                        <td class="text-right"><?= e($issueDate) ?></td>
                                     </tr>
                                     <?php if (!empty($customFields) && count(data_get($pos, 'customField', [])) > 0): ?>
                                         <?php foreach ($customFields as $field): ?>
@@ -322,7 +236,7 @@ try {
                                 <?php else: ?>-<?php endif; ?>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="{{ VC::TX_RT }}">
+                            <td class="text-right">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <?php if (!empty(data_get($customer, 'shipping_name'))): ?>
                                     <p>
@@ -360,56 +274,42 @@ try {
                             $qty   = (float) data_get($item, 'quantity', 0);
                             $totalTaxPrice = 0.0;
                             $unitSuffix = '';
-                            try {
-                                $unit = ProductServiceUnit::find(data_get($item, 'unit'));
+                            try {$unit = ProductServiceUnit::find(data_get($item, 'unit'));
                                 $unitName = data_get($unit, 'name', '');
-                                $unitSuffix = $unitName ? ' (' . e($unitName) . ')' : '';
-                            } catch (\Throwable $e) {
-                                $unitSuffix = '';
-                                Log::error('Unit: ' . $e->getMessage());
-                            }
+                                $unitSuffix = $unitName ? ' (' . e($unitName) . ')' : '';} catch (\Throwable $e) {$unitSuffix = '';
+                                Log::error('Unit: ' . $e->getMessage());}
                             ?>
                             <tr>
                                 <td><?= e(data_get($item, 'name', '')) ?></td>
                                 <td><?= e((string)$qty) . $unitSuffix ?></td>
-                                <td><?php try {
-                                        echo e(Utility::priceFormat($settings, $price));
-                                    } catch (\Throwable $e) {
-                                        Log::error('Item price fmt: ' . $e->getMessage());
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(Utility::priceFormat($settings, $price));} catch (\InvalidArgumentException $e) {Log::warning('Item price fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Exception $e) {Log::error('Item price fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Throwable $e) {Log::critical('Item price fmt: ' . $e->getMessage());
+                                        echo '0';} ?></td>
                                 <td>
                                     <?php if (!empty(data_get($item, 'itemTax'))): ?>
                                         <?php foreach ((array) data_get($item, 'itemTax', []) as $taxes): ?>
                                             <?php
-                                            try {
-                                                $rateStr = (string) data_get($taxes, 'rate', '0');
+                                            try {$rateStr = (string) data_get($taxes, 'rate', '0');
                                                 $res     = str_ireplace(['%'], ' ', $rateStr);
                                                 $taxP    = Utility::taxRate($res, $price, $qty);
-                                                $totalTaxPrice += (float) $taxP;
-                                            } catch (\Throwable $e) {
-                                                Log::error('Tax calc: ' . $e->getMessage());
-                                            }
+                                                $totalTaxPrice += (float) $taxP;} catch (\InvalidArgumentException $e) {Log::warning('Tax calc: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Tax calc: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Tax calc: ' . $e->getMessage());}
                                             ?>
                                             <span><?= e(data_get($taxes, 'name', 'Tax')) ?></span> <span>(<?= e(data_get($taxes, 'rate', '0')) ?>)</span><br>
                                         <?php endforeach; ?>
                                         <?php else: ?>-<?php endif; ?>
                                 </td>
-                                <td><?php try {
-                                        echo e(Utility::priceFormat($settings, $totalTaxPrice));
-                                    } catch (\Throwable $e) {
-                                        Log::error('Tax amt fmt: ' . $e->getMessage());
-                                        echo '0';
-                                    } ?></td>
-                                <td><?php try {
-                                        echo e(Utility::priceFormat($settings, ($price * $qty) + $totalTaxPrice));
-                                    } catch (\Throwable $e) {
-                                        Log::error('Line total fmt: ' . $e->getMessage());
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(Utility::priceFormat($settings, $totalTaxPrice));} catch (\InvalidArgumentException $e) {Log::warning('Tax amt fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Exception $e) {Log::error('Tax amt fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Throwable $e) {Log::critical('Tax amt fmt: ' . $e->getMessage());
+                                        echo '0';} ?></td>
+                                <td><?php try {echo e(Utility::priceFormat($settings, ($price * $qty) + $totalTaxPrice));} catch (\InvalidArgumentException $e) {Log::warning('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Exception $e) {Log::error('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} catch (\Throwable $e) {Log::critical('Line total fmt: ' . $e->getMessage());
+                                        echo '0';} ?></td>
                             </tr>
                             <?php if (!empty(data_get($item, 'description'))): ?>
-                                <tr class="{{ VC::BD0_ITM_DSC }}">
+                                <tr class="border-0 itm-description">
                                     <td colspan="6"><?= e(data_get($item, 'description')) ?></td>
                                 </tr>
                             <?php endif; ?>
@@ -419,28 +319,24 @@ try {
                 <tfoot>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="{{ VC::SUB_TTL }}">
-                            <table class="{{ VC::TTL_TB }}">
+                        <td colspan="2" class="sub-total">
+                            <table class="total-table">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float) data_get($posPayment, 'amount', 0)));
-                                        } catch (\Throwable $e) {
-                                            Log::error('Subtotal fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float) data_get($posPayment, 'amount', 0)));} catch (\InvalidArgumentException $e) {Log::warning('Subtotal fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('Subtotal fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('Subtotal fmt: ' . $e->getMessage());
+                                            echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Discount')) ?>:</td>
                                     <td>
                                         <?php
-                                        try {
-                                            $disc = data_get($posPayment, 'discount', null);
-                                            echo !empty($disc) ? e(Utility::priceFormat($settings, (float)$disc)) : '-';
-                                        } catch (\Throwable $e) {
-                                            Log::error('Discount fmt: ' . $e->getMessage());
-                                            echo '-';
-                                        }
+                                        try {$disc = data_get($posPayment, 'discount', null);
+                                            echo !empty($disc) ? e(Utility::priceFormat($settings, (float)$disc)) : '-';} catch (\InvalidArgumentException $e) {Log::warning('Discount fmt: ' . $e->getMessage());
+                                            echo '-';} catch (\Exception $e) {Log::error('Discount fmt: ' . $e->getMessage());
+                                            echo '-';} catch (\Throwable $e) {Log::critical('Discount fmt: ' . $e->getMessage());
+                                            echo '-';}
                                         ?>
                                     </td>
                                 </tr>
@@ -448,14 +344,12 @@ try {
                                     <td><?= e(__('Total')) ?>:</td>
                                     <td>
                                         <?php
-                                        try {
-                                            $amt = (float) data_get($posPayment, 'amount', 0);
+                                        try {$amt = (float) data_get($posPayment, 'amount', 0);
                                             $disc = (float) (data_get($posPayment, 'discount', 0) ?? 0);
-                                            echo e(Utility::priceFormat($settings, $amt - $disc));
-                                        } catch (\Throwable $e) {
-                                            Log::error('Total fmt: ' . $e->getMessage());
-                                            echo '0';
-                                        }
+                                            echo e(Utility::priceFormat($settings, $amt - $disc));} catch (\InvalidArgumentException $e) {Log::warning('Total fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Exception $e) {Log::error('Total fmt: ' . $e->getMessage());
+                                            echo '0';} catch (\Throwable $e) {Log::critical('Total fmt: ' . $e->getMessage());
+                                            echo '0';}
                                         ?>
                                     </td>
                                 </tr>
@@ -467,23 +361,15 @@ try {
 
             <div class="pos-footer">
                 <b><?= e(data_get($settings, 'footer_title', '')) ?></b> <br>
-                <?php try {
-                    echo (string) data_get($settings, 'footer_notes', '');
-                } catch (\Throwable $e) {
-                    Log::error('Footer notes: ' . $e->getMessage());
-                } ?>
+                <?php try {echo (string) data_get($settings, 'footer_notes', '');} catch (\InvalidArgumentException $e) {Log::warning('Footer notes: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Footer notes: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Footer notes: ' . $e->getMessage());} ?>
             </div>
         </div>
     </div>
 
     <?php if (!isset($preview)): ?>
         <?php
-        try {
-            $view = method_exists(ViewsConstants::class, 'POS') ? ViewsConstants::POS . '.script' : 'pos.script';
-            echo view($view)->render();
-        } catch (\Throwable $e) {
-            Log::error('pos.script include: ' . $e->getMessage());
-        }
+        try {$view = method_exists(VW::class, 'POS') ? VW::POS . '.script' : 'pos.script';
+            echo view($view)->render();} catch (\InvalidArgumentException $e) {Log::warning('pos.script include: ' . $e->getMessage());} catch (\Exception $e) {Log::error('pos.script include: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('pos.script include: ' . $e->getMessage());}
         ?>
     <?php endif; ?>
 </body>

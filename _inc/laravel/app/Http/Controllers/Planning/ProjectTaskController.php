@@ -219,7 +219,7 @@ class ProjectTaskController extends Controller
     }
 
     public const ALL_BUG = 'allBugList';
-    public function allBugList(Request $request, string $view): View|RedirectResponse|null
+    public function allBugList(Request $request, string $view = ''): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

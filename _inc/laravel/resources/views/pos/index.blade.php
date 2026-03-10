@@ -1,5 +1,16 @@
 @php
-$data ??= [];
+	use App\Config\Constants\{
+		DatabaseConstants,
+		SettingsConstants as SC,
+		ViewClassNamesConstants as VC,
+		ViewsConstants as VW
+	};
+	use App\Models\{Utility, ProductService};
+	use Illuminate\Support\Facades\{Auth, Log, Route, Storage};
+	use Illuminate\Support\{Collection};
+	use Collective\Html\FormFacade as Form;
+
+	$data ??= [];
 	$logo ??= '';
 	$company_favicon ??= '';
 	$siteRtl ??= false;
@@ -35,7 +46,7 @@ $data ??= [];
 <html lang="{{ $lang ?? (str_replace('_','-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ data_get($companySettings ?? ($data ?? []),'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('POS') }}</title>
+        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('POS') }}</title>
         @include('fragments.std', ['meta_title'=>$meta_title ?? '', 'meta_desc'=>$meta_desc ?? '', 'meta_vp'=>'shrink-to-fit-no'])
         @include('fragments.favicon', ['faviconUrl'=>$faviconUrl])
         @include('fragments.stylesheets', ['settings'=>$colorSettings])
@@ -75,11 +86,11 @@ $data ??= [];
                                         @php
                                             $rSearchProducts = Route::has('search.products') ? route('search.products') : '#';
                                             $gSearchProducts = $msg(VW::POS,'search_products_unavailable','Search is unavailable. Please contact technical support or your domain administrator.');
-@endphp
+                                        @endphp
                                         <input id="searchproduct" type="text" class="{{ VC::FM_CT }} pr-4 rounded-right"
                                             placeholder="{{ __('Search Product') }}"
                                             data-url="{{ $rSearchProducts }}"
-                                            data-guard-msg="{{ base64_encode($gSearchProducts) }}">
+                                            data-guard-msg="{{ $gSearchProducts }}">
                                     </div>
                                 </form>
                             </div>
@@ -125,19 +136,17 @@ $data ??= [];
                         </div>
 
                         <div class="{{ VC::CD }}-body carttable cart-product-list carttable-scroll" id="carthtml">
-                            @php
- $total ??= 0;
-@endphp
-                            <div class="{{ VC::TB_RSP }}">
+                            @php $total = 0; @endphp
+                            <div class="table-responsive">
                                 <table class="{{ VC::TB }}">
                                     <thead>
                                         <tr>
                                             <th></th>
                                             <th class="text-left">{{ __('Name') }}</th>
-                                            <th class="{{ VC::TXCT }}">{{ __('QTY') }}</th>
+                                            <th class="text-center">{{ __('QTY') }}</th>
                                             <th>{{ __('Tax') }}</th>
-                                            <th class="{{ VC::TXCT }}">{{ __('Price') }}</th>
-                                            <th class="{{ VC::TXCT }}">{{ __('Sub Total') }}</th>
+                                            <th class="text-center">{{ __('Price') }}</th>
+                                            <th class="text-center">{{ __('Sub Total') }}</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -145,26 +154,22 @@ $data ??= [];
                                         @if($cartHasItems)
                                             @foreach($sessionCart as $id => $details)
                                                 @php
-                                                    try {
-                                                        $product    = ProductService::find(data_get($details,'id'));
-                                                        $image_file = data_get($product,'pro_image','');
-                                                        $image_url  = $image_file !== '' ? $image_file : 'avatar.png';
-                                                        $subtotal   = (float) data_get($details,'subtotal',0);
-                                                        $qty        = (int) data_get($details,'quantity',1);
-                                                        $price      = (float) data_get($details,'price',0);
-                                                        $name       = data_get($details,'name',__('No product name'));
-                                                        $total     += $subtotal;
-                                                        $taxes      = [];
-                                                        if (!empty($product) && !empty($product->tax_id) && is_callable([Utility::class,'tax'])) {
-                                                            $taxes = Utility::tax($product->tax_id) ?? [];
-                                                        }
-                                                    } catch (\Throwable $e) {
-                                                        \Log::error('pos/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                    $product    = ProductService::find(data_get($details,'id'));
+                                                    $image_file = data_get($product,'pro_image','');
+                                                    $image_url  = $image_file !== '' ? $image_file : 'avatar.png';
+                                                    $subtotal   = (float) data_get($details,'subtotal',0);
+                                                    $qty        = (int) data_get($details,'quantity',1);
+                                                    $price      = (float) data_get($details,'price',0);
+                                                    $name       = data_get($details,'name',__('No product name'));
+                                                    $total     += $subtotal;
+                                                    $taxes      = [];
+                                                    if (!empty($product) && !empty($product->tax_id) && is_callable([Utility::class,'tax'])) {
+                                                        $taxes = Utility::tax($product->tax_id) ?? [];
                                                     }
-@endphp
+                                                @endphp
                                                 <tr data-product-id="{{ $id }}" id="product-id-{{ $id }}">
                                                     <td class="cart-images">
-                                                        <img alt="Image" src="{{ asset(Storage::url('uploads/pro_image/'.$image_url)) }}" class="card-image avatar rounded-circle-sale shadow hover-shadow-lg">
+                                                        <img alt="{{ __('Image') }}" src="{{ asset(Storage::url('uploads/pro_image/'.$image_url)) }}" class="card-image avatar rounded-circle-sale shadow hover-shadow-lg">
                                                     </td>
                                                     <td class="name">{{ $name }}</td>
                                                     <td>
@@ -173,10 +178,10 @@ $data ??= [];
                                                             @php
                                                                 $rUpdateCart = Route::has('update-cart') ? route('update-cart') : url('update-cart');
                                                                 $gUpdateCart = $msg(VW::POS,'update_cart_unavailable','Update cart is unavailable. Please contact technical support or your domain administrator.');
-@endphp
+                                                            @endphp
                                                             <input type="number" step="1" min="1" name="quantity"
                                                                 title="{{ __('Quantity') }}" class="input-number"
-                                                                data-url="{{ $rUpdateCart }}" data-guard-msg="{{ base64_encode($gUpdateCart) }}"
+                                                                data-url="{{ $rUpdateCart }}" data-guard-msg="{{ $gUpdateCart }}"
                                                                 data-id="{{ $id }}" size="4" value="{{ $qty }}">
                                                             <input type="button" value="+" class="plus">
                                                         </span>
@@ -190,15 +195,15 @@ $data ??= [];
                                                             -
                                                         @endif
                                                     </td>
-                                                    <td class="price {{ VC::TX_RT }}">{{ $user?->priceFormat($price) }}</td>
-                                                    <td class="{{ VC::CS3 }} {{ VC::MT2 }}"><span class="subtotal">{{ $user?->priceFormat($subtotal) }}</span></td>
-                                                    <td class="col-sm-2 {{ VC::MT2 }}">
+                                                    <td class="price text-right">{{ $user?->priceFormat($price) }}</td>
+                                                    <td class="col-sm-3 mt-2"><span class="subtotal">{{ $user?->priceFormat($subtotal) }}</span></td>
+                                                    <td class="col-sm-2 mt-2">
                                                         @php
                                                             $rRemoveFromCart = Route::has('remove-from-cart') ? route('remove-from-cart') : url('remove-from-cart');
                                                             $gRemoveFromCart = $msg(VW::POS,'remove_from_cart_unavailable','Remove from cart is unavailable. Please contact technical support or your domain administrator.');
-@endphp
+                                                        @endphp
                                                         <a href="#" class="{{ VC::ACT_BTN_DNG }} bs-pass-para-pos" title="{{ __('Delete') }}"
-                                                            data-guard-msg="{{ base64_encode($gRemoveFromCart) }}"
+                                                            data-guard-msg="{{ $gRemoveFromCart }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="delete-form-{{ $id }}" data-id="{{ $id }}">
                                                             <i class="{{ VC::TI }} {{ VC::TI_TRS_WT }} {{ VC::BT_SM }}"></i>
@@ -211,7 +216,7 @@ $data ??= [];
                                                 </tr>
                                             @endforeach
                                         @else
-                                            <tr class="{{ VC::TXCT }} no-found">
+                                            <tr class="text-center no-found">
                                                 <td colspan="7">{{ __('No Data Found.!') }}</td>
                                             </tr>
                                         @endif
@@ -219,8 +224,8 @@ $data ??= [];
                                 </table>
                             </div>
 
-                            <div class="total-section {{ VC::MT3 }}">
-                                <div class="{{ VC::SUB_TTL }}">
+                            <div class="total-section mt-3">
+                                <div class="sub-total">
                                     <div class="{{ VC::DFL_JCB }}">
                                         <h6 class="{{ VC::MB0 }} text-dark">{{ __('Sub Total') }} :</h6>
                                         <h6 class="{{ VC::MB0 }} text-dark subtotal_price" id="displaytotal">{{ $user?->priceFormat($total) }}</h6>
@@ -245,21 +250,19 @@ $data ??= [];
                                         @php
                                             $rPosCreate = $cartHasItems && Route::has(VW::POS.'.create') ? route(VW::POS.'.create') : '#';
                                             $gPosCreate = $msg(VW::POS,'pos_create_unavailable','Checkout is unavailable. Please contact technical support or your domain administrator.');
-                                            $rEmptyCart = Route::has('empty-cart') ? route('empty-cart') : url('empty-cart');
-                                            $gEmptyCart = $msg(VW::POS,'empty_cart_unavailable','Empty cart is unavailable. Please contact technical support or your domain administrator.');
-@endphp
+                                        @endphp
                                         <button type="button" class="{{ VC::BT_PRM }} rounded"
                                             data-ajax-popup="true" data-size="xl" data-align="centered"
-                                            data-url="{{ $rPosCreate }}" data-guard-msg="{{ base64_encode($gPosCreate) }}"
+                                            data-url="{{ $rPosCreate }}" data-guard-msg="{{ $gPosCreate }}"
                                             data-title="{{ __('POS Invoice') }}"
                                             @if(!$cartHasItems) disabled="disabled" @endif>
                                             {{ __('PAY') }}
                                         </button>
 
-                                        <div class="tab-content btn-empty {{ VC::TX_END }}">
+                                        <div class="tab-content btn-empty text-end">
                                             <a href="#" class="{{ VC::BT }} btn-danger rounded m-0 bs-pass-para-pos"
                                                 data-toggle="tooltip" data-original-title="{{ __('Empty Cart') }}"
-                                                data-guard-msg="{{ base64_encode($gEmptyCart) }}"
+                                                data-guard-msg="{{ $gEmptyCart }}"
                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                 data-confirm-yes="delete-form-emptycart">
                                                 {{ __('Empty Cart') }}
@@ -267,7 +270,7 @@ $data ??= [];
                                             @php
                                                 $rEmptyCart = Route::has('empty-cart') ? route('empty-cart') : url('empty-cart');
                                                 $gEmptyCart = $msg(VW::POS,'empty_cart_unavailable','Empty cart is unavailable. Please contact technical support or your domain administrator.');
-@endphp
+                                            @endphp
                                             {{ Form::open(['method'=>'post','url'=>$rEmptyCart,'id'=>'delete-form-emptycart']) }}
                                                 <input type="hidden" name="session_key" value="{{ $lastsegment }}" id="empty_cart">
                                             {{ Form::close() }}
@@ -282,11 +285,11 @@ $data ??= [];
         </div>
 
         <div class="{{ VC::MD_FD }}" id="commonModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="{{ VC::MDL_DLG }}" role="document">
-                <div class="{{ VC::MDL_CTT }}">
-                    <div class="{{ VC::MDL_HDR }}">
-                        <h5 class="{{ VC::MDL_TTL }}" id="exampleModalLabel"></h5>
-                        <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="body"></div>
                 </div>
@@ -294,10 +297,10 @@ $data ??= [];
         </div>
 
         <div class="position-fixed top-0 end-0 p-3" style="z-index:99999">
-            <div id="liveToast" class="toast {{ VC::TXT_WT }} fade" role="alert" aria-live="assertive" aria-atomic="true">
+            <div id="liveToast" class="toast text-white fade" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="{{ VC::DFL }}">
                     <div class="toast-body"></div>
-                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>
@@ -385,7 +388,7 @@ $data ??= [];
                 $("#warehouse_name_hidden").val($(this).val());
                 const sess = $("#empty_cart").val();
                 $.post("{{route('warehouse-empty-cart')}}", { session_key: sess }).done(() => {
-                    $tbody.empty().html(`<tr class="{{ VC::TXCT }} no-found"><td colspan="7">${tr("no_data_found")}</td></tr>`);
+                    $tbody.empty().html(`<tr class="text-center no-found"><td colspan="7">${tr("no_data_found")}</td></tr>`);
                 });
                 });
                 $(document).on("click", "#clearinput", function () {
@@ -517,3 +520,4 @@ $data ??= [];
         </script>
     </body>
 </html>
+

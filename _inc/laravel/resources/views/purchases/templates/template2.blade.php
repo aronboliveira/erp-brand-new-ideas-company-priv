@@ -2,7 +2,8 @@
 /* @formatter:off */
 // Template 2
 
-use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewClassNamesConstants};
+use App\Config\Constants\{DatabaseConstants as DC, SettingsConstants as SC, ViewClassNamesConstants as VC};
+use App\Helpers\TemplateHelper;
 use App\Models\Utility;
 use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
 use Illuminate\Support\Str;
@@ -11,10 +12,8 @@ use Milon\Barcode\DNS2D;
 $user = Auth::user();
 $lang = Utility::fetchUserLang(user: $user);
 
-if (isset($purchase) && !empty($purchase)) {
-
-    if (!function_exists('e')) {
-        function e($v) { return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
+if (isset($purchase) && !empty($purchase)) {if (!function_exists('e')) {
+        function e($v) { return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');}
     }
 
     // Defaults
@@ -24,7 +23,7 @@ if (isset($purchase) && !empty($purchase)) {
     $customFields ??= [];
     $meta_title ??= '';
     $meta_desc ??= '';
-    $themeCSS ??= ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+    $themeCSS ??= ":root {--theme-color: {$color}; --white: #ffffff; --black: #000000; }";
     $color ??= '#ffffff';
     $font_color ??= '#000000';
     $img ??= '';
@@ -45,79 +44,63 @@ if (isset($purchase) && !empty($purchase)) {
     $purchaseDue ??= '0';
 
     // Doc language (fallback to app locale or DEFAULT_LANG)
-    try {
-        $docLang ??= $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
-    } catch (\Throwable $e) {
-        Log::error('DocLang Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $docLang ??= DatabaseConstants::DEFAULT_LANG;
-    }
+    try {$docLang ??= $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG);} catch (\InvalidArgumentException $e) {Log::warning('DocLang InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $docLang ??= DC::DEFAULT_LANG;} catch (\Exception $e) {Log::error('DocLang Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $docLang ??= DC::DEFAULT_LANG;} catch (\Throwable $e) {Log::critical('DocLang Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $docLang ??= DC::DEFAULT_LANG;}
 
     // Settings data
-    try {
-        $creatorId = Utility::isFilled($purchase ?? [])
-            ? ($purchase[DatabaseConstants::COL_TABLE_CREATOR] ?? null)
-            : (data_get($purchase, DatabaseConstants::COL_TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
-        $settings_data ??= Utility::settingsById($creatorId);
-    } catch (\Throwable $e) {
-        Log::error('SettingsById Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $settings_data ??= [];
-    }
+    try {$creatorId = Utility::isFilled($purchase ?? [])
+            ? ($purchase[DC::COL_TABLE_CREATOR] ?? null)
+            : (data_get($purchase, DC::COL_TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
+        $settings_data ??= Utility::settingsById($creatorId);} catch (\InvalidArgumentException $e) {Log::warning('SettingsById InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $settings_data ??= [];} catch (\Exception $e) {Log::error('SettingsById Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $settings_data ??= [];} catch (\Throwable $e) {Log::critical('SettingsById Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $settings_data ??= [];}
 
     // Direction
-    try {
-        $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
-    } catch (\Throwable $e) {
-        Log::error('RTL Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $dir = '';
-    }
+    try {$dir = (data_get($settings_data, SC::RTL) === 'on') ? 'rtl' : '';} catch (\InvalidArgumentException $e) {Log::warning('RTL InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $dir = '';} catch (\Exception $e) {Log::error('RTL Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $dir = '';} catch (\Throwable $e) {Log::critical('RTL Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $dir = '';}
 
     // Number & date
-    try {
-        $purchaseNumber = Utility::purchaseNumberFormat($settings, data_get($purchase, 'purchase_id')) ?: __('Could not find purchase number');
-    } catch (\Throwable $e) {
-        Log::error('PurchaseNumber Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $purchaseNumber = __('Could not find purchase number');
-    }
-    try {
-        $purchaseDate = Utility::dateFormat($settings, data_get($purchase, 'purchase_date')) ?: __('Failed to get purchase date');
-    } catch (\Throwable $e) {
-        Log::error('PurchaseDate Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $purchaseDate = __('Failed to get purchase date');
-    }
+    try {$purchaseNumber = Utility::purchaseNumberFormat($settings, data_get($purchase, 'purchase_id')) ?: __('Could not find purchase number');} catch (\InvalidArgumentException $e) {Log::warning('PurchaseNumber InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseNumber = __('Could not find purchase number');} catch (\Exception $e) {Log::error('PurchaseNumber Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseNumber = __('Could not find purchase number');} catch (\Throwable $e) {Log::critical('PurchaseNumber Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseNumber = __('Could not find purchase number');}
+    try {$purchaseDate = Utility::dateFormat($settings, data_get($purchase, 'purchase_date')) ?: __('Failed to get purchase date');} catch (\InvalidArgumentException $e) {Log::warning('PurchaseDate InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseDate = __('Failed to get purchase date');} catch (\Exception $e) {Log::error('PurchaseDate Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseDate = __('Failed to get purchase date');} catch (\Throwable $e) {Log::critical('PurchaseDate Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseDate = __('Failed to get purchase date');}
 
     // QR value
-    try {
-        $base = 'purchase.link.copy';
+    try {$base = 'purchase.link.copy';
         $kebab = Str::kebab($base);
         $resolved = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
         $pid = data_get($purchase, 'purchase_id');
         $enc = $pid ? Crypt::encrypt($pid) : null;
         $qrValue = ($resolved && $enc) ? route($resolved, $enc) : '#';
         if ($qrValue === '#') {
-            Log::error('QR route unavailable or param missing | route='.($resolved ?? 'null').' | file='.__FILE__.' | line='.__LINE__);
-        }
-    } catch (\Throwable $e) {
-        Log::error('QR Route Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-        $qrValue = '#';
-    }
+            Log::error('QR route unavailable or param missing | route='.($resolved ?? 'null').' | file='.__FILE__.' | line='.__LINE__);}
+    } catch (\InvalidArgumentException $e) {Log::warning('QR Route InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $qrValue = '#';} catch (\Exception $e) {Log::error('QR Route Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $qrValue = '#';} catch (\Throwable $e) {Log::critical('QR Route Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $qrValue = '#';}
 
     // Totals
-    try {
-        $purchaseTotalQuantity = (string)(data_get($purchase, 'totalQuantity') ?? '0');
+    try {$purchaseTotalQuantity = (string)(data_get($purchase, 'totalQuantity') ?? '0');
         $purchaseTotalRate = Utility::priceFormat($settings, data_get($purchase, 'totalRate')) ?: '0';
         $purchaseTotalDiscount = Utility::priceFormat($settings, data_get($purchase, 'totalDiscount')) ?: '0';
         $purchaseTotalTaxPrice = Utility::priceFormat($settings, data_get($purchase, 'totalTaxPrice')) ?: '0';
         $purchaseSubTotal = Utility::priceFormat($settings, data_get($purchase, 'getSubTotal') ? $purchase->getSubTotal() : 0) ?: '0';
         $purchaseGrandTotal = Utility::priceFormat(
-            $settings,
-            (data_get($purchase, 'getSubTotal') ? $purchase->getSubTotal() : 0)
+            $settings, (data_get($purchase, 'getSubTotal') ? $purchase->getSubTotal() : 0)
             - (data_get($purchase, 'getTotalDiscount') ? $purchase->getTotalDiscount() : 0)
             + (data_get($purchase, 'getTotalTax') ? $purchase->getTotalTax() : 0)
         ) ?: '0';
         $purchasePaid = Utility::priceFormat($settings, (method_exists($purchase, 'getTotal') ? $purchase->getTotal() : 0) - (method_exists($purchase, 'getDue') ? $purchase->getDue() : 0)) ?: '0';
-        $purchaseDue  = Utility::priceFormat($settings, method_exists($purchase, 'getDue') ? $purchase->getDue() : 0) ?: '0';
-    } catch (\Throwable $e) {
-        Log::error('Totals Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseDue  = Utility::priceFormat($settings, method_exists($purchase, 'getDue') ? $purchase->getDue() : 0) ?: '0';} catch (\InvalidArgumentException $e) {Log::warning('Totals InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
         $purchaseTotalQuantity = '0';
         $purchaseTotalRate = '0';
         $purchaseTotalDiscount = '0';
@@ -125,19 +108,30 @@ if (isset($purchase) && !empty($purchase)) {
         $purchaseSubTotal = '0';
         $purchaseGrandTotal = '0';
         $purchasePaid = '0';
-        $purchaseDue = '0';
-    }
+        $purchaseDue = '0';} catch (\Exception $e) {Log::error('Totals Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseTotalQuantity = '0';
+        $purchaseTotalRate = '0';
+        $purchaseTotalDiscount = '0';
+        $purchaseTotalTaxPrice = '0';
+        $purchaseSubTotal = '0';
+        $purchaseGrandTotal = '0';
+        $purchasePaid = '0';
+        $purchaseDue = '0';} catch (\Throwable $e) {Log::critical('Totals Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseTotalQuantity = '0';
+        $purchaseTotalRate = '0';
+        $purchaseTotalDiscount = '0';
+        $purchaseTotalTaxPrice = '0';
+        $purchaseSubTotal = '0';
+        $purchaseGrandTotal = '0';
+        $purchasePaid = '0';
+        $purchaseDue = '0';}
 ?>
     <!DOCTYPE html>
     <html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
     <head>
         <?php
-    try {
-        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
-    } catch (\Throwable $e) {
-        Log::error('Meta view Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-    }
+    try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\InvalidArgumentException $e) {Log::warning('Meta view InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Exception $e) {Log::error('Meta view Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Throwable $e) {Log::critical('Meta view Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);}
     ?>
         <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
@@ -145,158 +139,96 @@ if (isset($purchase) && !empty($purchase)) {
             <?= $themeCSS ?>
         </style>
         <style type="text/css">
-            body {
-                font-family: 'Lato', sans-serif;
-            }
+            body {font-family: 'Lato', sans-serif;}
 
             p,
             li,
             ul,
-            ol {
-                margin: 0;
+            ol {margin: 0;
                 padding: 0;
                 list-style: none;
-                line-height: 1.5;
-            }
+                line-height: 1.5;}
 
-            * {
-                margin: 0;
+            * {margin: 0;
                 padding: 0;
-                box-sizing: border-box;
-            }
+                box-sizing: border-box;}
 
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
+            table {width: 100%;
+                border-collapse: collapse;}
 
-            table tr th {
-                padding: .75rem;
-                text-align: left;
-            }
+            table tr th {padding: .75rem;
+                text-align: left;}
 
-            table tr td {
-                padding: .75rem;
-                text-align: left;
-            }
+            table tr td {padding: .75rem;
+                text-align: left;}
 
-            table th small {
-                display: block;
-                font-size: 12px;
-            }
+            table th small {display: block;
+                font-size: 12px;}
 
-            .purchase-preview-main {
-                max-width: 700px;
+            .purchase-preview-main {max-width: 700px;
                 width: 100%;
                 margin: 0 auto;
                 background: #ffff;
-                box-shadow: 0 0 10px #ddd;
-            }
+                box-shadow: 0 0 10px #ddd;}
 
-            .purchase-logo {
-                max-width: 200px;
-                width: 100%;
-            }
+            .purchase-logo {max-width: 200px;
+                width: 100%;}
 
-            .purchase-header table td {
-                padding: 15px 30px;
-            }
+            .purchase-header table td {padding: 15px 30px;}
 
-            .text-right {
-                text-align: right;
-            }
+            .text-right {text-align: right;}
 
-            .no-space tr td {
-                padding: 0;
-            }
+            .no-space tr td {padding: 0;}
 
-            .vertical-align-top td {
-                vertical-align: top;
-            }
+            .vertical-align-top td {vertical-align: top;}
 
-            .view-qrcode {
-                max-width: 114px;
+            .view-qrcode {max-width: 114px;
                 height: 114px;
                 margin-left: auto;
                 margin-top: 15px;
-                background: var(--white);
-            }
+                background: var(--white);}
 
-            .view-qrcode img {
-                width: 100%;
-                height: 100%;
-            }
+            .view-qrcode img {width: 100%;
+                height: 100%;}
 
-            .purchase-body {
-                padding: 30px 25px 0;
-            }
+            .purchase-body {padding: 30px 25px 0;}
 
-            table.add-border tr {
-                border-top: 1px solid var(--theme-color);
-            }
+            table.add-border tr {border-top: 1px solid var(--theme-color);}
 
-            tfoot tr:first-of-type {
-                border-bottom: 1px solid var(--theme-color);
-            }
+            tfoot tr:first-of-type {border-bottom: 1px solid var(--theme-color);}
 
-            .total-table tr:first-of-type td {
-                padding-top: 0;
-            }
+            .total-table tr:first-of-type td {padding-top: 0;}
 
-            .total-table tr:first-of-type {
-                border-top: 0;
-            }
+            .total-table tr:first-of-type {border-top: 0;}
 
-            .sub-total {
-                padding-right: 0;
-                padding-left: 0;
-            }
+            .sub-total {padding-right: 0;
+                padding-left: 0;}
 
-            .border-0 {
-                border: none !important;
-            }
+            .border-0 {border: none !important;}
 
             .purchase-summary td,
-            .purchase-summary th {
-                font-size: 13px;
-                font-weight: 600;
-            }
+            .purchase-summary th {font-size: 13px;
+                font-weight: 600;}
 
-            .total-table td:last-of-type {
-                width: 146px;
-            }
+            .total-table td:last-of-type {width: 146px;}
 
-            .purchase-footer {
-                padding: 15px 20px;
-            }
+            .purchase-footer {padding: 15px 20px;}
 
-            .itm-description td {
-                padding-top: 0;
-            }
+            .itm-description td {padding-top: 0;}
 
             html[dir="rtl"] table tr td,
-            html[dir="rtl"] table tr th {
-                text-align: right;
-            }
+            html[dir="rtl"] table tr th {text-align: right;}
 
-            html[dir="rtl"] .text-right {
-                text-align: left;
-            }
+            html[dir="rtl"] .text-right {text-align: left;}
 
-            html[dir="rtl"] .view-qrcode {
-                margin-left: 0;
-                margin-right: auto;
-            }
+            html[dir="rtl"] .view-qrcode {margin-left: 0;
+                margin-right: auto;}
 
-            p:not(:last-of-type) {
-                margin-bottom: 15px;
-            }
+            p:not(:last-of-type) {margin-bottom: 15px;}
 
-            .purchase-summary p {
-                margin-bottom: 0;
-            }
+            .purchase-summary p {margin-bottom: 0;}
         </style>
-        <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+        <?php if (data_get($settings_data, SC::RTL) === 'on'): ?>
             <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
         <?php endif; ?>
     </head>
@@ -304,11 +236,11 @@ if (isset($purchase) && !empty($purchase)) {
     <body>
         <div class="purchase-preview-main" id="boxes">
             <div class="purchase-header">
-                <table class="{{ VC::VA_TOP }}">
+                <table class="vertical-align-top">
                     <tbody>
                         <tr>
                             <td><img class="purchase-logo" src="<?= e($img) ?>" alt=""></td>
-                            <td class="{{ VC::TX_RT }}">
+                            <td class="text-right">
                                 <p>
                                     <?= e(data_get($settings,'company_name', __('No company name available.'))) ?><br>
                                     <?= e(data_get($settings,'mail_from_address', __('No email available.'))) ?><br><br>
@@ -318,11 +250,9 @@ if (isset($purchase) && !empty($purchase)) {
                                     <?php $zip=(string)data_get($settings,'company_zipcode',''); echo $zip!==''? ' - '.e($zip) : ' - '.e(__('No zipcode available.')); ?>
                                     <?php $country=(string)data_get($settings,'company_country',''); echo $country!==''? '<br>'.e($country) : '<br>'.e(__('No country available.')); ?>
                                     <?= e(data_get($settings,'company_telephone', __('No phone available.'))) ?><br>
-                                    <?php $reg=(string)data_get($settings,'registration_number',''); if($reg!==''){ echo e(__('Registration Number')).' : '.e($reg).' <br>'; } ?>
-                                    <?php if (data_get($settings,'vat_gst_number_switch')==='on') {
-                            if (!empty($settings['tax_type']) && !empty($settings['vat_number'])) {
-                                echo e($settings['tax_type'].' '.__('Number')).' : '.e($settings['vat_number']).' <br>';
-                            }
+                                    <?php $reg=(string)data_get($settings,'registration_number',''); if($reg!==''){echo e(__('Registration Number')).' : '.e($reg).' <br>';} ?>
+                                    <?php if (data_get($settings,'vat_gst_number_switch')==='on') {if (!empty($settings['tax_type']) && !empty($settings['vat_number'])) {
+                                echo e($settings['tax_type'].' '.__('Number')).' : '.e($settings['vat_number']).' <br>';}
                         } ?>
                                 </p>
                             </td>
@@ -330,20 +260,20 @@ if (isset($purchase) && !empty($purchase)) {
                     </tbody>
                 </table>
 
-                <table class="{{ VC::VA_TOP }}">
+                <table class="vertical-align-top">
                     <tbody>
                         <tr>
                             <td>
                                 <h3 style="text-transform:uppercase;font-size:25px;font-weight:bold;margin-bottom:15px;"><?= e(__('PURCHASE')) ?></h3>
-                                <table class="{{ VC::NO_SPC }}">
+                                <table class="no-space">
                                     <tbody>
                                         <tr>
                                             <td><?= e(__('Number')) ?>:</td>
-                                            <td class="{{ VC::TX_RT }}"><?= e($purchaseNumber) ?></td>
+                                            <td class="text-right"><?= e($purchaseNumber) ?></td>
                                         </tr>
                                         <tr>
                                             <td><?= e(__('Purchase Date')) ?>:</td>
-                                            <td class="{{ VC::TX_RT }}"><?= e($purchaseDate) ?></td>
+                                            <td class="text-right"><?= e($purchaseDate) ?></td>
                                         </tr>
                                         <?php if (!empty($customFields) && count(data_get($purchase,'customField',[]))>0): ?>
                                             <?php foreach ($customFields as $field): ?>
@@ -357,15 +287,13 @@ if (isset($purchase) && !empty($purchase)) {
                                 </table>
                             </td>
                             <td>
-                                <div class="{{ VC::VW_QR }}">
+                                <div class="view-qrcode">
                                     <?php
-                        try {
-                            $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
-                            echo $qrHtml;
-                        } catch (\Throwable $e) {
-                            Log::error('QR HTML Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-                            echo '<div></div>';
-                        }
+                        try {$qrHtml = (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                            echo $qrHtml;} catch (\InvalidArgumentException $e) {Log::warning('QR HTML InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                            echo '<div></div>';} catch (\Exception $e) {Log::error('QR HTML Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                            echo '<div></div>';} catch (\Throwable $e) {Log::critical('QR HTML Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                            echo '<div></div>';}
                         ?>
                                 </div>
                             </td>
@@ -395,7 +323,7 @@ if (isset($purchase) && !empty($purchase)) {
                                 <?php endif; ?>
                             </td>
                             <?php if (data_get($settings,'shipping_display')==='on'): ?>
-                                <td class="{{ VC::TX_RT }}">
+                                <td class="text-right">
                                     <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                     <?php if (!empty(data_get($vendor,'shipping_name'))): ?>
                                         <p>
@@ -416,7 +344,7 @@ if (isset($purchase) && !empty($purchase)) {
                     </tbody>
                 </table>
 
-                <table class="{{ VC::BDR_PRC_SM }}" style="margin-top:30px;">
+                <table class="add-border purchase-summary" style="margin-top:30px;">
                     <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>;">
                         <tr>
                             <th><?= e(__('Item')) ?></th>
@@ -433,8 +361,8 @@ if (isset($purchase) && !empty($purchase)) {
                                 <tr>
                                     <td><?= e(data_get($item,'name') ?? __('No item name available')) ?></td>
                                     <td><?= e((string)(data_get($item,'quantity') ?? 0)) ?></td>
-                                    <td><?php try { echo e(Utility::priceFormat($settings, data_get($item,'price',0))); } catch (\Throwable $e) { Log::error('Item price format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
-                                    <td><?php try { $disc=(float)(data_get($item,'discount',0)); echo $disc!=0.0 ? e(Utility::priceFormat($settings,$disc)) : '-'; } catch (\Throwable $e) { Log::error('Item discount format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '-'; } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, data_get($item, 'price', 0)));} catch (\InvalidArgumentException $e) {Log::warning('Item price format InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Exception $e) {Log::error('Item price format Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Throwable $e) {Log::critical('Item price format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} ?></td>
+                                    <td><?php try {$disc=(float)(data_get($item, 'discount', 0)); echo $disc!=0.0 ? e(Utility::priceFormat($settings, $disc)) : '-';} catch (\InvalidArgumentException $e) {Log::warning('Item discount format InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '-';} catch (\Exception $e) {Log::error('Item discount format Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '-';} catch (\Throwable $e) {Log::critical('Item discount format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '-';} ?></td>
                                     <?php $itemtax = 0.0; ?>
                                     <td>
                                         <?php if (!empty(data_get($item,'itemTax'))): ?>
@@ -448,18 +376,16 @@ if (isset($purchase) && !empty($purchase)) {
                                     </td>
                                     <td>
                                         <?php
-                            try {
-                                $line = (float)(data_get($item,'price',0)) * (float)(data_get($item,'quantity',0)) - (float)(data_get($item,'discount',0)) + (float)$itemtax;
-                                echo e(Utility::priceFormat($settings, $line));
-                            } catch (\Throwable $e) {
-                                Log::error('Line total Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-                                echo '0';
-                            }
+                            try {$line = (float)(data_get($item, 'price', 0)) * (float)(data_get($item, 'quantity', 0)) - (float)(data_get($item, 'discount', 0)) + (float)$itemtax;
+                                echo e(Utility::priceFormat($settings, $line));} catch (\InvalidArgumentException $e) {Log::warning('Line total InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                                echo '0';} catch (\Exception $e) {Log::error('Line total Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                                echo '0';} catch (\Throwable $e) {Log::critical('Line total Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                                echo '0';}
                             ?>
                                     </td>
                                 </tr>
                                 <?php if (!empty(data_get($item,'description'))): ?>
-                                    <tr class="{{ VC::BD0_ITM_DSC }}">
+                                    <tr class="border-0 itm-description">
                                         <td colspan="6"><?= e((string)$item->description) ?></td>
                                     </tr>
                                 <?php endif; ?>
@@ -477,8 +403,8 @@ if (isset($purchase) && !empty($purchase)) {
                         </tr>
                         <tr>
                             <td colspan="4"></td>
-                            <td colspan="2" class="{{ VC::SUB_TTL }}">
-                                <table class="{{ VC::TTL_TB }}">
+                            <td colspan="2" class="sub-total">
+                                <table class="total-table">
                                     <tr>
                                         <td><?= e(__('Subtotal')) ?>:</td>
                                         <td><?= e($purchaseSubTotal) ?></td>
@@ -486,14 +412,14 @@ if (isset($purchase) && !empty($purchase)) {
                                     <?php if (method_exists($purchase,'getTotalDiscount') && $purchase->getTotalDiscount()): ?>
                                         <tr>
                                             <td><?= e(__('Discount')) ?>:</td>
-                                            <td><?php try { echo e(Utility::priceFormat($settings, $purchase->getTotalDiscount())); } catch (\Throwable $e) { Log::error('Subtotal discount Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
+                                            <td><?php try {echo e(Utility::priceFormat($settings, $purchase->getTotalDiscount()));} catch (\InvalidArgumentException $e) {Log::warning('Subtotal discount InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Exception $e) {Log::error('Subtotal discount Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Throwable $e) {Log::critical('Subtotal discount Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} ?></td>
                                         </tr>
                                     <?php endif; ?>
                                     <?php if (!empty($purchase->taxesData)): ?>
                                         <?php foreach ($purchase->taxesData as $taxName => $taxPrice): ?>
                                             <tr>
                                                 <td><?= e($taxName) ?> :</td>
-                                                <td><?php try { echo e(Utility::priceFormat($settings, $taxPrice)); } catch (\Throwable $e) { Log::error('Tax row Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
+                                                <td><?php try {echo e(Utility::priceFormat($settings, $taxPrice));} catch (\InvalidArgumentException $e) {Log::warning('Tax row InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Exception $e) {Log::error('Tax row Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} catch (\Throwable $e) {Log::critical('Tax row Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0';} ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -517,33 +443,18 @@ if (isset($purchase) && !empty($purchase)) {
 
                 <div class="purchase-footer">
                     <b><?= e(data_get($settings,'footer_title', __('No footer title available'))) ?></b> <br>
-                    <?php try { echo (string)data_get($settings,'footer_notes',''); } catch (\Throwable $e) { Log::error('Footer notes Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); } ?>
+                    <?php try {echo (string)data_get($settings, 'footer_notes', '');} catch (\InvalidArgumentException $e) {Log::warning('Footer notes InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Exception $e) {Log::error('Footer notes Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Throwable $e) {Log::critical('Footer notes Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} ?>
                 </div>
             </div>
         </div>
 
         <?php if (!isset($preview)): ?>
             <?php
-    try {
-        echo view('purchase.script')->render();
-    } catch (\Throwable $e) {
-        Log::error('Script include Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
-    }
+    try {echo view('purchase.script')->render();} catch (\InvalidArgumentException $e) {Log::warning('Script include InvalidArgument: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Exception $e) {Log::error('Script include Exception: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);} catch (\Throwable $e) {Log::critical('Script include Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);}
     ?>
         <?php endif; ?>
     </body>
 
     </html>
 <?php
-} else {
-    echo '<!DOCTYPE html>
-<html lang="'.htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8').'">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <div class="{{ VC::ALT_WRN }}">No purchase data available.</div>
-</body>
-</html>';
-}
+} else {echo TemplateHelper::getNoDataHtml('purchase');}

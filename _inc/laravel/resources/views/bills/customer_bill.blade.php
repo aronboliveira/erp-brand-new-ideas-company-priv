@@ -1,5 +1,16 @@
 @php
-$bill ??= null;
+	use App\Config\Constants\{
+		DatabaseConstants,
+		ExtendingLayoutsConstants,
+		SettingsConstants,
+		ViewClassNamesConstants as VC,
+		ViewsConstants,
+		YieldingConstants
+	};
+	use App\Models\{Bill,Utility};
+	use Illuminate\Support\Facades\{Crypt,Log,Route};
+    use Illuminate\Support\{Collection, Str};
+	$bill ??= null;
 	$creatorId ??= '';
 	$data ??= [];
 	$logo ??= '';
@@ -17,20 +28,20 @@ $bill ??= null;
 	$faviconUrl ??= '';
     $lang = Utility::fetchUserLang();
 	try {
-		$creatorId = $bill?->[DC::COL_TABLE_CREATOR] ?? '';
+		$creatorId = $bill?->[DatabaseConstants::COL_TABLE_CREATOR] ?? '';
 		$data = Utility::prepareCommonViewData($creatorId) ?: [];
-		$logo = $data[SC::LOGO] ?? '';
-		$company_favicon = $data[SC::FAV_ICN] ?? '';
-		$colorSettings = $data[SC::CLR_STG] ?? [];
-		$color = $data[SC::THM_CLR] ?? '';
-		$company_setting = $data[SC::CPN_CFG] ?? [];
-		$mode_setting = $data[SC::MD_LO] ?? '';
-		$siteRtl = $data[SC::RTL] ?? false;
-		$meta_title = $data[SC::MT_TTL_K] ?? '';
-		$meta_desc = $data[SC::MT_DESC_LONG] ?? '';
-		$meta_image = $data[SC::MT_IMG_K] ?? '';
-		$meta_logo = $data[SC::MT_LOGO] ?? '';
-		$get_cookie = $data[SC::CK_STG] ?? '';
+		$logo = $data[SettingsConstants::LOGO] ?? '';
+		$company_favicon = $data[SettingsConstants::FAV_ICN] ?? '';
+		$colorSettings = $data[SettingsConstants::CLR_STG] ?? [];
+		$color = $data[SettingsConstants::THM_CLR] ?? '';
+		$company_setting = $data[SettingsConstants::CPN_CFG] ?? [];
+		$mode_setting = $data[SettingsConstants::MD_LO] ?? '';
+		$siteRtl = $data[SettingsConstants::RTL] ?? false;
+		$meta_title = $data[SettingsConstants::MT_TTL_K] ?? '';
+		$meta_desc = $data[SettingsConstants::MT_DESC_LONG] ?? '';
+		$meta_image = $data[SettingsConstants::MT_IMG_K] ?? '';
+		$meta_logo = $data[SettingsConstants::MT_LOGO] ?? '';
+		$get_cookie = $data[SettingsConstants::CK_STG] ?? '';
 		$faviconUrl = Utility::getCompanyLogo() ?: '';
 	} catch (\Error $e) {
 		Log::error(
@@ -66,23 +77,23 @@ $bill ??= null;
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? (app()->getLocale() : DC::DEFAULT_LANG) : '') : '' }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
+<html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? (app()->getLocale() : DatabaseConstants::DEFAULT_LANG) : '') : '' }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
-        <title>{{(Utility::getValByName('title_text')) ? Utility::getValByName('title_text') :
+        <title>{{(Utility::getValByName('title_text')) ? Utility::getValByName('title_text') : 
         config('app.name', 'ERPNovaPrestech')}} - @yield('page-title')</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
             'meta_desc' => $meta_desc
         ])
         @include('fragments.og', [
-            'meta_title' => $meta_title,
-            'meta_desc' => $meta_desc,
+            'meta_title' => $meta_title, 
+            'meta_desc' => $meta_desc, 
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
         @include('fragments.x', [
-            'meta_title' => $meta_title,
-            'meta_desc' => $meta_desc,
+            'meta_title' => $meta_title, 
+            'meta_desc' => $meta_desc, 
             'meta_image' => $meta_image,
             'meta_logo' => $meta_logo
         ])
@@ -109,7 +120,7 @@ $bill ??= null;
             @if ($siteRtl == 'on')
                 <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}">
             @endif
-            @if ($colorSettings[SC::CST_DRK] == 'on')
+            @if ($colorSettings[SettingsConstants::CST_DRK] == 'on')
                 <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
             @else
                 <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
@@ -126,33 +137,73 @@ $bill ??= null;
                 <div class="{{ VC::CM12 }} {{ VC::DFL_AIC }} justify-content-between justify-content-md-end">
                     <div class="all-button-box mx-2">
                         @php
-                            $billPdfRoute = Route::has(VW::BIL . '.pdf') ? route(VW::BIL . '.pdf', Crypt::encrypt($bill->id)) : '#';
+                            $billPdfRoute = Route::has(ViewsConstants::BIL . '.pdf') ? route(ViewsConstants::BIL . '.pdf', Crypt::encrypt($bill->id)) : '#';
                             $billPdfLinkId = 'bill-pdf-link-' . $bill->id;
-@endphp
+                        @endphp
                         <a id="{{ $billPdfLinkId }}" href="{{ $billPdfRoute }}" target="_blank" class="{{ VC::BT_PRM }} {{ VC::MT3 }}" data-url="{{ $billPdfRoute }}">
                             {{ __('Download') }}
                         </a>
                         @push(StacksConstants::ADM_SCR_PG)
-                            <script src="{{ asset('assets/js/core/route-guard.js') }}" defer></script>
-                            <script src="{{ asset('assets/js/routes/bills/shared/customer-bill-helpers.js') }}" defer></script>
+                            <script defer>
+                                (() => {
+                                    const link = document.getElementById("{{ $billPdfLinkId }}");
+                                    if (!link || link.getAttribute("data-listener-active") === "true") return;
+                                    link.setAttribute("data-listener-active", "true");
+                                    link.addEventListener("click", event => {
+                                        try {
+                                        const href = link.getAttribute("href");
+                                        const url = link.getAttribute("data-url");
+                                        if ((href && href !== "#") || (url && url !== "#")) return;
+                                        event.preventDefault();
+                                        const msg = link.getAttribute("data-guard-msg") ?? "# ERROR";
+                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                        let container = document.getElementById("toast-container");
+                                        if (!container) {
+                                            container = document.createElement("div");
+                                                      container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+                                            document.body.appendChild(container);
+                                        }
+                                        if (bootstrapLink && window.bootstrap) {
+                                            const toastEl = document.createElement("div");
+                                            toastEl.className = "toast";
+                                            toastEl.setAttribute("role", "alert");
+                                            toastEl.setAttribute("aria-live", "assertive");
+                                            toastEl.setAttribute("aria-atomic", "true");
+                                            const body = document.createElement("div");
+                                            body.className = "toast-body";
+                                            body.textContent = msg;
+                                            toastEl.appendChild(body);
+                                            container.appendChild(toastEl);
+                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                        } else {
+                                            alert(msg);
+                                        }
+                                        link.setAttribute("data-failed-route", "true");
+                                        } catch (e) {}
+                                    });
+                                })();
+                            </script>
                         @endpush
                     </div>
                 </div>
             </div>
             @php
                 $canPriceFormat = method_exists($user, 'priceFormat');
-@endphp
+            @endphp
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="{{ VC::CD_BD }}">
+                        <div class="card-body">
                             <div class="invoice">
                                 <div class="invoice-print">
-                                    <div class="{{ VC::RW }} invoice-title mt-2">
-                                        <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} {{ VC::C12 }}">
+                                    <div class="row invoice-title mt-2">
+                                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 {{ VC::C12 }}">
                                             <h2>{{ __('Bill') }}</h2>
                                         </div>
-                                        <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} {{ VC::C12 }} text-end">
+                                        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 {{ VC::C12 }} text-end">
                                             <h3 class="invoice-number float-right"></h3>
                                         </div>
                                         <div class="{{ VC::C12 }}">
@@ -161,7 +212,7 @@ $bill ??= null;
                                     </div>
 
                                     <div class="{{ VC::RW }}">
-                                        <div class="col {{ VC::TX_END }}">
+                                        <div class="col text-end">
                                             <div class="{{ VC::DFL_AIC }} justify-content-end">
                                                 <div class="me-4">
                                                     <small>
@@ -204,13 +255,58 @@ $bill ??= null;
 
                                         <div class="col">
                                             @php
-                                                $qrRoute = Route::has(VW::BIL . '.link.copy') ? route(VW::BIL . '.link.copy', Crypt::encrypt($bill->id)) : '#';
+                                                $qrRoute = Route::has(ViewsConstants::BIL . '.link.copy') ? route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt($bill->id)) : '#';
                                                 $qrId = 'bill-qr-copy-' . $bill->id;
-@endphp
+                                            @endphp
                                             <div id="{{ $qrId }}" class="{{ VC::FEND }} {{ VC::MT3 }}" data-url="{{ $qrRoute }}" style="cursor: pointer;">
-                                                {!! DNS2D::getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
+                                                {!! (new \Milon\Barcode\DNS2D)->getBarcodeHTML($qrRoute, 'QRCODE', 2, 2) !!}
                                             </div>
-                                            {{-- QR copy handler auto-initialized via customer-bill-helpers.js --}}
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (() => {
+                                                        const el = document.getElementById("{{ $qrId }}");
+                                                        if (!el || el.getAttribute("data-listener-active") === "true") return;
+                                                        el.setAttribute("data-listener-active", "true");
+                                                        el.addEventListener("click", event => {
+                                                            try {
+                                                            const url = el.getAttribute("data-url");
+                                                            if (!url || url === "#") {
+                                                                event.preventDefault();
+                                                                const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                let container = document.getElementById("toast-container");
+                                                                if (!container) {
+                                                                container = document.createElement("div");
+                                                                          container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
+                                                                document.body.appendChild(container);
+                                                                }
+                                                                if (bootstrapLink && window.bootstrap) {
+                                                                const toastEl = document.createElement("div");
+                                                                toastEl.className = "toast";
+                                                                toastEl.setAttribute("role", "alert");
+                                                                toastEl.setAttribute("aria-live", "assertive");
+                                                                toastEl.setAttribute("aria-atomic", "true");
+                                                                const body = document.createElement("div");
+                                                                body.className = "toast-body";
+                                                                body.textContent = msg;
+                                                                toastEl.appendChild(body);
+                                                                container.appendChild(toastEl);
+                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                } else {
+                                                                alert(msg);
+                                                                }
+                                                                el.setAttribute("data-failed-route", "true");
+                                                                return;
+                                                            }
+                                                            navigator.clipboard.writeText(url);
+                                                            } catch (e) {}
+                                                        });
+                                                    })();
+                                                </script>
+                                            @endpush
                                         </div>
                                     </div>
 
@@ -218,7 +314,7 @@ $bill ??= null;
                                         <div class="col">
                                             @php
                                                 $statusClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary'];
-@endphp
+                                            @endphp
                                             <small>
                                                 <strong>{{ __('Status') }} :</strong><br>
                                                 <span class="badge {{ $statusClasses[$bill->status] ?? 'bg-secondary' }}">{{ __(Bill::$statuses[$bill->status]) }}</span>
@@ -247,79 +343,63 @@ $bill ??= null;
                                             <div class="table-responsive {{ VC::MT2 ?? '' }}">
                                                 <table class="{{ VC::TB }} table-striped">
                                                     @php
-                                                        try {
-                                                            $headers = [
-                                                                ['label' => '#', 'class' => 'text-dark', 'width' => '40', 'data-width' => '40'],
-                                                                ['label' => __('Product'), 'class' => 'text-dark'],
-                                                                ['label' => __('Quantity'), 'class' => 'text-dark'],
-                                                                ['label' => __('Rate'), 'class' => 'text-dark'],
-                                                                ['label' => __('Tax'), 'class' => 'text-dark'],
-                                                                ['label' => __('Discount'), 'class' => 'text-dark'],
-                                                                ['label' => __('Description'), 'class' => 'text-dark'],
-                                                                ['label' => __('Price'), 'class' => 'text-end text-dark', 'width' => '12%', 'subtitle' => __('after tax & discount')]
-                                                            ];
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('bills/customer_bill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $headers = [
+                                                            ['label' => '#', 'class' => 'text-dark', 'width' => '40', 'data-width' => '40'],
+                                                            ['label' => __('Product'), 'class' => 'text-dark'],
+                                                            ['label' => __('Quantity'), 'class' => 'text-dark'],
+                                                            ['label' => __('Rate'), 'class' => 'text-dark'],
+                                                            ['label' => __('Tax'), 'class' => 'text-dark'],
+                                                            ['label' => __('Discount'), 'class' => 'text-dark'],
+                                                            ['label' => __('Description'), 'class' => 'text-dark'],
+                                                            ['label' => __('Price'), 'class' => 'text-end text-dark', 'width' => '12%', 'subtitle' => __('after tax & discount')]
+                                                        ];
+                                                    @endphp
                                                     <tr>
                                                         @foreach($headers as $header)
                                                             <th class="{{ $header['class'] }}" @if(isset($header['width'])) width="{{ $header['width'] }}" @endif @if(isset($header['data-width'])) data-width="{{ $header['data-width'] }}" @endif>
                                                                 {{ $header['label'] }}
                                                                 @if(isset($header['subtitle']))
-                                                                    <br><small class="{{ VC::TX_DNG }}">{{ $header['subtitle'] }}</small>
+                                                                    <br><small class="text-danger">{{ $header['subtitle'] }}</small>
                                                                 @endif
                                                             </th>
                                                         @endforeach
                                                     </tr>
                                                     @php
-                                                        try {
-                                                            $hasItems = isset($items) && ((is_array($items) && count($items)) || ($items instanceof Collection && $items->isNotEmpty()));
-                                                            $totalQuantity = isset($totalQuantity) && is_numeric($totalQuantity) ? $totalQuantity : 0;
-                                                            $totalRate = isset($totalRate) && is_numeric($totalRate) ? $totalRate : 0;
-                                                            $totalDiscount = isset($totalDiscount) && is_numeric($totalDiscount) ? $totalDiscount : 0;
-                                                            $totalTaxPrice = isset($totalTaxPrice) && is_numeric($totalTaxPrice) ? $totalTaxPrice : 0;
-                                                            $taxesData = isset($taxesData) && is_array($taxesData) ? $taxesData : [];
-                                                        } catch (\Throwable $e) {
-                                                            \Log::error('bills/customer_bill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                        }
-@endphp
+                                                        $hasItems = isset($items) && ((is_array($items) && count($items)) || ($items instanceof Collection && $items->isNotEmpty()));
+                                                        $totalQuantity = isset($totalQuantity) && is_numeric($totalQuantity) ? $totalQuantity : 0;
+                                                        $totalRate = isset($totalRate) && is_numeric($totalRate) ? $totalRate : 0;
+                                                        $totalDiscount = isset($totalDiscount) && is_numeric($totalDiscount) ? $totalDiscount : 0;
+                                                        $totalTaxPrice = isset($totalTaxPrice) && is_numeric($totalTaxPrice) ? $totalTaxPrice : 0;
+                                                        $taxesData = isset($taxesData) && is_array($taxesData) ? $taxesData : [];
+                                                    @endphp
                                                     @if($hasItems)
                                                         @foreach($items as $key => $item)
-                                                            @php
- $hasTaxes = false; $taxList = [];
-@endphp
+                                                            @php $hasTaxes = false; $taxList = []; @endphp
                                                             @if(!empty($item->tax))
                                                                 @php
-                                                                    try {
-                                                                        $qty = is_numeric($item->quantity ?? null) ? (float) $item->quantity : 0;
-                                                                        $price = is_numeric($item->price ?? null) ? (float) $item->price : 0;
-                                                                        $disc = is_numeric($item->discount ?? null) ? (float) $item->discount : 0;
-                                                                        $totalQuantity += $qty;
-                                                                        $totalRate += $price;
-                                                                        $totalDiscount += $disc;
-                                                                        $maybeTaxes = Utility::tax($item->tax);
-                                                                        $hasTaxes = (!empty($maybeTaxes) && (is_array($maybeTaxes) && count($maybeTaxes) || $maybeTaxes instanceof Collection && $maybeTaxes->isNotEmpty()));
-                                                                        if ($hasTaxes) {
-                                                                            foreach ($maybeTaxes as $t) { $taxList[] = $t; }
-                                                                        }
-                                                                        foreach ($taxList as $t) {
-                                                                            $taxName = isset($t->name) && $t->name !== '' ? (string) $t->name : __('Tax');
-                                                                            $taxRate = is_numeric($t->rate ?? null) ? (float) $t->rate : 0;
-                                                                            $taxAmountForTotals = Utility::taxRate($taxRate, $price, $qty);
-                                                                            $taxesData[$taxName] = ($taxesData[$taxName] ?? 0) + $taxAmountForTotals;
-                                                                        }
-                                                                    } catch (\Throwable $e) {
-                                                                        \Log::error('bills/customer_bill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+                                                                    $qty = is_numeric($item->quantity ?? null) ? (float) $item->quantity : 0;
+                                                                    $price = is_numeric($item->price ?? null) ? (float) $item->price : 0;
+                                                                    $disc = is_numeric($item->discount ?? null) ? (float) $item->discount : 0;
+                                                                    $totalQuantity += $qty;
+                                                                    $totalRate += $price;
+                                                                    $totalDiscount += $disc;
+                                                                    $maybeTaxes = Utility::tax($item->tax);
+                                                                    $hasTaxes = (!empty($maybeTaxes) && (is_array($maybeTaxes) && count($maybeTaxes) || $maybeTaxes instanceof Collection && $maybeTaxes->isNotEmpty()));
+                                                                    if ($hasTaxes) {
+                                                                        foreach ($maybeTaxes as $t) { $taxList[] = $t; }
                                                                     }
-@endphp
+                                                                    foreach ($taxList as $t) {
+                                                                        $taxName = isset($t->name) && $t->name !== '' ? (string) $t->name : __('Tax');
+                                                                        $taxRate = is_numeric($t->rate ?? null) ? (float) $t->rate : 0;
+                                                                        $taxAmountForTotals = Utility::taxRate($taxRate, $price, $qty);
+                                                                        $taxesData[$taxName] = ($taxesData[$taxName] ?? 0) + $taxAmountForTotals;
+                                                                    }
+                                                                @endphp
                                                             @endif
                                                             <tr>
                                                                 <td>{{ $key + 1 }}</td>
                                                                 <td>
-                                                                    @php
- $product = !empty($item->product()) ? $item->product() : null;
-@endphp
+                                                                    @php $product = !empty($item->product()) ? $item->product() : null; @endphp
                                                                     {{ !empty($product) && !empty($product->name) ? $product->name : __('No product name available') }}
                                                                 </td>
                                                                 <td>
@@ -341,15 +421,11 @@ $bill ??= null;
                                                                         <table>
                                                                             @foreach($taxList as $t)
                                                                                 @php
-                                                                                    try {
-                                                                                        $nameToShow = isset($t->name) && $t->name !== '' ? (string) $t->name : __('Tax');
-                                                                                        $rateToUse = is_numeric($t->rate ?? null) ? (float) $t->rate : 0;
-                                                                                        $rowTaxPrice = Utility::taxRate($rateToUse, is_numeric($item->price ?? null) ? (float)$item->price : 0, is_numeric($item->quantity ?? null) ? (float)$item->quantity : 0);
-                                                                                        $totalTaxPrice += $rowTaxPrice;
-                                                                                    } catch (\Throwable $e) {
-                                                                                        \Log::error('bills/customer_bill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                                                                    }
-@endphp
+                                                                                    $nameToShow = isset($t->name) && $t->name !== '' ? (string) $t->name : __('Tax');
+                                                                                    $rateToUse = is_numeric($t->rate ?? null) ? (float) $t->rate : 0;
+                                                                                    $rowTaxPrice = Utility::taxRate($rateToUse, is_numeric($item->price ?? null) ? (float)$item->price : 0, is_numeric($item->quantity ?? null) ? (float)$item->quantity : 0);
+                                                                                    $totalTaxPrice += $rowTaxPrice;
+                                                                                @endphp
                                                                                 <tr>
                                                                                     <td>{{ $nameToShow . ' (' . $rateToUse . '%)' }}</td>
                                                                                     <td>{{ $canPriceFormat ? $user?->priceFormat($rowTaxPrice) : __('Failed to get price format') }}</td>
@@ -368,7 +444,7 @@ $bill ??= null;
                                                                     @endif
                                                                 </td>
                                                                 <td>{{ !empty($item->description) ? $item->description : __('No description available') }}</td>
-                                                                <td class="{{ VC::TX_END }}">
+                                                                <td class="text-end">
                                                                     @if(is_numeric($item->price ?? null) && is_numeric($item->quantity ?? null))
                                                                         {{ $canPriceFormat ? $user?->priceFormat(((float)$item->price * (float)$item->quantity)) : __('Failed to get price format') }}
                                                                     @else
@@ -379,7 +455,7 @@ $bill ??= null;
                                                         @endforeach
                                                     @else
                                                         <tr>
-                                                            <td colspan="8" class="{{ VC::TXCT_DK }}">{{ __('No items found') }}</td>
+                                                            <td colspan="8" class="text-center text-dark">{{ __('No items found') }}</td>
                                                         </tr>
                                                     @endif
                                                     @if($canPriceFormat)
@@ -452,7 +528,7 @@ $bill ??= null;
                                                                 ['label' => __('Debit Note'), 'value' => $formatAmount($billDebitNote)],
                                                                 ['label' => __('Due'),        'value' => $formatAmount($billDue)],
                                                             ]);
-@endphp
+                                                        @endphp
                                                         <tfoot>
                                                             <tr>
                                                                 @foreach($columnTotals as $total)
@@ -462,15 +538,15 @@ $bill ??= null;
                                                             @foreach($summaryRows as $row)
                                                                 <tr>
                                                                     <td colspan="6"></td>
-                                                                    <td class="{{ VC::TX_END }} {{ $row['class'] ?? '' }}"><b>{{ $row['label'] }}</b></td>
-                                                                    <td class="{{ VC::TX_END }} {{ $row['class'] ?? '' }}">{{ $row['value'] }}</td>
+                                                                    <td class="text-end {{ $row['class'] ?? '' }}"><b>{{ $row['label'] }}</b></td>
+                                                                    <td class="text-end {{ $row['class'] ?? '' }}">{{ $row['value'] }}</td>
                                                                 </tr>
                                                             @endforeach
                                                         </tfoot>
                                                     @else
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="8" class="{{ VC::TXCT_DK }}">{{ __('Unable to show totals, user price format method not found') }}</td>
+                                                                <td colspan="8" class="text-center text-dark">{{ __('Unable to show totals, user price format method not found') }}</td>
                                                             </tr>
                                                         </tfoot>
                                                     @endif
@@ -488,14 +564,14 @@ $bill ??= null;
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::CD }}">
-                        <div class="{{ VC::CD_BD_TB_BD }}">
-                            <h5 class="d-inline-block {{ VC::MB5 }}">{{ __('Payment Summary') }}</h5>
-                            <div class="{{ VC::TB_RSP }}">
+                        <div class="card-body table-border-style">
+                            <h5 class="d-inline-block mb-5">{{ __('Payment Summary') }}</h5>
+                            <div class="table-responsive">
                                 <table class="{{ VC::TB }} table-striped">
                                     <thead>
                                         <tr>
                                             @foreach([__('Date'), __('Amount'), __('Account'), __('Reference'), __('Description')] as $header)
-                                                <th class="{{ VC::TX_DK }}">{{ $header }}</th>
+                                                <th class="text-dark">{{ $header }}</th>
                                             @endforeach
                                         </tr>
                                     </thead>
@@ -533,7 +609,7 @@ $bill ??= null;
                                         };
                                         $paymentsSource = is_object($bill ?? null) ? ($bill->payments ?? null) : null;
                                         $hasPayments = (!empty($paymentsSource) && ((is_array($paymentsSource) && count($paymentsSource)) || ($paymentsSource instanceof \Illuminate\Support\Collection && $paymentsSource->isNotEmpty())));
-@endphp
+                                    @endphp
                                     @if($hasPayments)
                                         @foreach($paymentsSource as $index => $payment)
                                             <tr>
@@ -546,7 +622,7 @@ $bill ??= null;
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="6" class="{{ VC::TXCT_DK }}"><p>{{ __('No Data Found') }}</p></td>
+                                            <td colspan="6" class="text-center text-dark"><p>{{ __('No Data Found') }}</p></td>
                                         </tr>
                                     @endif
                                 </table>
@@ -562,26 +638,22 @@ $bill ??= null;
                     <div class="{{ VC::R_ALC }} justify-content-md-between py-4 {{ VC::MT4 }} delimiter-top">
                         <div class="{{ VC::CM6 }}">
                             <div class="copyright {{ VC::TXSM }} font-weight-bold text-center text-md-left">
-                                {{ !empty($companySettings[SC::FT_TXT]) ? $companySettings[SC::FT_TXT]->value : '' }}
+                                {{ !empty($companySettings[SettingsConstants::FT_TXT]) ? $companySettings[SettingsConstants::FT_TXT]->value : '' }}
                             </div>
                         </div>
                         <div class="{{ VC::CM6 }}">
                             @php
-                                try {
-                                    $socialLinks = [
-                                        ['icon' => 'fab fa-dribbble', 'url' => '#'],
-                                        ['icon' => 'fab fa-instagram', 'url' => '#'],
-                                        ['icon' => 'fab fa-github', 'url' => '#'],
-                                        ['icon' => 'fab fa-facebook', 'url' => '#']
-                                    ];
-                                } catch (\Throwable $e) {
-                                    \Log::error('bills/customer_bill — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                }
-@endphp
+                                $socialLinks = [
+                                    ['icon' => 'fab fa-dribbble', 'url' => '#'],
+                                    ['icon' => 'fab fa-instagram', 'url' => '#'],
+                                    ['icon' => 'fab fa-github', 'url' => '#'],
+                                    ['icon' => 'fab fa-facebook', 'url' => '#']
+                                ];
+                            @endphp
                             <ul class="{{ VC::NAV }} justify-content-center justify-content-md-end mt-3 mt-md-0">
                                 @foreach($socialLinks as $link)
-                                    <li class="{{ VC::NV_IT }}">
-                                        <a class="{{ VC::NV_LK }}" href="{{ $link['url'] }}" target="_blank">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ $link['url'] }}" target="_blank">
                                             <i class="{{ $link['icon'] }}"></i>
                                         </a>
                                     </li>
@@ -594,23 +666,28 @@ $bill ??= null;
         </footer>
         @if($message = Session::get('success'))
             <script>
-                (() => {typeof show_toastr === 'function' && show_toastr('success', '{!! $message !!}');})()
+                (() => {typeof show_toastr === 'function' && show_toastr('success', @json($message));})()
             </script>
         @endif
         @if($message = Session::get('error'))
             <script>
-                (() => {typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');})()
+                (() => {typeof show_toastr === 'function' && show_toastr('error', @json($message));})()
             </script>
         @endif
         @if($get_cookie['enable_cookie'] == 'on')
-            @includeIf(ELC::CKC)
+            @includeIf(ExtendingLayoutsConstants::CKC)
         @endif
     @else
         <div class="{{ VC::R_ALC }} {{ VC::MT5 }} justify-content-center">
             <div class="{{ VC::CM6 }}">
-                <div class="{{ VC::ALT_DNG }} {{ VC::TXCT }}">
+                <div class="alert alert-danger text-center">
                     {{ __('Bill not found') }}
                 </div>
             </div>
         </div>
     @endif
+
+
+
+
+

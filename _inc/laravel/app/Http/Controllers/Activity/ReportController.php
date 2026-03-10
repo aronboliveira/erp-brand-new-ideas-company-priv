@@ -712,7 +712,7 @@ final class ReportController extends Controller
     }
 
     public const EXP_CSV = 'exportCsv';
-    public function exportCsv(string $filter_month, int $branch, int $department): StreamedResponse|RedirectResponse
+    public function exportCsv(string $filter_month, int|string $branch, int|string $department): StreamedResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

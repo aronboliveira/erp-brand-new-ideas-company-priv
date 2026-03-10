@@ -264,4 +264,25 @@ final class LoanController extends Controller
         return Loan::$loanTypes
             ?? [];
     }
+
+    public function index(Request $request): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        return $this->measureProfile($action, function () use ($request, $action, $class) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($request, 'manage loan')) !== true) return $r;
+            try {
+                $loans = \App\Models\Bills\Loan::where('created_by', $u->creatorId())->get();
+                $viewPath = 'loans.index';
+                if (!\Illuminate\Support\Facades\View::exists($viewPath))
+                    return redirect()->route('dashboard')->with('error', 'Loans index view not found.');
+                return response()->view($viewPath, ['loans' => $loans]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, "$class::$action");
+            }
+        });
+    }
+
 }

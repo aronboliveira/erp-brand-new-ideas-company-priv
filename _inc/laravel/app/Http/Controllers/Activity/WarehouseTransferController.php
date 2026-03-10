@@ -276,4 +276,25 @@ class WarehouseTransferController extends Controller
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
+
+    public function update(Request $request, \App\Models\Activity\WarehouseTransfer $transfer): \Illuminate\Http\RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $transfer, $action, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
+            if (($r = self::guard($request, 'edit warehouse transfer')) !== true) return $r;
+            try {
+                \Illuminate\Support\Facades\Log::info("[$base::$action] updating transfer", ['id' => $transfer->id]);
+                $transfer->update($request->all());
+                return redirect()->route('warehouse_transfers.index')
+                    ->with('success', __('Warehouse transfer updated successfully.'));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("[$base::$action] failed", ['err' => $e->getMessage()]);
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+        });
+    }
+
 }

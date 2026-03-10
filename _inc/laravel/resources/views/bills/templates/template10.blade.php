@@ -1,14 +1,13 @@
 <?php
 # Template 10
-use App\Config\Constants\{DatabaseConstants, ViewsConstants, SettingsConstants};
+use App\Config\Constants\{DatabaseConstants as DC, ViewsConstants as VW, SettingsConstants as SC};
 use App\Models\Utility;
 use Illuminate\Support\Facades\{Crypt, Log};
+use App\Helpers\TemplateHelper;
 
-if (!function_exists('e')) {
-    function e($v)
+if (!function_exists('e')) {function e($v)
     {
-        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
-    }
+        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');}
 }
 
 $bill           ??= null;
@@ -23,211 +22,121 @@ $font_color     ??= '#000000';
 $img            ??= '';
 $preview        ??= null;
 
-if (trim((string)$themeCSS) === '') {
-    $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+if (trim((string)$themeCSS) === '') {$themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
 }
 
-try {
-    $lang = Utility::fetchUserLang();
-} catch (\Throwable $e) {
-    $lang = null;
-}
-try {
-    $docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
-} catch (\Throwable $e) {
-    $docLang = DatabaseConstants::DEFAULT_LANG;
-}
+try {$lang = Utility::fetchUserLang();} catch (\Throwable $e) {$lang = null;}
+try {$docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG);} catch (\Throwable $e) {$docLang = DC::DEFAULT_LANG;}
 
-try {
-    $settings_data = Utility::settingsById(data_get($bill, DatabaseConstants::COL_TABLE_CREATOR));
-} catch (\Throwable $e) {
-    $settings_data = [];
-}
-$dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
+try {$settings_data = Utility::settingsById(data_get($bill, DC::COL_TABLE_CREATOR));} catch (\Throwable $e) {$settings_data = [];}
+$dir = (data_get($settings_data, SC::RTL) === 'on') ? 'rtl' : '';
 
-if (empty($bill)) {
-    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . e(__('BILL')) . '</title></head><body><div class="{{ VC::ALT_WRN }}">' . e(__('No bill data available.')) . '</div></body></html>';
-    return;
-}
+if (empty($bill)) {echo TemplateHelper::getNoDataHtml('bill', $docLang);
+    return;}
 
-try {
-    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id'));
-} catch (\Throwable $e) {
-    $billNumber = __('Could not find Bill Identifier');
-}
-try {
-    $billDate   = Utility::dateFormat($settings, data_get($bill, 'issue_date'));
-} catch (\Throwable $e) {
-    $billDate = __('Failed to get bill date');
-}
-try {
-    $dueDate    = Utility::dateFormat($settings, data_get($bill, 'due_date'));
-} catch (\Throwable $e) {
-    $dueDate = __('Failed to get due date');
-}
+try {$billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id'));} catch (\Throwable $e) {$billNumber = __('Could not find Bill Identifier');}
+try {$billDate   = Utility::dateFormat($settings, data_get($bill, 'issue_date'));} catch (\Throwable $e) {$billDate = __('Failed to get bill date');}
+try {$dueDate    = Utility::dateFormat($settings, data_get($bill, 'due_date'));} catch (\Throwable $e) {$dueDate = __('Failed to get due date');}
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
 <head>
-    <?php try {
-        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
-    } catch (\Throwable $e) {
-    } ?>
+    <?php try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\Throwable $e) {} ?>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <style>
         <?= $themeCSS ?>
     </style>
     <style type="text/css">
-        body {
-            font-family: 'Lato', sans-serif
-        }
+        body {font-family: 'Lato', sans-serif}
 
         p,
         li,
         ul,
-        ol {
-            margin: 0;
+        ol {margin: 0;
             padding: 0;
             list-style: none;
-            line-height: 1.5
-        }
+            line-height: 1.5}
 
-        * {
-            margin: 0;
+        * {margin: 0;
             padding: 0;
-            box-sizing: border-box
-        }
+            box-sizing: border-box}
 
-        table {
-            width: 100%;
-            border-collapse: collapse
-        }
+        table {width: 100%;
+            border-collapse: collapse}
 
         table tr th,
-        table tr td {
-            padding: .75rem;
-            text-align: left
-        }
+        table tr td {padding: .75rem;
+            text-align: left}
 
-        table th small {
-            display: block;
-            font-size: 12px
-        }
+        table th small {display: block;
+            font-size: 12px}
 
-        .bill-preview-main {
-            max-width: 700px;
+        .bill-preview-main {max-width: 700px;
             width: 100%;
             margin: 0 auto;
             background: #ffff;
-            box-shadow: 0 0 10px #ddd
-        }
+            box-shadow: 0 0 10px #ddd}
 
-        .bill-logo {
-            max-width: 200px;
-            width: 100%
-        }
+        .bill-logo {max-width: 200px;
+            width: 100%}
 
-        .bill-header table td {
-            padding: 15px 30px
-        }
+        .bill-header table td {padding: 15px 30px}
 
-        .text-right {
-            text-align: right
-        }
+        .text-right {text-align: right}
 
-        .no-space tr td {
-            padding: 0;
-            white-space: nowrap
-        }
+        .no-space tr td {padding: 0;
+            white-space: nowrap}
 
-        .vertical-align-top td {
-            vertical-align: top
-        }
+        .vertical-align-top td {vertical-align: top}
 
-        .view-qrcode {
-            max-width: 114px;
+        .view-qrcode {max-width: 114px;
             height: 114px;
             margin-left: auto;
             margin-top: 15px;
-            background: var(--white)
-        }
+            background: var(--white)}
 
-        .view-qrcode img {
-            width: 100%;
-            height: 100%
-        }
+        .view-qrcode img {width: 100%;
+            height: 100%}
 
-        .bill-body {
-            padding: 30px 25px 0
-        }
+        .bill-body {padding: 30px 25px 0}
 
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color)
-        }
+        table.add-border tr {border-top: 1px solid var(--theme-color)}
 
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color)
-        }
+        tfoot tr:first-of-type {border-bottom: 1px solid var(--theme-color)}
 
-        .total-table tr:first-of-type td {
-            padding-top: 0
-        }
+        .total-table tr:first-of-type td {padding-top: 0}
 
-        .total-table tr:first-of-type {
-            border-top: 0
-        }
+        .total-table tr:first-of-type {border-top: 0}
 
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0
-        }
+        .sub-total {padding-right: 0;
+            padding-left: 0}
 
-        .border-0 {
-            border: none !important
-        }
+        .border-0 {border: none !important}
 
         .bill-summary td,
-        .bill-summary th {
-            font-size: 13px;
-            font-weight: 600
-        }
+        .bill-summary th {font-size: 13px;
+            font-weight: 600}
 
-        .total-table td:last-of-type {
-            width: 146px
-        }
+        .total-table td:last-of-type {width: 146px}
 
-        .bill-footer {
-            padding: 15px 20px
-        }
+        .bill-footer {padding: 15px 20px}
 
-        .itm-description td {
-            padding-top: 0
-        }
+        .itm-description td {padding-top: 0}
 
         html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th {
-            text-align: right
-        }
+        html[dir="rtl"] table tr th {text-align: right}
 
-        html[dir="rtl"] .text-right {
-            text-align: left
-        }
+        html[dir="rtl"] .text-right {text-align: left}
 
-        html[dir="rtl"] .view-qrcode {
-            margin-left: 0;
-            margin-right: auto
-        }
+        html[dir="rtl"] .view-qrcode {margin-left: 0;
+            margin-right: auto}
 
-        p:not(:last-of-type) {
-            margin-bottom: 15px
-        }
+        p:not(:last-of-type) {margin-bottom: 15px}
 
-        .bill-summary p {
-            margin-bottom: 0
-        }
+        .bill-summary p {margin-bottom: 0}
     </style>
-    <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+    <?php if (data_get($settings_data, SC::RTL) === 'on'): ?>
         <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
     <?php endif; ?>
 </head>
@@ -235,23 +144,20 @@ try {
 <body>
     <div class="bill-preview-main" id="boxes">
         <div class="bill-header">
-            <table class="{{ VC::VA_TOP }}">
+            <table class="vertical-align-top">
                 <tbody>
                     <tr>
                         <td>
                             <h3 style="display:inline-block;text-transform:uppercase;font-size:40px;font-weight:bold;border-top:5px solid var(--theme-color);padding-top:5px;"><?= e(__('BILL')) ?></h3>
-                            <div class="{{ VC::VW_QR }}" style="margin-top:5px;margin-left:0;margin-right:0;">
-                                <?php try {
-                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');
-                                } catch (\Throwable $e) {
-                                } ?>
+                            <div class="view-qrcode" style="margin-top:5px;margin-left:0;margin-right:0;">
+                                <?php try {echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? (new \Milon\Barcode\DNS2D)->getBarcodeHTML(route(VW::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), "QRCODE", 2, 2) : __('Failed to generate QRCode');} catch (\Throwable $e) {} ?>
                             </div>
                         </td>
-                        <td class="{{ VC::TX_RT }}"><img class="bill-logo" src="<?= e($img) ?>" alt=""></td>
+                        <td class="text-right"><img class="bill-logo" src="<?= e($img) ?>" alt=""></td>
                     </tr>
                 </tbody>
             </table>
-            <table class="{{ VC::VA_TOP }}">
+            <table class="vertical-align-top">
                 <tbody>
                     <tr>
                         <?php if (!empty($settings['company_name']) || !empty($settings['mail_from_address']) || !empty($settings['company_address'])): ?>
@@ -266,30 +172,26 @@ try {
                                     <?= !empty($settings['company_country']) ? '<br>' . e($settings['company_country']) : e(__('No company country available')) ?>
                                     <?= !empty($settings['company_telephone']) ? e($settings['company_telephone']) : e(__('No company telephone available')) ?><br>
                                     <?php
-                                    if (!empty($settings['registration_number'])) {
-                                        echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' <br>';
-                                    }
-                                    if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {
-                                        echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';
-                                    }
+                                    if (!empty($settings['registration_number'])) {echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' <br>';}
+                                    if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';}
                                     ?>
                                 </p>
                             </td>
                         <?php endif; ?>
                         <td>
-                            <table class="{{ VC::NO_SPC }}" style="width:45%;margin-left:auto;">
+                            <table class="no-space" style="width:45%;margin-left:auto;">
                                 <tbody>
                                     <tr>
                                         <td><?= e(__('Number')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?= e($billNumber) ?></td>
+                                        <td class="text-right"><?= e($billNumber) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Bill Date')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?= e($billDate) ?></td>
+                                        <td class="text-right"><?= e($billDate) ?></td>
                                     </tr>
                                     <tr>
                                         <td><?= e(__('Due Date')) ?>:</td>
-                                        <td class="{{ VC::TX_RT }}"><?= e($dueDate) ?></td>
+                                        <td class="text-right"><?= e($dueDate) ?></td>
                                     </tr>
                                     <?php if (!empty($customFields) && is_iterable($customFields) && count(data_get($bill, 'customField', [])) > 0): foreach ($customFields as $field): ?>
                                             <tr>
@@ -323,7 +225,7 @@ try {
                             </p>
                         </td>
                         <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
-                            <td class="{{ VC::TX_RT }}">
+                            <td class="text-right">
                                 <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
                                 <p>
                                     <?= e(data_get($vendor, 'shipping_name', __('No name for shipping available.'))) ?><br>
@@ -340,7 +242,7 @@ try {
                 </tbody>
             </table>
 
-            <table class="{{ VC::BDR_BIL_SM }}" style="margin-top:30px;">
+            <table class="add-border bill-summary" style="margin-top:30px;">
                 <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                     <tr>
                         <th><?= e(__('Item')) ?></th>
@@ -364,19 +266,11 @@ try {
                                 <td><?= e(data_get($item, 'name', '')) ?></td>
                                 <td>
                                     <?php
-                                    try {
-                                        $unitName = \App\Models\ProductServiceUnit::find(data_get($item, 'unit'));
-                                        echo e((string)$qty . ' (' . data_get($unitName, 'name', '-') . ')');
-                                    } catch (\Throwable $e) {
-                                        echo e((string)$qty);
-                                    }
+                                    try {$unitName = \App\Models\ProductServiceUnit::find(data_get($item, 'unit'));
+                                        echo e((string)$qty . ' (' . data_get($unitName, 'name', '-') . ')');} catch (\Throwable $e) {echo e((string)$qty);}
                                     ?>
                                 </td>
-                                <td><?php try {
-                                        echo e(Utility::priceFormat($settings, $price));
-                                    } catch (\Throwable $e) {
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(Utility::priceFormat($settings, $price));} catch (\Throwable $e) {echo '0';} ?></td>
                                 <td><?php echo $disc != 0 ? e(Utility::priceFormat($settings, $disc)) : '-' ?></td>
                                 <td>
                                     <?php if (!empty(data_get($item, 'itemTax'))): ?>
@@ -388,14 +282,10 @@ try {
                                         <span>-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php try {
-                                        echo e(Utility::priceFormat($settings, ($price * $qty) - $disc + $itemtax));
-                                    } catch (\Throwable $e) {
-                                        echo '0';
-                                    } ?></td>
+                                <td><?php try {echo e(Utility::priceFormat($settings, ($price * $qty) - $disc + $itemtax));} catch (\Throwable $e) {echo '0';} ?></td>
                             </tr>
                             <?php if (!empty(data_get($item, 'description'))): ?>
-                                <tr class="{{ VC::BD0_ITM_DSC }}">
+                                <tr class="border-0 itm-description">
                                     <td colspan="6" style="border-bottom:1px solid <?= e($color) ?>"> <?= e((string) data_get($item, 'description', '')) ?></td>
                                 </tr>
                             <?php endif; ?>
@@ -406,91 +296,47 @@ try {
                     <tr>
                         <td><?= e(__('Total')) ?></td>
                         <td><?= e((string) data_get($bill, 'totalQuantity', '0')) ?></td>
-                        <td><?php try {
-                                echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalRate', 0)));
-                            } catch (\Throwable $e) {
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalDiscount', 0)));
-                            } catch (\Throwable $e) {
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalTaxPrice', 0)));
-                            } catch (\Throwable $e) {
-                                echo '0';
-                            } ?></td>
-                        <td><?php try {
-                                echo e(Utility::priceFormat($settings, (float) $bill->getSubTotal()));
-                            } catch (\Throwable $e) {
-                                echo '0';
-                            } ?></td>
+                        <td><?php try {echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalRate', 0)));} catch (\Throwable $e) {echo '0';} ?></td>
+                        <td><?php try {echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalDiscount', 0)));} catch (\Throwable $e) {echo '0';} ?></td>
+                        <td><?php try {echo e(Utility::priceFormat($settings, (float) data_get($bill, 'totalTaxPrice', 0)));} catch (\Throwable $e) {echo '0';} ?></td>
+                        <td><?php try {echo e(Utility::priceFormat($settings, (float) $bill->getSubTotal()));} catch (\Throwable $e) {echo '0';} ?></td>
                     </tr>
                     <tr>
                         <td colspan="4"></td>
-                        <td colspan="2" class="{{ VC::SUB_TTL }}">
-                            <table class="{{ VC::TTL_TB }}">
+                        <td colspan="2" class="sub-total">
+                            <table class="total-table">
                                 <tr>
                                     <td><?= e(__('Subtotal')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float) $bill->getSubTotal()));
-                                        } catch (\Throwable $e) {
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float) $bill->getSubTotal()));} catch (\Throwable $e) {echo '0';} ?></td>
                                 </tr>
                                 <?php if ((float) $bill->getTotalDiscount()): ?>
                                     <tr>
                                         <td><?= e(__('Discount')) ?>:</td>
-                                        <td><?php try {
-                                                echo e(Utility::priceFormat($settings, (float) $bill->getTotalDiscount()));
-                                            } catch (\Throwable $e) {
-                                                echo '0';
-                                            } ?></td>
+                                        <td><?php try {echo e(Utility::priceFormat($settings, (float) $bill->getTotalDiscount()));} catch (\Throwable $e) {echo '0';} ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if (!empty($bill->taxesData) && is_iterable($bill->taxesData)): foreach ($bill->taxesData as $taxName => $taxPrice): ?>
                                         <tr>
                                             <td><?= e($taxName) ?> :</td>
-                                            <td><?php try {
-                                                    echo e(Utility::priceFormat($settings, (float) $taxPrice));
-                                                } catch (\Throwable $e) {
-                                                    echo '0';
-                                                } ?></td>
+                                            <td><?php try {echo e(Utility::priceFormat($settings, (float) $taxPrice));} catch (\Throwable $e) {echo '0';} ?></td>
                                         </tr>
                                 <?php endforeach;
                                 endif; ?>
                                 <tr>
                                     <td><?= e(__('Total')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float)($bill->getSubTotal() - $bill->getTotalDiscount() + $bill->getTotalTax())));
-                                        } catch (\Throwable $e) {
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float)($bill->getSubTotal() - $bill->getTotalDiscount() + $bill->getTotalTax())));} catch (\Throwable $e) {echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Paid')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float)(($bill->getTotal() - $bill->getDue()) - ($bill->billTotalDebitNote()))));
-                                        } catch (\Throwable $e) {
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float)(($bill->getTotal() - $bill->getDue()) - ($bill->billTotalDebitNote()))));} catch (\Throwable $e) {echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Debit Note')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float)$bill->billTotalDebitNote()));
-                                        } catch (\Throwable $e) {
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float)$bill->billTotalDebitNote()));} catch (\Throwable $e) {echo '0';} ?></td>
                                 </tr>
                                 <tr>
                                     <td><?= e(__('Due Amount')) ?>:</td>
-                                    <td><?php try {
-                                            echo e(Utility::priceFormat($settings, (float)$bill->getDue()));
-                                        } catch (\Throwable $e) {
-                                            echo '0';
-                                        } ?></td>
+                                    <td><?php try {echo e(Utility::priceFormat($settings, (float)$bill->getDue()));} catch (\Throwable $e) {echo '0';} ?></td>
                                 </tr>
                             </table>
                         </td>
@@ -499,18 +345,12 @@ try {
             </table>
             <div class="bill-footer">
                 <b><?= e(data_get($settings, 'footer_title', '')) ?></b> <br>
-                <?php try {
-                    echo (string) data_get($settings, 'footer_notes', '');
-                } catch (\Throwable $e) {
-                } ?>
+                <?php try {echo (string) data_get($settings, 'footer_notes', '');} catch (\Throwable $e) {} ?>
             </div>
         </div>
     </div>
 
-    <?php if (!isset($preview)): try {
-            echo view(ViewsConstants::BIL . '.script')->render();
-        } catch (\Throwable $e) {
-        }
+    <?php if (!isset($preview)): try {echo view(VW::BIL . '.script')->render();} catch (\Throwable $e) {}
     endif; ?>
 </body>
 

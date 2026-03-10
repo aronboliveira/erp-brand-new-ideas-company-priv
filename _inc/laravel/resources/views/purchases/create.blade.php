@@ -1,88 +1,45 @@
 
 @php
-$authUser ??= null;
-	$lang ??= 'en';
-	try {
-		$authUser = Auth::user();
-		$lang = Utility::fetchUserLang(user: $authUser) ?? 'en';
-	} catch (\Error $e) {
-		Log::error('Error in purchases/create.blade.php main @php block', [
-			'exception_class' => get_class($e),
-			'message' => $e->getMessage(),
-			'file' => $e->getFile(),
-			'line' => $e->getLine(),
-		]);
-	} catch (\Exception $e) {
-		Log::error('Exception in purchases/create.blade.php main @php block', [
-			'exception_class' => get_class($e),
-			'message' => $e->getMessage(),
-			'file' => $e->getFile(),
-			'line' => $e->getLine(),
-		]);
-	} catch (\Throwable $e) {
-		Log::error('Throwable in purchases/create.blade.php main @php block', [
-			'exception_class' => get_class($e),
-			'message' => $e->getMessage(),
-			'file' => $e->getFile(),
-			'line' => $e->getLine(),
-		]);
-	}
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        SettingsConstants,
+        StacksConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
+    };
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $authUser = Auth::user();
+    $lang = Utility::fetchUserLang(user:$authUser);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Purchase Create')}}
 @endsection
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
+    <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     @php
-		$purchaseIndexBase ??= '';
-		$purchaseIndexKebab ??= '';
-		$purchaseIndexResolved ??= null;
-		$purchaseIndexUrl ??= '#';
-		$purchaseIndexGuardMsg ??= '';
-		$purchaseIndexLinkId ??= 'purchase-index-breadcrumb-link';
-		try {
-			$purchaseIndexBase = ViewsConstants::PRC . '.index';
-			$purchaseIndexKebab = Str::kebab($purchaseIndexBase);
-			$purchaseIndexResolved = Route::has($purchaseIndexBase) ? $purchaseIndexBase : (Route::has($purchaseIndexKebab) ? $purchaseIndexKebab : null);
-			$purchaseIndexUrl = $purchaseIndexResolved ? (route($purchaseIndexResolved) ?? '#') : '#';
-			$purchaseIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'purchase_index_route_unavailable')
-				?? 'Purchase index route is unavailable. Please contact technical support or your domain administrator.';
-		} catch (\Error $e) {
-			Log::error('Error in purchases/create.blade.php breadcrumb @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		} catch (\Exception $e) {
-			Log::error('Exception in purchases/create.blade.php breadcrumb @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		} catch (\Throwable $e) {
-			Log::error('Throwable in purchases/create.blade.php breadcrumb @php block', [
-				'exception_class' => get_class($e),
-				'message' => $e->getMessage(),
-				'file' => $e->getFile(),
-				'line' => $e->getLine(),
-			]);
-		}
-@endphp
-    <li class="{{ VC::BCI }}">
-        <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ base64_encode($purchaseIndexGuardMsg) }}" data-sv-localized="true">{{ __('Purchase') }}</a>
+        $purchaseIndexBase              = ViewsConstants::PRC.'.index';
+        $purchaseIndexKebab             = Str::kebab($purchaseIndexBase);
+        $purchaseIndexResolved          = Route::has($purchaseIndexBase) ? $purchaseIndexBase : (Route::has($purchaseIndexKebab) ? $purchaseIndexKebab : null);
+        $purchaseIndexUrl               = $purchaseIndexResolved ? route($purchaseIndexResolved) : '#';
+        $purchaseIndexGuardMsg          = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'purchase_index_route_unavailable') ?? 'Purchase index route is unavailable. Please contact technical support or your domain administrator.';
+        $purchaseIndexLinkId            = 'purchase-index-breadcrumb-link';
+    @endphp
+    <li class="breadcrumb-item">
+        <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ $purchaseIndexGuardMsg }}" data-sv-localized="true">{{ __('Purchase') }}</a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/purchases/index.js') }}" defer></script>
     @endpush
-    <li class="{{ VC::BCI }}">{{__('Purchase Create')}}</li>
+    <li class="breadcrumb-item">{{__('Purchase Create')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
@@ -92,7 +49,7 @@ $authUser ??= null;
     <script defer>
         (function () {
             const $ = window.jQuery;
-            if (!$) { try {
+            if (!$) { try { 
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -141,7 +98,7 @@ $authUser ??= null;
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -200,7 +157,7 @@ $authUser ??= null;
             const attachRepeater = () => {
             const selector = "body";
             if (!$(selector + " .repeater").length) { return; }
-            if (!$.fn.sortable || !$.fn.repeater) { try {
+            if (!$.fn.sortable || !$.fn.repeater) { try { 
                 if (
                     window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1"
@@ -218,7 +175,7 @@ $authUser ??= null;
                 if (fileUploads.length) {
                     if ($.fn.MultiFile) {
                     try { $(this).find("input.multi").MultiFile({ max: 3, accept: "png|jpg|jpeg", max_size: {{ SettingsConstants::MAX_U_SIZE_DEF }} }); } catch (_) { scheduleInteractiveError(getMsgFor(this, "plugin_unavailable")); }
-                    } else { try {
+                    } else { try { 
                         if (
                             window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1"
@@ -227,7 +184,7 @@ $authUser ??= null;
                         }
                      } catch (_) { } scheduleInteractiveError(getMsgFor(this, "plugin_unavailable")); }
                 }
-                if ($.fn.select2) { $(".select2").select2(); } else { try {
+                if ($.fn.select2) { $(".select2").select2(); } else { try { 
                     if (
                         window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1"
@@ -300,7 +257,7 @@ $authUser ??= null;
                     if (item.taxes === 0 || !item.taxes || !item.taxes.length) { taxes += "-"; }
                     else {
                     for (let i = 0; i < item.taxes.length; i++) {
-                        taxes += '<span class="badge {{ VC::BG_P }} {{ VC::MT1 }} {{ VC::MR2 }}">' + item.taxes[i].name + " (" + item.taxes[i].rate + "%)" + "</span>";
+                        taxes += '<span class="badge bg-primary mt-1 mr-2">' + item.taxes[i].name + " (" + item.taxes[i].rate + "%)" + "</span>";
                         tax.push(item.taxes[i].id);
                         totalItemTaxRate += safeFloat(item.taxes[i].rate);
                     }
@@ -386,76 +343,69 @@ $authUser ??= null;
 @endpush
 @section('content')
     @php
-        $purchaseStoreUrl ??= '#';
-        $purchaseStoreGuardMsg ??= '';
-        $purchaseStoreFormId ??= 'purchase-store-form';
-        try {
-            $billVendorBase        = ViewsConstants::BIL.'.vendor';
-            $billVendorKebab       = Str::kebab($billVendorBase);
-            $billVendorResolved    = Route::has($billVendorBase) ? $billVendorBase : (Route::has($billVendorKebab) ? $billVendorKebab : null);
-            $billVendorUrl         = $billVendorResolved ? route($billVendorResolved) : '#';
-            $billVendorGuardMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'vendor_route_unavailable') ?? 'Bill vendor route is unavailable. Please contact technical support or your domain administrator.';
-            $mainField = [
-                'name'    => 'vendor_id',
-                'label'   => __('Vendor'),
-                'options' => $vendors,
-                'attrs'   => [
-                    'class'            => 'form-control select',
-                    'id'               => 'vendor',
-                    'data-url'         => $billVendorUrl,
-                    'data-guard-msg'   => $billVendorGuardMsg,
-                    'data-sv-localized'=> 'true',
-                    'required'         => 'required',
-                ],
-            ];
-            $sideFields = [
-                [
-                    'name'    => 'warehouse_id',
-                    'label'   => __('Warehouse'),
-                    'options' => $warehouse,
-                    'attrs'   => ['class'=>'form-control select','required'=>'required'],
-                ],
-                [
-                    'name'    => 'category_id',
-                    'label'   => __('Category'),
-                    'options' => $category,
-                    'attrs'   => ['class'=>'form-control select','required'=>'required'],
-                ],
-            ];
-            $dateFields = [
-                [
-                    'name'  => 'purchase_date',
-                    'label' => __('Purchase Date'),
-                    'type'  => 'date',
-                    'attrs' => ['class'=>'form-control','required'=>'required'],
-                ],
-                [
-                    'name'  => 'purchase_number',
-                    'label' => __('Purchase Number'),
-                    'type'  => 'text',
-                    'value' => $purchase_number,
-                    'attrs' => ['class'=>'form-control','readonly'=>true],
-                ],
-            ];
-            $tableHeaders = [
-                __('Items'),
-                __('Quantity'),
-                __('Price'),
-                __('Discount'),
-                __('Tax').' (%)',
-                __('Amount').' <br><small class="{{ VC::TX_DNG }} font-weight-bold">'.__('after tax & discount').'</small>',
-                '',
-            ];
-            $purchaseStoreBase      = ViewsConstants::PRC;
-            $purchaseStoreKebab     = Str::kebab($purchaseStoreBase);
-            $purchaseStoreResolved  = Route::has($purchaseStoreBase) ? $purchaseStoreBase : (Route::has($purchaseStoreKebab) ? $purchaseStoreKebab : null);
-            $purchaseStoreUrl       = $purchaseStoreResolved ? route($purchaseStoreResolved) : '#';
-            $purchaseStoreGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'store_purchase_route_unavailable') ?? 'Store purchase route is unavailable. Please contact technical support or your domain administrator.';
-            $purchaseStoreFormId    = 'purchase-store-form';
-        } catch (\Throwable $e) {
-            \Log::error('purchases/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-        }
-@endphp
+        $billVendorBase        = ViewsConstants::BIL.'.vendor';
+        $billVendorKebab       = Str::kebab($billVendorBase);
+        $billVendorResolved    = Route::has($billVendorBase) ? $billVendorBase : (Route::has($billVendorKebab) ? $billVendorKebab : null);
+        $billVendorUrl         = $billVendorResolved ? route($billVendorResolved) : '#';
+        $billVendorGuardMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'vendor_route_unavailable') ?? 'Bill vendor route is unavailable. Please contact technical support or your domain administrator.';
+        $mainField = [
+            'name'    => 'vendor_id',
+            'label'   => __('Vendor'),
+            'options' => $vendors,
+            'attrs'   => [
+                'class'            => 'form-control select',
+                'id'               => 'vendor',
+                'data-url'         => $billVendorUrl,
+                'data-guard-msg'   => $billVendorGuardMsg,
+                'data-sv-localized'=> 'true',
+                'required'         => 'required',
+            ],
+        ];
+        $sideFields = [
+            [
+                'name'    => 'warehouse_id',
+                'label'   => __('Warehouse'),
+                'options' => $warehouse,
+                'attrs'   => ['class'=>'form-control select','required'=>'required'],
+            ],
+            [
+                'name'    => 'category_id',
+                'label'   => __('Category'),
+                'options' => $category,
+                'attrs'   => ['class'=>'form-control select','required'=>'required'],
+            ],
+        ];
+        $dateFields = [
+            [
+                'name'  => 'purchase_date',
+                'label' => __('Purchase Date'),
+                'type'  => 'date',
+                'attrs' => ['class'=>'form-control','required'=>'required'],
+            ],
+            [
+                'name'  => 'purchase_number',
+                'label' => __('Purchase Number'),
+                'type'  => 'text',
+                'value' => $purchase_number,
+                'attrs' => ['class'=>'form-control','readonly'=>true],
+            ],
+        ];
+        $tableHeaders = [
+            __('Items'),
+            __('Quantity'),
+            __('Price'),
+            __('Discount'),
+            __('Tax').' (%)',
+            __('Amount').' <br><small class="text-danger font-weight-bold">'.__('after tax & discount').'</small>',
+            '',
+        ];
+        $purchaseStoreBase      = ViewsConstants::PRC;
+        $purchaseStoreKebab     = Str::kebab($purchaseStoreBase);
+        $purchaseStoreResolved  = Route::has($purchaseStoreBase) ? $purchaseStoreBase : (Route::has($purchaseStoreKebab) ? $purchaseStoreKebab : null);
+        $purchaseStoreUrl       = $purchaseStoreResolved ? route($purchaseStoreResolved) : '#';
+        $purchaseStoreGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'store_purchase_route_unavailable') ?? 'Store purchase route is unavailable. Please contact technical support or your domain administrator.';
+        $purchaseStoreFormId    = 'purchase-store-form';
+    @endphp
     {{ Form::open([
         'method'         => 'POST',
         'url'            => $purchaseStoreUrl,
@@ -471,22 +421,18 @@ $authUser ??= null;
         @endpush
         <input type="hidden" id="token" value="{{ csrf_token() }}">
         @php
-            try {
-                $mainSafe = (isset($mainField) && Utility::isFilled($mainField) ?? []) ? $mainField : [];
-                $mainName = data_get($mainSafe,'name','vendor_id');
-                $mainLabel = data_get($mainSafe,'label') ?? __('No vendor label available');
-                $mainOptions = (array)(data_get($mainSafe,'options',[]));
-                $mainAttrs = (array)(data_get($mainSafe,'attrs',[]));
-                $vendorIdSafe = $vendorId ?? null;
-                $sideFieldsSafe = (isset($sideFields) && is_iterable($sideFields)) ? $sideFields : [];
-                $dateFieldsSafe = (isset($dateFields) && is_iterable($dateFields)) ? $dateFields : [];
-                $headersSafe = (isset($tableHeaders) && is_iterable($tableHeaders)) ? $tableHeaders : [];
-                $productServices = (isset($product_services) && (is_array($product_services) || $product_services instanceof \Illuminate\Support\Collection)) ? $product_services : [];
-                $currencySymbol = ($authUser && method_exists($authUser,'currencySymbol')) ? $authUser->currencySymbol() : '¤';
-            } catch (\Throwable $e) {
-                \Log::error('purchases/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            }
-@endphp
+            $mainSafe = (isset($mainField) && Utility::isFilled($mainField) ?? []) ? $mainField : [];
+            $mainName = data_get($mainSafe,'name','vendor_id');
+            $mainLabel = data_get($mainSafe,'label') ?? __('No vendor label available');
+            $mainOptions = (array)(data_get($mainSafe,'options',[]));
+            $mainAttrs = (array)(data_get($mainSafe,'attrs',[]));
+            $vendorIdSafe = $vendorId ?? null;
+            $sideFieldsSafe = (isset($sideFields) && is_iterable($sideFields)) ? $sideFields : [];
+            $dateFieldsSafe = (isset($dateFields) && is_iterable($dateFields)) ? $dateFields : [];
+            $headersSafe = (isset($tableHeaders) && is_iterable($tableHeaders)) ? $tableHeaders : [];
+            $productServices = (isset($product_services) && (is_array($product_services) || $product_services instanceof \Illuminate\Support\Collection)) ? $product_services : [];
+            $currencySymbol = ($authUser && method_exists($authUser,'currencySymbol')) ? $authUser->currencySymbol() : '¤';
+        @endphp
         <div class="{{ VC::RW }} {{ VC::MB4 }}">
             <div class="{{ VC::CM6 }}">
                 <div id="vendor-box" class="{{ VC::FM_G }}">
@@ -499,15 +445,11 @@ $authUser ??= null;
                 <div class="{{ VC::RW }}">
                     @foreach($sideFieldsSafe as $f)
                         @php
-                            try {
-                                $fname = data_get($f,'name','field');
-                                $flabel = data_get($f,'label') ?? __('No field label available');
-                                $foptions = (array)(data_get($f,'options',[]));
-                                $fattrs = (array)(data_get($f,'attrs',[]));
-                            } catch (\Throwable $e) {
-                                \Log::error('purchases/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                            }
-@endphp
+                            $fname = data_get($f,'name','field');
+                            $flabel = data_get($f,'label') ?? __('No field label available');
+                            $foptions = (array)(data_get($f,'options',[]));
+                            $fattrs = (array)(data_get($f,'attrs',[]));
+                        @endphp
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::FM_G }}">
                                 {{ Form::label($fname, $flabel, ['class' => VC::FM_LB]) }}
@@ -519,16 +461,12 @@ $authUser ??= null;
                 <div class="{{ VC::RW }}">
                     @foreach($dateFieldsSafe as $f)
                         @php
-                            try {
-                                $dname = data_get($f,'name','date_field');
-                                $dlabel = data_get($f,'label') ?? __('No date label available');
-                                $dtype = data_get($f,'type','date');
-                                $dattrs = (array)(data_get($f,'attrs',[]));
-                                $dvalue = data_get($f,'value');
-                            } catch (\Throwable $e) {
-                                \Log::error('purchases/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                            }
-@endphp
+                            $dname = data_get($f,'name','date_field');
+                            $dlabel = data_get($f,'label') ?? __('No date label available');
+                            $dtype = data_get($f,'type','date');
+                            $dattrs = (array)(data_get($f,'attrs',[]));
+                            $dvalue = data_get($f,'value');
+                        @endphp
                         <div class="{{ VC::CM6 }}">
                             <div class="{{ VC::FM_G }}">
                                 {{ Form::label($dname, $dlabel, ['class' => VC::FM_LB]) }}
@@ -550,8 +488,8 @@ $authUser ??= null;
                     <button type="button" data-repeater-create class="{{ VC::BT_PRM }}"><i class="{{ VC::TI_PLS }}"></i> {{ __('Add item') }}</button>
                 </div>
             </div>
-            <div class="{{ VC::CD_BD_TB_BD }}">
-                <div class="{{ VC::TB_RSP }}">
+            <div class="card-body table-border-style">
+                <div class="table-responsive">
                     <table class="{{ VC::TB }} {{ VC::MB0 }}" data-repeater-list="items" id="sortable-table">
                         <thead>
                             <tr>
@@ -565,16 +503,12 @@ $authUser ??= null;
                         <tbody class="ui-sortable" data-repeater-item>
                             <tr>
                                 @php
-                                    try {
-                                        $productBase             = ViewsConstants::PRC.'.product';
-                                        $productKebab            = Str::kebab($productBase);
-                                        $productResolved         = Route::has($productBase) ? $productBase : (Route::has($productKebab) ? $productKebab : null);
-                                        $productUrl              = $productResolved ? route($productResolved) : '#';
-                                        $productGuardMsg         = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'product_purchase_route_unavailable') ?? 'Purchase product route is unavailable. Please contact technical support or your domain administrator.';
-                                    } catch (\Throwable $e) {
-                                        \Log::error('purchases/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $productBase             = ViewsConstants::PRC.'.product';
+                                    $productKebab            = Str::kebab($productBase);
+                                    $productResolved         = Route::has($productBase) ? $productBase : (Route::has($productKebab) ? $productKebab : null);
+                                    $productUrl              = $productResolved ? route($productResolved) : '#';
+                                    $productGuardMsg         = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'product_purchase_route_unavailable') ?? 'Purchase product route is unavailable. Please contact technical support or your domain administrator.';
+                                @endphp
                                 <td width="25%">
                                     {{ Form::select(
                                         'item',
@@ -610,7 +544,7 @@ $authUser ??= null;
                                     {{ Form::hidden('itemTaxPrice','', ['class'=>'itemTaxPrice']) }}
                                     {{ Form::hidden('itemTaxRate','', ['class'=>'itemTaxRate']) }}
                                 </td>
-                                <td class="{{ VC::TX_END }} amount">0.00</td>
+                                <td class="text-end amount">0.00</td>
                                 <td>
                                     <button type="button" class="{{ VC::TRS_DNG }}" data-repeater-delete></button>
                                 </td>
@@ -626,25 +560,25 @@ $authUser ??= null;
                             <tr>
                                 <td colspan="4"></td>
                                 <td><strong>{{ __('Sub Total') }}</strong></td>
-                                <td class="{{ VC::TX_END }} subTotal">0.00</td>
+                                <td class="text-end subTotal">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
                                 <td colspan="4"></td>
                                 <td><strong>{{ __('Discount') }}</strong></td>
-                                <td class="{{ VC::TX_END }} totalDiscount">0.00</td>
+                                <td class="text-end totalDiscount">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
                                 <td colspan="4"></td>
                                 <td><strong>{{ __('Tax') }}</strong></td>
-                                <td class="{{ VC::TX_END }} totalTax">0.00</td>
+                                <td class="text-end totalTax">0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
                                 <td colspan="4"></td>
                                 <td class="blue-text"><strong>{{ __('Total Amount') }}</strong></td>
-                                <td class="blue-text {{ VC::TX_END }} totalAmount"></td>
+                                <td class="blue-text text-end totalAmount"></td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -658,7 +592,7 @@ $authUser ??= null;
                 class="{{ VC::BT_LG }} me-2"
                 id="purchase-cancel-btn"
                 data-url="{{ $purchaseIndexUrl }}"
-                data-guard-msg="{{ base64_encode($purchaseIndexGuardMsg) }}"
+                data-guard-msg="{{ $purchaseIndexGuardMsg }}"
                 data-sv-localized="true"
             >{{ __('Cancel') }}</button>
             @push(StacksConstants::ADM_SCR_PG)

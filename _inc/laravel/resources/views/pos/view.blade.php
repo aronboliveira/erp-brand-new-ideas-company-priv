@@ -1,41 +1,49 @@
 @php
-    try {
-$user = Auth::user();
-        $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        StacksConstants,
+        YieldingConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route, Crypt};
+    use Illuminate\Support\Str;
 
-        $canPosNum   = is_object($user) && is_callable([$user,'posNumberFormat']);
-        $canDate     = is_object($user) && is_callable([$user,'dateFormat']);
-        $canPrice    = is_object($user) && is_callable([$user,'priceFormat']);
+    $user = Auth::user();
+    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
 
-        $dashBase   = 'dashboard';
-        $dashUrl    = Route::has($dashBase) ? route($dashBase) : '#';
-        $dashGuard  = Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+    $canPosNum   = is_object($user) && is_callable([$user,'posNumberFormat']);
+    $canDate     = is_object($user) && is_callable([$user,'dateFormat']);
+    $canPrice    = is_object($user) && is_callable([$user,'priceFormat']);
 
-        $repBase     = VW::POS . '.report';
-        $repKebab    = Str::kebab($repBase);
-        $repResolved = Route::has($repBase) ? $repBase : (Route::has($repKebab) ? $repKebab : null);
-        $repUrl      = $repResolved ? route($repResolved) : '#';
-        $repGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'report_route_unavailable') ?? __('Report route is unavailable. Please contact technical support or your domain administrator.');
+    $dashBase   = 'dashboard';
+    $dashUrl    = Route::has($dashBase) ? route($dashBase) : '#';
+    $dashGuard  = Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
 
-        $pdfBase     = VW::POS . '.pdf';
-        $pdfKebab    = Str::kebab($pdfBase);
-        $pdfResolved = Route::has($pdfBase) ? $pdfBase : (Route::has($pdfKebab) ? $pdfKebab : null);
-        $pdfUrl      = ($pdfResolved && !empty($pos?->id)) ? route($pdfResolved, Crypt::encrypt($pos->id)) : '#';
-        $pdfGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'pdf_route_unavailable') ?? __('PDF route is unavailable. Please contact technical support or your domain administrator.');
+    $repBase     = VW::POS . '.report';
+    $repKebab    = Str::kebab($repBase);
+    $repResolved = Route::has($repBase) ? $repBase : (Route::has($repKebab) ? $repKebab : null);
+    $repUrl      = $repResolved ? route($repResolved) : '#';
+    $repGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'report_route_unavailable') ?? __('Report route is unavailable. Please contact technical support or your domain administrator.');
 
-        $settings = Utility::settings();
+    $pdfBase     = VW::POS . '.pdf';
+    $pdfKebab    = Str::kebab($pdfBase);
+    $pdfResolved = Route::has($pdfBase) ? $pdfBase : (Route::has($pdfKebab) ? $pdfKebab : null);
+    $pdfUrl      = ($pdfResolved && !empty($pos?->id)) ? route($pdfResolved, Crypt::encrypt($pos->id)) : '#';
+    $pdfGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'pdf_route_unavailable') ?? __('PDF route is unavailable. Please contact technical support or your domain administrator.');
 
-        $posNumber  = $canPosNum ? ($user->posNumberFormat($pos->pos_id ?? null) ?? __('No POS number available')) : __('No POS number available');
-        $issueDate  = $canDate ? ($user->dateFormat($pos->purchase_date ?? null) ?? __('No issue date available')) : __('No issue date available');
+    $settings = Utility::settings();
 
-        $amountFmt   = $canPrice ? ($user->priceFormat($posPayment['amount'] ?? 0) ?? __('Could not format amount')) : __('No amount available');
-        $discountFmt = $canPrice ? ($user->priceFormat($posPayment['discount'] ?? 0) ?? __('Could not format discount')) : __('No discount available');
-        $totalFmt    = $canPrice ? ($user->priceFormat($posPayment['discount_amount'] ?? 0) ?? __('Could not format total')) : __('No total available');
+    $posNumber  = $canPosNum ? ($user->posNumberFormat($pos->pos_id ?? null) ?? __('No POS number available')) : __('No POS number available');
+    $issueDate  = $canDate ? ($user->dateFormat($pos->purchase_date ?? null) ?? __('No issue date available')) : __('No issue date available');
 
-        $shippingOn = (Utility::getValByName('shipping_display') ?? '') === 'on';
-    } catch (\Throwable $e) {
-        \Log::error('pos/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-    }
+    $amountFmt   = $canPrice ? ($user->priceFormat($posPayment['amount'] ?? 0) ?? __('Could not format amount')) : __('No amount available');
+    $discountFmt = $canPrice ? ($user->priceFormat($posPayment['discount'] ?? 0) ?? __('Could not format discount')) : __('No discount available');
+    $totalFmt    = $canPrice ? ($user->priceFormat($posPayment['discount_amount'] ?? 0) ?? __('Could not format total')) : __('No total available');
+
+    $shippingOn = (Utility::getValByName('shipping_display') ?? '') === 'on';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -44,22 +52,22 @@ $user = Auth::user();
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
-    <li class="{{ VC::BCI }}">
-        <a href="{{ $dashUrl }}" data-url="{{ $dashUrl }}" data-guard-msg="{{ base64_encode($dashGuard) }}" data-sv-localized="true" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
+    <li class="breadcrumb-item">
+        <a href="{{ $dashUrl }}" data-url="{{ $dashUrl }}" data-guard-msg="{{ $dashGuard }}" data-sv-localized="true" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}">
-        <a href="{{ $repUrl }}" data-url="{{ $repUrl }}" data-guard-msg="{{ base64_encode($repGuard) }}" data-sv-localized="true" {{ $repUrl === '#' ? 'aria-disabled=true' : '' }}>
+    <li class="breadcrumb-item">
+        <a href="{{ $repUrl }}" data-url="{{ $repUrl }}" data-guard-msg="{{ $repGuard }}" data-sv-localized="true" {{ $repUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('POS Summary') }}
         </a>
     </li>
-    <li class="{{ VC::BCI }}">{{ $posNumber }}</li>
+    <li class="breadcrumb-item">{{ $posNumber }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
-        <a href="{{ $pdfUrl }}" target="_blank" class="{{ VC::BT_PRM }}" data-url="{{ $pdfUrl }}" data-guard-msg="{{ base64_encode($pdfGuard) }}" data-sv-localized="true">{{ __('Download') }}</a>
+        <a href="{{ $pdfUrl }}" target="_blank" class="{{ VC::BT_PRM }}" data-url="{{ $pdfUrl }}" data-guard-msg="{{ $pdfGuard }}" data-sv-localized="true">{{ __('Download') }}</a>
     </div>
 @endsection
 
@@ -67,8 +75,8 @@ $user = Auth::user();
     <div class="{{ VC::RW }}">
         <div class="{{ VC::C12 }}">
             <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD_BD }}">
-                    <div class="row {{ VC::MT3 }}">
+                <div class="card-body">
+                    <div class="row mt-3">
                         <div class="{{ VC::C12 }} {{ VC::CL6 }} {{ VC::CM6 }}">
                             <h4>{{ __('POS') }}</h4>
                         </div>
@@ -83,19 +91,15 @@ $user = Auth::user();
                             <small class="font-style">
                                 <strong>{{ __('Billed To') }} :</strong><br>
                                 @php
-                                    try {
-                                        $bn = data_get($customer ?? [], 'billing_name');
-                                        $ba = data_get($customer ?? [], 'billing_address');
-                                        $bc = data_get($customer ?? [], 'billing_city');
-                                        $bs = data_get($customer ?? [], 'billing_state');
-                                        $bz = data_get($customer ?? [], 'billing_zip');
-                                        $bco= data_get($customer ?? [], 'billing_country');
-                                        $bp = data_get($customer ?? [], 'billing_phone');
-                                        $btax = data_get($customer ?? [], 'tax_number');
-                                    } catch (\Throwable $e) {
-                                        \Log::error('pos/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $bn = data_get($customer ?? [], 'billing_name');
+                                    $ba = data_get($customer ?? [], 'billing_address');
+                                    $bc = data_get($customer ?? [], 'billing_city');
+                                    $bs = data_get($customer ?? [], 'billing_state');
+                                    $bz = data_get($customer ?? [], 'billing_zip');
+                                    $bco= data_get($customer ?? [], 'billing_country');
+                                    $bp = data_get($customer ?? [], 'billing_phone');
+                                    $btax = data_get($customer ?? [], 'tax_number');
+                                @endphp
                                 @if(!empty($bn))
                                     {{ $bn }}<br>
                                     {{ $ba ?? '' }}<br>
@@ -114,18 +118,14 @@ $user = Auth::user();
                         <div class="{{ VC::C12 }} {{ VC::CL4 }} {{ VC::CM4 }}">
                             @if($shippingOn)
                                 @php
-                                    try {
-                                        $sn = data_get($customer ?? [], 'shipping_name');
-                                        $sa = data_get($customer ?? [], 'shipping_address');
-                                        $sc = data_get($customer ?? [], 'shipping_city');
-                                        $ss = data_get($customer ?? [], 'shipping_state');
-                                        $sz = data_get($customer ?? [], 'shipping_zip');
-                                        $sco= data_get($customer ?? [], 'shipping_country');
-                                        $sp = data_get($customer ?? [], 'shipping_phone');
-                                    } catch (\Throwable $e) {
-                                        \Log::error('pos/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-                                    }
-@endphp
+                                    $sn = data_get($customer ?? [], 'shipping_name');
+                                    $sa = data_get($customer ?? [], 'shipping_address');
+                                    $sc = data_get($customer ?? [], 'shipping_city');
+                                    $ss = data_get($customer ?? [], 'shipping_state');
+                                    $sz = data_get($customer ?? [], 'shipping_zip');
+                                    $sco= data_get($customer ?? [], 'shipping_country');
+                                    $sp = data_get($customer ?? [], 'shipping_phone');
+                                @endphp
                                 <small>
                                     <strong>{{ __('Shipped To') }} :</strong><br>
                                     @if(!empty($sn))
@@ -159,42 +159,38 @@ $user = Auth::user();
                                 <table class="{{ VC::TB }}">
                                     <thead>
                                         <tr>
-                                            <th class="{{ VC::TX_DK }}">#</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Items') }}</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Quantity') }}</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Price') }}</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Tax') }}</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Tax Amount') }}</th>
-                                            <th class="{{ VC::TX_DK }}">{{ __('Total') }}</th>
+                                            <th class="text-dark">#</th>
+                                            <th class="text-dark">{{ __('Items') }}</th>
+                                            <th class="text-dark">{{ __('Quantity') }}</th>
+                                            <th class="text-dark">{{ __('Price') }}</th>
+                                            <th class="text-dark">{{ __('Tax') }}</th>
+                                            <th class="text-dark">{{ __('Tax Amount') }}</th>
+                                            <th class="text-dark">{{ __('Total') }}</th>
                                         </tr>
                                     </thead>
                                     @php
-                                        $taxesData ??= [];
-@endphp
+                                        $taxesData = [];
+                                    @endphp
                                     @forelse(($items ?? []) as $key => $item)
                                         @php
-                                            $rowTaxTotal ??= 0;
-                                            $taxes ??= [];
-                                            try {
-                                                if (!empty($item?->tax)) {
-                                                    $taxes = Utility::tax($item->tax) ?? [];
-                                                    foreach ($taxes as $tx) {
-                                                        $tp = Utility::taxRate($tx->rate ?? 0, $item->price ?? 0, $item->quantity ?? 0);
-                                                        $rowTaxTotal += $tp;
-                                                        $name = $tx->name ?? 'Tax';
-                                                        $taxesData[$name] = ($taxesData[$name] ?? 0) + $tp;
-                                                    }
+                                            $rowTaxTotal = 0;
+                                            $taxes = [];
+                                            if (!empty($item?->tax)) {
+                                                $taxes = Utility::tax($item->tax) ?? [];
+                                                foreach ($taxes as $tx) {
+                                                    $tp = Utility::taxRate($tx->rate ?? 0, $item->price ?? 0, $item->quantity ?? 0);
+                                                    $rowTaxTotal += $tp;
+                                                    $name = $tx->name ?? 'Tax';
+                                                    $taxesData[$name] = ($taxesData[$name] ?? 0) + $tp;
                                                 }
-                                                $qty = $item->quantity ?? 0;
-                                                $price = $item->price ?? 0;
-                                                $lineTotal = ($price * $qty) + $rowTaxTotal;
-                                                $priceFmt = $canPrice ? ($user->priceFormat($price) ?? '') : (string)$price;
-                                                $rowTaxFmt = $canPrice ? ($user->priceFormat($rowTaxTotal) ?? '') : (string)$rowTaxTotal;
-                                                $lineTotalFmt = $canPrice ? ($user->priceFormat($lineTotal) ?? '') : (string)$lineTotal;
-                                            } catch (\Throwable $e) {
-                                                \Log::error('pos/view — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                             }
-@endphp
+                                            $qty = $item->quantity ?? 0;
+                                            $price = $item->price ?? 0;
+                                            $lineTotal = ($price * $qty) + $rowTaxTotal;
+                                            $priceFmt = $canPrice ? ($user->priceFormat($price) ?? '') : (string)$price;
+                                            $rowTaxFmt = $canPrice ? ($user->priceFormat($rowTaxTotal) ?? '') : (string)$rowTaxTotal;
+                                            $lineTotalFmt = $canPrice ? ($user->priceFormat($lineTotal) ?? '') : (string)$lineTotal;
+                                        @endphp
                                         <tr>
                                             <td>{{ ($key ?? 0) + 1 }}</td>
                                             <td>{{ optional($item->product())->name ?? __('Unnamed product') }}</td>
@@ -205,7 +201,7 @@ $user = Auth::user();
                                                     <table>
                                                         @foreach($taxes as $tax)
                                                             <tr>
-                                                                <span class="badge {{ VC::BG_P }}">{{ ($tax->name ?? 'Tax') . ' (' . (($tax->rate ?? 0)) . '%)' }}</span><br>
+                                                                <span class="badge bg-primary">{{ ($tax->name ?? 'Tax') . ' (' . (($tax->rate ?? 0)) . '%)' }}</span><br>
                                                             </tr>
                                                         @endforeach
                                                     </table>
@@ -218,7 +214,7 @@ $user = Auth::user();
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="{{ VC::TXT_MT }}">{{ __('No items available.') }}</td>
+                                            <td colspan="7" class="text-muted">{{ __('No items available.') }}</td>
                                         </tr>
                                     @endforelse
 

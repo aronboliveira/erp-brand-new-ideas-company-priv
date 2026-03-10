@@ -7,7 +7,7 @@
       const dataClientLocalized = 'data-client-localized';
       const dataGuardMsg = 'data-guard-msg';
       const langSessionKey = 'erp-np-lang';
-
+    
       function getLocalizedMessage(key, el) {
         let msg = errFb;
         if (el.getAttribute('data-sv-localized') === 'true'
@@ -29,11 +29,36 @@
         }
         return msg;
       }
-
+    
       function showError(message) {
-        (window.RouteGuard?.showToast || (m => alert(m)))(message);
+        try {
+          let container = document.getElementById('toast-container');
+          if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+          }
+          const bsLink = document.querySelector('link[href*="bootstrap"]');
+          if (bsLink && window.bootstrap) {
+            const toastEl = document.createElement('div');
+            toastEl.className = 'toast';
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            const body = document.createElement('div');
+            body.className = 'toast-body';
+            body.textContent = message;
+            toastEl.appendChild(body);
+            container.appendChild(toastEl);
+            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+          } else {
+            alert(message);
+          }
+        } catch {
+          alert(message);
+        }
       }
-
+    
       let errorMessage = '';
       const onErrorPointerUp = () => {
         if (errorMessage) {
@@ -50,7 +75,7 @@
           }
         }));
       }).observe(document.body, { childList: true, subtree: true });
-
+    
       function closeScript() {
         setTimeout(() => {
           try {
@@ -60,7 +85,7 @@
           }
         }, 1000);
       }
-
+    
       window.addEventListener('load', () => {
         try {
           const element = document.getElementById('boxes');
@@ -84,3 +109,4 @@
       });
     })();
 </script>
+    
