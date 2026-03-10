@@ -1,4 +1,4 @@
-# Route Health Report — 2026-02-07 (updated 2026-03-10)
+# Route Health Report — 2026-02-07 (updated 2026-03-10, session 2)
 
 ## Summary
 
@@ -273,22 +273,78 @@ Full Playwright suite after this commit: **300 passed / 1 failed** (expense form
 
 ### Additional Bugs Fixed
 
-| # | Issue | Commit | Files |
-|---|-------|--------|-------|
-| 13 | Route pluralization: `GET /login` → 405 because URI became `/logins/{lang?}` | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
-| 14 | Namespace collision: `route:list` crash with `ReflectionException` for module controllers | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
-| 15 | HTTP 4xx handler: all 4xx returned "Access Denied" including 405 | `9d2d5fa9` | `Handler.php` |
-| 16 | Model relation aliases colliding with DB columns | `5fbdb617` | 5 model files |
+| #   | Issue                                                                                     | Commit     | Files                         |
+| --- | ----------------------------------------------------------------------------------------- | ---------- | ----------------------------- |
+| 13  | Route pluralization: `GET /login` → 405 because URI became `/logins/{lang?}`              | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 14  | Namespace collision: `route:list` crash with `ReflectionException` for module controllers | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 15  | HTTP 4xx handler: all 4xx returned "Access Denied" including 405                          | `9d2d5fa9` | `Handler.php`                 |
+| 16  | Model relation aliases colliding with DB columns                                          | `5fbdb617` | 5 model files                 |
 
 ### Route Tester Results (post-fix)
 
-| Metric | Value |
-|--------|-------|
-| Total routes | 191 |
-| GET routes tested | 97 |
-| 200 OK | 6 |
-| 204 No Content | 1 |
-| 302 Redirect | 74 (auth-required, no DB user) |
-| 404 Not Found | 9 (dynamic param routes) |
-| **5xx Errors** | **0** |
-| **Timeouts** | **0** |
+| Metric            | Value                          |
+| ----------------- | ------------------------------ |
+| Total routes      | 191                            |
+| GET routes tested | 97                             |
+| 200 OK            | 6                              |
+| 204 No Content    | 1                              |
+| 302 Redirect      | 74 (auth-required, no DB user) |
+| 404 Not Found     | 9 (dynamic param routes)       |
+| **5xx Errors**    | **0**                          |
+| **Timeouts**      | **0**                          |
+
+---
+
+## 2026-03-10 Session 2 — Auth Fix & Full Re-Run
+
+### Additional Bugs Fixed
+
+| #   | Issue                                                               | Commit       | Files                                     |
+| --- | ------------------------------------------------------------------- | ------------ | ----------------------------------------- |
+| 17  | Login detail FK constraint: `created_by = 0` violates UUID FK      | `b4265c32`   | `AuthenticatedSessionController.php`      |
+| 18  | auth.setup.cjs: broken waitForURL regex, duplicate form IDs, race  | `b4265c32`   | `auth.setup.cjs`                          |
+
+### Database Setup
+
+- MySQL 8.4.7 running, used `test`/`test` user on `erp_prestech_db` (211 tables, seeded)
+- Created test admin user with UUID `1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c`
+- `phpunit.xml` updated to point to `erp_prestech_db`
+
+### Full Test Suite Results (with seeded DB)
+
+| Suite      | Tests   | Pass    | Fail/Error | Rate     | Previous  | Delta   |
+| ---------- | ------- | ------- | ---------- | -------- | --------- | ------- |
+| PHPUnit    | 12,180  | 11,130  | 1,050      | **91.4%** | 90.4%     | +1.0%   |
+| Playwright | 297†    | 139     | 158        | **46.8%** | 47.1%     | −0.3%   |
+| Jest       | 524     | 524     | 0          | **100%** | 100%      | —       |
+| pytest     | 268     | 268     | 0          | **100%** | 100%      | —       |
+| PHPStan    | —       | —       | 0          | **100%** | 100%      | —       |
+
+† 332 total, 35 skipped = 297 non-skipped
+
+### PHPUnit Failure Breakdown (25 in Feature+Unit, 1050 total)
+
+Feature test failures (25):
+- 14× DashboardDataTest — missing route/controller dependencies
+- 1× ExampleTest — expected 2xx/3xx got 404
+- 2× HrmRouteReturnTest / PmRouteReturnTest — export route 404
+- 1× ViewRenderingHardeningTest — `/home` returns 500 (DashboardController not found)
+- 7× remaining — auth/data-dependent assertions
+
+### Playwright Failure Breakdown (158)
+
+- 42 — hrm.spec.cjs (HRM module routes/views)
+- 31 — reports.spec.cjs (report generation/rendering)
+- 65 — finance-render.spec.cjs (finance route rendering assertions)
+- 7 — crm.spec.cjs (CRM module)
+- 6 — i18n.spec.cjs (i18n / locale switching)
+- 3 — security-api.spec.cjs
+- 2 — pm.spec.cjs
+- 1 — financial.spec.cjs
+- 1 — products.spec.cjs (only clean spec in previous run)
+
+### Root Causes of Remaining Failures
+
+1. **`DashboardController` not found** — `web.php:152` references `App\Http\Controllers\DashboardController` which doesn't exist. Causes cascading 500s on `/home`, `/hrm-dashboard` post-login views.
+2. **Route 404s** — Several export/download routes return 404 (likely missing route definitions or renamed URIs).
+3. **Playwright auth context** — While `auth.setup.cjs` now works correctly, many specs test pages that depend on `DashboardController` to render post-login views, causing failures.

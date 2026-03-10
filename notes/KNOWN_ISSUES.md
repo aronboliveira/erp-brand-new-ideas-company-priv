@@ -1,6 +1,6 @@
 # Known / Remaining Unresolved Issues
 
-> Last updated: 2026-03-10 (commit `9d2d5fa9`)
+> Last updated: 2026-03-10 (commit `b4265c32`)
 
 ## OPEN — Application Behaviour
 
@@ -64,7 +64,7 @@ Model-level test failures: validation, seeder assertions, permission checks. All
 **Was:** `GET /login` returned 405 (Method Not Allowed). The actual GET route was at `/logins/{lang?}`.
 
 **Root cause:** Two `RouteServiceProvider` classes (main + LandingPage module) had URI
-pluralization loops that only checked the *last* URI segment against a `specialRoutes`
+pluralization loops that only checked the _last_ URI segment against a `specialRoutes`
 whitelist. For `GET /login/{lang?}`, the last segment is `{lang?}`, so `login` was
 pluralized to `logins`. The module RSP ran after the main RSP, re-applying the broken logic.
 
@@ -100,6 +100,34 @@ of returning the column value.
 **Models fixed:** `ChartOfAccount`, `Bug`, `Expense`, `Invoice`, `Proposal`.
 
 **Fix:** Removed conflicting snake_case aliases. Original camelCase relations remain.
+
+### 10. Login Detail FK Constraint Violation — ✅ RESOLVED (commit `b4265c32`)
+
+**Was:** Login via Playwright (HeadlessChrome) failed with `SQLSTATE[23000]: Integrity
+constraint violation: 1452 Cannot add or update a child row: a foreign key constraint
+fails (login_details.created_by_foreign)`. The `login_details.created_by` was set to `0`
+(not a valid UUID) via `$user->creatorId()`.
+
+**Root cause:** `AuthenticatedSessionController::_logUser()` called `$user->creatorId()`
+which returns the user's own `created_by` field. For seeded/legacy users with
+`created_by = '0'`, this violated the FK to `users.id` (UUID column).
+
+**Fix:** Added UUID validation on `creatorId()` return value with fallback to `$user->id`.
+
+### 11. Playwright auth.setup.cjs Broken — ✅ RESOLVED (commit `b4265c32`)
+
+**Was:** `auth.setup.cjs` always reported "Login failed - still on login page" even when
+credentials were valid.
+
+**Root causes (3):**
+1. `waitForURL` regex `/.*(?!login).*$/` matches ALL strings (including `/login`) due to
+   greedy `.*` before negative lookahead — resolved immediately without waiting.
+2. Duplicate form IDs (`#loginForm`, `#email-input`, `#pw-input`, `#saveBtn`) from
+   responsive layout — both visible in DOM (second below fold).
+3. No `Promise.all` pattern for click + waitForNavigation — race condition.
+
+**Fix:** Rewrote with `page.waitForURL(url => !url.pathname.endsWith('/login'))`,
+visible-first locators, viewport size, and `Promise.all([waitForURL, click])`.
 
 ---
 
