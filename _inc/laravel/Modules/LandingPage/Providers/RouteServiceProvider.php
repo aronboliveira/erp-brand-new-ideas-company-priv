@@ -27,18 +27,28 @@ final class RouteServiceProvider extends ServiceProvider
             ? $output->writeln('<question> ' . $msg . ' </question> ')
             : $output->writeln($msg);
         parent::boot();
+        /** @phpstan-ignore-next-line */
         foreach (Route::getRoutes() as $route) {
-            $specialRoutes = ['login', 'password', 'register', 'verification'];
+            $specialRoutes = ['login', 'password', 'register', 'verification',
+                              'verify', 'logout', 'forgot-password', 'reset-password',
+                              'confirm-password', 'two-factor-challenge', 'fortify-login'];
             $converted = Str::kebab($route->uri());
             $segments = collect(explode('/', $converted));
-            $lastSegment = $segments->last();
-            if (in_array($lastSegment, $specialRoutes))
+            // Skip pluralization if ANY segment (not just last) is a special auth route
+            $hasSpecialSegment = $segments->contains(
+                fn($seg) => in_array(preg_replace('/\{.*\}/', '', $seg), $specialRoutes)
+            );
+            if ($hasSpecialSegment) {
                 $finalUri = $converted;
-            else
+            } else {
+                $lastSegment = $segments->last();
                 $finalUri = $segments->slice(0, -1)
-                    ->map(fn($segment) => Str::plural($segment))
+                    ->map(fn($segment) => Str::startsWith($segment, '{')
+                        ? $segment
+                        : Str::plural($segment))
                     ->push($lastSegment)
                     ->join('/');
+            }
             $route->setUri($finalUri);
         }
     }
@@ -69,8 +79,7 @@ final class RouteServiceProvider extends ServiceProvider
         try {
             Route::middleware([
                 MiddlewaresConstants::WEB,
-            ])->namespace($this->moduleNamespace)
-                ->group(module_path(self::MODULE, self::WEB_ROUTES));
+            ])->group(module_path(self::MODULE, self::WEB_ROUTES));
             Log::debug("{$tag} web routes loaded", ['path' => self::WEB_ROUTES]);
             $output->writeln("[{$tag}] Landing Page Web routes loaded");
         } catch (Throwable $e) {
@@ -88,7 +97,6 @@ final class RouteServiceProvider extends ServiceProvider
         try {
             Route::prefix(self::API_PREFIX)
                 ->middleware(MiddlewaresConstants::API)
-                ->namespace($this->moduleNamespace)
                 ->group(module_path(self::MODULE, self::API_ROUTES));
             Log::debug("{$tag} Landing Page api routes loaded", [
                 'prefix' => self::API_PREFIX,

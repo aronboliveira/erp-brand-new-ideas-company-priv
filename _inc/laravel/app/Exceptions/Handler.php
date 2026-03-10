@@ -200,7 +200,9 @@ final class Handler extends ExceptionHandler
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface && !empty($status)) {
                 if ($status >= 500)  return response($this->getGenericServerErrorHtml($request), $status);
                 if ($status === 404) return response($this->get404ErrorHtml($request), $status);
-                if ($status >= 400)  return response($this->getAuthErrorHtml($request), $status);
+                if ($status === 401 || $status === 403) return response($this->getAuthErrorHtml($request), $status);
+                if ($status === 405) return response($this->get405ErrorHtml($request), $status);
+                if ($status >= 400)  return response($this->getGenericClientErrorHtml($request, $status), $status);
             }
 
             return response($this->getGenericServerErrorHtml($request), $status);
@@ -1431,5 +1433,35 @@ final class Handler extends ExceptionHandler
             if (Route::has($route))
                 return route($route);
         return url('/');
+    }
+
+    private function get405ErrorHtml($request): string
+    {
+        $redirectUrl = $this->getRedirectUrl($request);
+        $userLang = Utility::fetchUserLang(Auth::user()) ?? 'en';
+        return '<!DOCTYPE html><html lang="' . $userLang . '"><head><meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Method Not Allowed (405)</title>
+            <meta http-equiv="refresh" content="4;url=' . $redirectUrl . '">
+            <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f8f9fa;}
+            .box{background:#fff;border-radius:12px;padding:2rem;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1);max-width:400px;}
+            </style></head><body><div class="box"><h1>405</h1><h2>Method Not Allowed</h2>
+            <p>The HTTP method used is not supported for this route.</p>
+            <p><a href="' . $redirectUrl . '">Go back</a></p></div></body></html>';
+    }
+
+    private function getGenericClientErrorHtml($request, int $status): string
+    {
+        $redirectUrl = $this->getRedirectUrl($request);
+        $userLang = Utility::fetchUserLang(Auth::user()) ?? 'en';
+        return '<!DOCTYPE html><html lang="' . $userLang . '"><head><meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Error ' . $status . '</title>
+            <meta http-equiv="refresh" content="4;url=' . $redirectUrl . '">
+            <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f8f9fa;}
+            .box{background:#fff;border-radius:12px;padding:2rem;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1);max-width:400px;}
+            </style></head><body><div class="box"><h1>' . $status . '</h1><h2>Request Error</h2>
+            <p>The request could not be processed.</p>
+            <p><a href="' . $redirectUrl . '">Go back</a></p></div></body></html>';
     }
 }

@@ -23,7 +23,8 @@ final class RouteServiceProvider extends ServiceProvider
     private const ROUTES_WEB_PATH  = 'routes/web.php';
     private const ROUTES_FORT_PATH = 'routes/fortify.php';
 
-    protected $namespace = 'App\\Http\\Controllers';
+    // Removed: routes use ::class FQCN — no namespace prefix needed.
+    // protected $namespace = 'App\\Http\\Controllers';
 
     public function register(): void
     {
@@ -44,27 +45,37 @@ final class RouteServiceProvider extends ServiceProvider
             ? $output->writeln('<question> ' . $msg . ' </question> ')
             : $output->writeln($msg);
         try {
+            $this->configureRateLimiting();
+            Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' configured rate limiting');
             parent::boot();
+            // Load all routes first, then pluralize segments.
+            $this->map();
             /** @var \Illuminate\Routing\RouteCollection $routes */
             $routes = Route::getRoutes();
             /** @phpstan-ignore-next-line */
             foreach ($routes as $route) {
-                $specialRoutes = ['login', 'password', 'register', 'verification'];
+                $specialRoutes = ['login', 'password', 'register', 'verification',
+                                  'verify', 'logout', 'forgot-password', 'reset-password',
+                                  'confirm-password', 'two-factor-challenge', 'fortify-login'];
                 $converted = Str::kebab($route->uri());
                 $segments = collect(explode('/', $converted));
-                $lastSegment = $segments->last();
-                if (in_array($lastSegment, $specialRoutes))
+                // Skip pluralization if ANY segment (not just last) is a special auth route
+                $hasSpecialSegment = $segments->contains(
+                    fn($seg) => in_array(preg_replace('/\{.*\}/', '', $seg), $specialRoutes)
+                );
+                if ($hasSpecialSegment) {
                     $finalUri = $converted;
-                else
+                } else {
+                    $lastSegment = $segments->last();
                     $finalUri = $segments->slice(0, -1)
-                        ->map(fn($segment) => Str::plural($segment))
+                        ->map(fn($segment) => Str::startsWith($segment, '{')
+                            ? $segment
+                            : Str::plural($segment))
                         ->push($lastSegment)
                         ->join('/');
+                }
                 $route->setUri($finalUri);
             }
-            $this->configureRateLimiting();
-            Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' configured rate limiting');
-            $this->map();
             $msg = 'Done configuring the main ' . class_basename(RouteServiceProvider::class);
             app()->runningInConsole()
                 ? $output->writeln('<info> ' . $msg . ' </info> ')
@@ -111,7 +122,6 @@ final class RouteServiceProvider extends ServiceProvider
                 throw new \Exception('API routes file is not readable: ' . base_path(self::ROUTES_API_PATH));
             Route::prefix(self::API_PREFIX)
                 ->middleware(MiddlewaresConstants::API)
-                ->namespace($this->namespace)
                 ->group(base_path(self::ROUTES_API_PATH));
             Log::debug("{$tag} completed successfully", [
                 'prefix' => self::API_PREFIX,
@@ -157,7 +167,6 @@ final class RouteServiceProvider extends ServiceProvider
             if (!is_readable(base_path(self::ROUTES_WEB_PATH)))
                 throw new \Exception('Web routes file is not readable: ' . base_path(self::ROUTES_WEB_PATH));
             Route::middleware(MiddlewaresConstants::WEB)
-                ->namespace($this->namespace)
                 ->group(base_path(self::ROUTES_WEB_PATH));
             Log::debug("{$tag} completed successfully", [
                 'middleware' => MiddlewaresConstants::WEB,
@@ -201,7 +210,6 @@ final class RouteServiceProvider extends ServiceProvider
             if (!is_readable(base_path(self::ROUTES_FORT_PATH)))
                 throw new \Exception('Fortify routes file is not readable: ' . base_path(self::ROUTES_FORT_PATH));
             Route::middleware(MiddlewaresConstants::WEB)
-                ->namespace($this->namespace)
                 ->group(base_path(self::ROUTES_FORT_PATH));
             Log::debug("{$tag} completed successfully", [
                 'middleware' => MiddlewaresConstants::WEB,
