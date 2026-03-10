@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Exports;
-
 use App\Models\Transaction;
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
@@ -9,12 +8,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{FromCollection, WithHeadings};
-
 final class TransactionExport implements FromCollection, WithHeadings
 {
     use ChecksLogin;
     use DelegatesPythonExport;
-
     private const HEADINGS = [
         'Transaction Id',
         'Account',
@@ -32,8 +29,6 @@ final class TransactionExport implements FromCollection, WithHeadings
         'user_type',
         'user_id',
         'payment_id'
-    ];
-
     public function collection(): Collection
     {
         try {
@@ -55,8 +50,6 @@ final class TransactionExport implements FromCollection, WithHeadings
             )->get();
             Log::info(__METHOD__ . ' fetched', [
                 'count' => $transactions->count(),
-                'class' => static::class
-            ]);
             $transactions->each(function ($t) {
                 foreach (self::REMOVED_FIELDS as $f) {
                     unset($t->$f);
@@ -66,30 +59,19 @@ final class TransactionExport implements FromCollection, WithHeadings
                     : '';
             });
             Log::info(__METHOD__ . ' formatted', [
-                'count' => $transactions->count(),
-                'class' => static::class
-            ]);
             return $transactions;
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             return collect();
         }
     }
-
     public function headings(): array
-    {
         return self::HEADINGS;
-    }
-
     public function exportViaPython(?string $outputPath = null): string
-    {
         $result ??= '';
         $data ??= [];
-        try {
             $collection = $this->collection();
             $data = [
                 'transactions' => $collection->toArray(),
@@ -97,20 +79,11 @@ final class TransactionExport implements FromCollection, WithHeadings
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('transaction');
-            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $result = '';
-        }
         return $result;
-    }
 }

@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Exports;
-
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
 use Illuminate\Http\RedirectResponse;
@@ -17,12 +16,10 @@ use Maatwebsite\Excel\Concerns\{
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill};
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-
 final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, WithCustomStartCell, WithColumnWidths, WithEvents
 {
     use ChecksLogin;
     use DelegatesPythonExport;
-
     private const BODY_FILL_OPACITY       = '33FFFFFF';
     private const COLUMN_WIDTHS           = ['A' => 30, 'B' => 15, 'C' => 15, 'D' => 15];
     private const DATE_CELL               = 'A4';
@@ -40,12 +37,10 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
     private const START_CELL              = 'A6';
     private const TITLE_CELL              = 'A2';
     private const VERTICAL_BORDER_COLOR   = '808080';
-
     private array  $data;
     private string $companyName;
     private string $endDate;
     private string $startDate;
-
     public function __construct(array $data, string $startDate, string $endDate, string $companyName)
     {
         $this->startDate = $startDate;
@@ -63,12 +58,7 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
                     'Debit' => '',
                     'Credit' => ''
                 ];
-                $formatted[] = [
                     'Account Name' => $typeName,
-                    'Account No' => '',
-                    'Debit' => '',
-                    'Credit' => ''
-                ];
                 foreach ($typeItems as $acct) {
                     $debit = $acct['totalDebit'] ?? 0;
                     $credit = $acct['totalCredit'] ?? 0;
@@ -83,13 +73,9 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
                 }
             }
             if (!empty($formatted)) {
-                $formatted[] = [
                     'Account Name' => 'Total',
-                    'Account No' => '',
                     'Debit' => $totalDebit,
                     'Credit' => $totalCredit
-                ];
-            }
             $this->data = $formatted;
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
@@ -100,62 +86,28 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
             $this->data = [];
         }
     }
-
     public function array(): array
-    {
-        try {
             $userOrRedirect = self::_checkLogin();
             if ($userOrRedirect instanceof RedirectResponse) {
                 Log::warning(__METHOD__ . ' login redirect', [
                     'class' => static::class
                 ]);
                 return [];
-            }
             Log::info(__METHOD__ . ' started', [
                 'user_id' => $userOrRedirect->id ?? null,
-                'class' => static::class
-            ]);
             return $this->data;
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', [
-                'error' => $e->getMessage(),
-                'class' => static::class
-            ]);
             return [];
-        }
-    }
-
     public function headings(): array
-    {
         return self::HEADINGS;
-    }
-
     public function startCell(): string
-    {
         return self::START_CELL;
-    }
-
     public function columnWidths(): array
-    {
         return self::COLUMN_WIDTHS;
-    }
-
     public function styles(Worksheet $sheet)
-    {
-        try {
             foreach (array_keys(self::COLUMN_WIDTHS) as $col) {
                 $sheet->getStyle("{$col}" . self::START_CELL[1])->getFont()->setBold(true);
-            }
-        } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' styles exception', [
-                'error' => $e->getMessage(),
-                'class' => static::class
-            ]);
-        }
-    }
-
     public function registerEvents(): array
-    {
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 try {
@@ -188,7 +140,6 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
                         $sheet->getStyle("A{$r}:D{$r}")->getFill()
                             ->setFillType(Fill::FILL_SOLID)
                             ->getStartColor()->setARGB(self::BODY_FILL_OPACITY);
-                    }
                     $sheet->getStyle("A2:D{$last}")
                         ->applyFromArray([
                             'borders' => [
@@ -198,40 +149,25 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
                                         'color' => ['argb' => self::HORIZONTAL_BORDER_COLOR]
                                     ],
                                     'vertical' => [
-                                        'borderStyle' => Border::BORDER_THIN,
                                         'color' => ['argb' => self::VERTICAL_BORDER_COLOR]
                                     ]
                                 ]
                             ]
-                        ]);
                     $sheet->getStyle("A2:D2")
                         ->getBorders()
                         ->getAllBorders()
                         ->getColor()
                         ->setARGB(self::HEADER_BORDER_COLOR);
                     Log::info(__METHOD__ . ' styling completed', [
-                        'class' => static::class
-                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' styling exception', [
                         'error' => $e->getMessage(),
-                        'class' => static::class
-                    ]);
-                }
-            }
         ];
-    }
-
     private static function columnLetter(string $cell): string
-    {
         return preg_replace('/\d+$/', '', $cell) ?? '';
-    }
-
     public function exportViaPython(?string $outputPath = null): string
-    {
         $result ??= '';
         $data ??= [];
-        try {
             $data = [
                 'accounts' => $this->data,
                 'company_name' => $this->companyName,
@@ -241,20 +177,11 @@ final class TrialBalanceExport implements FromArray, WithHeadings, WithStyles, W
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('trial_balance');
-            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $result = '';
-        }
         return $result;
-    }
 }

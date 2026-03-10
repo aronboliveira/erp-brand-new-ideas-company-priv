@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Exports;
-
 use App\Models\{ProductServiceCategory, Proposal};
 use App\Traits\ChecksLogin;
 use App\Traits\DelegatesPythonExport;
@@ -9,12 +8,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{FromCollection, WithHeadings};
-
 final class ProposalExport implements FromCollection, WithHeadings
 {
     use ChecksLogin;
     use DelegatesPythonExport;
-
     private const EXPENSE_TYPE = 'income';
     private const HEADINGS = [
         'ID',
@@ -33,8 +30,6 @@ final class ProposalExport implements FromCollection, WithHeadings
         'discount_apply',
         'is_convert',
         'updated_at'
-    ];
-
     public function collection(): Collection
     {
         $rows ??= collect();
@@ -53,8 +48,6 @@ final class ProposalExport implements FromCollection, WithHeadings
             $user = $userOrRedirect;
             if (empty($user)) {
                 Log::error(__METHOD__ . ' null user', ['class' => static::class]);
-                return collect();
-            }
             Log::info(__METHOD__ . ' started', [
                 'user_id' => $user->id ?? null,
                 'class' => static::class
@@ -62,8 +55,6 @@ final class ProposalExport implements FromCollection, WithHeadings
             $items = Proposal::where('created_by', $user->creatorId())->get();
             Log::info(__METHOD__ . ' fetched', [
                 'count' => $items->count(),
-                'class' => static::class
-            ]);
             $categoryModel = ProductServiceCategory::where('type', self::EXPENSE_TYPE)->first();
             $category = $categoryModel->name ?? '';
             $rowsArray = [];
@@ -79,50 +70,24 @@ final class ProposalExport implements FromCollection, WithHeadings
                     $category,
                     Proposal::$statuses[$item->status ?? 0] ?? ''
                 ];
-            }
             $rows = Collection::make($rowsArray);
             Log::info(__METHOD__ . ' formatted', [
                 'count' => $rows->count(),
-                'class' => static::class
-            ]);
         } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $rows = collect();
         }
         return $rows;
     }
-
     public function headings(): array
-    {
         return self::HEADINGS;
-    }
-
     public function exportViaPython(?string $outputPath = null): string
-    {
         $result ??= '';
-        $user ??= null;
-        $userOrRedirect ??= null;
         $data ??= [];
-        try {
-            $userOrRedirect = self::_checkLogin();
-            if ($userOrRedirect instanceof RedirectResponse) {
-                Log::warning(__METHOD__ . ' auth redirect', [
-                    'class' => static::class
-                ]);
                 return '';
-            }
-            $user = $userOrRedirect;
-            if (empty($user)) {
-                Log::error(__METHOD__ . ' null user', ['class' => static::class]);
-                return '';
-            }
             $proposals = Proposal::where('created_by', $user->creatorId())->get();
-            $categoryModel = ProductServiceCategory::where('type', self::EXPENSE_TYPE)->first();
-            $category = $categoryModel->name ?? '';
             $data = [
                 'proposals' => $proposals->map(fn($p) => [
                     'id' => $p->id ?? 0,
@@ -137,20 +102,11 @@ final class ProposalExport implements FromCollection, WithHeadings
             ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('proposals');
-            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $result = '';
-        }
         return $result;
-    }
 }

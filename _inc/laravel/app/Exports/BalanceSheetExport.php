@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Exports;
-
 use App\Traits\DelegatesPythonExport;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\{
@@ -15,11 +14,9 @@ use Maatwebsite\Excel\Concerns\{
 use Maatwebsite\Excel\Events\{AfterSheet, BeforeWriting};
 use PhpOffice\PhpSpreadsheet\Style\{Border, Fill};
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-
 final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCustomStartCell, WithEvents, WithHeadings, WithStyles
 {
     use DelegatesPythonExport;
-
     private const BOLD_LABELS = [
         'Liabilities & Equity',
         'Total Assets',
@@ -33,19 +30,16 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
         'D' => 15,
         'E' => 15,
         'F' => 15
-    ];
     private const DATA_COLUMNS    = ['A', 'B', 'C'];
     private const HEADER_FILL_RGB = '003366';
     private const HEADINGS        = ['Account', 'Account No', 'Total'];
     private const MERGE_RANGES    = ['A1:F1', 'A2:F2', 'A3:F3'];
     private const PYTHON_EXPORTER = 'BalanceSheetExport';
     private const START_CELL      = 'A5';
-
     private array  $data;
     private string $companyName;
     private string $endDate;
     private string $startDate;
-
     public function __construct(array $rows, string $startDate, string $endDate, string $companyName)
     {
         $this->data = [];
@@ -79,13 +73,8 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                                     $liEqStarted = true;
                                 }
                                 if (!$liSet) {
-                                    $formatted[] = [
                                         'Account Name' => '  ' . $category,
-                                        'Account No' => '',
-                                        'Total' => ''
-                                    ];
                                     $liSet = true;
-                                }
                             } elseif (!$asSet) {
                                 $formatted[] = [
                                     'Account Name' => $category,
@@ -98,53 +87,31 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                         }
                     }
                 }
-                foreach ($subs as $sub) {
                     $subTotal = 0;
-                    foreach ($sub['account'] ?? [] as $acct) {
-                        if (($acct['netAmount'] ?? null) !== null) {
                             $formatted[] = [
                                 'Account Name' => '    ' . ($sub['subType'] ?? ''),
                                 'Account No' => '',
                                 'Total' => ''
                             ];
                             break;
-                        }
-                    }
-                    foreach ($sub['account'] ?? [] as $acct) {
-                        if (($acct['netAmount'] ?? null) !== null) {
-                            $formatted[] = [
                                 'Account Name' => '       ' . ($acct['account_name'] ?? ''),
                                 'Account No' => $acct['account_no'] ?? '',
                                 'Total' => $acct['netAmount'] ?? 0
-                            ];
                             $subTotal += $acct['netAmount'] ?? 0;
-                        }
-                    }
                     if ($subTotal !== 0) {
                         $formatted[] = [
                             'Account Name' => '    Total ' . ($sub['subType'] ?? ''),
                             'Account No' => '',
                             'Total' => $subTotal
                         ];
-                    }
                     $catTotal += $subTotal;
-                }
                 if ($catTotal !== 0) {
                     if (in_array($category, ['Liabilities', 'Equity'], true)) {
-                        $formatted[] = [
                             'Account Name' => '  Total ' . $category,
-                            'Account No' => '',
                             'Total' => $catTotal
-                        ];
                         $grandTotal += $catTotal;
                     } else {
-                        $formatted[] = [
                             'Account Name' => 'Total ' . $category,
-                            'Account No' => '',
-                            'Total' => $catTotal
-                        ];
-                    }
-                }
             }
             $formatted[] = [
                 'Account Name' => 'Total Liabilities & Equity',
@@ -160,52 +127,25 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
             Log::error(__METHOD__ . ' exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $this->data = [];
         }
     }
-
     public function array(): array
-    {
         return $this->data;
-    }
-
     public function columnWidths(): array
-    {
         return self::COLUMN_WIDTHS;
-    }
-
     public function startCell(): string
-    {
         return self::START_CELL;
-    }
-
     public function headings(): array
-    {
         return self::HEADINGS;
-    }
-
     public function styles(Worksheet $sheet): void
-    {
-        try {
             foreach (self::DATA_COLUMNS as $col) {
                 $sheet->getStyle("{$col}5")->getFont()->setBold(true);
-            }
-        } catch (\Throwable $e) {
             Log::error(__METHOD__ . ' styles exception', [
-                'error' => $e->getMessage(),
-                'class' => static::class
-            ]);
-        }
-    }
-
     public function registerEvents(): array
-    {
         Log::info(__CLASS__ . '::registerEvents start', ['class' => static::class]);
         return [
             BeforeWriting::class => fn() => Log::info(__CLASS__ . '::beforeWriting', [
-                'class' => static::class
             ]),
             AfterSheet::class => function (AfterSheet $e): void {
                 try {
@@ -218,10 +158,8 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                             'class' => static::class
                         ]);
                         return;
-                    }
                     foreach (self::MERGE_RANGES as $range) {
                         $sheet->mergeCells($range);
-                    }
                     $sheet->setCellValue('A1', "Balance Sheet - {$this->companyName}")
                         ->getStyle('A1')->getFont()->setBold(true);
                     $sheet->setCellValue('A2', "Print Out Date : " . date('Y-m-d H:i'));
@@ -237,7 +175,6 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                             ->getBorders()
                             ->getAllBorders()
                             ->setBorderStyle(Border::BORDER_THIN);
-                    }
                     foreach ($this->data as $i => $row) {
                         if (in_array($row['Account Name'] ?? '', self::BOLD_LABELS, true)) {
                             array_map(
@@ -247,26 +184,14 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                                     ->setBold(true),
                                 self::DATA_COLUMNS
                             );
-                        }
-                    }
                     Log::info(__METHOD__ . ' formatting complete', [
-                        'class' => static::class
-                    ]);
                 } catch (\Throwable $e) {
                     Log::error(__METHOD__ . ' formatting exception', [
                         'error' => $e->getMessage(),
-                        'class' => static::class
-                    ]);
-                }
-            }
         ];
-    }
-
     public function exportViaPython(?string $outputPath = null): string
-    {
         $result ??= '';
         $data ??= [];
-        try {
             $data = [
                 'rows' => $this->data,
                 'company_name' => $this->companyName,
@@ -274,23 +199,13 @@ final class BalanceSheetExport implements FromArray, WithColumnWidths, WithCusto
                 'end_date' => $this->endDate,
                 'headings' => self::HEADINGS,
                 'bold_labels' => self::BOLD_LABELS,
-            ];
             if (empty($outputPath)) {
                 $outputPath = self::_generateOutputPath('balance_sheet');
-            }
             $result = self::_executePythonExporter(
                 self::PYTHON_EXPORTER,
                 $data,
                 $outputPath
             );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'class' => static::class
-            ]);
             $result = '';
-        }
         return $result;
-    }
 }
