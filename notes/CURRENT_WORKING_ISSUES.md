@@ -1,4 +1,4 @@
-# Route Health Report — 2026-02-07
+# Route Health Report — 2026-02-07 (updated 2026-03-10)
 
 ## Summary
 
@@ -266,3 +266,29 @@ Full Playwright suite after this commit: **300 passed / 1 failed** (expense form
 
 - ~14 routes in `web.php` still use raw string literals (all functional)
 - `ZoomMeetingTrait` constants deferred — trait constants require PHP 8.2+, project minimum is 8.1
+
+---
+
+## 2026-03-10 Update — Route Pluralization & Namespace Fixes
+
+### Additional Bugs Fixed
+
+| # | Issue | Commit | Files |
+|---|-------|--------|-------|
+| 13 | Route pluralization: `GET /login` → 405 because URI became `/logins/{lang?}` | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 14 | Namespace collision: `route:list` crash with `ReflectionException` for module controllers | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 15 | HTTP 4xx handler: all 4xx returned "Access Denied" including 405 | `9d2d5fa9` | `Handler.php` |
+| 16 | Model relation aliases colliding with DB columns | `5fbdb617` | 5 model files |
+
+### Route Tester Results (post-fix)
+
+| Metric | Value |
+|--------|-------|
+| Total routes | 191 |
+| GET routes tested | 97 |
+| 200 OK | 6 |
+| 204 No Content | 1 |
+| 302 Redirect | 74 (auth-required, no DB user) |
+| 404 Not Found | 9 (dynamic param routes) |
+| **5xx Errors** | **0** |
+| **Timeouts** | **0** |

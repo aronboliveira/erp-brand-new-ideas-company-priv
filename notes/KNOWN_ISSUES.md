@@ -1,6 +1,6 @@
 # Known / Remaining Unresolved Issues
 
-> Last updated: 2026-02-25 (commit `4a3b7ca5`)
+> Last updated: 2026-03-10 (commit `9d2d5fa9`)
 
 ## OPEN — Application Behaviour
 
@@ -58,6 +58,48 @@ Data-dependent routes return 500 instead of 404 when seeded data is absent.
 [TASKED] ### 5. PHPUnit Unit Tests ~30 Pre-Existing Failures
 
 Model-level test failures: validation, seeder assertions, permission checks. All pre-date this audit. Not regressions.
+
+### 6. Route Pluralization Bug — ✅ RESOLVED (commit `9d2d5fa9`)
+
+**Was:** `GET /login` returned 405 (Method Not Allowed). The actual GET route was at `/logins/{lang?}`.
+
+**Root cause:** Two `RouteServiceProvider` classes (main + LandingPage module) had URI
+pluralization loops that only checked the *last* URI segment against a `specialRoutes`
+whitelist. For `GET /login/{lang?}`, the last segment is `{lang?}`, so `login` was
+pluralized to `logins`. The module RSP ran after the main RSP, re-applying the broken logic.
+
+**Fix:** Changed both RSPs to check ALL segments against `specialRoutes`. Expanded whitelist
+to include `verify`, `logout`, `forgot-password`, `reset-password`, `confirm-password`,
+`two-factor-challenge`, `fortify-login`. Added guard against pluralizing `{param}` segments.
+
+### 7. Namespace Collision in route:list — ✅ RESOLVED (commit `9d2d5fa9`)
+
+**Was:** `php artisan route:list` crashed with `ReflectionException: Class
+"App\Http\Controllers\Modules\LandingPage\Http\Controllers\CustomPageController" does not exist`.
+
+**Root cause:** `$namespace = 'App\\Http\\Controllers'` in main RSP was prepended to ALL
+controller references. Since all 191 routes use `::class` FQCN syntax, module controller
+FQCNs got double-namespaced.
+
+**Fix:** Removed `$namespace` property and `->namespace()` calls from all route groups in
+both RSPs.
+
+### 8. HTTP 4xx Error Handler — ✅ RESOLVED (commit `9d2d5fa9`)
+
+**Was:** All 4xx HTTP errors (401, 403, 405, etc.) showed "Access Denied" page.
+
+**Fix:** Differentiated: 401/403 → Access Denied, 405 → Method Not Allowed, other 4xx →
+generic client error with status code.
+
+### 9. Model Relation Alias Collisions — ✅ RESOLVED (commit `5fbdb617`)
+
+**Was:** Five models defined `snake_case` relation aliases (e.g., `chart_of_account()`)
+that collided with DB column names. Laravel's `__get()` magic called the relation instead
+of returning the column value.
+
+**Models fixed:** `ChartOfAccount`, `Bug`, `Expense`, `Invoice`, `Proposal`.
+
+**Fix:** Removed conflicting snake_case aliases. Original camelCase relations remain.
 
 ---
 
