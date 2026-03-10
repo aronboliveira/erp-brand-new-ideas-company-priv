@@ -1061,12 +1061,17 @@ class AuthenticatedSessionController extends Controller
       ]);
       $this->logExecutionTime($stepStart, 'assembleDetails', 'completed');
       $stepStart = microtime(true);
+      $creatorId = $user?->creatorId();
+      // Fallback to user's own ID if creatorId() returns an invalid value (e.g. 0, null, non-UUID)
+      if (!$creatorId || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', (string) $creatorId)) {
+        $creatorId = $user?->id;
+      }
       LoginDetail::create([
         UsersConstants::COL_USER_ID => $user?->id,
         'ip' => $ip,
         'date' => now(),
         'Details' => $details,
-        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
+        DatabaseConstants::COL_TABLE_CREATOR => $creatorId,
       ]);
       $this->logExecutionTime($stepStart, 'persistLoginDetail', 'completed');
     }, ['user_id' => $user?->id, 'ip' => $req->server('REMOTE_ADDR')]);
