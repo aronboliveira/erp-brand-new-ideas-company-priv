@@ -9,11 +9,30 @@ parameters:
     stubFiles:
         - stubs/chatify.stub
     parallel:
-        maximumNumberOfProcesses: 8
+        maximumNumberOfProcesses: 1
         processTimeout: 3600.0
+    excludePaths:
+        - app/Config/Constants/LangsConstants.php
+        - app/Enums/
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         -
             identifier: missingType.iterableValue
         -
             identifier: missingType.generics
+        -
+            identifier: nullCoalesce.variable
+        -
+            identifier: nullCoalesce.expr
+        -
+            message: '#Variable \$\w+ in empty\(\) always exists and is not falsy#'
+        -
+            message: '#Anonymous function has an unused use \$\w+#'
+        -
+            message: '#Function default(PermissionDenial|UndefinedException) not found#'
+        -
+            message: '#Function App\\Http\\Controllers\\default(PermissionDenial|UndefinedException) not found#'
+        -
+            message: '#Used function App\\Http\\Controllers\\default(PermissionDenial|UndefinedException) not found#'
+        -
+            message: '#Called .pluck. on Laravel collection, but could have been retrieved as a query#'

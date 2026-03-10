@@ -5,14 +5,155 @@
          colors="true"
 >
     <testsuites>
-        <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
+        <!-- ── Unit: Models (split to avoid OOM) ──────────────────── -->
+        <testsuite name="Models-Activity">
+            <directory suffix="Test.php">./tests/Unit/app/Models/activity</directory>
         </testsuite>
+        <testsuite name="Models-Apr">
+            <directory suffix="Test.php">./tests/Unit/app/Models/Apr</directory>
+        </testsuite>
+        <testsuite name="Models-Aug">
+            <directory suffix="Test.php">./tests/Unit/app/Models/Aug</directory>
+        </testsuite>
+        <testsuite name="Models-Bills">
+            <directory suffix="Test.php">./tests/Unit/app/Models/bills</directory>
+        </testsuite>
+        <testsuite name="Models-Bugs">
+            <directory suffix="Test.php">./tests/Unit/app/Models/bugs</directory>
+        </testsuite>
+        <testsuite name="Models-Charts">
+            <directory suffix="Test.php">./tests/Unit/app/Models/charts</directory>
+        </testsuite>
+        <testsuite name="Models-Companies">
+            <directory suffix="Test.php">./tests/Unit/app/Models/companies</directory>
+        </testsuite>
+        <testsuite name="Models-Configs">
+            <directory suffix="Test.php">./tests/Unit/app/Models/configs</directory>
+        </testsuite>
+        <testsuite name="Models-Contact">
+            <directory suffix="Test.php">./tests/Unit/app/Models/contact</directory>
+        </testsuite>
+        <testsuite name="Models-Individuals">
+            <directory suffix="Test.php">./tests/Unit/app/Models/individuals</directory>
+        </testsuite>
+        <testsuite name="Models-Info">
+            <directory suffix="Test.php">./tests/Unit/app/Models/info</directory>
+        </testsuite>
+        <testsuite name="Models-Planning">
+            <directory suffix="Test.php">./tests/Unit/app/Models/planning</directory>
+        </testsuite>
+        <testsuite name="Models-Products">
+            <directory suffix="Test.php">./tests/Unit/app/Models/products</directory>
+        </testsuite>
+        <testsuite name="Models-Shapes">
+            <directory suffix="Test.php">./tests/Unit/app/Models/shapes</directory>
+        </testsuite>
+        <testsuite name="Models-SSR">
+            <directory suffix="Test.php">./tests/Unit/app/Models/ssr</directory>
+        </testsuite>
+        <testsuite name="Models-Traits">
+            <directory suffix="Test.php">./tests/Unit/app/Models/Traits</directory>
+        </testsuite>
+        <testsuite name="Models-Utils">
+            <directory suffix="Test.php">./tests/Unit/app/Models/utils</directory>
+        </testsuite>
+
+        <!-- ── Unit: Non-Http ─────────────────────────────────────── -->
+        <testsuite name="Unit-Exports">
+            <directory suffix="Test.php">./tests/Unit/app/Exports</directory>
+        </testsuite>
+        <testsuite name="Unit-Imports">
+            <directory suffix="Test.php">./tests/Unit/app/Imports</directory>
+        </testsuite>
+        <testsuite name="Unit-Services">
+            <directory suffix="Test.php">./tests/Unit/app/Services</directory>
+        </testsuite>
+        <testsuite name="Unit-Providers">
+            <directory suffix="Test.php">./tests/Unit/app/Providers</directory>
+        </testsuite>
+        <testsuite name="Unit-Mail">
+            <directory suffix="Test.php">./tests/Unit/app/Mail</directory>
+        </testsuite>
+        <testsuite name="Unit-Traits">
+            <directory suffix="Test.php">./tests/Unit/app/Traits</directory>
+        </testsuite>
+        <testsuite name="Unit-Jobs">
+            <directory suffix="Test.php">./tests/Unit/app/Jobs</directory>
+        </testsuite>
+        <testsuite name="Unit-Exceptions">
+            <directory suffix="Test.php">./tests/Unit/app/Exceptions</directory>
+        </testsuite>
+        <testsuite name="Unit-Enums">
+            <directory suffix="Test.php">./tests/Unit/Enums</directory>
+        </testsuite>
+        <testsuite name="Unit-Middleware">
+            <directory suffix="Test.php">./tests/Unit/Middleware</directory>
+        </testsuite>
+        <testsuite name="Unit-Database">
+            <directory suffix="Test.php">./tests/Unit/database</directory>
+        </testsuite>
+        <testsuite name="Unit-Modules">
+            <directory suffix="Test.php">./tests/Unit/Modules</directory>
+        </testsuite>
+
+        <!-- ── Unit: Http Controllers (split by domain) ───────────── -->
+        <testsuite name="Http-Activity">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/activity</directory>
+        </testsuite>
+        <testsuite name="Http-Planning">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/planning</directory>
+        </testsuite>
+        <testsuite name="Http-Bills">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/bills</directory>
+        </testsuite>
+        <testsuite name="Http-Individuals">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/individuals</directory>
+        </testsuite>
+        <testsuite name="Http-Shapes">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/shapes</directory>
+        </testsuite>
+        <testsuite name="Http-Companies">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/companies</directory>
+        </testsuite>
+        <testsuite name="Http-Configs">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/configs</directory>
+        </testsuite>
+        <testsuite name="Http-Products">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/products</directory>
+        </testsuite>
+        <testsuite name="Http-Contact">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/contact</directory>
+        </testsuite>
+        <testsuite name="Http-Auth">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/auth</directory>
+        </testsuite>
+        <testsuite name="Http-Info">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/info</directory>
+        </testsuite>
+        <testsuite name="Http-Views">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/views</directory>
+        </testsuite>
+        <testsuite name="Http-Charts">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/charts</directory>
+        </testsuite>
+        <testsuite name="Http-SSR">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/ssr</directory>
+        </testsuite>
+        <testsuite name="Http-Bugs">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Controllers/bugs</directory>
+        </testsuite>
+        <testsuite name="Http-Other">
+            <directory suffix="Test.php">./tests/Unit/app/Http/Middlewares</directory>
+            <directory suffix="Test.php">./tests/Unit/app/Http/Requests</directory>
+            <directory suffix="Test.php">./tests/Unit/app/Http/Views</directory>
+        </testsuite>
+
+        <!-- ── Feature ────────────────────────────────────────────── -->
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
     </testsuites>
-    <coverage processUncoveredFiles="true">
+    <coverage processUncoveredFiles="false">
         <include>
             <directory suffix=".php">./app</directory>
         </include>
