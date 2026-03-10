@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Config\Constants\{BillsConstants as BC, CompaniesConstants as CC, DatabaseConstants as DC, ProjectsConstants as PJC, TemplatesConstants as TC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\{Collection, Str};
@@ -14,7 +15,7 @@ use Illuminate\Support\{Collection, Str};
 
 class StockReport extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, DefinesDates;
+    use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, DefinesDates;
 
     protected $table = DC::TABLE_STK_RPT;
 

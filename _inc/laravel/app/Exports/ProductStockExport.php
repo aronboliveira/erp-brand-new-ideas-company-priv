@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Exports;
-
 use App\Traits\ChecksLogin;
+use App\Traits\DelegatesPythonExport;
 use App\Models\StockReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{FromCollection, WithEvents, WithHeadings};
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-
 final class ProductStockExport implements FromCollection, WithHeadings, WithEvents
 {
-    use ChecksLogin;
-
+    use ChecksLogin, DelegatesPythonExport;
     private const BODY_FILL_OPACITY      = '33FFFFFF';
     private const HEADER_BORDER_COLOR    = '000000';
     private const HEADER_FILL_COLOR      = 'FF1F1F2F';
@@ -25,16 +23,14 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
         'updated_at'
     ];
     private const VERTICAL_BORDER_COLOR  = '808080';
-
     public function collection(): Collection|RedirectResponse
     {
         $request = request();
         if (
-            ($userOrRedirect = self::_checkLogin($request))
+            ($userOrRedirect = self::_checkLogin())
             instanceof RedirectResponse
         ) return $userOrRedirect;
         $user = $userOrRedirect;
-
         Log::info(__CLASS__ . '::' . __FUNCTION__ . ' started', ['user_id' => $user?->id]);
         try {
             $stocks = StockReport::where(
@@ -57,9 +53,7 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
             return Collection::make([]);
         }
     }
-
     public function headings(): array
-    {
         return [
             'Stock Id',
             'Product Name',
@@ -68,11 +62,7 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
             'Description',
             'Date'
         ];
-    }
-
     public function registerEvents(): array
-    {
-        return [
             AfterSheet::class => function ($event) {
                 $sheet  = $event->sheet->getDelegate();
                 $sheet->getStyle('1:1')->getFont()->setBold(true);
@@ -89,13 +79,9 @@ final class ProductStockExport implements FromCollection, WithHeadings, WithEven
                 $sheet->getStyle("A1:{$lastCol}{$highest}")
                     ->getBorders()->getHorizontal()
                     ->getColor()->setARGB(self::HORIZONTAL_BORDER_COLOR);
-                $sheet->getStyle("A1:{$lastCol}{$highest}")
                     ->getBorders()->getVertical()
                     ->getColor()->setARGB(self::VERTICAL_BORDER_COLOR);
                 $sheet->getStyle("A1:{$lastCol}1")
                     ->getBorders()->getAllBorders()
                     ->getColor()->setARGB(self::HEADER_BORDER_COLOR);
-            }
-        ];
-    }
 }

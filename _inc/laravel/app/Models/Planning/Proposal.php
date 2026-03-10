@@ -6,6 +6,7 @@ use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, Project
 use App\Enums\{BillStatus, ProposalStatus, UserType};
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Illuminate\Support\{Carbon, Collection, Str};
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -52,7 +53,7 @@ use Illuminate\Support\Facades\{DB, Log, Schema};
  */
 class Proposal extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, FiltersSecureAttachments, DefinesDates;
+    use HasFactory, UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, FiltersSecureAttachments, DefinesDates;
 
     protected $table = DC::TABLE_PROPOSALS;
 

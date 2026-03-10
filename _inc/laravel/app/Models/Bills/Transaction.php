@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\{
     Model,
     Relations\BelongsTo
 };
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{
     DB,
@@ -54,7 +55,7 @@ use Illuminate\Support\Str;
  */
 class Transaction extends Model
 {
-    use UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures, DefinesDates;
+    use HasFactory, UsesUuids, HasPaymentColumns, HasAuditFields, TracksFailures, DefinesDates;
 
     public const TABLE = DC::TABLE_TRS;
 
