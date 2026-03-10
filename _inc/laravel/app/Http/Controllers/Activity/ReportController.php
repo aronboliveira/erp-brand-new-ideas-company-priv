@@ -1312,7 +1312,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::profitLoss started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1348,7 +1348,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1384,7 +1384,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::quarterlyCashflow started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1420,7 +1420,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::TRL_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::TRL_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1457,7 +1457,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1533,7 +1533,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::balanceSheetPrint started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1569,7 +1569,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
@@ -1605,7 +1605,7 @@ final class ReportController extends Controller
             $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
             $user = $userOrRedirect;
             $startGuard = microtime(true);
-            if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
+            if (($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             Log::info("{$class}::profitLossPrint started", [UC::COL_USER_ID => $user?->id]);
             try {

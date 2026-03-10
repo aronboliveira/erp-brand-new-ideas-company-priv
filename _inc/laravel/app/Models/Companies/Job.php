@@ -795,9 +795,6 @@ class Job extends Model
         return $this->cacheLocal[$key] = $cb();
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
-    public function created_by(): HasOne
-    {
-        return $this->createdBy();
-    }
+    // NOTE: created_by() alias removed — collides with 'created_by' column.
+    // Use $model->createdBy (relation) or $model->getAttributes()['created_by'] (column).
 }

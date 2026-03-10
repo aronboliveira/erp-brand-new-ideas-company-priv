@@ -407,13 +407,8 @@ class Support extends Model
 		app(SupportHelperService::class)->touchClosedByPolicy($this, $userId);
 	}
 
-	public function assign_to(): BelongsTo
-	{
-		return $this->assignedToRel();
-	}
-
-	public function created_by(): BelongsTo
-	{
-		return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
-	}
+	// NOTE: assign_to() and created_by() aliases removed — they collide
+	// with database column names, causing Eloquent to resolve attribute
+	// access as relation calls → infinite recursion → OOM.
+	// Use $model->assignedToRel() or $model->createdBy for relations.
 }

@@ -46,7 +46,7 @@ final class DocumentController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
 
-            if ($c = self::guard($req, 'manage document type')) return $c;
+            if (($c = self::guard($req, 'manage document type')) !== true) return $c;
 
             try {
                 $t = microtime(true);
@@ -80,7 +80,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['user' => Auth::id()]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($c = self::guard($req, 'create document type')) return $c;
+            if (($c = self::guard($req, 'create document type')) !== true) return $c;
 
             $t = microtime(true);
             if (!ViewFacade::exists($viewPath)) {
@@ -104,7 +104,7 @@ final class DocumentController extends Controller
 
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($req, 'create document type')) return $c;
+            if (($c = self::guard($req, 'create document type')) !== true) return $c;
 
             $t = microtime(true);
             $v = Validator::make($req->all(), ['name' => 'required|string|max:20']);
@@ -151,7 +151,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($c = self::guard($req, 'edit document type')) return $c;
+            if (($c = self::guard($req, 'edit document type')) !== true) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }
@@ -177,7 +177,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($c = self::guard($req, 'edit document type')) return $c;
+            if (($c = self::guard($req, 'edit document type')) !== true) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }
@@ -219,7 +219,7 @@ final class DocumentController extends Controller
             Log::info("$sig start", ['id' => $document->id]);
 
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($c = self::guard($req, 'delete document type')) return $c;
+            if (($c = self::guard($req, 'delete document type')) !== true) return $c;
             if (!$this->isOwner($document)) {
                 return defaultPermissionDenial($req, new AuthorizationException, $sig, route(self::INDEX_ROUTE));
             }

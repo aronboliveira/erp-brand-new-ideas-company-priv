@@ -36,7 +36,7 @@ class LabelController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $class, $action, $sig, $viewPath) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($r = self::guard($req, PermissionsConstants::MNG_LB)) return $r;
+            if (($r = self::guard($req, PermissionsConstants::MNG_LB)) !== true) return $r;
 
             try {
                 $t = microtime(true);
@@ -85,7 +85,7 @@ class LabelController extends Controller
 
         return $this->measureProfile(function () use ($req, $action, $sig, $viewPath) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($r = self::guard($req, 'create label')) return $r;
+            if (($r = self::guard($req, 'create label')) !== true) return $r;
 
             $t = microtime(true);
             $ownerId  = $u->ownerId();
@@ -112,7 +112,7 @@ class LabelController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $class, $action, $sig) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($r = self::guard($req, 'create label')) return $r;
+            if (($r = self::guard($req, 'create label')) !== true) return $r;
 
             $t = microtime(true);
             $v = Validator::make($req->all(), [
@@ -161,7 +161,7 @@ class LabelController extends Controller
 
         return $this->measureProfile($action, function () use ($label, $req, $class, $action, $sig, $viewPath) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($r = self::guard($req, 'edit label')) return $r;
+            if (($r = self::guard($req, 'edit label')) !== true) return $r;
             if (!$this->isOwner($label)) {
                 return defaultPermissionDenial($req, new AuthorizationException(), "$class::$action");
             }
@@ -191,7 +191,7 @@ class LabelController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $label, $class, $action, $sig) {
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'edit label')) return $r;
+            if (($r = self::guard($req, 'edit label')) !== true) return $r;
             if (!$this->isOwner($label)) {
                 return defaultPermissionDenial($req, new AuthorizationException(), "$class::$action");
             }
@@ -235,7 +235,7 @@ class LabelController extends Controller
 
         return $this->measureProfile($action, function () use ($label, $req, $class, $action, $sig) {
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            if ($r = self::guard($req, 'delete label')) return $r;
+            if (($r = self::guard($req, 'delete label')) !== true) return $r;
             if (!$this->isOwner($label)) {
                 return defaultPermissionDenial($req, new AuthorizationException(), "$class::$action");
             }

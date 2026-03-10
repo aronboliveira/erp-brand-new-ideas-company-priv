@@ -159,7 +159,7 @@ class UserContact extends Model
             return ContactRole::normalize($v);
         } catch (\Throwable $e) {
             Log::error(static::class . '::getRoleEnumAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return ContactRole::Other;
         }
     }
 

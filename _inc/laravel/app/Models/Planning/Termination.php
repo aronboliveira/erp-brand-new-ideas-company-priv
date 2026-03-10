@@ -44,9 +44,6 @@ class Termination extends Model
         return $this->belongsTo(TerminationType::class, UC::COL_TERMINATION_TP, 'id');
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\TerminationType, $this> */
-    public function termination_type(): BelongsTo
-    {
-        return $this->terminationType();
-    }
+    // NOTE: termination_type() alias removed — collides with 'termination_type' column.
+    // Use $model->terminationType() (relation) or $model->getAttributes()['termination_type'] (column).
 }

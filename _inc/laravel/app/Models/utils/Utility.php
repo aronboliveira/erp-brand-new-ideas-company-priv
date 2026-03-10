@@ -144,6 +144,22 @@ class Utility extends Model
     protected static array $uuids = [];
     protected static array $utilityErrors = [];
 
+    /**
+     * Reset all static settings/tax caches.
+     * Useful in tests to ensure a clean state between test methods.
+     */
+    public static function resetSettingsCache(): void
+    {
+        self::$getSettings    = null;
+        self::$getSettingsId  = [];
+        self::$taxsData       = null;
+        self::$taxRateData    = null;
+        self::$taxData        = null;
+        self::$taxes          = null;
+        self::$languageSetting = null;
+        self::$getRatingData  = null;
+    }
+
     public static function generateUuid(): string
     {
         do $uuid = Str::uuid()->toString();
@@ -3836,7 +3852,7 @@ class Utility extends Model
             return $resultMsg;
         } catch (\Throwable) {
             if ($shouldFallback) return null;
-            return !$isFailure && !isset($resultMsg) ? $startMsg : 'Something went wrong! Try again later.';
+            return !$isFailure && !isset($resultMsg) ? $startMsg : 'Something went wrong! Try again later.'; // @phpstan-ignore isset.variable
         }
     }
 

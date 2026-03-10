@@ -64,7 +64,7 @@ class ProposalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
 
-                if ($c = $this->guard($request, PermissionsConstants::MNG_PPS, self::INDEX_ROUTE)) {
+                if (($c = $this->guard($request, PermissionsConstants::MNG_PPS, self::INDEX_ROUTE)) !== true) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
@@ -118,7 +118,7 @@ class ProposalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
 
-                if ($c = $this->guard(request(), 'create proposal', self::INDEX_ROUTE)) {
+                if (($c = $this->guard(request(), 'create proposal', self::INDEX_ROUTE)) !== true) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
@@ -232,7 +232,7 @@ class ProposalController extends Controller
             $user = $userOrRedirect;
             $this->logExecutionTime($startAction, $function . '::login', 'completed');
 
-            if ($c = $this->guard($request, 'create proposal', static::INDEX_ROUTE)) {
+            if (($c = $this->guard($request, 'create proposal', static::INDEX_ROUTE)) !== true) {
                 Log::warning($method . ' denied', ['user' => Auth::id()]);
                 return $c;
             }
@@ -317,7 +317,7 @@ class ProposalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
 
-                if ($c = $this->guard(request(), 'edit proposal', self::INDEX_ROUTE)) {
+                if (($c = $this->guard(request(), 'edit proposal', self::INDEX_ROUTE)) !== true) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
@@ -387,7 +387,7 @@ class ProposalController extends Controller
             $user = $userOrRedirect;
 
             $guardStart = microtime(true);
-            if ($c = $this->guard($request, 'edit proposal', self::INDEX_ROUTE)) {
+            if (($c = $this->guard($request, 'edit proposal', self::INDEX_ROUTE)) !== true) {
                 Log::warning("[$action] update denied", ['user' => Auth::id()]);
                 Log::debug("[$action] permission denied", ['user' => Auth::id()]);
                 return $c;
@@ -456,7 +456,7 @@ class ProposalController extends Controller
                 return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if ($c = $this->guard(request(), 'show proposal', self::INDEX_ROUTE)) {
+            if (($c = $this->guard(request(), 'show proposal', self::INDEX_ROUTE)) !== true) {
                 Log::warning('show denied', ['user' => Auth::id()]);
                 return $c;
             }
@@ -503,7 +503,7 @@ class ProposalController extends Controller
             }
             $user = $userOrRedirect;
             $this->logExecutionTime($startAction, $function . '::login', 'completed');
-            if ($c = $this->guard(request(), 'delete proposal', static::INDEX_ROUTE)) {
+            if (($c = $this->guard(request(), 'delete proposal', static::INDEX_ROUTE)) !== true) {
                 Log::warning($method . ' denied', ['user' => Auth::id()]);
                 return $c;
             }
@@ -534,7 +534,7 @@ class ProposalController extends Controller
             $stepStart = microtime(true);
             try {
                 if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-                if ($c = $this->guard($request, 'delete proposal product', self::INDEX_ROUTE)) {
+                if (($c = $this->guard($request, 'delete proposal product', self::INDEX_ROUTE)) !== true) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
@@ -617,7 +617,7 @@ class ProposalController extends Controller
                 return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if ($c = $this->guard(request(), 'show proposal', self::INDEX_ROUTE)) {
+            if (($c = $this->guard(request(), 'show proposal', self::INDEX_ROUTE)) !== true) {
                 Log::warning('customerShow denied', ['user' => Auth::id()]);
                 return $c;
             }
@@ -657,7 +657,7 @@ class ProposalController extends Controller
             }
             $user = $userOrRedirect;
             $this->logExecutionTime($startAction, $function . '::login', 'completed');
-            if ($c = $this->guard(request(), 'send proposal', static::INDEX_ROUTE)) {
+            if (($c = $this->guard(request(), 'send proposal', static::INDEX_ROUTE)) !== true) {
                 Log::warning($method . ' denied', ['user' => Auth::id()]);
                 return $c;
             }
@@ -709,7 +709,7 @@ class ProposalController extends Controller
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
-                if ($c = $this->guard(request(), 'send proposal', self::INDEX_ROUTE)) {
+                if (($c = $this->guard(request(), 'send proposal', self::INDEX_ROUTE)) !== true) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
@@ -771,7 +771,7 @@ class ProposalController extends Controller
             $stepStart = microtime(true);
             try {
                 if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-                if ($c = $this->guard(request(), 'duplicate proposal', self::INDEX_ROUTE)) return $c;
+                if (($c = $this->guard(request(), 'duplicate proposal', self::INDEX_ROUTE)) !== true) return $c;
                 $result = DB::transaction(function () use ($id, $action) {
                     $orig = Proposal::findOrFail($id);
                     $dup = $orig->replicate(['proposal_id', 'issue_date', 'send_date', 'status']);

@@ -106,7 +106,7 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             $startGuard = microtime(true);
-            if ($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) {
+            if (($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 Log::debug($method . ' debug guard', ['redirect' => $g]);
@@ -251,7 +251,7 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($startLogin, $function . '::login', 'completed');
             $startGuard = microtime(true);
-            if ($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) {
+            if (($g = static::guard($request, PMC::MNG_LP, static::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
                 $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
                 Log::debug($method . ' debug guard', ['redirect' => $g]);

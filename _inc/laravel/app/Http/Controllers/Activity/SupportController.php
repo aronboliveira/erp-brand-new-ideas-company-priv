@@ -87,7 +87,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) !== true) return $denial;
             $listsStart = microtime(true);
             $prioListAvailable = is_callable([Support::class, 'priorityList']);
             $priority = $prioListAvailable ? Support::priorityList() : [];
@@ -123,7 +123,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'support_id' => $support->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'view support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'view support', self::INDEX_ROUTE)) !== true) return $denial;
             try {
                 $authStart = microtime(true);
                 if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
@@ -157,7 +157,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) !== true) return $denial;
             $valStart = microtime(true);
             $v = Validator::make($req->all(), [SC::COL_SBJ => 'required|string', PJC::COL_PRT => 'required|in:0,1,2,3']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
@@ -263,7 +263,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) !== true) return $denial;
             if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $listsStart = microtime(true);
             $prioListAvailable = is_callable([Support::class, 'priorityList']);
@@ -299,7 +299,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) !== true) return $denial;
             if ($support[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $valStart = microtime(true);
             $v = Validator::make($req->all(), [
@@ -360,7 +360,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'delete support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'delete support', self::INDEX_ROUTE)) !== true) return $denial;
             try {
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($support, $user, $action, $base) {
@@ -452,7 +452,7 @@ class SupportController extends Controller
         return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SC::COL_USR => $user?->id, self::ENTITY => $id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'reply support', self::INDEX_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'reply support', self::INDEX_ROUTE)) !== true) return $denial;
             $valStart = microtime(true);
             $v = Validator::make($req->all(), [AC::COL_DESC => 'required|string']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');

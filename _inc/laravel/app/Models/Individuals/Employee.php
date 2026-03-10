@@ -372,10 +372,8 @@ class Employee extends Model
         $this->attributes['email'] = $v ?: null;
     }
 
-    public function salary_type(): HasOne // * KEPT FOR COMPATIBILITY, SHOULD NOT BE CALLED IN ENDPOINT
-    {
-        return $this->salaryTypeName();
-    }
+    // NOTE: salary_type() alias removed — collides with 'salary_type' column.
+    // Use $model->salaryTypeName() (relation) or $model->getAttributes()['salary_type'] (column).
 
     public function salaryTypeName(): mixed
     {

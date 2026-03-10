@@ -42,7 +42,7 @@ class StageController extends Controller
             if (($userOrRedirect = $this->requireLogin($req)) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::info("[{$class}::{$action}] start", ['user' => $user?->id, 'method' => $method]);
-            if ($denial = $this->guard($req, PermissionsConstants::MNG_ST, self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, PermissionsConstants::MNG_ST, self::REDIRECT_ROUTE)) !== true) return $denial;
             try {
                 $ownerId = $user?->ownerId();
                 $fetchStart = microtime(true);
@@ -86,7 +86,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user' => $user?->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'create stage', self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'create stage', self::REDIRECT_ROUTE)) !== true) return $denial;
             try {
                 $ownerId = $user?->ownerId();
                 $fetchStart = microtime(true);
@@ -114,7 +114,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $stage, $action, $class) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user_id' => $user?->id, 'stageId' => $stage->id]);
-            if ($denial = $this->guard($req, PermissionsConstants::MNG_ST, self::REDIRECT_ROUTE)) {
+            if (($denial = $this->guard($req, PermissionsConstants::MNG_ST, self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("[{$class}::{$action}] permission denied", ['user_id' => $user?->id]);
                 return $denial;
             }
@@ -135,7 +135,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user' => $user?->id, 'input_keys' => array_keys($req->all()), 'method' => $method]);
-            if ($denial = $this->guard($req, 'create stage', self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'create stage', self::REDIRECT_ROUTE)) !== true) return $denial;
             $valStart = microtime(true);
             $v = Validator::make($req->all(), ['name' => 'required|max:20', 'pipeline_id' => 'required|exists:pipelines,id']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
@@ -170,7 +170,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $stage, $action, $method, $class, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user' => $user?->id, 'stage' => $stage->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'edit stage', self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'edit stage', self::REDIRECT_ROUTE)) !== true) return $denial;
             if ($stage->created_by !== $user?->ownerId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_ROUTE), false);
             $fetchStart = microtime(true);
             $pipelines = Pipeline::where('created_by', $user?->ownerId())->pluck('name', 'id');
@@ -193,7 +193,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $stage, $action, $method, $class) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$class}::{$action}] start", ['user' => $user?->id, 'stage' => $stage->id, 'input_keys' => array_keys($req->all()), 'method' => $method]);
-            if ($denial = $this->guard($req, 'edit stage', self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'edit stage', self::REDIRECT_ROUTE)) !== true) return $denial;
             if ($stage->created_by !== $user?->ownerId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_ROUTE), false);
             $valStart = microtime(true);
             $v = Validator::make($req->all(), ['name' => 'required|max:20', 'pipeline_id' => 'required|exists:pipelines,id']);
@@ -231,7 +231,7 @@ class StageController extends Controller
         return $this->measureProfile($action, function () use ($req, $stage, $action, $method, $class, $base) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'stage_id' => $stage->id, 'method' => $method]);
-            if ($denial = $this->guard($req, 'delete stage', self::REDIRECT_ROUTE)) return $denial;
+            if (($denial = $this->guard($req, 'delete stage', self::REDIRECT_ROUTE)) !== true) return $denial;
             if ($stage->created_by !== $user?->ownerId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_ROUTE), false);
             $countStart = microtime(true);
             $count = Deal::where('stage_id', $stage->id)->where('created_by', $stage->created_by)->count();

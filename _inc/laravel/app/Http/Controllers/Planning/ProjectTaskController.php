@@ -135,7 +135,7 @@ class ProjectTaskController extends Controller
     }
 
     public const TSK_BD = 'taskBoard';
-    public function taskBoard(Request $request, string $view): View|RedirectResponse|null|bool
+    public function taskBoard(Request $request, string $view = ''): View|RedirectResponse|null|bool
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

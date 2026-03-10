@@ -219,7 +219,7 @@ final class BankTransferPaymentController extends Controller
     $status = $request->input('status');
     return $this->measureProfile($action, function () use ($req, $orderId, $status, $action, $method, $class, $base) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-      if ($r = self::guard($req, PermissionsConstants::MNG_OD, Redirect::back())) return $r;
+      if (($r = self::guard($req, PermissionsConstants::MNG_OD, Redirect::back())) !== true) return $r;
       Log::info("[{$base}::{$action}] start", ['order_id_param' => $orderId, 'order_id_input' => $req->input('order_id'), 'new_status' => $status, 'method' => $method]);
       try {
         $txnStart = microtime(true);

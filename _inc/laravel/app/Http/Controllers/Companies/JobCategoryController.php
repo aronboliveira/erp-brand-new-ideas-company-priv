@@ -28,7 +28,7 @@ class JobCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'manage job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'manage job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user->id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
@@ -57,7 +57,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'create job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'create job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $viewPath = ViewsConstants::JB_CAT . '.' . $action;
@@ -82,7 +82,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $jobCategory, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'view job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'view job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'category_id' => $jobCategory->id, 'method' => $method]);
             try {
                 $viewPath = ViewsConstants::JB_CAT . '.' . $action;
@@ -107,7 +107,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'create job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'create job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             $v = Validator::make($request->all(), ['title' => 'required']);
             if ($v->fails()) {
                 Log::debug("[{$base}::{$action}] validation failed", ['errors' => $v->errors()->all()]);
@@ -138,7 +138,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'edit job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'edit job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'category_id' => $id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
@@ -166,7 +166,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $id, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'edit job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'edit job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             $v = Validator::make($request->all(), ['title' => 'required']);
             if ($v->fails()) {
                 Log::debug("[{$base}::{$action}] validation failed", ['errors' => $v->errors()->all()]);
@@ -198,7 +198,7 @@ class JobCategoryController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'delete job category', ViewsConstants::JB_CAT . '.index')) return $c;
+            if (($c = self::guard($request, 'delete job category', ViewsConstants::JB_CAT . '.index')) !== true) return $c;
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'category_id' => $id, 'method' => $method]);
             try {
                 $jobCategory = JobCategory::findOrFail($id);

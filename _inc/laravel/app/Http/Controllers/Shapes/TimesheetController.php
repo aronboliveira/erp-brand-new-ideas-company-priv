@@ -36,7 +36,7 @@ class TimesheetController extends Controller
 
             Log::info($scope . ' called', ['user' => $user?->id, 'project' => $projectId]);
 
-            if ($deny = $this->guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
 
@@ -98,7 +98,7 @@ class TimesheetController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) {
                 return $user;
             }
-            if ($deny = $this->guard($request, 'create timesheet', self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, 'create timesheet', self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
             Log::info($scope, ['user' => $user?->id, 'project' => $projectId]);
@@ -142,7 +142,7 @@ class TimesheetController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) {
                 return $user;
             }
-            if ($deny = $this->guard($request, 'create timesheet', self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, 'create timesheet', self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
             Log::info($scope, $request->all());
@@ -195,7 +195,7 @@ class TimesheetController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) {
                 return $user;
             }
-            if ($deny = $this->guard($request, 'edit timesheet', self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, 'edit timesheet', self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
             Log::info($scope, ['timesheet' => $timesheetId]);
@@ -244,7 +244,7 @@ class TimesheetController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) {
                 return $user;
             }
-            if ($deny = $this->guard($request, 'edit timesheet', self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, 'edit timesheet', self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
             Log::info($scope, ['timesheet' => $timesheetId] + $request->all());
@@ -293,7 +293,7 @@ class TimesheetController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) {
                 return $user;
             }
-            if ($deny = $this->guard($request, 'delete timesheet', self::INDEX_ROUTE)) {
+            if (($deny = $this->guard($request, 'delete timesheet', self::INDEX_ROUTE)) !== true) {
                 return $deny;
             }
             Log::info($scope, ['timesheet' => $timesheetId]);
@@ -426,7 +426,7 @@ class TimesheetController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return $userOrRedirect;
             }
-            if ($redirect = $this->guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) {
+            if (($redirect = $this->guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) !== true) {
                 return $redirect;
             }
             return view(ViewsConstants::PRJ . '.timesheet_list');

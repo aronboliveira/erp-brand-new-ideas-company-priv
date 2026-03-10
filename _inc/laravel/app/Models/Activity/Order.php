@@ -271,7 +271,7 @@ class Order extends Model
             return $current;
         } catch (\Throwable $e) {
             Log::error(static::class . '::assertValidStatusTransition — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return $current ?? $next;
         }
     }
 
@@ -293,7 +293,7 @@ class Order extends Model
             return PaymentMethod::Other;
         } catch (\Throwable $e) {
             Log::error(static::class . '::normalizePaymentMethod — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return PaymentMethod::Other;
         }
     }
 

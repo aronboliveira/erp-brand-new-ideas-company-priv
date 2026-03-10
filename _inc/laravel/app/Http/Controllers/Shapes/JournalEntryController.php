@@ -193,7 +193,7 @@ class JournalEntryController extends Controller
             Log::info("$sig start", ['id' => $journalEntry->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard(request(), 'show journal entry', self::INDEX_ROUTE)) {
+            if (($c = self::guard(request(), 'show journal entry', self::INDEX_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -229,7 +229,7 @@ class JournalEntryController extends Controller
             Log::info("$sig start", ['id' => $journalEntry->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard(request(), 'edit journal entry', self::INDEX_ROUTE)) {
+            if (($c = self::guard(request(), 'edit journal entry', self::INDEX_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -352,7 +352,7 @@ class JournalEntryController extends Controller
             Log::info("$sig start", ['id' => $journalEntry->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard(request(), 'delete journal entry', self::INDEX_ROUTE)) {
+            if (($c = self::guard(request(), 'delete journal entry', self::INDEX_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }

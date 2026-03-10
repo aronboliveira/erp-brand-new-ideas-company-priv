@@ -351,7 +351,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($encId, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard(request(), 'show employee profile', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard(request(), 'show employee profile', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 $empId = Crypt::decrypt($encId);
                 Log::debug("[$base::$action] decrypt ok", ['empId' => $empId]);
@@ -477,7 +477,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard(request(), PermissionsConstants::MNG_EMP, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard(request(), PermissionsConstants::MNG_EMP, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] export start", ['creator' => $u->creatorId()]);
             return Excel::download(new EmployeeExport(), self::SINGULAR . '_' . now()->format('Y_m_d_His') . '.xlsx');
         }, ['route' => Route::getCurrentRoute()?->getName()]);

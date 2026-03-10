@@ -75,7 +75,7 @@ class Client extends Model
     		);
 	    } catch (\Throwable $e) {
 	        Log::error(static::class . '::email — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-	        return null;
+	        return Attribute::make(get: fn(): ?string => null, set: fn(): ?string => null);
 	    }
 	}
 
@@ -88,16 +88,13 @@ class Client extends Model
     		);
 	    } catch (\Throwable $e) {
 	        Log::error(static::class . '::phone — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-	        return null;
+	        return Attribute::make(get: fn(): ?string => null, set: fn(): ?string => null);
 	    }
 	}
 
 	private function ensureDefaults(): void
 	{
 	    try {
-    		$lang = trim((string) ($this->getAttribute(UC::COL_LG) ?? ''));
-    		if ($lang === '') $this->setAttribute(UC::COL_LG, DC::DEFAULT_LANG);
-
     		$ia = $this->getAttribute(UC::COL_IA);
     		if (!is_numeric($ia)) $this->setAttribute(UC::COL_IA, 1);
 

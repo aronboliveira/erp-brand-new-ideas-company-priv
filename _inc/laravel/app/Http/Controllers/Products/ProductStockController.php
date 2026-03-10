@@ -86,7 +86,7 @@ final class ProductStockController extends Controller
         });
     }
 
-    public function edit(Request $r, int $id): RedirectResponse|View
+    public function edit(Request $r, string|int $id): RedirectResponse|View
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;
@@ -101,7 +101,7 @@ final class ProductStockController extends Controller
         });
     }
 
-    public function update(Request $r, int $id): RedirectResponse|JsonResponse
+    public function update(Request $r, string|int $id): RedirectResponse|JsonResponse
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;
@@ -129,7 +129,7 @@ final class ProductStockController extends Controller
         });
     }
 
-    public function destroy(Request $r, int $id): RedirectResponse
+    public function destroy(Request $r, string|int $id): RedirectResponse
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;

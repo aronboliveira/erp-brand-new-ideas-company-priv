@@ -265,7 +265,7 @@ class LogActivity extends Model
     		return ActivityType::Other;
 	    } catch (\Throwable $e) {
 	        Log::error(static::class . '::typeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-	        return null;
+	        return ActivityType::Other;
 	    }
 	}
 

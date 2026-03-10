@@ -218,7 +218,7 @@ class NotificationTemplate extends Model
             );
         } catch (\Throwable $e) {
             Log::error(static::class . '::getTypeEnumAttribute — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return NotificationTemplateType::Other;
         }
     }
 
@@ -330,6 +330,7 @@ class NotificationTemplate extends Model
             }
         } catch (\Throwable $e) {
             Log::error(static::class . '::findCachedByTypeAndSlug — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return null;
         }
     }
 

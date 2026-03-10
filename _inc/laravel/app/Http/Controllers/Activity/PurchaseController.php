@@ -241,7 +241,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $ids, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'edit purchase', ViewsConstants::PRC . '.' . $action)) return $r;
+            if (($r = self::guard($request, 'edit purchase', ViewsConstants::PRC . '.' . $action)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             try {
                 $decryptStart = microtime(true);

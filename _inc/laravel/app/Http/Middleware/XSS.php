@@ -12,7 +12,7 @@ use RachidLaasri\LaravelInstaller\Helpers\MigrationsHelper;
 use App\Helpers\SafeConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class XSS
+class XSS
 {
     use ChecksLogin, MigrationsHelper, MeasuresPerformance;
     protected const PERF_ENABLED = true;

@@ -300,6 +300,46 @@ class ProjectReportController extends Controller
         return ['labels' => $labels, 'datasets' => array_values($datasets)];
     }
 
+    public function create(Request $request): View|RedirectResponse
+    {
+        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
+    }
+
+    public function edit(Request $request, string|int $id): View|RedirectResponse
+    {
+        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
+    }
+
+    public function update(Request $request, string|int $id): RedirectResponse
+    {
+        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
+    }
+
+    public function destroy(Request $request, string|int $id): RedirectResponse
+    {
+        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
+    }
+
+    public function ajax_data(Request $request): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(['data' => []]);
+    }
+
+    public function ajax_tasks_report(Request $request, string|int $id): \Illuminate\Http\JsonResponse
+    {
+        return response()->json(['data' => []]);
+    }
+
     public function export(string|int $id): mixed
     {
         $action = __FUNCTION__;

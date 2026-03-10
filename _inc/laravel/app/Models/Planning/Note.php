@@ -144,7 +144,7 @@ class Note extends Model
                 : AppModuleType::normalize(is_scalar($raw) ? (string) $raw : null);
         } catch (\Throwable $e) {
             Log::error(static::class . '::moduleTypeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return AppModuleType::Other;
         }
     }
 
