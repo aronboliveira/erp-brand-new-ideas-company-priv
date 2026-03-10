@@ -883,7 +883,7 @@ class ProposalController extends Controller
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user' => Auth::id(), 'proposal' => $id, 'status' => $request->status]);
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($method, function () use ($request, $id) {
             $stepStart = microtime(true);
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');

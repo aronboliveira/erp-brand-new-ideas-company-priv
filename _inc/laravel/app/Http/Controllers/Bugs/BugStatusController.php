@@ -111,7 +111,7 @@ final class BugStatusController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($denial = self::guard($request, 'create bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
 
@@ -185,7 +185,7 @@ final class BugStatusController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($denial = self::guard($request, 'edit bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
 
@@ -223,7 +223,7 @@ final class BugStatusController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($denial = self::guard($request, 'delete bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
 
@@ -254,7 +254,7 @@ final class BugStatusController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($denial = self::guard($request, 'edit bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
 

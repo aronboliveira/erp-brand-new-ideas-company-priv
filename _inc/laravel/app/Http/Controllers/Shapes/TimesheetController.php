@@ -422,7 +422,7 @@ class TimesheetController extends Controller
     {
         $scope = static::class . '::' . __FUNCTION__;
 
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile(__METHOD__, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return $userOrRedirect;
             }

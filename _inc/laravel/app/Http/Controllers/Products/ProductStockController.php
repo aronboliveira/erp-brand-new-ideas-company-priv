@@ -91,7 +91,7 @@ final class ProductStockController extends Controller
         $cls = __CLASS__;
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
-        return $this->measureProfile(function () use ($r, $id) {
+        return $this->measureProfile($action, function () use ($r, $id) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             $productService = ProductService::whereKey($id)

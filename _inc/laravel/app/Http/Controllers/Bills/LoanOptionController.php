@@ -56,7 +56,7 @@ final class LoanOptionController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
-    public function create(Request $request): View|JsonResponse
+    public function create(Request $request): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

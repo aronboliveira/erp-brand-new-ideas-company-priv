@@ -136,7 +136,7 @@ class LeadController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
     }
 
-    public function create(Request $request): View|JsonResponse
+    public function create(Request $request): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -262,7 +262,7 @@ class LeadController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'lead_id' => $lead->id]);
     }
 
-    public function edit(Request $request, Lead $lead): View|JsonResponse
+    public function edit(Request $request, Lead $lead): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -573,7 +573,7 @@ class LeadController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'lead_id' => $id]);
     }
 
-    public function labels(Request $request, string|int $id): View|JsonResponse
+    public function labels(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -641,7 +641,7 @@ class LeadController extends Controller
     }
 
     public const USR_EDT = 'userEdit';
-    public function userEdit(Request $request, string|int $id): View|JsonResponse
+    public function userEdit(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -742,7 +742,7 @@ class LeadController extends Controller
     }
 
     public const PRD_EDT = 'productEdit';
-    public function productEdit(Request $request, string|int $id): View|JsonResponse
+    public function productEdit(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -853,7 +853,7 @@ class LeadController extends Controller
     }
 
     public const SRC_EDT = 'sourceEdit';
-    public function sourceEdit(Request $request, string|int $id): View|JsonResponse
+    public function sourceEdit(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -959,7 +959,7 @@ class LeadController extends Controller
     }
 
     public const DCS_CRT = 'discussionCreate';
-    public function discussionCreate(Request $request, string|int $id): View|JsonResponse
+    public function discussionCreate(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -1068,7 +1068,7 @@ class LeadController extends Controller
     }
 
     public const SHW_CV_DL = 'showConvertToDeal';
-    public function showConvertToDeal(Request $request, string|int $id): View|JsonResponse
+    public function showConvertToDeal(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -1219,7 +1219,7 @@ class LeadController extends Controller
     }
 
     public const CLL_CRT = 'callCreate';
-    public function callCreate(Request $request, string|int $id): View|JsonResponse
+    public function callCreate(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -1290,7 +1290,7 @@ class LeadController extends Controller
     }
 
     public const CLL_EDT = 'callEdit';
-    public function callEdit(Request $request, string|int $id, string|int $callId): View|JsonResponse
+    public function callEdit(Request $request, string|int $id, string|int $callId): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -1397,7 +1397,7 @@ class LeadController extends Controller
     }
 
     public const EML_CRT = 'emailCreate';
-    public function emailCreate(Request $request, string|int $id): View|JsonResponse
+    public function emailCreate(Request $request, string|int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

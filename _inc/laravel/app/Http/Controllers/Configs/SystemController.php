@@ -68,7 +68,7 @@ class SystemController extends Controller
     public function store(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -106,7 +106,7 @@ class SystemController extends Controller
     public function saveEmailSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -136,7 +136,7 @@ class SystemController extends Controller
     public function saveCompanyEmailSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if ($user->type != PermissionsConstants::CPN) return defaultPermissionDenial($request, new \Exception('Not a ' . PermissionsConstants::CPN . ' user'), __METHOD__, route(self::REDIRECT_INDEX)); // ! ALERT
@@ -166,7 +166,7 @@ class SystemController extends Controller
     public function saveCompanySettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage company ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -189,7 +189,7 @@ class SystemController extends Controller
     public function savePaymentSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage stripe ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -214,7 +214,7 @@ class SystemController extends Controller
     public function saveSystemSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage company ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -236,7 +236,7 @@ class SystemController extends Controller
     public function saveZoomSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -389,7 +389,7 @@ class SystemController extends Controller
     public function testMail(Request $request): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -423,7 +423,7 @@ class SystemController extends Controller
     public function testSendMail(Request $request): JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
@@ -468,7 +468,7 @@ class SystemController extends Controller
     public function printIndex(Request $request): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage print ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -493,7 +493,7 @@ class SystemController extends Controller
     public function posPrintIndex(Request $request): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage print ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -571,7 +571,7 @@ class SystemController extends Controller
     public function savePusherSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if ($user->type != PermissionsConstants::SA) return defaultPermissionDenial($request, new \Exception('Unauthorized'), __METHOD__, route(self::REDIRECT_INDEX)); // ! ALERT
@@ -603,7 +603,7 @@ class SystemController extends Controller
     public function saveSlackSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -650,7 +650,7 @@ class SystemController extends Controller
     public function saveTelegramSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -700,7 +700,7 @@ class SystemController extends Controller
     public function saveTwilioSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -738,7 +738,7 @@ class SystemController extends Controller
     public function recaptchaSettingStore(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -775,7 +775,7 @@ class SystemController extends Controller
     public function storageSettingStore(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -838,7 +838,7 @@ class SystemController extends Controller
     public function offerLetterUpdate(string $lang, Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $lang) {
+        return $this->measureProfile($action, function () use ($request, $lang) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -860,7 +860,7 @@ class SystemController extends Controller
     public function joiningLetterUpdate(string $lang, Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $lang) {
+        return $this->measureProfile($action, function () use ($request, $lang) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -882,7 +882,7 @@ class SystemController extends Controller
     public function experienceCertificateUpdate(string $lang, Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $lang) {
+        return $this->measureProfile($action, function () use ($request, $lang) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['is_success' => false, 'message' => 'Unauthorized'], 403);
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -904,7 +904,7 @@ class SystemController extends Controller
     public function nocUpdate(string $lang, Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $lang) {
+        return $this->measureProfile($action, function () use ($request, $lang) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['is_success' => false, 'message' => 'Unauthorized'], 403);
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -926,7 +926,7 @@ class SystemController extends Controller
     public function saveGoogleCalendarSettings(Request $request): RedirectResponse|JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -962,7 +962,7 @@ class SystemController extends Controller
     public function seoSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage system ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -996,7 +996,7 @@ class SystemController extends Controller
     public function webhook(Request $request): RedirectResponse|View|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1016,10 +1016,10 @@ class SystemController extends Controller
     }
 
     public const WHK_CRT = 'webhookCreate';
-    public function webhookCreate(Request $request): View|JsonResponse
+    public function webhookCreate(Request $request): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['error' => 'Unauthorized'], 401);
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1043,7 +1043,7 @@ class SystemController extends Controller
     public function webhookStore(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1070,10 +1070,10 @@ class SystemController extends Controller
     }
 
     public const WHK_EDT = 'webhookEdit';
-    public function webhookEdit(Request $request, int $id): View|JsonResponse
+    public function webhookEdit(Request $request, int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['error' => 'Unauthorized'], 401);
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, PermissionsConstants::ED_WHK, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1098,7 +1098,7 @@ class SystemController extends Controller
     public function webhookUpdate(Request $request, int $id): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, PermissionsConstants::ED_WHK, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1128,7 +1128,7 @@ class SystemController extends Controller
     public function webhookDestroy(Request $request, int $id): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, PermissionsConstants::DEL_WHK, self::REDIRECT_INDEX)) !== true) return $redirect;
@@ -1148,7 +1148,7 @@ class SystemController extends Controller
     public function saveCookieSettings(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
@@ -1187,7 +1187,7 @@ class SystemController extends Controller
     public function cookieConsent(Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             $settings = Utility::settings();
             if (($settings['enableCookie'] ?? '') === 'on' && ($settings['cookieLogging'] ?? '') === 'on') {
                 try {
@@ -1236,7 +1236,7 @@ class SystemController extends Controller
     public function cacheSettingStore(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);

@@ -109,7 +109,7 @@ final class ChartOfAccountTypeController extends Controller
         $func = __FUNCTION__;
         $action = $meth;
 
-        return $this->measureProfile(function () use ($req) {
+        return $this->measureProfile($action, function () use ($req) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             if (($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) !== true) return $c;
 

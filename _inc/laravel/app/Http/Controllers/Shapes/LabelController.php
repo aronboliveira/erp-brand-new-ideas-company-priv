@@ -83,7 +83,7 @@ class LabelController extends Controller
         $sig      = "$class::$action";
         $viewPath = ViewsConstants::LBL . '.create';
 
-        return $this->measureProfile(function () use ($req, $action, $sig, $viewPath) {
+        return $this->measureProfile($action, function () use ($req, $action, $sig, $viewPath) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($r = self::guard($req, 'create label')) !== true) return $r;
 

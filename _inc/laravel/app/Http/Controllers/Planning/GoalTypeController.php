@@ -62,7 +62,7 @@ class GoalTypeController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
 
-        return $this->measureProfile(function () use ($request) {
+        return $this->measureProfile($action, function () use ($request) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($redirect = $this->_authorize($request, 'create goal type')) instanceof RedirectResponse) return $redirect;
             $v = Validator::make($request->all(), ['name' => 'required']);
@@ -113,7 +113,7 @@ class GoalTypeController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
 
-        return $this->measureProfile(function () use ($request, $id) {
+        return $this->measureProfile($action, function () use ($request, $id) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($redirect = $this->_authorize($request, 'edit goal type')) instanceof RedirectResponse) return $redirect;
             $v = Validator::make($request->all(), ['name' => 'required']);

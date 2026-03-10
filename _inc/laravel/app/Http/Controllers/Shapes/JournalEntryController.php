@@ -77,7 +77,7 @@ class JournalEntryController extends Controller
         $sig      = "$class::$action";
         $viewPath = ViewsConstants::JRN_ET . '.create';
 
-        return $this->measureProfile(function () use ($request, $action, $sig, $viewPath) {
+        return $this->measureProfile($action, function () use ($request, $action, $sig, $viewPath) {
             Log::info("$sig start", ['user' => Auth::id()]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;

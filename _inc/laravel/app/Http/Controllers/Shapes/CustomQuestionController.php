@@ -32,7 +32,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($request, $action, $sig) {
             Log::info("$sig start", ['user' => Auth::id()]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
@@ -67,7 +67,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($request, $action, $sig) {
             Log::info("$sig start", ['user' => Auth::id()]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, 'create custom question', self::REDIRECT_ROUTE)) !== true) {
@@ -100,7 +100,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($request, $action, $sig) {
             Log::info("$sig start", ['input' => $request->only('question', 'is_required')]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
@@ -144,7 +144,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($customQuestion, $request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, 'view custom question', self::REDIRECT_ROUTE)) !== true) {
@@ -174,7 +174,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($customQuestion, $request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) !== true) {
@@ -212,7 +212,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($request, $customQuestion, $action, $sig) {
+        return $this->measureProfile($action, function () use ($request, $customQuestion, $action, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id, 'input' => $request->only('question', 'is_required')]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) !== true) {
@@ -257,7 +257,7 @@ class CustomQuestionController extends Controller
         $action = __FUNCTION__;
         $cls = static::class;
         $sig = "$cls::$action";
-        return $this->measureProfile(function () use ($customQuestion, $request, $action, $sig) {
+        return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, 'delete custom question', self::REDIRECT_ROUTE)) !== true) {

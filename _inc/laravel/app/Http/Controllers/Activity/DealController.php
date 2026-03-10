@@ -623,7 +623,7 @@ class DealController extends Controller
   }
 
   public const CL_EDT = 'clientEdit';
-  public function clientEdit(Request $request, int|string $id): View|JsonResponse
+  public function clientEdit(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -730,7 +730,7 @@ class DealController extends Controller
   }
 
   public const PRD_EDT = 'productEdit';
-  public function productEdit(Request $request, int|string $id): View|JsonResponse
+  public function productEdit(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1000,7 +1000,7 @@ class DealController extends Controller
   }
 
   public const TSK_CRT = 'taskCreate';
-  public function taskCreate(Request $request, int|string $id): View|JsonResponse
+  public function taskCreate(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1063,7 +1063,7 @@ class DealController extends Controller
   }
 
   public const TSK_SHW = 'taskShow';
-  public function taskShow(Request $request, int|string $id, int|string $taskId): View|JsonResponse
+  public function taskShow(Request $request, int|string $id, int|string $taskId): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1093,7 +1093,7 @@ class DealController extends Controller
   }
 
   public const TSK_EDT = 'taskEdit';
-  public function taskEdit(Request $request, int|string $id, int|string $taskId): View|JsonResponse
+  public function taskEdit(Request $request, int|string $id, int|string $taskId): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1210,7 +1210,7 @@ class DealController extends Controller
   }
 
   public const SRC_EDT = 'sourceEdit';
-  public function sourceEdit(Request $request, int|string $id): View|JsonResponse
+  public function sourceEdit(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1452,7 +1452,7 @@ class DealController extends Controller
   }
 
   public const DSC_CRT = 'discussionCreate';
-  public function discussionCreate(Request $request, int|string $id): View|JsonResponse
+  public function discussionCreate(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1536,7 +1536,7 @@ class DealController extends Controller
   }
 
   public const CAL_CRT = 'callCreate';
-  public function callCreate(Request $request, int|string $id): View|JsonResponse
+  public function callCreate(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1609,7 +1609,7 @@ class DealController extends Controller
   }
 
   public const CAL_EDT = 'callEdit';
-  public function callEdit(Request $request, int|string $id, int|string $callId): View|JsonResponse
+  public function callEdit(Request $request, int|string $id, int|string $callId): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1710,7 +1710,7 @@ class DealController extends Controller
   }
 
   public const EML_CRT = 'emailCreate';
-  public function emailCreate(Request $request, int|string $id): View|JsonResponse
+  public function emailCreate(Request $request, int|string $id): View|JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
