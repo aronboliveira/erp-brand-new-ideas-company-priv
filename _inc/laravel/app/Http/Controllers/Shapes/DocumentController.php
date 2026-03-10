@@ -13,8 +13,8 @@ use App\Traits\ChecksLogin;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class DocumentController extends Controller
 {
     use ChecksLogin;
@@ -27,7 +27,6 @@ final class DocumentController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function __construct()
     {

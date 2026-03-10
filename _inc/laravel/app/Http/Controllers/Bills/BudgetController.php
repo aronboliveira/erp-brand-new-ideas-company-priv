@@ -17,8 +17,8 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, View as ViewFacade};
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class BudgetController extends Controller
 {
     use ChecksLogin;

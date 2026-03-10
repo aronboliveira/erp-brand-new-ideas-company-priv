@@ -26,8 +26,8 @@ use App\Models\{
     PayslipType
 };
 use App\Models\{DeductionOption, SaturationDeduction};
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class SetSalaryController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

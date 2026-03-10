@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\{
     View as ViewFacade
 };
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class RoleController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -32,7 +32,6 @@ class RoleController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): RedirectResponse|View
     {

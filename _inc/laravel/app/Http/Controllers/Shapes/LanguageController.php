@@ -11,8 +11,8 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Cache, DB, File, Log, Redirect, View as ViewFacade};
 use Illuminate\View\View;
-use function App\Http\Controllers\defaultUndefinedException;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class LanguageController extends Controller
 {
     use ChecksPermissions;

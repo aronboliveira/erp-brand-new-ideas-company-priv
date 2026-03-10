@@ -20,7 +20,6 @@ use App\Exports\{
     SalesReportExport,
     TrialBalanceExport
 };
-use function App\Http\Controllers\defaultUndefinedException;
 use App\Models\{
     BankAccount,
     Bill,
@@ -85,6 +84,7 @@ use Symfony\Component\HttpFoundation\{
     StreamedResponse
 };
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ReportController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -4243,7 +4243,6 @@ final class ReportController extends Controller
 
         return view(VW::RPT . '.quarterly_cashflow', compact('filter') + $data);
     }
-
 
     private function _doTrialBalanceExport(Request $request, int|string $creatorId): BinaryFileResponse
     {

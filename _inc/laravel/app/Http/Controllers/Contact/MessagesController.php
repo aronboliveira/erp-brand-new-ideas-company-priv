@@ -10,8 +10,8 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\{Auth, Log, Response as ResponseFacade, Request as RequestFacade};
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class MessagesController extends Controller
 {
     use ChecksLogin;
@@ -595,7 +595,6 @@ class MessagesController extends Controller
             }
         }, ['target_user' => $request->user_id ?? null, 'status' => $request->status ?? null]);
     }
-
 
     private function authorizeUser(Request $request, string $permission)
     {

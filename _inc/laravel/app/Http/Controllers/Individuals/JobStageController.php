@@ -22,8 +22,8 @@ use Illuminate\Support\Facades\{
 	View as ViewFacade
 };
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class JobStageController extends Controller
 {
 
@@ -40,7 +40,6 @@ class JobStageController extends Controller
 	public const EDT = 'edit';
 	public const UPD = 'update';
 	public const DEL = 'destroy';
-
 
 	public function index(Request $req): RedirectResponse|View
 	{

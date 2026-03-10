@@ -40,8 +40,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class CustomerController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

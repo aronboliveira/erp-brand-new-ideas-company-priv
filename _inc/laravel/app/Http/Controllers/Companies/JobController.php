@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class JobController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

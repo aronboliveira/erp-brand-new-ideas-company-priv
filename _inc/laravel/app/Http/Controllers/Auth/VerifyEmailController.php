@@ -8,8 +8,8 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class VerifyEmailController extends Controller
 {
   /** @return RedirectResponse */

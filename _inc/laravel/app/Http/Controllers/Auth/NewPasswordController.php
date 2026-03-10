@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\{
   Password
 };
 use Illuminate\Validation\Rules\Password as PasswordRule;
-use function App\Http\Controllers\defaultUndefinedException;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class NewPasswordController extends Controller
 {
   /** @return \Illuminate\View\View|RedirectResponse */

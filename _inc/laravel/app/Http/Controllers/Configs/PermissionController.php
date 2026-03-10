@@ -7,8 +7,8 @@ use App\Models\{Permission, Role};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\View\View;
-use function App\Http\Controllers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class PermissionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

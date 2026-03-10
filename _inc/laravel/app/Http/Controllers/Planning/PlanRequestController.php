@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\{Crypt, DB, Log, Redirect, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
-
 class PlanRequestController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;

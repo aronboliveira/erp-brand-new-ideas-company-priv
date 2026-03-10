@@ -37,6 +37,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 //use Faker\Provider\File;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class EmployeeController extends Controller
 {
 

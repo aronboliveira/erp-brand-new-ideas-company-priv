@@ -41,8 +41,8 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ProductServiceController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -571,7 +571,6 @@ final class ProductServiceController extends Controller
             return defaultUndefinedException($e, __METHOD__);
         }
     }
-
 
     private static function safe(
         Request  $req,

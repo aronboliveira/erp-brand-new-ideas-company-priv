@@ -16,6 +16,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
 use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class AwardController extends Controller
 {
 

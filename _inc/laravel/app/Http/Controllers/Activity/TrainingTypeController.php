@@ -1,7 +1,6 @@
 <?php
 //TODO STOPPED MEASURING HERE
 
-
 namespace App\Http\Controllers;
 
 use App\Config\Constants\ViewsConstants as VW;
@@ -13,6 +12,7 @@ use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class TrainingTypeController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

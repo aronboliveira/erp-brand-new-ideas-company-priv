@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Route, Validator, View as
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class VendorController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

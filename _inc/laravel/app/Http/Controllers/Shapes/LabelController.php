@@ -15,6 +15,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 use Illuminate\Auth\Access\AuthorizationException;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class LabelController extends Controller
 {
     use ChecksLogin;

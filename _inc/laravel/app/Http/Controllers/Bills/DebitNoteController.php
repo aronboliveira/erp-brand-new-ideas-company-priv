@@ -19,6 +19,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class DebitNoteController extends Controller
 {
     use ChecksLogin;

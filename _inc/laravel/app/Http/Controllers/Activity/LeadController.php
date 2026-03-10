@@ -59,6 +59,7 @@ use Symfony\Component\HttpFoundation\{
     Response
 };
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class LeadController extends Controller
 {
     /** @var array{lead: ?\App\Models\Lead, id: int|null} */

@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\View as ViewFacade;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class BugStatusController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

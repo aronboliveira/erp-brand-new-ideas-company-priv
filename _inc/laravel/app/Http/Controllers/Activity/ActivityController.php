@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\{ModelNotFoundException};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, View as ViewFacade};
 use Symfony\Component\HttpFoundation\{Response as HttpFoundationResponse};
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ActivityController extends Controller
 {
 	use ChecksLogin, ChecksPermissions, ConsoleOutputs;
@@ -26,7 +26,6 @@ class ActivityController extends Controller
 	private const ENTITY = 'activity';
 	private const REDIRECT_INDEX = '/';
 	public const IDX = 'index';
-
 
 	public function __construct()
 	{

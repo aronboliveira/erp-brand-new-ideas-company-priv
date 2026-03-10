@@ -15,8 +15,8 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class TerminationController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -29,7 +29,6 @@ class TerminationController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): View|RedirectResponse|null
     {

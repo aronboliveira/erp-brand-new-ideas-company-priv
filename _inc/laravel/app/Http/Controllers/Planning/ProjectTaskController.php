@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\{DB, Log, Route, Storage, View as ViewFacade};
 use Illuminate\View\View;
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProjectTaskController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

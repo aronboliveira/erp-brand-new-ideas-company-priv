@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\{
     Log,
     Validator
 };
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProductServiceUnitController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -37,7 +37,6 @@ class ProductServiceUnitController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $req)
     {

@@ -17,13 +17,12 @@ use Illuminate\Support\Facades\{
     Validator
 };
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class PasswordResetLinkController extends Controller
 {
     public const CRT = 'create';
     public const STR = 'store';
-
 
   public function create(Request $req): View|RedirectResponse|JsonResponse|null
   {

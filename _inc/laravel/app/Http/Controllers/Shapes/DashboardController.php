@@ -68,8 +68,8 @@ use Modules\LandingPage\Config\Constants\{
 };
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class DashboardController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

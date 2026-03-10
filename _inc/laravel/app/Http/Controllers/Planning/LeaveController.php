@@ -13,8 +13,8 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\{Arr, Facades\DB, Facades\Log, Facades\Redirect, Facades\Validator, Facades\View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class LeaveController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;

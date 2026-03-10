@@ -16,8 +16,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 use Throwable;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class CreditNoteController extends Controller
 {
     use ChecksLogin;

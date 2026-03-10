@@ -45,8 +45,8 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class UserController extends AppController
 {
     use ChecksLogin, ChecksPermissions;

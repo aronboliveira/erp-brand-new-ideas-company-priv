@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Validator, View as ViewFac
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class PayslipController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

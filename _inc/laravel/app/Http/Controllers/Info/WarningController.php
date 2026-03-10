@@ -14,8 +14,8 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class WarningController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

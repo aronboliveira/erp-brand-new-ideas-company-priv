@@ -16,6 +16,7 @@ use Illuminate\Http\{Request, RedirectResponse, JsonResponse, Response};
 use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class AllowanceController extends Controller
 {
   use ChecksLogin;
@@ -326,6 +327,5 @@ final class AllowanceController extends Controller
     );
   }
 }
-
 
 // ! ALERT store and update accept raw amount; consider casting to numeric and validating range to prevent injection or overflow.

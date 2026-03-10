@@ -36,8 +36,8 @@ use Illuminate\Support\Facades\{
   View as ViewFacade,
 };
 use Illuminate\Contracts\Support\Renderable;
-use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\defaultPermissionDenial;
 final class PipelineController extends Controller
 {
   use ChecksLogin, ChecksPermissions;
@@ -50,7 +50,6 @@ final class PipelineController extends Controller
   public const EDT = 'edit';
   public const UPD = 'update';
   public const DEL = 'destroy';
-
 
   public function __construct()
   {

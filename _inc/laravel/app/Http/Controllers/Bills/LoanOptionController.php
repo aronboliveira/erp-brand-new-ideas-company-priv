@@ -15,6 +15,7 @@ use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, Route, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class LoanOptionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

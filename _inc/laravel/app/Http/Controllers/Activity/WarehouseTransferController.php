@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class WarehouseTransferController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

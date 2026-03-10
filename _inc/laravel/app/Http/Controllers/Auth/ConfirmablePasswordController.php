@@ -8,8 +8,8 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log};
 use Illuminate\Validation\ValidationException;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ConfirmablePasswordController extends Controller
 {
   /** @return \Illuminate\View\View|RedirectResponse */

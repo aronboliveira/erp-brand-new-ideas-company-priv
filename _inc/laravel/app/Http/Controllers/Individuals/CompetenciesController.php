@@ -10,8 +10,8 @@ use App\Config\Constants\{DatabaseConstants as DC, ViewsConstants as VW};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View as ViewFacade;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class CompetenciesController extends Controller
 {
     private const PERM_MANAGE = 'Manage Competencies';

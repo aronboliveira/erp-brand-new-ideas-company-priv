@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Orhanerday\OpenAi\OpenAi;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class AiTemplateController extends Controller
 {
   use ChecksLogin, ChecksPermissions;

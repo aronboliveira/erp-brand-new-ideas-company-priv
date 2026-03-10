@@ -15,6 +15,7 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class LoanController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -236,7 +237,6 @@ final class LoanController extends Controller
     {
         return redirect()->route(VW::LN . '.index');
     }
-
 
     /** Centralized permission check with logging */
     private function deny(Request $request, string $permission, string $action): ?RedirectResponse

@@ -15,8 +15,8 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class CustomFieldController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -29,7 +29,6 @@ final class CustomFieldController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function __construct()
     {

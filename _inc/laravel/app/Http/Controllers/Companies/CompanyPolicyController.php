@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\{
     View as ViewFacade,
 };
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class CompanyPolicyController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

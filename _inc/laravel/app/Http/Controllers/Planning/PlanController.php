@@ -16,7 +16,6 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
-
 class PlanController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;

@@ -9,6 +9,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class OvertimeController extends Controller
 {
   private const PERM_CREATE = 'create overtime';

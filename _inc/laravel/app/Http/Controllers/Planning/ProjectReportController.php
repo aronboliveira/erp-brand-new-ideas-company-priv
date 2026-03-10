@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProjectReportController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

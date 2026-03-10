@@ -15,6 +15,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class SaturationDeductionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

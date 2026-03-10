@@ -17,6 +17,7 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class TransactionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ChartOfAccountTypeController extends Controller
 {
 

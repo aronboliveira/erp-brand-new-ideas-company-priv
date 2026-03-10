@@ -41,8 +41,8 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\defaultPermissionDenial;
 class FormBuilderController extends Controller
 {
     private const REDIRECT_BACK = '/';

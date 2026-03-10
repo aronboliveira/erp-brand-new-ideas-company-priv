@@ -16,6 +16,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log};
 use Illuminate\Auth\Access\AuthorizationException;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class PayslipTypeController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -189,7 +190,6 @@ final class PayslipTypeController extends Controller
             }
         }, ['type_id' => $payslipType->id ?? null]);
     }
-
 
     /*──── legacy stub ────*/
     public function show(): RedirectResponse

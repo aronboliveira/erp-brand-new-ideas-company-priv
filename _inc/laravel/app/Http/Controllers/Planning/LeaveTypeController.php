@@ -13,8 +13,8 @@ use Illuminate\Support\{Arr, Facades\DB, Facades\Log, Facades\Redirect, Facades\
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class LeaveTypeController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
@@ -25,7 +25,6 @@ class LeaveTypeController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): View|RedirectResponse|JsonResponse
     {

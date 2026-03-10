@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\{
 };
 use Symfony\Component\HttpFoundation\Response;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class PromotionController extends Controller
 {
     use ChecksLogin;

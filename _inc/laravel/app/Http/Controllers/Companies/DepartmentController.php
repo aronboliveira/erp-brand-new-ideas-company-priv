@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\{
   View as ViewFacade,
 };
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class DepartmentController extends Controller
 {
   use ChecksLogin, ChecksPermissions;

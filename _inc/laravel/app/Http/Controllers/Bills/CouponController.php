@@ -8,8 +8,8 @@ use App\Config\Constants\{MiddlewaresConstants as MWC, PermissionsConstants as P
 use App\Models\{Coupon, Plan, UserCoupon, Utility};
 use Illuminate\Http\{Request, JsonResponse, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, Validator, View as ViewFacade};
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class CouponController extends Controller
 {
 

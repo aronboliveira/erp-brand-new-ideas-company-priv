@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\{
 };
 use Symfony\Component\HttpFoundation\Response;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class AppraisalController extends Controller
 {
   use ChecksLogin;

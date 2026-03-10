@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ZoomMeetingController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ZoomMeetingTrait;

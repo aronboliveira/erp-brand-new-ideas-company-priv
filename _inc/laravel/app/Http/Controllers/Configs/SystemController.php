@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\{Artisan, Auth, DB, File, Log, Mail, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class SystemController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

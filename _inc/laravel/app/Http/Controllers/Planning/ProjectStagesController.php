@@ -14,8 +14,8 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Redirect, Validator, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProjectStagesController extends Controller
 {
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
@@ -27,7 +27,6 @@ class ProjectStagesController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): View|RedirectResponse
     {

@@ -15,6 +15,7 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class DesignationController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

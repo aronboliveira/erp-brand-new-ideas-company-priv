@@ -12,8 +12,8 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProposalProductController extends Controller
 {
     use ChecksLogin;
@@ -27,7 +27,6 @@ class ProposalProductController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): View|RedirectResponse|null
     {

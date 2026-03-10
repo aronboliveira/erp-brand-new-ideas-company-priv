@@ -42,8 +42,8 @@ use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Mail, Redirect, Route, St
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class BillController extends Controller
 {
     private const CACHE_TTL = 120;

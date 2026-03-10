@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ContractTypeController extends Controller
 {
     use ChecksLogin, ConsoleOutputs;
@@ -24,7 +24,6 @@ class ContractTypeController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     public function index(Request $request): RedirectResponse|View
     {

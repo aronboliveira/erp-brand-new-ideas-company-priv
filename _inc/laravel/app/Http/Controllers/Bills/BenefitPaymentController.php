@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\{
 };
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class BenefitPaymentController extends Controller
 {
     use ChecksLogin;
@@ -410,7 +411,5 @@ final class BenefitPaymentController extends Controller
         return strtoupper(str_replace('.', '', uniqid('', true)));
     }
 }
-
-
 
 // ! ALERT secret_key is stored in plain‑text settings and sent back in exceptions; avoid exposing it and consider moving to env‑encrypted vault.

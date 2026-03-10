@@ -16,8 +16,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class DocumentUploadController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
@@ -30,7 +30,6 @@ final class DocumentUploadController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
     private function validateOwnership(
         Request $request,

@@ -31,8 +31,8 @@ use Illuminate\Support\Facades\{
     View as ViewFacade
 };
 use Illuminate\Support\Str;
-use function App\Http\Controllers\Helpers\{defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\defaultPermissionDenial;
 class EmailTemplateController extends Controller
 {
     private const REDIRECT_BACK = 'back';

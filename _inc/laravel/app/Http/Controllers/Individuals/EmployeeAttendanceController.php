@@ -38,8 +38,8 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class EmployeeAttendanceController extends Controller
 {
   use ChecksLogin, ChecksPermissions;

@@ -17,6 +17,7 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class DeductionOptionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

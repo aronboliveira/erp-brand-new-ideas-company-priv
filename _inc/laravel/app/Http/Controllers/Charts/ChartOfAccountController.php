@@ -21,6 +21,7 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ChartOfAccountController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

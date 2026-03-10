@@ -16,8 +16,8 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\App;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class EmailVerificationPromptController extends Controller
 {
 
@@ -55,7 +55,5 @@ class EmailVerificationPromptController extends Controller
     return $lang;
   }
 }
-
-
 
 // ! ALERT _setLocale() trusts user‑supplied $lang; ensure only supported locales are accepted (e.g., whitelist or in_array) to avoid locale‑based path traversal or SSRF attacks.

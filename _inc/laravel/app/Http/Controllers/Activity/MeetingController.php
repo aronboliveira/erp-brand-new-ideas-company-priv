@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\{
   View as ViewFacade
 };
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class MeetingController extends Controller
 {
   use ChecksLogin;

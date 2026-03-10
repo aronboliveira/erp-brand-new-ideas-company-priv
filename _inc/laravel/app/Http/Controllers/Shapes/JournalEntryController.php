@@ -21,6 +21,7 @@ use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class JournalEntryController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

@@ -16,6 +16,7 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class TimesheetController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

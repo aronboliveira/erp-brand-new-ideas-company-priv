@@ -28,8 +28,8 @@ use Illuminate\Support\Facades\{
     Route,
     View as ViewFacade
 };
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class CashfreeController extends Controller
 {
 
@@ -369,7 +369,6 @@ final class CashfreeController extends Controller
             route('plans.index')
         );
     }
-
 
     private static function activateFreePlan(User $usr, Plan $p, Coupon $c): RedirectResponse
     {

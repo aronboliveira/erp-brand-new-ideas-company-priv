@@ -16,6 +16,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{Log, Redirect, Validator, View as ViewFacade};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class IndicatorController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

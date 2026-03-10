@@ -19,8 +19,8 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class AssetController extends Controller
 {
   use ChecksLogin, ChecksPermissions;
@@ -33,7 +33,6 @@ final class AssetController extends Controller
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
-
 
   public function __construct()
   {

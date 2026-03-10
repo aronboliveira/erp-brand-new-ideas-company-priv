@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class GoalTrackingController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

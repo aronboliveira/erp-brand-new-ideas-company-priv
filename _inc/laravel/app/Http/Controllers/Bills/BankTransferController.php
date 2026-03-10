@@ -18,8 +18,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{Request, RedirectResponse, JsonResponse, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Redirect, Route, View as ViewFacade};
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class BankTransferController extends Controller
 {
   use ChecksLogin;
@@ -30,7 +30,6 @@ final class BankTransferController extends Controller
   public const EDT = 'edit';
   public const UPD = 'update';
   public const DEL = 'destroy';
-
 
   public function __construct()
   {

@@ -47,11 +47,8 @@ use Illuminate\{
   View\View
 };
 use App\Helpers\SafeConsoleOutput;
-use function App\Http\Controllers\{
-  defaultPermissionDenial,
-  defaultUndefinedException
-};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class AuthenticatedSessionController extends Controller
 {
   use ChecksLogin;
@@ -905,7 +902,6 @@ class AuthenticatedSessionController extends Controller
     }, ['token' => $token]);
   }
 
-
   public const GET_VD_PW = 'getVendorPassword';
   public function getVendorPassword(string $token): View|JsonResponse
   {
@@ -952,7 +948,6 @@ class AuthenticatedSessionController extends Controller
       }
     }, ['token' => $token]);
   }
-
 
   public const UPD_CTM_PW = 'updateCustomerPassword';
   public function updateCustomerPassword(Request $req): RedirectResponse|JsonResponse

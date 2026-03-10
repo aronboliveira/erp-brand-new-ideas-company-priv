@@ -22,6 +22,7 @@ use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, View as ViewFacade};
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class RevenueController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

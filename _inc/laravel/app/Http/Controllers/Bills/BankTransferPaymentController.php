@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class BankTransferPaymentController extends Controller
 {
   use ChecksLogin, ChecksPermissions;

@@ -18,6 +18,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, Route, View as ViewFacade};
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class AllowanceOptionController extends Controller
 {
   use ChecksLogin;
@@ -313,6 +314,5 @@ final class AllowanceOptionController extends Controller
     return null;
   }
 }
-
 
 // ! ALERT index() returns all records without pagination; add pagination or server‑side filtering if list size may grow.

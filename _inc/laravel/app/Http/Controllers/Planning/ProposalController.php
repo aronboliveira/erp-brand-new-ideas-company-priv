@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ProposalController extends Controller
 {
     public function __construct()
@@ -46,7 +47,6 @@ class ProposalController extends Controller
     }
 
     use ChecksLogin, ChecksPermissions;
-
 
     protected const INDEX_ROUTE = ViewsConstants::PPS . '.index';
 

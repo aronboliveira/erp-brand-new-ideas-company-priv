@@ -10,8 +10,8 @@ use Illuminate\Http\{
   Request
 };
 use Illuminate\Support\Facades\Log;
-use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class EmailVerificationNotificationController extends Controller
 {
     public const STR = 'store';
@@ -42,7 +42,6 @@ class EmailVerificationNotificationController extends Controller
       }
     }, ['user_id' => $req->user()?->id]);
   }
-
 
   private static function _catch(
     Request   $req,

@@ -9,6 +9,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, Route, Validator, View as ViewFacade};
 use Illuminate\Support\Str;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class AwardTypeController extends Controller
 {
 

@@ -44,6 +44,7 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 use Throwable;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class PosController extends Controller
 {
 

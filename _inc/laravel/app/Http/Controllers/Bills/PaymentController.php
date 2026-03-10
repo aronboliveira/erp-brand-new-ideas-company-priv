@@ -29,6 +29,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class PaymentController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

@@ -28,8 +28,8 @@ use Illuminate\Support\Facades\{
     Validator
 };
 use Illuminate\View\View;
-use function App\Http\Controllers\Helpers\{defaultPermissionDenial, defaultUndefinedException};
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class ProductServiceCategoryController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

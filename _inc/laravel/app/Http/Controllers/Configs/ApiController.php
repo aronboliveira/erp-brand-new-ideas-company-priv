@@ -24,8 +24,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log, Validator};
 use App\Helpers\SafeConsoleOutput;
-use function App\Http\Controllers\defaultUndefinedException;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class ApiController extends Controller
 {
   use ApiResponser, ChecksLogin;

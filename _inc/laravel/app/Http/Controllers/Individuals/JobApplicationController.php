@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\{
 };
 use Symfony\Component\HttpFoundation\Response;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class JobApplicationController extends Controller
 {
 	use ChecksLogin, ChecksPermissions;

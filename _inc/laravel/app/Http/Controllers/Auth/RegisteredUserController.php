@@ -38,8 +38,8 @@ use Illuminate\Support\Facades\{
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Helpers\SafeConsoleOutput;
-use function App\Http\Controllers\defaultUndefinedException;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 class RegisteredUserController extends Controller
 {
   public function __construct()

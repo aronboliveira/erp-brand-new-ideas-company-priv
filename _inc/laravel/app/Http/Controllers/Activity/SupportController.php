@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class SupportController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

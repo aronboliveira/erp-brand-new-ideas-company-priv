@@ -17,6 +17,7 @@ use Illuminate\Http\{
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ProductStockController extends Controller
 {
     use ChecksLogin, ChecksPermissions;

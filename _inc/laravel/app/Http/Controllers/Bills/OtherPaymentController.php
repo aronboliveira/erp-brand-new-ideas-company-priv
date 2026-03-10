@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Route, Validator, View as ViewFac
 use Illuminate\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 final class OtherPaymentController extends Controller
 {
 
@@ -245,7 +246,6 @@ final class OtherPaymentController extends Controller
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'otherpayment_id' => $id]);
     }
-
 
     private static function authorizePerm(Request $req, string $perm): RedirectResponse|JsonResponse|null
     {
