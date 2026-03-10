@@ -2370,4 +2370,33 @@ class StockReport extends Model
             ];
         });
     }
+
+    /**
+     * Resolve a product_id (or product_service_id) to a human-readable name.
+     */
+    public static function resolveProductName(int|string $productId): string
+    {
+        try {
+            if (empty($productId)) {
+                return '';
+            }
+            /** @var Product|null $product */
+            $product = Product::find($productId);
+            if ($product) {
+                return (string) ($product->getAttribute('name') ?? $product->getKey());
+            }
+            /** @var ProductService|null $ps */
+            $ps = ProductService::find($productId);
+            if ($ps) {
+                return (string) ($ps->getAttribute('name') ?? $ps->getKey());
+            }
+            return (string) $productId;
+        } catch (\Throwable $e) {
+            Log::debug(static::class . '::resolveProductName error', [
+                'product_id' => $productId,
+                'error' => $e->getMessage(),
+            ]);
+            return (string) $productId;
+        }
+    }
 }

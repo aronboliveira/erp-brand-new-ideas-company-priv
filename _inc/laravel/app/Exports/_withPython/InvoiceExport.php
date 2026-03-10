@@ -19,7 +19,7 @@ final class InvoiceExport implements FromCollection, WithHeadings
     ];
     private array $data = [];
 
-    public function collection()
+    public function collection(): Collection|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

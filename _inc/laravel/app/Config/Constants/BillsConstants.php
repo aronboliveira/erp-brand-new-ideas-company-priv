@@ -64,6 +64,7 @@ class BillsConstants
 	public const COL_BL_CTR = 'billing_country';
 	public const COL_BL_DTL = 'billing_details';
 	public const COL_BL_ID = 'bill_id';
+	public const COL_BIL_ID = 'bil_id';
 	public const COL_BL_DT = 'bill_date';
 	public const COL_SHIP_NAME = 'shipping_name';
 	public const COL_SHIP_EMAIL = 'shipping_email';

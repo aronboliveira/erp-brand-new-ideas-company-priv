@@ -41,7 +41,7 @@ class BugStatus extends Model
       );
     } catch (\Throwable $e) {
       Log::error(static::class . '::bugs — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-      return collect();
+      return new Collection();
     }
   }
 
@@ -54,7 +54,7 @@ class BugStatus extends Model
       );
     } catch (\Throwable $e) {
       Log::error(static::class . '::assignBugs — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-      return collect();
+      return new Collection();
     }
   }
 }

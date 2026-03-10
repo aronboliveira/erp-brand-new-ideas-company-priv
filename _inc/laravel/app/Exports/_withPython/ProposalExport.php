@@ -11,7 +11,7 @@ final class ReceivableExport
 {
     use ChecksLogin;
 
-    private const PY_ENDPOINT = '/api/python/receivable_export';
+    private const PY_ENDPOINT = '/api/python/proposal_export';
 
     public function export(Request $request): BinaryFileResponse|RedirectResponse
     {

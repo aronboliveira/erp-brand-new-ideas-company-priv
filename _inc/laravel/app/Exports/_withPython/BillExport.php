@@ -29,7 +29,7 @@ final class BillExport implements FromCollection, WithHeadings, WithEvents
 
     private array $rows = [];
 
-    public function collection(): Collection
+    public function collection(): Collection|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

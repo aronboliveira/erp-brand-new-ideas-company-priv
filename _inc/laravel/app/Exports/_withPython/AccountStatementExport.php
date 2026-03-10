@@ -22,7 +22,7 @@ final class AccountStatementExport implements FromCollection, WithHeadings, With
 
     private array $data = [];
 
-    public function collection(): Collection
+    public function collection(): Collection|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

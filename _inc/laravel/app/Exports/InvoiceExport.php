@@ -66,8 +66,8 @@ final class InvoiceExport implements FromCollection, WithHeadings
                 foreach (self::UNSET_FIELDS as $field) {
                     unset($invoice->{$field});
                 }
-                $invoice->invoice_id = $user->invoiceNumberFormat((int)($invoice->invoice_id ?? 0));
-                $invoice->category_id = $categoryName;
+                $invoice->invoice_id = $user->invoiceNumberFormat((int)($invoice->invoice_id ?? 0)); // @phpstan-ignore assign.propertyType
+                $invoice->category_id = $categoryName; // @phpstan-ignore assign.propertyType
                 // status is already resolved via getStatusAttribute accessor
                 $export->push($invoice);
             }

@@ -156,7 +156,7 @@ class ActivityLog extends Model
                 ?? ActivityType::Other;
         } catch (\Throwable $e) {
             Log::error(static::class . '::activityTypeEnum — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-            return null;
+            return ActivityType::Other;
         }
     }
 
@@ -212,7 +212,7 @@ class ActivityLog extends Model
         return $this->belongsTo(User::class, UC::COL_USER_ID, 'id');
     }
 
-    public function userDetail(): BelongsTo
+    public function userDetail(): HasOne
     {
         $id = UC::COL_USER_ID;
         $cls = get_class($this);

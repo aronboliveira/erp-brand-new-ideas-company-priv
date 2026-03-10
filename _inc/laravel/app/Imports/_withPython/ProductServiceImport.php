@@ -5,7 +5,7 @@ namespace App\Imports;
 use App\Models\ProductService;
 use Illuminate\Support\Facades\{Auth, Http, Log};
 use Maatwebsite\Excel\Concerns\{Importable, ToModel};
-use function App\Http\Controllers\defaultUndefinedException;
+use function App\Http\Controllers\Helpers\defaultUndefinedException;
 
 final class ProductServiceImport implements ToModel
 {
