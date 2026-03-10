@@ -212,6 +212,11 @@ R::get(VW::INV . '/pdf/{id}', [InvoiceController::class, 'invoice'])->name(VW::I
 R::get('/dashboard', [DSBC::class, DSBC::ACC_DSB_IDX])
     ->name(DSBC::ENTITY)
     ->middleware([MWC::XSS, MWC::REV]);
+
+// Footer public pages (stub routes to avoid ViewException in admin footer)
+R::get('/terms-and-conditions', fn() => redirect('/dashboard'))->name('terms_and_conditions');
+R::get('/privacy-policy', fn() => redirect('/dashboard'))->name('privacy_policy');
+R::get('/about-us', fn() => redirect('/dashboard'))->name('about_us');
 #endregion
 #endregion
 //================================= Invoice Payment Gateways  ====================================//
@@ -797,7 +802,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     R::post('/leads/json', [LeadController::class, 'json'])->name(VW::LD . '.json');
     R::post('/leads/order', [LeadController::class, 'order'])->name(VW::LD . '.order')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get('/leads/list', [LeadController::class, 'lead_list'])->name(VW::LD . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('/leads/list', [LeadController::class, 'leadList'])->name(VW::LD . '.list')->middleware([MWC::AUTH, MWC::XSS]);
     R::post('/leads/{id}/file', [LeadController::class, 'fileUpload'])->name(VW::LD . '.file.upload')->middleware([MWC::AUTH, MWC::XSS]);
     R::get('/leads/{id}/file/{fid}', [LeadController::class, 'fileDownload'])->name(VW::LD . '.file.download')->middleware([MWC::AUTH, MWC::XSS]);
     R::delete('/leads/{id}/file/delete/{fid}', [LeadController::class, 'fileDelete'])->name(VW::LD . '.file.delete')->middleware([MWC::AUTH, MWC::XSS]);

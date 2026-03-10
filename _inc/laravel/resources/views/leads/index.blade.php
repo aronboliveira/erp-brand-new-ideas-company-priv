@@ -134,6 +134,7 @@ $user = Auth::user();
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS12 }}">
             @php
+                $containersIds = [];
                 try {
                     $lead_stages   = data_get($pipeline ?? null, 'leadStages', []);
                     $containersIds = [];
