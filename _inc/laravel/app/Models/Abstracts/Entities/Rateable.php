@@ -5,18 +5,12 @@ namespace App\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\BelongsTo};
 use Illuminate\Support\Str;
-/**
- * @property mixed $fillable
- * @property mixed $incrementing
- * @property mixed $key
- */
-
 abstract class Rateable extends Model
 {
   use HasFactory;
-  public $incrementing = false;
-  protected $keyType = 'string';
-  protected $fillable = [
+  public bool $incrementing = false;
+  protected string $keyType = 'string';
+  protected array $fillable = [
     'administration',
     'administration_rating',
     'attendance',

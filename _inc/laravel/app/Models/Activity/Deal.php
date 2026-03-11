@@ -12,7 +12,7 @@ use App\Enums\EvaluationStatus;
 use App\Services\DealRequestService;
 use App\Traits\{HasAuditFields, UsesUuids, NormalizesAddresses};
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
-use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, BelongsToMany, HasMany, HasOne};
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -133,19 +133,19 @@ class Deal extends Model
             : new Collection();
     }
 
-    public function pipeline(): HasOne
+    public function pipeline(): BelongsTo
     {
-        return $this->hasOne(Pipeline::class, 'id', PJC::COL_PPL_ID);
+        return $this->belongsTo(Pipeline::class, PJC::COL_PPL_ID, 'id');
     }
 
-    public function stage(): HasOne
+    public function stage(): BelongsTo
     {
-        return $this->hasOne(Stage::class, 'id', PJC::COL_STG_ID);
+        return $this->belongsTo(Stage::class, PJC::COL_STG_ID, 'id');
     }
 
-    public function group(): HasOne
+    public function group(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', PJC::COL_GRP_ID);
+        return $this->belongsTo(User::class, PJC::COL_GRP_ID, 'id');
     }
 
     public function clients(): BelongsToMany

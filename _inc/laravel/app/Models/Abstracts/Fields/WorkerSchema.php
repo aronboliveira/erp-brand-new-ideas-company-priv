@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\PersonSchema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\{Log};
 
