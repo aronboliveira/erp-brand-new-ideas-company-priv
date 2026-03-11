@@ -6,13 +6,17 @@ $user = Auth::user();
         $canDateFormat = is_object($user) && method_exists($user,'dateFormat');
         $canPriceFormat = is_object($user) && method_exists($user,'priceFormat');
 
-        function resolveRoute(string $base): ?string {
+        if (!function_exists("resolveRoute")) {
+            function resolveRoute(string $base): ?string {
             $k = Str::kebab($base);
             return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+            }
         }
-        function urlFor(string $base, array $params = []): array {
-            $resolved = resolveRoute($base);
-            return [$resolved, $resolved ? route($resolved, $params) : '#'];
+        if (!function_exists('urlFor')) {
+            function urlFor(string $base, array $params = []): array {
+                $resolved = resolveRoute($base);
+                return [$resolved, $resolved ? route($resolved, $params) : '#'];
+            }
         }
 
         [$dashResolved, $dashUrl] = urlFor('dashboard');

@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\bills;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Bills\BankTransferPaymentController;
+use App\Http\Controllers\BankTransferPaymentController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for BankTransferPaymentController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Bills\BankTransferPaymentController
+ * @covers \App\Http\Controllers\BankTransferPaymentController
  */
 class BankTransferPaymentControllerTest extends TestCase
 {

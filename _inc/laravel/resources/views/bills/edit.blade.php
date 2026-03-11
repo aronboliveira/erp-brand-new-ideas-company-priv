@@ -445,7 +445,7 @@
                                             {{ Form::hidden('id', null, ['class' => 'id']) }}
                                             {{ Form::hidden('account_id', null, ['class' => 'account_id']) }}
                                             @php
-                                                $productSelectOptions = $product_services ?? [];
+                                                $productSelectOptions = $product_services ?? ($productServices ?? []);
                                             @endphp
                                             <td width="25%" class="form-group pt-0">
                                                 {{ Form::select('items', $productSelectOptions, null, [

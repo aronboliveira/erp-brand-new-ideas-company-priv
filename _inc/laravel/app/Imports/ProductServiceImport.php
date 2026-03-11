@@ -49,11 +49,11 @@ final class ProductServiceImport implements ToModel
             if (
                 $cell !== null &&
                 $cell !== '' &&
-                !is_nan($cell) &&
+                !(is_float($cell) && is_nan($cell)) &&
                 isset($row[$i + 1]) &&
                 $row[$i + 1] !== null &&
                 $row[$i + 1] !== '' &&
-                !is_nan($row[$i + 1])
+                !(is_float($row[$i + 1]) && is_nan($row[$i + 1]))
             ) {
                 $start = $i;
                 break;
@@ -65,7 +65,7 @@ final class ProductServiceImport implements ToModel
         $empty = 0;
         for ($c = $start; isset($row[$c]); $c++) {
             $val = $row[$c];
-            if ($val === null || $val === '' || is_nan($val)) {
+            if ($val === null || $val === '' || (is_float($val) && is_nan($val))) {
                 if (++$empty === 2) break;
                 continue;
             }

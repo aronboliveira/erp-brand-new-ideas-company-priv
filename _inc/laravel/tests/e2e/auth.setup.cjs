@@ -31,15 +31,13 @@ async function globalSetup() {
     await emailInput.waitFor({ state: "visible", timeout: 10000 });
 
     console.log("Filling credentials...");
-    await emailInput.fill(
-      "u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local",
-    );
+    await emailInput.fill("u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local");
     await pwInput.fill("Admin@1234");
 
     console.log("Clicking login button...");
     // Wait for navigation together with click to avoid race conditions
     await Promise.all([
-      page.waitForURL((url) => !url.pathname.endsWith("/login"), {
+      page.waitForURL(url => !url.pathname.endsWith("/login"), {
         timeout: 30000,
       }),
       submitBtn.click(),
@@ -77,7 +75,7 @@ globalSetup()
     console.log("Auth setup completed successfully");
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(error => {
     console.error("Auth setup failed:", error);
     process.exit(1);
   });

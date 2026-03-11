@@ -252,9 +252,9 @@ class Invoice extends Model
         return $this->tax();
     }
 
-    public function items(): Collection
+    public function items(): HasMany
     {
-        return $this->products();
+        return $this->invoiceProducts();
     }
 
     public function invoiceProducts(): HasMany

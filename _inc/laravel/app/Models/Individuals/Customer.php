@@ -346,10 +346,13 @@ class Customer extends Authenticatable
         );
     }
 
-    public function invoiceNumberFormat(int $n): string
+    public function invoiceNumberFormat(int|string $n): string
     {
         $s = Utility::settings();
-        return ($s[SC::INV_PFX] ?? '') . sprintf('%05d', $n);
+        $prefix = $s[SC::INV_PFX] ?? '';
+        return is_numeric($n)
+            ? $prefix . sprintf('%05d', (int) $n)
+            : $prefix . $n;
     }
 
     public function priceFormat(float $price): string

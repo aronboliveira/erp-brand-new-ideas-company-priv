@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\individuals;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Individuals\DesignationController;
+use App\Http\Controllers\DesignationController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for DesignationController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Individuals\DesignationController
+ * @covers \App\Http\Controllers\DesignationController
  */
 class DesignationControllerTest extends TestCase
 {

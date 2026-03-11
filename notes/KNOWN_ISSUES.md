@@ -120,6 +120,7 @@ which returns the user's own `created_by` field. For seeded/legacy users with
 credentials were valid.
 
 **Root causes (3):**
+
 1. `waitForURL` regex `/.*(?!login).*$/` matches ALL strings (including `/login`) due to
    greedy `.*` before negative lookahead — resolved immediately without waiting.
 2. Duplicate form IDs (`#loginForm`, `#email-input`, `#pw-input`, `#saveBtn`) from

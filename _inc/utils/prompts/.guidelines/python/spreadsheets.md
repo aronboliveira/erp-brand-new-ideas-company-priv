@@ -32,10 +32,10 @@ Rows (non-header) should have **opaque** background colours for readability. Use
 
 ### Borders
 
-| Border Type   | Style                                                         |
-|---------------|---------------------------------------------------------------|
-| Horizontal    | Near-transparent — thin, light grey. Subtle row separation.   |
-| Vertical      | Opaque grey for data rows, deep grey/black for header columns.|
+| Border Type | Style                                                          |
+| ----------- | -------------------------------------------------------------- |
+| Horizontal  | Near-transparent — thin, light grey. Subtle row separation.    |
+| Vertical    | Opaque grey for data rows, deep grey/black for header columns. |
 
 ```python
 from openpyxl.styles import Border, Side

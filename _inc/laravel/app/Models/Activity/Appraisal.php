@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\{
 use Illuminate\Support\Carbon;
 /**
  * @property \Illuminate\Support\Carbon|string|null $appraisal_date
- * @property int|null $rating
+ * @property string|null $rating
  * @property string|null $remark
 
  * @property mixed $branch

@@ -257,13 +257,13 @@ class LabelController extends Controller
         });
     }
 
-    private static function guard(Request $req, string $perm): RedirectResponse|JsonResponse|null
+    private static function guard(Request $req, string $perm): bool|RedirectResponse|JsonResponse
     {
         $user = $req->user();
         Log::info(__METHOD__ . ' checking permission', ['user_id' => $user?->id, 'perm' => $perm]);
         if ($user?->can($perm)) {
             Log::info(__METHOD__ . ' granted', ['perm' => $perm]);
-            return null;
+            return true;
         }
         Log::warning(__METHOD__ . ' denied', ['perm' => $perm]);
         return defaultPermissionDenial(

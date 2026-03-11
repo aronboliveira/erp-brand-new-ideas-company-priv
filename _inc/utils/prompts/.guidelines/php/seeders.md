@@ -16,10 +16,10 @@ Every `while` loop **must** have a break-out strategy:
 
 ### Clock Limiter Thresholds
 
-| Module Type | Max Seconds |
-|---|---|
-| Financial / Critical | 600 |
-| All others | 300 |
+| Module Type          | Max Seconds |
+| -------------------- | ----------- |
+| Financial / Critical | 600         |
+| All others           | 300         |
 
 ### HardCap Limiter
 

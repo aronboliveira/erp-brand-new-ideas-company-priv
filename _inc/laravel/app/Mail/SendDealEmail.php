@@ -11,15 +11,17 @@ class SendDealEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $dArr;
+    public $settings;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($dArr)
+    public function __construct($dArr, $settings = null)
     {
         $this->dArr = $dArr;
+        $this->settings = $settings;
     }
 
     /**

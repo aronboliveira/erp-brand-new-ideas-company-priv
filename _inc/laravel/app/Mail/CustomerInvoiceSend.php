@@ -13,12 +13,14 @@ class CustomerInvoiceSend extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $invoice;
+
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct($invoice = null)
     {
-        //
+        $this->invoice = $invoice;
     }
 
     /**

@@ -89,7 +89,8 @@ class EmployeeAttendance extends Model
         });
 
         static::saving(function (self $model): void {
-            $model->status = (int)AttendanceStatus::normalize($model->status ?? null)->value;
+            $rawStatus = $model->status instanceof AttendanceStatus ? $model->status->value : ($model->status !== null ? (string) $model->status : null);
+            $model->status = AttendanceStatus::normalize($rawStatus)->value;
 
             $model->{AC::COL_ERL_AV_CT}  = max(0, (int) ($model->{AC::COL_ERL_AV_CT} ?? 0));
             $model->{AC::COL_LT_CT}      = max(0, (int) ($model->{AC::COL_LT_CT} ?? 0));

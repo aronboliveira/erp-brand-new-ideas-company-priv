@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\activity;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Activity\CommissionController;
+use App\Http\Controllers\CommissionController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for CommissionController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Activity\CommissionController
+ * @covers \App\Http\Controllers\CommissionController
  */
 class CommissionControllerTest extends TestCase
 {

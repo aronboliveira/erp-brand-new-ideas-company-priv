@@ -21,12 +21,12 @@ $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
 
 ## Traits for Migrations
 
-| Trait | Purpose |
-|---|---|
-| `IsNumericBenefit` | Provides scale calculation for monetary benefit columns |
-| `HasNullableAuditColumns` | Adds nullable `created_at`, `updated_at`, `deleted_at` |
-| `HasAuditFields` | Standardized audit fields (`created_by`, `updated_by`, `deleted_by`) |
-| `EmployeeConnected` | Establishes employee-owner relationship logic |
+| Trait                     | Purpose                                                              |
+| ------------------------- | -------------------------------------------------------------------- |
+| `IsNumericBenefit`        | Provides scale calculation for monetary benefit columns              |
+| `HasNullableAuditColumns` | Adds nullable `created_at`, `updated_at`, `deleted_at`               |
+| `HasAuditFields`          | Standardized audit fields (`created_by`, `updated_by`, `deleted_by`) |
+| `EmployeeConnected`       | Establishes employee-owner relationship logic                        |
 
 ## Enums
 
@@ -45,13 +45,13 @@ All enums below expose a `normalize()` method for consistent value handling:
 
 Use these constants for table and column names to prevent typos and enable IDE refactoring:
 
-| Class | Alias | Contains |
-|---|---|---|
-| `DatabaseConstants` | `DC` | `TABLE_*`, `COL_*` for core DB schema |
-| `UsersConstants` | `UC` | User-related tables/columns |
-| `CompaniesConstants` | `CC` | Company-related tables/columns |
-| `ProjectsConstants` | `PC` | Project-related tables/columns |
-| `BillsConstants` | `BC` | Billing-related tables/columns |
+| Class                | Alias | Contains                              |
+| -------------------- | ----- | ------------------------------------- |
+| `DatabaseConstants`  | `DC`  | `TABLE_*`, `COL_*` for core DB schema |
+| `UsersConstants`     | `UC`  | User-related tables/columns           |
+| `CompaniesConstants` | `CC`  | Company-related tables/columns        |
+| `ProjectsConstants`  | `PC`  | Project-related tables/columns        |
+| `BillsConstants`     | `BC`  | Billing-related tables/columns        |
 
 ## Important Notes
 

@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\activity;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Activity\MeetingController;
+use App\Http\Controllers\MeetingController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for MeetingController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Activity\MeetingController
+ * @covers \App\Http\Controllers\MeetingController
  */
 class MeetingControllerTest extends TestCase
 {

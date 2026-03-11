@@ -865,7 +865,7 @@ final class InvoiceController extends Controller
                 $invoice->taxesData      = $taxesData;
                 $invoice->customField    = CustomField::getData($invoice, self::SINGULAR);
 
-                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId() ?? null)
+                $custom_fields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId() ?? null)
                     ->where('module', self::SINGULAR)->get();
 
                 $logo    = asset(Storage::url('uploads/logo/'));

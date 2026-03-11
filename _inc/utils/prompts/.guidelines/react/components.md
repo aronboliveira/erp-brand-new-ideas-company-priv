@@ -25,7 +25,9 @@ Be **mindful** of dependency arrays in `useEffect`, `useMemo`, and
 - Use `useCallback` for functions passed as props or added to dependency
   arrays:
   ```tsx
-  const handleClick = useCallback(() => { /* … */ }, [dependency]);
+  const handleClick = useCallback(() => {
+    /* … */
+  }, [dependency]);
   ```
 
 ---
@@ -35,13 +37,14 @@ Be **mindful** of dependency arrays in `useEffect`, `useMemo`, and
 When transpiling a Blade view to a React component, derive the name
 from the Blade path using PascalCase:
 
-| Blade path              | Component name     |
-| ------------------------ | ------------------ |
-| `admin/page.blade.php`   | `AdminPage`        |
+| Blade path                  | Component name   |
+| --------------------------- | ---------------- |
+| `admin/page.blade.php`      | `AdminPage`      |
 | `employee/create.blade.php` | `EmployeeCreate` |
-| `invoice/edit.blade.php` | `InvoiceEdit`      |
+| `invoice/edit.blade.php`    | `InvoiceEdit`    |
 
 If the path doesn't clearly suggest a name, mark with:
+
 ```tsx
 // ? NO CLEAR NAME — derived from <original-path>
 ```
@@ -54,7 +57,10 @@ Components that are frequently mounted / unmounted — such as **modals,
 accordions, dialogs, dropdowns** — should be wrapped in `React.memo`:
 
 ```tsx
-const ConfirmModal = React.memo(function ConfirmModal({ open, onClose }: Props) {
+const ConfirmModal = React.memo(function ConfirmModal({
+  open,
+  onClose,
+}: Props) {
   if (!open) return null;
   return <Dialog onClose={onClose}>…</Dialog>;
 });
@@ -69,7 +75,9 @@ the component's props haven't.
 
 - Use **function declarations** for components (not arrow-assigned):
   ```tsx
-  export default function TaskList(): JSX.Element { /* … */ }
+  export default function TaskList(): JSX.Element {
+    /* … */
+  }
   ```
 - Use **default export** when the file contains a single isolated
   component.
@@ -88,7 +96,7 @@ import { createPortal } from "react-dom";
 
 function Modal({ children }: { children: React.ReactNode }) {
   return createPortal(
-    <div className="modal-overlay">{children}</div>,
+    <div className='modal-overlay'>{children}</div>,
     document.body,
   );
 }
@@ -117,7 +125,7 @@ The project uses **Material UI** components styled with **Tailwind CSS**
 utility classes. Combine them naturally:
 
 ```tsx
-<Button variant="contained" className="mt-4 rounded-lg">
+<Button variant='contained' className='mt-4 rounded-lg'>
   Save
 </Button>
 ```

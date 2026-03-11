@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\activity;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Activity\EventController;
+use App\Http\Controllers\EventController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for EventController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Activity\EventController
+ * @covers \App\Http\Controllers\EventController
  */
 class EventControllerTest extends TestCase
 {
@@ -1693,7 +1693,7 @@ class EventControllerTest extends TestCase
     public function test_getDashboardEventData_returns_json(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Activity\EventController();
+        $ctrl = new \App\Http\Controllers\EventController();
         try {
             $result = $ctrl->getDashboardEventData($this->makeRequest('/event/get_dashboard_event_data', 'GET', [
                 'month' => 6,
@@ -1712,7 +1712,7 @@ class EventControllerTest extends TestCase
     public function test_getDashboardEventData_defaults_to_current_month(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Activity\EventController();
+        $ctrl = new \App\Http\Controllers\EventController();
         try {
             $result = $ctrl->getDashboardEventData($this->makeRequest('/event/get_dashboard_event_data', 'GET'));
             $this->assertInstanceOf(
@@ -1728,7 +1728,7 @@ class EventControllerTest extends TestCase
     public function test_getDashboardEventData_returns_array_structure(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Activity\EventController();
+        $ctrl = new \App\Http\Controllers\EventController();
         try {
             $result = $ctrl->getDashboardEventData($this->makeRequest('/event/get_dashboard_event_data', 'GET', [
                 'month' => 1,

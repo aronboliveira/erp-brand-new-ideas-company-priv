@@ -565,7 +565,7 @@ final class FeaturesController extends AppController
                     Log::warning("[features_edit] view not found", ['attempted' => self::ENTITY . '.features_edit']);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.features_edit');
                 }
-                return view($view, ['other_features' => $list[$key], 'key' => $key]);
+                return view($view, ['other_features' => $list[$key] ?? null, 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::error("$action failed", ['error' => $e->getMessage(), 'key' => $key]);
                 return redirect()->back()->with('error', 'An error occurred while loading the other feature edit form.');

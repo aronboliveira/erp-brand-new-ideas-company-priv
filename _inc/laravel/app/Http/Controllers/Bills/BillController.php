@@ -395,8 +395,8 @@ final class BillController extends Controller
             $valStart = microtime(true);
             $request->validate(['vendor_id' => 'required|exists:vendors,id', 'bill_date' => 'required|date', 'due_date' => 'required|date']);
             $this->logExecutionTime($valStart, $action, 'validateInput');
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $updStart = microtime(true);
                 $bill->update(['vendor_id' => $request->vendor_id, 'bill_date' => $request->bill_date, 'due_date' => $request->due_date, 'order_id' => $request->order_id, 'category_id' => $request->category_id]);
@@ -530,8 +530,8 @@ final class BillController extends Controller
                 return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
             }
             Log::info("[{$base}::{$action}] destroying bill", [UC::COL_USER_ID => auth()->id(), 'bill_id' => $bill->id, 'method' => $method]);
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $payLoopStart = microtime(true);
                 foreach ($bill->payments as $p) {

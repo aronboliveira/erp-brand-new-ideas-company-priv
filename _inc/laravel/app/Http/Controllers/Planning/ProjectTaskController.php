@@ -787,7 +787,7 @@ class ProjectTaskController extends Controller
                 $tasks = $tasksQuery->get();
                 $transdate = date('Y-m-d');
                 $arrTasks = Utility::getTaskCalendarArray($tasks);
-                ${ProjectsConstants::COL_PJ_ID} = $projectId;
+                $project_id = $projectId;
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 return view($viewPath, compact('arrTasks', ProjectsConstants::COL_PJ_ID, 'taskBy', 'transdate'));
             } catch (\Throwable $e) {

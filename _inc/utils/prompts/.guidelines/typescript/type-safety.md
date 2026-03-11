@@ -122,15 +122,19 @@ Do not rely on the global JSX namespace — it is deprecated in React 19+.
 
 ## 7. Async Return Types
 
-| Signature          | Annotation         |
-| ------------------ | ------------------ |
-| `async function`   | `Promise<void>`    |
-| Non-async function | `: void`           |
+| Signature          | Annotation                                    |
+| ------------------ | --------------------------------------------- |
+| `async function`   | `Promise<void>`                               |
+| Non-async function | `: void`                                      |
 | Complex inferred   | Add `// eslint-disable-next-line` with reason |
 
 ```ts
-async function loadData(): Promise<void> { /* … */ }
-function handleClick(): void { /* … */ }
+async function loadData(): Promise<void> {
+  /* … */
+}
+function handleClick(): void {
+  /* … */
+}
 ```
 
 ---
@@ -142,7 +146,9 @@ manually, suppress the ESLint rule on that line with a reason:
 
 ```ts
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- generated union too complex
-const buildConfig = () => ({ /* … */ });
+const buildConfig = () => ({
+  /* … */
+});
 ```
 
 Prefer annotating whenever practical. Suppression is a last resort.

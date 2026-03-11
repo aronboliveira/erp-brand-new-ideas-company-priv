@@ -30,7 +30,7 @@ class VendorController extends Controller
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = 'vendor';
-    private const ROUTE_INDEX = self::SINGULAR . '.index';
+    private const ROUTE_INDEX = 'vendors.index';
 
     public function dashboard(Request $request): View|RedirectResponse
     {

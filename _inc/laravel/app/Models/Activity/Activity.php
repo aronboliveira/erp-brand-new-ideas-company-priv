@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\{Log};
 class Activity extends Model
 {
     use LogsIcons, UsesUuids;
-    public static function getActivity(string $moduleType, string|int $moduleId): array
+    public static function getActivity(string $moduleType, string|int|null $moduleId): array
     {
         try {
+            if ($moduleId === null) return [UsersConstants::COL_NM => '-'];
             $moduleType = strtolower($moduleType);
             $result = [UsersConstants::COL_NM => '-'];
             if (

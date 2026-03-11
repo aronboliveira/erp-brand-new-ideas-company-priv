@@ -69,8 +69,8 @@ request.
 ```js
 // Set in Blade (rendered by PHP)
 window.translations = {
-  en: { "task.created": "Task created successfully", /* … */ },
-  "pt-br": { "task.created": "Tarefa criada com sucesso", /* … */ },
+  en: { "task.created": "Task created successfully" /* … */ },
+  "pt-br": { "task.created": "Tarefa criada com sucesso" /* … */ },
 };
 ```
 
@@ -117,7 +117,7 @@ else {
 - Portuguese Brazilian is the only multi-segment tag kept (`pt-br`);
   everything else is truncated to two characters.
 - Fallback chain: `translations[lang][key] → data-guard-msg attribute
-  → translations["en"][key] → "# ERROR"`.
+→ translations["en"][key] → "# ERROR"`.
 
 ---
 

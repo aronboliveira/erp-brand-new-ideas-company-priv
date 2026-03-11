@@ -1,1106 +1,310 @@
 <?php
-declare(strict_types=1);
-namespace Tests\Unit\app\Http\Controllers\planning;
 
+namespace Tests\Feature;
+
+use App\Models\{Designation, Employee, Promotion, User};
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
-use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Planning\PromotionController;
-use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
-use Illuminate\View\View;
 
-/**
- * Comprehensive tests for PromotionController
- * Includes I/O variations, edge cases, and performance tests
- * 
- * @covers \App\Http\Controllers\Planning\PromotionController
- */
 class PromotionControllerTest extends TestCase
 {
-    use ControllerTestHelper;
+	use RefreshDatabase;
 
-    public function test_constant_IDX_equals_index_1(): void
-    {
-        $this->assertSame('index', PromotionController::IDX);
-    }
+	private User $company;
+	private User $employee;
 
-    public function test_constant_CRT_equals_create_2(): void
-    {
-        $this->assertSame('create', PromotionController::CRT);
-    }
+	protected function setUp(): void
+	{
+		parent::setUp();
 
-    public function test_constant_STR_equals_store_3(): void
-    {
-        $this->assertSame('store', PromotionController::STR);
-    }
+		// allow creatorId() to return own ID
+		User::macro(
+			'creatorId',
+			/** 
+			 * @this \App\Models\User 
+			 * @return int|string
+			 **/
+			function (): int|string {
+				/** @var \App\Models\User $this */
+				return $this->id;
+			}
+		);
 
-    public function test_constant_SHW_equals_show_4(): void
-    {
-        $this->assertSame('show', PromotionController::SHW);
-    }
+		// default: allow all permission checks
+		Gate::before(fn () => true);
 
-    public function test_constant_EDT_equals_edit_5(): void
-    {
-        $this->assertSame('edit', PromotionController::EDT);
-    }
+		$this->company = User::factory()->create(['type' => 'company']);
+		$this->employee = User::factory()->create(['type' => 'Employee']);
+	}
 
-    public function test_constant_UPD_equals_update_6(): void
-    {
-        $this->assertSame('update', PromotionController::UPD);
-    }
+	/**
+	 ** @test
+	 **
+	 ** index_denies_without_permission
+	 **
+	 ** Users without 'manage promotion' permission receive 403.
+	 **/
+	public function index_denies_without_permission()
+	{
+		Gate::before(fn () => false);
 
-    public function test_constant_DEL_equals_destroy_7(): void
-    {
-        $this->assertSame('destroy', PromotionController::DEL);
-    }
+		$this->actingAs($this->company)
+			->get(route('promotion.index'))
+			->assertStatus(403);
+	}
 
-    public function test_index_8(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->index($this->makeRequest());
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** index_lists_promotions_for_company
+	 **
+	 ** Company users see only their own promotions.
+	 **/
+	public function index_lists_promotions_for_company()
+	{
+		Promotion::factory()->count(2)->create(['created_by' => $this->company->creatorId()]);
+		Promotion::factory()->create(['created_by' => $this->employee->creatorId()]);
 
-    public function test_index_empty_post_9(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->index($this->makeRequest('/', 'POST', []));
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$response = $this->actingAs($this->company)
+			->get(route('promotion.index'));
 
-    public function test_index_json_10(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->index($this->makeRequest('/', 'GET', [], true));
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse, 'index must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$response->assertOk()
+			->assertViewIs('promotion.index')
+			->assertViewHas('promotions', fn ($list) => $list->count() === 2);
+	}
 
-    /**
-     * @group performance
-     */
-    public function test_index_performance_11(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->index($this->makeRequest());
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "index took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "index used > 50MB for 3 iterations");
-    }
+	/**
+	 ** @test
+	 **
+	 ** create_denies_without_permission
+	 **
+	 ** Users without 'create promotion' cannot access form.
+	 **/
+	public function create_denies_without_permission()
+	{
+		Gate::before(fn () => false);
 
-    public function test_create_12(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->create($this->makeRequest());
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'create must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$this->actingAs($this->company)
+			->get(route('promotion.create'))
+			->assertStatus(403);
+	}
 
-    public function test_create_empty_post_13(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->create($this->makeRequest('/', 'POST', []));
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'create must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** create_displays_form
+	 **
+	 ** Authorized users see create form with designations and employees.
+	 **/
+	public function create_displays_form()
+	{
+		Designation::factory()->count(2)->create(['created_by' => $this->company->creatorId()]);
+		Employee::factory()->count(3)->create(['created_by' => $this->company->creatorId()]);
 
-    public function test_create_json_14(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->create($this->makeRequest('/', 'GET', [], true));
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'create must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$response = $this->actingAs($this->company)
+			->get(route('promotion.create'));
 
-    /**
-     * @group performance
-     */
-    public function test_create_performance_15(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->create($this->makeRequest());
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "create took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "create used > 50MB for 3 iterations");
-    }
+		$response->assertOk()
+			->assertViewIs('promotion.create')
+			->assertViewHasAll(['designations', 'employees']);
+	}
 
-    public function test_store_16(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->store($this->makeRequest());
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'store must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** store_validates_and_creates
+	 **
+	 ** Empty payload redirects with error; valid input creates promotion.
+	 **/
+	public function store_validates_and_creates()
+	{
+		// validation failure
+		$this->actingAs($this->company)
+			->post(route('promotion.store'), [])
+			->assertRedirect()
+			->assertSessionHas('error');
 
-    public function test_store_empty_post_17(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->store($this->makeRequest('/', 'POST', []));
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'store must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		// success
+		$desig = Designation::factory()->create(['created_by' => $this->company->creatorId()]);
+		$emp  = Employee::factory()->create(['created_by' => $this->company->creatorId()]);
 
-    public function test_store_json_18(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->store($this->makeRequest('/', 'GET', [], true));
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'store must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$payload = [
+			'employee_id'     => $emp->id,
+			'designation_id'  => $desig->id,
+			'promotion_title' => 'Title',
+			'promotion_date'  => now()->toDateString(),
+			'description'     => 'Desc',
+		];
 
-    /**
-     * @group performance
-     */
-    public function test_store_performance_19(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->store($this->makeRequest());
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "store took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "store used > 50MB for 3 iterations");
-    }
+		$this->actingAs($this->company)
+			->post(route('promotion.store'), $payload)
+			->assertRedirect(route('promotion.index'))
+			->assertSessionHas('success');
 
-    public function test_show_20(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->show($this->makeRequest(), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$this->assertDatabaseHas('promotions', [
+			'employee_id'    => $emp->id,
+			'designation_id' => $desig->id,
+			'promotion_title' => 'Title',
+			'created_by'     => $this->company->creatorId(),
+		]);
+	}
 
-    public function test_show_empty_post_21(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->show($this->makeRequest('/', 'POST', []), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** show_redirects_to_index
+	 **
+	 ** The show endpoint always redirects back to index.
+	 **/
+	public function show_redirects_to_index()
+	{
+		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
-    public function test_show_json_22(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->show($this->makeRequest('/', 'GET', [], true), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'show must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$this->actingAs($this->company)
+			->get(route('promotion.show', $promo))
+			->assertRedirect(route('promotion.index'));
+	}
 
-    /**
-     * @group performance
-     */
-    public function test_show_performance_23(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->show($this->makeRequest(), null);
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "show took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "show used > 50MB for 3 iterations");
-    }
+	/**
+	 ** @test
+	 **
+	 ** edit_denies_without_permission_and_non_owner
+	 **
+	 ** Without 'edit promotion' or as non-owner returns unauthorized.
+	 **/
+	public function edit_denies_without_permission_and_non_owner()
+	{
+		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
-    public function test_edit_24(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->edit($this->makeRequest(), null);
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'edit must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		// no permission
+		Gate::before(fn () => false);
+		$this->actingAs($this->company)
+			->get(route('promotion.edit', $promo))
+			->assertStatus(403);
 
-    public function test_edit_empty_post_25(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->edit($this->makeRequest('/', 'POST', []), null);
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'edit must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		// restore permission, wrong owner => JSON 401
+		Gate::before(fn () => true);
+		$other = User::factory()->create(['type' => 'company']);
+		$this->actingAs($other)
+			->get(route('promotion.edit', $promo))
+			->assertStatus(401);
+	}
 
-    public function test_edit_json_26(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->edit($this->makeRequest('/', 'GET', [], true), null);
-            $this->assertTrue($result instanceof \Illuminate\View\View || $result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'edit must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** edit_displays_form_for_owner
+	 **
+	 ** Owner with permission sees edit form.
+	 **/
+	public function edit_displays_form_for_owner()
+	{
+		$desig = Designation::factory()->create(['created_by' => $this->company->creatorId()]);
+		$emp  = Employee::factory()->create(['created_by' => $this->company->creatorId()]);
+		$promo = Promotion::factory()->create([
+			'employee_id'    => $emp->id,
+			'designation_id' => $desig->id,
+			'created_by'     => $this->company->creatorId(),
+		]);
 
-    /**
-     * @group performance
-     */
-    public function test_edit_performance_27(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->edit($this->makeRequest(), null);
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "edit took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "edit used > 50MB for 3 iterations");
-    }
+		$response = $this->actingAs($this->company)
+			->get(route('promotion.edit', $promo));
 
-    public function test_update_28(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->update($this->makeRequest(), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'update must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$response->assertOk()
+			->assertViewIs('promotion.edit')
+			->assertViewHasAll(['promotion', 'designations', 'employees']);
+	}
 
-    public function test_update_empty_post_29(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->update($this->makeRequest('/', 'POST', []), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'update must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** update_validates_and_saves
+	 **
+	 ** Empty update fails; valid update persists changes.
+	 **/
+	public function update_validates_and_saves()
+	{
+		$desig1 = Designation::factory()->create(['created_by' => $this->company->creatorId()]);
+		$desig2 = Designation::factory()->create(['created_by' => $this->company->creatorId()]);
+		$emp   = Employee::factory()->create(['created_by' => $this->company->creatorId()]);
+		$promo = Promotion::factory()->create([
+			'employee_id'    => $emp->id,
+			'designation_id' => $desig1->id,
+			'promotion_title' => 'Old',
+			'promotion_date' => now()->toDateString(),
+			'created_by'     => $this->company->creatorId(),
+		]);
 
-    public function test_update_json_30(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->update($this->makeRequest('/', 'GET', [], true), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse || $result instanceof \Illuminate\Http\JsonResponse, 'update must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		// validation fail
+		$this->actingAs($this->company)
+			->put(route('promotion.update', $promo), [])
+			->assertRedirect()
+			->assertSessionHas('error');
 
-    /**
-     * @group performance
-     */
-    public function test_update_performance_31(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->update($this->makeRequest(), null);
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "update took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "update used > 50MB for 3 iterations");
-    }
+		// success
+		$payload = [
+			'employee_id'     => $emp->id,
+			'designation_id'  => $desig2->id,
+			'promotion_title' => 'New Title',
+			'promotion_date'  => now()->addDay()->toDateString(),
+			'description'     => 'Updated',
+		];
 
-    public function test_destroy_32(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->destroy($this->makeRequest(), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$this->actingAs($this->company)
+			->put(route('promotion.update', $promo), $payload)
+			->assertRedirect(route('promotion.index'))
+			->assertSessionHas('success');
 
-    public function test_destroy_empty_post_33(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->destroy($this->makeRequest('/', 'POST', []), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+		$this->assertDatabaseHas('promotions', [
+			'id'              => $promo->id,
+			'designation_id'  => $desig2->id,
+			'promotion_title' => 'New Title',
+		]);
+	}
 
-    public function test_destroy_json_34(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        try {
-            $result = $ctrl->destroy($this->makeRequest('/', 'GET', [], true), null);
-            $this->assertTrue($result instanceof \Illuminate\Http\RedirectResponse, 'destroy must return valid type');
-            } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\BadMethodCallException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\QueryException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\RuntimeException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\ErrorException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\TypeError $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            } catch (\Throwable $e) {
-                $this->assertNotEmpty($e->getMessage());
-                return;
-            }
-    }
+	/**
+	 ** @test
+	 **
+	 ** destroy_denies_without_permission_and_non_owner
+	 **
+	 ** Without 'delete promotion' or as non-owner cannot delete.
+	 **/
+	public function destroy_denies_without_permission_and_non_owner()
+	{
+		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
-    /**
-     * @group performance
-     */
-    public function test_destroy_performance_35(): void
-    {
-        $this->loginMockUser();
-        $ctrl = new PromotionController();
-        
-        $memBefore = memory_get_usage(true);
-        $timeBefore = microtime(true);
-        
-        try {
-            for ($i = 0; $i < 3; $i++) {
-                $ctrl->destroy($this->makeRequest(), null);
-            }
-        } catch (\Throwable $e) {
-            // Method may throw, that's OK for perf test
-        }
-        
-        $timeAfter = microtime(true);
-        $memAfter = memory_get_usage(true);
-        
-        $execTime = ($timeAfter - $timeBefore) * 1000; // ms
-        $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
-        
-        // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "destroy took > 5s for 3 iterations");
-        $this->assertLessThan(50, $memUsed, "destroy used > 50MB for 3 iterations");
-    }
+		// no permission
+		Gate::before(fn () => false);
+		$this->actingAs($this->company)
+			->delete(route('promotion.destroy', $promo))
+			->assertStatus(403);
 
+		// restore permission, wrong owner => redirect index + error
+		Gate::before(fn () => true);
+		$other = User::factory()->create(['type' => 'company']);
+		$this->actingAs($other)
+			->delete(route('promotion.destroy', $promo))
+			->assertRedirect(route('promotion.index'))
+			->assertSessionHas('error');
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** destroy_deletes_for_owner
+	 **
+	 ** Owner with permission can delete promotion.
+	 **/
+	public function destroy_deletes_for_owner()
+	{
+		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
+
+		$this->actingAs($this->company)
+			->delete(route('promotion.destroy', $promo))
+			->assertRedirect(route('promotion.index'))
+			->assertSessionHas('success');
+
+		$this->assertDatabaseMissing('promotions', ['id' => $promo->id]);
+	}
 }

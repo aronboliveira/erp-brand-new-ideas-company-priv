@@ -20,6 +20,7 @@ use App\Traits\ChecksLogin;
 use GuzzleHttp\Client;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{
     Auth,
     Crypt,
@@ -508,11 +509,11 @@ final class CashfreeController extends Controller
         foreach (
             [
                 'invoice_id'     => $inv->id,
-                'date'           => date('Y-m-d'),
+                'date'           => Carbon::today(),
                 'amount'         => $amt,
                 'account_id'     => 0,
-                'payment_method' => 0,
-                'order_id'       => uniqid(),
+                'payment_method' => '0',
+                'order_id'       => abs(crc32(uniqid())),
                 'payment_type'   => 'Cashfree',
                 'receipt'        => '',
                 'reference'      => '',

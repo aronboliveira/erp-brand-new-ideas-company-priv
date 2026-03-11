@@ -1,21 +1,16 @@
 <?php
 
-namespace Tests\Unit\app\Models\activity;
+namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Appraisal;
 use App\Models\Branch;
 use App\Models\Employee;
 
 class AppraisalTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-    }
 	use RefreshDatabase;
 
 	/**
@@ -27,10 +22,10 @@ class AppraisalTest extends TestCase
 	{
 		$relation = (new Appraisal)->branches();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Branch::class, get_class($relation->getRelated()));
-		$this->assertSame('branch', $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id', $relation->getForeignKeyName());
+		$this->assertSame('branch', $relation->getLocalKeyName());
 	}
 
 	/**
@@ -42,9 +37,9 @@ class AppraisalTest extends TestCase
 	{
 		$relation = (new Appraisal)->employees();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('employee', $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id', $relation->getForeignKeyName());
+		$this->assertSame('employee', $relation->getLocalKeyName());
 	}
 }

@@ -53,7 +53,13 @@ final class VendorExport implements FromCollection, WithHeadings, WithEvents
         'updated_at'
     ];
 
+    private array $filters;
     private int $projectId;
+
+    public function __construct(array $filters = [])
+    {
+        $this->filters = $filters;
+    }
 
     public function collection(): Collection
     {

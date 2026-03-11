@@ -299,10 +299,10 @@ Full Playwright suite after this commit: **300 passed / 1 failed** (expense form
 
 ### Additional Bugs Fixed
 
-| #   | Issue                                                               | Commit       | Files                                     |
-| --- | ------------------------------------------------------------------- | ------------ | ----------------------------------------- |
-| 17  | Login detail FK constraint: `created_by = 0` violates UUID FK      | `b4265c32`   | `AuthenticatedSessionController.php`      |
-| 18  | auth.setup.cjs: broken waitForURL regex, duplicate form IDs, race  | `b4265c32`   | `auth.setup.cjs`                          |
+| #   | Issue                                                             | Commit     | Files                                |
+| --- | ----------------------------------------------------------------- | ---------- | ------------------------------------ |
+| 17  | Login detail FK constraint: `created_by = 0` violates UUID FK     | `b4265c32` | `AuthenticatedSessionController.php` |
+| 18  | auth.setup.cjs: broken waitForURL regex, duplicate form IDs, race | `b4265c32` | `auth.setup.cjs`                     |
 
 ### Database Setup
 
@@ -312,19 +312,20 @@ Full Playwright suite after this commit: **300 passed / 1 failed** (expense form
 
 ### Full Test Suite Results (with seeded DB)
 
-| Suite      | Tests   | Pass    | Fail/Error | Rate     | Previous  | Delta   |
-| ---------- | ------- | ------- | ---------- | -------- | --------- | ------- |
-| PHPUnit    | 12,180  | 11,130  | 1,050      | **91.4%** | 90.4%     | +1.0%   |
-| Playwright | 297†    | 139     | 158        | **46.8%** | 47.1%     | −0.3%   |
-| Jest       | 524     | 524     | 0          | **100%** | 100%      | —       |
-| pytest     | 268     | 268     | 0          | **100%** | 100%      | —       |
-| PHPStan    | —       | —       | 0          | **100%** | 100%      | —       |
+| Suite      | Tests  | Pass   | Fail/Error | Rate      | Previous | Delta |
+| ---------- | ------ | ------ | ---------- | --------- | -------- | ----- |
+| PHPUnit    | 12,180 | 11,130 | 1,050      | **91.4%** | 90.4%    | +1.0% |
+| Playwright | 297†   | 139    | 158        | **46.8%** | 47.1%    | −0.3% |
+| Jest       | 524    | 524    | 0          | **100%**  | 100%     | —     |
+| pytest     | 268    | 268    | 0          | **100%**  | 100%     | —     |
+| PHPStan    | —      | —      | 0          | **100%**  | 100%     | —     |
 
 † 332 total, 35 skipped = 297 non-skipped
 
 ### PHPUnit Failure Breakdown (25 in Feature+Unit, 1050 total)
 
 Feature test failures (25):
+
 - 14× DashboardDataTest — missing route/controller dependencies
 - 1× ExampleTest — expected 2xx/3xx got 404
 - 2× HrmRouteReturnTest / PmRouteReturnTest — export route 404

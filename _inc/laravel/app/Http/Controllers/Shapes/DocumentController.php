@@ -242,14 +242,14 @@ final class DocumentController extends Controller
         });
     }
 
-    private static function guard(Request $req, string $perm): RedirectResponse|JsonResponse|null
+    private static function guard(Request $req, string $perm): bool|RedirectResponse|JsonResponse
     {
         $user = $req->user();
         Log::info(__METHOD__ . ' checking', ['user_id' => $user?->id, 'perm' => $perm]);
-        if ($user?->can($perm)) return null;
+        if ($user?->can($perm)) return true;
         if (strtolower((string)($user?->type ?? '')) === \App\Config\Constants\PermissionsConstants::SA) {
             Log::notice(__METHOD__ . ' SA bypass', ['user_id' => $user?->id, 'perm' => $perm]);
-            return null;
+            return true;
         }
 
         Log::warning(__METHOD__ . ' denied', ['user_id' => $user?->id, 'perm' => $perm]);

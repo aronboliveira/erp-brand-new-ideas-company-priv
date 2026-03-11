@@ -522,10 +522,12 @@ class Vendor extends Authenticatable
         );
     }
 
-    public function invoiceNumberFormat(int $num): string
+    public function invoiceNumberFormat(int|string $num): string
     {
-        return Utility::settings()[SC::INV_PFX]
-            . sprintf('%05d', $num);
+        $prefix = Utility::settings()[SC::INV_PFX] ?? '';
+        return is_numeric($num)
+            ? $prefix . sprintf('%05d', (int) $num)
+            : $prefix . $num;
     }
 
     public function purchaseNumberFormat(int $num): string
@@ -534,10 +536,12 @@ class Vendor extends Authenticatable
             . sprintf('%05d', $num);
     }
 
-    public function billNumberFormat(int $num): string
+    public function billNumberFormat(int|string $num): string
     {
-        return Utility::settings()[SC::BL_PFX]
-            . sprintf('%05d', $num);
+        $prefix = Utility::settings()[SC::BL_PFX] ?? '';
+        return is_numeric($num)
+            ? $prefix . sprintf('%05d', (int) $num)
+            : $prefix . $num;
     }
 
     public function representative()

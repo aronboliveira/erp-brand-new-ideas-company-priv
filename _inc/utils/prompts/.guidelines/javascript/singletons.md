@@ -28,8 +28,10 @@ Pattern: **IIFE that attaches a frozen singleton to `window.erpGuard`.**
 
 ```js
 (function () {
-  if (window.erpGuard) return;          // idempotent
-  const guard = Object.freeze({ /* … */ });
+  if (window.erpGuard) return; // idempotent
+  const guard = Object.freeze({
+    /* … */
+  });
   window.erpGuard = guard;
 })();
 ```
@@ -71,19 +73,26 @@ Pattern: **IIFE that exposes a `register` / `require` registry.**
 (function () {
   const _registry = {};
   window.ERPBootstrap = Object.freeze({
-    register(key, factory) { _registry[key] = factory; },
+    register(key, factory) {
+      _registry[key] = factory;
+    },
     require(...keys) {
       return keys.map(k => {
         if (!_registry[k]) throw new Error(`[ERPBootstrap] missing: ${k}`);
-        return typeof _registry[k] === "function" ? _registry[k]() : _registry[k];
+        return typeof _registry[k] === "function"
+          ? _registry[k]()
+          : _registry[k];
       });
     },
-    ensureSingletons() { /* verify all expected keys are present */ },
+    ensureSingletons() {
+      /* verify all expected keys are present */
+    },
   });
 })();
 ```
 
 Route files pull exactly the singletons they need:
+
 ```js
 const [guard, utils] = ERPBootstrap.require("guard", "utils");
 ```
@@ -92,39 +101,39 @@ const [guard, utils] = ERPBootstrap.require("guard", "utils");
 
 ## ERPGuard Public API
 
-| Method              | Purpose                                          |
-| ------------------- | ------------------------------------------------ |
-| `getMsg(key)`       | Resolve a translated message from the dictionary |
-| `showToast(type, msg)` | Display a toast notification                  |
-| `error(msg)`        | `showToast("error", msg)`                        |
-| `warning(msg)`      | `showToast("warning", msg)`                      |
-| `success(msg)`      | `showToast("success", msg)`                      |
-| `info(msg)`         | `showToast("info", msg)`                         |
-| `confirm(msg, cb)`  | Show a confirmation dialog, call `cb` on accept  |
-| `getCsrfToken()`    | Read CSRF token from `<meta name="csrf-token">`  |
-| `resolveUrl(path)`  | Prepend the app base URL to a relative path      |
-| `safeFetch(url, opts)` | axios wrapper with try/catch + error toast    |
-| `ajaxPost(url, data)` | POST shorthand via safeFetch                   |
-| `ajaxDelete(url)`   | DELETE shorthand via safeFetch                   |
-| `isInvalidUrl(url)` | Basic URL validation                             |
-| `bindSubmitGuard(form)` | Prevent double-submit on a `<form>`          |
+| Method                  | Purpose                                          |
+| ----------------------- | ------------------------------------------------ |
+| `getMsg(key)`           | Resolve a translated message from the dictionary |
+| `showToast(type, msg)`  | Display a toast notification                     |
+| `error(msg)`            | `showToast("error", msg)`                        |
+| `warning(msg)`          | `showToast("warning", msg)`                      |
+| `success(msg)`          | `showToast("success", msg)`                      |
+| `info(msg)`             | `showToast("info", msg)`                         |
+| `confirm(msg, cb)`      | Show a confirmation dialog, call `cb` on accept  |
+| `getCsrfToken()`        | Read CSRF token from `<meta name="csrf-token">`  |
+| `resolveUrl(path)`      | Prepend the app base URL to a relative path      |
+| `safeFetch(url, opts)`  | axios wrapper with try/catch + error toast       |
+| `ajaxPost(url, data)`   | POST shorthand via safeFetch                     |
+| `ajaxDelete(url)`       | DELETE shorthand via safeFetch                   |
+| `isInvalidUrl(url)`     | Basic URL validation                             |
+| `bindSubmitGuard(form)` | Prevent double-submit on a `<form>`              |
 
 ---
 
 ## ERPBootstrap API
 
-| Method                | Purpose                                        |
-| --------------------- | ---------------------------------------------- |
-| `register(key, factory)` | Register a singleton factory or instance    |
-| `require(...keys)`    | Retrieve registered singletons by key          |
-| `ensureSingletons()`  | Assert that all expected keys are registered   |
+| Method                   | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| `register(key, factory)` | Register a singleton factory or instance     |
+| `require(...keys)`       | Retrieve registered singletons by key        |
+| `ensureSingletons()`     | Assert that all expected keys are registered |
 
 ### Default Registry Entries
 
-| Key       | Resolves to         |
-| --------- | ------------------- |
-| `guard`   | `window.erpGuard`   |
-| `utils`   | `window.erpUtils`   |
+| Key     | Resolves to       |
+| ------- | ----------------- |
+| `guard` | `window.erpGuard` |
+| `utils` | `window.erpUtils` |
 
 ---
 
@@ -133,7 +142,7 @@ const [guard, utils] = ERPBootstrap.require("guard", "utils");
 The singleton scripts are loaded with `defer` in three layout files:
 
 1. **`resources/views/layouts/admin.blade.php`** — admin panel
-2. **`resources/views/layouts/auth.blade.php`**  — authentication pages
+2. **`resources/views/layouts/auth.blade.php`** — authentication pages
 3. **`resources/views/layouts/landing.blade.php`** — landing page
 
 ```html
@@ -148,12 +157,12 @@ The singleton scripts are loaded with `defer` in three layout files:
 
 When auditing route files for refactoring, classify each as:
 
-| Category | Description                                                   | Action                                      |
-| -------- | ------------------------------------------------------------- | ------------------------------------------- |
-| **Heavy**    | Contains all 4 boilerplate functions (getMsg, showToast, getCsrfToken, safeFetch) | Full delegation to guard.*              |
-| **Medium**   | Contains only `getMsg` or a subset                        | Partial delegation                          |
-| **Light**    | Already clean — no boilerplate duplication                 | No change needed                            |
-| **Namespace** | Exports a public API (used by other files)                | Preserve exports, delegate internally       |
+| Category      | Description                                                                       | Action                                |
+| ------------- | --------------------------------------------------------------------------------- | ------------------------------------- |
+| **Heavy**     | Contains all 4 boilerplate functions (getMsg, showToast, getCsrfToken, safeFetch) | Full delegation to guard.\*           |
+| **Medium**    | Contains only `getMsg` or a subset                                                | Partial delegation                    |
+| **Light**     | Already clean — no boilerplate duplication                                        | No change needed                      |
+| **Namespace** | Exports a public API (used by other files)                                        | Preserve exports, delegate internally |
 
 ---
 
@@ -199,16 +208,22 @@ delegates to the singleton:
 ```js
 // Before (namespace module)
 window.TaskUtils = {
-  getMsg(el, key) { /* duplicated logic */ },
-  formatDate(d) { /* unique logic */ },
+  getMsg(el, key) {
+    /* duplicated logic */
+  },
+  formatDate(d) {
+    /* unique logic */
+  },
 };
 
 // After
 (function () {
   const [guard] = ERPBootstrap.require("guard");
   window.TaskUtils = {
-    getMsg: (el, key) => guard.getMsg(key),   // delegate
-    formatDate(d) { /* unique logic kept */ }, // preserve
+    getMsg: (el, key) => guard.getMsg(key), // delegate
+    formatDate(d) {
+      /* unique logic kept */
+    }, // preserve
   };
 })();
 ```

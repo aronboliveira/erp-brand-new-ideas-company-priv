@@ -1,25 +1,20 @@
 <?php
 
-namespace Tests\Unit\app\Models\activity;
+namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\{Commission, Employee};
 
 class CommissionTest extends TestCase
 {
-	protected function setUp(): void
-	{
-		parent::setUp();
-		\Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0');
-	}
 	use RefreshDatabase;
 
 	/**
 	 ** @test
 	 **
-	 ** Commission is mass assignable for employee_id, title, amount, and type
+	 ** Commission is mass assignable for employee_id, title, amount, type and created_by
 	 **/
 	public function commission_is_fillable()
 	{
@@ -28,6 +23,7 @@ class CommissionTest extends TestCase
 			'title'       => 'Referral Bonus',
 			'amount'      => 250.75,
 			'type'        => 'fixed',
+			'created_by'  => 'admin_user',
 		];
 
 		$commission = Commission::create($data);
@@ -36,6 +32,7 @@ class CommissionTest extends TestCase
 		$this->assertEquals('Referral Bonus', $commission->title);
 		$this->assertEquals(250.75,           $commission->amount);
 		$this->assertEquals('fixed',          $commission->type);
+		$this->assertEquals('admin_user',     $commission->created_by);
 	}
 
 	/**
@@ -89,9 +86,9 @@ class CommissionTest extends TestCase
 	{
 		$relation = (new Commission)->employee();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('employee_id',          $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id',          $relation->getForeignKeyName());
+		$this->assertSame('employee_id', $relation->getLocalKeyName());
 	}
 }

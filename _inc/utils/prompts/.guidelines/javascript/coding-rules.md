@@ -129,14 +129,14 @@ module-name template:
 
 Use the fastest API that satisfies the lookup. Preference order:
 
-| Rank | API                            | Notes                  |
-| ---- | ------------------------------ | ---------------------- |
-| 1    | `getElementById`               | Fastest — unique IDs   |
-| 2    | `getElementsByClassName`       | Live HTMLCollection    |
-| 3    | `getElementsByTagName`         | Live HTMLCollection    |
-| 4    | `HTMLFormElement.elements`     | Use `form.elements` and `namedItem()` for form fields |
-| 5    | `querySelector`                | CSS selector — single  |
-| 6    | `querySelectorAll`             | CSS selector — list    |
+| Rank | API                        | Notes                                                 |
+| ---- | -------------------------- | ----------------------------------------------------- |
+| 1    | `getElementById`           | Fastest — unique IDs                                  |
+| 2    | `getElementsByClassName`   | Live HTMLCollection                                   |
+| 3    | `getElementsByTagName`     | Live HTMLCollection                                   |
+| 4    | `HTMLFormElement.elements` | Use `form.elements` and `namedItem()` for form fields |
+| 5    | `querySelector`            | CSS selector — single                                 |
+| 6    | `querySelectorAll`         | CSS selector — list                                   |
 
 ---
 
@@ -190,11 +190,11 @@ const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Consecutive calls targeting the same object should be combined:
 
-| Pattern               | Refactored form                        |
-| --------------------- | -------------------------------------- |
-| Multiple `appendChild`| `for…of` over a pairs/fragment array   |
-| Multiple `style.*`    | `Object.assign(el.style, { … })`      |
-| jQuery `removeClass`  | Space-separated class string           |
+| Pattern                | Refactored form                      |
+| ---------------------- | ------------------------------------ |
+| Multiple `appendChild` | `for…of` over a pairs/fragment array |
+| Multiple `style.*`     | `Object.assign(el.style, { … })`     |
+| jQuery `removeClass`   | Space-separated class string         |
 
 ---
 
@@ -256,10 +256,10 @@ During the JS → TS migration the following rules are **disabled**:
 
 ## 18. Async Return Types
 
-| Signature        | Return annotation         |
-| ---------------- | ------------------------- |
-| `async function` | `Promise<void>`           |
-| Non-async        | `: void`                  |
+| Signature        | Return annotation                         |
+| ---------------- | ----------------------------------------- |
+| `async function` | `Promise<void>`                           |
+| Non-async        | `: void`                                  |
 | Complex inferred | `// eslint-disable-next-line` with reason |
 
 ---
@@ -335,7 +335,7 @@ Remove parentheses for a **single untyped parameter**:
 
 ```js
 // ❌
-items.map((x) => x.id);
+items.map(x => x.id);
 
 // ✅
 items.map(x => x.id);

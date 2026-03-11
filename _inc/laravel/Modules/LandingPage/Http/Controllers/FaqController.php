@@ -86,7 +86,7 @@ class FaqController extends AppController
                 $this->logExecutionTime($stepStart, 'decodeFaqs', 'completed');
                 if (!isset($faqs[$key])) {
                     Log::warning($method . ' - FAQ not found', ['key' => $key]);
-                    Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs)]);
+                    Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs ?? [])]);
                     return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
                 }
                 $stepStart = microtime(true);
@@ -203,7 +203,7 @@ class FaqController extends AppController
                 $this->logExecutionTime($decodeStart, $action . '::decodeFAQs', 'completed');
                 if (!isset($faqs[$key])) {
                     Log::warning("[$action] FAQ not found", ['key' => $key]);
-                    Log::debug("[$action] available keys", ['keys' => array_keys($faqs)]);
+                    Log::debug("[$action] available keys", ['keys' => array_keys($faqs ?? [])]);
                     return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
                 }
                 $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
@@ -246,7 +246,7 @@ class FaqController extends AppController
             $this->logExecutionTime($stepStart, 'decodeFaqs', 'completed');
             if (!isset($faqs[$key])) {
                 Log::warning($method . ' - FAQ not found', ['key' => $key]);
-                Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs)]);
+                Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs ?? [])]);
                 return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
             }
             $stepStart = microtime(true);

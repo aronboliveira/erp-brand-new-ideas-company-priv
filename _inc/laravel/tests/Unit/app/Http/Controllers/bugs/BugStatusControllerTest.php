@@ -6,7 +6,7 @@ namespace Tests\Unit\app\Http\Controllers\bugs;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Bugs\BugStatusController;
+use App\Http\Controllers\BugStatusController;
 use App\Services\BugReportService;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
@@ -16,7 +16,7 @@ use Mockery;
  * Comprehensive tests for BugStatusController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Bugs\BugStatusController
+ * @covers \App\Http\Controllers\BugStatusController
  */
 class BugStatusControllerTest extends TestCase
 {

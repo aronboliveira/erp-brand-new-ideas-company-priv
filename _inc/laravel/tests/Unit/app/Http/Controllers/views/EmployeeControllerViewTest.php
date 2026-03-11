@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\app\Http\Controllers\views;
 
-use App\Http\Controllers\Individuals\EmployeeController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use ReflectionClass;
 use Tests\TestCase;

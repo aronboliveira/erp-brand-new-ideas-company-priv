@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\contact;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Contact\ZoomMeetingController;
+use App\Http\Controllers\ZoomMeetingController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for ZoomMeetingController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Contact\ZoomMeetingController
+ * @covers \App\Http\Controllers\ZoomMeetingController
  */
 class ZoomMeetingControllerTest extends TestCase
 {

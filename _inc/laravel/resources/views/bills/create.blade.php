@@ -408,7 +408,7 @@
                                         ) ?? 'Product fetch route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <td class="{{ VC::FM_G }}">
-                                        {{ Form::select('item', $product_services, '', [
+                                        {{ Form::select('item', $product_services ?? ($productServices ?? []), '', [
                                             'class'         => VC::FM_CT_SL . ' item-select',
                                             'data-url'      => $productRoute,
                                             'data-guard-msg'=> $itemGuardMsg,

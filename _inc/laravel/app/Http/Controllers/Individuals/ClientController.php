@@ -33,7 +33,7 @@ use Illuminate\Http\{
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, View as ViewFacade};
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Auth\Access\AuthorizationException;
-use illuminate\View\View;
+use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultPermissionDenial;
 class ClientController extends Controller

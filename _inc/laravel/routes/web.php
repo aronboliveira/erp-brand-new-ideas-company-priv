@@ -151,10 +151,6 @@ R::middleware([MWC::WEB, MWC::AUTH])
             '/',
             [DSBC::class, DSBC::ACC_DSB_IDX]
         )->name(RRC::HM . '.index');
-        R::get(
-            VW::HM,
-            [DSBC::class, DSBC::ACC_DSB_IDX]
-        )->name(RRC::HM . '.index.alt');
     });
 //R::get('/register/{lang?}', function () {
 //    $settings = Utility::settings();
@@ -249,7 +245,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     R::match(['GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 'user-reset-password/{id}', [UserController::class, UserController::USR_PSW])->name(VW::USR . '.reset');
 
-    R::post('user-reset-password/{id}', [UserController::class, UserController::USR_PSW_RST])->name(VW::USR . '.password.update');
+    R::post('user-reset-password/{id}', [UserController::class, UserController::USR_PSW_RST])->name(VW::USR . '.password.reset');
 
     R::get('/change/mode', [UserController::class, UserController::CHG_MD])->name('change.mode');
     R::resource(VW::USR, UserController::class)

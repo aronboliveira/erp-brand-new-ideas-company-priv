@@ -105,8 +105,8 @@ final class JobController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
-            ${DC::TABLE_JOB_CATS} = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
-            ${DC::TABLE_BRANCHES} = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            $job_categories = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            $branches = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
             $status = Job::$status;
             $custom_question = CustomQuestion::where(DC::COL_TABLE_CREATOR, $u->creatorId())->get();
             $viewPath = self::SINGULAR . '.' . $action;
@@ -156,6 +156,7 @@ final class JobController extends Controller
             $job->customQuestion = explode(',', (string) $job->custom_question);
             $job->skill = explode(',', (string) $job->skill);
             $job->visibility = explode(',', (string) $job->visibility);
+            $jobs = $job;
             $status = Job::$status;
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -176,14 +177,15 @@ final class JobController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
-            ${DC::TABLE_BRANCHES} = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
-            ${DC::TABLE_JOB_CATS} = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            $branches = Branch::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            $job_categories = JobCategory::where(DC::COL_TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
             $custom_question = CustomQuestion::where(DC::COL_TABLE_CREATOR, $u->creatorId())->get();
             $status = Job::$status;
             $job->applicant = explode(',', (string) $job->applicant);
             $job->customQuestion = explode(',', (string) $job->custom_question);
             $job->skill = explode(',', (string) $job->skill);
             $job->visibility = explode(',', (string) $job->visibility);
+            $jobs = $job;
             $viewPath = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
@@ -287,6 +289,7 @@ final class JobController extends Controller
             $job = Job::where('code', $code)->firstOrFail();
             $this->logExecutionTime($qStart, $action, 'fetchJob');
             if ($job->status === 'in_active') return back()->with('error', __('This job is not active.'));
+            $jobs = $job;
             App::setLocale($lang);
             session(['lang' => $lang]);
             $sStart = microtime(true);
@@ -319,6 +322,7 @@ final class JobController extends Controller
             $qStart = microtime(true);
             $job = Job::where('code', $code)->firstOrFail();
             $this->logExecutionTime($qStart, $action, 'fetchJob');
+            $jobs = $job;
             App::setLocale($lang);
             session(['lang' => $lang]);
             $sStart = microtime(true);

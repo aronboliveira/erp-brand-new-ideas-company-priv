@@ -597,6 +597,7 @@
                                         <tbody>
                                             @forelse($recentInvoice as $invoice)
                                                 @php
+                                                    $invNo = '—'; $invCust = '—'; $invIssue = '—'; $invDue = '—'; $invTotal = '—'; $bgClass = null; $stText = '—';
                                                     try {
                                                         $invNo = $fmtInv(data_get($invoice, 'invoice_id'));
                                                         $invCust = $asString(data_get($invoice, 'customer.name'),

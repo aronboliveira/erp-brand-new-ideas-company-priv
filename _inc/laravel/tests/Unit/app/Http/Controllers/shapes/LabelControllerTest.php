@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\shapes;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Shapes\LabelController;
+use App\Http\Controllers\LabelController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for LabelController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Shapes\LabelController
+ * @covers \App\Http\Controllers\LabelController
  */
 class LabelControllerTest extends TestCase
 {

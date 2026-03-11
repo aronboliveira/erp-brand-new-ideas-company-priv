@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\companies;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Companies\CompanyPolicyController;
+use App\Http\Controllers\CompanyPolicyController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for CompanyPolicyController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Companies\CompanyPolicyController
+ * @covers \App\Http\Controllers\CompanyPolicyController
  */
 class CompanyPolicyControllerTest extends TestCase
 {

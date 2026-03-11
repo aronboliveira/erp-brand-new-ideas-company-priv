@@ -83,12 +83,7 @@ interface ERPGuardInstance {
 
   /* --- Modals --- */
   showModal(options?: ERPGuardModalOptions): void;
-  confirm(
-    message: string,
-    onConfirm: () => void,
-    onCancel?: (() => void) | null,
-    options?: ERPGuardModalOptions,
-  ): void;
+  confirm(message: string, onConfirm: () => void, onCancel?: (() => void) | null, options?: ERPGuardModalOptions): void;
 
   /* --- Error scheduling --- */
   scheduleError(message: string, delay?: number): void;
@@ -106,21 +101,9 @@ interface ERPGuardInstance {
   guardedAjax(config?: ERPGuardAjaxConfig): void;
 
   /* --- Guard bindings --- */
-  bindSubmitGuard(
-    form: HTMLFormElement,
-    validate?: ((form: HTMLFormElement) => boolean) | null,
-    options?: ERPGuardBindOptions,
-  ): void;
-  bindClickGuard(
-    element: HTMLElement,
-    validate?: ((el: HTMLElement) => boolean) | null,
-    options?: ERPGuardBindOptions,
-  ): void;
-  bindChangeGuard(
-    element: HTMLElement,
-    validate?: ((el: HTMLElement) => boolean) | null,
-    options?: ERPGuardBindOptions,
-  ): void;
+  bindSubmitGuard(form: HTMLFormElement, validate?: ((form: HTMLFormElement) => boolean) | null, options?: ERPGuardBindOptions): void;
+  bindClickGuard(element: HTMLElement, validate?: ((el: HTMLElement) => boolean) | null, options?: ERPGuardBindOptions): void;
+  bindChangeGuard(element: HTMLElement, validate?: ((el: HTMLElement) => boolean) | null, options?: ERPGuardBindOptions): void;
   unbind(element: HTMLElement): void;
 
   /* --- Encoding --- */
@@ -164,10 +147,7 @@ interface ERPUtilsPDFOptions {
 
 interface ERPUtilsInstance {
   copyToClipboard(text: string, showNotification?: boolean): Promise<void>;
-  bindClipboardAction(
-    selectorOrEl: string | HTMLElement,
-    textOrGetter: string | (() => string),
-  ): void;
+  bindClipboardAction(selectorOrEl: string | HTMLElement, textOrGetter: string | (() => string)): void;
   formatNumber(value: number | string, options?: ERPUtilsFormatOptions): string;
   formatCurrency(value: number | string, options?: ERPUtilsFormatOptions): string;
   formatDate(date: string | Date, options?: ERPUtilsDateOptions): string;

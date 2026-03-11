@@ -484,24 +484,8 @@ class Transaction extends Model
         if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes)) return;
 
         $raw = $transaction->getAttribute(BC::COL_PAY_MTD_LB);
-        $transaction->setAttribute(BC::COL_PAY_MTD_LB, PaymentMethod::normalize($raw !== null ? (string)$raw : null));
-    }
-
-    public function getPaymentMethodLabelLegacyAttribute(): string
-    {
-        $m = $this->getAttribute(BC::COL_PAY_MTD_LB);
-        $enum = $m instanceof PaymentMethod ? $m : PaymentMethod::normalize($m !== null ? (string)$m : null);
-
-        return match ($enum) {
-            PaymentMethod::CardDebit   => 'debit',
-            PaymentMethod::CardCredit  => 'credit',
-            PaymentMethod::Pix         => 'pix',
-            PaymentMethod::Ted         => 'ted',
-            PaymentMethod::Doc         => 'doc',
-            PaymentMethod::WireTransfer => BC::VL_WR_TRF,
-            PaymentMethod::Cash        => 'cash',
-            default                    => 'other',
-        };
+        $enum = PaymentMethod::normalize($raw !== null ? (string)$raw : null);
+        $transaction->setAttribute(BC::COL_PAY_MTD_LB, $enum->value);
     }
 
     protected static function sanitizeAttachments(self $transaction): void

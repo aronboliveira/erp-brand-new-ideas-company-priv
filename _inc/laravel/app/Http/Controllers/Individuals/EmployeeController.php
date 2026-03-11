@@ -80,7 +80,7 @@ class EmployeeController extends Controller
             $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
             $employees   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
-            ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat(self::nextEmployeeNumber());
+            $employee_id = $u->employeeIdFormat(self::nextEmployeeNumber());
             $this->logExecutionTime($t, $action, 'formDataLoaded');
             $view = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
@@ -191,7 +191,7 @@ class EmployeeController extends Controller
                 $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-                ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat($employee->employee_id);
+                $employee_id = $u->employeeIdFormat($employee->employee_id);
                 $departmentData = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->where(CompaniesConstants::COL_BRC_ID, $employee[CompaniesConstants::COL_BRC_ID])
                     ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
@@ -287,7 +287,7 @@ class EmployeeController extends Controller
                 $branches   = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-                ${UsersConstants::COL_EMP_ID} = $u->employeeIdFormat($employee->employee_id);
+                $employee_id = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'detailLoaded');
                 $view = self::SINGULAR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
@@ -361,7 +361,7 @@ class EmployeeController extends Controller
                 $branches    = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
                 $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-                $employeesId = $u->employeeIdFormat($employee->employee_id);
+                $employee_id = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'employeeProfileLoaded');
                 $view = VW::EMP . '.show';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(self::SINGULAR . '.index'));

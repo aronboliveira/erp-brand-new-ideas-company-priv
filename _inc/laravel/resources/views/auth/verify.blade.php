@@ -4,7 +4,7 @@ $filePath??='';
 	$logo??='';
 	$languages??=[DC::DEFAULT_LANG];
 	$company_logo??='';
-	$lang = Utility::fetchUserLang();
+	$lang = 'en';
 	try {
 		$filePath=collect(array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),'file'))
 			->first(fn($p)=>str_ends_with($p,'.blade.php'))??'';

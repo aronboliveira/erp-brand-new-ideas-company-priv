@@ -274,10 +274,12 @@ class User extends Authenticatable implements MustVerifyEmail
             . sprintf('%05d', $number);
     }
 
-    public function invoiceNumberFormat(int $number): string
+    public function invoiceNumberFormat(int|string $number): string
     {
-        return Utility::settings()[SC::INV_PFX]
-            . sprintf('%05d', $number);
+        $prefix = Utility::settings()[SC::INV_PFX] ?? '';
+        return is_numeric($number)
+            ? $prefix . sprintf('%05d', (int) $number)
+            : $prefix . $number;
     }
 
     public function proposalNumberFormat(int $number): string
@@ -292,10 +294,12 @@ class User extends Authenticatable implements MustVerifyEmail
             . sprintf('%05d', $number);
     }
 
-    public function billNumberFormat(int $number): string
+    public function billNumberFormat(int|string $number): string
     {
-        return Utility::settings()[SC::BL_PFX]
-            . sprintf('%05d', $number);
+        $prefix = Utility::settings()[SC::BL_PFX] ?? '';
+        return is_numeric($number)
+            ? $prefix . sprintf('%05d', (int) $number)
+            : $prefix . $number;
     }
 
     public function expenseNumberFormat(int $number): string

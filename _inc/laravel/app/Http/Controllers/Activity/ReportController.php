@@ -55,7 +55,7 @@ use App\Models\{
     UserDeal,
     Utility,
     Vendor,
-    warehouse,
+    Warehouse,
     WarehouseProduct
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -100,8 +100,8 @@ final class ReportController extends Controller
     private const ROUTE_LEDGER_SUMMARY  = VW::RPT . '.ledger_summary';
     private const ROUTE_TRIAL_BALANCE   = VW::RPT . '.trial_balance';
     private const ROUTE_LEAVE            = VW::RPT . '.leave';
-    private const ROUTE_EMPLOYEE_LEAVE   = VW::RPT . '.employee_leave';
-    private const ROUTE_MONTHLY_ATTENDANCE = VW::RPT . '.monthly_attendance';
+    private const ROUTE_EMPLOYEE_LEAVE   = VW::RPT . '.leave';
+    private const ROUTE_MONTHLY_ATTENDANCE = VW::RPT . '.monthly.attendance';
     private const ROUTE_PAYROLL          = VW::RPT . '.payroll';
     private const ROUTE_PAY_DEPT         = VW::RPT . '.get_payroll_department';
     private const ROUTE_PAY_EMP          = VW::RPT . '.get_payroll_employee';
@@ -3015,6 +3015,11 @@ final class ReportController extends Controller
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
         $types  = ['revenue' => __('Revenue'), 'payment' => __('Payment')];
+
+        $payments = null;
+        $payAcc = null;
+        $revenues = null;
+        $revAcc = null;
 
         if ($request->type === 'payment') {
             $payAcc = Payment::select(

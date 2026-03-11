@@ -1272,7 +1272,7 @@ class ProjectController extends Controller
                 $project = Project::findOrFail($projectId);
                 if ($project->created_by !== $request->user()->creatorId())
                     return defaultPermissionDenial($request, new \Exception, $method);
-                $bugStatus = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
+                $bug_status = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'ASC')->get();
                 $this->logExecutionTime($t, $action . '::fetchKanbanData', 'completed');
 
@@ -1942,6 +1942,7 @@ class ProjectController extends Controller
                 ->get();
             $bugs  = Bug::where(ActivitiesConstants::COL_PJ, $id)->get();
             $tasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)->get();
+            $users = $project->users ?? collect();
             $this->logExecutionTime($t, $action . '::buildPayload', 'completed');
 
             $viewPath = VW::PRJ . '.copylink';

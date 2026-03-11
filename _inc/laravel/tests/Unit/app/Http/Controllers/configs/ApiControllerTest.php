@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\configs;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Configs\ApiController;
+use App\Http\Controllers\ApiController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for ApiController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Configs\ApiController
+ * @covers \App\Http\Controllers\ApiController
  */
 class ApiControllerTest extends TestCase
 {
@@ -788,7 +788,7 @@ class ApiControllerTest extends TestCase
     public function test_stopTracker_returns_json(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Configs\ApiController();
+        $ctrl = new \App\Http\Controllers\ApiController();
         try {
             $result = $ctrl->stopTracker($this->makeRequest('/api/stop-tracker', 'POST', [
                 'trackerId' => '00000000-0000-0000-0000-000000000001',
@@ -806,7 +806,7 @@ class ApiControllerTest extends TestCase
     public function test_stopTracker_requires_trackerId(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Configs\ApiController();
+        $ctrl = new \App\Http\Controllers\ApiController();
         try {
             $result = $ctrl->stopTracker($this->makeRequest('/api/stop-tracker', 'POST', []));
             if ($result instanceof \Illuminate\Http\JsonResponse) {
@@ -824,7 +824,7 @@ class ApiControllerTest extends TestCase
     public function test_stopTracker_nonexistent_tracker(): void
     {
         $this->loginMockUser();
-        $ctrl = new \App\Http\Controllers\Configs\ApiController();
+        $ctrl = new \App\Http\Controllers\ApiController();
         try {
             $result = $ctrl->stopTracker($this->makeRequest('/api/stop-tracker', 'POST', [
                 'trackerId' => '00000000-0000-0000-0000-999999999999',

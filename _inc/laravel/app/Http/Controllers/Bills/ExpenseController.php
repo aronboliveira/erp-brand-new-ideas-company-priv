@@ -194,8 +194,8 @@ final class ExpenseController extends Controller
                 return $resp;
             }
             $this->logExecutionTime($valStart, $action, 'validateRequest');
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $buildStart = microtime(true);
                 $vendorId = match ($request->type) {
@@ -385,8 +385,8 @@ final class ExpenseController extends Controller
                 return $resp;
             }
             $this->logExecutionTime($valStart, $action, 'validateRequest');
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
@@ -433,8 +433,8 @@ final class ExpenseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill product')) !== true) return $g;
             Log::info("[{$base}::{$action}] start", ['product_id' => $request->id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $findStart = microtime(true);
                 $bp = BillProduct::findOrFail($request->id);
@@ -471,8 +471,8 @@ final class ExpenseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill')) !== true) return $g;
             Log::info("[{$base}::{$action}] start", ['bill_id' => $id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
+            $txnStart = microtime(true);
             try {
-                $txnStart = microtime(true);
                 DB::beginTransaction();
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);

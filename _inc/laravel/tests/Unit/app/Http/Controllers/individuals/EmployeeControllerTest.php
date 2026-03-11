@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\individuals;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Individuals\EmployeeController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for EmployeeController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Individuals\EmployeeController
+ * @covers \App\Http\Controllers\EmployeeController
  */
 class EmployeeControllerTest extends TestCase
 {

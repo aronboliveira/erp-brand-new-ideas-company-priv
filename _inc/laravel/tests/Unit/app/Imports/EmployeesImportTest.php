@@ -1,22 +1,19 @@
 <?php
 // tests/Unit/Imports/EmployeesImportTest.php
 
-namespace Tests\Unit\app\Imports;
+namespace Tests\Unit\Imports;
 
 use App\Imports\EmployeesImport;
 use App\Models\Employee;
 use App\Models\User;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\{Auth, Log};
 use Mockery;
 use Tests\TestCase;
-use Tests\Concerns\SafeAliasMock;
 
 class EmployeesImportTest extends TestCase
 {
-	use SafeAliasMock;
-
-	use DatabaseTransactions;
+	use RefreshDatabase;
 
 	/**
 	 ** @test
@@ -84,7 +81,7 @@ class EmployeesImportTest extends TestCase
 		Auth::login($user);
 
 		// Alias-mock Employee so getFillable() throws
-		$this->aliasMock('App\Models\Employee')
+		Mockery::mock('alias:App\Models\Employee')
 			->shouldReceive('getFillable')
 			->andThrow(new \Exception('fail-fillable'));
 

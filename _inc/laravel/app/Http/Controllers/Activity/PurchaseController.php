@@ -91,7 +91,7 @@ class PurchaseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
     }
 
-    public function create(Request $request, string|int $vendorId): View|RedirectResponse
+    public function create(Request $request, string|int|null $vendorId = null): View|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -611,6 +611,8 @@ class PurchaseController extends Controller
             $purchase_logo = $settingsData['purchase_logo'] ?? null;
             $img = $purchase_logo ? Utility::getFile('purchase_logo/') . $purchase_logo : asset($logo . '/' . ($company_logo ?? SettingsConstants::CPN_LG_DK_DEF));
             $this->logExecutionTime($brandStart, $action, 'prepareBranding');
+            $preview = true;
+            $font_color = Utility::getFontColor('#' . $color);
             $viewPath = ViewsConstants::PRC_TMP . $template;
             Log::info("[{$class}::{$action}] rendering preview", ['view_path' => $viewPath]);
             if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");

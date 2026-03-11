@@ -37,7 +37,7 @@ $lang = Utility::fetchUserLang();
 		$local_storage_validations=explode(',', $local_storage_validation);
 		$s3_storage_validation=$settings[SettingsConstants::S3_STG_VL]??'';
 		$s3_storage_validations=explode(',', $s3_storage_validation);
-		$wasabi_storage_validation=$settings[SettingsConstants::WB_STG_VL]??'';
+		$wasabi_storage_validation=$settings[SettingsConstants::WSB_STG_VL]??'';
 		$wasabi_storage_validations=explode(',', $wasabi_storage_validation);
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 	} catch (\Error $e) {

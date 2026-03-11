@@ -13,30 +13,38 @@ The transpilation process relies on a set of shared helper functions that replac
 Django equivalents:
 
 ### `getRedirectUrl(string $routeName, array $params = []): string`
+
 Returns the URL for a named route with optional parameters. Replaces Django's `reverse()`.
 
 ### `defaultPermissionDenial(): Response`
+
 Returns a standardized 403 response. Replaces Django's `PermissionDenied` exception.
 
 ### `defaultUndefinedException(string $message = ''): Response`
+
 Returns a standardized 500 error response for unexpected states.
 
 ### `emailValidation(string $email): bool`
+
 Validates email format. Replaces Django's `EmailValidator`.
 
 ### `userIdValidation(string $id): bool`
+
 Validates that a UUID string is well-formed and the user exists.
 
 ### `permissionRequiredCustom(string $permission): \Closure`
+
 Returns middleware closure for custom permission checks. Replaces Django's
 `@permission_required` decorator.
 
 ## Traits
 
 ### `ChecksLogin`
+
 Replaces Django's `LoginRequiredMixin`. Applied to controllers that require authentication.
 
 ### `ChecksPermissions`
+
 Replaces Django's `PermissionRequiredMixin`. Provides `authorizePermission()` method.
 
 ## Layer-Specific Rules
@@ -70,6 +78,7 @@ Two approaches are available:
 2. **Python-endpoint**: Keep complex transformations in a Python microservice, call via HTTP.
 
 Spreadsheet conventions:
+
 - Apply consistent styling (headers bold, borders, column widths).
 - Use Excel functions for calculated cells where possible.
 - Read operations use chunk reading for memory efficiency.

@@ -47,11 +47,11 @@ Never convert a class into a standalone function. Classes exist for a reason —
 
 ### Method Types
 
-| Decorator       | When to use                                                     |
-|------------------|-----------------------------------------------------------------|
-| (instance)       | Needs `self`, accesses instance state                           |
-| `@classmethod`   | Needs `cls`, performs auth checks, error handling, or factory logic |
-| `@staticmethod`  | Pure procedure, no class/instance references needed, no auth/error_handler calls |
+| Decorator       | When to use                                                                      |
+| --------------- | -------------------------------------------------------------------------------- |
+| (instance)      | Needs `self`, accesses instance state                                            |
+| `@classmethod`  | Needs `cls`, performs auth checks, error handling, or factory logic              |
+| `@staticmethod` | Pure procedure, no class/instance references needed, no auth/error_handler calls |
 
 Only use `@staticmethod` when **no** class references are needed and the method does not call auth or error handler utilities.
 

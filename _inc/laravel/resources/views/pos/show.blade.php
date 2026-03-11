@@ -9,9 +9,11 @@
     use Illuminate\Support\Facades\{Auth, Route};
     use Illuminate\Support\{Collection, Str};
 
-    function resolveRoute(string $base): ?string {
+    if (!function_exists("resolveRoute")) {
+        function resolveRoute(string $base): ?string {
         $k = Str::kebab($base);
         return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+        }
     }
     function safeDate($user, $v) {
         return (is_object($user) && method_exists($user,'dateFormat') && !empty($v))

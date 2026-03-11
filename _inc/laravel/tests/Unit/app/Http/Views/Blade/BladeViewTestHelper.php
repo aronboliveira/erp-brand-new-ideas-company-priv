@@ -22,15 +22,15 @@ trait BladeViewTestHelper
 	/**
 	 * Build an associative array representing a mock user row.
 	 *
-	 * @param  int    $id
-	 * @param  string $type
-	 * @param  int    $createdBy
+	 * @param  string|int $id
+	 * @param  string     $type
+	 * @param  string|int $createdBy
 	 * @return array<string, mixed>
 	 */
 	protected function buildMockUser(
-		int $id = 1,
+		string|int $id = '00000000-0000-0000-0000-000000000001',
 		string $type = 'company',
-		int $createdBy = 1
+		string|int $createdBy = '00000000-0000-0000-0000-000000000001'
 	): array {
 		return [
 			'id'               => $id,
@@ -51,15 +51,15 @@ trait BladeViewTestHelper
 	/**
 	 * Build a Mockery User model that works with actingAs().
 	 *
-	 * @param  int    $id
-	 * @param  string $type
-	 * @param  int    $createdBy
+	 * @param  string|int $id
+	 * @param  string     $type
+	 * @param  string|int $createdBy
 	 * @return \App\Models\User&\Mockery\MockInterface
 	 */
 	protected function buildMockUserModel(
-		int $id = 1,
+		string|int $id = '00000000-0000-0000-0000-000000000001',
 		string $type = 'company',
-		int $createdBy = 1
+		string|int $createdBy = '00000000-0000-0000-0000-000000000001'
 	): User {
 		/** @var \App\Models\User&\Mockery\MockInterface $user */
 		$user = Mockery::mock(User::class)->makePartial()->shouldIgnoreMissing();

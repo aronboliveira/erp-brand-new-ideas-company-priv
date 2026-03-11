@@ -8,7 +8,7 @@ $user ??= null;
 	try {
 		$user = Auth::user();
 		$lang = Utility::fetchUserLang(user: $user) ?? 'en';
-		$currSymbol = is_callable([$user, 'fetchCurrencySymbol']) ? fetchCurrencySymbol() : __('Failed to get currency symbol');
+		$currSymbol = is_callable([$user, 'fetchCurrencySymbol']) ? $user->fetchCurrencySymbol() : __('Failed to get currency symbol');
 		$invoiceIndexRouteName = ViewsConstants::INV . '.index';
 		$invoiceIndexUrl = Route::has($invoiceIndexRouteName) ? (route($invoiceIndexRouteName) ?? '#') : '#';
 		$invoiceIndexGuardMsg = Utility::fetchLinkMessage(

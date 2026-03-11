@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\companies;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Companies\DepartmentController;
+use App\Http\Controllers\DepartmentController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for DepartmentController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Companies\DepartmentController
+ * @covers \App\Http\Controllers\DepartmentController
  */
 class DepartmentControllerTest extends TestCase
 {

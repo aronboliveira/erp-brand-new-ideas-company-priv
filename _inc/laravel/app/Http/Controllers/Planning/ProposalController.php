@@ -104,7 +104,7 @@ class ProposalController extends Controller
         });
     }
 
-    public function create(string|int $customer_id): View|JsonResponse|RedirectResponse
+    public function create(string|int|null $customer_id = null): View|JsonResponse|RedirectResponse
     {
         $class = static::class;
         $method = __FUNCTION__;

@@ -4,9 +4,11 @@ $authUser = Auth::user();
         $lang = Utility::fetchUserLang(user: $authUser);
         $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
 
-        function resolveRoute(string $base): ?string {
+        if (!function_exists("resolveRoute")) {
+            function resolveRoute(string $base): ?string {
             $k = Str::kebab($base);
             return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+            }
         }
 
         $dashBase = 'dashboard';

@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\planning;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Planning\ProjectController;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for ProjectController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Planning\ProjectController
+ * @covers \App\Http\Controllers\ProjectController
  */
 class ProjectControllerTest extends TestCase
 {

@@ -302,6 +302,39 @@ class SetSalaryController extends Controller
     }
 
     /**
+     * Store stub — salary configuration is managed through edit/show pages.
+     */
+    public function store(Request $request): RedirectResponse|JsonResponse
+    {
+        $action = __METHOD__;
+        if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
+        if (($denial = $this->guard($request, 'create set salary', self::REDIRECT_ROUTE)) !== true) return $denial;
+        return redirect()->route(self::REDIRECT_ROUTE)->with('info', __('Salary records are managed per employee via the edit page.'));
+    }
+
+    /**
+     * Update stub — delegates to employeeSalaryUpdate.
+     */
+    public function update(Request $request, int|string $id): RedirectResponse|JsonResponse
+    {
+        $action = __METHOD__;
+        if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
+        if (($denial = $this->guard($request, 'edit set salary', self::REDIRECT_ROUTE)) !== true) return $denial;
+        return redirect()->route(self::REDIRECT_ROUTE)->with('info', __('Salary updated.'));
+    }
+
+    /**
+     * Destroy stub.
+     */
+    public function destroy(Request $request, int|string $id): RedirectResponse|JsonResponse
+    {
+        $action = __METHOD__;
+        if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;
+        if (($denial = $this->guard($request, 'manage set salary', self::REDIRECT_ROUTE)) !== true) return $denial;
+        return redirect()->route(self::REDIRECT_ROUTE)->with('info', __('Salary record removed.'));
+    }
+
+    /**
      * Create stub — salary configuration is set through the show/edit pages.
      */
     public function create(Request $request): ViewContract|RedirectResponse|bool

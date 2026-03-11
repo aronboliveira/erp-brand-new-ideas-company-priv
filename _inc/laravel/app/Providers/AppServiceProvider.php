@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Throwable;
+use App\Actions\Fortify\ResetUserPassword;
 use App\Config\Constants\ViewsConstants;
 use App\Services\Resolvers\{BrasilApiCepV2Resolver, ViaCepResolver};
 use App\Services\{ActivitysAndLogsRequestService, BugReportService, BusinessRequestService, ContractRequestService, DealRequestService, EmailRequestService, GeoLookupService, GoalRequestService, LeadRequestService, PipelineRequestService, PosRequestService, ProductOrServiceRequestService, ProjectRequestService, PurchaseRequestService, Providers\BrasilApiCepProvider, SupportHelperService, TaskRequestService, TemplateRequestService, WarehouseRequestService, ZipGeoService};
@@ -63,6 +64,7 @@ final class AppServiceProvider extends ServiceProvider
             Fortify::requestPasswordResetLinkView(function () {
                 return view(ViewsConstants::AUT . '.forgot_password');
             });
+            Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         } catch (Throwable $e) {
             Log::critical(__CLASS__ . '::boot failed', ['message' => $e->getMessage()]);
         }

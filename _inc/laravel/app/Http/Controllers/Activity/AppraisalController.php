@@ -387,7 +387,7 @@ final class AppraisalController extends Controller
     $appraisal->employee      = $data[strtolower(class_basename(Employee::class))];
     $appraisal->remark        = $data['remark'] ?? null;
     $appraisal->appraisal_date = $data['appraisal_date'];
-    $appraisal->rating        = json_encode($data['rating'] ?? []);
+    $appraisal->rating        = json_encode($data['rating'] ?? []) ?: '[]';
     $appraisal[DatabaseConstants::COL_TABLE_CREATOR]    = $creatorId;
     $appraisal->save();
     Log::info(__CLASS__ . '::' . __FUNCTION__ . ' saved', [

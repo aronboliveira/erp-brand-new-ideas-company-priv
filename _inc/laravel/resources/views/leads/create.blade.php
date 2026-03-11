@@ -1,9 +1,11 @@
 @php
     try {
-function resolveRoute(string $base): ?string {
+if (!function_exists("resolveRoute")) {
+    function resolveRoute(string $base): ?string {
             $k = Str::kebab($base);
             return Route::has($base) ? $base : (Route::has($k) ? $k : null);
-        }
+            }
+}
 
         $lang = Utility::fetchUserLang();
 

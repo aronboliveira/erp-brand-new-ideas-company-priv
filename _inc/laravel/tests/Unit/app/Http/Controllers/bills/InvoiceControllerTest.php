@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\bills;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Bills\InvoiceController;
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for InvoiceController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Bills\InvoiceController
+ * @covers \App\Http\Controllers\InvoiceController
  */
 class InvoiceControllerTest extends TestCase
 {

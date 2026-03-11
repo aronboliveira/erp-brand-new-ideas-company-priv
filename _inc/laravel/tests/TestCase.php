@@ -6,6 +6,7 @@ use App\Models\Utility;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
+use Mockery;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -47,6 +48,32 @@ abstract class TestCase extends BaseTestCase
                 }
             }
         }
+    }
+
+    protected function tearDown(): void
+    {
+        // Close Mockery expectations
+        if (class_exists(Mockery::class)) {
+            Mockery::close();
+        }
+
+        // Null-out any instance properties to release memory
+        $refl = new \ReflectionObject($this);
+        foreach ($refl->getProperties() as $prop) {
+            if ($prop->isStatic() || $prop->getDeclaringClass()->getName() === BaseTestCase::class) {
+                continue;
+            }
+            $prop->setAccessible(true);
+            try {
+                $prop->setValue($this, null);
+            } catch (\Throwable) {
+                // typed properties that don't accept null — skip
+            }
+        }
+
+        parent::tearDown();
+
+        gc_collect_cycles();
     }
 
     /**

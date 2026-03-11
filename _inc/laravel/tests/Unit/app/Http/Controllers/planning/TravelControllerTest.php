@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\planning;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Planning\TravelController;
+use App\Http\Controllers\TravelController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for TravelController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Planning\TravelController
+ * @covers \App\Http\Controllers\TravelController
  */
 class TravelControllerTest extends TestCase
 {

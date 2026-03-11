@@ -46,11 +46,11 @@ try {
 
 ## Traits
 
-| Condition | Trait |
-|---|---|
-| Migration uses `HasNullableAuditColumns` | Apply `HasAuditFields` on the model |
-| Migration has `email`, `phone`, or `zip` columns | Apply `NormalizesAddresses` |
-| Migration has JSON / array columns | Apply `NormalizesArrays` |
+| Condition                                        | Trait                               |
+| ------------------------------------------------ | ----------------------------------- |
+| Migration uses `HasNullableAuditColumns`         | Apply `HasAuditFields` on the model |
+| Migration has `email`, `phone`, or `zip` columns | Apply `NormalizesAddresses`         |
+| Migration has JSON / array columns               | Apply `NormalizesArrays`            |
 
 ### NormalizesAddresses Methods
 

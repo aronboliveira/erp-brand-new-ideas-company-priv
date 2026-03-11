@@ -25,8 +25,8 @@ use function App\Http\Controllers\Helpers\defaultUndefinedException;
 final class ChartOfAccountController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
-    private const ROUTE_SINGULAR = 'chart-of-account'; // ! ALERT
-    private const REDIRECT_INDEX = self::ROUTE_SINGULAR . '.index'; // ! ALERT
+    private const ROUTE_SINGULAR = 'chart_of_accounts';
+    private const REDIRECT_INDEX = 'chart_of_accounts.index';
 
     public function index(Request $req): View|RedirectResponse
     {

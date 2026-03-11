@@ -120,7 +120,7 @@ final class PosController extends Controller
         $this->_composeDetails($details, $settings);
         $this->logExecutionTime($composeStart, $action, 'composeDetails');
         $sumStart = microtime(true);
-        [$sales, $subtotal] = $this->_summarizeCart($cart, $req);
+        [$sales, $subtotal] = $this->_summarizeCart($cart);
         $this->logExecutionTime($sumStart, $action, 'summarizeCart');
         $discount = $req->discount ?? 0;
         $sales['discount'] = $user?->priceFormat($discount);
@@ -363,7 +363,8 @@ final class PosController extends Controller
       }
       Log::info("[{$class}::{$action}] validation passed", ['method' => $method]);
       try {
-        $userId = Auth::id();
+        $rawUserId = Auth::id();
+        $userId = (\App\Models\User::where('id', $rawUserId)->exists()) ? $rawUserId : null;
         $data = $req->only(['barcode_type', 'barcode_format']);
         $txnStart = microtime(true);
         DB::transaction(function () use ($data, $userId, $action) {
@@ -568,11 +569,12 @@ final class PosController extends Controller
           $data['pos_logo'] = $userId . '_logo.png';
           Log::info("[{$class}::{$action}] logo uploaded", ['filename' => $data['pos_logo']]);
         }
+        $safeUserId = (\App\Models\User::where('id', $userId)->exists()) ? $userId : null;
         $txnStart = microtime(true);
-        DB::transaction(function () use ($data, $userId, $action) {
+        DB::transaction(function () use ($data, $safeUserId, $action) {
           $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
           $insStart = microtime(true);
-          foreach ($data as $k => $v) DB::insert('INSERT INTO settings (`value`,`name`,`' . $creatorCol . '`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$v, $k, $userId]);
+          foreach ($data as $k => $v) DB::insert('INSERT INTO settings (`value`,`name`,`' . $creatorCol . '`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$v, $k, $safeUserId]);
           $this->logExecutionTime($insStart, $action, 'upsertSettings');
         });
         $this->logExecutionTime($txnStart, $action, 'transaction');
@@ -623,7 +625,7 @@ final class PosController extends Controller
         $this->_composeDetails($details, $settings);
         $this->logExecutionTime($composeStart, $action, 'composeDetails');
         $sumStart = microtime(true);
-        [$sales, $subtotal] = $this->_summarizeCart($cart, $req);
+        [$sales, $subtotal] = $this->_summarizeCart($cart);
         $this->logExecutionTime($sumStart, $action, 'summarizeCart');
         $disc = $req->discount ?? 0;
         $sales['discount'] = $u->priceFormat($disc);
@@ -675,7 +677,7 @@ final class PosController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
   }
 
-  public function receipt(Request $req, string $encId = null): View|RedirectResponse|null
+  public function receipt(Request $req, ?string $encId = null): View|RedirectResponse|null
   {
     $action = __FUNCTION__;
     $method = __METHOD__;

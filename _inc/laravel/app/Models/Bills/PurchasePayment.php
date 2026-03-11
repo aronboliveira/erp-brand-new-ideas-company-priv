@@ -107,7 +107,6 @@ class PurchasePayment extends Model
 
     public function setAmountAttribute(mixed $value): void
     {
-        echo 'Setting amount attribute' . PHP_EOL;
         $val = is_numeric($value) ? (float) $value : 0.0;
         if ($val < 0.0) $val = 0.0;
         $this->attributes['amount'] = $val;

@@ -4,7 +4,7 @@ namespace Tests\Unit\app\Http\Controllers\info;
 
 use Tests\TestCase;
 use Tests\Unit\app\Http\Controllers\ControllerTestHelper;
-use App\Http\Controllers\Info\WarningController;
+use App\Http\Controllers\WarningController;
 use Illuminate\Http\{RedirectResponse, JsonResponse, Request, Response};
 use Illuminate\View\View;
 
@@ -12,7 +12,7 @@ use Illuminate\View\View;
  * Comprehensive tests for WarningController
  * Includes I/O variations, edge cases, and performance tests
  * 
- * @covers \App\Http\Controllers\Info\WarningController
+ * @covers \App\Http\Controllers\WarningController
  */
 class WarningControllerTest extends TestCase
 {

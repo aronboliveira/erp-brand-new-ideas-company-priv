@@ -47,12 +47,12 @@ protected function measureProfile(string $label, \Closure $callback): mixed
 
 ## Execution Time Thresholds
 
-| Elapsed (ms) | Log Level | Action |
-|---|---|---|
-| ≤ 50 | `debug` | Normal — log for tracing only |
-| 51 – 150 | `info` | Acceptable — log for monitoring |
-| 151 – 300 | `warning` | Slow — investigate |
-| > 300 | `error` | Critical — immediate attention |
+| Elapsed (ms) | Log Level | Action                          |
+| ------------ | --------- | ------------------------------- |
+| ≤ 50         | `debug`   | Normal — log for tracing only   |
+| 51 – 150     | `info`    | Acceptable — log for monitoring |
+| 151 – 300    | `warning` | Slow — investigate              |
+| > 300        | `error`   | Critical — immediate attention  |
 
 ### `logExecutionTime`
 
@@ -82,6 +82,7 @@ the action that calls them.
 ## Missing Endpoints
 
 When adding missing endpoints:
+
 1. Follow the **same pattern** as existing endpoints in the module.
 2. If no module pattern exists, follow **RESTful design** (`index`, `show`, `store`, `update`, `destroy`).
 3. Match the naming convention of sibling controllers.

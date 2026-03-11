@@ -2280,7 +2280,8 @@ class Utility extends Model
     public static function employeeNumber($userId): string|int
     {
         if (is_string($userId)) return (string) Str::uuid();
-        return Employee::where(UC::COL_USER_ID, $userId)->latest()->first();
+        $employee = Employee::where(UC::COL_USER_ID, $userId)->latest()->first();
+        return $employee?->id ?? (string) Str::uuid();
     }
 
     public const EMP_DTLS = 'employeeDetails';
@@ -3070,7 +3071,7 @@ class Utility extends Model
         return SC::CPN_LG_DK_DEF;
     }
 
-    public static function getLogo(): string
+    public static function getLogo(string $settingKey = '', string $fallbackKey = '', int|string|null $creatorId = null): string
     {
         $colorVal = self::getValByName(SC::CLR_STG);
         $isDark = is_array($colorVal) && ($colorVal[SC::CST_DRK] ?? 'off') === 'on';
@@ -3117,9 +3118,8 @@ class Utility extends Model
                     [
                         'warehouse_id' => $warehouseId,
                         'product_id' => $productId,
-                        UC::COL_USER_ID => Auth::id()
                     ],
-                    ['quantity' => $newQty, UC::COL_USER_ID => Auth::id()]
+                    ['quantity' => $newQty]
                 );
             });
         } catch (\Throwable $e) {
@@ -3468,7 +3468,7 @@ class Utility extends Model
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return false;
         $webhook = WebhookSettings::where('module', $module)
-            ->where(UC::COL_USER_ID, $user?->id)
+            ->where('created_by', $user?->id)
             ->first();
         if (!$webhook) return false;
         $reference = sprintf('https://%s%s', $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI']);

@@ -6,22 +6,9 @@ from pathlib import Path
 from conftest import EXPORT_WRAPPER_DIR, EXPORTS_PY_DIR, IMPORT_WRAPPER_DIR, IMPORTS_PY_DIR
 
 
-EXPECTED_MISSING_EXPORT_BACKENDS = {
-    "bill_exporter.py",
-    "invoice_exporter.py",
-    "leave_report_exporter.py",
-    "product_stock_exporter.py",
-    "profit_loss_exporter.py",
-    "receivable_exporter.py",
-    "task_report_exporter.py",
-}
+EXPECTED_MISSING_EXPORT_BACKENDS: set[str] = set()
 
-EXPECTED_MISSING_IMPORT_BACKENDS = {
-    "customer_importer.py",
-    "employees_importer.py",
-    "product_service_importer.py",
-    "vendor_importer.py",
-}
+EXPECTED_MISSING_IMPORT_BACKENDS: set[str] = set()
 
 
 def _backend_name_from_endpoint(wrapper_file: Path) -> str:

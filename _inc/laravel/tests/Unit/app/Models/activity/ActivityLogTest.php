@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\app\Models\activity;
+namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -9,11 +9,6 @@ use App\Models\User;
 
 class ActivityLogTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-    }
 	use RefreshDatabase;
 
 	/**

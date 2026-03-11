@@ -54,6 +54,7 @@
   "require-dev": {
     "barryvdh/laravel-debugbar": "^3.9",
     "barryvdh/laravel-ide-helper": "^3.1",
+    "brianium/paratest": "^7.4",
     "fakerphp/faker": "^1.9.1",
     "laravel/pint": "^1.0",
     "laravel/sail": "^1.18",
@@ -93,25 +94,7 @@
         "app/Logging/"
       ],
       "App\\Models\\": [
-        "app/Models/",
-        "app/Models/Activity",
-        "app/Models/Bills",
-        "app/Models/Bugs",
-        "app/Models/Charts",
-        "app/Models/Companies",
-        "app/Models/Configs",
-        "app/Models/Contact",
-        "app/Models/Individuals",
-        "app/Models/Info",
-        "app/Models/Planning",
-        "app/Models/Products",
-        "app/Models/Shapes",
-        "app/Models/Ssr",
-        "app/Models/Abstracts",
-        "app/Models/_dev",
-        "app/Models/Abstracts/Entities",
-        "app/Models/Abstracts/Fields",
-        "app/Models/utils"
+        "app/Models/"
       ],
       "App\\Traits\\": [
         "app/Traits/",
@@ -154,6 +137,10 @@
         "Modules/LandingPage/Entities"
       ]
     },
+    "classmap": [
+      "app/Http/Controllers/",
+      "app/Models/"
+    ],
     "exclude-from-classmap": [
       "app/tests/",
       "app/Http/_Controllers_old/",
@@ -432,9 +419,7 @@
       "@php artisan route:list --compact | head -20",
       "curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/login || echo 'Server not running'"
     ],
-
     "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
-
     "test-php-exports": [
       "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Exports/"
     ],
@@ -481,7 +466,6 @@
     "phpstan-baseline": [
       "@php vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline"
     ],
-
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"

@@ -11,16 +11,17 @@ class SendLeadEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $lArr;
+    public $settings;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($lArr)
+    public function __construct($lArr, $settings = null)
     {
-
         $this->lArr = $lArr;
+        $this->settings = $settings;
     }
 
     /**
