@@ -28,8 +28,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class AnnouncementController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
 
   public function __construct()

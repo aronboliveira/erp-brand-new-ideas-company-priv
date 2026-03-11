@@ -52,8 +52,11 @@ use Illuminate\Support\Facades\{
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class JobApplicationController extends Controller
 {
+    use HasCrudConstants;
+
 	use ChecksLogin, ChecksPermissions;
 
 	public function index(Request $request): RedirectResponse|View

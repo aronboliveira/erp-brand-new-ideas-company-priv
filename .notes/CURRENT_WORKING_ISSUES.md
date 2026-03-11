@@ -1,185 +1,351 @@
-# CURRENT WORKING ISSUES
+# Route Health Report — 2026-02-07 (updated 2026-03-10, session 2)
 
-> Last updated: 2026-03-07
-> Branch: `main`
-> Resolved items archived to `.notes/.llms/.history/`. Guidelines in `.notes/.llms/.guidelines/`.
+## Summary
 
-## ACTIVE ISSUES
+| Crawl         | HTTP 500s     | Date             | Notes                                                      |
+| ------------- | ------------- | ---------------- | ---------------------------------------------------------- |
+| v5 (baseline) | **46** (5.5%) | 2026-02-07 19:30 | Fresh `migrate:fresh --seed`, first full 832-route crawl   |
+| v6            | **20** (2.4%) | 2026-02-07 20:23 | After 6 code bug fixes                                     |
+| v8 (final)    | **13** (1.6%) | 2026-02-07 21:45 | After 4 more fixes. All remaining are data/protocol/config |
 
-_None — all audited issues resolved or documented as deferred._
-
-## RESOLVED (2026-03-04 — PHPStan Level 2→3 & PHPUnit Stabilization)
-
-### PHPUnit Feature Tests — 26/26 passing (88 assertions, 0 failures)
-
-**Changes made:**
-
-- Fixed factory column mismatches: `CustomerFactory`, `VendorFactory` (billing\_\* columns), `BillFactory` (unique bill_id via UUID)
-- Fixed DashboardController namespace import in `DashboardDataTest.php` (`App\Http\Controllers\DashboardController`)
-- Added `createdBy()` relationship to `Revenue` model (was missing despite `$with` referencing it)
-- Fixed risky CRM/POS tests with fallback assertions
-- Changed `RefreshDatabase` → `DatabaseTransactions` trait (prior session)
-- Created 7 factory files: Bill, Customer, Vendor, Employee, Invoice, Revenue, BankAccount
-
-### PHPStan Level 2 — 0 errors (down from 80)
-
-**Root cause:** 80 "Access to an undefined property" errors across 8 Eloquent models  
-**Fix:** Added `@property` PHPDoc annotations to all 8 models:
-
-- `Bill` (35 properties), `BillProduct` (15), `BillAccount` (13), `Payment` (16), `BillPayment` (18)
-- `Vendor` (14), `ProductService` (16), `User` (+2 properties: `$vendor_id`, `$created_by`)
-
-### PHPStan Level 3 — Module-by-module analysis infrastructure
-
-- Created `phpstan-module.neon` (single-process config for heavy files)
-- Created `scripts/phpstan-modules.sh` (runs 25 modules independently)
-- Added PHPStan/PHPUnit/pytest scripts to `composer.json` and `package.json`
-
-### Test infrastructure verified:
-
-- PHPUnit: 422 files (414 Unit + 8 Feature) — `phpunit.xml` with MySQL test DB
-- Jest: 4 test files (3 unit + 1 core TS) — `jest.config.cjs`
-- Playwright E2E: 9 specs — `playwright.config.cjs`
-- Playwright Frontend: 8 specs — `playwright-frontend.config.cjs`
-- Pytest: 6 test files — `pytest.ini` + `.venv/`
-- curl timing: 1 polyglot script — `tests/curl_timing.sh`
-- Postman/Newman: 1 collection — `tests/postman/`
-
-## RESOLVED (2026-03-07 — Readonly Scan + Codex Report Integration + Log Archival)
-
-### Readonly scan (`.tmp/copilot/report-20260305-2/`)
-
-- **PHP lint:** 0 errors across 1,417 files ✅
-- **ESLint (frontend):** 0 errors · 0 warnings ✅
-- **Routes:** 1,507 routes registered
-- **HTTP smoke test (20 routes):** 0 × 500 ✅
-- **Jest:** 10 / 10 ✅
-- **Pytest:** 53 / 53 ✅
-- **Composer audit:** 14 advisories (5 high, 7 medium, 1 low) — deferred, no fix this session
-- **npm audit:** 20 vulnerabilities (1 critical `next`, 9 high) — deferred
-- **PHPStan L3:** fresh run in progress (background job, 2G RAM, no workers); prior data: ~150 real errors in BillController+DashboardController
-
-### Codex isolated run (`.tmp/codex/report-20260305-2/`)
-
-**Context:** Codex runs against a cloned snapshot (isolated env on port 19082, maintenance mode active).
-
-| Suite                    | Status                     | Notes                                                        |
-| ------------------------ | -------------------------- | ------------------------------------------------------------ |
-| PHPStan                  | timed_out (20 min)         | Requires `--memory-limit=2G`; no `--workers` flag            |
-| ESLint public            | passed                     | 758 warnings — pre-fix snapshot; main workspace = 0 ✅       |
-| ESLint frontend          | failed (exit 1)            | 5 pre-fix warnings — already fixed in main workspace         |
-| Playwright main/frontend | failed                     | webServer/auth setup timeout in isolated env                 |
-| PHPUnit                  | timed_out (20 min)         | Expected; SQLite compat issue pre-existing                   |
-| Jest                     | **10 / 10**                | ✅                                                           |
-| pytest (npm script)      | failed exit 127            | `source` not available in `/bin/sh`; rerun with bash = 53/53 |
-| pytest (bash rerun)      | **53 / 53**                | ✅                                                           |
-| curl timing              | 503 (all)                  | Maintenance mode in clone; not a real bug                    |
-| MySQL                    | **210 tables, 0 failures** | ✅                                                           |
-
-**Codex findings that need action:**
-
-- `npm run test:pytest` uses `source` — fails under `/bin/sh`; fix: use `. .venv/bin/activate` or `bash -c ...`
-- PHPStan must be run with `--memory-limit=2G` (no `--workers` flag in installed version)
-
-### Log archival (2026-03-07)
-
-- `.notes/*.txt`, `.notes/*.log` → `.notes/.llms/.history/reports/` (4 files)
-- `_inc/laravel/.notes/` — created `.history/` subdir; archived 14 dated log/txt/md files
+**Total code bugs fixed: 33 routes went from 500 → non-500 (71.7% reduction)**
 
 ---
 
-## RESOLVED (2026-03-07 — Combined Copilot + Codex Security Audit Fix Batch)
+## Code Bugs Fixed (all verified working in v8)
 
-### Phase 1: DashboardController Structural Fixes (11 replacements)
+### 1. Missing Spatie Permissions (10 permissions)
 
-**File:** `app/Http/Controllers/Shapes/DashboardController.php`
+- **Symptom:** 500 on ~9 routes (training, zoom, reports)
+- **Fix:** Created permissions in DB + updated `PermissionsConstants.php` + `SeedersTemplating.php`
 
-- **Guard recursion (4 methods):** `projectDashboardIndex`, `hrmDashboardIndex`, `crmDashboardIndex`, `posDashboardIndex` — replaced recursive/fallthrough with `return $r;`
-- **Missing returns (6 catch blocks):** Added `return` before `Redirect::back()` in outer catch blocks
-- **Log method case:** `Log::Error(` → `Log::error(`
+### 2. View `[app]` not found
 
-### Phase 2: View Variable Mismatches (13 replacements)
+- **Symptom:** 500 on Fortify/Jetstream routes (`/login`, `/register`, etc.)
+- **Fix:** Created `resources/views/app.blade.php` (minimal Inertia layout)
 
-- Controller: `$attendance`→`$employeeAttendance`, `$crmData`→`$crm_data`, `$posData`→`$pos_data`, `$projectMetrics`→`$project`, `$projectStatus`→`$project_status`, added `$transdate`+`$top_tasks`
-- View: `$inActiveJOb`→`$inActiveJob` (dashboard), `$user?->`→`$user[]` array access (super_admin)
+### 3. `FaqController::create()` — missing `$settings` variable
 
-### Phase 3: Security Hotfixes (LAR-001 through LAR-008)
+- **File:** `Modules/LandingPage/Http/Controllers/FaqController.php`
+- **Symptom:** `compact()` failed on undefined `$settings`
+- **Fix:** Added `$settings = LandingPageSetting::landingPageSetting();`
 
-| LAR | Issue                           | Fix                                               |
-| --- | ------------------------------- | ------------------------------------------------- |
-| 001 | .env tracked in git             | Uncommented .gitignore rules, `git rm --cached`   |
-| 002 | BankTransfer missing auth       | Added guard() + tenant-scoped Order query         |
-| 003 | Cross-tenant password reset     | Scoped User::findOrFail with COL_TABLE_CREATOR    |
-| 004 | Cashfree trusting caller amount | Replaced $req->amount with $info->payment_amount  |
-| 005 | Plaintext password in logs      | Removed db_pw/input_pw from log context           |
-| 006 | Appraisal IDOR                  | Added COL_TABLE_CREATOR check to show/edit/update |
-| 007 | Todo IDOR                       | Scoped UserToDo with where('user_id')             |
-| 008 | HSTS disabled                   | Uncommented Strict-Transport-Security header      |
+### 4. `TimesheetController` — 7 broken guard patterns
 
-### Phase 4: Blade & JS Fixes
+- **File:** `app/Http/Controllers/Shapes/TimesheetController.php`
+- **Symptom:** `if ($deny = $this->guard(...))` was truthy when authorized (returns `true`)
+- **Fix:** Changed all 7 to `if (($deny = $this->guard(...)) !== true)`
 
-- `Form::Sopen`/`Sclose` → `Form::open`/`close` in goals (2 fixes)
-- 12× `Form:::` → `Form::` in invoices
-- 10× `'{!! $message !!}'` → `@json($message)` for XSS in 5 blade files (bills, invoices, proposals, purchases, jobs/apply)
-- `@forelse`/`@endforeach` mismatch → `@empty`+`@endforelse` in dashboard meetings loop
-- Removed broken `onchange="get_data()"` from 6 selects in 5 blade files, added programmatic `change` listeners + `window.get_data` in 3 JS files
+### 5. `TimesheetController::filterTimesheetTable()` — wrong return type
 
-### Phase 5: Route / Middleware / Model Fixes
+- **File:** `app/Http/Controllers/Shapes/TimesheetController.php`
+- **Symptom:** Catch block returned `RedirectResponse` but method declares `JsonResponse`
+- **Fix:** Changed catch to `return response()->json([...], 500)`
 
-- **XSS.php:** Added `htmlspecialchars()` around `strip_tags()`
-- **api.php:** Re-enabled sanctum guest middleware on login route
-- **Pipeline.php:** Uncommented `$guarded`, removed `id`+`CREATED_BY` from `$fillable`
-- **Describable.php:** Removed `id` from `$fillable`, added `$guarded = ['id']`
+### 6. `HomeController::show()` — strict int type hint
 
-### Test Results
+- **File:** `Modules/LandingPage/Http/Controllers/HomeController.php`
+- **Symptom:** Routes pass string IDs, type hint was `int $id`
+- **Fix:** Changed to `string|int $id`
 
-- PHPUnit Middleware: 21 tests / 45 assertions — ALL PASS
-- Jest Frontend: 3 suites / 10 tests — ALL PASS
-- PHPUnit Feature (DashboardDataTest): 26 errors — pre-existing SQLite migration incompatibility (not caused by this batch)
+### 7. `BenefitPaymentController` — missing dot in route name
 
-## RESOLVED (2026-03-06 — Intelephense Batch Fix)
+- **File:** `app/Http/Controllers/Bills/BenefitPaymentController.php`
+- **Symptom:** `VW::INV . 'link.copy'` = `'invoiceslink.copy'` (should be `'invoices.link.copy'`)
+- **Fix:** Changed 3 occurrences to `VW::INV . '.link.copy'`
 
-14 fixes across 12 files: import aliases, static property case, test bugs, return types, deprecated nullable syntax. See `.notes/.llms/.history/` for details.
+### 8. `forgot_password.blade.php` — Collection cast + unsafe array access
 
-## RESOLVED (2026-03-05 — Playwright Firefox)
+- **File:** `resources/views/auth/forgot_password.blade.php`
+- **Symptom:** `(array)(Utility::languages())` cast Collection object, not items → `mb_substr()` error
+- **Fix:** Used `->all()` for Collection, added safe key fallback
 
-Browser-aware timeouts, `test.slow()`, separated skip vs fail logic. See `.notes/.llms/.history/` for details.
+### 9. Webhook view name mismatch
 
-## RESOLVED (2026-03-05 — ESLint + Playwright RBAC + HTTP 500 fix batch)
+- **File:** `app/Http/Controllers/Configs/SystemController.php`
+- **Symptom:** Views referenced `webhook.xxx` but directory is `webhooks/`
+- **Fix:** Changed 3 references to `webhooks.xxx`
 
-### ESLint — frontend tests: 5 no-unused-vars warnings eliminated
+### 10. User notifications relationship mismatch
 
-- `performance.test.ts`: `measureTimeAsync` → `_measureTimeAsync`
-- `performance.spec.ts`: `longTasks` → `_longTasks`
-- `rbac.spec.ts`: `getElementCount` → `_getElementCount`
-- `render-timing.spec.ts` (×2): `catch (_) {}` → `catch {}`
-- `eslint.frontend.config.mjs`: added `caughtErrorsIgnorePattern: "^_"` to TS rule
+- **File:** `app/Models/Individuals/User.php`
+- **Symptom:** `Notifiable` trait uses `morphMany(notifiable_type)` but custom table uses `user_id`
+- **Fix:** Added `notifications()` HasMany override using `user_id`
 
-### Playwright RBAC — 5 failing hardening tests fixed
+### 11. Timesheets missing `deleted_at` column
 
-**Root cause**: `tests/frontend/js/pages/utils/rbac-test-utils.js` did not exist.
-**Fix**: Created the file as a full ES module exporting `Permissions`, `RoleTemplates`, `createMockUser`, `userCan`, `setUserContext`, `hideElementsWithoutPermission`, `createTestRunner`.
+- **Symptom:** SoftDeletes trait on Timesheet model but table lacked column
+- **Fix:** Added column via Schema + created migration `2026_02_07_212821_add_deleted_at_to_timesheets.php`
 
-### HTTP 500 errors — 4 routes fixed (all now 2xx/3xx)
+### 12. Exception handler `ModelNotFoundException` → 500
 
-| Route                                 | Fix                                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------------------ |
-| `GET /register`                       | Added `$data??=[];` guard in `register.blade.php`                                    |
-| `GET /fortify-register`               | Same view, same fix                                                                  |
-| `GET /projects.timesheets/table-view` | Fixed `FT_TMS_TBL` constant: `'filterTimesheetTable'` → `'filterTimesheetTableView'` |
-| `GET /_debugbars/assets/javascript`   | `composer reinstall php-debugbar/php-debugbar` (empty Resources dir)                 |
-
-### Cleanup
-
-- Removed `_inc/laravel/_inc/` empty garbage directory
-- `.gitignore` + `_inc/laravel/.gitignore`: added `tmp/`, `**/tmp/`, `**/tmp2/`, `storage/tmp/`, `storage/tmp2/`
+- **File:** `app/Exceptions/Handler.php` + `app/Http/Controllers/Helpers/ErrorHandlers.php`
+- **Fix:** Added `ModelNotFoundException` detection to return 404 instead of 500
 
 ---
 
-## REMINDERS
+## Remaining 13 HTTP 500s (NOT code bugs)
 
-⛔ NEVER run `php artisan test` — wipes production DB
-⛔ NEVER run `php artisan migrate:fresh` — same
-⛔ NEVER cast $user->id to (int) — UUID always returns 0
-⛔ NEVER push to comp remote — push only to origin
-⛔ Always use MWC::, VW::, PMC:: constants — no raw strings in routes
+### Data-Dependent — No Deal Records (4 URLs)
+
+Seeder creates 0 deals. Routes fail with `ModelNotFoundException` caught inside DealController.
+
+- `/deals/1/tasks`
+- `/deals/1/tasks/1/edit`
+- `/deals/1/tasks/1/show`
+- `/deals/1/users`
+
+### Data-Dependent — Project UUID vs Integer (5 URLs)
+
+Projects use UUID primary keys. Integer `1` doesn't match any project.
+
+- `/projects/1/users/1/permission`
+- `/projects/copies/1`
+- `/projects/copies/links/1`
+- `/projects/copy-links/1`
+- `/share-projects/1`
+
+### POST-Only Routes Hit with GET (3 URLs)
+
+These routes expect POST data. GET requests trigger `ValidationException`.
+
+- `/email_template_stores/1`
+- `/projects.timesheets/projects/updates/1`
+- `/store-language`
+
+### External Config Required (1 URL)
+
+- `/stripes/1` — Requires Stripe API configuration
+
+---
+
+## Route Distribution (v8)
+
+| Status                     | Count | %     |
+| -------------------------- | ----- | ----- |
+| 200 OK                     | 522   | 62.7% |
+| 404 Not Found              | 241   | 29.0% |
+| 302000 (redirect artifact) | 28    | 3.4%  |
+| 429 Too Many Requests      | 14    | 1.7%  |
+| 500 Internal Server Error  | 13    | 1.6%  |
+| 401 Unauthorized           | 6     | 0.7%  |
+| 422 Unprocessable Entity   | 4     | 0.5%  |
+| 400 Bad Request            | 2     | 0.2%  |
+| 204 No Content             | 2     | 0.2%  |
+
+---
+
+## Session 3 — i18n Audit (2026-02-25, commit `6f4e49f1`)
+
+**Scope:** Full server-side locale and translation system audit.
+
+### Bugs Fixed
+
+#### 1. `change-language` vs `change-languages` route URL
+
+- **File:** `tests/e2e/i18n.spec.cjs`
+- **Bug:** Test used `/change-language/{lang}` (singular). Actual route is `/change-languages/{lang}` (with `s`).
+- **Fix:** Updated 6 occurrences.
+
+#### 2. `SetGuestLocale` middleware — unsupported locale fell through to `en`
+
+- **File:** `app/Http/Middleware/SetGuestLocale.php`
+- **Bug:** Unsupported locale code set app locale to the raw input instead of falling back to `en`.
+- **Fix:** Added validation against supported locales, fall back to `en`.
+
+#### 3. `SetLocale` middleware — missing `xx` config fallback
+
+- **File:** `app/Http/Middleware/SetLocale.php`
+- **Bug:** `xx` test code fell through and threw a missing config key error.
+- **Fix:** Added fallback for invalid locale codes.
+
+#### 4. `change-languages` endpoint — session locale not flushed across redirects
+
+- **Bug:** Session locale not reliably persisting after redirect chain.
+- **Fix:** Added `Session::save()` before redirect.
+
+#### 5. Arabic/Hebrew `dir="rtl"` missing on admin layout
+
+- **File:** `resources/views/layouts/admin.blade.php`
+- **Bug:** `dir` attribute not set based on locale.
+- **Fix:** Added RTL detection from `$lang` and set `dir` accordingly.
+
+### Tests Added
+
+| Suite                                              | Tests               |
+| -------------------------------------------------- | ------------------- |
+| `tests/e2e/i18n.spec.cjs`                          | 69 Playwright tests |
+| `tests/Unit/frontend/js/core/i18n-locale.test.cjs` | 135 Jest tests      |
+
+### Regression
+
+Full Playwright suite after this commit: **300 passed / 1 failed** (expense form — fixed next session)
+
+---
+
+## Session 4 — Expense Form Fix (2026-02-25, commit `aaef3f39`)
+
+**Scope:** Fix the last remaining Playwright failure (`financial.spec.cjs:133`).
+
+### Root Cause Chain (4 cascading bugs)
+
+#### 1. `BankAccount::selectRaw()` — wrong bindings type (3 locations)
+
+- **Files:** `app/Http/Controllers/Bills/ExpenseController.php` (×2), `app/Http/Controllers/Bills/BillController.php` (×1)
+- **Bug:** `selectRaw("CONCAT(...) AS name", 'id')` — second arg must be `array` for `?` bindings. Passing `'id'` (string) throws `TypeError` caught silently → `back()` redirect → `/job-application`.
+- **Fix:** Moved `id` into the SQL expression: `selectRaw("CONCAT(...) AS name, id")`
+
+#### 2. Breadcrumb using `projects.expenses.index` (requires `{id}` param)
+
+- **File:** `resources/views/expenses/create.blade.php:42`
+- **Bug:** `route('projects.expenses.index')` called without required route parameter → `UrlGenerationException`.
+- **Fix:** Changed to `route('expenses.index')` with `Route::has()` safety guard.
+
+#### 3. `@php` block used `VW::PRJ_EXP` (`projects.expenses.*`) for all route lookups
+
+- **File:** `resources/views/expenses/create.blade.php` (~lines 289–350)
+- **Bug:** `projects.expenses.*` routes all require `{pid}`/`{id}`. The exception is caught, leaving `$storeUrl` etc. undefined → next error.
+- **Fix:** Changed all route lookups to `VW::EXP` (`expenses.*`).
+
+#### 4. `Form::open()` received `'route' => $storeUrl` (full URL, not route name)
+
+- **File:** `resources/views/expenses/create.blade.php:356`
+- **Bug:** `Form::open(['route' => 'http://localhost:8888/expenses'])` → `Route [http://...] not defined`.
+- **Fix:** Changed to `'url' => $storeUrl`.
+
+### Result
+
+| Spec                  | Before  | After          |
+| --------------------- | ------- | -------------- |
+| `financial.spec.cjs`  | 34/35   | **35/35** ✅   |
+| Full Playwright suite | 300/301 | **329/329** ✅ |
+
+---
+
+## Session 5 — Methods Naming Refactor (2026-02-26, commit `4a3b7ca4`)
+
+**Scope:** Complete the camelCase + `public const` naming standard across all controllers and update `routes/web.php` to use `ControllerClass::CONST` references.
+
+### Changes Made
+
+#### Controllers (6 files)
+
+| Controller                    | Change                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| `LeadController.php`          | Added `public const LD_LST = 'leadList';`                                                    |
+| `ContractController.php`      | Added `public const CL_WS_PRJ = 'clientWiseProject';`                                        |
+| `ReportController.php`        | Deleted duplicate `stock_export` snake_case method (kept `stockExport` with `STK_EXP` const) |
+| `ProjectController.php`       | Added `public const PRJ_CPY_LNK = 'projectCopyLink';`                                        |
+| `ProjectReportController.php` | Renamed `ajax_data` → `ajaxData` + `AJX_DT` const                                            |
+| `ProjectReportController.php` | Renamed `ajax_tasks_report` → `ajaxTasksReport` + `AJX_TSK_RPT` const                        |
+
+#### Routes (`routes/web.php`) — 12 fixes
+
+| Old                                   | New                                |
+| ------------------------------------- | ---------------------------------- |
+| `[LDC::class, 'lead_list']`           | `[LDC::class, LDC::LD_LST]`        |
+| `[CTCC::class, 'clientWiseProject']`  | `[CTCC::class, CTCC::CL_WS_PRJ]`   |
+| `[CTCC::class, 'clientwiseproject']`  | `[CTCC::class, CTCC::CL_WS_PRJ]`   |
+| `[CTCC::class, 'copycontract']`       | `[CTCC::class, CTCC::CPY_CTC]`     |
+| `[CTCC::class, 'copycontractstore']`  | `[CTCC::class, CTCC::CPY_CTC_STR]` |
+| `[RPC::class, 'stock_export']`        | `[RPC::class, RPC::STK_EXP]`       |
+| `[PRJC::class, 'projectCopyLink']`    | `[PRJC::class, PRJC::PRJ_CPY_LNK]` |
+| `[PRJC::class, 'projectlink']`        | `[PRJC::class, PRJC::PRJ_LNK]`     |
+| `[RPC::class, 'LeaveReportExport']`   | `[RPC::class, RPC::LV_RPT_EXP]`    |
+| `[RPC::class, 'PayrollReportExport']` | `[RPC::class, RPC::PAY_RPT_EXP]`   |
+| `[PRPC::class, 'ajax_data']`          | `[PRPC::class, PRPC::AJX_DT]`      |
+| `[PRPC::class, 'ajax_tasks_report']`  | `[PRPC::class, PRPC::AJX_TSK_RPT]` |
+
+### Verification
+
+- PHP syntax check on all 6 files: ✅
+- `php artisan route:list`: ✅ 1532 routes, no errors
+- `npm run audit:routes`: ✅ 0 raw route names, 98% constants adoption
+
+### Remaining (deferred)
+
+- ~14 routes in `web.php` still use raw string literals (all functional)
+- `ZoomMeetingTrait` constants deferred — trait constants require PHP 8.2+, project minimum is 8.1
+
+---
+
+## 2026-03-10 Update — Route Pluralization & Namespace Fixes
+
+### Additional Bugs Fixed
+
+| #   | Issue                                                                                     | Commit     | Files                         |
+| --- | ----------------------------------------------------------------------------------------- | ---------- | ----------------------------- |
+| 13  | Route pluralization: `GET /login` → 405 because URI became `/logins/{lang?}`              | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 14  | Namespace collision: `route:list` crash with `ReflectionException` for module controllers | `9d2d5fa9` | `RouteServiceProvider.php` ×2 |
+| 15  | HTTP 4xx handler: all 4xx returned "Access Denied" including 405                          | `9d2d5fa9` | `Handler.php`                 |
+| 16  | Model relation aliases colliding with DB columns                                          | `5fbdb617` | 5 model files                 |
+
+### Route Tester Results (post-fix)
+
+| Metric            | Value                          |
+| ----------------- | ------------------------------ |
+| Total routes      | 191                            |
+| GET routes tested | 97                             |
+| 200 OK            | 6                              |
+| 204 No Content    | 1                              |
+| 302 Redirect      | 74 (auth-required, no DB user) |
+| 404 Not Found     | 9 (dynamic param routes)       |
+| **5xx Errors**    | **0**                          |
+| **Timeouts**      | **0**                          |
+
+---
+
+## 2026-03-10 Session 2 — Auth Fix & Full Re-Run
+
+### Additional Bugs Fixed
+
+| #   | Issue                                                             | Commit     | Files                                |
+| --- | ----------------------------------------------------------------- | ---------- | ------------------------------------ |
+| 17  | Login detail FK constraint: `created_by = 0` violates UUID FK     | `b4265c32` | `AuthenticatedSessionController.php` |
+| 18  | auth.setup.cjs: broken waitForURL regex, duplicate form IDs, race | `b4265c32` | `auth.setup.cjs`                     |
+
+### Database Setup
+
+- MySQL 8.4.7 running, used `test`/`test` user on `erp_prestech_db` (211 tables, seeded)
+- Created test admin user with UUID `1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c`
+- `phpunit.xml` updated to point to `erp_prestech_db`
+
+### Full Test Suite Results (with seeded DB)
+
+| Suite      | Tests  | Pass   | Fail/Error | Rate      | Previous | Delta |
+| ---------- | ------ | ------ | ---------- | --------- | -------- | ----- |
+| PHPUnit    | 12,180 | 11,130 | 1,050      | **91.4%** | 90.4%    | +1.0% |
+| Playwright | 297†   | 139    | 158        | **46.8%** | 47.1%    | −0.3% |
+| Jest       | 524    | 524    | 0          | **100%**  | 100%     | —     |
+| pytest     | 268    | 268    | 0          | **100%**  | 100%     | —     |
+| PHPStan    | —      | —      | 0          | **100%**  | 100%     | —     |
+
+† 332 total, 35 skipped = 297 non-skipped
+
+### PHPUnit Failure Breakdown (25 in Feature+Unit, 1050 total)
+
+Feature test failures (25):
+
+- 14× DashboardDataTest — missing route/controller dependencies
+- 1× ExampleTest — expected 2xx/3xx got 404
+- 2× HrmRouteReturnTest / PmRouteReturnTest — export route 404
+- 1× ViewRenderingHardeningTest — `/home` returns 500 (DashboardController not found)
+- 7× remaining — auth/data-dependent assertions
+
+### Playwright Failure Breakdown (158)
+
+- 42 — hrm.spec.cjs (HRM module routes/views)
+- 31 — reports.spec.cjs (report generation/rendering)
+- 65 — finance-render.spec.cjs (finance route rendering assertions)
+- 7 — crm.spec.cjs (CRM module)
+- 6 — i18n.spec.cjs (i18n / locale switching)
+- 3 — security-api.spec.cjs
+- 2 — pm.spec.cjs
+- 1 — financial.spec.cjs
+- 1 — products.spec.cjs (only clean spec in previous run)
+
+### Root Causes of Remaining Failures
+
+1. **`DashboardController` not found** — `web.php:152` references `App\Http\Controllers\DashboardController` which doesn't exist. Causes cascading 500s on `/home`, `/hrm-dashboard` post-login views.
+2. **Route 404s** — Several export/download routes return 404 (likely missing route definitions or renamed URIs).
+3. **Playwright auth context** — While `auth.setup.cjs` now works correctly, many specs test pages that depend on `DashboardController` to render post-login views, causing failures.

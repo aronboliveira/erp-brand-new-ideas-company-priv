@@ -35,8 +35,11 @@ use Illuminate\Support\Facades\{
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class AppraisalController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
 
   private const ENTITY = 'appraisal';

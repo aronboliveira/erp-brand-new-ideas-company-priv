@@ -11,8 +11,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class LeadStageController extends Controller
 {
+    use HasCrudConstants;
+
   public function __construct()
   {
     $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

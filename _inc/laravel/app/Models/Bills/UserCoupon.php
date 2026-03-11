@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\Log;
 use Throwable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $coupon
  * @property mixed $order
@@ -31,6 +32,7 @@ use Throwable;
 
 class UserCoupon extends Model
 {
+    use HasFactory;
     use HasAuditFields;
     use UsesUuids;
     use NormalizesAddresses;

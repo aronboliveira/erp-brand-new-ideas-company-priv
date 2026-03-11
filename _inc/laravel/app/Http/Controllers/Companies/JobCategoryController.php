@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\{Auth, Log, Route, Validator, View as ViewFacade}
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class JobCategoryController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function index(Request $request): View|RedirectResponse

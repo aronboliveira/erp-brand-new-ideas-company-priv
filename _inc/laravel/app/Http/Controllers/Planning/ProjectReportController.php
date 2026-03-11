@@ -31,8 +31,11 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ProjectReportController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ENTITY = 'project';

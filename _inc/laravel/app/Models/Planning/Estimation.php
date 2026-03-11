@@ -30,6 +30,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property bool|null $is_signed
  * @property string|\Illuminate\Support\Carbon|null $signed_at
@@ -37,6 +38,7 @@ use Illuminate\Support\Facades\{DB, Log, Schema};
  */
 class Estimation extends Model
 {
+    use HasFactory;
     use UsesUuids,
         HasAuditFields,
         NormalizesAddresses,

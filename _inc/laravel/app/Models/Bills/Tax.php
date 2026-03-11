@@ -7,6 +7,7 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $name
  * @property float|int|string|null $rate
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
  */
 class Tax extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields;
 
     protected $fillable = ['name', 'rate'];

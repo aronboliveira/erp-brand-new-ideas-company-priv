@@ -52,8 +52,11 @@ use Illuminate\View\View;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class ExpenseController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
     /** Cache TTL in seconds — 2 minutes for expense list data */
     private const CACHE_TTL = 120;

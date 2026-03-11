@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class SourceController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function __construct()

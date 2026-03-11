@@ -23,8 +23,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class DepartmentController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin, ChecksPermissions;
   private const REDIRECT_INDEX = '/';
 

@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ResignationController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = ViewsConstants::RSG . '.index';

@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $url
  */
 class WebhookSettings extends Model
 {
+    use HasFactory;
     use UsesUuids;
 
     private const FILLABLE_FIELDS = [

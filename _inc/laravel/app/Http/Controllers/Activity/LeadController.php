@@ -60,8 +60,11 @@ use Symfony\Component\HttpFoundation\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class LeadController extends Controller
 {
+    use HasCrudConstants;
+
     /** @var array{lead: ?\App\Models\Lead, id: int|null} */
     private static array $leadData = ['lead' => null, 'id' => null];
 

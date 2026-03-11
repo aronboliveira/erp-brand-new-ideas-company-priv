@@ -18,8 +18,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class TransactionController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ROUTE_INDEX = ViewsConstants::TST . '.index';

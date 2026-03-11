@@ -17,8 +17,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log};
 use Illuminate\Auth\Access\AuthorizationException;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class PayslipTypeController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function __construct()

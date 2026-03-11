@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\{Cache, DB, Log};
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $created_by
  */
 
 class JobStage extends Model
 {
+    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
     use NormalizesArrays;

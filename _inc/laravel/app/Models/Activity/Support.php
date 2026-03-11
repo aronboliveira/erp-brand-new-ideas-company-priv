@@ -303,7 +303,7 @@ class Support extends Model
 		);
 	}
 
-	public static function status(): array
+	public static function statusOptions(): array
 	{
 		return [
 			'New' => __('New'),

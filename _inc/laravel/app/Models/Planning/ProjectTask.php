@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property \Illuminate\Support\Carbon|string|null $marked_at
  * @property string|null $name
@@ -20,6 +21,7 @@ use Illuminate\Support\Str;
 
 class ProjectTask extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, NormalizesArrays, FiltersSecureAttachments, PlansByHierarchy, DefinesDates;
 
     protected $table = DC::TABLE_PROJ_TSKS;

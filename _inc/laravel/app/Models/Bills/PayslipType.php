@@ -8,6 +8,7 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Support\{Collection, Str, Facades\Log};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property float|int|string|null $max_amount
  * @property float|int|string|null $min_amount
@@ -16,6 +17,7 @@ use Illuminate\Support\{Collection, Str, Facades\Log};
  */
 class PayslipType extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields;
 
     protected $table = DC::TABLE_PAY_SLP_TP;

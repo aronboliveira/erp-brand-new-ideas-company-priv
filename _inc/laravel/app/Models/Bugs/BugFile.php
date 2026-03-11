@@ -6,8 +6,11 @@ use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, Us
 use App\Enums\UserType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 final class BugFile extends AbstractFile
 {
+    use HasFactory;
+
     protected $table = DC::TABLE_BG_FL;
 
     protected $with = ['bug'];

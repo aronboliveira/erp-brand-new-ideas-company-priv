@@ -55,8 +55,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class DealController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin, ChecksPermissions;
 
   private const ROUTE_INDEX = DC::TABLE_DEALS . '.index';

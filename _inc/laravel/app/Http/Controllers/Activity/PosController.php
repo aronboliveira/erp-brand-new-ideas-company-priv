@@ -45,8 +45,11 @@ use Illuminate\View\View;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class PosController extends Controller
 {
+    use HasCrudConstants;
+
 
   use ChecksLogin;
 

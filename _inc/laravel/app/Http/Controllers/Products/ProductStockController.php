@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 final class ProductStockController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = ViewsConstants::PRD_STK . '.index';

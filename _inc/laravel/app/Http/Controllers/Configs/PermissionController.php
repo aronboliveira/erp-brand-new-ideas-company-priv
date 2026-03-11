@@ -9,8 +9,11 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class PermissionController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = 'permission';

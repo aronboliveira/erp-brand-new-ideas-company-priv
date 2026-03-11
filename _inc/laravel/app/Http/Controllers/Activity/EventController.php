@@ -27,8 +27,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class EventController extends Controller
 {
+    use HasCrudConstants;
+
 
   public function index(Request $request): mixed
   {

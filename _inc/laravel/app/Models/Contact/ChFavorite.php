@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property int|null $favorite_id
  */
 
 class ChFavorite extends Model
 {
+    use HasFactory;
     use UsesUuids;
 
     private const FILLABLE_FIELDS = ['user_id', 'favorite_id']; // ! CHANGED

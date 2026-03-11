@@ -42,8 +42,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class JobController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = ViewsConstants::JB;

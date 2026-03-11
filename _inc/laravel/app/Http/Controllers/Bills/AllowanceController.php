@@ -17,8 +17,11 @@ use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class AllowanceController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
 
   public function __construct()
@@ -335,7 +338,7 @@ final class AllowanceController extends Controller
             if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
             if (($r = self::guard($req, 'manage allowance')) !== true) return $r;
             try {
-                $allowances = \App\Models\Bills\Allowance::where('created_by', $u->creatorId())->get();
+                $allowances = \App\Models\Allowance::where('created_by', $u->creatorId())->get();
                 $viewPath = 'allowances.index';
                 if (!\Illuminate\Support\Facades\View::exists($viewPath))
                     return redirect()->route('dashboard')->with('error', 'Allowances index view not found.');

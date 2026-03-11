@@ -20,6 +20,7 @@ use App\Traits\{
 };
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $currency
  * @property string|null $status
@@ -39,6 +40,7 @@ use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
  */
 class InvoicePayment extends Model
 {
+    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
     use HasPaymentColumns;

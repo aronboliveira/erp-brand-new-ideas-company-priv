@@ -30,8 +30,11 @@ use Illuminate\Support\Facades\{Artisan, Auth, DB, File, Log, Mail, Validator, V
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class SystemController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = VW::SET . '.index';

@@ -40,8 +40,11 @@ use Illuminate\View\View;
 use App\Helpers\SafeConsoleOutput;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class RegisteredUserController extends Controller
 {
+    use HasCrudConstants;
+
   public function __construct()
   {
     SafeConsoleOutput::make()->writeln('Constructing ' . __CLASS__);

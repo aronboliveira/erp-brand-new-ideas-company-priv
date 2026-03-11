@@ -200,11 +200,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->id;
     }
 
-    public function creatorId(): int|string
+    public function creatorId(): int|string|null
     {
-        return in_array($this[UC::COL_TP], [PMC::CPN, PMC::SA], true)
+        return in_array($this[UC::COL_TP] ?? null, [PMC::CPN, PMC::SA], true)
             ? $this->id
-            : $this[DC::COL_TABLE_CREATOR];
+            : ($this[DC::COL_TABLE_CREATOR] ?? $this->id);
     }
 
     public function ownerId(): int|string

@@ -18,8 +18,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class WarehouseTransferController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = ViewsConstants::WRH_TRF . '.index';
@@ -277,7 +280,7 @@ class WarehouseTransferController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
-    public function update(Request $request, \App\Models\Activity\WarehouseTransfer $transfer): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, \App\Models\WarehouseTransfer $transfer): \Illuminate\Http\RedirectResponse
     {
         $action = __FUNCTION__;
         $class = static::class;

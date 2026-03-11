@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use Illuminate\Support\Facades\{DB, Schema};
 use Illuminate\Support\{Collection, Str};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $created_by
  * @property array|string|null $customQuestion
@@ -22,6 +23,7 @@ use Illuminate\Support\{Collection, Str};
 
 class Job extends Model
 {
+    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
     use NormalizesAddresses;

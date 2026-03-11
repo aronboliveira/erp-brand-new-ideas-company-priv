@@ -25,8 +25,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class TrainerController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = ViewsConstants::TNR . '.index';

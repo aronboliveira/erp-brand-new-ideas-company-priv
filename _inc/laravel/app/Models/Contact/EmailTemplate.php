@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\{
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $from
 
@@ -27,6 +28,7 @@ use Illuminate\Support\Str;
  */
 class EmailTemplate extends Model
 {
+    use HasFactory;
     use HasAuditFields, NormalizesAddresses, UsesUuids;
 
     protected $table = DC::TABLE_EMAIL_TEMPLATES;

@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class WarningController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ROUTE_INDEX = ViewsConstants::WRN . '.index';

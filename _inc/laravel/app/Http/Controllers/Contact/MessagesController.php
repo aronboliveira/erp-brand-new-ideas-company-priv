@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\{Auth, Log, Response as ResponseFacade, Request a
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class MessagesController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
 
     private const DOWNLOAD_PATH = 'chatify.attachments.folder';

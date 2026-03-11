@@ -29,8 +29,11 @@ use Illuminate\Support\Facades\{Auth, Log, Storage};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ContractController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
 
     private const ENTITY = 'contracts';

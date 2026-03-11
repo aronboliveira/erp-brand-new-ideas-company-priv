@@ -20,8 +20,11 @@ use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class DebitNoteController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
     use ChecksPermissions;
 

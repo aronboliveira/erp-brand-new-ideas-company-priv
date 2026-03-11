@@ -18,8 +18,11 @@ use Illuminate\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class OtherPaymentController extends Controller
 {
+    use HasCrudConstants;
+
 
     use ChecksLogin, ChecksPermissions;
 
@@ -300,7 +303,7 @@ final class OtherPaymentController extends Controller
                 $viewPath = 'other_payments.index';
                 if (!\Illuminate\Support\Facades\View::exists($viewPath))
                     return redirect()->route('dashboard')->with('error', 'Other payments index view not found.');
-                $payments = \App\Models\Bills\OtherPayment::where('created_by', $u->creatorId())->get();
+                $payments = \App\Models\OtherPayment::where('created_by', $u->creatorId())->get();
                 return response()->view($viewPath, ['payments' => $payments]);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);

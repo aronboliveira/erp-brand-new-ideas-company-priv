@@ -32,8 +32,10 @@ use Illuminate\Database\Eloquent\{
 };
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Expense extends Model
 {
+    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
     use NormalizesArrays;

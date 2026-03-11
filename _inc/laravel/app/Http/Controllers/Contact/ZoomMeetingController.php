@@ -19,8 +19,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ZoomMeetingController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions, ZoomMeetingTrait;
 
     private const SINGULAR = 'zoom-meeting';

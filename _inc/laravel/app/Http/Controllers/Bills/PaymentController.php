@@ -30,8 +30,11 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class PaymentController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const PERM_MANAGE = PermissionsConstants::MNG_PMT;
@@ -439,7 +442,7 @@ final class PaymentController extends Controller
         return null;
     }
 
-    public function show(Request $req, \App\Models\Bills\Payment $payment): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    public function show(Request $req, \App\Models\Payment $payment): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $action = __FUNCTION__;
         $class = static::class;

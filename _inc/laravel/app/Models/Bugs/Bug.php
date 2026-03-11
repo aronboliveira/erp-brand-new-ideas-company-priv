@@ -11,6 +11,7 @@ use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $status
  * @property string|null $assign_to
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
  */
 class Bug extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, DefinesDates;
 
     private const COL_ASSIGN_TO  = PJC::COL_ASGN;

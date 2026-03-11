@@ -33,8 +33,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class MeetingController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
 
   public function index(Request $request): Response|RedirectResponse|JsonResponse|null

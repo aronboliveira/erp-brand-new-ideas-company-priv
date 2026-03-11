@@ -20,8 +20,11 @@ use Illuminate\View\View;
 use Spatie\GoogleCalendar\Event as GoogleEvent;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class HolidayController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
 
     public function index(Request $request): View|RedirectResponse

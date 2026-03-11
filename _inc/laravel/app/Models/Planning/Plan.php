@@ -13,6 +13,7 @@ use Illuminate\Database\{Eloquent\Model, Eloquent\ModelNotFoundException, QueryE
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Validation\ValidationException;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property int|string $id
  * @property string|null $name
@@ -31,6 +32,7 @@ use Illuminate\Validation\ValidationException;
  */
 class Plan extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields;
 
     private const DURATION_OPTIONS = [

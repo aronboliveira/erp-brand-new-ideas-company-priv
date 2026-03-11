@@ -20,8 +20,11 @@ use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class BankAccountController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
 
     private const SINGULAR = 'account';

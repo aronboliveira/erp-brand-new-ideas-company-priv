@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class SaturationDeductionController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = ViewsConstants::STR_DD . '.index';

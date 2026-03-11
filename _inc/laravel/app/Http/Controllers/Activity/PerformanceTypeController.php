@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\{Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class PerformanceTypeController extends Controller
 {
+    use HasCrudConstants;
+
   private const PERM_CREATE = PermissionsConstants::CRT_PRF_TP;
   private const PERM_DELETE = PermissionsConstants::DEL_PRF_TP;
   private const PERM_EDIT = PermissionsConstants::ED_PRF_TP;

@@ -9,7 +9,7 @@ trait LogsIcons
 {
 	private const ICON_GROUPS = [
 		['k' => 'Add', 'c' => [['Contact', 'notebook'], ['Product', 'shopping-cart-plus']]],
-		['k' => 'Create', ['c' => [
+		['k' => 'Create', 'c' => [
 			['Bug', 'bug'],
 			['Deal Call', 'phone-plus'],
 			['Deal Email', 'record-mail'],
@@ -18,10 +18,10 @@ trait LogsIcons
 			['Milestone', 'crop'],
 			['Task', 'list'],
 			['User', 'user'],
-		]]],
+		]],
 		['k' => 'Move', 'c' => [['', 'arrows-maximize'], ['Task', 'command']]],
-		['k' => 'Update', ['c' => [['Sources', 'brand-open-source']]]],
-		['k' => 'Upload', ['c' => [['File', 'cloud-upload']]]],
+		['k' => 'Update', 'c' => [['Sources', 'brand-open-source']]],
+		['k' => 'Upload', 'c' => [['File', 'cloud-upload']]],
 		['k' => 'User', 'c' => [
 			['Assigned to the Task', 'user-check'],
 			['Removed from the Task', 'user-x'],

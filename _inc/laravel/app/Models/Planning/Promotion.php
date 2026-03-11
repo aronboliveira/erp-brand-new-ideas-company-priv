@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $created_by
  * @property int|null $designation_id
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Promotion extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, DefinesDates;
 
     protected $table = DC::TABLE_PRMT;

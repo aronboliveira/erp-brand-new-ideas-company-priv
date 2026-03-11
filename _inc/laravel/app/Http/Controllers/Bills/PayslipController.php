@@ -28,8 +28,11 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 final class PayslipController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function __construct()
@@ -725,7 +728,7 @@ final class PayslipController extends Controller
                 $viewPath = 'payslips.show';
                 if (!\Illuminate\Support\Facades\View::exists($viewPath))
                     return redirect()->route('dashboard')->with('error', 'Payslip show view not found.');
-                $payslip = \App\Models\Bills\Payslip::findOrFail($id);
+                $payslip = \App\Models\Payslip::findOrFail($id);
                 return view($viewPath, ['payslip' => $payslip]);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error("[$class::$action] failed", ['err' => $e->getMessage()]);

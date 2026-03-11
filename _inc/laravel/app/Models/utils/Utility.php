@@ -117,6 +117,7 @@ class Utility extends Model
     private static $taxes          = null;
     private static $languageSetting = null;
     private static $getRatingData  = null;
+    public static array $DEFAULT_SETTINGS = SC::DFT_SETTINGS;
     public static $colorCode = SC::CLR_CD;
     public static $chartOfAccountType = CTC::COA_TPS;
     public static $chartOfAccountSubType = CTC::COA_SBTPS;
@@ -1158,6 +1159,22 @@ class Utility extends Model
             $output->writeln("## [{$tag}] Returning cached settings (" . count(self::$getSettingsId[$id]) . ")");
         }
         return self::$getSettingsId[$id];
+    }
+
+    /**
+     * Alias for getSettings() — called by tests as getSetting().
+     */
+    public static function getSetting(...$args): array
+    {
+        return static::getSettings(...$args);
+    }
+
+    /**
+     * Alias for getSettingsById() — called by tests as getSettingById().
+     */
+    public static function getSettingById(...$args): array
+    {
+        return static::getSettingsById(...$args);
     }
 
     public static function fallbackSettings(mixed $data): mixed

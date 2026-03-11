@@ -24,8 +24,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 final class CompanyPolicyController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = '/';

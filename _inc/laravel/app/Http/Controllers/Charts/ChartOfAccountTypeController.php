@@ -24,8 +24,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 final class ChartOfAccountTypeController extends Controller
 {
+    use HasCrudConstants;
+
 
     use ChecksLogin, ChecksPermissions;
 

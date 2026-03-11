@@ -10,8 +10,11 @@ use Illuminate\Support\Facades\{Log, Route, Validator, View as ViewFacade};
 use Illuminate\Support\Str;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class AwardTypeController extends Controller
 {
+    use HasCrudConstants;
+
 
   public function index(Request $request): mixed
   {

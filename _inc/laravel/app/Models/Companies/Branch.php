@@ -7,11 +7,13 @@ use App\Traits\{HasAuditFields, NormalizesAddresses, StoresManyRefJson, UsesCoun
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $address
  */
 class Branch extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, NormalizesAddresses, UsesCountryRegions, StoresManyRefJson;
 
     protected $table     = DC::TABLE_BRANCHES;

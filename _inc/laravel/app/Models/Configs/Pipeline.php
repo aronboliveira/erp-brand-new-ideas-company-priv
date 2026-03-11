@@ -11,6 +11,7 @@ use App\Services\PipelineRequestService;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\{Collection, Model};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $name
  * @property array|string|null $stages
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\{Collection, Model};
 
 class Pipeline extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields;
 
     private const CREATED_BY     = DC::COL_TABLE_CREATOR;

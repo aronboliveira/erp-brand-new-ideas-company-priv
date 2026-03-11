@@ -16,8 +16,11 @@ use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, Route, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class CommissionController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
   use ChecksPermissions;
 

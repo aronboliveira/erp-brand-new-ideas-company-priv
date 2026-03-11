@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\{Auth, Log, Route, Validator, View as ViewFacade}
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class DeductionOptionController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function __construct()

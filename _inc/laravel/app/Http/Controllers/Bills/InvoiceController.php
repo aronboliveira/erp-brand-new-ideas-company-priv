@@ -56,8 +56,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class InvoiceController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
     private const SINGULAR = 'invoice';
     private const CACHE_TTL = 120;

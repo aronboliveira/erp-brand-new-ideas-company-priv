@@ -10,8 +10,10 @@ use App\Traits\{HasAuditFields, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ClientPermission extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, NormalizesArrays;
 
     protected $table = DC::TABLE_CLT_PRM;

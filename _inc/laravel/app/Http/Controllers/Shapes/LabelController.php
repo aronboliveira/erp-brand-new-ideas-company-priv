@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 use Illuminate\Auth\Access\AuthorizationException;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class LabelController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin;
 
     private const INDEX_ROUTE = ViewsConstants::LBL . '.index';

@@ -36,8 +36,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class BugStatusController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private BugReportService $bugReportService;

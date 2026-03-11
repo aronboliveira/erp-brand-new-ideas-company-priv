@@ -9,6 +9,7 @@ use Carbon\{Carbon, CarbonImmutable};
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $job
  * @property bool|null $is_archive
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\{DB, Log, Schema};
  */
 class JobApplication extends Model
 {
+    use HasFactory;
+
     // todo ParsesDocument will be implemented later
     use UsesUuids, HasAuditFields, NormalizesAddresses, UsesCountryRegions, FiltersSecureAttachments, DefinesDates;
 

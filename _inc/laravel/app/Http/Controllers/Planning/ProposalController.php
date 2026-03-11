@@ -39,8 +39,11 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ProposalController extends Controller
 {
+    use HasCrudConstants;
+
     public function __construct()
     {
         Log::debug('Constructing ' . self::class . '...');

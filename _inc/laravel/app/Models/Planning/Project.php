@@ -17,6 +17,7 @@ use Illuminate\{Database\Eloquent\Builder, Database\Eloquent\Model, Support\Coll
 use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo, BelongsToMany};
 use Illuminate\Http\RedirectResponse;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property array|string|null $checklist
  * @property string|null $image
@@ -26,6 +27,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class Project extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, DefinesDates, StoresManyRefJson, PlansWithSchedule;
 
     protected $fillable = [

@@ -128,8 +128,9 @@ class Deal extends Model
 
     public function labels(): Collection
     {
-        return $this->labels
-            ? Label::whereIn('id', explode(',', $this->labels))->get()
+        $raw = $this->getAttribute('labels');
+        return $raw
+            ? Label::whereIn('id', explode(',', $raw))->get()
             : new Collection();
     }
 

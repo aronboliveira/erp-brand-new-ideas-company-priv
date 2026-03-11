@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class DesignationController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function index(Request $request): View|RedirectResponse

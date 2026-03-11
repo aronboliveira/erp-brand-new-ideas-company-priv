@@ -19,8 +19,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Validator, Route, View as ViewFac
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class AllowanceOptionController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
 
   public function __construct()

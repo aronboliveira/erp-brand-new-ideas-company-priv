@@ -38,8 +38,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 //use Faker\Provider\File;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class EmployeeController extends Controller
 {
+    use HasCrudConstants;
+
 
     use ChecksLogin, ChecksPermissions;
 

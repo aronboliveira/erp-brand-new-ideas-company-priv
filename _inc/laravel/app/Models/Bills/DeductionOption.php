@@ -6,6 +6,7 @@ use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
 use App\Enums\{CalculationBase, Frequency, DeductionType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property string|null $calculation_basis
  * @property string|null $deduction_type
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DeductionOption extends Model
 {
+    use HasFactory;
     use HasAuditFields, UsesUuids;
 
     protected $table = DC::TABLE_DEDUCTION_OPTS;

@@ -13,8 +13,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class TrainingTypeController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ROUTE_INDEX = VW::TNG_TP . '.index';

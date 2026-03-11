@@ -22,8 +22,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 final class ChartOfAccountController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
     private const ROUTE_SINGULAR = 'chart_of_accounts';
     private const REDIRECT_INDEX = 'chart_of_accounts.index';

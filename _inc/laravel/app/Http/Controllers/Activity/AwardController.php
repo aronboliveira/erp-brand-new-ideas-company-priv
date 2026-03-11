@@ -17,8 +17,11 @@ use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
 use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class AwardController extends Controller
 {
+    use HasCrudConstants;
+
 
   public function __construct()
   {

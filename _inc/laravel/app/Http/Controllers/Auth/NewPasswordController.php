@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class NewPasswordController extends Controller
 {
+    use HasCrudConstants;
+
   /** @return \Illuminate\View\View|RedirectResponse */
   public function create(Request $request)
   {

@@ -23,8 +23,11 @@ use Illuminate\Support\Facades\{Auth, Crypt, DB};
 use Session;
 use Stripe;
 
+use App\Traits\HasCrudConstants;
 class StripePaymentController extends Controller
 {
+    use HasCrudConstants;
+
     public $settings;
 
     public function index()

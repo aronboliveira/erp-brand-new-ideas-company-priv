@@ -49,8 +49,11 @@ use Illuminate\{
 use App\Helpers\SafeConsoleOutput;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class AuthenticatedSessionController extends Controller
 {
+    use HasCrudConstants;
+
   use ChecksLogin;
   private const SINGULAR = 'auth';
 

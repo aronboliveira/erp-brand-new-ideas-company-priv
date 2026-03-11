@@ -17,8 +17,11 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\HasCrudConstants;
 class TimesheetController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     private const INDEX_ROUTE = ViewsConstants::PRJ . '.' . ViewsConstants::TMS . '.index';

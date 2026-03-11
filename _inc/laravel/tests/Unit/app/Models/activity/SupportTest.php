@@ -88,7 +88,7 @@ class SupportTest extends TestCase
 	 **/
 	public function status_static_method_returns_expected_translations()
 	{
-		$arr = Support::status();
+		$arr = Support::statusOptions();
 		$this->assertArrayHasKey('Open', $arr);
 		$this->assertArrayHasKey('Closed', $arr);
 		$this->assertArrayHasKey('On Hold', $arr);

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 use Illuminate\Support\Collection;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property float|int|string|null $discount
  * @property string|null $discount_type
@@ -35,6 +36,7 @@ use Illuminate\Support\Collection;
  */
 class Coupon extends Model
 {
+    use HasFactory;
     use HasAuditFields, UsesUuids;
 
     protected $table = DC::TABLE_COUPONS;

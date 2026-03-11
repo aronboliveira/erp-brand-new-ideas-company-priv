@@ -10,6 +10,7 @@ use App\Config\Constants\{
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $created_by
  * @property string|null $name
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Designation extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields;
     protected $fillable = [
         UC::COL_DSG_NM,

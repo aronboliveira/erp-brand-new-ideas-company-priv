@@ -19,8 +19,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class ComplaintController extends AppController
 {
+    use HasCrudConstants;
+
   use ChecksLogin, ChecksPermissions;
   public function index(Request $request): View|Response
   {

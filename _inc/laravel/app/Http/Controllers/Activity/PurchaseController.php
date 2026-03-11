@@ -51,8 +51,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class PurchaseController extends Controller
 {
+    use HasCrudConstants;
+
     private const ROUTE_INDEX = ViewsConstants::PRC . '.index';
     private const ROUTE_SHOW  = ViewsConstants::PRC . '.show';
 

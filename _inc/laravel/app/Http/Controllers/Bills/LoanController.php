@@ -16,8 +16,11 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 final class LoanController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function __construct()
@@ -273,7 +276,7 @@ final class LoanController extends Controller
             if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
             if (($r = self::guard($request, 'manage loan')) !== true) return $r;
             try {
-                $loans = \App\Models\Bills\Loan::where('created_by', $u->creatorId())->get();
+                $loans = \App\Models\Loan::where('created_by', $u->creatorId())->get();
                 $viewPath = 'loans.index';
                 if (!\Illuminate\Support\Facades\View::exists($viewPath))
                     return redirect()->route('dashboard')->with('error', 'Loans index view not found.');

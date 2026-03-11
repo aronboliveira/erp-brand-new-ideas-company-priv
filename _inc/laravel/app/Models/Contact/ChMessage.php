@@ -7,8 +7,10 @@ use App\Traits\{UsesUuids};
 use Illuminate\Database\Eloquent\{Model};
 use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsTo};
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ChMessage extends Model
 {
+    use HasFactory;
     use UsesUuids;
 
     private const COL_FROM_ID = 'from_id';

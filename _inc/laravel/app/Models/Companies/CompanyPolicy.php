@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property mixed $created_by
  * @property string|null $title
@@ -24,6 +25,7 @@ use Illuminate\Support\Str;
 
 class CompanyPolicy extends Model
 {
+    use HasFactory;
     use UsesUuids;
     use HasAuditFields;
     use NormalizesAddresses;

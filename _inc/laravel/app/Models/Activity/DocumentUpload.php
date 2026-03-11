@@ -75,6 +75,7 @@ class DocumentUpload extends Model
         'metadata'      => 'array',
         'tags'          => 'array',
         DC::COL_MW_SCAN => 'array',
+        DC::COL_ER_LG   => 'array',
 
         DC::COL_C_AT    => 'datetime',
         DC::COL_U_AT    => 'datetime',

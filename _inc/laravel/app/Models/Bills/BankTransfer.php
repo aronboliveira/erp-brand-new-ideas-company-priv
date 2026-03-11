@@ -10,6 +10,7 @@ use DateTime;
 use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @property float|int|string|null $amount
  * @property string|\Illuminate\Support\Carbon|null $failed_at
@@ -32,6 +33,7 @@ use Illuminate\Support\Facades\Log;
  */
 class BankTransfer extends Model
 {
+    use HasFactory;
     use UsesUuids, HasAuditFields, HasPaymentColumns, TracksFailures, DefinesDates;
 
     protected $table = DC::TABLE_BNK_TRF;

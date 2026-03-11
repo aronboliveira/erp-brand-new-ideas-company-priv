@@ -17,8 +17,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\{Log, Redirect, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\HasCrudConstants;
 class IndicatorController extends Controller
 {
+    use HasCrudConstants;
+
     use ChecksLogin, ChecksPermissions;
 
     public function index(Request $request): View|JsonResponse|RedirectResponse|null
