@@ -348,24 +348,16 @@ enum EcuadorProvince: string
 		$map = [
 			// Guayas
 			4 => self::G,
-			// Pichincha
+			// Pichincha (also: Santo Domingo de los Tsáchilas)
 			2 => self::P,
-			// Azuay
+			// Azuay (also: El Oro, Loja, Cañar, Morona Santiago, Zamora Chinchipe)
 			7 => self::A,
-			// Manabí
+			// Manabí (also: Los Ríos, Galápagos)
 			5 => self::M,
 			// Tungurahua, Cotopaxi, Chimborazo, Bolívar
 			3 => self::T, // Default to Tungurahua
 			// Esmeraldas, Carchi, Imbabura, Sucumbíos, Orellana, Napo
 			6 => self::E, // Default to Esmeraldas
-			// El Oro, Loja, Cañar, Morona Santiago, Zamora Chinchipe
-			7 => self::O, // Default to El Oro
-			// Los Ríos
-			5 => self::R,
-			// Santo Domingo de los Tsáchilas
-			2 => self::W,
-			// Galápagos
-			5 => self::U,
 		];
 
 		return $map[$code] ?? null;

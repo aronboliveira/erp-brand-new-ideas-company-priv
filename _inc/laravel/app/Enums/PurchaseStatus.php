@@ -147,14 +147,9 @@ enum PurchaseStatus: string
 
 			// Spanish aliases
 			'borrador'         => 'draft',
-			'confirmado'       => 'confirmed',
 			'parcialmente_pagado' => 'partially_paid',
-			'enviado'          => 'shipped',
-			'parcialmente_enviado' => 'partially_shipped',
 			'entregado'        => 'delivered',
 			'en_espera'        => 'on_hold',
-			'cancelado'        => 'cancelled',
-			'reembolsado'      => 'refunded',
 			'devuelto'         => 'returned',
 			'fallido'          => 'failed',
 			'pedido_anticipado' => 'backordered',
