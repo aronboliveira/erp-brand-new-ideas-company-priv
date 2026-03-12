@@ -55,7 +55,7 @@ class TimesheetControllerTest extends TestCase
 
     public function test_constant_FT_TMS_TBL_equals_filterTimesheetTable_8(): void
     {
-        $this->assertSame('filterTimesheetTable', TimesheetController::FT_TMS_TBL);
+        $this->assertSame('filterTimesheetTableView', TimesheetController::FT_TMS_TBL);
     }
 
     public function test_constant_TMS_LST_equals_timesheetList_9(): void
