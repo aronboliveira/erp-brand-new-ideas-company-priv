@@ -1,6 +1,26 @@
 # Known / Remaining Unresolved Issues
 
-> Last updated: 2026-03-10 (commit `b4265c32`)
+> Last updated: 2026-03-12 (commit `f676cb8f`)
+
+## RECENTLY RESOLVED
+
+### Deal/Lead Infinite Recursion (OOM) — ✅ RESOLVED 2026-03-12
+
+`Deal::labels()`, `Lead::labels()`, `Lead::products()`, `Lead::sources()` had methods
+sharing names with database columns. When attributes were absent (e.g. from factory),
+`getAttribute()` treated the method as a relation, calling it recursively → infinite OOM.
+**Fix:** Use `$this->getAttributes()['col']` instead of `$this->getAttribute('col')`.
+
+### PHP CLI Unlimited Memory — ✅ RESOLVED 2026-03-12
+
+`/etc/php/8.4/cli/php.ini` had `memory_limit = -1`. Any PHPUnit/PHPStan process could
+consume all 30GB RAM and crash VSCode via systemd-oomd. **Fix:** Set to 2G, added
+phpunit.xml guard (2G), earlyoom installed.
+
+### BankTransferPaymentController uploadReceipt — ✅ RESOLVED 2026-03-12
+
+`Utility::uploadFile()` returns `array{flag, msg, url}` but was assigned directly to
+`$path` variable. **Fix:** Extract `$result['url']`.
 
 ## OPEN — Application Behaviour
 
