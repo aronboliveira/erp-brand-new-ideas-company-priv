@@ -38,8 +38,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 final class BankTransferPaymentController extends Controller
 {
+	use DefinesResourceActions;
+
   use ChecksLogin, ChecksPermissions;
 
   public function __construct()
@@ -440,7 +443,12 @@ final class BankTransferPaymentController extends Controller
       return null;
     }
     $file = time() . '_' . preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $request->file('payment_receipt')->getClientOriginalName());
-    $path = Utility::uploadFile($request, 'payment_receipt', $file, self::DIR, []);
+    $result = Utility::uploadFile($request, 'payment_receipt', $file, self::DIR, []);
+    if (($result['flag'] ?? 0) !== 1) {
+      Log::warning('Receipt upload failed', ['result' => $result]);
+      return null;
+    }
+    $path = $result['url'] ?? '';
     Log::info('Receipt uploaded', ['file' => $file, 'path' => $path]);
     return ['file' => $file, 'path' => $path];
   }
