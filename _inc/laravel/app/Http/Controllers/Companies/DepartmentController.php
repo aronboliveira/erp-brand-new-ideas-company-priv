@@ -24,8 +24,11 @@ use Illuminate\Support\Facades\{
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 final class DepartmentController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
   use ChecksLogin, ChecksPermissions;

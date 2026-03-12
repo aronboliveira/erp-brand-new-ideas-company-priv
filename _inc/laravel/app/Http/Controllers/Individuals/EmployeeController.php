@@ -35,12 +35,15 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Traits\DefinesResourceActions;
 //use Faker\Provider\File;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
 class EmployeeController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
 

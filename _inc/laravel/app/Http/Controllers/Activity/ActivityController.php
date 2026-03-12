@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Activity;
 
 use App\Http\Controllers\Abstracts\Controller;
 
+use App\Traits\DefinesResourceActions;
 require_once __DIR__ . '/errorHandlers.php';
 require_once __DIR__ . '/http.php';
 
@@ -21,6 +22,8 @@ use Symfony\Component\HttpFoundation\{Response as HttpFoundationResponse};
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 class ActivityController extends Controller
 {
+	use DefinesResourceActions;
+
 	use ChecksLogin, ChecksPermissions, ConsoleOutputs;
 
 	private const ENTITY = 'activity';

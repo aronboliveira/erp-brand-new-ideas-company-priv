@@ -19,8 +19,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class TransactionController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin, ChecksPermissions;

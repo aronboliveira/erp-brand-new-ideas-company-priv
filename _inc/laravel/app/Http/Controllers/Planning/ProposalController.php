@@ -40,8 +40,11 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class ProposalController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     public function __construct()

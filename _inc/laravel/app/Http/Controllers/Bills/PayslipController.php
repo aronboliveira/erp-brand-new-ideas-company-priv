@@ -29,8 +29,11 @@ use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 final class PayslipController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin, ChecksPermissions;

@@ -26,8 +26,11 @@ use Illuminate\Support\Facades\{Auth, Log, Validator};
 use App\Helpers\SafeConsoleOutput;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 class ApiController extends Controller
 {
+	use DefinesResourceActions;
+
   use ApiResponser, ChecksLogin;
 
   public function login(FormRequest $request): JsonResponse

@@ -42,8 +42,11 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class CustomerController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
     /** Cache TTL in seconds — 2 minutes */
     private const CACHE_TTL = 120;

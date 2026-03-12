@@ -36,8 +36,11 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultPermissionDenial;
+use App\Traits\DefinesResourceActions;
 class ClientController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin;
     private const SINGULAR = 'client';
 

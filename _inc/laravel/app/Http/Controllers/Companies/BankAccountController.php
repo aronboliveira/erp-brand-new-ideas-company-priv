@@ -21,8 +21,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class BankAccountController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin;

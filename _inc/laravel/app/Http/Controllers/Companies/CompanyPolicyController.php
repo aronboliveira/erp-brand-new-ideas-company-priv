@@ -25,8 +25,11 @@ use Illuminate\Support\Facades\{
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 final class CompanyPolicyController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin, ChecksPermissions;

@@ -17,8 +17,11 @@ use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class TaskStageController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin, ChecksPermissions;

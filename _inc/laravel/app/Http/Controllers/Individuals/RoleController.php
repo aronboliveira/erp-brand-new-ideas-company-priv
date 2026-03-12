@@ -20,8 +20,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 class RoleController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = 'role';

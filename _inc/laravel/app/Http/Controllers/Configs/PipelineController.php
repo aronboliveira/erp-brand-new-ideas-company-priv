@@ -38,8 +38,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\Contracts\Support\Renderable;
 
 use function App\Http\Controllers\Helpers\defaultPermissionDenial;
+use App\Traits\DefinesResourceActions;
 final class PipelineController extends Controller
 {
+	use DefinesResourceActions;
+
   use ChecksLogin, ChecksPermissions;
 
   private const REDIRECT_INDEX = '/';

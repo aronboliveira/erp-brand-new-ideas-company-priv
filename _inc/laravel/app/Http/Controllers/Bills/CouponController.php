@@ -10,8 +10,11 @@ use Illuminate\Http\{Request, JsonResponse, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class CouponController extends Controller
 {
+	use DefinesResourceActions;
+
 
     public function __construct()
     {

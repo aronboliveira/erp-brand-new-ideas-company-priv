@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\Validation\ValidationException;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class WarehouseController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ROUTE_INDEX = VW::WRH . '.index';

@@ -19,8 +19,11 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class BudgetController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin;
     use ChecksPermissions;
 

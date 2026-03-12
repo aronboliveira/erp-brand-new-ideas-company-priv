@@ -16,8 +16,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class PlanController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
 
     private const SINGULAR = 'plan';

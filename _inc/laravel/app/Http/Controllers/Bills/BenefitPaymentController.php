@@ -39,8 +39,11 @@ use Illuminate\Support\Facades\{
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class BenefitPaymentController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin;
 
     public function __construct()

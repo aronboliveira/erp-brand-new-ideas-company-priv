@@ -33,8 +33,11 @@ use Illuminate\Support\Facades\{
 use Illuminate\Support\Str;
 
 use function App\Http\Controllers\Helpers\defaultPermissionDenial;
+use App\Traits\DefinesResourceActions;
 class EmailTemplateController extends Controller
 {
+	use DefinesResourceActions;
+
     private const REDIRECT_BACK = 'back';
     private const SINGULAR = 'email_template';
 

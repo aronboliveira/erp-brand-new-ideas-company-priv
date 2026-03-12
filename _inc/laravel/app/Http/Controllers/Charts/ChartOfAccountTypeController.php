@@ -25,8 +25,11 @@ use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 final class ChartOfAccountTypeController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
 

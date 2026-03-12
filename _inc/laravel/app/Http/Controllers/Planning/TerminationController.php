@@ -17,8 +17,11 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class TerminationController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_INDEX = VW::TMN . '.index';

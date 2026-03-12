@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\{Cache, DB, File, Log, Redirect, View as ViewFaca
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 class LanguageController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksPermissions;
 
     private const ROUTE_INDEX = 'languages.manage';

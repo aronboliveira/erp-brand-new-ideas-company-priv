@@ -31,8 +31,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class CashfreeController extends Controller
 {
+	use DefinesResourceActions;
+
 
     use ChecksLogin;
 

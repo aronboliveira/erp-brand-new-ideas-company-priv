@@ -21,8 +21,11 @@ use Illuminate\Support\Facades\{
 };
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class ProductServiceUnitController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const PERM_MANAGE = PMC::MNG_CT_UNT;

@@ -85,8 +85,11 @@ use Symfony\Component\HttpFoundation\{
 };
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 final class ReportController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const ROUTE_INCOME_SUMMARY    = VW::RPT . '.income_summary';

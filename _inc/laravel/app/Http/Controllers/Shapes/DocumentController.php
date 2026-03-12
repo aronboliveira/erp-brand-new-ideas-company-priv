@@ -15,8 +15,11 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class DocumentController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin;
 
     private const INDEX_ROUTE = VW::DOC . '.index';

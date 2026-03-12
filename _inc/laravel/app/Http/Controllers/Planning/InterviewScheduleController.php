@@ -14,8 +14,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 class InterviewScheduleController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
 
     private const ENTITY = VW::ITV_SCD;

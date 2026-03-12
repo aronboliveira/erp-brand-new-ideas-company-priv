@@ -44,8 +44,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class BillController extends Controller
 {
+	use DefinesResourceActions;
+
     private const CACHE_TTL = 120;
 
     use ChecksLogin;

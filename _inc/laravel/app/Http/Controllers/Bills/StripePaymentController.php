@@ -24,8 +24,11 @@ use Session;
 use Stripe;
 
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class StripePaymentController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     public $settings;

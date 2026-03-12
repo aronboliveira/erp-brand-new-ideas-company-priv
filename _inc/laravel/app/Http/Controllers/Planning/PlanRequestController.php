@@ -15,8 +15,11 @@ use Illuminate\Support\Facades\{Crypt, DB, Log, Redirect, View as ViewFacade};
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class PlanRequestController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
 
     public function index(Request $request): View|RedirectResponse

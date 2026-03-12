@@ -18,8 +18,11 @@ use Illuminate\Support\Facades\{DB, Log};
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class TimesheetController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin, ChecksPermissions;

@@ -43,8 +43,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\defaultPermissionDenial;
+use App\Traits\DefinesResourceActions;
 class FormBuilderController extends Controller
 {
+	use DefinesResourceActions;
+
     private const REDIRECT_BACK = '/';
 
     use ChecksLogin;

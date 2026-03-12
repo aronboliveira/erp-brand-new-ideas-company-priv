@@ -30,13 +30,18 @@ use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class ContractController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
     use ChecksLogin;
 
     private const ENTITY = 'contracts';
+    public const DSCP = 'description';
+    public const CTC_DSCP_STR = 'contractDescriptionStore';
     public function index(Request $request): RedirectResponse|View
     {
         $function = __FUNCTION__;

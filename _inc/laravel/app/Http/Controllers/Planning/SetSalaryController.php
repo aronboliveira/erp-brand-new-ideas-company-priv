@@ -28,8 +28,11 @@ use App\Models\{
 use App\Models\{DeductionOption, SaturationDeduction};
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 class SetSalaryController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions;
 
     private const REDIRECT_ROUTE = VW::S_SLR . '.index';

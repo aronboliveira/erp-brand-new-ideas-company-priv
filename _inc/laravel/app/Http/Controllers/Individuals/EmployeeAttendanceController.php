@@ -40,8 +40,11 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 final class EmployeeAttendanceController extends Controller
 {
+	use DefinesResourceActions;
+
   use ChecksLogin, ChecksPermissions;
   private const REDIRECT_INDEX = '/';
 

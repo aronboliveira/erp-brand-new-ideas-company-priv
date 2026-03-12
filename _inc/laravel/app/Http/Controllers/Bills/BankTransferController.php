@@ -20,8 +20,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Redirect, Route, View as ViewFaca
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 final class BankTransferController extends Controller
 {
+	use DefinesResourceActions;
+
   use ChecksLogin;
   public const IDX = 'index';
   public const CRT = 'create';

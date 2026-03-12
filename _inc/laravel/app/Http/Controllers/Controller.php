@@ -16,8 +16,11 @@ use Illuminate\Support\Facades\{Log, Route, View};
 use Illuminate\Support\Str;
 use Illuminate\Validation\{ValidationException, Validator};
 
+use App\Traits\DefinesResourceActions;
 abstract class Controller extends BaseController
 {
+	use DefinesResourceActions;
+
     use AuthorizesRequests, DispatchesJobs;
     private const FAILURES = 'validation_failures';
     protected const NOTICE_THRESHOLD_MS   = 250;

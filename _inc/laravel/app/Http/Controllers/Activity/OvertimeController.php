@@ -11,8 +11,11 @@ use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class OvertimeController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
   private const PERM_CREATE = 'create overtime';

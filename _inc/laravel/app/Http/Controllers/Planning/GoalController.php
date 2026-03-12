@@ -15,8 +15,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class GoalController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ConsoleOutputs;
     public const IDX = 'index';
     public const CRT = 'create';

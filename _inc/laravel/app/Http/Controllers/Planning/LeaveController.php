@@ -15,8 +15,11 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class LeaveController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin, ChecksPermissions, ConsoleOutputs;
 
     public function index(Request $request): View|string|RedirectResponse

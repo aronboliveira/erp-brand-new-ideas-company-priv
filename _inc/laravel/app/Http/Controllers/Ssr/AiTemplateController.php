@@ -16,8 +16,11 @@ use Illuminate\View\View;
 use Orhanerday\OpenAi\OpenAi;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 final class AiTemplateController extends Controller
 {
+	use DefinesResourceActions;
+
   use ChecksLogin, ChecksPermissions;
 
   private const SINGULAR = 'template';

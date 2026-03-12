@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\View as ViewFacade;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
+use App\Traits\DefinesResourceActions;
 class CompetenciesController extends Controller
 {
+	use DefinesResourceActions;
+
     private const PERM_MANAGE = 'Manage Competencies';
     private const PERM_CREATE = 'Create Competencies';
     private const PERM_EDIT   = 'Edit Competencies';

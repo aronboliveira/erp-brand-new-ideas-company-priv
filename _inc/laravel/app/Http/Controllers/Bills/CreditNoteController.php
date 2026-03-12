@@ -18,8 +18,11 @@ use Illuminate\View\View;
 use Throwable;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
+use App\Traits\DefinesResourceActions;
 final class CreditNoteController extends Controller
 {
+	use DefinesResourceActions;
+
     use ChecksLogin;
     use ChecksPermissions;
 

@@ -16,8 +16,11 @@ use Illuminate\View\View;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
+use App\Traits\DefinesResourceActions;
 class PerformanceTypeController extends Controller
 {
+	use DefinesResourceActions;
+
     use HasCrudConstants;
 
   private const PERM_CREATE = PermissionsConstants::CRT_PRF_TP;
