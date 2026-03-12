@@ -153,12 +153,16 @@
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <!-- Coverage disabled to reduce memory; enable with: composer test-php-cov -->
+    <!--
     <coverage processUncoveredFiles="false">
         <include>
             <directory suffix=".php">./app</directory>
         </include>
     </coverage>
+    -->
     <php>
+        <ini name="memory_limit" value="2G"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="BCRYPT_ROUNDS" value="4" force="true"/>
         <env name="CACHE_DRIVER" value="array" force="true"/>

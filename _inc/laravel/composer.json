@@ -329,19 +329,19 @@
     "artisan-artclrs--sh": "@serve-sh--soft",
     "artisan-artclrs": "@serve-ps--soft",
     "test-php": [
-      "@php vendor/bin/phpunit --no-coverage"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage"
     ],
     "test-php-fast": [
-      "@php vendor/bin/phpunit --no-coverage --stop-on-failure"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --stop-on-failure"
     ],
     "test-php-feature": [
-      "@php vendor/bin/phpunit --no-coverage tests/Feature/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Feature/"
     ],
     "test-php-controllers": [
-      "@php vendor/bin/phpunit --no-coverage --testsuite Unit tests/Unit/app/Http/Controllers/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit tests/Unit/app/Http/Controllers/"
     ],
     "test-php-models": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Models/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Models/"
     ],
     "test-js-cjs": [
       "npx jest --config jest.config.cjs --verbose"
@@ -414,46 +414,46 @@
     ],
     "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
     "test-php-exports": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Exports/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exports/"
     ],
     "test-php-imports": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Imports/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Imports/"
     ],
     "test-php-services": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Services/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Services/"
     ],
     "test-php-jobs": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Jobs/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Jobs/"
     ],
     "test-php-mail": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Mail/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Mail/"
     ],
     "test-php-providers": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Providers/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Providers/"
     ],
     "test-php-exceptions": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Exceptions/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exceptions/"
     ],
     "test-php-traits": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/app/Traits/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Traits/"
     ],
     "test-php-enums": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/Enums/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Enums/"
     ],
     "test-php-middleware": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/Middleware/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Middleware/"
     ],
     "test-php-seeders": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/database/seeders/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/database/seeders/"
     ],
     "test-php-modules": [
-      "@php vendor/bin/phpunit --no-coverage tests/Unit/Modules/"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Modules/"
     ],
     "test-php-unit-all": [
-      "@php vendor/bin/phpunit --no-coverage --testsuite Unit"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit"
     ],
     "test-php-filter": [
-      "@php vendor/bin/phpunit --no-coverage --filter"
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --filter"
     ],
     "phpstan": "@lint-php",
     "phpstan-baseline": [
