@@ -151,3 +151,4 @@ _inc/flutter/
 .gh/**
 
 **/storage/tmp/
+_inc/laravel/.phpunit.result.cache
