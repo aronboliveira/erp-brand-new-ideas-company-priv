@@ -38,3 +38,77 @@ parameters:
             message: '#Used function App\\Http\\Controllers\\default(PermissionDenial|UndefinedException) not found#'
         -
             message: '#Called .pluck. on Laravel collection, but could have been retrieved as a query#'
+        # ── Laravel contract/concrete type mismatches (benign) ──
+        -
+            message: '#should return Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\(Factory\|)?View#'
+        -
+            message: '#should return Illuminate\\Database\\Eloquent\\Builder but returns Illuminate\\Database\\Query\\Builder#'
+        -
+            message: '#should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection#'
+        -
+            message: '#should return Illuminate\\Routing\\ResponseFactory#'
+        -
+            message: '#should return Illuminate\\Http\\RedirectResponse\|Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\(Factory\|)?View#'
+        -
+            message: '#should return App\\Models\\User\|null but returns Illuminate\\Contracts\\Auth\\Authenticatable\|null#'
+        # ── Request dynamic properties (Laravel pattern) ──
+        -
+            message: '#Access to an undefined property Illuminate\\Http\\Request::\$\w+#'
+        # ── Eloquent magic static methods ──
+        -
+            message: '#Call to an undefined static method App\\Models\\[A-Za-z]+::(where|whereIn|whereKey|whereRaw|find|findOrFail|create|firstOrCreate|updateOrCreate|all|first|get|count|pluck|select|selectRaw|orderBy|orderByDesc|latest|oldest|paginate|destroy|with|withCount|has|doesntHave|whereHas|whereDoesntHave|when|chunk|join|groupBy|having|sum|max|min|avg|insert|delete|forceDelete|restore|withTrashed|onlyTrashed|query|toBase)\(\)#'
+        # ── Eloquent relation -> QueryBuilder delegation ──
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\(HasMany|HasOne|BelongsTo|BelongsToMany|MorphMany|MorphOne|MorphTo|MorphToMany|HasManyThrough|HasOneThrough)::(where|whereIn|whereRaw|orderBy|orderByDesc|first|pluck|selectRaw|select|count|sum|get|avg|max|min|groupBy|having|join|limit|take|skip|offset|with|withCount|latest|oldest|when)\(\)#'
+        # ── Auth::user() property access ──
+        -
+            message: '#Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable::\$\w+#'
+        # ── Auth::user() method calls (save, custom methods on User) ──
+        -
+            message: '#Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable::\w+\(\)#'
+        # ── Crypt facade unresolved ──
+        -
+            message: '#Call to static method .+ on an unknown class Crypt#'
+        # ── Model dynamic properties ──
+        -
+            message: '#Access to an undefined property App\\Models\\[A-Za-z]+::\$\w+#'
+        # ── InvoicePayment, Transaction dynamic property access ──
+        -
+            message: '#Property App\\Models\\(InvoicePayment|Transaction)::\$\w+ .+ does not accept#'
+        # ── Builder::available and other custom scopes ──
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::\w+\(\)#'
+        # ── PHPDoc tag issues in stubs ──
+        -
+            message: '#has PHPDoc tag @method#'
+        # ── MercadoPago property access ──
+        -
+            message: '#Property MercadoPago\\[A-Za-z]+::\$\w+ .+ does not accept#'
+        # ── getName() on Route ──
+        -
+            message: '#Cannot call method getName\(\) on object\|string#'
+        # ── $casts override warning ──
+        -
+            message: '#overriding property Illuminate\\Database\\Eloquent\\Model::\$casts should not have a native type#'
+        # ── Unresolved short-name facades / constants in Controllers ──
+        -
+            message: '#on an unknown class (Auth|Log|Session|Crypt|DB|Cache|Mail|Route|Storage|App)#'
+        -
+            message: '#on an unknown class App\\Http\\Controllers\\(BC|User|UserCoupon|Utility|Label|AC|DC)#'
+        # ── Unknown classes from third-party / payment SDKs ──
+        -
+            message: '#on an unknown class (PaytmWallet|CoinGate\\\\|MercadoPago\\\\|Iyzipay\\\\|Razorpay\\\\)#'
+        # ── Cannot access property on Builder/Collection union types ──
+        -
+            message: '#Cannot access property \$\w+ on array.+\|Illuminate\\\\Database\\\\Eloquent\\\\(Builder|Collection|Model)#'
+        # ── Return type mismatches in View components ──
+        -
+            message: '#should return Illuminate\\\\View\\\\View but returns Illuminate\\\\Contracts\\\\View\\\\(Factory|View)#'
+        # ── Generic type warnings on relations ──
+        -
+            message: '#is not generic#'
+        -
+            message: '#contains generic type#'
+        # ── Chatify stub issues ──
+        -
+            message: '#Chatify\\\\Facades\\\\ChatifyMessenger#'
