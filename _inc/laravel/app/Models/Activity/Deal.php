@@ -109,7 +109,11 @@ class Deal extends Model
             if (!empty($model->getAttribute('phone')) && $isNormalizePhoneCallable) $model->setAttribute('phone', self::normalizePhone($model->getAttribute('phone'), 'deal.phone', $model->id));
             if (!empty($model->getAttribute('email')) && $isNormalizeEmailCallable) $model->setAttribute('email', self::normalizeEmail($model->getAttribute('email'), 'deal.email', $model->id));
             foreach (['sources', 'products', 'labels'] as $csvField) {
-                $raw = $model->getAttribute($csvField);
+                // Use raw attribute access for 'labels' to avoid infinite recursion
+                // (labels() method exists but is not an Eloquent Relation — getAttribute
+                // would resolve it as a relation, calling labels(), which calls
+                // getAttribute('labels') again, looping forever).
+                $raw = $model->getAttributes()[$csvField] ?? null;
                 if (is_array($raw))
                     $model->setAttribute($csvField, implode(',', array_values($raw)));
                 elseif (is_string($raw)) {
@@ -128,7 +132,11 @@ class Deal extends Model
 
     public function labels(): Collection
     {
-        $raw = $this->getAttribute('labels');
+        // Use raw attribute access to avoid infinite recursion:
+        // getAttribute('labels') sees that labels() method exists, treats it as
+        // a relation, calls $this->labels(), which calls getAttribute('labels')
+        // again — infinite loop when 'labels' is not yet in $this->attributes.
+        $raw = $this->getAttributes()['labels'] ?? null;
         return $raw
             ? Label::whereIn('id', explode(',', $raw))->get()
             : new Collection();

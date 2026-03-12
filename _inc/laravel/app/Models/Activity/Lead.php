@@ -186,25 +186,33 @@ class Lead extends Model
 
     public function labels(): Collection
     {
-        if (!$this->labels) return collect();
+        // Use raw attribute access to avoid infinite recursion:
+        // getAttribute('labels') sees labels() method, treats it as a relation,
+        // calls $this->labels(), which calls getAttribute('labels') again.
+        $raw = $this->getAttributes()['labels'] ?? null;
+        if (!$raw) return collect();
 
-        return Label::whereIn('id', explode(',', $this->labels))->get();
+        return Label::whereIn('id', explode(',', $raw))->get();
     }
 
     public function products(): Collection
     {
-        if (!$this->products) return collect();
+        // Use raw attribute access to avoid infinite recursion (same as labels()).
+        $raw = $this->getAttributes()['products'] ?? null;
+        if (!$raw) return collect();
 
-        return ProductService::whereIn('id', explode(',', $this->products))->get()->merge(
-            Product::whereIn('id', explode(',', $this->products))->get()
+        return ProductService::whereIn('id', explode(',', $raw))->get()->merge(
+            Product::whereIn('id', explode(',', $raw))->get()
         );
     }
 
     public function sources(): Collection
     {
-        if (!$this->sources) return collect();
+        // Use raw attribute access to avoid infinite recursion (same as labels()).
+        $raw = $this->getAttributes()['sources'] ?? null;
+        if (!$raw) return collect();
 
-        return Source::whereIn('id', explode(',', $this->sources))->get();
+        return Source::whereIn('id', explode(',', $raw))->get();
     }
 
     public function involvedUsers(): Collection
