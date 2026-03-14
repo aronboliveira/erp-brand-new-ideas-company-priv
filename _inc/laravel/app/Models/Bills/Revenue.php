@@ -81,10 +81,7 @@ class Revenue extends Model
         BC::COL_RCP_MD,
     ];
 
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-    ];
+    protected $guarded = ['id'];
 
     protected $with = [
         'bankAccount',

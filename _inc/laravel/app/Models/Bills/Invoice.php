@@ -117,12 +117,10 @@ class Invoice extends Model
         BC::COL_BL_CTY,
         BC::COL_BL_CTR,
         BC::COL_BL_DTL,
-    ];
-
-    protected $guarded = [
-        'id',
         DC::COL_TABLE_CREATOR,
     ];
+
+    protected $guarded = ['id'];
 
     protected $casts = [
         'amount'           => 'decimal:2',
@@ -1390,7 +1388,14 @@ class Invoice extends Model
 
     public function getDue(): float
     {
-        $paid = $this->payments->sum('amount');
+        try {
+            $paid = $this->payments->sum('amount');
+        } catch (\Throwable) {
+            // Fallback: the payments() union relation may fail when the
+            // "payments" table uses column "invoice" instead of "invoice_id".
+            // Use invoicePayments() which targets the junction table directly.
+            $paid = (float) $this->invoicePayments()->sum('amount');
+        }
 
         return ($this->getTotal() - $paid)
             - $this->invoiceTotalCreditNote();

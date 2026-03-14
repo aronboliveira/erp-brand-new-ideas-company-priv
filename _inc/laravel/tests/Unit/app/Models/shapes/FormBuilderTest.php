@@ -214,7 +214,7 @@ class FormBuilderTest extends TestCase
 		);
 		$this->assertInstanceOf(
 			\Illuminate\Database\Eloquent\Relations\HasMany::class,
-			$fb->response()
+			$fb->responses()
 		);
 	}
 }

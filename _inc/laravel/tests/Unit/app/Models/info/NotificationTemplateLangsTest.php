@@ -22,7 +22,7 @@ class NotificationTemplateLangsTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['parent_id', 'lang', 'content', 'variables', 'created_by'];
+		$expected = ['parent_id', 'lang', 'content', 'variables', 'translator', 'translator_id', 'metadata'];
 		$this->assertEquals($expected, (new NotificationTemplateLang())->getFillable());
 	}
 }

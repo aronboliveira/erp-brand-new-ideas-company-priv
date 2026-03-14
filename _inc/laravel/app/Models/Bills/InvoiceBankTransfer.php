@@ -33,12 +33,10 @@ class InvoiceBankTransfer extends Model
         'date',
         'receipt',
         ...self::FAILURE_TRACKING_COLS,
-    ];
-
-    protected $guarded = [
-        'id',
         DC::COL_TABLE_CREATOR,
     ];
+
+    protected $guarded = ['id'];
 
     protected $casts = [
         'amount'           => 'decimal:2',

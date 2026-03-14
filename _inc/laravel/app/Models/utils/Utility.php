@@ -57,6 +57,8 @@ use Illuminate\Support\Facades\{
 };
 use Spatie\GoogleCalendar\Event as GoogleEvent;
 use App\Helpers\SafeConsoleOutput;
+use App\Services\Utility\AccountingService;
+use App\Services\Utility\CalendarService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Twilio\Rest\Client as TwilioClient;
@@ -111,10 +113,10 @@ class Utility extends Model
 
     private static $getSettings    = null;
     private static $getSettingsId  = [];
-    private static $taxsData       = null;
-    private static $taxRateData    = null;
+    private static $taxsData       = [];
+    private static $taxRateData    = [];
     private static $taxData        = null;
-    private static $taxes          = null;
+    private static $taxes          = [];
     private static $languageSetting = null;
     private static $getRatingData  = null;
     public static array $DEFAULT_SETTINGS = SC::DFT_SETTINGS;
@@ -1535,30 +1537,31 @@ class Utility extends Model
 
     public static function getTax(string|int $taxId): ?Tax
     {
-        if (self::$taxes === null) {
+        if (!isset(self::$taxes[$taxId])) {
             try {
-                self::$taxes = Tax::find($taxId);
+                self::$taxes[$taxId] = Tax::find($taxId);
             } catch (\Throwable $e) {
                 Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed fetching Tax[{$taxId}]: {$e->getMessage()}");
                 return null;
             }
         }
-        return self::$taxes;
+        return self::$taxes[$taxId] ?? null;
     }
 
     public static function tax(string $taxesCsv): array
     {
-        if (self::$taxsData === null) {
+        $cacheKey = $taxesCsv;
+        if (!isset(self::$taxsData[$cacheKey])) {
             $taxIds = array_filter(explode(',', $taxesCsv));
             $results = [];
             foreach ($taxIds as $id) {
-                $taxModel = self::getTax($id);
+                $taxModel = self::getTax(trim($id));
                 if ($taxModel !== null)
                     $results[] = $taxModel;
             }
-            self::$taxsData = $results;
+            self::$taxsData[$cacheKey] = $results;
         }
-        return self::$taxsData;
+        return self::$taxsData[$cacheKey];
     }
 
     public static function taxRate(float $taxRate, float $price, float $quantity, float $discount = 0): float
@@ -1569,16 +1572,17 @@ class Utility extends Model
 
     public static function totalTaxRate(string $taxesCsv): float
     {
-        if (self::$taxRateData === null) {
+        $cacheKey = $taxesCsv;
+        if (!isset(self::$taxRateData[$cacheKey])) {
             $taxIds = array_filter(explode(',', $taxesCsv));
             $rateSum = 0.0;
             foreach ($taxIds as $id) {
-                $taxModel = self::getTax($id);
+                $taxModel = self::getTax(trim($id));
                 $rateSum += $taxModel->rate ?? 0;
             }
-            self::$taxRateData = $rateSum;
+            self::$taxRateData[$cacheKey] = $rateSum;
         }
-        return self::$taxRateData;
+        return self::$taxRateData[$cacheKey];
     }
 
     public static function userBalance(string $userType, string|int $id, float $amount, string $type): void
@@ -1667,88 +1671,24 @@ class Utility extends Model
     }
 
     public const COA_TP_DT = 'chartOfAccountTypeData';
+    /** @see AccountingService::seedAccountTypes() */
     public static function chartOfAccountTypeData(string $companyId): void
     {
-        $typeNames = [
-            CTC::TP_ASSETS         => CTC::COA_TPS[CTC::AST],
-            CTC::TP_LIABILITIES    => CTC::COA_TPS[CTC::LBL],
-            CTC::TP_EQUITY         => CTC::COA_TPS[CTC::EQT],
-            CTC::TP_INCOME         => CTC::COA_TPS[CTC::ICM],
-            CTC::TP_COGS           => CTC::COA_TPS[CTC::CGS],
-            CTC::TP_EXPENSES       => CTC::COA_TPS[CTC::EXP],
-        ];
-        foreach (CTC::COA_SBTPS as $typeId => $subtypes) {
-            ChartOfAccountType::updateOrCreate(
-                ['id' => $typeId],
-                [
-                    'name'       => $typeNames[$typeId]  ?? 'Undefined',
-                    DC::COL_TABLE_CREATOR => $companyId,
-                ]
-            );
-            foreach ($subtypes as $subTypeId => $subName)
-                ChartOfAccountSubType::updateOrCreate(
-                    ['id' => $subTypeId],
-                    [
-                        'name'       => $subName,
-                        'type'       => $typeId,
-                        'type_name'  => $typeNames[$typeId]  ?? 'Undefined',
-                        DC::COL_TABLE_CREATOR => $companyId,
-                    ]
-                );
-        }
+        AccountingService::seedAccountTypes($companyId);
     }
 
     public const COA_DATA = 'chartOfAccountData';
+    /** @see AccountingService::seedAccounts() */
     public static function chartOfAccountData(object $user): void
     {
-        foreach (self::$chartOfAccount as $acct) {
-            try {
-                ChartOfAccount::create([
-                    CTC::COL_CD          => $acct[CTC::COL_CD],
-                    CTC::COL_NM          => $acct[CTC::COL_NM],
-                    CTC::COL_TP          => $acct[CTC::COL_TP],
-                    CTC::COL_SUBTP       => $acct[CTC::COL_SUBTP],
-                    CTC::COL_ENB         => 1,
-                    DC::COL_TABLE_CREATOR => $user?->id,
-                ]);
-            } catch (\Throwable $e) {
-                Log::error(
-                    __CLASS__ . '::' . __FUNCTION__
-                        . " failed creating COA[{$acct[CTC::COL_CD]}]: {$e->getMessage()}"
-                );
-            }
-        }
+        AccountingService::seedAccounts($user, self::$chartOfAccount);
     }
 
     public const COA_DATA1 = 'chartOfAccountData1';
+    /** @see AccountingService::seedAccountsByName() */
     public static function chartOfAccountData1(string|int $userId): void
     {
-        $chartData = self::$chartOfAccount1;
-        foreach ($chartData as $acct) {
-            try {
-                DB::transaction(function () use ($acct, $userId) {
-                    $type = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $userId)
-                        ->where(CTC::COL_NM, $acct[CTC::COL_TP])
-                        ->firstOrFail();
-                    $sub = ChartOfAccountSubType::where(CTC::COL_TP, $type->id)
-                        ->where(CTC::COL_NM, $acct[CTC::COL_SUBTP])
-                        ->firstOrFail();
-                    ChartOfAccount::create([
-                        CTC::COL_CD          => $acct[CTC::COL_CD],
-                        CTC::COL_NM          => $acct[CTC::COL_NM],
-                        CTC::COL_TP          => $type->id,
-                        CTC::COL_SUBTP       => $sub->id,
-                        CTC::COL_ENB         => 1,
-                        DC::COL_TABLE_CREATOR => $userId,
-                    ]);
-                });
-            } catch (\Throwable $e) {
-                Log::error(
-                    __CLASS__ . '::' . __FUNCTION__
-                        . " failed creating COA[{$acct[CTC::COL_CD]}]: {$e->getMessage()}"
-                );
-            }
-        }
+        AccountingService::seedAccountsByName($userId, self::$chartOfAccount1);
     }
 
     public static function sendEmailTemplate(string $emailTemplate, array $mailTo, array $obj): array|RedirectResponse
@@ -1762,7 +1702,7 @@ class Utility extends Model
         $user = $userOrRedirect;
         $mailTo = array_values($mailTo);
         if ($user->type != PMC::SA) {
-            $template = EmailTemplate::where('name', 'LIKE', $emailTemplate)->first();
+            $template = EmailTemplate::where('slug', 'LIKE', $emailTemplate)->first();
             if (!$template) {
                 return ['is_success' => false, 'error' => __('Mail not send, email not found')];
             }
@@ -1770,7 +1710,7 @@ class Utility extends Model
                 ? UserEmailTemplate::where('template_id', $template->id)
                 ->where(UC::COL_USER_ID, $user?->creatorId())->first()
                 : (object)['is_active' => 1];
-            if ($isActiveRecord->is_active != 1) {
+            if (!$isActiveRecord || $isActiveRecord->is_active != 1) {
                 return ['is_success' => true, 'error' => false];
             }
             $settings = self::settingsById($user?->id);
@@ -1812,13 +1752,13 @@ class Utility extends Model
         /** @var User $user */
         $user = $userOrRedirect;
         $mailTo = array_values($mailTo);
-        $template = EmailTemplate::where('name', 'LIKE', $emailTemplate)->first();
+        $template = EmailTemplate::where('slug', 'LIKE', $emailTemplate)->first();
         if (!$template) {
             return ['is_success' => false, 'error' => __('Mail not send, email not found')];
         }
         $isActiveRecord = UserEmailTemplate::where('template_id', $template->id)
             ->where(UC::COL_USER_ID, $user?->creatorId())->first();
-        if ($isActiveRecord->is_active != 1) {
+        if (!$isActiveRecord || $isActiveRecord->is_active != 1) {
             return ['is_success' => true, 'error' => false];
         }
         $settings = self::settingsById(1);
@@ -2581,10 +2521,12 @@ class Utility extends Model
             $first = Carbon::now()->addWeeks($week)->startOfWeek();
             $seventh = Carbon::now()->addWeeks($week)->endOfWeek();
         }
-        $period = CarbonPeriod::create($first, $seventh);
         $dates = [];
-        foreach ($period as $date)
-            $dates[(string)$date->format('Y-m-d')] = $date;
+        if ($first && $seventh) {
+            $period = CarbonPeriod::create($first, $seventh);
+            foreach ($period as $date)
+                $dates[(string)$date->format('Y-m-d')] = $date;
+        }
         return ['first_day' => $first, 'seventh_day' => $seventh, 'datePeriod' => $dates];
     }
 
@@ -2735,7 +2677,7 @@ class Utility extends Model
         $user = $userOrRedirect;
         $query   = DB::table('company_payment_settings');
         if (Auth::check())
-            $query->where(UC::COL_USER_ID, $user?->creatorId());
+            $query->where(DC::COL_TABLE_CREATOR, $user?->creatorId());
         $rows    = $query->get();
         $settings = [];
         foreach ($rows as $row)
@@ -2807,10 +2749,11 @@ class Utility extends Model
     public static function secondToTime(int $seconds = 0): string
     {
         $H = floor($seconds / 3600);
-        return sprintf('%02d:%02d:%02d', $H, floor($H / 60), $seconds % 60);
+        $M = floor(($seconds % 3600) / 60);
+        return sprintf('%02d:%02d:%02d', $H, $M, $seconds % 60);
     }
 
-    public static function sendSlackMsg(string $slug, array $obj, ?int $userId = null): void
+    public static function sendSlackMsg(string $slug, array $obj, string|int|null $userId = null): void
     {
         $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) return;
@@ -2819,7 +2762,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UC::COL_USER_ID, $user?->id)
+            ->where(DC::COL_TABLE_CREATOR, $user?->id)
             ->first()
             ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -2840,7 +2783,7 @@ class Utility extends Model
         }
     }
 
-    public static function sendTelegramMsg(string $slug, array $obj, ?int $userId = null): void
+    public static function sendTelegramMsg(string $slug, array $obj, string|int|null $userId = null): void
     {
         $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) {
@@ -2853,7 +2796,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UC::COL_USER_ID, $user?->id)
+            ->where(DC::COL_TABLE_CREATOR, $user?->id)
             ->first()
             ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -2880,7 +2823,7 @@ class Utility extends Model
         }
     }
 
-    public static function sendTwilioMsg(string $to, string $slug, array $obj, ?int $userId = null): void
+    public static function sendTwilioMsg(string $to, string $slug, array $obj, string|int|null $userId = null): void
     {
         $template = NotificationTemplate::where('slug', $slug)->first();
         if (!$template || empty($obj)) return;
@@ -2889,7 +2832,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UC::COL_USER_ID, $user?->id)
+            ->where(DC::COL_TABLE_CREATOR, $user?->id)
             ->first()
             ?: NotificationTemplateLang::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -2915,7 +2858,7 @@ class Utility extends Model
         }
     }
 
-    public static function totalQuantity(string $type, int $quantity, int $productId): void
+    public static function totalQuantity(string $type, int $quantity, string|int $productId): void
     {
         $product = ProductService::find($productId);
         if (!$product || $product->type !== 'product') return;
@@ -2928,7 +2871,7 @@ class Utility extends Model
         });
     }
 
-    public static function warehouseQuantity(string $type, int $quantity, int $productId, int $warehouseId): void
+    public static function warehouseQuantity(string $type, int $quantity, string|int $productId, string|int $warehouseId): void
     {
         $record = WarehouseProduct::where('warehouse_id', $warehouseId)
             ->where('product_id', $productId)
@@ -2944,7 +2887,7 @@ class Utility extends Model
         });
     }
 
-    public static function warehouseTransferQty(int $fromWarehouse, int $toWarehouse, int $productId, int $quantity, ?string $delete = null): void
+    public static function warehouseTransferQty(string|int $fromWarehouse, string|int $toWarehouse, string|int $productId, int $quantity, ?string $delete = null): void
     {
         DB::transaction(function () use ($fromWarehouse, $toWarehouse, $productId, $quantity, $delete) {
             if (
@@ -2980,7 +2923,7 @@ class Utility extends Model
         });
     }
 
-    public static function addProductStock(int $productId, int $quantity, string $type, string $description, int $typeId): void
+    public static function addProductStock(string|int $productId, int $quantity, string $type, string $description, string|int $typeId): void
     {
         DB::transaction(function () use ($productId, $quantity, $type, $description, $typeId) {
             if (
@@ -2995,6 +2938,7 @@ class Utility extends Model
                 'type'       => $type,
                 'type_id'    => $typeId,
                 'description' => $description,
+                'title'      => ucfirst($type) . ' Stock',
                 DC::COL_TABLE_CREATOR => $user?->creatorId(),
             ]);
         });
@@ -3081,8 +3025,7 @@ class Utility extends Model
             ->where(UC::COL_USER_ID, Auth::user()->id)
             ->pluck('value', 'name')
             ->toArray();
-        $colorSetting = $settings[SC::CLR_STG] ?? null;
-        $mode = is_array($colorSetting) ? ($colorSetting[SC::CST_DRK] ?? 'off') : 'off';
+        $mode = $settings[SC::CST_DRK] ?? 'off';
         if ($mode === 'on')
             return SC::CPN_LG_LT_DEF;
         return SC::CPN_LG_DK_DEF;
@@ -3090,8 +3033,7 @@ class Utility extends Model
 
     public static function getLogo(string $settingKey = '', string $fallbackKey = '', int|string|null $creatorId = null): string
     {
-        $colorVal = self::getValByName(SC::CLR_STG);
-        $isDark = is_array($colorVal) && ($colorVal[SC::CST_DRK] ?? 'off') === 'on';
+        $isDark = (self::getValByName(SC::CST_DRK) === 'on');
         if (Auth::user() && Auth::user()[UC::COL_TP] !== PMC::SA) {
             return $isDark
                 ? self::getValByName(SC::CPN_LG_LT)
@@ -3121,7 +3063,7 @@ class Utility extends Model
         return self::getGdpr()[$key] ?? '';
     }
 
-    public static function addWarehouseStock(int $productId, int $quantity, int $warehouseId): void
+    public static function addWarehouseStock(string|int $productId, int $quantity, string|int $warehouseId): void
     {
         try {
             DB::transaction(function () use ($productId, $quantity, $warehouseId) {
@@ -3383,17 +3325,13 @@ class Utility extends Model
 
     public static function getTargetRating(int $designationId, int $competencyCount): float
     {
-        if (self::$getRatingData === null) {
-            $indicator = Indicator::where('designation', $designationId)->first();
-            if ($indicator && !empty($indicator->rating) && $competencyCount > 0) {
-                $ratingArray = json_decode($indicator->rating, true) ?: [];
-                $starSum = array_sum($ratingArray);
-                $overall = $starSum / $competencyCount;
-            } else
-                $overall = 0.0;
-            self::$getRatingData = $overall;
+        $indicator = Indicator::where('designation', $designationId)->first();
+        if ($indicator && !empty($indicator->rating) && $competencyCount > 0) {
+            $ratingArray = json_decode($indicator->rating, true) ?: [];
+            $starSum = array_sum($ratingArray);
+            return $starSum / $competencyCount;
         }
-        return self::$getRatingData;
+        return 0.0;
     }
 
     public static function colorCodeData(string $type): int
@@ -3414,61 +3352,22 @@ class Utility extends Model
         };
     }
 
+    /** @see CalendarService::configure() */
     public static function googleCalendarConfig(): void
     {
-        $settings = self::settings();
-        $path = storage_path($settings['google_calendar_json_file'] ?? '');
-        if (!file_exists($path)) {
-            Log::warning(__CLASS__ . '::' . __FUNCTION__ . " credentials file not found at {$path}");
-            return;
-        }
-        config([
-            'google-calendar.default_auth_profile'                      => 'service_account',
-            'google-calendar.auth_profiles.service_account.credentials_json' => $path,
-            'google-calendar.auth_profiles.oauth.credentials_json'      => $path,
-            'google-calendar.auth_profiles.oauth.token_json'            => $path,
-            'google-calendar.calendar_id'                               => $settings['google_clender_id'] ?? '',
-            'google-calendar.user_to_impersonate'                       => '',
-        ]);
+        CalendarService::configure();
     }
 
+    /** @see CalendarService::addEvent() */
     public static function addCalendarData(object $request, string $type): void
     {
-        self::googleCalendarConfig();
-        try {
-            DB::transaction(function () use ($request, $type) {
-                $event = new GoogleEvent();
-                $event->name         = $request->title; // @phpstan-ignore property.notFound
-                $event->startDateTime = Carbon::parse($request->start_date); // @phpstan-ignore property.notFound
-                $event->endDateTime  = Carbon::parse($request->end_date); // @phpstan-ignore property.notFound
-                $event->colorId      = self::colorCodeData($type); // @phpstan-ignore property.notFound
-                $event->save();
-            });
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed adding calendar event: {$e->getMessage()}");
-        }
+        CalendarService::addEvent($request, $type);
     }
 
+    /** @see CalendarService::getEvents() */
     public static function getCalendarData(string $type): array
     {
-        self::googleCalendarConfig();
-        $events = GoogleEvent::get();
-        $ColorId = (string) self::colorCodeData($type);
-        $result = [];
-        foreach ($events as $ev) {
-            $endDate = date_create($ev->endDateTime);
-            date_add($endDate, date_interval_create_from_date_string('1 days'));
-            if ($ev->colorId === $ColorId)
-                $result[] = [
-                    'id'        => $ev->id,
-                    'title'     => $ev->summary,
-                    'start'     => $ev->startDateTime,
-                    'end'       => date_format($endDate, 'Y-m-d H:i:s'),
-                    'className' => self::$colorCode[(int)$ColorId] ?? '',
-                    'allDay'    => true,
-                ];
-        }
-        return $result;
+        return CalendarService::getEvents($type);
     }
 
     public static function getStartEndMonthDates(): array
@@ -3480,7 +3379,7 @@ class Utility extends Model
         ];
     }
 
-    public static function webhookSetting(string $module, ?int $userId = null): array|bool
+    public static function webhookSetting(string $module, string|int|null $userId = null): array|bool
     {
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return false;
@@ -3718,7 +3617,7 @@ class Utility extends Model
     }
 
 
-    public static function updateStorageLimit(int $companyId, float $imageSize): string|int
+    public static function updateStorageLimit(string|int $companyId, float $imageSize): string|int
     {
         try {
             return DB::transaction(function () use ($companyId, $imageSize) {
@@ -3738,7 +3637,7 @@ class Utility extends Model
         }
     }
 
-    public static function changeStorageLimit(int $companyId, string $filePath): bool
+    public static function changeStorageLimit(string|int $companyId, string $filePath): bool
     {
         try {
             return DB::transaction(function () use ($companyId, $filePath) {
@@ -3979,7 +3878,7 @@ class Utility extends Model
         return Plan::find($user?->plan);
     }
 
-    public static function getAccountBalance(int $accountId, ?string $startDate = null, ?string $endDate = null): float|RedirectResponse
+    public static function getAccountBalance(string|int $accountId, ?string $startDate = null, ?string $endDate = null): float|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -3994,7 +3893,7 @@ class Utility extends Model
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $accountIds = BankAccount::where('chart_account_id', $accountId)
-            ->where(UC::COL_USER_ID, $user?->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->pluck('id');
         $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
@@ -4005,7 +3904,7 @@ class Utility extends Model
         $billProductIds = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
         $billProductAmount = BillProduct::whereIn('product_id', $billProductIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum(DB::raw('price * quantity'));
+            ->sum('total');
         $billAmount = BillAccount::where('chart_account_id', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum('price');
@@ -4029,7 +3928,7 @@ class Utility extends Model
             - ($journalDebit + $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount);
     }
 
-    public static function getAccountData(int $accountId, ?string $startDate = null, ?string $endDate = null): array|RedirectResponse
+    public static function getAccountData(string|int $accountId, ?string $startDate = null, ?string $endDate = null): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -4082,172 +3981,31 @@ class Utility extends Model
         ];
     }
 
-    public static function getBalanceSheetCredit(int $accountId, ?string $startDate = null, ?string $endDate = null): float
+    /** @see AccountingService::getBalanceSheetCredit() */
+    public static function getBalanceSheetCredit(string|int $accountId, ?string $startDate = null, ?string $endDate = null): float
     {
-        $start = $startDate ?: date('Y-m-01');
-        $end  = $endDate   ?: date('Y-m-t');
-        $invoiceProducts = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
-        $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProducts)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum(DB::raw('price * quantity'));
-        $accountIds = BankAccount::where('chart_account_id', $accountId)->pluck('id');
-        $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        $revenueAmount = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        return $invoiceAmount + $invoicePaymentAmount + $revenueAmount;
+        return AccountingService::getBalanceSheetCredit($accountId, $startDate, $endDate);
     }
 
-    public static function getBalanceSheetDebit(int $accountId, ?string $startDate = null, ?string $endDate = null): float
+    /** @see AccountingService::getBalanceSheetDebit() */
+    public static function getBalanceSheetDebit(string|int $accountId, ?string $startDate = null, ?string $endDate = null): float
     {
-        $start = $startDate ?: date('Y-m-01');
-        $end  = $endDate   ?: date('Y-m-t');
-        $billProducts = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
-        $billProductAmount = BillProduct::whereIn('product_id', $billProducts)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum(DB::raw('price * quantity'));
-        $billAmount = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum('price');
-        $accountIds = BankAccount::where('chart_account_id', $accountId)->pluck('id');
-        $billPaymentAmount = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        $paymentAmount = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        return $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount;
+        return AccountingService::getBalanceSheetDebit($accountId, $startDate, $endDate);
     }
 
-    public static function trialBalance(int $accountType, string $start, string $end): array|RedirectResponse
+    /** @see AccountingService::trialBalance() */
+    public static function trialBalance(string|int $accountType, string $start, string $end): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        $user = $userOrRedirect;
-        $creatorId = $user?->creatorId();
-        $journalItem = JournalItem::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(debit) as totalDebit'),
-            DB::raw('sum(credit) as totalCredit')
-        )
-            ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->join(DC::TABLE_COAS, 'journal_items.account', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('journal_items.created_at', [$start, $end])
-            ->groupBy('account')
-            ->get()->toArray();
-        $invoice = InvoiceProduct::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('0 as totalDebit'),
-            DB::raw('sum(price * invoice_products.quantity) as totalCredit')
-        )
-            ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'invoice_products.product_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.sale_chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('invoice_products.created_at', [$start, $end])
-            ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chart_account_id')
-            ->get()->toArray();
-        $invoicePayment = InvoicePayment::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(amount) as totalDebit'),
-            DB::raw('0 as totalCredit')
-        )
-            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'invoice_payments.account_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('invoice_payments.created_at', [$start, $end])
-            ->groupBy('account_id')
-            ->get()->toArray();
-        $revenue = Revenue::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('0 as totalDebit'),
-            DB::raw('sum(amount) as totalCredit')
-        )
-            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'revenues.account_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('revenues.created_at', [$start, $end])
-            ->groupBy('chart_account_id')
-            ->get()->toArray();
-        $bill = BillProduct::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(price * bill_products.quantity) as totalDebit'),
-            DB::raw('0 as totalCredit')
-        )
-            ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'bill_products.product_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.expense_chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('bill_products.created_at', [$start, $end])
-            ->groupBy(DC::TABLE_PROD_SERVS . '.expense_chart_account_id')
-            ->get()->toArray();
-        $billAccount = BillAccount::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(price) as totalDebit'),
-            DB::raw('0 as totalCredit')
-        )
-            ->join(DC::TABLE_COAS, 'bill_accounts.chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('bill_accounts.created_at', [$start, $end])
-            ->groupBy('chart_account_id')
-            ->get()->toArray();
-        $billPayment = BillPayment::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(amount) as totalDebit'),
-            DB::raw('0 as totalCredit')
-        )
-            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'bill_payments.account_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('bill_payments.created_at', [$start, $end])
-            ->groupBy('account_id')
-            ->get()->toArray();
-        $payments = Payment::select(
-            DC::TABLE_COAS . '.id',
-            DC::TABLE_COAS . '.code',
-            DC::TABLE_COAS . '.name',
-            DB::raw('sum(amount) as totalDebit'),
-            DB::raw('0 as totalCredit')
-        )
-            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'payments.account_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
-            ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('payments.created_at', [$start, $end])
-            ->groupBy('account_id')
-            ->get()->toArray();
-        if (!empty($billPayment) && !empty($invoicePayment))
-            for ($i = 0; $i < count($invoicePayment); $i++)
-                $invoicePayment[$i]['totalDebit'] -= $billPayment[$i]['totalDebit'] ?? 0;
-        return array_merge($invoice, $journalItem, $revenue, $bill, $billAccount, $payments, $invoicePayment);
+        /** @var User $userOrRedirect */
+        return AccountingService::trialBalance($accountType, $start, $end, $userOrRedirect);
     }
 
-    public static function smtpDetail(int $userId): array
+    public static function smtpDetail(string|int $userId): array
     {
         $settings = self::settingsById($userId);
         $smtpConfig = [
@@ -4266,8 +4024,8 @@ class Utility extends Model
 
     public static function getPusherSetting(): array
     {
-        $settings = self::settingsById(1);
-        if (empty($settings)) {
+        $settings = self::settingsById(DC::DEFAULT_UUID);
+        if (empty($settings['pusher_app_key'])) {
             return [];
         }
         $pusherConfig = [

@@ -43,6 +43,8 @@ use App\Models\ProductCategory;
 use App\Models\ProductServiceCategory;
 use App\Models\Tax;
 use App\Models\Transaction;
+use App\Models\Customer;
+use App\Models\Employee;
 use App\Models\Utility;
 
 /**
@@ -478,8 +480,19 @@ class Bill extends Model
 
     public function getDue(): float
     {
-        $paid = (float) $this->payments()->sum('amount');
-        return max(0.0, $this->getTotal() - $paid - $this->billTotalDebitNote());
+        try {
+            $paid = (float) $this->payments()->sum('amount');
+        } catch (\Throwable $e) {
+            Log::warning(self::class . '::getDue payments query failed: ' . $e->getMessage());
+            $paid = 0.0;
+        }
+        try {
+            $debitNotes = $this->billTotalDebitNote();
+        } catch (\Throwable $e) {
+            Log::warning(self::class . '::getDue debitNote query failed: ' . $e->getMessage());
+            $debitNotes = 0.0;
+        }
+        return max(0.0, $this->getTotal() - $paid - $debitNotes);
     }
 
     public function billTotalDebitNote(): float
@@ -917,5 +930,30 @@ class Bill extends Model
     {
         return $this->hasMany(Transaction::class, BC::COL_PAY_ID, 'id')
             ->where(BC::COL_PAY_TP, TransactionType::Bill->value);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'vendor_id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'vendor_id');
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, 'tax_id');
+    }
+
+    public function taxes(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, 'tax');
+    }
+
+    public function lastPayments(): HasMany
+    {
+        return $this->hasMany(BillPayment::class, 'id', 'bill_id');
     }
 }

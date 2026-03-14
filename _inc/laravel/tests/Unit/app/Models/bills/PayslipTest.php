@@ -92,9 +92,9 @@ class PayslipTest extends TestCase
 	{
 		$relation = (new Payslip)->employees();
 
-		$this->assertInstanceOf(BelongsTo::class,      $relation);
+		$this->assertInstanceOf(HasOne::class,         $relation);
 		$this->assertSame(Employee::class,          get_class($relation->getRelated()));
-		$this->assertSame('employee_id',                     $relation->getForeignKeyName());
-		$this->assertSame('id',            $relation->getOwnerKeyName());
+		$this->assertSame('id',                     $relation->getForeignKeyName());
+		$this->assertSame('employee_id',            $relation->getLocalKeyName());
 	}
 }

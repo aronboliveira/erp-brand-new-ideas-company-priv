@@ -21,8 +21,6 @@ class StockReport extends Model
 
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $fillable = [
@@ -54,6 +52,7 @@ class StockReport extends Model
         'attachments',
         'filters',
         'metadata',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [
@@ -1475,7 +1474,7 @@ class StockReport extends Model
     /**
      * Collect product-related rows for this report's type ID from inventory tables.
      */
-    public function products(?string $typeId = null): Collection
+    public function productRows(?string $typeId = null): Collection
     {
         $id = trim((string) ($typeId ?? $this->normalizedTypeId() ?? ''));
         if ($id === '' || !Utility::looksLikeUuid($id)) return collect();
@@ -1494,9 +1493,32 @@ class StockReport extends Model
         return $out->values();
     }
 
+    /**
+     * Given a CSV of product-service IDs, return the name of the last valid one.
+     */
+    public static function products(?string $ids = null): string
+    {
+        if ($ids === null || trim($ids) === '') return '';
+
+        $idList = array_filter(array_map('trim', explode(',', $ids)));
+        if (empty($idList)) return '';
+
+        $last = '';
+        foreach ($idList as $id) {
+            try {
+                $ps = ProductService::find($id);
+                if ($ps && !empty($ps->name)) $last = $ps->name;
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        return $last;
+    }
+
     public function inventoryQuantitySubtotals(?string $typeId = null): array
     {
-        $rows = $this->products($typeId);
+        $rows = $this->productRows($typeId);
 
         $quantityCandidates = ['quantity', 'stock', 'qty', 'units', 'count'];
         $sub = [];

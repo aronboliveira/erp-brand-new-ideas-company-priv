@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\{
 };
 use Illuminate\Support\Collection;
 
+use App\Models\Label;
+
 /**
  * @property bool|null $is_converted
  * @property bool|null $is_critical
@@ -312,5 +314,19 @@ class Lead extends Model
         $payload['employees'] = array_values(array_unique($payload['employees'] ?? []));
 
         return $payload;
+    }
+
+    /**
+     * Parse the comma-separated labels column and return matching Label models.
+     */
+    public function labelRecords(): \Illuminate\Support\Collection
+    {
+        $raw = $this->getAttribute('labels');
+        if (empty($raw)) return collect();
+
+        $ids = array_filter(array_map('trim', explode(',', (string) $raw)));
+        if (empty($ids)) return collect();
+
+        return Label::whereIn('id', $ids)->get();
     }
 }

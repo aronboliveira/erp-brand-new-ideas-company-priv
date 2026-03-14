@@ -69,9 +69,9 @@ class BankAccountTest extends TestCase
 	{
 		$relation = (new BankAccount)->chartAccount();
 
-		$this->assertInstanceOf(BelongsTo::class,                $relation);
+		$this->assertInstanceOf(HasOne::class,                   $relation);
 		$this->assertSame(ChartOfAccount::class,              get_class($relation->getRelated()));
-		$this->assertSame('chart_account_id',                               $relation->getForeignKeyName());
-		$this->assertSame('id',                 $relation->getOwnerKeyName());
+		$this->assertSame('id',                               $relation->getForeignKeyName());
+		$this->assertSame('chart_account_id',                 $relation->getLocalKeyName());
 	}
 }

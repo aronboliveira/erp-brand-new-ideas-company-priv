@@ -98,9 +98,9 @@ class SaturationDeductionTest extends TestCase
 	{
 		$relation = (new SaturationDeduction)->deductionOption();
 
-		$this->assertInstanceOf(BelongsTo::class,     $relation);
+		$this->assertInstanceOf(HasOne::class,        $relation);
 		$this->assertSame(DeductionOption::class,  get_class($relation->getRelated()));
-		$this->assertSame('deduction_option',                    $relation->getForeignKeyName());
-		$this->assertSame('id',      $relation->getOwnerKeyName());
+		$this->assertSame('id',                    $relation->getForeignKeyName());
+		$this->assertSame('deduction_option',      $relation->getLocalKeyName());
 	}
 }

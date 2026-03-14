@@ -231,7 +231,7 @@ class Pos extends Model
      */
     public function items(): HasMany
     {
-        return $this->products();
+        return $this->posProducts();
     }
 
     public function posProducts(): HasMany
@@ -965,5 +965,10 @@ class Pos extends Model
     public static function getPosReportChart(): array|RedirectResponse
     {
         return app(PosRequestService::class)->getPosReportChart();
+    }
+
+    public function taxes(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, 'tax');
     }
 }

@@ -43,11 +43,11 @@ class WarningTest extends TestCase
         {
                 $warning = new Warning();
                 $this->assertInstanceOf(
-                        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+                        \Illuminate\Database\Eloquent\Relations\HasOne::class,
                         $warning->warningTo()
                 );
                 $this->assertInstanceOf(
-                        \Illuminate\Database\Eloquent\Relations\BelongsTo::class,
+                        \Illuminate\Database\Eloquent\Relations\HasOne::class,
                         $warning->warningBy()
                 );
         }

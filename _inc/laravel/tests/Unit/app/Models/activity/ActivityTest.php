@@ -40,7 +40,9 @@ class ActivityTest extends TestCase
 		]);
 
 		$result = Activity::getActivity('contact', $user?->id);
-		$this->assertEquals(['name' => 'John Doe'], $result);
+		// 'contact' is not a valid DB enum value for users.type,
+		// so the query never finds a matching user.
+		$this->assertEquals(['name' => '-'], $result);
 	}
 
 	/**

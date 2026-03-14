@@ -67,6 +67,10 @@ class GoalTracking extends Model
         DC::COL_U_AT    => 'datetime',
     ];
 
+    protected $attributes = [
+        'branch' => null,
+    ];
+
     protected $with = [
         'goalType',
         'goal',

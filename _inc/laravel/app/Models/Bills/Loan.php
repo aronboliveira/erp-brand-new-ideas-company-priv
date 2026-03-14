@@ -13,6 +13,7 @@ use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
+    Relations\BelongsTo,
     Relations\HasOne
 };
 use Illuminate\Support\Facades\{DB, Schema};
@@ -141,9 +142,9 @@ class Loan extends Model
         return $this->type === PaymentPatternType::Percentage;
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID);
     }
 
     public function loanOption(): HasOne

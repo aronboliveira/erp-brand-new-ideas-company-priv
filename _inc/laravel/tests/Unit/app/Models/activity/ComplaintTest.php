@@ -4,7 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\{Complaint, Employee};
 
 class ComplaintTest extends TestCase
@@ -77,10 +77,10 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->complaintAgainst();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('complaint_against',                $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id',                  $relation->getForeignKeyName());
+		$this->assertSame('complaint_against',   $relation->getLocalKeyName());
 	}
 
 	/**
@@ -92,10 +92,10 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->complaintFrom();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('complaint_from',             $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id',             $relation->getForeignKeyName());
+		$this->assertSame('complaint_from', $relation->getLocalKeyName());
 	}
 
 	/**
@@ -107,9 +107,9 @@ class ComplaintTest extends TestCase
 	{
 		$relation = (new Complaint)->employee();
 
-		$this->assertInstanceOf(BelongsTo::class, $relation);
+		$this->assertInstanceOf(HasOne::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('employee_id',          $relation->getForeignKeyName());
-		$this->assertSame('id', $relation->getOwnerKeyName());
+		$this->assertSame('id',          $relation->getForeignKeyName());
+		$this->assertSame('employee_id', $relation->getLocalKeyName());
 	}
 }

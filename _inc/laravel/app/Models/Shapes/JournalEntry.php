@@ -1014,4 +1014,26 @@ class JournalEntry extends Model
     {
         return $q->whereNotNull(BC::COL_REJ_AT);
     }
+
+    /** Sum the 'credit' column across loaded accounts. */
+    public function totalCredit(): float
+    {
+        try {
+            return (float) collect($this->accounts)->sum('credit');
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::totalCredit failed: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /** Sum the 'debit' column across loaded accounts. */
+    public function totalDebit(): float
+    {
+        try {
+            return (float) collect($this->accounts)->sum('debit');
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::totalDebit failed: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
 }

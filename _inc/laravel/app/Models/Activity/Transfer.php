@@ -22,7 +22,7 @@ class Transfer extends Model
 
     protected $table = DC::TABLE_TRFS;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         UC::COL_EMP_ID,

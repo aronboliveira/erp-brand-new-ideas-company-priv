@@ -33,9 +33,10 @@ class DeductionOption extends Model
         BC::COL_MAX_PCT,
         'frequency',
         BC::COL_MDAY_LMT,
+        DC::COL_TABLE_CREATOR,
     ];
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $casts = [
         BC::COL_DD_TYPE => DeductionType::class,

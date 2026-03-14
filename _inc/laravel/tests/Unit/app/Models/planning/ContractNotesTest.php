@@ -18,11 +18,11 @@ class ContractNotesTest extends TestCase
 		$rel = (new ContractNotes)->user();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',         $rel->getForeignKeyName());
-		$this->assertSame('created_by', $rel->getLocalKeyName());
+		$this->assertSame('user_id',    $rel->getForeignKeyName());
+		$this->assertSame('id',         $rel->getOwnerKeyName());
 	}
 
 	/**

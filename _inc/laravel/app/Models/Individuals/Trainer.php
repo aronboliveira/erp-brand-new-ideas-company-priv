@@ -40,6 +40,10 @@ class Trainer extends Model
         'certificates'   => 'array',
     ];
 
+    protected $attributes = [
+        'branch' => null,
+    ];
+
     protected $with = ['branch', 'employee', 'user', 'registrationDocument'];
 
     protected $appends = ['full_name', 'is_external', 'certificates_count'];

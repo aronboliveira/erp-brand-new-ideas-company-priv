@@ -12,6 +12,7 @@ use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
+    Relations\BelongsTo,
     Relations\HasOne
 };
 /**
@@ -70,7 +71,7 @@ class SaturationDeduction extends Model
         static::saving(function (SaturationDeduction $m): void {
             if ($m->type !== null) {
                 $norm = PaymentPatternType::normalize($m->type);
-                if ($norm) $m->type = (int) $norm->value;
+                if ($norm) $m->type = $norm; // @phpstan-ignore assign.propertyType
             }
 
             if ($m->amount < 0)
@@ -107,13 +108,9 @@ class SaturationDeduction extends Model
         return $this->type === PaymentPatternType::Percentage;
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(
-            Employee::class,
-            'id',
-            UC::COL_EMP_ID
-        );
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID);
     }
 
     public function deductionOption(): HasOne

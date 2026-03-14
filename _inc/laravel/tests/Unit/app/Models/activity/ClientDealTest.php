@@ -22,15 +22,18 @@ class ClientDealTest extends TestCase
 	 **/
 	public function client_deal_is_fillable()
 	{
+		$clientId = 'client-' . uniqid();
+		$dealId   = 'deal-' . uniqid();
+
 		$data = [
-			'client_id' => 'client-123',
-			'deal_id'   => 'deal-456',
+			'client_id' => $clientId,
+			'deal_id'   => $dealId,
 		];
 
 		$clientDeal = ClientDeal::create($data);
 
-		$this->assertEquals('client-123', $clientDeal->client_id);
-		$this->assertEquals('deal-456', $clientDeal->deal_id);
+		$this->assertEquals($clientId, $clientDeal->client_id);
+		$this->assertEquals($dealId, $clientDeal->deal_id);
 	}
 
 	/**
@@ -41,8 +44,8 @@ class ClientDealTest extends TestCase
 	public function client_deal_uses_uuid_for_primary_key()
 	{
 		$clientDeal = ClientDeal::create([
-			'client_id' => 'client-789',
-			'deal_id'   => 'deal-012',
+			'client_id' => 'client-' . uniqid(),
+			'deal_id'   => 'deal-' . uniqid(),
 		]);
 
 		$key = $clientDeal->getKey();

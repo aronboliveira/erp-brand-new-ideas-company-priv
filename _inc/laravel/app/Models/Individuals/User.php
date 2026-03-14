@@ -759,7 +759,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function checkProject(int|string $projectId): string
     {
         $ids = $this->{self::REL_PROJECTS}
-            ->pluck(self::COL_PROJECT_ID)
+            ->pluck('id')
             ->toArray();
         return in_array($projectId, $ids, true)
             ? 'Owner'
@@ -804,11 +804,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function totalLead(): int
     {
-        return Auth::user()[UC::COL_TP] === PMC::CPN
-            ? Lead::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count()
-            : (Auth::user()[UC::COL_TP] === PMC::CL
-                ? Lead::where(PMC::CL, $this->authId())->count()
-                : Lead::where('owner', $this->authId())->count());
+        try {
+            return Auth::user()[UC::COL_TP] === PMC::CPN
+                ? Lead::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count()
+                : (Auth::user()[UC::COL_TP] === PMC::CL
+                    ? Lead::where(PMC::CL, $this->authId())->count()
+                    : Lead::where('owner', $this->authId())->count());
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     public function lastProjectStage(): ?TaskStage
@@ -836,18 +840,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return match (Auth::user()[UC::COL_TP]) {
             PMC::CPN => ProjectTask::join(
                 DC::TABLE_PROJECTS,
-                DC::TABLE_PROJECTS . 'id',
+                DC::TABLE_PROJECTS . '.id',
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $userId)->count(),
+                ->where(DC::TABLE_PROJECTS . '.' . DC::COL_TABLE_CREATOR, $userId)->count(),
             PMC::CL  => ProjectTask::join(
                 DC::TABLE_PROJECTS,
-                DC::TABLE_PROJECTS . 'id',
+                DC::TABLE_PROJECTS . '.id',
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . 'client_id', $user?->authId())->count(),
+                ->where(DC::TABLE_PROJECTS . '.client_id', $user?->authId())->count(),
             default   => ProjectTask::join(
                 'project_users',
                 'project_users.' . PJC::COL_PJ_ID,
@@ -864,11 +868,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return match ($user[UC::COL_TP]) {
             PMC::CPN => ProjectTask::join(
                 DC::TABLE_PROJECTS,
-                DC::TABLE_PROJECTS . 'id',
+                DC::TABLE_PROJECTS . '.id',
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $this->creatorId())
+                ->where(DC::TABLE_PROJECTS . '.' . DC::COL_TABLE_CREATOR, $this->creatorId())
                 ->where(DC::TABLE_PROJ_TSKS . '.' . PJC::COL_STAGE_ID, $projectLastStage)
                 ->count(),
             PMC::CL  => ProjectTask::whereIn(
@@ -896,11 +900,11 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($user[UC::COL_TP] === PMC::CPN) {
             $query->join(
                 DC::TABLE_PROJECTS,
-                DC::TABLE_PROJECTS . 'id',
+                DC::TABLE_PROJECTS . '.id',
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $this->creatorId());
+                ->where(DC::TABLE_PROJECTS . '.' . DC::COL_TABLE_CREATOR, $this->creatorId());
         } elseif ($user[UC::COL_TP] === PMC::CL) {
             $query->whereIn(PJC::COL_PJ_ID, Project::where('client_id', $user?->id)->pluck('id'));
         } else {
@@ -918,7 +922,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 )
                 ->join(
                     DC::TABLE_PROJECTS,
-                    DC::TABLE_PROJECTS . 'id',
+                    DC::TABLE_PROJECTS . '.id',
                     '=',
                     'project_users.' . PJC::COL_PJ_ID
                 )

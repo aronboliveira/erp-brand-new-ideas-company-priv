@@ -49,6 +49,12 @@ class UserCoupon extends Model
         self::COL_ORDER,
     ];
 
+    protected $attributes = [
+        'user'   => null,
+        'coupon' => null,
+        'order'  => null,
+    ];
+
     protected $with = [
         'coupon',
         'order',
@@ -101,9 +107,15 @@ class UserCoupon extends Model
         return $this->belongsTo(Order::class, self::COL_ORDER, 'id');
     }
 
-    public function couponDetail(): HasOne
+    public function couponDetail(): BelongsTo
     {
-        return $this->hasOne(Coupon::class, 'id', self::COL_COUPON);
+        return $this->belongsTo(Coupon::class, self::COL_COUPON, 'id');
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\User, $this> */
+    public function userDetail(): BelongsTo
+    {
+        return $this->belongsTo(User::class, self::COL_USER, 'id');
     }
 
     public function hasOrder(): bool
@@ -771,11 +783,5 @@ class UserCoupon extends Model
             ]);
             return false;
         }
-    }
-
-    /** @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\User> */
-    public function userDetail(): HasOne
-    {
-        return $this->hasOne(User::class, 'id', self::COL_USER);
     }
 }

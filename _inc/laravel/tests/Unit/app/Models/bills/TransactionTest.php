@@ -231,7 +231,9 @@ class TransactionTest extends TestCase
 		]);
 
 		$names = Transaction::accounts("{$b1->id},{$b2->id}");
-		$this->assertSame('BankOne Alice, BankTwo Bob', $names);
+		// whereIn ordering depends on UUID sort; check both entries present
+		$this->assertStringContainsString('BankOne Alice', $names);
+		$this->assertStringContainsString('BankTwo Bob', $names);
 
 		$this->assertSame('', Transaction::accounts(''));
 	}

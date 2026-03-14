@@ -32,7 +32,7 @@
     "midtrans/midtrans-php": "^2.5",
     "milon/barcode": "^10.0",
     "mollie/mollie-api-php": "^2.25",
-    "munafio/chatify": "1.2",
+    "munafio/chatify": "*",
     "nwidart/laravel-modules": "9.*",
     "obydul/laraskrill": "^1.2",
     "orhanerday/open-ai": "^4.8",

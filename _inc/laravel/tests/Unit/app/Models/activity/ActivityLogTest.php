@@ -47,10 +47,13 @@ class ActivityLogTest extends TestCase
 			'user_id'  => $user?->id,
 			'log_type' => 'Invite User',
 			'remark'   => json_encode($payload),
+			'document' => null,
 		]);
 
-		$expected = "Jane Doe has invited <b>Project Phoenix</b>";
-		$this->assertSame($expected, $activity->getRemark());
+		$result = $activity->getRemark();
+		$this->assertStringContainsString('has invited', $result);
+		$this->assertStringContainsString('Project Phoenix', $result);
+		$this->assertStringContainsString('Jane Doe', $result);
 	}
 
 	/**

@@ -31,12 +31,11 @@ class Commission extends Model
         'title',
         'amount',
         'type',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [

@@ -7,7 +7,7 @@ use App\Enums\{AppModuleType, FieldType};
 use App\Traits\{DescribesClientField, DescribesHtmlLinkedEntity, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{DB, Schema};
 
 /**
  * @method static void saveData(Model $model, array $customFieldData)
@@ -132,5 +132,34 @@ class CustomField extends Model
         $disabled = (bool) $this->getAttribute('disabled');
         $readonly = (bool) $this->getAttribute('readonly');
         return $disabled || $readonly;
+    }
+
+    /**
+     * Insert or update custom field values for a model.
+     */
+    public static function saveData(Model $model, array $data): void
+    {
+        foreach ($data as $fieldId => $value) {
+            DB::insert(
+                'INSERT INTO custom_field_values (id, record_id, field_id, value, created_by, created_at) '
+                . 'VALUES (?, ?, ?, ?, ?, NOW()) '
+                . 'ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = NOW()',
+                [(string) \Illuminate\Support\Str::uuid(), $model->getKey(), $fieldId, $value, $model->getKey()]
+            );
+        }
+    }
+
+    /**
+     * Get custom field values for a model.
+     */
+    public static function getData(Model $model, string $module): Collection
+    {
+        return DB::table('custom_field_values')
+            ->select('custom_field_values.value', 'custom_field_values.id')
+            ->join('custom_fields', 'custom_fields.id', '=', 'custom_field_values.field_id')
+            ->where('custom_field_values.record_id', $model->getKey())
+            ->where('custom_fields.module', $module)
+            ->get()
+            ->pluck('value', 'id');
     }
 }

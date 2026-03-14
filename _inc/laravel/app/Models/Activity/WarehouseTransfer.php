@@ -25,8 +25,6 @@ class WarehouseTransfer extends Model
 
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $fillable = [
@@ -75,6 +73,7 @@ class WarehouseTransfer extends Model
         'date',
         'attachments',
         'steps',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [
@@ -228,7 +227,7 @@ class WarehouseTransfer extends Model
 
     protected function enforceQuantities(): void
     {
-        $status = (string) ($this->getAttribute('status') ?? EvaluationStatus::Pending->value);
+        $status = ($this->getAttribute('status') ?? EvaluationStatus::Pending)->value;
         $isCompleted = $status === EvaluationStatus::Completed->value;
 
         $qty = (int) ($this->getAttribute('quantity') ?? 0);

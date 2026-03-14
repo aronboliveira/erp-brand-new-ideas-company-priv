@@ -2,7 +2,7 @@
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\{JobApplication, JobApplicationNote, User};
+use App\Models\{JobApplication, JobApplicationNote, Note, User};
 
 class JobApplicationNoteTest extends TestCase
 {
@@ -36,18 +36,23 @@ class JobApplicationNoteTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** noteCreated() relation returns the User who created the note.
+	 ** noteCreated() relation returns the Note model referenced by note_created.
 	 **/
-	public function note_created_relation_returns_user()
+	public function note_created_relation_returns_note()
 	{
-		$user = User::factory()->create();
 		$app = JobApplication::factory()->create();
-		$note = JobApplicationNote::factory()->create([
+		$noteRecord = new Note();
+		$noteRecord->title = 'Test Note';
+		$noteRecord->note  = 'Test body';
+		$noteRecord->save();
+
+		$janNote = JobApplicationNote::factory()->create([
 			'application_id' => $app->id,
-			'note_created'   => $user?->id
+			'note_created'   => $noteRecord->id,
 		]);
 
-		$this->assertInstanceOf(User::class, $note->noteCreated);
-		$this->assertEquals($user?->id, $note->noteCreated->id);
+		$resolved = $janNote->noteCreated()->first();
+		$this->assertInstanceOf(Note::class, $resolved);
+		$this->assertEquals($noteRecord->id, $resolved->id);
 	}
 }

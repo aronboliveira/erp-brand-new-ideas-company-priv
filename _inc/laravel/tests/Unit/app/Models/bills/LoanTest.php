@@ -103,9 +103,9 @@ class LoanTest extends TestCase
 	{
 		$relation = (new Loan)->loanOption();
 
-		$this->assertInstanceOf(BelongsTo::class,      $relation);
+		$this->assertInstanceOf(HasOne::class,         $relation);
 		$this->assertSame(LoanOption::class,        get_class($relation->getRelated()));
-		$this->assertSame('loan_option',                     $relation->getForeignKeyName());
-		$this->assertSame('id',            $relation->getOwnerKeyName());
+		$this->assertSame('id',                     $relation->getForeignKeyName());
+		$this->assertSame('loan_option',            $relation->getLocalKeyName());
 	}
 }

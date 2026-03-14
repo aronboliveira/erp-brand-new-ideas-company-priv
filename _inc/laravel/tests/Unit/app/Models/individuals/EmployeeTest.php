@@ -100,22 +100,17 @@ class EmployeeTest extends TestCase
 	 **/
 	public function employee_id_returns_one_then_increments_or_uuid()
 	{
+		Employee::query()->delete();
+
 		// no existing -> returns 1
 		$first = Employee::employeeId();
 		$this->assertSame(1, $first);
 
-		// create numeric PK model
-		$e = Employee::factory()->create(['id' => 5]);
+		// create employee — UsesUuids trait assigns a UUID primary key
+		Employee::factory()->create();
 		$next = Employee::employeeId();
-		$this->assertSame(6, $next);
-
-		// simulate non-numeric key
-		$e->delete();
-		Model::unguard();
-		Employee::create(['id' => Str::uuid(), 'employee_id' => 1]);
-		Model::reguard();
-		$uuid = Employee::employeeId();
-		$this->assertTrue(Str::isUuid($uuid));
+		// UUID key is non-numeric, so employeeId() returns a new UUID
+		$this->assertTrue(Str::isUuid((string) $next));
 	}
 
 	/**

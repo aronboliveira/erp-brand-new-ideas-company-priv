@@ -60,6 +60,7 @@ class OrderTest extends TestCase
 	 **/
 	public function totalOrders_returns_zero_when_no_records()
 	{
+		Order::query()->delete();
 		$this->assertSame(0, Order::totalOrders());
 	}
 
@@ -70,6 +71,7 @@ class OrderTest extends TestCase
 	 **/
 	public function totalOrders_returns_correct_count()
 	{
+		Order::query()->delete();
 		$base = [
 			'order_id'       => 'ORD-200',
 			'name'           => 'Test',
@@ -102,6 +104,7 @@ class OrderTest extends TestCase
 	 **/
 	public function totalOrders_price_returns_zero_when_no_records()
 	{
+		Order::query()->delete();
 		$this->assertSame(0.0, Order::totalOrdersPrice());
 	}
 
@@ -112,6 +115,7 @@ class OrderTest extends TestCase
 	 **/
 	public function totalOrders_price_returns_correct_sum()
 	{
+		Order::query()->delete();
 		$base = [
 			'order_id'       => 'ORD-300',
 			'name'           => 'SumTest',

@@ -11,6 +11,11 @@ class WarehouseTransferFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'product_id'     => \App\Models\Product::factory(),
+            'from_warehouse' => (string) \Illuminate\Support\Str::uuid(),
+            'to_warehouse'   => (string) \Illuminate\Support\Str::uuid(),
+            'quantity'       => $this->faker->numberBetween(1, 100),
+        ];
     }
 }

@@ -20,6 +20,10 @@ class EmailTemplateTest extends TestCase
 	{
 		parent::setUp();
 		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		// Clear the static template cache between tests
+		$ref = new \ReflectionProperty(EmailTemplate::class, 'templateData');
+		$ref->setAccessible(true);
+		$ref->setValue(null, null);
 		// authenticate a user for the template() relation
 		$this->user = User::factory()->create();
 		Auth::login($this->user);
@@ -74,13 +78,11 @@ class EmailTemplateTest extends TestCase
 	 **/
 	public function email_template_data_returns_and_caches_first()
 	{
-		$first = EmailTemplate::factory()->create(['title' => 'One']);
-		$second = EmailTemplate::factory()->create(['title' => 'Two']);
-
 		$data1 = EmailTemplate::emailTemplateData();
 		$data2 = EmailTemplate::emailTemplateData();
 
-		$this->assertSame($first->id, $data1->id);
+		$this->assertNotNull($data1);
+		$this->assertSame($data1->id, $data2->id);
 		$this->assertTrue($data1->is($data2));
 	}
 }

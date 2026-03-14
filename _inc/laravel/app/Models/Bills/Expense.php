@@ -339,4 +339,16 @@ class Expense extends Model
             ]);
         }
     }
+
+    /** @return BelongsTo Alias for projectModel(). */
+    public function project(): BelongsTo
+    {
+        return $this->projectModel();
+    }
+
+    /** @return BelongsTo Alias for taskModel(). */
+    public function task(): BelongsTo
+    {
+        return $this->taskModel();
+    }
 }

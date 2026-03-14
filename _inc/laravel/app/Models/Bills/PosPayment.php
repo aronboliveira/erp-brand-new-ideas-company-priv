@@ -22,7 +22,7 @@ class PosPayment extends Model
 
     protected $table = DC::TABLE_POS_PAY;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         BC::COL_POS_ID,
@@ -38,6 +38,11 @@ class PosPayment extends Model
         BC::COL_NFE_XML_PATH,
         BC::COL_NFE_PROTOCOL,
         BC::COL_NFE_AUTH_AT,
+        DC::COL_TABLE_CREATOR,
+    ];
+
+    protected $attributes = [
+        'payment' => null,
     ];
 
     protected $with = [

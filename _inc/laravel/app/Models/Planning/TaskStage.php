@@ -27,9 +27,18 @@ class TaskStage extends Model
     use NormalizesArrays;
     use DefinesDates;
 
+    public const STAGES_LIST = [
+        'Todo',
+        'In Progress',
+        'Review',
+        'Done',
+    ];
+
+    public static array $stages = self::STAGES_LIST;
+
     protected $table = DC::TABLE_TSK_STGS;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         AC::COL_PJ,
@@ -52,6 +61,7 @@ class TaskStage extends Model
         'attachments',
         'tags',
 
+        DC::COL_TABLE_CREATOR,
         DC::COL_TABLE_UPDATER,
     ];
 

@@ -220,4 +220,12 @@ class Deal extends Model
     ): string|array|RedirectResponse {
         return app(DealRequestService::class)->getDealSummary($deals, $numeric);
     }
+
+    /**
+     * Returns tasks with status = 1 (completed).
+     */
+    public function completeTasks(): HasMany
+    {
+        return $this->tasks()->where('status', 1);
+    }
 }

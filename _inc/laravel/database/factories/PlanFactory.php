@@ -14,7 +14,7 @@ class PlanFactory extends Factory
 	{
 		return [
 			'query_key'    => Str::uuid()->toString(),
-			'name'         => fake()->unique()->word() . ' Plan',
+			'name'         => fake()->unique()->word() . ' Plan ' . Str::random(6),
 			'price'        => fake()->randomFloat(2, 0, 999.99),
 			'duration'     => fake()->randomElement(['lifetime', 'month', 'semimonthly', 'quarterly', 'semiannual', 'year']),
 			'max_users'    => fake()->numberBetween(1, 100),

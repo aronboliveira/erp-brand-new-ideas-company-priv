@@ -116,6 +116,22 @@ final class LeadActivityLog extends Model
         });
     }
 
+    /**
+     * Custom setter to prevent ValueError when setting an invalid log_type.
+     * Uses tryFrom() instead of from() for graceful handling of unknown values.
+     */
+    public function setLogTypeAttribute(mixed $value): void
+    {
+        if ($value instanceof LogType) {
+            $this->attributes[AC::COL_LOG_TP] = $value->value;
+        } elseif (is_string($value)) {
+            $case = LogType::tryFrom($value);
+            $this->attributes[AC::COL_LOG_TP] = $case?->value ?? $value;
+        } else {
+            $this->attributes[AC::COL_LOG_TP] = $value;
+        }
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, UC::COL_USER_ID, 'id');
@@ -144,35 +160,44 @@ final class LeadActivityLog extends Model
 
     protected function buildLeadRemark(): string
     {
-        $userName = $this->user?->{UC::COL_NM} ?? '';
-        $logTypeLabel = $this->log_type instanceof LogType
-            ? $this->log_type->label()
-            : (string) $this->log_type;
-        $moduleLabel = $this->module instanceof AppModuleType
-            ? $this->module->label()
-            : (string) $this->module;
-        $text = $this->label
-            ?: $this->description
-            ?: $this->remark
-            ?: '';
-        $parts = [];
-        if ($userName !== '')
-            $parts[] = $userName;
-        if ($moduleLabel !== '')
-            $parts[] = '[' . __($moduleLabel) . ']';
-        if ($logTypeLabel !== '')
-            $parts[] = __($logTypeLabel) . ':';
-        if ($text !== '')
-            $parts[] = $text;
-        return trim(implode(' ', $parts));
+        try {
+            $userName = $this->user?->{UC::COL_NM} ?? '';
+            $logTypeLabel = $this->log_type instanceof LogType
+                ? $this->log_type->label()
+                : (string) $this->log_type;
+            $moduleLabel = $this->module instanceof AppModuleType
+                ? $this->module->label()
+                : (string) $this->module;
+            $text = $this->label
+                ?: $this->description
+                ?: $this->remark
+                ?: '';
+            $parts = [];
+            if ($userName !== '')
+                $parts[] = $userName;
+            if ($moduleLabel !== '')
+                $parts[] = '[' . __($moduleLabel) . ']';
+            if ($logTypeLabel !== '')
+                $parts[] = __($logTypeLabel) . ':';
+            if ($text !== '')
+                $parts[] = $text;
+            return trim(implode(' ', $parts));
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     protected function resolveLogTypeValue(): string
     {
-        $raw = $this->{AC::COL_LOG_TP} ?? null;
-        if ($raw instanceof LogType)
-            return $raw->value;
-        return is_string($raw) ? strtolower(trim($raw)) : LogType::Other->value;
+        try {
+            $raw = $this->{AC::COL_LOG_TP} ?? null;
+            if ($raw instanceof LogType)
+                return $raw->value;
+            return is_string($raw) ? strtolower(trim($raw)) : LogType::Other->value;
+        } catch (\Throwable) {
+            $rawAttr = $this->getAttributes()[AC::COL_LOG_TP] ?? null;
+            return is_string($rawAttr) ? strtolower(trim($rawAttr)) : LogType::Other->value;
+        }
     }
 
     public function isErrorLevel(): bool

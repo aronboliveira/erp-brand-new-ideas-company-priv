@@ -11,6 +11,12 @@ class TransferFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'employee_id'   => \App\Models\Employee::factory(),
+            'branch_id'     => \App\Models\Branch::factory(),
+            'department_id' => \App\Models\Department::factory(),
+            'transfer_date' => $this->faker->date(),
+            'description'   => $this->faker->sentence(),
+        ];
     }
 }

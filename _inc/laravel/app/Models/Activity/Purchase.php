@@ -28,7 +28,7 @@ class Purchase extends Model
 
     protected $table = DC::TABLE_PURCHASES;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         BC::COL_PRC_ID,
@@ -80,6 +80,7 @@ class Purchase extends Model
 
         ...self::PRODUCT_SECURITY_COLUMNS,
         ...self::FAILURE_TRACKING_COLS,
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [
@@ -2135,5 +2136,11 @@ class Purchase extends Model
         }
 
         return false;
+    }
+
+    /** @return BelongsTo Alias for taxRef(). */
+    public function tax(): BelongsTo
+    {
+        return $this->taxRef();
     }
 }

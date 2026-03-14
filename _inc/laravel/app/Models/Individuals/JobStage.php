@@ -26,7 +26,6 @@ class JobStage extends Model
 
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
     ];
 
     protected $fillable = [
@@ -45,6 +44,7 @@ class JobStage extends Model
         'project',
         'goal',
         'training',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $attributes = [
@@ -300,5 +300,20 @@ class JobStage extends Model
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Get job applications for this stage, filtered and ordered.
+     */
+    public function applications(array $filter = []): \Illuminate\Support\Collection
+    {
+        $query = JobApplication::where('stage', $this->getKey())
+            ->where('is_archive', 0);
+
+        if (!empty($filter['start_date']) && !empty($filter['end_date'])) {
+            $query->whereBetween('created_at', [$filter['start_date'], $filter['end_date']]);
+        }
+
+        return $query->orderBy('order', 'asc')->get();
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\{EvaluationStatus, Frequency};
 use App\Helpers\ErrorHandler;
 use App\Services\ContractRequestService;
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, PlansWithSchedule, UsesUuids};
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
 use Illuminate\Support\Facades\{DB, Log, Schema, Validator};
@@ -22,7 +23,7 @@ use Illuminate\Validation\ValidationException;
  */
 class Contract extends Model
 {
-    use UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule;
+    use HasFactory, UsesUuids, HasAuditFields, PlansByHierarchy, NormalizesArrays, FiltersSecureAttachments, DefinesDates, PlansWithSchedule;
 
     public const TABLE = DC::TABLE_CONTRACTS;
 

@@ -33,11 +33,11 @@ class LeadStage extends Model
         'notes',
         PJC::COL_EST_CC,
         PJC::COL_CRT,
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [

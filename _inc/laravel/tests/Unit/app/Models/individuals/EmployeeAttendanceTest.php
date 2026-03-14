@@ -47,15 +47,15 @@ class EmployeeAttendanceTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** employees() relation returns the Employee matched by user_id.
+	 ** employees() relation returns the Employee matched by employee_id (PK).
 	 **/
 	public function employees_relation_returns_employee_by_user_id()
 	{
-		$emp = Employee::factory()->create(['user_id' => 123]);
-		$att = EmployeeAttendance::factory()->create(['employee_id' => 123]);
+		$emp = Employee::factory()->create();
+		$att = EmployeeAttendance::factory()->create(['employee_id' => $emp->id]);
 
-		$this->assertInstanceOf(Employee::class, $att->employees);
-		$this->assertEquals($emp->id, $att->employees->id);
+		$this->assertInstanceOf(Employee::class, $att->employee);
+		$this->assertEquals($emp->id, $att->employee->id);
 	}
 
 	/**

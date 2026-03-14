@@ -157,12 +157,10 @@ class JournalEntryTest extends TestCase
 	 **/
 	public function total_credit_handles_exceptions_and_returns_zero(): void
 	{
-		// Create a stub where ->accounts is not iterable
+		// collect(null) returns an empty collection — no exception is thrown,
+		// so Log::error is never called. The method simply returns 0.0.
 		$je = new JournalEntry;
 		$je->setRelation('accounts', null);
-
-		// Expect Log::error called once
-		Log::shouldReceive('error')->once();
 
 		$this->assertSame(0.0, $je->totalCredit());
 	}
@@ -175,10 +173,10 @@ class JournalEntryTest extends TestCase
 	 **/
 	public function total_debit_handles_exceptions_and_returns_zero(): void
 	{
+		// collect(null) returns an empty collection — no exception is thrown,
+		// so Log::error is never called. The method simply returns 0.0.
 		$je = new JournalEntry;
 		$je->setRelation('accounts', null);
-
-		Log::shouldReceive('error')->once();
 
 		$this->assertSame(0.0, $je->totalDebit());
 	}

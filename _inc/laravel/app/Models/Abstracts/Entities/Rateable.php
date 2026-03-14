@@ -8,9 +8,9 @@ use Illuminate\Support\Str;
 abstract class Rateable extends Model
 {
   use HasFactory;
-  public bool $incrementing = false;
-  protected string $keyType = 'string';
-  protected array $fillable = [
+  public $incrementing = false;
+  protected $keyType = 'string';
+  protected $fillable = [
     'administration',
     'administration_rating',
     'attendance',

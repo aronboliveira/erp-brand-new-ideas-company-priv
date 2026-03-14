@@ -11,6 +11,9 @@ class UserCouponFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'user'   => \App\Models\User::factory(),
+            'coupon' => \App\Models\Coupon::factory(),
+        ];
     }
 }

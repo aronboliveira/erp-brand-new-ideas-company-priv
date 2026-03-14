@@ -11,6 +11,8 @@ class JobFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'branch' => \App\Models\Branch::factory(),
+        ];
     }
 }

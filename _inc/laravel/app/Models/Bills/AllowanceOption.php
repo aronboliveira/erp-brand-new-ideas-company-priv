@@ -14,8 +14,8 @@ class AllowanceOption extends Model
     use HasFactory, IsNumericBenefit, UsesUuids;
 
     protected const TABLE = DC::TABLE_ALLOWANCE_OPTS;
-    protected $fillable = ['name', 'description', BC::COL_EXP_BDG, BC::COL_MAX_BDG, BC::COL_VLD_FRM, BC::COL_VLD_TO, 'renews'];
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $fillable = ['name', 'description', BC::COL_EXP_BDG, BC::COL_MAX_BDG, BC::COL_VLD_FRM, BC::COL_VLD_TO, 'renews', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
     protected $casts = [
         BC::COL_EXP_BDG => 'decimal:2',
         BC::COL_MAX_BDG => 'decimal:2',

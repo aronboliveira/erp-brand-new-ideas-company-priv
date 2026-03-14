@@ -18,10 +18,10 @@ class Label extends Model
         PJC::COL_LB_NM,
         PJC::COL_CL,
         PJC::COL_PPL_ID,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
     protected $guarded  = [
         'id',
-        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     public static array $colors = [

@@ -5,7 +5,7 @@ namespace Tests\Unit\Models;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsTo};
-use App\Models\{Expense, Project, ProjectTask, User};
+use App\Models\{Expense, Project, Task, User};
 
 class ExpenseTest extends TestCase
 {
@@ -24,7 +24,7 @@ class ExpenseTest extends TestCase
 	public function expense_is_fillable()
 	{
 		$project = Project::factory()->create();
-		$task   = ProjectTask::factory()->create();
+		$task   = Task::factory()->create();
 		$user   = User::factory()->create();
 
 		$data = [
@@ -81,14 +81,14 @@ class ExpenseTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** task() relation should point to App\Models\ProjectTask via task_id
+	 ** task() relation should point to App\Models\Task via task_id
 	 **/
-	public function task_relation_resolves_to_project_task_model()
+	public function task_relation_resolves_to_task_model()
 	{
 		$relation = (new Expense)->task();
 
 		$this->assertInstanceOf(BelongsTo::class,       $relation);
-		$this->assertSame(ProjectTask::class,        get_class($relation->getRelated()));
+		$this->assertSame(Task::class,               get_class($relation->getRelated()));
 		$this->assertSame('task_id',                      $relation->getForeignKeyName());
 		$this->assertSame('id',                 $relation->getOwnerKeyName());
 	}

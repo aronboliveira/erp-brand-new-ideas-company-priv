@@ -26,11 +26,11 @@ class Pipeline extends Model
     private const ORDER          = AC::COL_OD;
     protected $guarded = [
         'id',
-        DC::COL_TABLE_CREATOR,
     ];
 
     protected $fillable = [
         PJC::COL_PPL_NM,
+        DC::COL_TABLE_CREATOR,
     ];
 
     /**

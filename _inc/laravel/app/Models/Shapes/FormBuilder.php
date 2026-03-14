@@ -668,4 +668,10 @@ class FormBuilder extends Model
 
         $this->setAttribute('shortcode', $candidate);
     }
+
+    /** @return HasMany Alias for formFields(). */
+    public function formField(): HasMany
+    {
+        return $this->formFields();
+    }
 }

@@ -354,4 +354,15 @@ class ZoomMeeting extends Model
             return 0;
         }
     }
+
+    /**
+     * Parse comma-separated user IDs and return User model array.
+     */
+    public function users(string $ids): array
+    {
+        $parsed = array_filter(array_map('trim', explode(',', $ids)));
+        if (empty($parsed)) return [];
+
+        return User::whereIn('id', $parsed)->get()->all();
+    }
 }

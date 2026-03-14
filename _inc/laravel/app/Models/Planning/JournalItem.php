@@ -8,6 +8,7 @@ use App\Traits\{DefinesDates, DescribesCompanyBranch, FiltersSecureAttachments, 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\{DB, Log, Schema};
 use Illuminate\Support\Str;
@@ -249,17 +250,17 @@ class JournalItem extends Model
         return $this->belongsTo(Document::class, BC::COL_RCC_DOC, 'id');
     }
 
-    public function transaction(): BelongsTo
+    public function transactionRecord(): BelongsTo
     {
         return $this->belongsTo(Transaction::class, 'transaction', 'id');
     }
 
-    public function payment(): BelongsTo
+    public function paymentRecord(): BelongsTo
     {
         return $this->belongsTo(Payment::class, 'payment', 'id');
     }
 
-    public function transfer(): BelongsTo
+    public function transferRecord(): BelongsTo
     {
         return $this->belongsTo(Transfer::class, 'transfer', 'id');
     }
@@ -823,5 +824,10 @@ class JournalItem extends Model
     private function round6(float $v): float
     {
         return (float) number_format($v, 6, '.', '');
+    }
+
+    public function accounts(): HasOne
+    {
+        return $this->hasOne(ChartOfAccount::class, 'id', 'account');
     }
 }

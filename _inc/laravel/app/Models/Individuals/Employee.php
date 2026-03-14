@@ -412,25 +412,26 @@ class Employee extends Model
 
     public function getNetSalary(): float
     {
+        $isFixed = fn($item) => ($item->type instanceof \BackedEnum ? $item->type->value : (string)$item->type) === 'fixed';
         $total_allowance = $this->allowances->sum(
             fn($a) =>
-            $a->type === 'fixed' ? $a->amount : $a->amount * $this->salary / 100
+            $isFixed($a) ? $a->amount : $a->amount * $this->salary / 100
         );
         $total_commission = $this->commissions->sum(
             fn($c) =>
-            $c->type === 'fixed' ? $c->amount : $c->amount * $this->salary / 100
+            $isFixed($c) ? $c->amount : $c->amount * $this->salary / 100
         );
         $total_loan = $this->loans->sum(
             fn($l) =>
-            $l->type === 'fixed' ? $l->amount : $l->amount * $this->salary / 100
+            $isFixed($l) ? $l->amount : $l->amount * $this->salary / 100
         );
         $total_saturation_deduction = $this->saturationDeductions->sum(
             fn($d) =>
-            $d->type === 'fixed' ? $d->amount : $d->amount * $this->salary / 100
+            $isFixed($d) ? $d->amount : $d->amount * $this->salary / 100
         );
         $total_other_payment = $this->otherPayments->sum(
             fn($o) =>
-            $o->type === 'fixed' ? $o->amount : $o->amount * $this->salary / 100
+            $isFixed($o) ? $o->amount : $o->amount * $this->salary / 100
         );
         $total_over_time = $this->overtimes->sum(
             fn($ot) =>

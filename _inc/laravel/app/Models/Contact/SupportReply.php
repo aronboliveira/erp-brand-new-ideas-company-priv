@@ -18,7 +18,7 @@ class SupportReply extends Model
 
     protected $table = DC::TABLE_SUP_REP;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         'code',
@@ -46,6 +46,15 @@ class SupportReply extends Model
         MC::COL_IS_RD => 'boolean',
 
         SC::COL_OTHER_ATTACHMENTS => 'array',
+    ];
+
+    protected $attributes = [
+        'user'         => null,
+        'task'         => null,
+        'email'        => null,
+        'notification' => null,
+        'form'         => null,
+        'log'          => null,
     ];
 
     protected $with = ['support', 'user'];

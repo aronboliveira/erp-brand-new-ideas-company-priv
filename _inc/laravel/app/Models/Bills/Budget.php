@@ -25,7 +25,7 @@ class Budget extends Model
 
     protected $table = DC::TABLE_BDG;
 
-    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         'code',
@@ -64,6 +64,7 @@ class Budget extends Model
         'receipts',
         'attachments',
         'metadata',
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $with = ['creator'];
@@ -89,6 +90,8 @@ class Budget extends Model
         'frequency' => Frequency::class,
         'status'    => EvaluationStatus::class,
 
+        BC::COL_INC_DATA  => 'array',
+        BC::COL_EXP_DATA  => 'array',
         BC::COL_BNK_TRFS => 'array',
         'transactions'   => 'array',
         BC::COL_CARD_NTS => 'array',

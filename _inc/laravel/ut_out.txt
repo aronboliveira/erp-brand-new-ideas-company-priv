@@ -1,0 +1,8 @@
+
+In ClassLoader.php line 576:
+                                                                               
+  include(/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp  
+  _prestech/_inc/laravel/vendor/composer/../munafio/chatify/src/ChatifyServic  
+  eProvider.php): Failed to open stream: No such file or directory             
+                                                                               
+

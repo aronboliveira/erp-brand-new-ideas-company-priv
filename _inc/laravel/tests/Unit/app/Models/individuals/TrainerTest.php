@@ -66,7 +66,8 @@ class TrainerTest extends TestCase
 		$branch = Branch::factory()->create();
 		$trainer = Trainer::factory()->create(['branch' => $branch->id]);
 
-		$this->assertInstanceOf(Branch::class, $trainer->branch);
-		$this->assertEquals($branch->id, $trainer->branch->id);
+		$resolved = $trainer->branch()->first();
+		$this->assertInstanceOf(Branch::class, $resolved);
+		$this->assertEquals($branch->id, $resolved->id);
 	}
 }

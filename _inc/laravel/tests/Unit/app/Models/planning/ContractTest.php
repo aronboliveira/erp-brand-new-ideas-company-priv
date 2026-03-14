@@ -86,19 +86,19 @@ class ContractTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** The “clients” relation must be HasOne
-	 ** using User::id → contracts.client_name.
+	 ** The "clients" relation must be BelongsTo
+	 ** using contracts.client_id → clients.id.
 	 **/
 	public function clients_relation_is_has_one_with_correct_keys(): void
 	{
 		$rel = (new Contract)->clients();
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$rel
 		);
-		$this->assertSame('id',          $rel->getForeignKeyName());
-		$this->assertSame('client_name', $rel->getLocalKeyName());
+		$this->assertSame('client_id', $rel->getForeignKeyName());
+		$this->assertSame('id',        $rel->getOwnerKeyName());
 	}
 
 	/**

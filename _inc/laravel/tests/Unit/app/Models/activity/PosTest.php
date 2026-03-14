@@ -94,9 +94,8 @@ class PosTest extends TestCase
 		$relation = (new Pos)->items();
 
 		$this->assertInstanceOf(HasMany::class,   $relation);
-		$this->assertSame(Product::class,         get_class($relation->getRelated()));
+		$this->assertSame(PosProduct::class,      get_class($relation->getRelated()));
 		$this->assertSame('pos_id',               $relation->getForeignKeyName());
-		$this->assertSame('pos_id',               $relation->getLocalKeyName());
 	}
 
 	/**

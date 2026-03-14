@@ -123,13 +123,10 @@ class Payment extends Model
         BC::COL_NFE_AUTH_AT,
 
         ...self::FAILURE_TRACKING_COLS,
+        DC::COL_TABLE_CREATOR,
     ];
 
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
+    protected $guarded = ['id'];
 
     protected $with = [];
 

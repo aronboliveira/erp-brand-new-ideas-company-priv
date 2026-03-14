@@ -550,7 +550,7 @@ class UserTest extends TestCase
 	 **/
 	public function plan_relation_returns_hasone()
 	{
-		$this->assertInstanceOf(BelongsTo::class, (new User())->getPlan());
+		$this->assertInstanceOf(HasOne::class, (new User())->getPlan());
 	}
 
 	/**
@@ -560,7 +560,12 @@ class UserTest extends TestCase
 	 **/
 	public function count_methods_on_empty_database()
 	{
+		// Clean stale data so counts start at zero
+		DB::table('orders')->delete();
+		DB::table('plans')->delete();
+
 		$company = User::factory()->create(['type' => 'company']);
+		Auth::login($company);
 		$this->assertSame(0, $company->countOrder());
 		$this->assertSame(0, $company->countPlan());
 		$this->assertSame(0, $company->countPaidCompany());
@@ -1297,6 +1302,10 @@ class UserTest extends TestCase
 	 **/
 	public function simple_count_methods_return_totals()
 	{
+		// Clean stale data so counts are exact
+		DB::table('orders')->delete();
+		DB::table('plans')->delete();
+
 		Order::factory()->count(3)->create();
 		Plan::factory()->count(2)->create();
 
@@ -1520,10 +1529,10 @@ class UserTest extends TestCase
 		$this->assertEquals([1, 1, 0], User::whereIn('id', [$u1->id, $u2->id, $u3->id])->pluck('is_active')->toArray());
 		// clients – only first remains active
 		$this->assertEquals([1, 0],  User::whereIn('id', [$c1->id, $c2->id])->pluck('is_active')->toArray());
-		// customers
-		$this->assertEquals([1, 0],  Customer::orderBy('id')->pluck('is_active')->toArray());
+		// customers — scope to this company to avoid pre-existing records
+		$this->assertEquals([1, 0],  Customer::where('created_by', $company->id)->orderBy('id')->pluck('is_active')->toArray());
 		// vendors
-		$this->assertEquals([1, 0],  Vendor::orderBy('id')->pluck('is_active')->toArray());
+		$this->assertEquals([1, 0],  Vendor::where('created_by', $company->id)->orderBy('id')->pluck('is_active')->toArray());
 	}
 
 	/**

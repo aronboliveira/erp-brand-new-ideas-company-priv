@@ -67,6 +67,14 @@ class Project extends Model
         'canceled' => 'Canceled'
     ];
 
+    /** Alias for camelCase access. */
+    public static $projectStatus = [
+        'in_progress' => 'In Progress',
+        'on_hold' => 'On Hold',
+        'complete' => 'Complete',
+        'canceled' => 'Canceled'
+    ];
+
     public static $status_color = [
         'on_hold' => 'warning',
         'in_progress' => 'info',

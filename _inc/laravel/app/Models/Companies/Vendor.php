@@ -118,13 +118,10 @@ class Vendor extends Authenticatable
 
         'balance',
         'offers',
+        DC::COL_TABLE_CREATOR,
     ];
 
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
+    protected $guarded = ['id'];
 
     protected $hidden = [
         UC::COL_PW,

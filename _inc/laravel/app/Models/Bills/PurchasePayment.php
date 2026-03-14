@@ -15,11 +15,7 @@ class PurchasePayment extends Model
 
     protected $table = DC::TABLE_PRC_PAY;
 
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
+    protected $guarded = ['id'];
 
     protected $fillable = [
         BC::COL_PRC_ID,

@@ -423,4 +423,16 @@ class Timesheet extends Model
 
         return self::$localCache[$k] = 0;
     }
+
+    /** @return BelongsTo Alias for projectModel(). */
+    public function project(): BelongsTo
+    {
+        return $this->projectModel();
+    }
+
+    /** @return BelongsTo Alias for taskModel(). */
+    public function task(): BelongsTo
+    {
+        return $this->taskModel();
+    }
 }

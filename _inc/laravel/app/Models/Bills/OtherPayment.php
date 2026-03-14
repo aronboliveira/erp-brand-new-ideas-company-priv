@@ -8,6 +8,7 @@ use App\Traits\{ExtendsPaymentTable, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
+    Relations\BelongsTo,
     Relations\HasOne
 };
 
@@ -86,9 +87,9 @@ class OtherPayment extends Model
         return $this->type === PaymentPatternType::Percentage;
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID);
     }
 
     public function paymentModel(): ?HasOne

@@ -62,7 +62,7 @@ class LeadCallTest extends TestCase
 			'to'          => '+5511999990002',
 		]);
 
-		$this->assertInstanceOf(User::class, $call->getLeadCallUser);
-		$this->assertEquals($user?->id, $call->getLeadCallUser->id);
+		$this->assertInstanceOf(User::class, $call->user);
+		$this->assertEquals($user?->id, $call->user->id);
 	}
 }

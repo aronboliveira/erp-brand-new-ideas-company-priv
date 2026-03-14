@@ -49,4 +49,12 @@ class Warning extends Model
     {
         return $this->hasOne(Employee::class, 'id', CC::COL_WRN_BY);
     }
+
+    /**
+     * Dynamic warning relation: returns HasOne Employee by given column.
+     */
+    public function warning(string $field): HasOne
+    {
+        return $this->hasOne(Employee::class, 'id', $field);
+    }
 }

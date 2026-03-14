@@ -33,11 +33,11 @@ class TimesheetTest extends TestCase
 		$ts = new Timesheet;
 
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$ts->project()
 		);
 		$this->assertInstanceOf(
-			\Illuminate\Database\Eloquent\Relations\HasOne::class,
+			\Illuminate\Database\Eloquent\Relations\BelongsTo::class,
 			$ts->task()
 		);
 	}

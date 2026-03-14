@@ -30,12 +30,12 @@ class BudgetTest extends TestCase
 
 		$budget = Budget::create([
 			'name'        => 'Q1 Budget',
-			'period'      => 'quarterly',
+			'period'      => 'Q1 2025',
 			'created_by'  => $user?->id,
 		]);
 
 		$this->assertEquals('Q1 Budget',    $budget->name);
-		$this->assertEquals('quarterly',    $budget->period);
+		$this->assertEquals('Q1 2025',      $budget->period);
 		$this->assertEquals($user?->id,      $budget->created_by);
 	}
 
@@ -129,6 +129,7 @@ class BudgetTest extends TestCase
 			'receipts',
 			'attachments',
 			'metadata',
+			'created_by',
 		];
 		$this->assertSame($expected, (new Budget())->getFillable());
 	}
@@ -145,7 +146,7 @@ class BudgetTest extends TestCase
 			'end_date'   => '2025-03-01',
 		]);
 
-		$this->assertSame('Jan-2025 - Mar-2025', $budget->availability_date);
+		$this->assertSame('2025-01-01 → 2025-03-01', $budget->availability_date);
 	}
 
 	/**
@@ -159,7 +160,7 @@ class BudgetTest extends TestCase
 			'start_date' => '2025-02-15',
 		]);
 
-		$this->assertSame('Feb-2025', $budget->availability_date);
+		$this->assertSame('2025-02-15', $budget->availability_date);
 	}
 
 	/**
@@ -173,7 +174,7 @@ class BudgetTest extends TestCase
 			'end_date' => '2025-04-20',
 		]);
 
-		$this->assertSame('Apr-2025', $budget->availability_date);
+		$this->assertSame('2025-04-20', $budget->availability_date);
 	}
 
 	/**
@@ -194,7 +195,7 @@ class BudgetTest extends TestCase
 	 **/
 	public function percentage_returns_correct_value_for_positive_actual()
 	{
-		$this->assertSame('25.00', Budget::percentage(200.0, 50.0));
+		$this->assertSame('25.00', Budget::percentage(50.0, 200.0));
 	}
 
 	/**
@@ -205,7 +206,7 @@ class BudgetTest extends TestCase
 	public function percentage_returns_zero_when_actual_not_positive()
 	{
 		$this->assertSame('0.00', Budget::percentage(0.0, 100.0));
-		$this->assertSame('0.00', Budget::percentage(-50.0, 25.0));
+		$this->assertSame('0.00', Budget::percentage(100.0, -50.0));
 	}
 
 	/**

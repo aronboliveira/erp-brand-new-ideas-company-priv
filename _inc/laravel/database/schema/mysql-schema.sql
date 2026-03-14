@@ -8657,7 +8657,7 @@ CREATE TABLE `warehouse_products` (
   `created_by` char(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `updated_by` char(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `warehouse_products_product_id_unique` (`product_id`),
+  UNIQUE KEY `warehouse_products_warehouse_product_unique` (`warehouse_id`,`product_id`),
   KEY `warehouse_products_created_by_foreign` (`created_by`),
   KEY `warehouse_products_updated_by_foreign` (`updated_by`),
   KEY `warehouse_products_warehouse_id_index` (`warehouse_id`),

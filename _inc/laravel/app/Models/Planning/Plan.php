@@ -141,4 +141,12 @@ class Plan extends Model
             return self::$cachedPlan = null;
         }
     }
+
+    /**
+     * Returns translated duration labels.
+     */
+    public function status(): array
+    {
+        return array_values(static::durations());
+    }
 }

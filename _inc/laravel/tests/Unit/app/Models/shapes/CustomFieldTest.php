@@ -105,13 +105,19 @@ class CustomFieldTest extends TestCase
 			->withArgs(function ($query, $bindings) {
 				return is_string($query)
 					&& count($bindings) === 5
-					&& $bindings[0] === 'abc-123'
-					&& in_array($bindings[1], [10, 15])
-					&& in_array($bindings[2], ['Value A', 'Value B']);
+					&& is_string($bindings[0])              // UUID
+					&& $bindings[1] === 'abc-123'            // record_id
+					&& in_array($bindings[2], [10, 15])      // field_id
+					&& in_array($bindings[3], ['Value A', 'Value B'])  // value
+					&& $bindings[4] === 'abc-123';           // created_by
 			})
 			->andReturnTrue();
 
 		CustomField::saveData($model, $data);
+
+		// Mockery verifies the insert expectations on tearDown;
+		// add an explicit assertion so PHPUnit does not flag this as risky.
+		$this->addToAssertionCount(1);
 	}
 
 	/**

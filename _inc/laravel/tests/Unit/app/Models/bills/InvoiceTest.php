@@ -19,6 +19,7 @@ use App\Models\{
 	InvoiceBankTransfer,
 	BankTransfer,
 	Customer,
+	Payment,
 	ProductServiceCategory,
 	CreditNote
 };
@@ -44,7 +45,7 @@ class InvoiceTest extends TestCase
 		$category = ProductServiceCategory::factory()->create();
 
 		$data = [
-			'invoice_id'        => 'INV-2025-01',
+			'invoice_id'        => 'INV-' . uniqid(),
 			'customer_id'       => $customer->id,
 			'issue_date'        => '2025-05-01',
 			'due_date'          => '2025-05-31',
@@ -149,7 +150,7 @@ class InvoiceTest extends TestCase
 	{
 		$relation = (new Invoice)->payments();
 		$this->assertInstanceOf(HasMany::class,    $relation);
-		$this->assertSame(InvoicePayment::class,   get_class($relation->getRelated()));
+		$this->assertSame(Payment::class,           get_class($relation->getRelated()));
 		$this->assertSame('invoice_id',            $relation->getForeignKeyName());
 		$this->assertSame('id',                    $relation->getLocalKeyName());
 	}

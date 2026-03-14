@@ -31,8 +31,9 @@ class StockReportTest extends TestCase
 		$data = [
 			'product_id'  => $product->id,
 			'quantity'    => 10,
-			'type'        => 'adjustment',
-			'type_id'     => 'T123',
+			'title'       => 'Stock Adjustment Report',
+			'type'        => 'warehouse',
+			'type_id'     => (string) \Illuminate\Support\Str::uuid(),
 			'description' => 'Initial stock',
 			'created_by'  => 'user_abc',
 		];

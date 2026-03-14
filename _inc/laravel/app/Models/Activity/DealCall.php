@@ -41,11 +41,7 @@ class DealCall extends Model
 
     protected $fillable = self::FILLABLE_FIELDS;
 
-    protected $guarded = [
-        'id',
-        DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         AC::COL_CL_TP => CallType::class,

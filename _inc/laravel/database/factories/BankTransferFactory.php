@@ -11,6 +11,9 @@ class BankTransferFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'from_account' => (string) \Illuminate\Support\Str::uuid(),
+            'to_account'   => (string) \Illuminate\Support\Str::uuid(),
+        ];
     }
 }

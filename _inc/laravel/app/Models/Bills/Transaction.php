@@ -649,4 +649,9 @@ class Transaction extends Model
             }
         }
     }
+
+    public function billPayment(): BelongsTo
+    {
+        return $this->belongsTo(BillPayment::class, 'payment_id');
+    }
 }

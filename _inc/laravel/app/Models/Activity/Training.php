@@ -739,4 +739,16 @@ class Training extends Model
     {
         return $this->trainingType();
     }
+
+    /** @return BelongsTo<Employee, $this> */
+    public function employees(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'employee');
+    }
+
+    /** @return BelongsTo<Trainer, $this> */
+    public function trainers(): BelongsTo
+    {
+        return $this->belongsTo(Trainer::class, 'trainer');
+    }
 }

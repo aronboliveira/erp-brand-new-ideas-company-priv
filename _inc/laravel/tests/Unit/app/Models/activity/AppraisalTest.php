@@ -4,7 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Appraisal;
 use App\Models\Branch;
 use App\Models\Employee;
@@ -22,10 +22,10 @@ class AppraisalTest extends TestCase
 	{
 		$relation = (new Appraisal)->branches();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Branch::class, get_class($relation->getRelated()));
-		$this->assertSame('id', $relation->getForeignKeyName());
-		$this->assertSame('branch', $relation->getLocalKeyName());
+		$this->assertSame('branch', $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 
 	/**
@@ -37,9 +37,9 @@ class AppraisalTest extends TestCase
 	{
 		$relation = (new Appraisal)->employees();
 
-		$this->assertInstanceOf(HasOne::class, $relation);
+		$this->assertInstanceOf(BelongsTo::class, $relation);
 		$this->assertSame(Employee::class, get_class($relation->getRelated()));
-		$this->assertSame('id', $relation->getForeignKeyName());
-		$this->assertSame('employee', $relation->getLocalKeyName());
+		$this->assertSame('employee', $relation->getForeignKeyName());
+		$this->assertSame('id', $relation->getOwnerKeyName());
 	}
 }

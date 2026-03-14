@@ -136,6 +136,11 @@ class Job extends Model
         AC::COL_APL_ID,
     ];
 
+    protected $attributes = [
+        'branch'   => null,
+        'category' => null,
+    ];
+
     protected $with = [
         'branchModel',
         'categoryModel',
@@ -799,4 +804,16 @@ class Job extends Model
 
     // NOTE: created_by() alias removed — collides with 'created_by' column.
     // Use $model->createdBy (relation) or $model->getAttributes()['created_by'] (column).
+
+    /** @return BelongsTo Alias for branchModel(). */
+    public function branch(): BelongsTo
+    {
+        return $this->branchModel();
+    }
+
+    /** @return BelongsTo Alias for categoryModel(). */
+    public function category(): BelongsTo
+    {
+        return $this->categoryModel();
+    }
 }
