@@ -7,7 +7,7 @@ use App\Http\Controllers\Abstracts\Controller;
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC, ViewsConstants as VW};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View as ViewContract;
-use Illuminate\Http\{RedirectResponse, Request};
+use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{
     DB,
     Log,

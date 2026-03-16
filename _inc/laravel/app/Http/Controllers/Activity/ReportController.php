@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
+    BillsConstants as BC,
     CompaniesConstants,
     DatabaseConstants as DC,
     PermissionsConstants,

@@ -9,7 +9,7 @@ use App\Config\Constants\{
   ViewsConstants
 };
 use App\Models\{Allowance, AllowanceOption, Employee};
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{Request, RedirectResponse, JsonResponse, Response};
@@ -25,7 +25,7 @@ final class AllowanceController extends Controller
 
     use HasCrudConstants;
 
-  use ChecksLogin;
+  use ChecksLogin, ChecksPermissions;
 
   public function __construct()
   {
