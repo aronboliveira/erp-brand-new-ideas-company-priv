@@ -18,7 +18,6 @@ use App\Models\{
     BillProduct,
     InvoicePayment,
     InvoiceProduct,
-    JournalEntry,
     JournalItem,
     Payment,
     ProductService,
