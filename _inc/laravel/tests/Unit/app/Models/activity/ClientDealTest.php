@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\ClientDeal;
 
+use Illuminate\Support\Facades\DB;
 class ClientDealTest extends TestCase
 {
     protected function setUp(): void

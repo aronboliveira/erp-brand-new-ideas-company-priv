@@ -7,12 +7,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{HasOne, BelongsTo};
 use App\Models\{Expense, Project, Task, User};
 
+use Illuminate\Support\Facades\DB;
 class ExpenseTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

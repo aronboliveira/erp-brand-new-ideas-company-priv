@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Branch;
 
+use Illuminate\Support\Facades\DB;
 class BranchTest extends TestCase
 {
 	protected function setUp(): void

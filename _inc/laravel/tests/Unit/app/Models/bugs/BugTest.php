@@ -7,12 +7,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{HasOne, HasMany, BelongsTo};
 use App\Models\{Bug, User, BugStatus, BugComment, BugFile, Project};
 
+use Illuminate\Support\Facades\DB;
 class BugTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

@@ -7,12 +7,13 @@ use App\Models\JournalEntry;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 class JournalEntryTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	protected function tearDown(): void

@@ -10,6 +10,7 @@ use Illuminate\{
 };
 use App\Models\{Warehouse, User};
 
+use Illuminate\Support\Facades\DB;
 class WarehouseTest extends TestCase
 {
     protected function setUp(): void

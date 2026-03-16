@@ -10,12 +10,13 @@ use Illuminate\{
 };
 use App\Models\{Payment, ProductServiceCategory, Vendor, BankAccount, ChartOfAccount};
 
+use Illuminate\Support\Facades\DB;
 class PaymentTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

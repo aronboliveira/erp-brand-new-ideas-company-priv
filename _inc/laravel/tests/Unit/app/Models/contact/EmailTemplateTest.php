@@ -10,6 +10,7 @@ use Illuminate\{
 };
 use App\Models\{EmailTemplate, User};
 
+use Illuminate\Support\Facades\DB;
 class EmailTemplateTest extends TestCase
 {
 	use RefreshDatabase;
@@ -19,7 +20,7 @@ class EmailTemplateTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// Clear the static template cache between tests
 		$ref = new \ReflectionProperty(EmailTemplate::class, 'templateData');
 		$ref->setAccessible(true);

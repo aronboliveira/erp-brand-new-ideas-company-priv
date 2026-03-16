@@ -9,11 +9,10 @@
 namespace Tests\Unit\Models;
 
 use App\Models\ProductServiceCategory;
-use Illuminate\Support\{Collection, Facades\Auth};
+use Illuminate\Support\{Collection, Facades\Auth, Facades\DB};
 use Mockery;
-use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Tests\TestCase;
 
 class ProductServiceCategoryTest extends TestCase
 {
@@ -25,7 +24,7 @@ class ProductServiceCategoryTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// A simple stub user object
 		$this->fakeUser = new class
@@ -144,6 +143,7 @@ class ProductServiceCategoryTest extends TestCase
 			->getMock()->shouldReceive('get')
 			->andReturn($invoiceCollection);
 
+		/** @var ProductServiceCategory $cat */
 		$this->assertSame(180.0, $cat->incomeCategoryRevenueAmount());
 	}
 
@@ -183,6 +183,7 @@ class ProductServiceCategoryTest extends TestCase
 			->getMock()->shouldReceive('get')
 			->andReturn($billCollection);
 
+		/** @var ProductServiceCategory $cat */
 		$this->assertSame(70.0, $cat->expenseCategoryAmount());
 	}
 

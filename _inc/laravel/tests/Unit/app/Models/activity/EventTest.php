@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Event;
 
+use Illuminate\Support\Facades\DB;
 class EventTest extends TestCase
 {
     protected function setUp(): void

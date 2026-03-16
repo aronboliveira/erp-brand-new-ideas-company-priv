@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Facades\Auth, Str};
 use App\Models\{Email, User};
 
+use Illuminate\Support\Facades\DB;
 class EmailTest extends TestCase
 {
 	use RefreshDatabase;

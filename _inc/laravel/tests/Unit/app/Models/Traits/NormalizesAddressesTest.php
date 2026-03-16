@@ -9,13 +9,14 @@ use App\Traits\NormalizesArrays;
 use PHPUnit\Framework\Attributes\{DataProvider, Group, Test};
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 #[Group('models-traits')]
 class NormalizesAddressesTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	/* ═══════════ helper: anonymous class using the trait ═══════════ */
 

@@ -8,6 +8,7 @@ use Mockery;
 use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 
+use Illuminate\Support\Facades\DB;
 class TimeTrackerTest extends TestCase
 {
 	use SafeAliasMock;
@@ -15,7 +16,7 @@ class TimeTrackerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// Stub Project::select()->where(...)->first()
 		$this->aliasMock('App\Models\Project')

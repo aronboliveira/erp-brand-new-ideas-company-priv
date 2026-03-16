@@ -11,6 +11,7 @@ use Mockery;
 use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 
+use Illuminate\Support\Facades\DB;
 class ProjectStagesTest extends TestCase
 {
 	use SafeAliasMock;
@@ -18,7 +19,7 @@ class ProjectStagesTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		// Default fake "employee" user; individual
 		// tests may override → Auth::shouldReceive('user')->andReturn(...)

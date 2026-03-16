@@ -10,12 +10,13 @@ use Illuminate\{
 };
 use App\Models\{Bug, BugComment, User};
 
+use Illuminate\Support\Facades\DB;
 class BugCommentTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

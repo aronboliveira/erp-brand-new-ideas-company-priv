@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{LeadDiscussion, User};
 
+use Illuminate\Support\Facades\DB;
 class LeadDiscussionTest extends TestCase
 {
     protected function setUp(): void

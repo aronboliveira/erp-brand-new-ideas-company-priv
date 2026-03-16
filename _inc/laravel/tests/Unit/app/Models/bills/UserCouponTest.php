@@ -10,12 +10,13 @@ use Illuminate\{
 };
 use App\Models\{UserCoupon, User, Coupon, Order};
 
+use Illuminate\Support\Facades\DB;
 class UserCouponTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

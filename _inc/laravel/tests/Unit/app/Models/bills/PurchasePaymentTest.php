@@ -10,6 +10,7 @@ use Illuminate\{
 };
 use App\Models\{PurchasePayment, BankAccount};
 
+use Illuminate\Support\Facades\DB;
 class PurchasePaymentTest extends TestCase
 {
     protected function setUp(): void

@@ -10,12 +10,13 @@ use Illuminate\{
 };
 use App\Models\{Branch, Department, Employee, Transfer};
 
+use Illuminate\Support\Facades\DB;
 class TransferTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

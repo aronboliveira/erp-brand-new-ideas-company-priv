@@ -10,12 +10,13 @@ use App\Models\Note;
 use Tests\TestCase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Support\Facades\DB;
 class NoteTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	/**
 	 ** @test

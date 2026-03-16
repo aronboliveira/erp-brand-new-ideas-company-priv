@@ -5,12 +5,13 @@ namespace Tests\Unit\app\Models\planning;
 use App\Models\ContractType;
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 class ContractTypeTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 /** @test */
 public function it_is_instantiable(): void

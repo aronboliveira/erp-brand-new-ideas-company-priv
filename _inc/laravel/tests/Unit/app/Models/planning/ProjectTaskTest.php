@@ -3,17 +3,17 @@
 namespace Tests\Unit\Models;
 
 use App\Models\ProjectTask;
-use Illuminate\Support\Collection;
+use Illuminate\Support\{Collection, Facades\DB};
 use Mockery;
-use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
+use Tests\TestCase;
 
 class ProjectTaskTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	use SafeAliasMock;

@@ -10,6 +10,7 @@ use Illuminate\{
 };
 use App\Models\{StockReport, ProductService};
 
+use Illuminate\Support\Facades\DB;
 class StockReportTest extends TestCase
 {
     protected function setUp(): void

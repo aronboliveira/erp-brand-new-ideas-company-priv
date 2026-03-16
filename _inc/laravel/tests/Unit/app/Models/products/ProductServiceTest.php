@@ -14,12 +14,13 @@ use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Support\Facades\DB;
 class ProductServiceTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	use SafeAliasMock;

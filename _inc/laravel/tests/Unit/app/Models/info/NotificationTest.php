@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\{Auth, Route};
 use App\Models\{Notification, User};
 
+use Illuminate\Support\Facades\DB;
 class NotificationTest extends TestCase
 {
 	use RefreshDatabase;

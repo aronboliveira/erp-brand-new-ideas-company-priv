@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Meeting;
 
+use Illuminate\Support\Facades\DB;
 class MeetingTest extends TestCase
 {
     protected function setUp(): void

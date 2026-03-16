@@ -18,12 +18,13 @@ use App\Models\{
 };
 use Database\Seeders\UsersTableSeeder;
 
+use Illuminate\Support\Facades\DB;
 class UsersTableSeederTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

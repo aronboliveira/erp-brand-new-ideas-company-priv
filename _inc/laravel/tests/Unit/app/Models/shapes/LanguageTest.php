@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\Cache;
 use Mockery;
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 class LanguageTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	protected function tearDown(): void

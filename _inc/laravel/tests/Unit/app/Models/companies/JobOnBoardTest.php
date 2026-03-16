@@ -10,6 +10,7 @@ use Illuminate\{
 };
 use App\Models\JobOnBoard;
 
+use Illuminate\Support\Facades\DB;
 class JobOnBoardTest extends TestCase
 {
     protected function setUp(): void

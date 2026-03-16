@@ -8,6 +8,7 @@ use Illuminate\Support\{Collection, Facades\Auth};
 use Illuminate\Http\RedirectResponse;
 use App\Models\{Lead, LeadStage, User};
 
+use Illuminate\Support\Facades\DB;
 class LeadStageTest extends TestCase
 {
 	protected function setUp(): void

@@ -10,6 +10,7 @@ use App\Exports\LeaveReportExport;
 use App\Models\{User, Employee, Leave};
 use Maatwebsite\Excel\Events\AfterSheet;
 
+use Illuminate\Support\Facades\DB;
 /**
  ** Test-suite for the `LeaveReportExport` class.
  **

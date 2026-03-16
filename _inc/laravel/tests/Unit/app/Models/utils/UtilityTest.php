@@ -52,7 +52,6 @@ use App\Models\{
 };
 use App\Traits\ChecksLogin;
 use Carbon\Carbon;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,7 +71,6 @@ use Illuminate\Support\Facades\{
 	Storage
 };
 use Spatie\Permission\Models\Role;
-use Spatie\GoogleCalendar\Event as GoogleEvent;
 use Twilio\Rest\Client as TwilioClient;
 use Tests\Concerns\SafeAliasMock;
 
@@ -103,7 +101,9 @@ class UtilityTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		// Seed ChartOfAccountType and ChartOfAccountSubType records for tests
+		$this->seedChartOfAccountTypes();
 		// Create a super-admin user for auth-based tests
 		// Use firstOrCreate to avoid duplicate entry errors when the DB
 		// already has this email (RefreshDatabase wraps in transactions but
@@ -116,6 +116,58 @@ class UtilityTest extends TestCase
 				'type' => 'super admin'
 			]
 		);
+	}
+
+	/**
+	 * Seed ChartOfAccountType and ChartOfAccountSubType records
+	 * that are expected by tests using ChartsConstants UUIDs.
+	 */
+	private function seedChartOfAccountTypes(): void
+	{
+		// Types with UUIDs matching ChartsConstants
+		$types = [
+			[CTC::TP_ASSETS,      'Assets'],
+			[CTC::TP_LIABILITIES, 'Liabilities'],
+			[CTC::TP_EQUITY,      'Equity'],
+			[CTC::TP_INCOME,      'Income'],
+			[CTC::TP_COGS,        'Cost of Goods Sold'],
+			[CTC::TP_EXPENSES,    'Expenses'],
+		];
+		foreach ($types as [$id, $name]) {
+			if (!ChartOfAccountType::find($id)) {
+				$rec = new ChartOfAccountType();
+				$rec->id = $id;  // Bypass guarded
+				$rec->name = $name;
+				$rec->{DatabaseConstants::COL_TABLE_CREATOR} = DatabaseConstants::DEFAULT_UUID;
+				$rec->saveQuietly();
+			}
+		}
+		// SubTypes with UUIDs matching ChartsConstants
+		$subTypes = [
+			[CTC::ST_CURRENT_ASSET,        CTC::TP_ASSETS,      'Current Assets'],
+			[CTC::ST_INVENTORY_ASSET,      CTC::TP_ASSETS,      'Inventory Assets'],
+			[CTC::ST_NONCURRENT_ASSET,     CTC::TP_ASSETS,      'Non-current Assets'],
+			[CTC::ST_CURRENT_LIABILITIES,  CTC::TP_LIABILITIES, 'Current Liabilities'],
+			[CTC::ST_LONGTERM_LIABILITIES, CTC::TP_LIABILITIES, 'Long-term Liabilities'],
+			[CTC::ST_SHARE_CAPITAL,        CTC::TP_EQUITY,      'Share Capital'],
+			[CTC::ST_OWNERS_EQUITY,        CTC::TP_EQUITY,      'Owners Equity'],
+			[CTC::ST_RETAINED_EARNINGS,    CTC::TP_EQUITY,      'Retained Earnings'],
+			[CTC::ST_SALES_REVENUE,        CTC::TP_INCOME,      'Sales Revenue'],
+			[CTC::ST_OTHER_REVENUE,        CTC::TP_INCOME,      'Other Revenue'],
+			[CTC::ST_COGS,                 CTC::TP_COGS,        'Cost of Goods Sold'],
+			[CTC::ST_PAYROLL_EXPENSES,     CTC::TP_EXPENSES,    'Payroll Expenses'],
+			[CTC::ST_GA_EXPENSES,          CTC::TP_EXPENSES,    'General & Administrative Expenses'],
+		];
+		foreach ($subTypes as [$id, $typeId, $name]) {
+			if (!ChartOfAccountSubType::find($id)) {
+				$rec = new ChartOfAccountSubType();
+				$rec->id = $id;  // Bypass guarded
+				$rec->name = $name;
+				$rec->{CTC::COL_TP} = $typeId;
+				$rec->{DatabaseConstants::COL_TABLE_CREATOR} = DatabaseConstants::DEFAULT_UUID;
+				$rec->saveQuietly();
+			}
+		}
 	}
 
 	protected function tearDown(): void
@@ -534,8 +586,10 @@ class UtilityTest extends TestCase
 		// call checkFileExistsAndDelete
 		$result = Utility::checkFileExistsAndDelete(['util_testA.txt', 'util_testB.txt']);
 		$this->assertTrue($result);
-		\Illuminate\Support\Facades\Storage::disk('local')->assertMissing('util_testA.txt');
-		\Illuminate\Support\Facades\Storage::disk('local')->assertMissing('util_testB.txt');
+		/** @var \Illuminate\Filesystem\FilesystemAdapter|\Illuminate\Foundation\Testing\Concerns\InteractsWithContainer $disk */
+		$disk = \Illuminate\Support\Facades\Storage::disk('local');
+		$disk->assertMissing('util_testA.txt');
+		$disk->assertMissing('util_testB.txt');
 
 		// If we pass a non-existent file, method should return true (vacuously)
 		$this->assertTrue(Utility::checkFileExistsAndDelete(['no_such_file.txt']));
@@ -574,10 +628,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_PurchasePosContractNumberFormatDefault()
 	{
-		// No settings inserted, so prefixes should default to empty
-		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('POS-00015', Utility::posNumberFormat(15));
-		$this->assertEquals('C-00099', Utility::contractNumberFormat(99));
+		// Prefixes use SettingsConstants defaults (#PUR, #POS, #CON)
+		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('#POS00015', Utility::posNumberFormat(15));
+		$this->assertEquals('#CON00099', Utility::contractNumberFormat(99));
 	}
 
 	/**
@@ -587,9 +641,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_customer_specific_number_format_default()
 	{
-		$this->assertEquals('PR-00001', Utility::customerProposalNumberFormat(1));
-		$this->assertEquals('INV-00012', Utility::customerInvoiceNumberFormat(12));
-		$this->assertEquals('POS-00034', Utility::customerPosNumberFormat(34));
+		// Prefixes use SettingsConstants defaults (#PROP, #INVO, #POS)
+		$this->assertEquals('#PROP00001', Utility::customerProposalNumberFormat(1));
+		$this->assertEquals('#INVO00012', Utility::customerInvoiceNumberFormat(12));
+		$this->assertEquals('#POS00034', Utility::customerPosNumberFormat(34));
 	}
 
 	/**
@@ -635,9 +690,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_purchase_pos_contract_number_format_default()
 	{
-		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('POS-00015', Utility::posNumberFormat(15));
-		$this->assertEquals('C-00099', Utility::contractNumberFormat(99));
+		// Prefixes use SettingsConstants defaults (#PUR, #POS, #CON)
+		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('#POS00015', Utility::posNumberFormat(15));
+		$this->assertEquals('#CON00099', Utility::contractNumberFormat(99));
 	}
 
 	/**
@@ -967,7 +1023,8 @@ class UtilityTest extends TestCase
 	public function test_vendor_bill_number_format_creates_five_digit_number()
 	{
 		// When no prefix is set in settings, formatNumber will default to empty prefix
-		$this->assertEquals('B-00015', Utility::vendorBillNumberFormat(15));
+		// Prefix uses SettingsConstants default (#BILL)
+		$this->assertEquals('#BILL00015', Utility::vendorBillNumberFormat(15));
 	}
 
 	/**
@@ -2874,90 +2931,97 @@ class UtilityTest extends TestCase
 	 ** 
 	 ** @test*
 	 ** get_calendar_data should return only events matching the given type's colorId.
-	 ** TODO: Replace alias mock with CalendarGateway interface injection (see CalendarService TODO).
+	 ** Uses MockCalendarGateway for deterministic testing without live Google API.
+	 ** ! TODO: Once real Google credentials are configured, add integration tests
+	 **   that verify against the live API in a dedicated test suite.
 	 **/
 	public function test_get_calendar_data_filters_by_color_id()
 	{
-		// Spatie\GoogleCalendar\Event is already loaded in this process,
-		// so alias mocking is not possible. Skip with clear TODO.
-		if (class_exists(\Spatie\GoogleCalendar\Event::class, false)) {
-			$this->markTestSkipped(
-				'Cannot alias-mock Spatie\GoogleCalendar\Event (already loaded). '
-				. 'TODO: Introduce CalendarGateway interface for testable DI.'
-			);
-		}
+		$user = User::factory()->create();
+		Auth::login($user);
 
-		// Stub googleCalendarConfig to avoid file checks
+		// Prepare fixture events with dynamic values emulating Google Calendar API response
+		$eventColorId = (string) Utility::colorCodeData('event');
+		$mock = new \App\Services\Calendar\MockCalendarGateway([
+			[
+				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
+				'summary'       => 'Team Standup',
+				'startDateTime' => '2025-06-10 10:00:00',
+				'endDateTime'   => '2025-06-10 12:00:00',
+				'colorId'       => $eventColorId,
+			],
+			[
+				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
+				'summary'       => 'Non-matching Event',
+				'startDateTime' => '2025-06-11 10:00:00',
+				'endDateTime'   => '2025-06-11 12:00:00',
+				'colorId'       => '99', // Won't match 'event' type
+			],
+			[
+				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
+				'summary'       => 'Sprint Review',
+				'startDateTime' => '2025-06-12 14:00:00',
+				'endDateTime'   => '2025-06-12 15:30:00',
+				'colorId'       => $eventColorId,
+			],
+		]);
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
+		// Insert settings so googleCalendarConfig doesn't fail
 		Utility::resetSettingsCache();
 
-		// Prepare fake event objects
-		$matchingEvent = (object)[
-			'id'             => 'E1',
-			'summary'        => 'Match',
-			'startDateTime'  => '2025-06-10 10:00:00',
-			'endDateTime'    => '2025-06-10 12:00:00',
-			'colorId'        => (string) Utility::colorCodeData('event')
-		];
-		$nonMatchingEvent = (object)[
-			'id'             => 'E2',
-			'summary'        => 'NoMatch',
-			'startDateTime'  => '2025-06-11 10:00:00',
-			'endDateTime'    => '2025-06-11 12:00:00',
-			'colorId'        => '99'
-		];
-		$this->aliasMock('Spatie\GoogleCalendar\Event')
-			->shouldReceive('get')
-			->andReturn(collect([$matchingEvent, $nonMatchingEvent]));
-
 		$result = Utility::getCalendarData('event');
-		$this->assertCount(1, $result);
-		$this->assertEquals('E1', $result[0]['id']);
-		$this->assertEquals('Match', $result[0]['title']);
-		$this->assertEquals(true, $result[0]['allDay']);
+
+		// Should only contain events with matching colorId
+		$this->assertCount(2, $result);
+		$this->assertEquals('Team Standup', $result[0]['title']);
+		$this->assertEquals('Sprint Review', $result[1]['title']);
+		$this->assertTrue($result[0]['allDay']);
+		$this->assertArrayHasKey('className', $result[0]);
 	}
 
 	/**
 	 ** 
 	 ** @test*
-	 ** add_calendar_data should create a GoogleEvent when config file exists.
-	 ** TODO: Replace overload mock with CalendarGateway interface for proper DI testing.
+	 ** add_calendar_data should create a GoogleEvent when config is valid.
+	 ** Uses MockCalendarGateway — no live API calls.
+	 ** ! TODO: Add integration test with real Google Calendar credentials to verify
+	 **   actual API event creation (Events.insert) and response structure.
+	 ** ! TODO: Real Google API returns full Event resource with htmlLink, etag,
+	 **   iCalUID, sequence — the mock only returns id + status.
 	 **/
 	public function test_add_calendar_data_creates_event()
 	{
-		// Overload mock fails if the class is already loaded in this process
-		if (class_exists(\Spatie\GoogleCalendar\Event::class, false)) {
-			$this->markTestSkipped(
-				'Cannot overload-mock Spatie\GoogleCalendar\Event (already loaded). '
-				. 'TODO: Introduce CalendarGateway interface for testable DI.'
-			);
-		}
+		$user = User::factory()->create();
+		Auth::login($user);
 
-		// Create fake credentials file
-		$path = storage_path('gcal.json');
-		file_put_contents($path, '{}');
-		// Insert settings so googleCalendarConfig picks up the file and calendar ID
+		// Use MockCalendarGateway to capture the created event
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
+		// Insert settings so configure() passes
 		DB::table('settings')->updateOrInsert(
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
 			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'gcal.json']
 		);
 		DB::table('settings')->updateOrInsert(
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calid']
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_calendar@group.calendar.google.com']
 		);
 		Utility::resetSettingsCache();
-		// Overload the GoogleEvent class so its save() is called
-		$mockEvent = Mockery::mock('overload:Spatie\GoogleCalendar\Event');
-		$mockEvent->shouldReceive('save')->once();
 
 		$request = (object)[
-			'title'      => 'Meeting',
+			'title'      => 'Sprint Planning',
 			'start_date' => '2025-06-15 09:00:00',
 			'end_date'   => '2025-06-15 10:00:00'
 		];
 		Utility::addCalendarData($request, 'event');
 
-		// Cleanup
-		@unlink($path);
+		// Verify the event was created in the mock gateway
+		$created = $mock->getCreatedEvents();
+		$this->assertCount(1, $created);
+		$this->assertEquals('Sprint Planning', $created[0]->summary);
+		$this->assertEquals((string) Utility::colorCodeData('event'), $created[0]->colorId);
 	}
 
 	/**
@@ -3918,24 +3982,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_add_and_get_calendar_data_end_to_end()
 	{
-		$this->markTestSkipped('Cannot double-mock Spatie\GoogleCalendar\Event (overload + alias conflict)');
-		file_put_contents($path, '{}');
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'gcal2.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cid2']
-		]);
-
-		// Mock GoogleEvent for save and get
-		$mockEvent = Mockery::mock('overload:Spatie\GoogleCalendar\Event');
-		$mockEvent->shouldReceive('save')->once();
-		$fakeEvent = (object)[
-			'id'            => 'C1',
-			'summary'       => 'Check',
-			'startDateTime' => '2025-07-01 08:00:00',
-			'endDateTime'   => '2025-07-01 09:00:00',
-			'colorId'       => (string) Utility::colorCodeData('event')
-		];
-		$this->aliasMock('Spatie\GoogleCalendar\Event')->shouldReceive('get')->andReturn(collect([$fakeEvent]));
+		// Inject shared mock gateway with fixture matching 'event' colorId
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
 
 		$request = (object)[
 			'title'      => 'Check',
@@ -3945,10 +3994,8 @@ class UtilityTest extends TestCase
 		Utility::addCalendarData($request, 'event');
 		$events = Utility::getCalendarData('event');
 		$this->assertCount(1, $events);
-		$this->assertEquals('C1', $events[0]['id']);
-
-		// Cleanup
-		unlink($path);
+		$this->assertEquals('Check', $events[0]['title']);
+		$this->assertArrayHasKey('id', $events[0]);
 	}
 
 	/**
@@ -4475,13 +4522,13 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_numbers_and_prefixes_using_format_number()
 	{
-		// purchaseNumberFormat/posNumberFormat use settings() internally, not DEFAULT_SETTINGS
+		// purchaseNumberFormat/posNumberFormat use settings() internally
 		// DFT_SETTINGS: purchase_prefix=#PUR, pos_prefix=#POS
 		$purchase = Utility::purchaseNumberFormat(12);
-		$this->assertEquals('PU-00012', $purchase);
+		$this->assertEquals('#PUR00012', $purchase);
 
 		$pos = Utility::posNumberFormat(7);
-		$this->assertEquals('POS-00007', $pos);
+		$this->assertEquals('#POS00007', $pos);
 	}
 
 	/**
@@ -5558,10 +5605,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_number_using_private_format_number_method()
 	{
-		// contractNumberFormat uses settings() internally (not DEFAULT_SETTINGS)
+		// contractNumberFormat uses settings() internally
 		// DFT_SETTINGS has contract_prefix => '#CON'
 		$result = Utility::contractNumberFormat(42);
-		$this->assertEquals('C-00042', $result);
+		$this->assertEquals('#CON00042', $result);
 	}
 
 	/** 
@@ -5593,15 +5640,15 @@ class UtilityTest extends TestCase
 
 		// customerProposalNumberFormat (uses formatNumber internally)
 		$custProp = Utility::customerProposalNumberFormat(2);
-		$this->assertEquals('PR-00002', $custProp);
+		$this->assertEquals('#PROP00002', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(3);
-		$this->assertEquals('INV-00003', $custInv);
+		$this->assertEquals('#INVO00003', $custInv);
 
 		// customerPosNumberFormat
 		$custPos = Utility::customerPosNumberFormat(4);
-		$this->assertEquals('POS-00004', $custPos);
+		$this->assertEquals('#POS00004', $custPos);
 
 		// billNumberFormat
 		$bill = Utility::billNumberFormat(['bill_prefix' => 'BILL-'], 7);
@@ -5609,7 +5656,7 @@ class UtilityTest extends TestCase
 
 		// vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('B-00008', $vendorBill);
+		$this->assertEquals('#BILL00008', $vendorBill);
 	}
 
 	/** 
@@ -5832,52 +5879,40 @@ class UtilityTest extends TestCase
 	 * * addCalendarData, and getCalendarData. **/
 	public function it_manages_calendar_functions()
 	{
-		// Create google_events schema
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
-			$table->id();
-			$table->string('name');
-			$table->dateTime('startDateTime');
-			$table->dateTime('endDateTime');
-			$table->integer('colorId');
-			$table->timestamps();
-		});
-		DB::table('google_events')->delete();
-
 		// colorCodeData known cases
 		$this->assertEquals(1, Utility::colorCodeData('event'));
 		$this->assertEquals(2, Utility::colorCodeData('zoom_meeting'));
 		$this->assertEquals(11, Utility::colorCodeData('appointment'));
 		$this->assertEquals(11, Utility::colorCodeData('unknown_type'));
 
-		// googleCalendarConfig: no actual file, so warning path returns early
-		// Create a fake file for config
-		$envSettings = ['google_calendar_json_file' => 'fake.json', 'google_clender_id' => 'cal123'];
-		$this->partialMock(Utility::class, function ($mock) use ($envSettings) {
-			$mock->shouldReceive('settings')->andReturn($envSettings);
-		});
-		// Ensure no error: method returns void
-		Utility::googleCalendarConfig();
-
-		// addCalendarData and getCalendarData: create a real JSON file
+		// Set up credentials file + settings for googleCalendarConfig
 		$jsonPath = storage_path('fake_calendar.json');
 		file_put_contents($jsonPath, '{"dummy":"data"}');
-		$this->partialMock(Utility::class, function ($mock) use ($jsonPath) {
-			$mock->shouldReceive('settings')->andReturn([
-				'google_calendar_json_file' => basename($jsonPath),
-				'google_clender_id' => 'cal123'
-			]);
-		});
-		// call config
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'fake_calendar.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal123']
+		);
+		Utility::resetSettingsCache();
+
+		// Inject mock gateway so add + get share the same instance
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
 		Utility::googleCalendarConfig();
 
-		// Create a request-like object
+		// Create a request-like object and add event
 		$req = (object) ['title' => 'Meeting', 'start_date' => '2025-06-10 09:00:00', 'end_date' => '2025-06-10 10:00:00'];
 		Utility::addCalendarData($req, 'event');
 		$events = Utility::getCalendarData('event');
 		$this->assertNotEmpty($events);
 		$this->assertEquals('Meeting', $events[0]['title']);
-		// Clean up
-		unlink($jsonPath);
+
+		// Cleanup
+		@unlink($jsonPath);
 	}
 
 	/** 
@@ -6959,52 +6994,28 @@ class UtilityTest extends TestCase
 	 ** This test covers googleCalendarConfig and getCalendarData. **/
 	public function it_fetches_calendar_events_filtered_by_color()
 	{
-		// Create settings table and insert credential file path (non-existent)
-		DB::table('settings')->delete(); // was Schema::dropIfExists
-		if (!Schema::hasTable('settings')) if (!Schema::hasTable('settings')) Schema::create('settings', function ($table) {
-			$table->id();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
-			$table->string('name');
-			$table->string('value');
-			$table->timestamps();
-		});
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'nonexistent.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test-id']
-		]);
+		// Set up credentials and settings
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'nonexistent.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test-id']
+		);
+		Utility::resetSettingsCache();
 
-		// No file exists => googleCalendarConfig logs warning and returns without error
+		// Inject mock gateway with fixture events (different colorIds)
+		$mock = new \App\Services\Calendar\MockCalendarGateway([
+			['summary' => 'Event A', 'startDateTime' => '2025-06-10 00:00:00', 'endDateTime' => '2025-06-10 23:59:59', 'colorId' => '1'],
+			['summary' => 'Event B', 'startDateTime' => '2025-06-11 00:00:00', 'endDateTime' => '2025-06-11 23:59:59', 'colorId' => '2'],
+		]);
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
+		// No file => googleCalendarConfig logs warning and returns
 		Utility::googleCalendarConfig();
 
-		// Create GoogleEvent table
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
-			$table->id();
-			$table->string('name');
-			$table->dateTime('startDateTime');
-			$table->dateTime('endDateTime');
-			$table->integer('colorId');
-			$table->string('summary')->nullable();
-			$table->timestamps();
-		});
-		DB::table('google_events')->delete();
-
-		// Insert events with different colorIds
-		GoogleEvent::create([
-			'name' => 'Meeting A',
-			'startDateTime' => '2025-06-10 00:00:00',
-			'endDateTime' => '2025-06-10 23:59:59',
-			'colorId' => 1,
-			'summary' => 'Event A'
-		]);
-		GoogleEvent::create([
-			'name' => 'Meeting B',
-			'startDateTime' => '2025-06-11 00:00:00',
-			'endDateTime' => '2025-06-11 23:59:59',
-			'colorId' => 2,
-			'summary' => 'Event B'
-		]);
-
-		// colorCodeData('event') => 1
+		// colorCodeData('event') => 1: should only get Event A
 		$events = Utility::getCalendarData('event');
 		$this->assertCount(1, $events);
 		$this->assertEquals('Event A', $events[0]['title']);
@@ -7039,21 +7050,21 @@ class UtilityTest extends TestCase
 		$bill = Utility::billNumberFormat($arr, 42);
 		$this->assertEquals('BILL-00042', $bill);
 
-		// customerProposalNumberFormat
+		// customerProposalNumberFormat (uses settings() -> DFT_SETTINGS defaults)
 		$custProp = Utility::customerProposalNumberFormat(5);
-		$this->assertEquals('PR-00005', $custProp);
+		$this->assertEquals('#PROP00005', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(9);
-		$this->assertEquals('INV-00009', $custInv);
+		$this->assertEquals('#INVO00009', $custInv);
 
 		// customerPosNumberFormat (pos_prefix from DFT_SETTINGS => '#POS')
 		$custPos = Utility::customerPosNumberFormat(1);
-		$this->assertEquals('POS-00001', $custPos);
+		$this->assertEquals('#POS00001', $custPos);
 
 		// vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(2);
-		$this->assertEquals('B-00002', $vendorBill);
+		$this->assertEquals('#BILL00002', $vendorBill);
 	}
 
 	/** 
@@ -7400,14 +7411,17 @@ class UtilityTest extends TestCase
 		]);
 
 		// getSetting should fetch created_by=1
+		/** @var \Illuminate\Support\Collection|array $col1 */
 		$col1 = Utility::getSetting();
 		$this->assertEquals('bar', $col1->first()->value);
 
 		// getSettingById for existing ID=42
+		/** @var \Illuminate\Support\Collection|array $col42 */
 		$col42 = Utility::getSettingById(42);
 		$this->assertEquals('qux', $col42->first()->value);
 
 		// getSettingById for nonexistent ID should fall back to created_by=1
+		/** @var \Illuminate\Support\Collection|array $col99 */
 		$col99 = Utility::getSettingById(99);
 		$this->assertEquals('bar', $col99->first()->value);
 
@@ -7798,12 +7812,12 @@ class UtilityTest extends TestCase
 		// Using private formatNumber via public wrappers — these use settings() not DEFAULT_SETTINGS
 		$this->assertEquals('INV-00004', Utility::invoiceNumberFormat($defaultSettings, 4));
 		$this->assertEquals('PRO-00005', Utility::proposalNumberFormat($defaultSettings, 5));
-		$this->assertEquals('POS-00006', Utility::posNumberFormat(6));
-		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('INV-00008', Utility::customerInvoiceNumberFormat(8));
-		$this->assertEquals('PR-00009', Utility::customerProposalNumberFormat(9));
-		$this->assertEquals('POS-00010', Utility::customerPosNumberFormat(10));
-		$this->assertEquals('B-00011', Utility::vendorBillNumberFormat(11));
+		$this->assertEquals('#POS00006', Utility::posNumberFormat(6));
+		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('#INVO00008', Utility::customerInvoiceNumberFormat(8));
+		$this->assertEquals('#PROP00009', Utility::customerProposalNumberFormat(9));
+		$this->assertEquals('#POS00010', Utility::customerPosNumberFormat(10));
+		$this->assertEquals('#BILL00011', Utility::vendorBillNumberFormat(11));
 	}
 
 	/** 
@@ -7904,31 +7918,16 @@ class UtilityTest extends TestCase
 	 */
 	public function it_adds_calendar_event_and_retrieves_by_type()
 	{
-		// Prepare settings for googleCalendarConfig
-		$this->partialMock(Utility::class, function ($m) {
-			$m->shouldReceive('settings')->andReturn([
-				'google_calendar_json_file' => 'does_not_exist.json',
-				'google_clender_id'         => 'primary'
-			]);
-		});
-		// Because credentials file is missing, googleCalendarConfig logs and does nothing.
-		// But addCalendarData still attempts to create a local record of GoogleEvent
+		// Inject a shared mock gateway
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
 		$req = new \stdClass();
-		$req->title     = 'Test Event';
+		$req->title      = 'Test Event';
 		$req->start_date = '2025-06-10 00:00:00';
-		$req->end_date  = '2025-06-11 00:00:00';
+		$req->end_date   = '2025-06-11 00:00:00';
 
-		// Ensure table exists
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($t) {
-			$t->id();
-			$t->string('name');
-			$t->timestamp('startDateTime');
-			$t->timestamp('endDateTime');
-			$t->string('colorId');
-			$t->timestamps();
-		});
-		DB::table('google_events')->delete();
-
+		// colorCodeData('meeting') => 3, so addEvent sets colorId=3
 		Utility::addCalendarData($req, 'meeting');
 		$result = Utility::getCalendarData('meeting');
 		$this->assertCount(1, $result);
@@ -8377,17 +8376,17 @@ class UtilityTest extends TestCase
 
 		// Vendor/bill number via vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(5);
-		$this->assertEquals('B-00005', $vendorBill);
+		$this->assertEquals('#BILL00005', $vendorBill);
 
 		// Customer variants (use formatNumber via settings(), not DEFAULT_SETTINGS)
 		$customerProposal = Utility::customerProposalNumberFormat(9);
-		$this->assertEquals('PR-00009', $customerProposal);
+		$this->assertEquals('#PROP00009', $customerProposal);
 
 		$customerInvoice = Utility::customerInvoiceNumberFormat(15);
-		$this->assertEquals('INV-00015', $customerInvoice);
+		$this->assertEquals('#INVO00015', $customerInvoice);
 
 		$customerPos     = Utility::customerPosNumberFormat(21);
-		$this->assertEquals('POS-00021', $customerPos);
+		$this->assertEquals('#POS00021', $customerPos);
 	}
 
 	/** 
@@ -8703,14 +8702,12 @@ class UtilityTest extends TestCase
 	 */
 	public function it_retrieves_calendar_data_for_given_type()
 	{
-		// Fake event with colorId = 1
-		GoogleEvent::create([
-			'name'          => 'Test Event',
-			'startDateTime' => '2025-06-10 00:00:00',
-			'endDateTime'   => '2025-06-10 00:00:00',
-			'colorId'       => '1',
-			'summary'       => 'Test Event'
+		// Inject mock gateway with a fixture event matching colorId=1 (event type)
+		$mock = new \App\Services\Calendar\MockCalendarGateway([
+			['summary' => 'Test Event', 'startDateTime' => '2025-06-10 00:00:00', 'endDateTime' => '2025-06-10 00:00:00', 'colorId' => '1'],
 		]);
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
 		$data = Utility::getCalendarData('event');
 		$this->assertIsArray($data);
 		$this->assertCount(1, $data);
@@ -8901,33 +8898,26 @@ class UtilityTest extends TestCase
 	 */
 	public function it_adds_calendar_event_data_correctly()
 	{
-		// Create a fake request object
 		$request = new \stdClass();
 		$request->title     = 'Meeting';
 		$request->start_date = '2025-07-01 09:00:00';
 		$request->end_date  = '2025-07-01 10:00:00';
 
-		// Ensure google_calendar_json_file does not exist to exit early
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'nonexistent.json']
-		]);
-		// Should not throw
+		// Inject shared mock gateway
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
+		// Should not throw (no credentials = log warning in configure, but addEvent still works)
 		Utility::addCalendarData($request, 'meeting');
+		$created = $mock->getCreatedEvents();
+		$this->assertCount(1, $created);
+		$this->assertEquals('Meeting', $created[0]->summary);
 
-		// Now create a dummy credentials file
-		$path = storage_path('dummy_calendar.json');
-		file_put_contents($path, '{}');
-		DB::table('settings')->where('name', 'google_calendar_json_file')->update(['value' => 'dummy_calendar.json']);
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test@calendar']
-		]);
-
-		// Overwrite config to treat our dummy file as existing
-		@unlink(storage_path('dummy_calendar.json')); // ensure no leftover
-		file_put_contents($path, '{}');
-
-		// Now call addCalendarData; should insert an event
+		// Add another event with different type
 		Utility::addCalendarData($request, 'event');
+		$created2 = $mock->getCreatedEvents();
+		$this->assertCount(2, $created2);
+		$this->assertEquals((string) Utility::colorCodeData('event'), $created2[1]->colorId);
 	}
 
 	/** 
@@ -9289,25 +9279,25 @@ class UtilityTest extends TestCase
 		$prop = Utility::proposalNumberFormat(['proposal_prefix' => 'PROP-'], 7);
 		$this->assertEquals('PROP-00007', $prop);
 
-		// customerProposalNumberFormat (uses formatNumber)
+		// customerProposalNumberFormat (uses formatNumber via settings())
 		$custProp = Utility::customerProposalNumberFormat(12);
-		$this->assertEquals('PR-00012', $custProp);
+		$this->assertEquals('#PROP00012', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(5);
-		$this->assertEquals('INV-00005', $custInv);
+		$this->assertEquals('#INVO00005', $custInv);
 
 		// customerPosNumberFormat (uses settings() => DFT_SETTINGS pos_prefix '#POS')
 		$pos = Utility::customerPosNumberFormat(9);
-		$this->assertEquals('POS-00009', $pos);
+		$this->assertEquals('#POS00009', $pos);
 
 		// billNumberFormat
 		$bill = Utility::billNumberFormat(['bill_prefix' => 'BILL-'], 2);
 		$this->assertEquals('BILL-00002', $bill);
 
-		// vendorBillNumberFormat (uses bill_prefix from DEFAULT_SETTINGS)
+		// vendorBillNumberFormat (uses bill_prefix from settings())
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('B-00008', $vendorBill);
+		$this->assertEquals('#BILL00008', $vendorBill);
 	}
 
 	/** 
@@ -10143,45 +10133,56 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_manages_google_calendar_events()
 	{
-		Storage::fake('local');
-
 		// Create a dummy JSON credentials file
 		$path = storage_path('test_creds.json');
-		File::put($path, json_encode(['dummy' => 'data']));
+		file_put_contents($path, json_encode(['dummy' => 'data']));
 
-		// Insert into settings so Utility::settings() picks it up
+		// Insert into settings
 		$user = User::factory()->create();
 		Auth::login($user);
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => $user?->creatorId(), 'name' => 'google_calendar_json_file', 'value' => 'test_creds.json'],
-			['created_by' => $user?->creatorId(), 'name' => 'google_clender_id', 'value' => 'dummy-calendar@group.calendar.google.com']
-		]);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => $user?->creatorId(), 'name' => 'google_calendar_json_file'],
+			['user_id' => $user?->creatorId() ?? DatabaseConstants::DEFAULT_UUID, 'value' => 'test_creds.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => $user?->creatorId(), 'name' => 'google_clender_id'],
+			['user_id' => $user?->creatorId() ?? DatabaseConstants::DEFAULT_UUID, 'value' => 'dummy-calendar@group.calendar.google.com']
+		);
+		Utility::resetSettingsCache();
+
+		// Inject shared mock gateway
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
 
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
 		$this->assertEquals($path, config('google-calendar.auth_profiles.service_account.credentials_json'));
 
-		// Fake Spatie Event saving
+		// Add events with different types
 		$request = (object)[
 			'title' => 'Test Event',
 			'start_date' => '2025-06-01 10:00:00',
 			'end_date' => '2025-06-01 12:00:00'
 		];
 		Utility::addCalendarData($request, 'event');
-		// Create a second event with different type
+
 		$request2 = (object)[
 			'title' => 'Meeting',
 			'start_date' => '2025-06-02 09:00:00',
 			'end_date' => '2025-06-02 10:00:00'
 		];
 		Utility::addCalendarData($request2, 'meeting');
+
 		$all = Utility::getCalendarData('event');
-		// Only the first "event" should appear
+		// Only the "event" type should appear (colorId=1)
 		$this->assertCount(1, $all);
 		$item = $all[0];
 		$this->assertArrayHasKey('id', $item);
 		$this->assertEquals('Test Event', $item['title']);
 		$this->assertTrue($item['allDay']);
+
+		// Cleanup
+		@unlink($path);
 	}
 
 	/** 
@@ -10981,10 +10982,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_numbers_with_private_format_method()
 	{
-		// contractNumberFormat uses settings() internally, not DEFAULT_SETTINGS
+		// contractNumberFormat uses settings() internally
 		// DFT_SETTINGS has contract_prefix => '#CON'
 		$result = Utility::contractNumberFormat(42);
-		$this->assertEquals('C-00042', $result);
+		$this->assertEquals('#CON00042', $result);
 	}
 
 	/** 
@@ -11123,10 +11124,9 @@ class UtilityTest extends TestCase
 		$bill = Utility::billNumberFormat($settings, 3);
 		$this->assertEquals('BILL-00003', $bill);
 
-		// vendorBillNumberFormat uses formatNumber via settings(), not DEFAULT_SETTINGS
-		// Reflection on DEFAULT_SETTINGS does NOT affect settings() calls
+		// vendorBillNumberFormat uses formatNumber via settings(), returns DFT_SETTINGS default
 		$vb = Utility::vendorBillNumberFormat(11);
-		$this->assertEquals('B-00011', $vb);
+		$this->assertEquals('#BILL00011', $vb);
 	}
 
 	/** 
@@ -12467,19 +12467,29 @@ class UtilityTest extends TestCase
 		// Create a dummy JSON file
 		$jsonPath = storage_path('test_google_creds.json');
 		file_put_contents($jsonPath, '{}');
+
 		// Insert into settings
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'test_google_creds.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'calendar@id']
-		]);
-		// Call helper
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_google_creds.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calendar@id']
+		);
+		Utility::resetSettingsCache();
+
+		// Inject mock gateway so configure() reads settings + sets Config
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
 		$this->assertStringEndsWith('test_google_creds.json', config('google-calendar.auth_profiles.service_account.credentials_json'));
 		$this->assertEquals('calendar@id', config('google-calendar.calendar_id'));
 
 		// Clean up
-		unlink($jsonPath);
+		@unlink($jsonPath);
 	}
 
 	/**
@@ -12550,23 +12560,22 @@ class UtilityTest extends TestCase
 		$this->assertEquals('PROP-00012', $proposal);
 
 		// Customer methods use settings() internally, NOT DEFAULT_SETTINGS
-		// Reflection on DEFAULT_SETTINGS does not affect settings() calls
 		// DFT_SETTINGS: proposal_prefix=#PROP, invoice_prefix=#INVO, pos_prefix=#POS, bill_prefix=#BILL
 
 		$custProp = Utility::customerProposalNumberFormat(3);
-		$this->assertEquals('PR-00003', $custProp);
+		$this->assertEquals('#PROP00003', $custProp);
 
 		$custInv = Utility::customerInvoiceNumberFormat(5);
-		$this->assertEquals('INV-00005', $custInv);
+		$this->assertEquals('#INVO00005', $custInv);
 
 		$custPos = Utility::customerPosNumberFormat(9);
-		$this->assertEquals('POS-00009', $custPos);
+		$this->assertEquals('#POS00009', $custPos);
 
 		$bill = Utility::billNumberFormat($settings, 4);
 		$this->assertEquals('BILL-00004', $bill);
 
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('B-00008', $vendorBill);
+		$this->assertEquals('#BILL00008', $vendorBill);
 	}
 
 	/**
@@ -13079,10 +13088,19 @@ class UtilityTest extends TestCase
 		// Create a temporary JSON file
 		$path = storage_path('calendar.json');
 		file_put_contents($path, '{}');
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'calendar.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cal-id']
-		]);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calendar.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal-id']
+		);
+		Utility::resetSettingsCache();
+
+		// Inject mock gateway so configure() reads settings + sets Config
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
 
 		// This should set configuration without error
 		Utility::googleCalendarConfig();
@@ -13091,6 +13109,7 @@ class UtilityTest extends TestCase
 
 		// Remove file so warnings branch
 		unlink($path);
+		Utility::resetSettingsCache();
 		// Should not throw
 		Utility::googleCalendarConfig();
 	}
@@ -13108,12 +13127,20 @@ class UtilityTest extends TestCase
 		// Prepare a valid JSON file for googleCalendarConfig
 		$file = storage_path('cal2.json');
 		file_put_contents($file, '{}');
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'cal2.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'id2']
-		]);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal2.json']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'id2']
+		);
+		Utility::resetSettingsCache();
 
-		// Use a fake request object
+		// Inject shared mock gateway
+		$mock = new \App\Services\Calendar\MockCalendarGateway();
+		\App\Services\Utility\CalendarService::setGateway($mock);
+
 		$request = (object)[
 			'title'      => 'Meeting',
 			'start_date' => '2025-09-01 10:00:00',
@@ -13121,13 +13148,16 @@ class UtilityTest extends TestCase
 		];
 		Utility::addCalendarData($request, 'meeting');
 
-		// getCalendarData for type 'meeting'
+		// getCalendarData for type 'meeting' (colorId=3)
 		$events = Utility::getCalendarData('meeting');
 		$this->assertIsArray($events);
 		$this->assertCount(1, $events);
 		$ev = $events[0];
 		$this->assertEquals('Meeting', $ev['title']);
 		$this->assertEquals('2025-09-01 10:00:00', Carbon::parse($ev['start'])->toDateTimeString());
+
+		// Cleanup
+		@unlink($file);
 	}
 
 	/**

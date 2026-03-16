@@ -8,12 +8,13 @@ use App\Models\Contract;
 use Illuminate\Support\Collection;
 use Tests\Concerns\SafeAliasMock;
 
+use Illuminate\Support\Facades\DB;
 class ContractTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 
 	use SafeAliasMock;

@@ -5,12 +5,13 @@ namespace Tests\Unit\Models;
 use App\Models\Product;
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 class ProductTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	/**
 	 ** @test

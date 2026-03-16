@@ -8,6 +8,7 @@ use App\Traits\LogsIcons;
 use PHPUnit\Framework\Attributes\{Group, Test};
 use Tests\TestCase;
 
+use Illuminate\Support\Facades\DB;
 #[Group('models-traits')]
 class LogsIconsTest extends TestCase
 {
@@ -22,7 +23,7 @@ class LogsIconsTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// Reset static icon map cache between tests
 		$ref = new \ReflectionClass(self::host());
 		$prop = $ref->getProperty('iconMap');
