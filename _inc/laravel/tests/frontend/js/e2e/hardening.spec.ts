@@ -1,19 +1,11 @@
 import { test, expect, type ConsoleMessage, type Page } from "@playwright/test";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-const CURRENT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const CURRENT_DIR = path.resolve(__dirname);
 const MOCKS_ROOT = path.resolve(CURRENT_DIR, "..", "pages", "mocks");
 const RBAC_ROOT = path.join(MOCKS_ROOT, "rbac");
-const ROLE_PAGES = [
-  "super-admin.html",
-  "admin.html",
-  "hr.html",
-  "accountant.html",
-  "client.html",
-  "guest.html",
-];
+const ROLE_PAGES = ["super-admin.html", "admin.html", "hr.html", "accountant.html", "client.html", "guest.html"];
 
 function fileUrl(file: string): string {
   return `file://${file}`;
@@ -77,19 +69,11 @@ async function collectClientErrors(page: Page): Promise<{
 }
 
 test.describe("Frontend mock hardening", () => {
-  test("rbac index only links to pages that exist on disk", async ({
-    page,
-  }) => {
+  test("rbac index only links to pages that exist on disk", async ({ page }) => {
     const indexFile = path.join(RBAC_ROOT, "index.html");
     await page.goto(fileUrl(indexFile));
 
-    const hrefs = await page
-      .locator('a[href$=".html"]')
-      .evaluateAll(links =>
-        links
-          .map(link => link.getAttribute("href") || "")
-          .filter(href => href.length > 0),
-      );
+    const hrefs = await page.locator('a[href$=".html"]').evaluateAll(links => links.map(link => link.getAttribute("href") || "").filter(href => href.length > 0));
 
     const missing = hrefs.filter(href => {
       const resolved = path.resolve(RBAC_ROOT, href);
@@ -102,9 +86,7 @@ test.describe("Frontend mock hardening", () => {
   for (const file of getMockHtmlFiles()) {
     const label = path.relative(MOCKS_ROOT, file).split(path.sep).join("/");
 
-    test(`${label} loads without client-side runtime errors`, async ({
-      page,
-    }) => {
+    test(`${label} loads without client-side runtime errors`, async ({ page }) => {
       const errors = await collectClientErrors(page);
 
       await page.goto(fileUrl(file));

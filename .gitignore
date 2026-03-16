@@ -163,3 +163,8 @@ _inc/flutter/
 
 **/storage/tmp/
 _inc/laravel/.phpunit.result.cache
+
+.agent.md
+.instructions.md
+AGENTS.md
+copilot-instructions.md

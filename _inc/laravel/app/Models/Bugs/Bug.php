@@ -9,7 +9,7 @@ use App\Config\Constants\{
 };
 use App\Traits\{DefinesDates, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, HasOne};
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
@@ -60,25 +60,19 @@ class Bug extends Model
         'high'   => 'High',
     ];
 
-    public function bugStatus(): HasOne
+    public function bugStatus(): BelongsTo
     {
-        return $this
-            ->hasOne(BugStatus::class, 'id', self::COL_STATUS);
-        // * consider using belongsTo(BugStatus::class, self::COL_STATUS)
+        return $this->belongsTo(BugStatus::class, self::COL_STATUS);
     }
 
-    public function assignTo(): HasOne
+    public function assignTo(): BelongsTo
     {
-        return $this
-            ->hasOne(User::class, 'id', self::COL_ASSIGN_TO);
-        // * consider using belongsTo(User::class, self::COL_ASSIGN_TO)
+        return $this->belongsTo(User::class, self::COL_ASSIGN_TO);
     }
 
-    public function createdBy(): HasOne
+    public function createdBy(): BelongsTo
     {
-        return $this
-            ->hasOne(User::class, 'id', self::COL_CREATED_BY);
-        // * consider using belongsTo(User::class, self::COL_CREATED_BY)
+        return $this->belongsTo(User::class, self::COL_CREATED_BY);
     }
 
     public function comments(): HasMany
@@ -95,11 +89,9 @@ class Bug extends Model
             ->orderBy('id', 'DESC');
     }
 
-    public function project(): HasOne
+    public function project(): BelongsTo
     {
-        return $this
-            ->hasOne(Project::class, 'id', self::COL_PROJECT_ID);
-        // * consider using belongsTo(Project::class, self::COL_PROJECT_ID)
+        return $this->belongsTo(Project::class, self::COL_PROJECT_ID);
     }
 
     public function users(): mixed
