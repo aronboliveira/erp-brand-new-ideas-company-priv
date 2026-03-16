@@ -17,6 +17,6 @@
 		- Use scss variables when values repeat. Use scss mixins when blocks of styling repeat;
 	</sass>
 	<libs>
-		- Make better usage of Material UI with React and Tailwind CSS, prioritizing the first one;
+		- Make better usage of Bootstraup UI with and Tailwind CSS, prioritizing the first one;
 	</libs>
 </styling>

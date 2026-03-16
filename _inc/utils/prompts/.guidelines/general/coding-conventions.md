@@ -28,6 +28,7 @@ Only include comments that point where logic should be added or refactored, with
 
 ## Imports & Exports
 
+- Use {} spreading for DRYing up imports/uses;
 - Sort alphabetically at all depths.
 
 ## Static Methods
