@@ -1,6 +1,11 @@
-# Route Health Report — 2026-02-07 (updated 2026-03-10, session 2)
+# Working Issues Log
 
-## Summary
+> Chronological record of bug-fix sessions. Latest session at the bottom.
+> Last updated: 2026-03-15
+
+## Session 1 — Route Health (2026-02-07)
+
+### Summary
 
 | Crawl         | HTTP 500s     | Date             | Notes                                                      |
 | ------------- | ------------- | ---------------- | ---------------------------------------------------------- |
@@ -349,3 +354,109 @@ Feature test failures (25):
 1. **`DashboardController` not found** — `web.php:152` references `App\Http\Controllers\DashboardController` which doesn't exist. Causes cascading 500s on `/home`, `/hrm-dashboard` post-login views.
 2. **Route 404s** — Several export/download routes return 404 (likely missing route definitions or renamed URIs).
 3. **Playwright auth context** — While `auth.setup.cjs` now works correctly, many specs test pages that depend on `DashboardController` to render post-login views, causing failures.
+
+---
+
+## Session 7 — Calendar Mock Infrastructure + IDE Fixes (2026-03-14)
+
+**Scope:** Build full calendar testing infrastructure, fix IDE errors, rewrite all 14 calendar tests.
+
+### Infrastructure Created
+
+| Component                   | File                                              | Purpose                                                  |
+| --------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| `CalendarGateway` interface | `app/Contracts/CalendarGateway.php`               | 3 methods: `configure()`, `createEvent()`, `getEvents()` |
+| `GoogleCalendarGateway`     | `app/Services/Calendar/GoogleCalendarGateway.php` | Real Spatie implementation                               |
+| `MockCalendarGateway`       | `app/Services/Calendar/MockCalendarGateway.php`   | In-memory mock with `configure()` that reads DB settings |
+| `CalendarService`           | `app/Services/Calendar/CalendarService.php`       | DI via `App::bound()` / `setGateway()`                   |
+
+### IDE Errors Fixed
+
+- `AllowanceController` — missing return type on `store()`
+- Unused imports across several files
+- Missing `DB` facade imports
+
+### Calendar Tests Rewritten (10 methods, all 14 assertions passing)
+
+All tests now use `CalendarService::setGateway($mock)` for shared mock, `DB::table('settings')->updateOrInsert()` for settings, and `Utility::resetSettingsCache()` to flush cached values.
+
+### Test Results
+
+| Metric  | Before | After   |
+| ------- | ------ | ------- |
+| Passed  | 385    | **395** |
+| Failed  | 29     | **21**  |
+| Skipped | 7      | **6**   |
+| Risky   | 1      | **0**   |
+
+21 remaining failures are all accounting/financial tests (CoA seeding, balance sheet, trial balance) — pre-existing.
+
+---
+
+## Session 8 — Utility Delegation + Problems Panel Cleanup (2026-03-15)
+
+**Scope:** Extract 68 methods from `Utility.php` into 6 service classes, resolve all VS Code Problems Panel errors, DRY imports across all modified files, clear caches/logs, archive outdated files.
+
+### Utility Delegation (68 methods → 6 services)
+
+| Service Class           | Methods | Domain                                             |
+| ----------------------- | ------- | -------------------------------------------------- |
+| `AccountingService`     | 12      | Chart of accounts, journal, trial balance          |
+| `FileStorageService`    | 10      | File upload/download, S3/Wasabi, storage settings  |
+| `FinanceBillingService` | 14      | Invoices, bills, taxes, payments, proposals        |
+| `LocalizationService`   | 12      | Languages, currency, phone, date/time formatting   |
+| `ModelLookupService`    | 10      | Settings lookups, plan checks, model finders       |
+| `NotificationService`   | 10      | Email templates, Twilio SMS, Pusher, notifications |
+
+- `Utility.php`: 4,282 → 1,828 lines (57% reduction)
+- All original method signatures preserved as delegation stubs with `@see` references
+- Each service uses `ChecksLogin` trait for auth context
+- Added `TenantSetupService` (pre-existing) integration fixes
+
+### Problems Panel: 895+ → 0 Errors
+
+#### Import Cleanup (Utility.php — 49 → 0 intelephense errors)
+
+Removed 30+ unused imports after delegation:
+
+- Constants: `ActivityConstants`, `BillsConstants`, `CrmPipelineConstants`, `LanguageConstants`
+- Models: `BrazilState`, `GoogleEvent`, `UserType`, `ErrorHandler`, `CommonEmailTemplate`, 20+ others
+- Facades: `Artisan`, `Cache`, `File`, `Schema`, `Storage`, `Validator`
+- Others: `ModelNotFoundException`, `FilesystemAdapter`, `TwilioClient`
+- Restored `BelongsTo` (used 7× as return type)
+
+#### Type Fixes (LocalizationService.php)
+
+- Cast `(int)$areaCode` for integer comparison
+- Cast `(string) rand(0, 9999999)` for `str_pad()` first argument
+- Removed unused `DB` import
+
+#### Other File Fixes
+
+| File                             | Fix                                                        |
+| -------------------------------- | ---------------------------------------------------------- |
+| `FinanceBillingService.php`      | Removed unused `UC`, `Product`, `Auth` imports             |
+| `UtilityTest.php`                | Removed `GoogleEvent`, added `@var` annotations            |
+| `ProductServiceCategoryTest.php` | Added `@var` annotations for Mockery casts                 |
+| `ProjectTaskTest.php`            | Added `DB` import                                          |
+| `GeneratedOfferLetterTest.php`   | Added required `$createdBy` argument                       |
+| `ReportController.php`           | Added `BillsConstants as BC` import                        |
+| `SetSalaryController.php`        | Added `JsonResponse` import                                |
+| `Proposal.php`                   | `\Utility::` → `Utility::`, removed unused imports         |
+| `.vscode/settings.json`          | `database/schema/*.sql` → `plaintext` (72 false positives) |
+
+### Test Infrastructure Fixes
+
+- **ChartOfAccountType seeding**: `id` field is guarded — used `$rec = new ChartOfAccountType(); $rec->id = $id; $rec->saveQuietly();`
+- **Number format prefixes**: Fixed 13+ test assertions (`#` → `INV-`, `BILL-`, etc.) based on DB `utility_settings` format
+- **UtilityTest assertMissing**: Extracted `Storage::disk('local')` to typed `$disk` variable
+
+### Cache / Logs Cleared
+
+- `composer clear-all-cache` + `composer clear-logs`
+- Deleted: view cache, PHPUnit cache, PHPStan cache, npm cache, storage/tmp, debugbar, bootstrap/cache, event cache
+
+### File Archival
+
+- 7 outdated scan files → `.notes/.history/`
+- 2 session logs → `.notes/.llms/.history/reports/`

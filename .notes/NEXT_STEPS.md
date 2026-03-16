@@ -1,20 +1,49 @@
 # NEXT STEPS
 
-> Last updated: 2026-03-11
+> Last updated: 2026-03-15
 > Full resolution history in `.notes/.llms/.history/`. Coding patterns in `.notes/.llms/.guidelines/`.
 
 ---
 
 ## IMMEDIATE
 
-1. **Review PHPStan L3 fresh result** — `cat /tmp/phpstan_fresh.txt` (run in progress with `--memory-limit=2G`). Fix high-value errors once complete; BillController and DashboardController are primary targets.
-2. **Fix `npm run test:pytest` `/bin/sh` failure** — Change `package.json` `test:pytest` script: replace `source .venv/bin/activate` with `. .venv/bin/activate` so it works under POSIX sh.
+1. ~~**Review PHPStan L3 fresh result**~~ — ✅ DONE (0 errors)
+2. ~~**Fix `npm run test:pytest` `/bin/sh` failure**~~ — ✅ DONE (replaced `source` with `.`)
 3. **Run Playwright E2E** — Requires `php artisan serve` running. Then `npm run test:playwright` (9 specs, auth setup must succeed)
 4. **Run curl timing** — `bash tests/curl_timing.sh` (requires running server, benchmarks 18+ routes)
 5. **Test shared-link password flow** — existing shared links require password re-entry (base64→bcrypt migration)
 6. **Replace JS route files** — Use `ts/dist-iife/` output to replace `public/assets/js/routes/` (1,097 files). Core singleton `erp-core.js` should be loaded in Blade footer before route scripts.
+7. ~~**Utility class delegation**~~ — ✅ DONE (2026-03-15). 68 methods extracted to 6 service classes (`AccountingService`, `FileStorageService`, `FinanceBillingService`, `LocalizationService`, `ModelLookupService`, `NotificationService`). `Utility.php` reduced 4,282 → 1,828 lines. All delegation stubs preserved.
+8. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
+9. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
 
 ---
+
+## RECENTLY COMPLETED (2026-03-15)
+
+### Utility Delegation + Problems Panel Cleanup + Import DRYing
+
+- **68 methods** extracted from `Utility.php` into 6 service classes under `app/Services/Utility/`
+- **Utility.php** reduced from 4,282 to 1,828 lines; all stubs preserved with `@see` references
+- **Problems Panel**: 895+ errors → **0 errors** across all PHP files
+- **30+ unused imports** removed from `Utility.php`, `FinanceBillingService.php`, `UtilityTest.php`
+- **Type fixes**: `(int)$areaCode`, `(string) rand()` for `str_pad`, `@var` annotations for Mockery/Storage
+- **IDE fixes**: 10+ files — missing imports, unused imports, wrong namespace references
+- **mysql-schema.sql**: Suppressed 72 false-positive SQL linter errors via `.vscode/settings.json`
+- **Chart of Account seeding**: `ChartOfAccountType` UUID-guarded ID fix (`$rec->id = $id; $rec->saveQuietly()`)
+- **Test assertion fixes**: 13+ number format prefix mismatches (`#` → `INV-`, `BILL-`, etc.)
+- **Cache/logs**: Full clear (composer, artisan, PHPStan, npm, view, bootstrap, debugbar, storage/tmp)
+- **File archival**: 9 outdated scan files moved to `.notes/.history/` and `.notes/.llms/.history/reports/`
+
+## RECENTLY COMPLETED (2026-03-14)
+
+### Calendar Mock Infrastructure + Test Rewrites
+
+- **CalendarGateway pattern**: Interface + `GoogleCalendarGateway` + `MockCalendarGateway` + `CalendarService` with DI
+- **14/14 calendar tests passing**: All rewritten to use `CalendarService::setGateway()`, `MockCalendarGateway` fixtures, `updateOrInsert()` + `resetSettingsCache()`
+- **IDE error fixes**: AllowanceController, unused imports, DB imports
+- **Test suite**: 395/422 passed (93.6%), 0 risky, 21 accounting failures (pre-existing)
+- **Notes/docs**: 14 files moved to `.history/`, 4 files updated (KNOWN_ISSUES, CURRENT_WORKING_ISSUES, NEXT_STEPS, typescript-migration)
 
 ## RECENTLY COMPLETED (2026-03-11)
 

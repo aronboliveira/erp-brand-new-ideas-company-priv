@@ -1,26 +1,56 @@
 # Known / Remaining Unresolved Issues
 
-> Last updated: 2026-03-12 (commit `f676cb8f`)
+> Last updated: 2026-03-15
 
-## RECENTLY RESOLVED
+## RECENTLY RESOLVED (2026-03-15)
 
-### Deal/Lead Infinite Recursion (OOM) — ✅ RESOLVED 2026-03-12
+### Utility Class Delegation — ✅ RESOLVED 2026-03-15
 
-`Deal::labels()`, `Lead::labels()`, `Lead::products()`, `Lead::sources()` had methods
-sharing names with database columns. When attributes were absent (e.g. from factory),
-`getAttribute()` treated the method as a relation, calling it recursively → infinite OOM.
-**Fix:** Use `$this->getAttributes()['col']` instead of `$this->getAttribute('col')`.
+Extracted 68 methods from `Utility.php` (4,282 → 1,828 lines) into 6 service classes under `app/Services/Utility/`:
 
-### PHP CLI Unlimited Memory — ✅ RESOLVED 2026-03-12
+- `AccountingService` — chart of accounts, journal, trial balance, balance sheet
+- `FileStorageService` — file upload/download, storage settings, S3/Wasabi
+- `FinanceBillingService` — invoices, bills, taxes, payments, proposals
+- `LocalizationService` — languages, currency, phone formatting, date/time
+- `ModelLookupService` — settings lookups, plan checks, model finders
+- `NotificationService` — email templates, Twilio SMS, Pusher, notifications
 
-`/etc/php/8.4/cli/php.ini` had `memory_limit = -1`. Any PHPUnit/PHPStan process could
-consume all 30GB RAM and crash VSCode via systemd-oomd. **Fix:** Set to 2G, added
-phpunit.xml guard (2G), earlyoom installed.
+All original method signatures preserved as delegation stubs in `Utility.php`.
 
-### BankTransferPaymentController uploadReceipt — ✅ RESOLVED 2026-03-12
+### Problems Panel Cleanup — ✅ RESOLVED 2026-03-15
 
-`Utility::uploadFile()` returns `array{flag, msg, url}` but was assigned directly to
-`$path` variable. **Fix:** Extract `$result['url']`.
+Reduced VS Code Problems Panel from 895+ errors to **0 errors** across all PHP files:
+
+- Removed 30+ unused imports from `Utility.php` (49 intelephense errors → 0)
+- Fixed `LocalizationService.php`: removed unused `DB` import, cast `(int)$areaCode`, `(string) rand()` for `str_pad`
+- Fixed `FinanceBillingService.php`: removed unused `UC`, `Product`, `Auth` imports
+- Fixed `UtilityTest.php`: removed unused `GoogleEvent`, added `@var` annotations, extracted `Storage::disk()` to typed variable
+- Fixed `ProductServiceCategoryTest.php`: added `@var` annotations for Mockery casts
+- Fixed `ProjectTaskTest.php`, `GeneratedOfferLetterTest.php`: added missing imports/args
+- Fixed `ReportController.php`: added `BillsConstants as BC` import
+- Fixed `SetSalaryController.php`: added `JsonResponse` import
+- Fixed `Proposal.php`: `\Utility::` → `Utility::` (same namespace), removed unused imports
+- Suppressed `mysql-schema.sql` false positives via `.vscode/settings.json` file association → `plaintext`
+
+### CalendarService + MockCalendarGateway — ✅ RESOLVED 2026-03-14
+
+Calendar testing infrastructure fully rebuilt:
+
+- Created `CalendarGateway` interface, `GoogleCalendarGateway`, `MockCalendarGateway`
+- `CalendarService` refactored to use DI via `App::bound()` / `App::instance()`
+- `MockCalendarGateway::configure()` now reads DB settings and sets `Config` values (was no-op)
+- All 14 calendar tests in `UtilityTest` rewritten and passing (was: 8 failing, 1 skipped, 1 risky)
+- Test baseline: 395/422 passed (93.6%), 0 risky
+
+### IDE Error Fixes — ✅ RESOLVED 2026-03-14
+
+`AllowanceController` missing return type, unused imports across several files, missing `DB` imports — all fixed.
+
+## PREVIOUSLY RESOLVED (2026-03-12)
+
+- **Deal/Lead Infinite Recursion (OOM)** — `__get()` collision with relation names → `$this->getAttributes()['col']`
+- **PHP CLI Unlimited Memory** — `memory_limit = -1` → set to 2G + phpunit.xml guard + earlyoom
+- **BankTransferPaymentController uploadReceipt** — `Utility::uploadFile()` result extraction
 
 ## OPEN — Application Behaviour
 
@@ -42,113 +72,24 @@ Routes that redirect back to themselves due to module permission middleware orde
 **Playwright impact:** Tests can't assert `toBeVisible()` on hidden table. Tests currently skip these.  
 **Effort:** Low CSS fix or test workaround with `waitForResponse`.
 
-### 3. HTTP 500 on Non-Existent UUIDs — ✅ RESOLVED
+[TASKED] ### 3. PHPUnit Unit Tests ~21 Pre-Existing Failures
 
-Data-dependent routes return 500 instead of 404 when seeded data is absent.
+Accounting/financial test failures (CoA seeding, balance sheet, trial balance). All pre-date current audit. Not regressions. Test baseline: 395/422 passed (93.6%).
 
-| Route                                              | Was               | Now            | Fix                                                                                                                   |
-| -------------------------------------------------- | ----------------- | -------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `GET /deals/{id}/tasks`                            | 500               | 302 (redirect) | `taskCreate`: replaced manual `response()->json([...], 500)` in `ModelNotFoundException` catch with `handleFailure()` |
-| `GET /deals/{id}/tasks/{taskId}` (show/edit)       | 500               | 302 (redirect) | `taskShow`, `taskEdit`: same pattern — refactored to `handleFailure()`                                                |
-| `POST /deals/{id}/tasks`                           | 500 (JSON)        | 404 (JSON)     | `taskStore`: `ModelNotFoundException` now uses `handleFailure(..., 404)`                                              |
-| `DELETE/PUT /deals/{id}/tasks/{taskId}` (jsonUser) | 500 (JSON)        | 404 (JSON)     | `jsonUser`: `ModelNotFoundException` uses `handleFailure(..., 404)`                                                   |
-| `GET /deals/{id}/users`                            | 302 ✅ already    | —              | Already uses `handleFailure()`                                                                                        |
-| `GET /projects/1/...`                              | 200 / redirect ✅ | —              | `ProjectReportController` already handles gracefully                                                                  |
-| `GET /email_template_stores/1`                     | 302 ✅ already    | —              | Route uses `R::any` → redirects                                                                                       |
-| `GET /store-language`                              | 302 ✅ already    | —              | Route uses `R::any` → redirects                                                                                       |
-| `GET /stripes/1`                                   | 302 ✅ already    | —              | StripePaymentController redirects                                                                                     |
+---
 
-**Root cause:** `DealController::taskCreate/taskShow/taskEdit` had manual `catch (ModelNotFoundException $e) { return response()->json([...], 500); }` instead of using the class-level `handleFailure()` helper (which redirects web requests, returns correct JSON status for API requests).
+## PREVIOUSLY RESOLVED (archive — see git history for details)
 
-**Global handler** (`Handler.php`) already maps `ModelNotFoundException → 404` but is bypassed when controllers catch exceptions internally.
-
-**Result:** `GET /deals/1/tasks` now returns 302 (redirect to deals index) instead of 500. All 581 `RouteParamMatrixTest` assertions pass. All tinker route checks non-500.
-
-### 4. PHPStan Level 5 Errors — ✅ RESOLVED
-
-**Was:** 9 errors across 2 files (at configured level 5).
-
-| File                                       | Root cause                                                                                                                                                                                                      | Fix                                                                                     |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `AuthenticatedSessionController.php` (×2)  | `empty.offset` on optional locale-message array keys                                                                                                                                                            | Added `- identifier: empty.offset` to `phpstan.neon`                                    |
-| `NotificationTemplatesController.php` (×7) | Wrong namespace (`App\Http\Controllers` instead of `App\Http\Controllers\Info`); missing `use function` imports for `defaultPermissionDenial`/`defaultUndefinedException`; no `bootstrapFiles` for helper files | Fixed namespace; added `use function` imports; added `bootstrapFiles` to `phpstan.neon` |
-
-**Result:** `phpstan analyse` (full path) → ✅ No errors.
-
-[TASKED] ### 5. PHPUnit Unit Tests ~30 Pre-Existing Failures
-
-Model-level test failures: validation, seeder assertions, permission checks. All pre-date this audit. Not regressions.
-
-### 6. Route Pluralization Bug — ✅ RESOLVED (commit `9d2d5fa9`)
-
-**Was:** `GET /login` returned 405 (Method Not Allowed). The actual GET route was at `/logins/{lang?}`.
-
-**Root cause:** Two `RouteServiceProvider` classes (main + LandingPage module) had URI
-pluralization loops that only checked the _last_ URI segment against a `specialRoutes`
-whitelist. For `GET /login/{lang?}`, the last segment is `{lang?}`, so `login` was
-pluralized to `logins`. The module RSP ran after the main RSP, re-applying the broken logic.
-
-**Fix:** Changed both RSPs to check ALL segments against `specialRoutes`. Expanded whitelist
-to include `verify`, `logout`, `forgot-password`, `reset-password`, `confirm-password`,
-`two-factor-challenge`, `fortify-login`. Added guard against pluralizing `{param}` segments.
-
-### 7. Namespace Collision in route:list — ✅ RESOLVED (commit `9d2d5fa9`)
-
-**Was:** `php artisan route:list` crashed with `ReflectionException: Class
-"App\Http\Controllers\Modules\LandingPage\Http\Controllers\CustomPageController" does not exist`.
-
-**Root cause:** `$namespace = 'App\\Http\\Controllers'` in main RSP was prepended to ALL
-controller references. Since all 191 routes use `::class` FQCN syntax, module controller
-FQCNs got double-namespaced.
-
-**Fix:** Removed `$namespace` property and `->namespace()` calls from all route groups in
-both RSPs.
-
-### 8. HTTP 4xx Error Handler — ✅ RESOLVED (commit `9d2d5fa9`)
-
-**Was:** All 4xx HTTP errors (401, 403, 405, etc.) showed "Access Denied" page.
-
-**Fix:** Differentiated: 401/403 → Access Denied, 405 → Method Not Allowed, other 4xx →
-generic client error with status code.
-
-### 9. Model Relation Alias Collisions — ✅ RESOLVED (commit `5fbdb617`)
-
-**Was:** Five models defined `snake_case` relation aliases (e.g., `chart_of_account()`)
-that collided with DB column names. Laravel's `__get()` magic called the relation instead
-of returning the column value.
-
-**Models fixed:** `ChartOfAccount`, `Bug`, `Expense`, `Invoice`, `Proposal`.
-
-**Fix:** Removed conflicting snake_case aliases. Original camelCase relations remain.
-
-### 10. Login Detail FK Constraint Violation — ✅ RESOLVED (commit `b4265c32`)
-
-**Was:** Login via Playwright (HeadlessChrome) failed with `SQLSTATE[23000]: Integrity
-constraint violation: 1452 Cannot add or update a child row: a foreign key constraint
-fails (login_details.created_by_foreign)`. The `login_details.created_by` was set to `0`
-(not a valid UUID) via `$user->creatorId()`.
-
-**Root cause:** `AuthenticatedSessionController::_logUser()` called `$user->creatorId()`
-which returns the user's own `created_by` field. For seeded/legacy users with
-`created_by = '0'`, this violated the FK to `users.id` (UUID column).
-
-**Fix:** Added UUID validation on `creatorId()` return value with fallback to `$user->id`.
-
-### 11. Playwright auth.setup.cjs Broken — ✅ RESOLVED (commit `b4265c32`)
-
-**Was:** `auth.setup.cjs` always reported "Login failed - still on login page" even when
-credentials were valid.
-
-**Root causes (3):**
-
-1. `waitForURL` regex `/.*(?!login).*$/` matches ALL strings (including `/login`) due to
-   greedy `.*` before negative lookahead — resolved immediately without waiting.
-2. Duplicate form IDs (`#loginForm`, `#email-input`, `#pw-input`, `#saveBtn`) from
-   responsive layout — both visible in DOM (second below fold).
-3. No `Promise.all` pattern for click + waitForNavigation — race condition.
-
-**Fix:** Rewrote with `page.waitForURL(url => !url.pathname.endsWith('/login'))`,
-visible-first locators, viewport size, and `Promise.all([waitForURL, click])`.
+| #   | Issue                                | Commit     | Status      |
+| --- | ------------------------------------ | ---------- | ----------- |
+| 3   | HTTP 500 on Non-Existent UUIDs       | `9d2d5fa9` | ✅ RESOLVED |
+| 4   | PHPStan Level 5 Errors               | —          | ✅ RESOLVED |
+| 6   | Route Pluralization Bug              | `9d2d5fa9` | ✅ RESOLVED |
+| 7   | Namespace Collision in route:list    | `9d2d5fa9` | ✅ RESOLVED |
+| 8   | HTTP 4xx Error Handler               | `9d2d5fa9` | ✅ RESOLVED |
+| 9   | Model Relation Alias Collisions      | `5fbdb617` | ✅ RESOLVED |
+| 10  | Login Detail FK Constraint Violation | `b4265c32` | ✅ RESOLVED |
+| 11  | Playwright auth.setup.cjs Broken     | `b4265c32` | ✅ RESOLVED |
 
 ---
 
