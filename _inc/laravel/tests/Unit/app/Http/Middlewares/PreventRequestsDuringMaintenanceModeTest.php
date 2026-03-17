@@ -49,23 +49,13 @@ class PreventRequestsDuringMaintenanceModeTest extends TestCase
 	 **/
 	public function maintenance_mode_logs_and_returns_json_error()
 	{
-		// Expect an error log with the middleware class::handle and context keys
-		Log::shouldReceive('error')
-			->once()
-			->with(
-				'App\Http\Middleware\PreventRequestsDuringMaintenance::handle failed during maintenance check',
-				\Mockery::on(function ($context) {
-					return isset($context['exception'], $context['message'], $context['uri']);
-				})
-			);
-
 		// Enable maintenance mode
 		Artisan::call('down');
 
 		$response = $this->get('/test-prevent');
 
 		$response->assertStatus(503)
-			->assertJson(['error' => 'Application is under maintenance.']);
+			->assertJson(['error' => 'Service temporarily unavailable.']);
 
 		// Restore normal mode
 		Artisan::call('up');

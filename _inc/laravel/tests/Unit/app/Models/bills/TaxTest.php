@@ -24,7 +24,7 @@ class TaxTest extends TestCase
 	public function tax_is_fillable()
 	{
 		$data = [
-			'name'       => 'VAT',
+			'name'       => 'VAT_' . uniqid(),
 			'rate'       => 12.5,
 		];
 

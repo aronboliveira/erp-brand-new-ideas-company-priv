@@ -176,5 +176,6 @@
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
         <env name="SESSION_DRIVER" value="array" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false" force="true"/>
+        <env name="VIEW_COMPILED_PATH" value="storage/framework/views" force="true"/>
     </php>
 </phpunit>

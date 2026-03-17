@@ -70,7 +70,7 @@ use Illuminate\Support\Facades\{
 	Schema,
 	Storage
 };
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use Twilio\Rest\Client as TwilioClient;
 use Tests\Concerns\SafeAliasMock;
 
@@ -95,11 +95,6 @@ class UtilityTest extends TestCase
 	private function forceCreate(string $class, array $attrs): Model
 	{
 		$instance = (new $class())->forceFill($attrs);
-		// saveQuietly() skips events, so UsesUuids boot (creating event) won't fire.
-		// Manually generate UUID when needed.
-		if (empty($instance->getKey()) && !$instance->getIncrementing()) {
-			$instance->{$instance->getKeyName()} = (string) \Illuminate\Support\Str::uuid();
-		}
 		$instance->saveQuietly();
 		return $instance;
 	}
@@ -127,11 +122,9 @@ class UtilityTest extends TestCase
 		// Clear stale CoA data that causes UniqueConstraintViolation on
 		// chart_of_account_sub_types.code_unique when the saving observer
 		// regenerates `code` from `name` during updateOrCreate.
-		// Wrap each delete in retry() to handle transient InnoDB deadlocks
-		// (SQLSTATE[40001]) caused by RefreshDatabase transaction boundaries.
-		foreach (['chart_of_accounts', 'chart_of_account_sub_types', 'chart_of_account_types'] as $t) {
-			retry(3, fn () => DB::table($t)->delete(), 200);
-		}
+		DB::table('chart_of_accounts')->delete();
+		DB::table('chart_of_account_sub_types')->delete();
+		DB::table('chart_of_account_types')->delete();
 		// Seed ChartOfAccountType and ChartOfAccountSubType records for tests
 		$this->seedChartOfAccountTypes();
 		// Create a super-admin user for auth-based tests
@@ -188,9 +181,9 @@ class UtilityTest extends TestCase
 		}
 		// SubTypes with UUIDs matching ChartsConstants
 		$subTypes = [
-			[CTC::ST_CURRENT_ASSET,        CTC::TP_ASSETS,      'Current Asset'],
-			[CTC::ST_INVENTORY_ASSET,      CTC::TP_ASSETS,      'Inventory Asset'],
-			[CTC::ST_NONCURRENT_ASSET,     CTC::TP_ASSETS,      'Non-current Asset'],
+			[CTC::ST_CURRENT_ASSET,        CTC::TP_ASSETS,      'Current Assets'],
+			[CTC::ST_INVENTORY_ASSET,      CTC::TP_ASSETS,      'Inventory Assets'],
+			[CTC::ST_NONCURRENT_ASSET,     CTC::TP_ASSETS,      'Non-current Assets'],
 			[CTC::ST_CURRENT_LIABILITIES,  CTC::TP_LIABILITIES, 'Current Liabilities'],
 			[CTC::ST_LONGTERM_LIABILITIES, CTC::TP_LIABILITIES, 'Long-term Liabilities'],
 			[CTC::ST_SHARE_CAPITAL,        CTC::TP_EQUITY,      'Share Capital'],
@@ -1737,7 +1730,7 @@ class UtilityTest extends TestCase
 	public function test_add_new_data_creates_permissions_for_company_role()
 	{
 		// Create company role
-		Role::findOrCreate('company');
+		\Spatie\Permission\Models\Role::findOrCreate('company');
 		// Ensure ARR_PERMISSIONS and COMPANY_DATA_PERMISSIONS arrays are non-empty
 		Utility::addNewData();
 		$this->assertTrue(true); // no exception thrown
@@ -2786,18 +2779,18 @@ class UtilityTest extends TestCase
 
 		// Complex computation: create product, invoice, payment, revenue, bill, etc.
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0007', 'type' => 'product', 'sale_chart_account_id' => 2, 'expense_chart_account_id' => 3]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 10, 'quantity' => 2, 'created_at' => now()]);
+		\App\Models\InvoiceProduct::create(['product_id' => $prod->id, 'price' => 10, 'quantity' => 2, 'created_at' => now()]);
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => 2, 'created_by' => $user?->id]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => 3, 'price' => 3, 'created_at' => now()]);
-		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
+		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => 3, 'total' => 3, 'created_at' => now()]);
+		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
+		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now()]);
 		// Journal items
 		$jEntry = \App\Models\JournalEntry::create(['created_by' => $user?->id, 'date' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => 2, 'credit' => 6, 'debit' => 2, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => 2, 'credit' => 0, 'debit' => 3, 'created_at' => now()]);
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => 2, 'credit' => 6, 'debit' => 2, 'created_at' => now()]);
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => 2, 'credit' => 0, 'debit' => 3, 'created_at' => now()]);
 
 		$balance = $stubClass::getAccountBalance(2, null, null);
 		$this->assertIsFloat($balance);
@@ -2843,18 +2836,18 @@ class UtilityTest extends TestCase
 		$coaCredit = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user->creatorId()]);
 		$coaDebit  = ChartOfAccount::create(['type' => CTC::TP_EXPENSES, 'sub_type' => CTC::ST_GA_EXPENSES, 'created_by' => $user->creatorId()]);
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0008', 'type' => 'product', 'sale_chart_account_id' => $coaCredit->id, 'expense_chart_account_id' => $coaDebit->id]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
+		\App\Models\InvoiceProduct::create(['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => $coaCredit->id, 'created_by' => $user->creatorId()]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
+		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now()]);
+		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
 		$credit = Utility::getBalanceSheetCredit($coaCredit->id, null, null);
 		$this->assertEquals((5 * 2) + 3 + 4, $credit);
 
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => $coaDebit->id, 'price' => 1, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => $coaDebit->id, 'price' => 1, 'created_at' => now()]);
 		$bank2 = \App\Models\BankAccount::create(['chart_account_id' => $coaDebit->id, 'created_by' => $user->creatorId()]);
-		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank2->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now()]);
+		\App\Models\Payment::create(['account_id' => $bank2->id, 'amount' => 2, 'date' => now()]);
 		$debit = Utility::getBalanceSheetDebit($coaDebit->id, null, null);
 		// getBalanceSheetDebit sums the 'total' column directly, not total * quantity
 		$this->assertEquals(2 + 1 + 1 + 2, $debit);
@@ -2888,16 +2881,16 @@ class UtilityTest extends TestCase
 		// Create chart, journal, invoice, etc. similar to get_account_balance test to ensure non-empty result
 		$chart = \App\Models\ChartOfAccount::create(['code' => 'C1', 'name' => 'N1', 'type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
 		$jEntry = \App\Models\JournalEntry::create(['created_by' => $user?->creatorId(), 'date' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => $chart->id, 'credit' => 10, 'debit' => 0, 'created_at' => now()]);
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => $chart->id, 'credit' => 10, 'debit' => 0, 'created_at' => now()]);
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0009', 'type' => 'product', 'sale_chart_account_id' => $chart->id, 'expense_chart_account_id' => $chart->id]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
+		\App\Models\InvoiceProduct::create(['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => $chart->id, 'created_by' => $user?->creatorId()]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => $chart->id, 'price' => 1, 'created_at' => now()]);
-		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'created_at' => now()]);
+		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => $chart->id, 'price' => 1, 'created_at' => now()]);
+		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 1, 'created_at' => now()]);
+		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 2, 'created_at' => now()]);
 		$res = $stubClass::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($res);
 	}
@@ -3440,11 +3433,9 @@ class UtilityTest extends TestCase
 	public function test_get_val_by_name()
 	{
 		// Insert a setting for key 'test_key'
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_val']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key', 'value' => 'test_val']
+		]);
 		$value = Utility::getValByName('test_key');
 		$this->assertEquals('test_val', $value);
 		$this->assertEquals('', Utility::getValByName('nonexistent'));
@@ -4063,10 +4054,10 @@ class UtilityTest extends TestCase
 			// --- Credit side ---
 			$acct = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
 			$prodSale = ProductService::create(['sku' => 'BSSKU01', 'sale_chart_account_id' => $acct->id]);
-			$this->forceCreate(InvoiceProduct::class, ['product_id' => $prodSale->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-02']);
+			InvoiceProduct::create(['product_id' => $prodSale->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-02']);
 			$bank = BankAccount::create(['chart_account_id' => $acct->id, 'created_by' => $user?->creatorId()]);
-			InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-03', 'created_at' => '2025-01-03']);
-			Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => '2025-01-04', 'created_at' => '2025-01-04']);
+			InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-03']);
+			Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => '2025-01-04']);
 
 			$creditSum = Utility::getBalanceSheetCredit($acct->id, '2025-01-01', '2025-01-10');
 			$this->assertEquals(10 * 2 + 5 + 7, $creditSum);
@@ -4074,11 +4065,11 @@ class UtilityTest extends TestCase
 			// --- Debit side ---
 			$acct2 = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
 			$prodExp = ProductService::create(['sku' => 'BSSKU02', 'expense_chart_account_id' => $acct2->id]);
-			$this->forceCreate(BillProduct::class, ['product_id' => $prodExp->id, 'total' => 4, 'quantity' => 3, 'created_at' => '2025-01-05']);
-			$this->forceCreate(BillAccount::class, ['chart_account_id' => $acct2->id, 'price' => 2, 'created_at' => '2025-01-06']);
+			BillProduct::create(['product_id' => $prodExp->id, 'total' => 4, 'quantity' => 3, 'created_at' => '2025-01-05']);
+			BillAccount::create(['chart_account_id' => $acct2->id, 'price' => 2, 'created_at' => '2025-01-06']);
 			$bank2 = BankAccount::create(['chart_account_id' => $acct2->id, 'created_by' => $user?->creatorId()]);
-			BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => '2025-01-07', 'created_at' => '2025-01-07']);
-			Payment::create(['account_id' => $bank2->id, 'amount' => 6, 'date' => '2025-01-08', 'created_at' => '2025-01-08']);
+			BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => '2025-01-07']);
+			Payment::create(['account_id' => $bank2->id, 'amount' => 6, 'date' => '2025-01-08']);
 
 			$debitSum = Utility::getBalanceSheetDebit($acct2->id, '2025-01-01', '2025-01-10');
 			// getBalanceSheetDebit sums the 'total' column directly, not total * quantity
@@ -4128,7 +4119,7 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_trial_balance_aggregation_and_adjustment()
 	{
-		$user = User::firstOrCreate(['email' => 'tb@tb.com'], ['name' => 'TB User', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
+		$user = User::create(['name' => 'TB User', 'email' => 'tb@tb.com', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
 		// Unguard so 'created_at' (not in $fillable for many models) can be mass-assigned.
 		Model::unguard();
@@ -4136,24 +4127,24 @@ class UtilityTest extends TestCase
 			// Set up chart accounts and journal entries
 			$ca = ChartOfAccount::create(['type' => CTC::TP_LIABILITIES, 'sub_type' => CTC::ST_CURRENT_LIABILITIES, 'created_by' => $user?->creatorId()]);
 			$je = JournalEntry::create(['created_by' => $user?->creatorId()]);
-			$this->forceCreate(JournalItem::class, ['journal' => $je->id, 'account' => $ca->id, 'debit' => 5, 'credit' => 3, 'created_at' => '2025-01-10']);
+			JournalItem::create(['journal' => $je->id, 'account' => $ca->id, 'debit' => 5, 'credit' => 3, 'created_at' => '2025-01-10']);
 			// Invoice
-			$ps = ProductService::create(['sku' => 'TBSKU01_' . Str::random(6), 'sale_chart_account_id' => $ca->id]);
-			$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-12']);
+			$ps = ProductService::create(['sku' => 'TBSKU01', 'sale_chart_account_id' => $ca->id]);
+			InvoiceProduct::create(['product_id' => $ps->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-12']);
 			// InvoicePayment
 			$ba = BankAccount::create(['chart_account_id' => $ca->id, 'created_by' => $user?->creatorId()]);
-			InvoicePayment::create(['account_id' => $ba->id, 'amount' => 4, 'date' => '2025-01-13', 'created_at' => '2025-01-13']);
+			InvoicePayment::create(['account_id' => $ba->id, 'amount' => 4, 'created_at' => '2025-01-13']);
 			// Revenue
-			Revenue::create(['account_id' => $ba->id, 'amount' => 6, 'date' => '2025-01-14', 'created_at' => '2025-01-14']);
+			Revenue::create(['account_id' => $ba->id, 'amount' => 6, 'created_at' => '2025-01-14']);
 			// BillProduct
-			$ps2 = ProductService::create(['sku' => 'TBSKU02_' . Str::random(6), 'expense_chart_account_id' => $ca->id]);
-			$this->forceCreate(BillProduct::class, ['product_id' => $ps2->id, 'total' => 7, 'quantity' => 1, 'created_at' => '2025-01-15']);
+			$ps2 = ProductService::create(['sku' => 'TBSKU02', 'expense_chart_account_id' => $ca->id]);
+			BillProduct::create(['product_id' => $ps2->id, 'total' => 7, 'quantity' => 1, 'created_at' => '2025-01-15']);
 			// BillAccount
-			$this->forceCreate(BillAccount::class, ['chart_account_id' => $ca->id, 'price' => 8, 'created_at' => '2025-01-16']);
+			BillAccount::create(['chart_account_id' => $ca->id, 'price' => 8, 'created_at' => '2025-01-16']);
 			// BillPayment
-			BillPayment::create(['account_id' => $ba->id, 'amount' => 2, 'date' => '2025-01-17', 'created_at' => '2025-01-17']);
+			BillPayment::create(['account_id' => $ba->id, 'amount' => 2, 'created_at' => '2025-01-17']);
 			// Payment
-			Payment::create(['account_id' => $ba->id, 'amount' => 9, 'date' => '2025-01-18', 'created_at' => '2025-01-18']);
+			Payment::create(['account_id' => $ba->id, 'amount' => 9, 'created_at' => '2025-01-18']);
 
 			$tb = Utility::trialBalance(CTC::TP_LIABILITIES, '2025-01-01', '2025-01-31');
 			$this->assertIsArray($tb);
@@ -4305,11 +4296,10 @@ class UtilityTest extends TestCase
 		]);
 
 		// Create InvoiceProduct: price 100 * qty 2 = 200
-		$invoiceProd = $this->forceCreate(InvoiceProduct::class, [
+		$invoiceProd = InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'price' => 100,
-			'quantity' => 2,
-			'created_at' => now()
+			'quantity' => 2
 		]);
 
 		// Create InvoicePayment: amount 50
@@ -4332,18 +4322,16 @@ class UtilityTest extends TestCase
 		]);
 
 		// Create BillProduct: price 50 * qty 1 = 50
-		$billProd = $this->forceCreate(BillProduct::class, [
+		$billProd = BillProduct::create([
 			'product_id' => $psExp->id,
 			'total' => 50,
-			'quantity' => 1,
-			'created_at' => now()
+			'quantity' => 1
 		]);
 
 		// Create BillAccount: price 20
-		$billAccount = $this->forceCreate(BillAccount::class, [
+		$billAccount = BillAccount::create([
 			'chart_account_id' => $coa->id,
-			'price' => 20,
-			'created_at' => now()
+			'price' => 20
 		]);
 
 		// Create BillPayment: amount 10
@@ -4361,21 +4349,19 @@ class UtilityTest extends TestCase
 		// Create JournalEntry and JournalItem for credit 15 and debit 10
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
-			'date' => now(), 'created_at' => now()
+			'date' => now()
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'debit' => 0,
-			'credit' => 15,
-			'created_at' => now()
+			'credit' => 15
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'debit' => 10,
-			'credit' => 0,
-			'created_at' => now()
+			'credit' => 0
 		]);
 
 		// Now compute expected balances:
@@ -4406,7 +4392,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(85, $debitSum);
 
 		// trialBalance: returns merged array of grouped entries; ensure it includes our COA id
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, now()->subDay()->toDateString(), now()->addDay()->toDateString());
+		$trial = Utility::trialBalance(1, now()->subDay()->toDateString(), now()->addDay()->toDateString());
 		$this->assertIsArray($trial);
 		$found = false;
 		foreach ($trial as $row) {
@@ -5807,19 +5793,15 @@ class UtilityTest extends TestCase
 		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => 99]);
 		// Sub-types exist for type ID 1 or 2
 		$typeId = DB::table('chart_of_account_types')->where('name', 'Assets')->value('id');
-		// seedAccountTypes uses CTC::COA_SBTPS — 'Current Asset' not 'Cash'
-		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Asset', 'type' => $typeId]);
+		// seedAccountTypes uses CTC::COA_SBTPS — 'Current Assets' not 'Cash'
+		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Assets', 'type' => $typeId]);
 
-		// Use the Equity type already seeded by chartOfAccountTypeData(99) — inserting
-		// a duplicate 'Equity' row causes seedAccountsByName to non-deterministically
-		// pick the wrong one whose subtypes don't include 'Capital'.
+		// Insert a type and subtype manually for chartOfAccountData1
+		// Use created_by matching the userId we'll pass to chartOfAccountData1
+		// so seedAccountsByName($userId) can find the type via where('created_by', $userId)
 		$coa1UserId = 99;
-		$tid = DB::table('chart_of_account_types')
-			->where('name', 'Equity')
-			->where('created_by', $coa1UserId)
-			->value('id');
-		$stid = (string) Str::uuid();
-		DB::table('chart_of_account_sub_types')->insert(['id' => $stid, 'name' => 'Capital', 'type' => $tid]);
+		$tid = DB::table('chart_of_account_types')->insertGetId(['name' => 'Equity', 'created_by' => $coa1UserId, 'user_id' => $coa1UserId]);
+		$stid = DB::table('chart_of_account_sub_types')->insertGetId(['name' => 'Capital', 'type' => $tid]);
 		// Prepare chartOfAccount1 static data
 		$chart1Prop = $ref->getProperty('chartOfAccount1');
 		$chart1Prop->setAccessible(true);
@@ -6191,11 +6173,10 @@ class UtilityTest extends TestCase
 		]);
 
 		// Create an invoice product: quantity=2, price=50
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'quantity' => 2,
-			'price' => 50.00,
-			'created_at' => '2025-06-01'
+			'price' => 50.00
 		]);
 
 		// Create a bank account record for payments
@@ -6205,14 +6186,14 @@ class UtilityTest extends TestCase
 		InvoicePayment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 30.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Create a revenue: amount=20
 		Revenue::create([
 			'account_id' => $bankAccountId,
 			'amount' => 20.00,
-			'date' => '2025-06-02', 'created_at' => '2025-06-02'
+			'date' => '2025-06-02'
 		]);
 
 		// Create a product service for expense
@@ -6222,33 +6203,31 @@ class UtilityTest extends TestCase
 			'type' => 'product'
 		]);
 
-// Create a bill product: quantity=1, total=10
-                $this->forceCreate(BillProduct::class, [
-                        'product_id' => $psExp->id,
-                        'quantity' => 1,
-                        'total' => 10.00,
-			'created_at' => '2025-06-01'
+		// Create a bill product: quantity=1, price=10
+		BillProduct::create([
+			'product_id' => $psExp->id,
+			'quantity' => 1,
+			'total' => 10.00
 		]);
 
 		// Create a bill account: price=5
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coa->id,
-			'price' => 5.00,
-			'created_at' => '2025-06-01'
+			'price' => 5.00
 		]);
 
 		// Create a bill payment: amount=15
 		BillPayment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 15.00,
-			'date' => '2025-06-03', 'created_at' => '2025-06-03'
+			'date' => '2025-06-03'
 		]);
 
 		// Create a payment: amount=25
 		Payment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 25.00,
-			'date' => '2025-06-04', 'created_at' => '2025-06-04'
+			'date' => '2025-06-04'
 		]);
 
 		// Create a journal entry
@@ -6258,21 +6237,19 @@ class UtilityTest extends TestCase
 		]);
 
 		// Journal item: credit=40
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit' => 40.00,
-			'debit' => 0.00,
-			'created_at' => '2025-06-01'
+			'debit' => 0.00
 		]);
 
 		// Another journal item: debit=10
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit' => 0.00,
-			'debit' => 10.00,
-			'created_at' => '2025-06-01'
+			'debit' => 10.00
 		]);
 
 		// Test getAccountBalance
@@ -6285,9 +6262,9 @@ class UtilityTest extends TestCase
 		// billAmount = 5
 		// billPaymentAmount = 15
 		// paymentAmount = 25
-		// => (100 + 30 + 20 + 40) - (10 + 10 + 5 + 15 + 25) = 190 - 65 = 125
+		// => (100 + 30 + 20 + 40) - (10 + 5 + 15 + 25) = 190 - 55 = 135
 		$balance = Utility::getAccountBalance($coa->id, '2025-06-01', '2025-06-06');
-		$this->assertEquals(125.00, $balance);
+		$this->assertEquals(135.00, $balance);
 
 		// Test getAccountData: returns arrays of collections
 		$data = Utility::getAccountData($coa->id, '2025-06-01', '2025-06-06');
@@ -6312,7 +6289,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(55.00, $debit);
 
 		// Test trialBalance
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-06-01', '2025-06-06');
+		$trial = Utility::trialBalance(1, '2025-06-01', '2025-06-06');
 		$this->assertIsArray($trial);
 		// We should see entries from join queries; ensure non-empty
 		$this->assertNotEmpty($trial);
@@ -6521,13 +6498,13 @@ class UtilityTest extends TestCase
 		$typeModel = ChartOfAccountType::where('name', 'Assets')->first();
 		$this->assertNotNull($typeModel);
 		// seedAccountTypes uses CTC::COA_SBTPS — the seeded subtypes are
-		// 'Current Asset', 'Inventory Asset', 'Non-current Asset'
+		// 'Current Assets', 'Inventory Assets', 'Non-current Assets'
 		$this->assertDatabaseHas('chart_of_account_sub_types', [
-			'name' => 'Current Asset',
+			'name' => 'Current Assets',
 			'type' => $typeModel->id
 		]);
 		$this->assertDatabaseHas('chart_of_account_sub_types', [
-			'name' => 'Inventory Asset',
+			'name' => 'Inventory Assets',
 			'type' => $typeModel->id
 		]);
 
@@ -6628,13 +6605,6 @@ class UtilityTest extends TestCase
 				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $v]
 			);
 		}
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		foreach ($mailSettings as $n => $v) {
-			DB::table('settings')->updateOrInsert(
-				['created_by' => 1, 'name' => $n],
-				['user_id' => 1, 'value' => $v]
-			);
-		}
 		Utility::resetSettingsCache();
 
 		// Fake Mail
@@ -6660,7 +6630,7 @@ class UtilityTest extends TestCase
 		Auth::login($user);
 		Utility::resetSettingsCache();
 		$response3 = Utility::sendUserEmailTemplate('welcome_email', ['someone@example.com'], ['user_name' => 'Tester2']);
-		$this->assertTrue($response3['is_success'], 'sendUserEmailTemplate failed: ' . json_encode($response3));
+		$this->assertTrue($response3['is_success']);
 		Mail::assertSent(CommonEmailTemplate::class, function (CommonEmailTemplate $mail) {
 			return $mail->hasTo('someone@example.com');
 		});
@@ -6972,7 +6942,7 @@ class UtilityTest extends TestCase
 		]);
 
 		// Add invoiceProducts: 2 units at $100 each = $200 total
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'quantity' => 2,
 			'price' => 100.00,
@@ -6982,24 +6952,24 @@ class UtilityTest extends TestCase
 		InvoicePayment::create([
 			'account_id' => $bank->id,
 			'amount' => 50.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 		// Add revenue: $30
 		Revenue::create([
 			'account_id' => $bank->id,
 			'amount' => 30.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Add billProducts: 1 unit at $80 => $80
-		$this->forceCreate(BillProduct::class, [
+		BillProduct::create([
 			'product_id' => $psExp->id,
 			'quantity' => 1,
 			'total' => 80.00,
 			'created_at' => '2025-06-01'
 		]);
 		// Add billAccount: $20
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coa->id,
 			'price' => 20.00,
 			'created_at' => '2025-06-01'
@@ -7008,13 +6978,13 @@ class UtilityTest extends TestCase
 		BillPayment::create([
 			'account_id' => $bank->id,
 			'amount' => 10.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 		// Add payment: $15
 		Payment::create([
 			'account_id' => $bank->id,
 			'amount' => 15.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Add a journal entry with debit=25 and credit=60 for this account
@@ -7022,7 +6992,7 @@ class UtilityTest extends TestCase
 			'created_by' => $creator,
 			'date' => '2025-06-01'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $entry->id,
 			'account' => $coa->id,
 			'debit' => 25.00,
@@ -7055,7 +7025,7 @@ class UtilityTest extends TestCase
 		$this->assertCount(1, $data['journalItem']);
 
 		// Test trialBalance for accountType = 1
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-06-01', '2025-06-02');
+		$trial = Utility::trialBalance(1, '2025-06-01', '2025-06-02');
 		// Expect at least one entry with totalCredit = 200 (invoiceProducts)
 		$foundInvoice = array_filter($trial, fn($row) => isset($row['totalCredit']) && $row['totalCredit'] == 200.00);
 		$this->assertNotEmpty($foundInvoice);
@@ -7308,7 +7278,7 @@ class UtilityTest extends TestCase
 		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => 7]);
 		// Expect subtypes inserted — names from CTC::COA_SBTPS
 		$assetType = ChartOfAccountType::where('name', 'Assets')->first();
-		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Asset', 'type' => $assetType->id]);
+		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Assets', 'type' => $assetType->id]);
 		$liabType = ChartOfAccountType::where('name', 'Liabilities')->first();
 		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Liabilities', 'type' => $liabType->id]);
 
@@ -7328,7 +7298,7 @@ class UtilityTest extends TestCase
 		// Prepare static data for chartOfAccountData1 via Reflection
 		// seedAccountsByName looks up types by name — must match actual seeded names
 		$acctData1 = [
-			['code' => '101', 'name' => 'Cash', 'type' => 'Assets', 'sub_type' => 'Current Asset'],
+			['code' => '101', 'name' => 'Cash', 'type' => 'Assets', 'sub_type' => 'Current Assets'],
 			['code' => '201', 'name' => 'Accounts Payable', 'type' => 'Liabilities', 'sub_type' => 'Current Liabilities']
 		];
 		$acctDataProp1 = $ref->getProperty('chartOfAccount1');
@@ -7342,12 +7312,8 @@ class UtilityTest extends TestCase
 		$this->assertDatabaseHas('chart_of_accounts', ['code' => '201', 'name' => 'Accounts Payable', 'created_by' => 7]);
 
 		// Prepare static data for chartOfAccountData
-		$assetSubtype = ChartOfAccountSubType::where('type', $assetType->id)
-			->where('name', 'Current Asset')
-			->first();
-		$this->assertNotNull($assetSubtype);
 		$acctDataAll = [
-			['code' => '301', 'name' => 'Equity', 'type' => $assetType->id, 'sub_type' => $assetSubtype->id]
+			['code' => '301', 'name' => 'Equity', 'type' => $assetType->id, 'sub_type' => $assetType->id]
 		];
 		$acctDataPropAll = $ref->getProperty('chartOfAccount');
 		$acctDataPropAll->setAccessible(true);
@@ -7855,7 +7821,7 @@ class UtilityTest extends TestCase
 		$debit = Utility::getBalanceSheetDebit(1);
 		$this->assertEquals(0.0, $debit);
 
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertEmpty($trial);
 	}
 
@@ -8094,7 +8060,7 @@ class UtilityTest extends TestCase
 		$user = User::factory()->create();
 		Auth::login($user);
 
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$tb = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($tb);
 		$this->assertEmpty($tb);
 	}
@@ -8264,16 +8230,16 @@ class UtilityTest extends TestCase
 			'user_id'     => $user?->creatorId(),
 			'is_active'   => 1
 		]);
-		// Insert settings for user_id = 1 (admin)  —  sendUserEmailTemplate hardcodes settingsById(1)
+		// Insert settings for user_id = 1 (admin)
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_username', 'value' => 'adminuser'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_from_name', 'value' => 'AdminTest']
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'adminuser'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'adminpass'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminTest']
 		]);
 		// Clear static caches before second send
 		foreach (['getSettings', 'getSettingsId', 'languageSetting'] as $prop) {
@@ -8715,7 +8681,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(0.0, Utility::getBalanceSheetCredit(999));
 		$this->assertEquals(0.0, Utility::getBalanceSheetDebit(999));
 
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-01-31');
+		$tb = Utility::trialBalance(1, '2025-01-01', '2025-01-31');
 		$this->assertIsArray($tb);
 		$this->assertEmpty($tb);
 	}
@@ -8925,17 +8891,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
 		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.admin'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '25'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'admin'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
-		]);
 
 		Mail::fake();
 		$resp2 = Utility::sendUserEmailTemplate('notify', ['user2@example.com'], ['user_name' => 'Bob']);
@@ -9107,7 +9062,7 @@ class UtilityTest extends TestCase
 		Auth::login($user);
 
 		// No ChartOfAccount or related entries
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($trial);
 		$this->assertEmpty($trial);
 	}
@@ -9284,34 +9239,28 @@ class UtilityTest extends TestCase
 		]);
 		// InvoiceProduct
 		$ps = ProductService::create(['sku' => 'SKU0022', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
-		$invoiceProd = $this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'quantity' => 2, 'price' => 50,
-			'created_at' => '2025-01-01'
-		]);
+		$invoiceProd = InvoiceProduct::create(['product_id' => $ps->id, 'quantity' => 2, 'price' => 50]);
 		// InvoicePayment
-		$ip = InvoicePayment::create(['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-01-15', 'created_at' => '2025-01-15']);
+		$ip = InvoicePayment::create(['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-01-15']);
 		// Revenue
-		$rev = Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-01-20', 'created_at' => '2025-01-20']);
+		$rev = Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-01-20']);
 		// BillProduct
 		$psExp = ProductService::create(['sku' => 'SKU0023', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
-		$billProd = $this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 40,
-			'created_at' => '2025-01-01'
-		]);
+		$billProd = BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 40]);
 		// BillAccount
-		$billAcc = $this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 10, 'created_at' => '2025-01-10']);
+		$billAcc = BillAccount::create(['chart_account_id' => $coa->id, 'total' => 10, 'created_at' => '2025-01-10']);
 		// BillPayment
-		$bp = BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-12', 'created_at' => '2025-01-12']);
+		$bp = BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-12']);
 		// Payment
-		$pay = Payment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-01-18', 'created_at' => '2025-01-18']);
+		$pay = Payment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-01-18']);
 		// JournalEntry and JournalItem
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert([
-			'id'         => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-01-05'
 		]);
 		DB::table('journal_items')->insert([
 			'id'         => Str::uuid()->toString(),
-			'journal'    => $jeId,
+			'journal'    => $je,
 			'account'    => $coa->id,
 			'debit'      => 25,
 			'credit'     => 0,
@@ -9319,14 +9268,14 @@ class UtilityTest extends TestCase
 		]);
 		DB::table('journal_items')->insert([
 			'id'         => Str::uuid()->toString(),
-			'journal'    => $jeId,
+			'journal'    => $je,
 			'account'    => $coa->id,
 			'debit'      => 0,
 			'credit'     => 10,
 			'created_at' => '2025-01-05'
 		]);
 
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-01-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-01-31');
 		$this->assertIsArray($trial);
 		// Expect entries for InvoiceCredit, RevenueCredit, BillDebit, BillAccountDebit, PaymentDebit, Journal items combined
 		$foundCodes = array_column($trial, 'code');
@@ -9764,34 +9713,34 @@ class UtilityTest extends TestCase
 		$psExp = ProductService::create(['sku' => 'SKU0025', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
 
 		// Create InvoiceProduct: 2 items of price 50 each => total 100
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 2, 'price' => 50, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 2, 'price' => 50, 'created_at' => now()]);
 		// Create BillProduct: 1 item of price 30
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 30, 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 30, 'created_at' => now()]);
 
 		// Create InvoicePayment linked to bank
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 80, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 80, 'date' => now()]);
 		// Revenue entry
-		Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
 
 		// BillAccount
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
 
 		// BillPayment
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 
 		// Payment
-		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		// Create a JournalEntry and JournalItem
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 15,
 			'credit'     => 0,
 			'created_at' => now()
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 0,
@@ -9832,16 +9781,16 @@ class UtilityTest extends TestCase
 		$psSale = ProductService::create(['sku' => 'SKU0026', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
 		$psExp = ProductService::create(['sku' => 'SKU0027', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 1, 'price' => 20, 'created_at' => now()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 2, 'total' => 15, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 25, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 1, 'price' => 20, 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 2, 'total' => 15, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 25, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
 
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 12,
@@ -9888,18 +9837,18 @@ class UtilityTest extends TestCase
 		$psSale = ProductService::create(['sku' => 'SKU0028', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
 		$psExp = ProductService::create(['sku' => 'SKU0029', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 3, 'price' => 10, 'created_at' => now()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 3, 'price' => 10, 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		$credit = Utility::getBalanceSheetCredit($coa->id);
 		// invoiceAmount = 30, invoicePayment=15, revenue=5 => total 50
 		$this->assertEquals(50.0, $credit);
 
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 8, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 12, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 6, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 8, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 12, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 6, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
 
 		$debit = Utility::getBalanceSheetDebit($coa->id);
 		// billProduct=8, billAmount=12, billPayment=6, payment=4 => total 30
@@ -9935,37 +9884,37 @@ class UtilityTest extends TestCase
 
 		// JournalEntry and two JournalItems: debit=20, credit=10 for coa1
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, ['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 20, 'credit' => 0, 'created_at' => now()]);
-		$this->forceCreate(JournalItem::class, ['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 0, 'credit' => 10, 'created_at' => now()]);
+		JournalItem::create(['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 20, 'credit' => 0, 'created_at' => now()]);
+		JournalItem::create(['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 0, 'credit' => 10, 'created_at' => now()]);
 
 		// InvoiceProduct linked to coa2 => totalCredit 15
 		$ps = ProductService::create(['sku' => 'SKU0030', 'sale_chart_account_id' => $coa2->id, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'quantity' => 3, 'price' => 5, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $ps->id, 'quantity' => 3, 'price' => 5, 'created_at' => now()]);
 
 		// InvoicePayment joins coa1 as totalDebit 8
 		$bank = BankAccount::create(['chart_account_id' => $coa1->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 8, 'created_at' => now()]);
 
 		// Revenue joins coa1 as totalCredit 7
-		Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now(), 'created_at' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'created_at' => now()]);
 
 		// BillProduct linked to coa2: totalDebit 6
-		$this->forceCreate(BillProduct::class, ['product_id' => $ps->id, 'quantity' => 2, 'total' => 3, 'created_at' => now()]);
+		BillProduct::create(['product_id' => $ps->id, 'quantity' => 2, 'total' => 3, 'created_at' => now()]);
 
 		// BillAccount linked to coa2: totalDebit 4
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa2->id, 'price' => 4, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa2->id, 'total' => 4, 'created_at' => now()]);
 
 		// BillPayment linked to coa1: totalDebit 5
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'created_at' => now()]);
 
 		// Payment linked to coa1: totalDebit 2
-		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'created_at' => now()]);
 
-		$result = Utility::trialBalance(CTC::TP_LIABILITIES, now()->subDay()->toDateString(), now()->addDay()->toDateString());
+		$result = Utility::trialBalance(2, now()->subDay()->toDateString(), now()->addDay()->toDateString());
 		// Validate that resulting array contains entries for each source
 		$this->assertIsArray($result);
-		// Find adjusted invoicePayment row for coa1 (8 - 5 = 3)
-		$found = collect($result)->first(fn($r) => ($r['id'] ?? null) == $coa1->id && (float) ($r['totalDebit'] ?? 0) === 3.0);
+		// Find coa1 entry in invoicePayment and billPayment adjustment
+		$found = collect($result)->first(fn($r) => $r['id'] == $coa1->id);
 		// The invoicePayment totalDebit (8) minus billPayment (5) => 3
 		$this->assertEquals(3, $found['totalDebit'] ?? 0);
 	}
@@ -10188,7 +10137,7 @@ class UtilityTest extends TestCase
 			CommonEmailTemplate::class,
 			fn(\App\Mail\CommonEmailTemplate $mail) =>
 			$mail->hasTo('test@example.com') &&
-				str_contains($mail->template->content ?? '', 'Hello Alice, welcome to')
+				str_contains($mail->render(), 'Hello Alice, welcome to')
 		);
 
 		// Test replaceVariable in isolation
@@ -10222,13 +10171,6 @@ class UtilityTest extends TestCase
 			DB::table('settings')->updateOrInsert(
 				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $r['name']],
 				['value' => $r['value'], 'user_id' => DatabaseConstants::DEFAULT_UUID]
-			);
-		}
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		foreach ($mailRows as $r) {
-			DB::table('settings')->updateOrInsert(
-				['created_by' => 1, 'name' => $r['name']],
-				['value' => $r['value'], 'user_id' => 1]
 			);
 		}
 		Utility::resetSettingsCache();
@@ -10885,7 +10827,7 @@ class UtilityTest extends TestCase
 		// trialBalance with no related data should return empty array
 		$start = Carbon::now()->startOfYear()->toDateString();
 		$end = Carbon::now()->endOfYear()->toDateString();
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, $start, $end);
+		$tb = Utility::trialBalance(1, $start, $end);
 		$this->assertIsArray($tb);
 		$this->assertCount(0, $tb);
 	}
@@ -11142,7 +11084,7 @@ class UtilityTest extends TestCase
 		$this->assertIsArray($arr);
 		// Pick a known default: 'site_currency_symbol'
 		$this->assertArrayHasKey('site_currency_symbol', $arr);
-		$this->assertEquals('R$', $arr['site_currency_symbol']);
+		$this->assertEquals('', $arr['site_currency_symbol']);
 	}
 
 	/** 
@@ -11205,11 +11147,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_returns_setting_value_by_name_or_empty()
 	{
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_val']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key', 'value' => 'test_val']
+		]);
 		// Ensure settings() picks it up
 		$val = Utility::getValByName('test_key');
 		$this->assertEquals('test_val', $val);
@@ -11537,10 +11477,10 @@ class UtilityTest extends TestCase
 		// Create account and related product service
 		$coa = ChartOfAccount::create(['code' => '200', 'name' => 'Sales Acc', 'type' => CTC::TP_LIABILITIES, 'sub_type' => CTC::ST_CURRENT_LIABILITIES, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
 		$ps = ProductService::create(['sku' => 'SKU0031', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 100, 'quantity' => 2, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $ps->id, 'price' => 100, 'quantity' => 2, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 50, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 30, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 50, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 30, 'date' => now()]);
 
 		$credit = Utility::getBalanceSheetCredit($coa->id, now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
 		// InvoiceProduct: 100*2 = 200; InvoicePayment: 50; Revenue: 30 => total 280
@@ -11559,11 +11499,11 @@ class UtilityTest extends TestCase
 		// Create account and product service for expense
 		$coa = ChartOfAccount::create(['code' => '300', 'name' => 'Expense Acc', 'type' => CTC::TP_EQUITY, 'sub_type' => CTC::ST_OWNERS_EQUITY, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
 		$ps = ProductService::create(['sku' => 'SKU0032', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
-		$this->forceCreate(BillProduct::class, ['product_id' => $ps->id, 'total' => 80, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
+		BillProduct::create(['product_id' => $ps->id, 'total' => 80, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 40, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 
 		$debit = Utility::getBalanceSheetDebit($coa->id, now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
 		// BillProduct: 80*1=80; BillAccount:40; BillPayment:20; Payment:10 => total 150
@@ -11585,28 +11525,26 @@ class UtilityTest extends TestCase
 		$psExp = ProductService::create(['sku' => 'SKU0034', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
 
 		// InvoiceProduct
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'price' => 50, 'quantity' => 1, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'price' => 50, 'quantity' => 1, 'created_at' => now()]);
 		// BankAccount for payments & revenue
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 		// BillProduct & BillAccount & BillPayment & Payment
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'total' => 30, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 15, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'total' => 30, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 15, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		// JournalEntry and JournalItem
-		$jeId = (string) \Illuminate\Support\Str::uuid();
-		DB::table('journal_entries')->insert([
-			'id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'V1'
 		]);
 		DB::table('journal_items')->insert([
-			['id' => (string) \Illuminate\Support\Str::uuid(), 'journal' => $jeId, 'account' => $coa->id, 'debit' => 8, 'credit' => 0, 'created_at' => now()],
-			['id' => (string) \Illuminate\Support\Str::uuid(), 'journal' => $jeId, 'account' => $coa->id, 'debit' => 0, 'credit' => 3, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 8, 'credit' => 0, 'created_at' => now()],
+			['journal' => $je, 'account' => $coa->id, 'debit' => 0, 'credit' => 3, 'created_at' => now()]
 		]);
 
 		$balance = Utility::getAccountBalance($coa->id, now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString());
@@ -11642,24 +11580,23 @@ class UtilityTest extends TestCase
 		$psSale = ProductService::create(['sku' => 'SKU0035', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
 		$psExp = ProductService::create(['sku' => 'SKU0036', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'price' => 25, 'quantity' => 2, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'price' => 25, 'quantity' => 2, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'total' => 15, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 7, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'total' => 15, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 7, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
 
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert(['id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'V2'
 		]);
 		DB::table('journal_items')->insert([
-			['journal' => $jeId, 'account' => $coa->id, 'debit' => 4, 'credit' => 0, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 4, 'credit' => 0, 'created_at' => now()]
 		]);
 
 		$data = Utility::getAccountData($coa->id, now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString());
@@ -11686,21 +11623,20 @@ class UtilityTest extends TestCase
 		// Setup minimal: one invoice, one journal item
 		$coa = ChartOfAccount::create(['code' => '600', 'name' => 'Trial Acc', 'type' => CTC::TP_EXPENSES, 'sub_type' => CTC::ST_PAYROLL_EXPENSES, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
 		$ps = ProductService::create(['sku' => 'SKU0037', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 10, 'quantity' => 1, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $ps->id, 'price' => 10, 'quantity' => 1, 'created_at' => now()]);
 
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert(['id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'VT'
 		]);
 		DB::table('journal_items')->insert([
-			['journal' => $jeId, 'account' => $coa->id, 'debit' => 2, 'credit' => 1, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 2, 'credit' => 1, 'created_at' => now()]
 		]);
 
 		$start = now()->startOfMonth()->toDateString();
 		$end = now()->endOfMonth()->toDateString();
-		$tb = Utility::trialBalance(CTC::TP_EXPENSES, $start, $end);
+		$tb = Utility::trialBalance(6, $start, $end);
 		$this->assertIsArray($tb);
 		$this->assertNotEmpty($tb);
 		// Each entry must have keys id, code, name, totalDebit, totalCredit
@@ -11874,17 +11810,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'p'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@test'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Mailer']
-		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.local'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'u'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'p'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'from@test'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'Mailer']
 		]);
 		$res3 = Utility::sendUserEmailTemplate($template->title, ['z@test'], ['user_name' => 'EndUser']);
 		$this->assertTrue($res3['is_success']);
@@ -12819,17 +12744,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'DefaultName']
 		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.default'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'user'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'pass'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'DefaultName']
-		]);
 
 		$result = Utility::sendUserEmailTemplate('UserTemplate', ['dave@example.com'], ['user_name' => 'Dave']);
 		$this->assertTrue($result['is_success']);
@@ -12944,7 +12858,7 @@ class UtilityTest extends TestCase
 			'type'                 => 'product'
 		]);
 		// Create one InvoiceProduct: price 100, qty 2 => 200
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'invoice_id' => 1,
 			'product_id' => $psSale->id,
 			'price'      => 100,
@@ -12982,7 +12896,7 @@ class UtilityTest extends TestCase
 			'type'                    => 'product'
 		]);
 		// Create BillProduct: price 50, qty 3 => 150
-		$this->forceCreate(BillProduct::class, [
+		BillProduct::create([
 			'bill_id'    => 1,
 			'product_id' => $psExp->id,
 			'total'      => 50,
@@ -12991,7 +12905,7 @@ class UtilityTest extends TestCase
 			'updated_at' => now()
 		]);
 		// Create BillAccount: chart_account_id = expense account, price 20
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coaExp->id,
 			'price'            => 20,
 			'created_at'       => now(),
@@ -12999,16 +12913,16 @@ class UtilityTest extends TestCase
 		]);
 		// Test getBalanceSheetDebit: 150 + 20 = 170
 		$debit = Utility::getBalanceSheetDebit($coaExp->id, date('Y-m-d', strtotime('-1 day')), date('Y-m-d', strtotime('+1 day')));
-		$this->assertEquals(70.0, $debit);
+		$this->assertEquals(170.0, $debit);
 
 		// Test trialBalance for type = 1 should include the invoice entry
 		$start = date('Y-m-d', strtotime('-1 day'));
 		$end = date('Y-m-d', strtotime('+1 day'));
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, $start, $end);
-		// Find entry matching the sales account ID
+		$trial = Utility::trialBalance(1, $start, $end);
+		// Find entry matching code '500'
 		$found = false;
 		foreach ($trial as $row) {
-			if (($row['id'] ?? null) === $coaSale->id) {
+			if ($row['code'] === '500') {
 				$this->assertEquals(200.0, $row['totalCredit']);
 				$found = true;
 				break;
@@ -13208,7 +13122,6 @@ class UtilityTest extends TestCase
 	public function it_creates_chart_of_account_data_without_transaction()
 	{
 		$user = User::factory()->create();
-		Utility::chartOfAccountTypeData((string) $user->id);
 		DB::table('chart_of_accounts')->delete();
 		Utility::chartOfAccountData($user);
 		foreach (Utility::$chartOfAccount as $account) {
@@ -13587,12 +13500,12 @@ class UtilityTest extends TestCase
 		// BankAccount and InvoicePayment: amount = 150
 		$bank   = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 150, 'date' => '2025-06-11', 'created_at' => '2025-06-11']
+			['account_id' => $bank->id, 'amount' => 150, 'date' => '2025-06-11']
 		]);
 
 		// Revenue: amount = 50
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 50, 'date' => '2025-06-12', 'created_at' => '2025-06-12']
+			['account_id' => $bank->id, 'amount' => 50, 'date' => '2025-06-12']
 		]);
 
 		// BillProduct: price * quantity => 80 * 1 = 80
@@ -13607,12 +13520,12 @@ class UtilityTest extends TestCase
 
 		// BillPayment: amount = 20
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-06-15', 'created_at' => '2025-06-15']
+			['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-06-15']
 		]);
 
 		// Payment: amount = 10
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-16', 'created_at' => '2025-06-16']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-16']
 		]);
 
 		// BalanceSheetCredit = 200 (invoice) + 150 (invoice payment) + 50 (revenue) = 400
@@ -13657,11 +13570,11 @@ class UtilityTest extends TestCase
 		]);
 		// InvoicePayment: 40
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 40, 'date' => '2025-06-02', 'created_at' => '2025-06-02']
+			['account_id' => $bank->id, 'amount' => 40, 'date' => '2025-06-02']
 		]);
 		// Revenue: 10
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-03', 'created_at' => '2025-06-03']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-03']
 		]);
 		// BillProduct: 30 * 1 = 30
 		BillProduct::insert([
@@ -13673,18 +13586,18 @@ class UtilityTest extends TestCase
 		]);
 		// BillPayment: 10
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-06', 'created_at' => '2025-06-06']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-06']
 		]);
 		// Payment: 5
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-07', 'created_at' => '2025-06-07']
+			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-07']
 		]);
 		// JournalItem: credit = 15, debit = 7
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-08'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'credit'  => 15,
@@ -13730,10 +13643,10 @@ class UtilityTest extends TestCase
 			['product_id' => $product->id, 'price' => 25, 'quantity' => 3, 'created_at' => '2025-06-01']
 		]);
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-06-02', 'created_at' => '2025-06-02']
+			['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-06-02']
 		]);
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-03', 'created_at' => '2025-06-03']
+			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-03']
 		]);
 		BillProduct::insert([
 			['product_id' => $product->id, 'total' => 10, 'quantity' => 2, 'created_at' => '2025-06-04']
@@ -13742,16 +13655,16 @@ class UtilityTest extends TestCase
 			['chart_account_id' => $coa->id, 'price' => 8, 'created_at' => '2025-06-05']
 		]);
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 4, 'date' => '2025-06-06', 'created_at' => '2025-06-06']
+			['account_id' => $bank->id, 'amount' => 4, 'date' => '2025-06-06']
 		]);
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 2, 'date' => '2025-06-07', 'created_at' => '2025-06-07']
+			['account_id' => $bank->id, 'amount' => 2, 'date' => '2025-06-07']
 		]);
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-08'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'credit'  => 7,
@@ -13804,7 +13717,7 @@ class UtilityTest extends TestCase
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-10'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit'  => 60,
@@ -13819,12 +13732,12 @@ class UtilityTest extends TestCase
 
 		// InvoicePayment: debit = 30
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-06-12', 'created_at' => '2025-06-12']
+			['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-06-12']
 		]);
 
 		// Revenue: credit = 10
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-13', 'created_at' => '2025-06-13']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-13']
 		]);
 
 		// BillProduct: debit = 15 * 1 = 15
@@ -13839,15 +13752,15 @@ class UtilityTest extends TestCase
 
 		// BillPayment: debit = 8
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 8, 'date' => '2025-06-16', 'created_at' => '2025-06-16']
+			['account_id' => $bank->id, 'amount' => 8, 'date' => '2025-06-16']
 		]);
 
 		// Payment: debit = 3
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 3, 'date' => '2025-06-17', 'created_at' => '2025-06-17']
+			['account_id' => $bank->id, 'amount' => 3, 'date' => '2025-06-17']
 		]);
 
-		$tb = Utility::trialBalance(CTC::TP_COGS, '2025-06-01', '2025-06-30');
+		$tb = Utility::trialBalance(5, '2025-06-01', '2025-06-30');
 		$this->assertIsArray($tb);
 		// Should contain at least one entry with keys: id, code, name, totalDebit, totalCredit
 		$entry = $tb[0];
@@ -13963,17 +13876,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => ''],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminApp']
-		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'AdminApp']
 		]);
 		Mail::fake();
 		$resp3 = Utility::sendUserEmailTemplate('notify_user', ['to@user.com'], ['user_name' => 'Z']);

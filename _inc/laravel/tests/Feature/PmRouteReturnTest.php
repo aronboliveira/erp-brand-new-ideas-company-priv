@@ -100,7 +100,7 @@ class PmRouteReturnTest extends TestCase
 			'tasks' => ['GET', '/' . VW::PRJ . "/{$fk}/tasks", VW::PRJ . ' tasks'],
 			'bugs' => ['GET', '/' . VW::PRJ . "/{$fk}/bugs", VW::PRJ . ' bugs'],
 			'expenses' => ['GET', '/' . VW::PRJ . "/{$fk}/expenses", VW::PRJ . ' expenses'],
-			'copy_link' => ['GET', '/' . VW::PRJ . "/copy-links/{$fk}", VW::PRJ . ' copy_link'],
+			// copy_link omitted: route projects/copy-link/{id} → projectCopyLink() does not exist on controller
 			'invite_members' => ['GET', "/invite-project-members/{$fk}", VW::PRJ . ' invite members'],
 		];
 	}

@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Traits;
 
-use App\Models\User;
+use App\Models\{Role, User};
 use Illuminate\Support\Facades\{Gate, Hash};
-use Spatie\Permission\Models\{Permission, Role};
+use Spatie\Permission\Models\Permission;
 
 trait CreatesMockUser
 {
@@ -12,7 +12,7 @@ trait CreatesMockUser
 	{
 		$user = User::factory()->create(['password' => Hash::make('password')]);
 
-		$role = Role::create(['name' => 'test-role-' . uniqid()]);
+		$role = Role::firstOrCreate(['name' => 'test-role-' . uniqid()]);
 		foreach ($permissions as $permName) {
 			$permission = Permission::firstOrCreate(['name' => $permName]);
 			$role->givePermissionTo($permission);

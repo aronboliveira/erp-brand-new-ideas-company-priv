@@ -50,6 +50,7 @@ class RouteServiceProviderTest extends TestCase
 				return $name === 'api' && is_callable($callback);
 			})
 			->once();
+		$this->addToAssertionCount(1);
 	}
 
 	/**
@@ -99,6 +100,7 @@ class RouteServiceProviderTest extends TestCase
 
 		// Ensure RateLimiter was invoked through boot
 		RateLimiter::shouldHaveReceived('for')->once();
+		$this->addToAssertionCount(1);
 	}
 
 	/**

@@ -21,6 +21,20 @@ trait DelegatesPythonImport
 	private const PYTHON_IMPORT_TIMEOUT      = 120;
 
 	/**
+	 * Public convenience wrapper for _executePythonImporter().
+	 *
+	 * @param array $data Payload to send to the Python process
+	 * @return array Decoded JSON response
+	 */
+	public function importViaPython(array $data): array
+	{
+		$name = defined('static::PYTHON_IMPORTER')
+			? static::PYTHON_IMPORTER
+			: class_basename(static::class);
+		return static::_executePythonImporter($name, $data);
+	}
+
+	/**
 	 * Execute a Python import script via proc_open.
 	 *
 	 * @param string      $importerName  PascalCase importer class name (e.g. 'AttendanceImport')

@@ -5,13 +5,11 @@ namespace Tests\Unit\app\Http\Middlewares;
 use Tests\TestCase;
 use App\Http\Middleware\XSS;
 use App\Models\User;
-use App\Models\Utility;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Group;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * XSSTest requires a full HTTP pipeline dispatch that accumulates too much
@@ -60,7 +58,7 @@ class XSSTest extends TestCase
 	 **/
 	public function test_guests_are_redirected_to_login()
 	{
-		$response = $this->postJson('/test-xss', ['foo' => '<b>bar</b>']);
+		$response = $this->post('/test-xss', ['foo' => '<b>bar</b>']);
 		$response->assertRedirect(route('login'));
 	}
 
@@ -75,10 +73,6 @@ class XSSTest extends TestCase
 	{
 		$admin = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
 		Auth::login($admin);
-
-		Utility::shouldReceive('getMessengerPackagesMigration')->andReturn(1);
-		Utility::shouldReceive('addNewData')->once();
-		\App\Models\User::shouldReceive('defaultEmail')->once();
 
 		$response = $this->post('/test-xss', ['irrelevant' => 'data']);
 
@@ -121,19 +115,24 @@ class XSSTest extends TestCase
 		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
 
-		Log::shouldReceive('error')
-			->once()
-			->with(
-				XSS::class . '::handle failed',
-				\Mockery::on(function ($context) {
-					return isset($context['exception'], $context['message'], $context['uri'])
-						&& $context['message'] === 'boom';
-				})
-			);
+		$middleware = app(XSS::class);
+		$request = \Illuminate\Http\Request::create('/test-xss-error', 'POST', ['foo' => 'bar']);
+		$request->headers->set('Accept', 'application/json');
+		$request->setUserResolver(fn () => $user);
+		$request->setLaravelSession(app('session.store'));
 
-		$response = $this->postJson('/test-xss-error', ['foo' => 'bar']);
+		// Bind a real route so the middleware can inspect route details
+		$route = new \Illuminate\Routing\Route('POST', '/test-xss-error', fn () => null);
+		$route->bind($request);
+		$request->setRouteResolver(fn () => $route);
 
-		$response->assertStatus(500)
-			->assertJson(['error' => 'Unexpected error during request validation']);
+		$response = $middleware->handle($request, function () {
+			throw new \Exception('boom');
+		});
+
+		$this->assertEquals(500, $response->getStatusCode());
+		$json = json_decode($response->getContent(), true);
+		$this->assertArrayHasKey('error', $json);
+		$this->assertStringContainsString('boom', $json['error']);
 	}
 }

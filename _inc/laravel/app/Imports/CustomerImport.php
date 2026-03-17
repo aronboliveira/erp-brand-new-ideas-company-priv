@@ -2,14 +2,16 @@
 
 namespace App\Imports;
 
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, DelegatesPythonImport};
 use App\Models\{Customer};
 use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{Importable, ToModel};
 
 class CustomerImport implements ToModel
 {
-    use Importable, ChecksLogin;
+    use ChecksLogin, DelegatesPythonImport, Importable;
+
+    private const PYTHON_IMPORTER = 'CustomerImport';
 
     private bool  $headerFound = false;
     private array $headerMap  = [];

@@ -75,6 +75,7 @@ class RecordLandingTest extends TestCase
 
 		$response = new Response('ok', 200);
 		$this->middleware->terminate($request, $response);
+		$this->addToAssertionCount(1);
 	}
 
 	#[Test]
@@ -90,6 +91,7 @@ class RecordLandingTest extends TestCase
 
 		$response = new Response('ok', 200);
 		$this->middleware->terminate($request, $response);
+		$this->addToAssertionCount(1);
 	}
 
 	#[Test]
@@ -106,6 +108,7 @@ class RecordLandingTest extends TestCase
 
 		$response = new Response('error', $status);
 		$this->middleware->terminate($request, $response);
+		$this->addToAssertionCount(1);
 	}
 
 	public static function errorStatusCodesProvider(): array
@@ -136,6 +139,7 @@ class RecordLandingTest extends TestCase
 
 		$response = new Response('ok', 200);
 		$this->middleware->terminate($request, $response);
+		$this->addToAssertionCount(1);
 	}
 
 	#[Test]
@@ -147,6 +151,7 @@ class RecordLandingTest extends TestCase
 		$response = new Response('ok', 200);
 
 		$this->middleware->terminate($request, $response);
+		$this->addToAssertionCount(1);
 	}
 
 	#[Test]

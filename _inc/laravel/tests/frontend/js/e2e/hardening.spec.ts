@@ -102,7 +102,7 @@ test.describe("Frontend mock hardening", () => {
     // Using http:// protocol for ES module support via webServer
     test(`${file} inline RBAC self-tests pass`, async ({ page }) => {
       // Use HTTP server for ES module imports; file:// causes CORS issues
-      const httpUrl = `http://localhost:3000/mocks/rbac/${path.basename(file)}`;
+      const httpUrl = `http://localhost:3847/mocks/rbac/${path.basename(file)}`;
       await page.goto(httpUrl);
       const results = await page.evaluate(async () => {
         const runner = (

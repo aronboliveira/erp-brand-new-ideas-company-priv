@@ -30,6 +30,9 @@ class AiTemplateSeederTest extends TestCase
 		$now = Carbon::create(2025, 6, 10, 12, 0, 0);
 		Carbon::setTestNow($now);
 
+		// Clean slate
+		DB::table('templates')->delete();
+
 		// Run the seeder
 		(new AiTemplateSeeder())->run();
 

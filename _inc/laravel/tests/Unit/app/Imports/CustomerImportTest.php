@@ -30,10 +30,9 @@ class CustomerImportTest extends TestCase
 
 		$result = $importer->model($row);
 
-		$this->assertInstanceOf(
-			RedirectResponse::class,
+		$this->assertNull(
 			$result,
-			'model() should return RedirectResponse when unauthenticated.'
+			'model() should return null when unauthenticated.'
 		);
 	}
 

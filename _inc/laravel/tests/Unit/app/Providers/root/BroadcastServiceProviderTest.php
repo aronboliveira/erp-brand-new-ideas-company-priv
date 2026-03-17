@@ -46,6 +46,7 @@ class BroadcastServiceProviderTest extends TestCase
 		(new BroadcastServiceProvider($this->app))->boot();
 
 		Broadcast::shouldHaveReceived('routes')->once();
+		$this->addToAssertionCount(1);
 	}
 
 	/**
@@ -70,9 +71,12 @@ class BroadcastServiceProviderTest extends TestCase
 		(new BroadcastServiceProvider($this->app))->boot();
 
 		Broadcast::shouldHaveReceived('routes')->once();
+		$this->addToAssertionCount(1);
 
 		// cleanup
-		unlink($path);
+		if (file_exists($path)) {
+			unlink($path);
+		}
 	}
 
 	/**

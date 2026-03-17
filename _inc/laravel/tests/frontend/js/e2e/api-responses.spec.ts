@@ -10,7 +10,7 @@
  */
 import { test, expect, Page } from "@playwright/test";
 
-const TEST_BASE_PATH = "./tests/frontend/js/pages/mocks/rbac";
+const TEST_BASE_PATH = "./pages/mocks/rbac";
 
 interface ApiTestResult {
   passed: number;

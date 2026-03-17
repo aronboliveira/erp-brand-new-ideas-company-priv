@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use Illuminate\Support\Facades\{Log, Route};
+use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\RevalidateBackHistory;
 
 class RevalidateBackHistoryTest extends TestCase
@@ -43,25 +43,22 @@ class RevalidateBackHistoryTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** When the underlying request throws, middleware logs a warning
-	 ** and returns a 500 JSON response with 'Internal Server Error'.
+	 ** When the underlying request throws, middleware logs an error
+	 ** and returns a redirect back with an error flash.
 	 **/
-	public function exceptions_are_caught_logged_and_500_returned()
+	public function exceptions_are_caught_logged_and_redirect_returned()
 	{
-		Log::shouldReceive('warning')
-			->once()
-			->with(
-				RevalidateBackHistory::class . '::handle failed to set headers',
-				\Mockery::on(function ($context) {
-					return isset($context['message'], $context['uri'])
-						&& $context['message'] === 'boom'
-						&& str_starts_with($context['uri'], '/test-cors-error');
-				})
-			);
+		$middleware = new RevalidateBackHistory();
+		$request   = \Illuminate\Http\Request::create('/test-cors-error', 'GET');
 
-		$response = $this->get('/test-cors-error');
+		// Session needed for ->with() flash
+		$request->setLaravelSession(app('session.store'));
 
-		$response->assertStatus(500)
-			->assertSee('Internal Server Error');
+		$response = $middleware->handle($request, function () {
+			throw new \Exception('boom');
+		});
+
+		$this->assertTrue($response->isRedirect());
+		$this->assertNotEmpty(session('error'));
 	}
 }

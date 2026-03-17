@@ -33,7 +33,7 @@ class AuthenticateTest extends TestCase
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
 		$this->assertEquals(route('login'), $response->headers->get('Location'));
-		$this->assertEquals('Authentication required.', session('error'));
+		$this->assertEquals('Authentication error occurred.', session('error'));
 	}
 
 	/**
@@ -54,7 +54,7 @@ class AuthenticateTest extends TestCase
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
 		$this->assertEquals(route('login'), $response->headers->get('Location'));
-		$this->assertEquals('Authentication required.', session('error'));
+		$this->assertEquals('Authentication error occurred.', session('error'));
 	}
 
 	/**

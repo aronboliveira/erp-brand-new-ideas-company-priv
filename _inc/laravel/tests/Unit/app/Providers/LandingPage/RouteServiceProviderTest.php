@@ -31,6 +31,7 @@ class RouteServiceProviderTest extends TestCase
 		// Verify key route registration calls occurred
 		$routeMock->shouldHaveReceived('middleware')->with(['web']);
 		$routeMock->shouldHaveReceived('prefix')->with('api');
+		$this->addToAssertionCount(1);
 	}
 
 	/**
