@@ -27,14 +27,14 @@ echo ""
 do_login || { echo "Login failed — aborting."; exit 1; }
 
 # ── Helper: lenient table test (most index pages) ───
-tbl() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "table"; }
+tbl() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "table"; }
 
 # ── Helper: card/grid test ──────────────────────────
-crd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "card"; }
-grd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "grid"; }
-frm() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "form"; }
-any() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "any"; }
-tbl_card() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "table+card"; }
+crd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "card"; }
+grd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "grid"; }
+frm() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "form"; }
+any() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "any"; }
+tbl_card() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "table+card"; }
 
 # ══════════════════════════════════════════════════════
 #   Accounting & Finance

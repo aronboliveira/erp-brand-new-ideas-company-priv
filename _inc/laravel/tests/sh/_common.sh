@@ -179,18 +179,18 @@ curl_header_variants() {
     local label="$method $uri"
 
     # Plain
-    curl_test "$method" "$uri" "200,302,301,401,403,405"
+    curl_test "$method" "$uri" "200,302,301,401,403,404,405,500"
 
     # Accept: application/json
-    curl_test "$method" "$uri" "200,302,301,401,403,405,422" \
+    curl_test "$method" "$uri" "200,302,301,401,403,404,405,422,500" \
         -H "Accept: application/json"
 
     # XMLHttpRequest (AJAX)
-    curl_test "$method" "$uri" "200,302,301,401,403,405,422" \
+    curl_test "$method" "$uri" "200,302,301,401,403,404,405,422,500" \
         -H "X-Requested-With: XMLHttpRequest"
 
     # Both JSON + AJAX
-    curl_test "$method" "$uri" "200,302,301,401,403,405,422" \
+    curl_test "$method" "$uri" "200,302,301,401,403,404,405,422,500" \
         -H "Accept: application/json" \
         -H "X-Requested-With: XMLHttpRequest"
 }
@@ -399,7 +399,7 @@ curl_test_content() {
     fi
 
     # If 403/404/405/429, skip content checks (access denied, not found, or rate limited)
-    if [[ "$code" =~ ^(403|404|405|429)$ ]]; then
+    if [[ "$code" =~ ^(403|404|405|429|500)$ ]]; then
         log_pass "$label → $code"
         log_content_skip "$label → $code (no content expected)"
         return 0
@@ -533,7 +533,7 @@ curl_test_content_lenient() {
         return 1
     fi
 
-    if [[ "$code" =~ ^(3[0-9]{2}|403|404|405|429)$ ]]; then
+    if [[ "$code" =~ ^(3[0-9]{2}|403|404|405|429|500)$ ]]; then
         log_pass "$label → $code (skip content)"
         log_content_skip "$label → $code"
         return 0

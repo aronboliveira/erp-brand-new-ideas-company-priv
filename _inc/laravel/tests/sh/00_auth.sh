@@ -29,7 +29,8 @@ do_login || { log_fail "Cannot proceed without auth"; summary; exit 1; }
 curl_test GET "/" "200,302"
 
 # ── Profile / user endpoints ─────────────────────
-curl_test GET "/user" "200,302,404"
+# GET /user is only a DELETE (Jetstream current-user); GET returns 405
+curl_test GET "/user" "200,302,404,405"
 curl_test GET "/settings" "200,302"
 
 # ── Logout ───────────────────────────────────────

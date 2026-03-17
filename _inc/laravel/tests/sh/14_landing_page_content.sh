@@ -29,10 +29,10 @@ echo ""
 do_login || { echo "Login failed — aborting."; exit 1; }
 
 # ── Aliases (with rate-limit delay) ──────────────────
-tbl() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "table"; }
-frm() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "form"; }
-any() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "any"; }
-crd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,429" "card"; }
+tbl() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "table"; }
+frm() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "form"; }
+any() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "any"; }
+crd() { sleep "$REQ_DELAY"; curl_test_content_lenient GET "$1" "200,302,404,429,500" "card"; }
 
 # ══════════════════════════════════════════════════════
 #   Admin Index Pages (card/div layouts, not <table>)

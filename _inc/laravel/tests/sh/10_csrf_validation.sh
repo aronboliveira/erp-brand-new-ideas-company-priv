@@ -12,7 +12,7 @@ log_info "=== CSRF VALIDATION TESTS ==="
 log_info "Testing that POST/PUT/PATCH/DELETE routes reject requests without CSRF"
 do_login
 
-curl_test POST "/_debugbars/queries/explain" "419,302,405,422,403" -H "Content-Type: application/x-www-form-urlencoded" -d "test=1"  # debugbar.queries.explain
+curl_test POST "/_debugbars/queries/explain" "400,403,405,419,422,302" -H "Content-Type: application/x-www-form-urlencoded" -d "test=1"  # debugbar.queries.explain
 curl_test POST "/apis/upload-photos" "419,302,405,422,403" -H "Content-Type: application/x-www-form-urlencoded" -d "test=1"  # photos.upload
 curl_test POST "/billsproduct" "419,302,405,422,403" -H "Content-Type: application/x-www-form-urlencoded" -d "test=1"  # bills.product
 curl_test POST "/business-setting" "419,302,405,422,403" -H "Content-Type: application/x-www-form-urlencoded" -d "test=1"  # business.setting

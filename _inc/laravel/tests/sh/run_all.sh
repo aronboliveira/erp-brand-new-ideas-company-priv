@@ -29,6 +29,8 @@ SUITES=(
     10_csrf_validation.sh
     11_json_api.sh
     12_landing_page.sh
+    13_content_validation.sh
+    14_landing_page_content.sh
 )
 
 TOTAL_PASS=0
@@ -46,9 +48,9 @@ run_suite() {
         echo "  ✓ $label: PASSED"
     else
         echo "  ✗ $label: FAILED (exit code $?)"
-        ((TOTAL_FAIL++))
+        ((TOTAL_FAIL++)) || true
     fi
-    ((TOTAL_PASS++))
+    ((TOTAL_PASS++)) || true
 }
 
 if [[ $# -gt 0 ]]; then
