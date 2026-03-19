@@ -474,7 +474,7 @@ $user ??= null;
                 month =
                 "{{date('m', strtotime('last month'))}}';year='{{date('Y')}}';}";
                 var datePicker = year + "-" + month;
-                var title = "Bulk Payment";
+                var title = "{{ __('Bulk Payment') }}";
                 var size = "md";
                 var url = "payslip/bulk_pay_create/" + datePicker;
                 $("#commonModal .modal-title").html(title);

@@ -82,7 +82,7 @@ class CustomQuestionController extends Controller
             }
             try {
                 $t = microtime(true);
-                $isRequired = CustomQuestion::$is_required;
+                $is_required = CustomQuestion::$is_required;
                 $this->logExecutionTime($t, "$sig::prepareData", 'completed');
 
                 $viewPath = ViewsConstants::CST_QT . '.create';
@@ -93,7 +93,7 @@ class CustomQuestionController extends Controller
                 }
                 $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
 
-                return view($viewPath, compact('isRequired'));
+                return view($viewPath, compact('is_required'));
             } catch (\Throwable $e) {
                 Log::error("$sig error", ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $sig);
@@ -194,7 +194,7 @@ class CustomQuestionController extends Controller
 
             try {
                 $t = microtime(true);
-                $isRequired = CustomQuestion::$is_required;
+                $is_required = CustomQuestion::$is_required;
                 $this->logExecutionTime($t, "$sig::prepareData", 'completed');
 
                 $viewPath = ViewsConstants::CST_QT . '.edit';
@@ -205,7 +205,7 @@ class CustomQuestionController extends Controller
                 }
                 $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
 
-                return view($viewPath, compact('customQuestion', 'isRequired'));
+                return view($viewPath, compact('customQuestion', 'is_required'));
             } catch (\Throwable $e) {
                 Log::error("$sig error", ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $sig);

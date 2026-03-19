@@ -40,7 +40,7 @@ $user ??= null;
 	}
 @endphp
 {{ Form::open([
-    'route'          => [$storeRoute],
+    'url'            => $storeRoute,
     'method'         => 'post',
     'id'             => $formId,
     'data-url'       => $storeRoute,

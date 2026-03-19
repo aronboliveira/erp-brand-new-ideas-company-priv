@@ -113,7 +113,7 @@ class PurchaseController extends Controller
                 Log::debug("[{$class}::{$action}] loading form data", ['creator_id' => $user?->creatorId()]);
                 $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('module', 'purchase')->get();
                 $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', 'expense')->pluck('name', 'id')->prepend('Select Category', '');
-                $purchaseNumber = $user?->purchaseNumberFormat($this->purchaseNumber());
+                $purchase_number = $user?->purchaseNumberFormat($this->purchaseNumber());
                 $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
                 $warehouse = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
                 $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
@@ -121,8 +121,8 @@ class PurchaseController extends Controller
                 Log::info("[{$class}::{$action}] form data ready", ['custom_fields' => $customFields->count(), 'product_services' => $productServices->count()]);
                 $renderStart = microtime(true);
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
-                Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse']]);
-                $resp = view($viewPath, compact('vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse'));
+                Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['vendors', 'purchase_number', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse']]);
+                $resp = view($viewPath, compact('vendors', 'purchase_number', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse'));
                 $this->logExecutionTime($renderStart, $action, 'renderCreate');
                 return $resp;
             } catch (\Throwable $e) {
@@ -260,7 +260,7 @@ class PurchaseController extends Controller
                 $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Vendor', '');
                 $warehouse = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
                 $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
-                $purchaseNumber = $user?->purchaseNumberFormat($purchase->purchase_id);
+                $purchase_number = $user?->purchaseNumberFormat($purchase->purchase_id);
                 $this->logExecutionTime($loadStart, $action, 'loadEditData');
                 Log::info("[{$class}::{$action}] data ready", ['purchase_id' => $id]);
                 $renderStart = microtime(true);
@@ -268,9 +268,9 @@ class PurchaseController extends Controller
                     Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
                     return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
-                Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchaseNumber']]);
+                Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchase_number']]);
                 $this->logExecutionTime($renderStart, $action, 'renderEdit');
-                return view($viewPath, compact('purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchaseNumber'));
+                return view($viewPath, compact('purchase', 'vendors', 'productServices', 'warehouse', 'category', 'purchase_number'));
             } catch (AuthorizationException $e) {
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);

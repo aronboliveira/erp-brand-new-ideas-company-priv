@@ -171,18 +171,17 @@
                 <div class="{{ VC::CD }}">
                     <div class="card-body">
                         @php
-                            $proposalIndexBaseName     = ViewsConstants::PPS.'.index';
+                            $proposalIndexBaseName     = 'proposal.index';
                             $proposalIndexKebabName    = Str::kebab($proposalIndexBaseName);
                             $proposalIndexResolvedName = Route::has($proposalIndexBaseName)
                                 ? $proposalIndexBaseName
                                 : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
-                            $proposalIndexRouteArray   = $proposalIndexResolvedName ? [$proposalIndexResolvedName] : ['#'];
                             $proposalIndexUrl          = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
                             $proposalIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Index proposal route is unavailable. Please contact technical support or your domain administrator.';
                             $proposalIndexFormId       = 'frm_submit';
                         @endphp
                         {!! Form::open([
-                            'route'          => $proposalIndexRouteArray,
+                            'url'            => $proposalIndexUrl,
                             'method'         => 'get',
                             'accept-charset' => 'UTF-8',
                             'id'             => $proposalIndexFormId,

@@ -327,7 +327,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::post('cookie-setting', [SystemController::class, SystemController::SV_CK_ST])->name(VW::SET . '.cookies.store');
             R::post('cache-settings', [SystemController::class, SystemController::CC_ST_STR])->name('cache.settings.store')
                 ->middleware([MWC::AUTH, MWC::XSS]);
-            R::resource('systems', SystemController::class);
+            R::resource('systems', SystemController::class)->only(['index', 'store']);
         }
     );
     #endregion
@@ -855,6 +855,10 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     R::get('last-login', [EmployeeController::class, EmployeeController::LST_LGN])->name('last_login')->middleware([MWC::AUTH, MWC::XSS]);
 
+    R::get(VW::EMP . '/export', [EmployeeController::class, 'export'])->name(VW::EMP . '.export')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::EMP . '/import/file', [EmployeeController::class, EmployeeController::IMP_FL])->name(VW::EMP . '.file.import')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::EMP . '/import/index', [EmployeeController::class, 'import'])->name(VW::EMP . '.import')->middleware([MWC::AUTH, MWC::XSS]);
+
     R::resource(VW::EMP, EmployeeController::class)->middleware([MWC::AUTH, MWC::XSS]);
 
     R::post(VW::EMP . '/getdepartment', [EmployeeController::class, EmployeeController::GET_DPT])->name(VW::EMP . '.getdepartment')->middleware([MWC::AUTH, MWC::XSS]);
@@ -880,16 +884,16 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::OT_PAY . '/create/{eid}', [OtherPaymentController::class, OtherPaymentController::OT_PAY_CR])->name(VW::OT_PAY . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::OVT . '/create/{eid}', [OvertimeController::class, 'overtimeCreate'])->name(VW::OVT . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::S_SLR, SetSalaryController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::ALW, AllowanceController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::ALW, AllowanceController::class)->except(['create'])->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::ALW_OPT, AllowanceOptionController::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::COM, CommissionController::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::DDT_OPT, DeductionOptionController::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::LN_OPT, LoanOptionController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::LN, LoanController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::LN, LoanController::class)->except(['create'])->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::PY_SLP, PayslipTypeController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::STR_DD, SaturationDeductionController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::OT_PAY, OtherPaymentController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::OVT, OvertimeController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::STR_DD, SaturationDeductionController::class)->except(['index', 'create'])->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::OT_PAY, OtherPaymentController::class)->except(['create'])->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::OVT, OvertimeController::class)->except(['create'])->middleware([MWC::AUTH, MWC::XSS]);
     //================================= Payslips Controller ====================================//
     #region
     R::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PayslipController::class, PayslipController::PAY_SLR])->name(VW::PY_SLP . '.paysalary')->middleware([MWC::AUTH, MWC::XSS]);
@@ -904,7 +908,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::PY_SLP . '/payslipPdf/{id}', [PayslipController::class, PayslipController::PAY_SLP_PDF])->name(VW::PY_SLP . '.payslipPdf')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PY_SLP . '/send/{id}/{m}', [PayslipController::class, 'send'])->name(VW::PY_SLP . '.send')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PY_SLP . '/delete/{id}', [PayslipController::class, 'destroy'])->name(VW::PY_SLP . '.delete')->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::PY_SLP, PayslipController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::PY_SLP, PayslipController::class)->except(['create'])->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
     R::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::EVT . '/get-department', [EventController::class, EventController::GET_DPT])->name(VW::EVT . '.getdepartment')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1117,7 +1121,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::PRJ . '/{id}/' . VW::EXP . '/{eid}', [ExpenseController::class, 'update'])->name(VW::PRJ_EXP . '.update')->middleware([MWC::AUTH, MWC::XSS]);
     R::delete(VW::PRJ . '/{eid}/' . VW::EXP . '/', [ExpenseController::class, 'destroy'])->name(VW::PRJ_EXP . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
     // TODO missing method
-    R::get('/expense-list', [ExpenseController::class, 'expenseList'])->name(VW::EXP . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('/expense-list', [ExpenseController::class, 'index'])->name(VW::EXP . '.list')->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
 
     //================================= Contract Types ====================================//
@@ -1381,10 +1385,6 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::PPS . '/export', [ProposalController::class, 'export'])->name(VW::PPS . '.export');
     R::get(VW::BIL . '/export', [BillController::class, 'export'])->name(VW::BIL . '.export');
 
-    R::get(VW::EMP . '/export', [EmployeeController::class, 'export'])->name(VW::EMP . '.export');
-    R::get(VW::EMP . '/import/file', [EmployeeController::class, EmployeeController::IMP_FL])->name(VW::EMP . '.file.import');
-    R::post(VW::EMP . '/import/index', [EmployeeController::class, 'import'])->name(VW::EMP . '.import');
-
     R::get('attendance/import/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
     R::post('attendance/import/index', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
 
@@ -1393,7 +1393,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     //================================= Product Stock ====================================//
     #region
     R::group(['middleware' => [MWC::SET]], function () {
-        R::get(VW::PRD_STK . '/export', [RPC::class, 'stock_export'])->name(VW::PRD_STK . '.export');
+        R::get(VW::PRD_STK . '/export', [RPC::class, 'stockExport'])->name(VW::PRD_STK . '.export');
         R::resource(VW::PRD_STK, ProductStockController::class)->middleware([MWC::AUTH, MWC::XSS, 'check.mount']);
     });
     #endregion

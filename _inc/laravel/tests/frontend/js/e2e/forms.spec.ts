@@ -24,9 +24,7 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
 
 test.describe("Form Structure", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -77,9 +75,7 @@ test.describe("Form Structure", () => {
 
 test.describe("Input Validation", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -100,9 +96,7 @@ test.describe("Input Validation", () => {
     await emailInput.fill("notanemail");
 
     // Check HTML5 validation
-    const isValid = await emailInput.evaluate(
-      (el: HTMLInputElement) => el.validity.valid,
-    );
+    const isValid = await emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
     expect(isValid).toBe(false);
   });
 
@@ -111,9 +105,7 @@ test.describe("Input Validation", () => {
 
     await emailInput.fill("test@example.com");
 
-    const isValid = await emailInput.evaluate(
-      (el: HTMLInputElement) => el.validity.valid,
-    );
+    const isValid = await emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
     expect(isValid).toBe(true);
   });
 
@@ -127,8 +119,7 @@ test.describe("Input Validation", () => {
 
     // Form should not have submitted (no response panel update)
     const responsePanel = page.locator(".response-panel .response-empty");
-    const hasEmptyMessage =
-      (await responsePanel.count()) > 0 && (await responsePanel.isVisible());
+    const hasEmptyMessage = (await responsePanel.count()) > 0 && (await responsePanel.isVisible());
 
     // If empty message is still visible, form didn't submit
     expect(hasEmptyMessage).toBe(true);
@@ -141,9 +132,7 @@ test.describe("Input Validation", () => {
 
 test.describe("Form Interactions", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -212,9 +201,7 @@ test.describe("Form Interactions", () => {
 
 test.describe("Form Submission", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -290,9 +277,7 @@ test.describe("Form Submission", () => {
 
 test.describe("Error States", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -341,9 +326,7 @@ test.describe("Error States", () => {
 
 test.describe("Form Accessibility", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -358,15 +341,9 @@ test.describe("Form Accessibility", () => {
   });
 
   test("labels have visible text", async ({ page }) => {
-    const nameLabel = await page
-      .locator('label[for="form-name"]')
-      .textContent();
-    const emailLabel = await page
-      .locator('label[for="form-email"]')
-      .textContent();
-    const roleLabel = await page
-      .locator('label[for="form-role"]')
-      .textContent();
+    const nameLabel = await page.locator('label[for="form-name"]').textContent();
+    const emailLabel = await page.locator('label[for="form-email"]').textContent();
+    const roleLabel = await page.locator('label[for="form-role"]').textContent();
 
     expect(nameLabel?.toLowerCase()).toContain("name");
     expect(emailLabel?.toLowerCase()).toContain("email");
@@ -409,9 +386,7 @@ test.describe("Form Accessibility", () => {
 
 test.describe("Edge Cases", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(
-      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
-    );
+    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -469,18 +444,14 @@ test.describe("Edge Cases", () => {
     await page.fill("#form-name", "Test User");
     await page.fill("#form-email", "test+tag@example.com");
 
-    const isValid = await page
-      .locator("#form-email")
-      .evaluate((el: HTMLInputElement) => el.validity.valid);
+    const isValid = await page.locator("#form-email").evaluate((el: HTMLInputElement) => el.validity.valid);
     expect(isValid).toBe(true);
   });
 
   test("handles email with subdomain", async ({ page }) => {
     await page.fill("#form-email", "test@mail.example.com");
 
-    const isValid = await page
-      .locator("#form-email")
-      .evaluate((el: HTMLInputElement) => el.validity.valid);
+    const isValid = await page.locator("#form-email").evaluate((el: HTMLInputElement) => el.validity.valid);
     expect(isValid).toBe(true);
   });
 });
@@ -515,12 +486,8 @@ test.describe("Guest Login Form", () => {
   });
 
   test("both fields are required", async ({ page }) => {
-    expect(
-      await page.locator("#email").getAttribute("required"),
-    ).not.toBeNull();
-    expect(
-      await page.locator("#password").getAttribute("required"),
-    ).not.toBeNull();
+    expect(await page.locator("#email").getAttribute("required")).not.toBeNull();
+    expect(await page.locator("#password").getAttribute("required")).not.toBeNull();
   });
 
   test("login form has remember me checkbox", async ({ page }) => {

@@ -283,7 +283,7 @@ final class ScreenshotsController extends AppController
                 $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
                 $stepStart = microtime(true);
                 $items = json_decode(LandingPageSetting::settings()[self::NAME] ?? '[]', true) ?? [];
-                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : $items);
+                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : []);
                 $screenshot = $items[$key] ?? [];
                 $this->logExecutionTime($stepStart, 'decodeItems', 'completed');
                 $stepStart = microtime(true);

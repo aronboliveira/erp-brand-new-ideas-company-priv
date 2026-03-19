@@ -98,7 +98,7 @@ final class ReportController extends Controller
     private const ROUTE_INCOME_VS_EXPENSE = VW::RPT . '.income_vs_expense_summary';
     private const ROUTE_TAX_SUMMARY      = VW::RPT . '.tax_summary';
     private const ROUTE_INVOICE_REPORT  = VW::RPT . '.invoice';
-    private const ROUTE_BILL_REPORT     = VW::RPT . '.bill';
+    private const ROUTE_BILL_REPORT     = VW::RPT . '.bill.summary';
     private const ROUTE_STATEMENT_REPORT = VW::RPT . '.statement_report';
     private const ROUTE_BALANCE_SHEET   = VW::RPT . '.balance_sheet';
     private const ROUTE_LEDGER_SUMMARY  = VW::RPT . '.ledger_summary';
@@ -1370,7 +1370,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::{$action} failed", ['user_id' => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.monthly_cashflow'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.monthly.cashflow'));
             }
         }, ['req' => $request]);
     }
@@ -1406,7 +1406,7 @@ final class ReportController extends Controller
                 return $resp;
             } catch (\Throwable $e) {
                 Log::error("{$class}::quarterlyCashflow failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.quarterly_cashflow'));
+                return defaultUndefinedException($request, $e, "{$method}", route(VW::RPT . '.quarterly.cashflow'));
             }
         }, ['req' => $request]);
     }
@@ -3779,7 +3779,7 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _renderWarehouse(int $userId): View
+    private function _renderWarehouse(int|string $userId): View
     {
         $warehouses     = Warehouse::where(DC::COL_TABLE_CREATOR, $userId)->get();
         $totalWarehouse = $warehouses->count();

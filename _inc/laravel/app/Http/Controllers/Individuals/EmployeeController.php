@@ -370,7 +370,7 @@ class EmployeeController extends Controller
                 $employee_id = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'employeeProfileLoaded');
                 $view = VW::EMP . '.show';
-                if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(self::SINGULAR . '.index'));
+                if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index'));
                 return ViewFacade::make($view, compact(self::SINGULAR, UsersConstants::COL_EMP_ID, DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_DEPARTMENTS, DatabaseConstants::TABLE_DESIGNS, DatabaseConstants::TABLE_DOCS));
             } catch (\Throwable $e) {
                 return redirect()->back()->with('error', __('Employee not found.'));
@@ -390,7 +390,7 @@ class EmployeeController extends Controller
             $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $this->logExecutionTime($t, $action, 'usersLoaded');
             $view = VW::EMP . '.' . $action;
-            if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(self::SINGULAR . '.index'));
+            if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index'));
             return ViewFacade::make($view, compact(DatabaseConstants::TABLE_USERS));
         }, ['route' => Route::getCurrentRoute()?->getName()]);
     }
@@ -496,7 +496,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($action, $base) {
             $view = VW::EMP . '.import';
-            if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(self::SINGULAR . '.index'));
+            if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index'));
             return ViewFacade::make($view);
         }, ['route' => Route::getCurrentRoute()?->getName()]);
     }
@@ -584,7 +584,7 @@ class EmployeeController extends Controller
         $latest = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->latest()
             ->value(UsersConstants::COL_EMP_ID);
-        return is_numeric($latest) ? (int)$latest + 1 : $latest;
+        return is_numeric($latest) ? (int)$latest + 1 : ($latest ?? 1);
     }
 
     /**

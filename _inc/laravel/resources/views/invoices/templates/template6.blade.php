@@ -43,7 +43,7 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::C
         'meta_title' => $meta_title,
         'meta_desc'  => $meta_desc,
     ])
-    <title>New York - Invoice</title>
+    <title>{{ __('New York') }} - {{ __('Invoice') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
 
     <style>

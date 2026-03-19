@@ -66,6 +66,8 @@ pyvenv.cfg
 **/nohup.out
 *.png
 *.webm
+.mypy_cache/
+.mypy_cache/**
 
 # ide helpers
 
@@ -168,3 +170,9 @@ _inc/laravel/.phpunit.result.cache
 .instructions.md
 AGENTS.md
 copilot-instructions.md
+where-to-update-and-read.yml
+
+origin/
+origin/**
+_old/
+_old/**

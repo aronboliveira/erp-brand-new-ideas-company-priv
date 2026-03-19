@@ -130,7 +130,7 @@ $data??=[];
                         data-bs-target="#navbarTogglerDemo01"
                         aria-controls="navbarTogglerDemo01"
                         aria-expanded="false"
-                        aria-label="Toggle navigation"
+                        aria-label="{{ __('Toggle navigation') }}"
                     >
                         <span class="{{ VC::NVB_TG_IC }}"></span>
                     </button>
@@ -192,19 +192,19 @@ $data??=[];
                                     $liveDemoUrl = Route::has('login') ? route('login') : '#';
 @endphp
                                 <a href="{{ $liveDemoUrl }}" class="{{ VC::BT_LG }} me-2">
-                                    <i class="{{ VC::FAR_EYE }} me-2"></i>Live Demo
+                                    <i class="{{ VC::FAR_EYE }} me-2"></i>{{ __('Live Demo') }}
                                 </a>
                                 <a href="https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm/33263426"
                                 class="{{ VC::BT_OUT_LG }}"
                                 target="_blank">
-                                    <i class="{{ VC::FAS_CART }} me-2"></i>Buy now
+                                    <i class="{{ VC::FAS_CART }} me-2"></i>{{ __('Buy now') }}
                                 </a>
                             </div>
                         </div>
                         <div class="col-sm-5">
                             <img
                                 src="{{asset('assets/images/front/header-mokeup.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Dashboard preview') }}"
                                 class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -216,7 +216,7 @@ $data??=[];
                 <div class="{{ VC::CT }}">
                     <div class="{{ VC::RW }} justify-content-center">
                         <div class="col-xl-6 {{ VC::CM9 }} title">
-                            <h2><span>Happy clients use Dashboard</span> </h2>
+                            <h2><span>{{ __('Happy clients use Dashboard') }}</span> </h2>
                         </div>
                     </div>
                     @php
@@ -267,14 +267,14 @@ $data??=[];
                             </p>
                             <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
-                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>{{ __('Buy now') }}</a
                                 >
                             </div>
                         </div>
                         <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('landing/images/dashboard.png')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Dashboard preview') }}"
                                 class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -284,7 +284,7 @@ $data??=[];
                         <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-2.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Dashboard preview') }}"
                                 class="{{ VC::IMG_FL }} header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
@@ -305,7 +305,7 @@ $data??=[];
                             </p>
                             <div class="{{ VC::MY4 }} wow animate__fadeInRight" data-wow-delay="0.8s">
                                 <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
-                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>{{ __('Buy now') }}</a
                                 >
                             </div>
                         </div>
@@ -317,8 +317,7 @@ $data??=[];
                     <div class="{{ VC::RW }} justify-content-center">
                         <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2>
-                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">Features</span> All in one place CRM
-                                system
+                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">{{ __('Features') }}</span> {{ __('All in one place CRM system') }}
                             </h2>
                             <p class="m-0">
                                 {{ __('Use these awesome forms to login or create new account in your
@@ -341,8 +340,8 @@ $data??=[];
                                     <div class="theme-avatar bg-danger">
                                         <i class="{{ VC::TI_RPT_MN }}"></i>
                                     </div>
-                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
-                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">{{ __('About') }}</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">{{ __('Feature') }}</h4>
                                     <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                         project for free.')}}
@@ -364,8 +363,8 @@ $data??=[];
                                     <div class="theme-avatar bg-success">
                                         <i class="{{ VC::TI_USR_PLS }}"></i>
                                     </div>
-                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
-                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">{{ __('About') }}</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">{{ __('Feature') }}</h4>
                                     <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
@@ -387,8 +386,8 @@ $data??=[];
                                     <div class="theme-avatar bg-warning">
                                         <i class="{{ VC::TI_USRS }}"></i>
                                     </div>
-                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
-                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">{{ __('About') }}</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">{{ __('Feature') }}</h4>
                                     <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
@@ -410,8 +409,8 @@ $data??=[];
                                     <div class="theme-avatar bg-danger">
                                         <i class="{{ VC::TI_RPT_MN }}"></i>
                                     </div>
-                                    <h6 class="{{ VC::TXT_MT_MT4 }}">ABOUT</h6>
-                                    <h4 class="{{ VC::MY3_FW600 }}">Feature</h4>
+                                    <h6 class="{{ VC::TXT_MT_MT4 }}">{{ __('About') }}</h6>
+                                    <h4 class="{{ VC::MY3_FW600 }}">{{ __('Feature') }}</h4>
                                     <p class="{{ VC::MB0 }}">
                                         {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
@@ -421,9 +420,9 @@ $data??=[];
                         </div>
                     </div>
                     <div class="{{ VC::TXCT }} pt-sm-5 feature-mobile-screen">
-                        <button class="btn px-sm-5 {{ VC::BT_PM }} me-sm-3">Buy Now</button>
+                        <button class="btn px-sm-5 {{ VC::BT_PM }} me-sm-3">{{ __('Buy Now') }}</button>
                         <button class="btn px-sm-5 btn-outline-primary">
-                            View documentation
+                            {{ __('View documentation') }}
                         </button>
                     </div>
                 </div>
@@ -445,16 +444,8 @@ $data??=[];
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
                             </p>
-                            <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
-                                <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
-                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
-                                >
-                            </div>
-                        </div>
-                        <div class="{{ VC::CS6 }}">
-                            <img
-                                src="{{asset('landing/images/dash-2.svg')}}"
-                                alt="Datta Able Admin Template"
+                            <div class=\"{{ VC::MY4 }} wow animate__fadeInLeft\" data-wow-delay=\"0.8s\">\n                                <a href=\"#\" class=\"{{ VC::BT_PRM }}\" target=\"_blank\"\n                                ><i class=\"{{ VC::FAS_CART }} me-2\"></i>{{ __('Buy now') }}</a\n                                >\n                            </div>\n                        </div>\n                        <div class=\"{{ VC::CS6 }}\">\n                            <img\n                                src=\"{{asset('landing/images/dash-2.svg')}}\"
+                                alt="{{ __('Dashboard preview') }}"
                                 class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             />
@@ -464,7 +455,7 @@ $data??=[];
                         <div class="{{ VC::CS6 }}">
                             <img
                                 src="{{asset('assets/images/front/img-crm-dash-4.svg')}}"
-                                alt="Datta Able Admin Template"
+                                alt="{{ __('Dashboard preview') }}"
                                 class="{{ VC::IMG_FL }} header-img wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             />
@@ -485,7 +476,7 @@ $data??=[];
                             </p>
                             <div class="{{ VC::MY4 }} wow animate__fadeInRight" data-wow-delay="0.8s">
                                 <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
-                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>{{ __('Buy now') }}</a
                                 >
                             </div>
                         </div>
@@ -497,8 +488,7 @@ $data??=[];
                     <div class="{{ VC::RW }} justify-content-center">
                         <div class="col-xl-6 {{ VC::CM9 }} title">
                             <h2>
-                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">Price</span> All in one place CRM
-                                system
+                                <span class="{{ VC::DBL }} {{ VC::MB3 }}">{{ __('Price') }}</span> {{ __('All in one place CRM system') }}
                             </h2>
                             <p class="m-0">
                                 {{ __('Use these awesome forms to login or create new account in your
@@ -601,7 +591,7 @@ $data??=[];
                 <div class="{{ VC::CT }}">
                     <div class="{{ VC::RW }} justify-content-center">
                         <div class="col-xl-6 {{ VC::CM9 }} title">
-                            <h2><span>Frequently Asked Questions </span></h2>
+                            <h2><span>{{ __('Frequently Asked Questions') }} </span></h2>
                             <p class="m-0">
                                 {{ __('Use these awesome forms to login or create new account in your
                                 project for free.')}}
@@ -622,8 +612,7 @@ $data??=[];
                                             aria-controls="collapseOne"
                                         >
                                 <span class="{{ VC::DFL_AIC }}">
-                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
-                                order?
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> {{ __('How do I order?') }}
                                 </span>
                                         </button>
                                     </h2>
@@ -634,15 +623,7 @@ $data??=[];
                                         data-bs-parent="#accordionExample"
                                     >
                                         <div class="accordion-body">
-                                            <strong>This is the first item's accordion body.</strong> It
-                                            is shown by default, until the collapse plugin adds the
-                                            appropriate classes that we use to style each element. These
-                                            classes control the overall appearance, as well as the
-                                            showing and hiding via CSS transitions. You can modify any
-                                            of this with custom CSS or overriding our default variables.
-                                            It's also worth noting that just about any HTML can go
-                                            within the <code>.accordion-body</code>, though the
-                                            transition does limit overflow.
+                                            {{ __('This is the first item\'s accordion body. It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It\'s also worth noting that just about any HTML can go within the accordion body, though the transition does limit overflow.') }}
                                         </div>
                                     </div>
                                 </div>
@@ -657,8 +638,7 @@ $data??=[];
                                             aria-controls="collapseTwo"
                                         >
                                 <span class="{{ VC::DFL_AIC }}">
-                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
-                                order?
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> {{ __('How do I order?') }}
                                 </span>
                                         </button>
                                     </h2>
@@ -669,15 +649,7 @@ $data??=[];
                                         data-bs-parent="#accordionExample"
                                     >
                                         <div class="accordion-body">
-                                            <strong>This is the second item's accordion body.</strong>
-                                            It is hidden by default, until the collapse plugin adds the
-                                            appropriate classes that we use to style each element. These
-                                            classes control the overall appearance, as well as the
-                                            showing and hiding via CSS transitions. You can modify any
-                                            of this with custom CSS or overriding our default variables.
-                                            It's also worth noting that just about any HTML can go
-                                            within the <code>.accordion-body</code>, though the
-                                            transition does limit overflow.
+                                            {{ __('This is the second item\'s accordion body. It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It\'s also worth noting that just about any HTML can go within the accordion body, though the transition does limit overflow.') }}
                                         </div>
                                     </div>
                                 </div>
@@ -692,8 +664,7 @@ $data??=[];
                                             aria-controls="collapseThree"
                                         >
                                 <span class="{{ VC::DFL_AIC }}">
-                                <i class="{{ VC::TI_INF_CC_PM }}"></i> How do I
-                                order?
+                                <i class="{{ VC::TI_INF_CC_PM }}"></i> {{ __('How do I order?') }}
                                 </span>
                                         </button>
                                     </h2>
@@ -704,15 +675,7 @@ $data??=[];
                                         data-bs-parent="#accordionExample"
                                     >
                                         <div class="accordion-body">
-                                            <strong>This is the third item's accordion body.</strong> It
-                                            is hidden by default, until the collapse plugin adds the
-                                            appropriate classes that we use to style each element. These
-                                            classes control the overall appearance, as well as the
-                                            showing and hiding via CSS transitions. You can modify any
-                                            of this with custom CSS or overriding our default variables.
-                                            It's also worth noting that just about any HTML can go
-                                            within the <code>.accordion-body</code>, though the
-                                            transition does limit overflow.
+                                            {{ __('This is the third item\'s accordion body. It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It\'s also worth noting that just about any HTML can go within the accordion body, though the transition does limit overflow.') }}
                                         </div>
                                     </div>
                                 </div>
@@ -740,7 +703,7 @@ $data??=[];
                             </p>
                             <div class="{{ VC::MY4 }} wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 <a href="#" class="{{ VC::BT_PRM }}" target="_blank"
-                                ><i class="{{ VC::FAS_CART }} me-2"></i>Buy now</a
+                                ><i class="{{ VC::FAS_CART }} me-2"></i>{{ __('Buy now') }}</a
                                 >
                             </div>
                         </div>
@@ -768,7 +731,7 @@ $data??=[];
                                             src="{{ asset('landing/images/' . $img['image']) }}"
                                             class="{{ VC::IMG_FL }} header-img wow animate__fadeInRight"
                                             data-wow-delay="{{ $img['delay'] }}"
-                                            alt="Admin"
+                                            alt="{{ __('Admin') }}"
                                         />
                                     </div>
                                 @endforeach
@@ -791,7 +754,7 @@ $data??=[];
                         </div>
                         <div class="{{ VC::CL6 }} {{ VC::CS12 }} {{ VC::TX_END }}">
 
-                            <p class="text-body">Copyright © 2025 | Design by Prestech</p>
+                            <p class="text-body">{{ __('Copyright') }} © {{ date('Y') }} | {{ __('Design by') }} Prestech</p>
                         </div>
                     </div>
                 </div>

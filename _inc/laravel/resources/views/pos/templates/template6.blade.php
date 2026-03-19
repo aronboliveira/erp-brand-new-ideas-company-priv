@@ -65,7 +65,7 @@ try {$issueDate = Utility::dateFormat($settings, data_get($pos, 'issue_date')) ?
 
 <head>
     <?php try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\InvalidArgumentException $e) {Log::warning('Meta view: ' . $e->getMessage());} catch (\Exception $e) {Log::error('Meta view: ' . $e->getMessage());} catch (\Throwable $e) {Log::critical('Meta view: ' . $e->getMessage());} ?>
-    <title>New York - POS</title>
+    <title>{{ __('New York') }} - {{ __('POS') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     <style>
         <?= $themeCSS ?>

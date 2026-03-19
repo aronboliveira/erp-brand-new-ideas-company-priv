@@ -41,8 +41,8 @@ final class TestimonialsController extends AppController
                 $settings = LandingPageSetting::landingPageSetting();
                 $this->logExecutionTime($settingsStart, $action . '::landingPageSetting', 'completed');
                 $itemsStart = microtime(true);
-                $items = json_decode($settings[self::ENTITY] ?? '[]', true);
-                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : $items);
+                $items = json_decode($settings[self::ENTITY] ?? '[]', true) ?? [];
+                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : []);
                 $this->logExecutionTime($itemsStart, $action . '::decodeItems', 'completed');
                 $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
                 if (!$view) {

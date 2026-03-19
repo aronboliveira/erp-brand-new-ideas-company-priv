@@ -1,4 +1,7 @@
 @php
+    $color = 'theme-3';
+    $dashUrl = '#';
+    $route = $route ?? 'user';
     try {
 $user = Auth::user();
         $setting = Utility::colorset();

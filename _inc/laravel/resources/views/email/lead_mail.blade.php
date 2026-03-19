@@ -10,7 +10,7 @@ $lang = Utility::fetchUserLang();
 <!doctype html>
 <html lang="{{ $lang ?? app()->getLocale() }}" xmlns="http://www.w3.org/1999/xhtml">
     <head>
-        <title>Lead Email</title>
+        <title>{{ __('Lead Email') }}</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
             'meta_desc' => $meta_desc

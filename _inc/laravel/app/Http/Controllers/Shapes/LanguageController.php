@@ -62,7 +62,7 @@ class LanguageController extends Controller
                 return $cookie ? Redirect::back()->withCookie($cookie)->with('success', __('Language changed successfully.')) : Redirect::back()->with('success', __('Language changed successfully.'));
             } catch (\Throwable $e) {
                 Log::error("[$action] error", ['err' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX, ['lang' => app()->getLocale()]));
             }
         }, ['req' => $request]);
     }
@@ -191,7 +191,7 @@ class LanguageController extends Controller
                 return Redirect::route(self::ROUTE_INDEX, [$currentLang])->with('success', __('Language saved successfully.'));
             } catch (\Throwable $e) {
                 Log::error("[$action] error", ['err' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX, ['lang' => $currentLang ?? app()->getLocale()]));
             }
         }, ['req' => $request]);
     }
@@ -224,7 +224,7 @@ class LanguageController extends Controller
     }
 
     public const CR_LNG = 'createLanguage';
-    public function createLanguage(): View
+    public function createLanguage(): View|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -258,7 +258,7 @@ class LanguageController extends Controller
                 Log::info("[{$action}] start", ['input' => $request->all()]);
                 $startProcess = microtime(true);
                 $code = preg_replace('/[^a-z0-9_-]/', '', strtolower($request->input('code')));
-                if ($code === '') return Redirect::route(self::ROUTE_INDEX)->with('error', __('Invalid language code.'));
+                if ($code === '') return Redirect::route(self::ROUTE_INDEX, ['lang' => app()->getLocale()])->with('error', __('Invalid language code.'));
                 $fullName = $request->input('full_name');
                 $baseDir = base_path('resources/lang');
                 !is_dir($baseDir) && mkdir($baseDir, 0755, true);
@@ -272,7 +272,7 @@ class LanguageController extends Controller
                 return Redirect::route(self::ROUTE_INDEX, [$code])->with('success', __('Language successfully created.'));
             } catch (\Throwable $e) {
                 Log::error("[{$action}] error", ['err' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX, ['lang' => app()->getLocale()]));
             }
         }, ['req' => $request]);
     }
@@ -302,7 +302,7 @@ class LanguageController extends Controller
                 return Redirect::route(self::ROUTE_INDEX, [$default])->with('success', __('Language deleted successfully.'));
             } catch (\Throwable $e) {
                 Log::error("[{$action}] error", ['err' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INDEX, ['lang' => app()->getLocale()]));
             }
         }, ['req' => $request]);
     }

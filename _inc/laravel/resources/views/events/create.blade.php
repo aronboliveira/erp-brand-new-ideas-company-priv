@@ -61,18 +61,23 @@ $lang ??= 'en';
 ]) !!}
     <div class="modal-body">
         @php
+	$showGpt = false;
+	$genHref = '#';
+	$genMsg = '';
+	$genLinkId = 'event-generate-ai-link';
 	try {
-		($plan = Utility::getChatGPTSettings())
-		        @if($plan?->{PlansConstants::COL_GPT} == 1)
-		            @php
-		                $genHref   = Route::has('generate') ? route('generate',['event']) : '#';
-		                $genMsg    = Utility::fetchLinkMessage($lang, VW::EVT, 'ai_generate_route_unavailable')
-		                             ?? 'AI generate route is unavailable for events. Please contact technical support or your domain administrator.';
-		                $genLinkId = 'event-generate-ai-link';
+		$plan = Utility::getChatGPTSettings();
+		if ($plan?->{PlansConstants::COL_GPT} == 1) {
+			$showGpt = true;
+			$genHref = Route::has('generate') ? route('generate', ['event']) : '#';
+			$genMsg = Utility::fetchLinkMessage($lang, VW::EVT, 'ai_generate_route_unavailable')
+			          ?? 'AI generate route is unavailable for events. Please contact technical support or your domain administrator.';
+		}
 	} catch (\Throwable $e) {
 		\Log::error('events/create — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
 	}
 @endphp
+        @if($showGpt)
             <div class="{{ VC::TX_END }}">
                 <a href="#"
                    id="{{ $genLinkId }}"

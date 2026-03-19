@@ -29,7 +29,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = 'leadStages.index';
+    $viewPath = 'lead_stages.index';
     return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, PermissionsConstants::MNG_LD_ST)) return $r;
@@ -56,7 +56,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = 'leadStages.create';
+    $viewPath = 'lead_stages.create';
     return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, 'create lead stage')) return $r;
@@ -89,7 +89,7 @@ class LeadStageController extends Controller
         LeadStage::create(['name' => $req->name, 'pipeline_id' => $req->pipeline_id, 'created_by' => $req->user()->ownerId()]);
         $this->logExecutionTime($createStart, $action, 'createLeadStage');
         Log::info("[{$class}::{$action}] success", ['name' => $req->name, 'pipeline_id' => $req->pipeline_id]);
-        return redirect()->route('leadStages.index')->with('success', 'Lead Stage successfully created!');
+        return redirect()->route('lead_stages.index')->with('success', 'Lead Stage successfully created!');
       } catch (\Throwable $e) {
         Log::debug("[{$class}::{$action}] error context", ['route' => Route::getCurrentRoute()?->getName(), 'owner_id' => $req->user()?->ownerId(), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
         return defaultUndefinedException($req, $e, $class . '::' . $action);
@@ -106,7 +106,7 @@ class LeadStageController extends Controller
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey()]);
       try {
         $redirStart = microtime(true);
-        $resp = redirect()->route('leadStages.index');
+        $resp = redirect()->route('lead_stages.index');
         $this->logExecutionTime($redirStart, $action, 'redirectToIndex');
         Log::info("[{$class}::{$action}] complete");
         return $resp;
@@ -122,7 +122,7 @@ class LeadStageController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = 'leadStages.edit';
+    $viewPath = 'lead_stages.edit';
     return $this->measureProfile($action, function () use ($req, $leadStage, $action, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId()]);
       if ($r = self::_deny($req, 'edit lead stage')) return $r;
@@ -157,7 +157,7 @@ class LeadStageController extends Controller
         $leadStage->update(['name' => $req->name, 'pipeline_id' => $req->pipeline_id]);
         $this->logExecutionTime($updateStart, $action, 'updateLeadStage');
         Log::info("[{$class}::{$action}] success", ['lead_stage_id' => $leadStage->getKey(), 'name' => $req->name, 'pipeline_id' => $req->pipeline_id]);
-        return redirect()->route('leadStages.index')->with('success', 'Lead Stage successfully updated!');
+        return redirect()->route('lead_stages.index')->with('success', 'Lead Stage successfully updated!');
       } catch (\Throwable $e) {
         Log::debug("[{$class}::{$action}] error context", ['route' => Route::getCurrentRoute()?->getName(), 'lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId(), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
         return defaultUndefinedException($req, $e, $class . '::' . $action);
@@ -178,7 +178,7 @@ class LeadStageController extends Controller
         $leadStage->delete();
         $this->logExecutionTime($deleteStart, $action, 'deleteLeadStage');
         Log::info("[{$class}::{$action}] success", ['lead_stage_id' => $leadStage->getKey()]);
-        return redirect()->route('leadStages.index')->with('success', 'Lead Stage successfully deleted!');
+        return redirect()->route('lead_stages.index')->with('success', 'Lead Stage successfully deleted!');
       } catch (\Throwable $e) {
         Log::debug("[{$class}::{$action}] error context", ['route' => Route::getCurrentRoute()?->getName(), 'lead_stage_id' => $leadStage->getKey(), 'owner_id' => $req->user()?->ownerId(), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
         return defaultUndefinedException($req, $e, $class . '::' . $action);

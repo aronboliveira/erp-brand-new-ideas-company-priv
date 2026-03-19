@@ -1,0 +1,313 @@
+{
+  "controllers": {
+    "searchs": {
+      "php": {
+        "pubFunctions": "public\s+(?:static\s+)?function\s+",
+        "snakeCased": "r'\$(?:bug_status(?:es)?)\s*='",
+        "avoidStringsOrProps": "(?<![$>|'])bug_status",
+        "intId": "\$table->bigIncrements\('id'\);",
+        "unsafeModels: "auth(\n|.)*.*extends model(\n|.)*auth",
+        "unsafeModels2": "class\s+.*\s+extends\s+Model[\s|\n]*\{(\n|.)*ChecksLogin",
+        "booted": "booted\(\)[^\{]*(?:\n|.)*[^\{]*\{(?:\n|.){1,10}\$m(?:odel)?->\{",
+        "route": "'\{\{route\s*\(\s*['"][A-Za-z]*\.",
+        "gSearchs": {
+          "use Illuminate\Database\Eloquent\{Model, Relations\HasOne};": ["use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;", "use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Model;"],
+          "use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};": ["use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;", "use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;"],
+          "use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};": ["use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;", "use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;"]
+        }
+      },
+      "python": {
+        "foreignReferences: "models\.ForeignKey\([\n\s]*([A-Z]+)",
+        "defPrimary": "primary_key=True, \*\*uuid_def_primary\(\)",
+        "@Controller": "['"][A-Z].*controller@",
+        "basicSearch": "\s*\n+class (\S*)Controller:",
+        "viewedSearch": "\s*\n+class (\S*)Controller\(View\):",
+        "indexed": "from\s\.+(?:Models|Entities|factories|migrations|seeders|Exceptions|Controllers|Middlewares|Requests|Providers)\simport\s.*[;\n]",
+        "indexed_2": "from\s\.+(?:Models|Entities|factories|migrations|seeders|Exceptions|Controllers|Middlewares|Requests|Providers)\simport\s.*[;\n]",
+        "indexed_3": "from\s\.+(?:activity|bills|bugs|charts|companies|configs|contact|individuals|info|planning|products|shapes|ssr|utils|_helpers)\s+import\s+.+",
+        "indexed_4: "from\s+\.+Models\.(?:activity|bills|bugs|charts|companies|configs|contact|individuals|info|planning|products|shapes|ssr|utils|_helpers)\s+import\s+.+"
+        "incorrectUtilityImport": "(?<!django\.)(?:utils|utility)\s+import\s+(?!Utility)"
+      }
+      "css": {
+        "singleClass": "class="[^"]*(?<=[\s"])(?<!-)container(?!-)(?=[\s"])[^"]*"
+      }
+    }
+    "replaces": {
+      "basicReplace": "\nfrom .._traits.controller import Controller\nclass $1Controller(Controller):"
+    }
+  }
+}
+
+{
+  "_meta": {
+    "description": "VSCode global search regexes for ERP Nova Prestech codebase auditing",
+    "usage": "Open VSCode Search (Ctrl+Shift+F), enable 'Use Regular Expression' (Alt+R), paste the regex value",
+    "format": "Each entry: { 'regex': string, 'files': glob or null, 'purpose': string, 'flag': 'AUDIT'|'BUG'|'DEBUG'|'SECURITY'|'STYLE' }",
+    "last_updated": "2026-03-02"
+  },
+
+  "php_bugs": [
+    {
+      "id": "PHP-BUG-01",
+      "flag": "BUG",
+      "purpose": "UUID cast to int — will silently return 0 for UUID primary keys",
+      "regex": "\\(int\\)\\s*\\$\\w+\\s*->\\s*id",
+      "files": "_inc/laravel/**/*.php",
+      "note": "All IDs are UUIDs (string). Casting to int destroys the value."
+    },
+    {
+      "id": "PHP-BUG-02",
+      "flag": "BUG",
+      "purpose": "find() called without null-safe guard (500 if record not found)",
+      "regex": "->find\\(\\s*\\$[^)]+->id\\s*\\)(?!\\s*\\?)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Use ->findOrFail() or null check after"
+    },
+    {
+      "id": "PHP-BUG-03",
+      "flag": "BUG",
+      "purpose": "Hardcoded raw user type string instead of PMC constant",
+      "regex": "[!=]=\\s*['\"](?:super admin|company|employee|hr|accountant|client)['\"]",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Replace with PMC::SA, PMC::CPN, PMC::EMP, PMC::HR, PMC::AC, PMC::CLIENT"
+    },
+    {
+      "id": "PHP-BUG-04",
+      "flag": "BUG",
+      "purpose": "Hardcoded route/view string instead of VW:: constant",
+      "regex": "(?:redirect|view|route)\\s*\\(\\s*['\"][a-z_/-]{3,}['\"]",
+      "files": "_inc/laravel/app/Http/**/*.php",
+      "note": "Should use VW:: constants from ViewsConstants.php"
+    },
+    {
+      "id": "PHP-BUG-05",
+      "flag": "BUG",
+      "purpose": "PHP 8 deprecated nested ternary without explicit parentheses",
+      "regex": "\\?.+\\?.+(?<!\\():",
+      "files": "_inc/laravel/**/*.php",
+      "note": "PHP 8 requires: (a ? b : c) ? d : e"
+    },
+    {
+      "id": "PHP-BUG-06",
+      "flag": "BUG",
+      "purpose": "bigIncrements / integer primary key (should be UUID for this project)",
+      "regex": "->(?:bigIncrements|increments)\\s*\\(['\"]id['\"]\\)",
+      "files": "_inc/laravel/database/migrations/**/*.php",
+      "note": "New tables must use $table->uuid('id')->primary()"
+    }
+  ],
+
+  "php_security": [
+    {
+      "id": "PHP-SEC-01",
+      "flag": "SECURITY",
+      "purpose": "Raw SQL string literals — SQL injection risk",
+      "regex": "DB::(?:statement|select|insert|update|delete)\\s*\\(['\"]\\s*(?:SELECT|INSERT|UPDATE|DELETE)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Use query builder bindings or Eloquent"
+    },
+    {
+      "id": "PHP-SEC-02",
+      "flag": "SECURITY",
+      "purpose": "unserialize() call — RCE risk on untrusted input",
+      "regex": "\\bunserialize\\s*\\(",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Replace with json_decode() where possible"
+    },
+    {
+      "id": "PHP-SEC-03",
+      "flag": "SECURITY",
+      "purpose": "eval() call — arbitrary code execution",
+      "regex": "\\beval\\s*\\(",
+      "files": "_inc/laravel/**/*.php",
+      "note": "No eval() allowed anywhere"
+    },
+    {
+      "id": "PHP-SEC-04",
+      "flag": "SECURITY",
+      "purpose": "CSRF-unsafe Blade POST form (missing @csrf)",
+      "regex": "<form[^>]+method=[\"']post[\"'][^>]*>(?![\\s\\S]{0,300}@csrf)",
+      "files": "_inc/laravel/resources/views/**/*.blade.php",
+      "note": "All POST forms require @csrf"
+    },
+    {
+      "id": "PHP-SEC-05",
+      "flag": "SECURITY",
+      "purpose": "Unescaped echo of request input in Blade — XSS risk",
+      "regex": "\\{!!\\s*\\$(?:request|input|data|post|get|query)",
+      "files": "_inc/laravel/resources/views/**/*.blade.php",
+      "note": "Use {{ }} unless content is explicitly sanitized"
+    },
+    {
+      "id": "PHP-SEC-06",
+      "flag": "SECURITY",
+      "purpose": "FIND_IN_SET with raw variable interpolation — SQL injection",
+      "regex": "FIND_IN_SET\\s*\\(\\s*['\"]?\\$",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Use FIND_IN_SET(?, col) with bindings. 31 sites found (2026-03-02)"
+    },
+    {
+      "id": "PHP-SEC-07",
+      "flag": "SECURITY",
+      "purpose": "Bearer token logged — credential leak in logs",
+      "regex": "bearerToken\\s*\\(\\)",
+      "files": "_inc/laravel/app/Http/Middleware/**/*.php",
+      "note": "Remove from log calls in 10 middleware files (K9)"
+    },
+    {
+      "id": "PHP-SEC-08",
+      "flag": "SECURITY",
+      "purpose": "mkdir with 0777 permissions — world-writable directories",
+      "regex": "mkdir\\s*\\([^)]*0777",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Change to 0755. Found in ApiController, LanguageController, uploads"
+    },
+    {
+      "id": "PHP-SEC-09",
+      "flag": "SECURITY",
+      "purpose": "getClientOriginalName() — predictable upload filenames",
+      "regex": "getClientOriginalName\\s*\\(\\)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Replace with hashed/UUID filenames for upload security"
+    },
+    {
+      "id": "PHP-SEC-10",
+      "flag": "SECURITY",
+      "purpose": "file_put_contents with user input — potential path traversal",
+      "regex": "file_put_contents\\s*\\(.*\\$(?:request|file|name|path|input)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Sanitize filename, validate path prefix. Found in ApiController (K7)"
+    }
+  ],
+
+  "php_debug": [
+    {
+      "id": "PHP-DBG-01",
+      "flag": "DEBUG",
+      "purpose": "dd() / dump() / var_dump() / ray() left in code",
+      "regex": "\\b(?:dd|var_dump|dump|ray|ddd)\\s*\\(",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Remove before production"
+    },
+    {
+      "id": "PHP-DBG-02",
+      "flag": "DEBUG",
+      "purpose": "Log::debug() with raw request data (noisy)",
+      "regex": "Log::debug\\s*\\(.*\\$(?:request|req|data|input)",
+      "files": "_inc/laravel/app/**/*.php",
+      "note": "Remove or gate with APP_DEBUG check"
+    }
+  ],
+
+  "php_audit": [
+    {
+      "id": "PHP-AUD-01",
+      "flag": "AUDIT",
+      "purpose": "Auth::user() used directly instead of _checkLogin() trait",
+      "regex": "Auth::user\\(\\)",
+      "files": "_inc/laravel/app/Http/Controllers/**/*.php",
+      "note": "Prefer self::_checkLogin() for consistent null/redirect handling"
+    },
+    {
+      "id": "PHP-AUD-02",
+      "flag": "AUDIT",
+      "purpose": "Google service class imports (likely erroneous)",
+      "regex": "use Google\\\\Service\\\\",
+      "files": "_inc/laravel/**/*.php",
+      "note": "Only valid: Google_Client, Google_Service_Calendar"
+    },
+    {
+      "id": "PHP-AUD-03",
+      "flag": "AUDIT",
+      "purpose": "Eloquent relationships — list all for review",
+      "regex": "(?:hasMany|belongsTo|hasOne|belongsToMany|morphTo|morphMany|hasManyThrough)\\s*\\(",
+      "files": "_inc/laravel/app/Models/**/*.php",
+      "note": "Use to audit model relationship completeness"
+    },
+    {
+      "id": "PHP-AUD-04",
+      "flag": "AUDIT",
+      "purpose": "Seeder hard-coded integer IDs (breaks on re-seed)",
+      "regex": "'id'\\s*=>\\s*[0-9]+",
+      "files": "_inc/laravel/database/seeders/**/*.php",
+      "note": "Use Str::uuid() or let DB auto-generate"
+    },
+    {
+      "id": "PHP-AUD-05",
+      "flag": "AUDIT",
+      "purpose": "Missing View::exists() guard before returning view()",
+      "regex": "return\\s+view\\s*\\(",
+      "files": "_inc/laravel/app/Http/Controllers/**/*.php",
+      "note": "Should check View::exists($path) and call viewMissingRedirect() if absent"
+    }
+  ],
+
+  "js_ts": [
+    {
+      "id": "JS-DBG-01",
+      "flag": "DEBUG",
+      "purpose": "console.log() debug calls in production JS/TS",
+      "regex": "console\\.log\\s*\\(",
+      "files": "_inc/laravel/resources/js/**/*.{js,ts}",
+      "note": "Remove before production"
+    },
+    {
+      "id": "JS-BUG-01",
+      "flag": "BUG",
+      "purpose": "Hardcoded absolute URLs in fetch/axios (breaks on env change)",
+      "regex": "(?:fetch|axios\\.(?:get|post|put|delete|patch))\\s*\\(\\s*['\"](?:http|/[^/])",
+      "files": "_inc/laravel/resources/js/**/*.{js,ts}",
+      "note": "Use relative paths or env-defined base URL constants"
+    },
+    {
+      "id": "JS-BUG-02",
+      "flag": "BUG",
+      "purpose": "getElementById without null guard (throws if element absent)",
+      "regex": "document\\.getElementById\\s*\\([^)]+\\)\\.",
+      "files": "_inc/laravel/resources/js/**/*.{js,ts}",
+      "note": "Add: const el = ...; if (el) { ... }"
+    },
+    {
+      "id": "JS-SEC-01",
+      "flag": "SECURITY",
+      "purpose": "javascript: URI allowed in regex or href — XSS vector",
+      "regex": "javascript\\s*:",
+      "files": "_inc/laravel/public/assets/js/**/*.js",
+      "note": "Ensure all URL validation explicitly blocks javascript: protocol"
+    },
+    {
+      "id": "JS-SEC-02",
+      "flag": "SECURITY",
+      "purpose": "innerHTML or setHTMLContent without sanitization",
+      "regex": "\\.innerHTML\\s*=",
+      "files": "_inc/laravel/public/assets/js/**/*.js",
+      "note": "Use safeSethtmlContent() or DOMPurify for user-supplied HTML"
+    }
+  ],
+
+  "blade_audit": [
+    {
+      "id": "BLADE-AUD-01",
+      "flag": "AUDIT",
+      "purpose": "Raw PHP echo in Blade (bypasses escaping)",
+      "regex": "<\\?(?:php\\s+echo|=)",
+      "files": "_inc/laravel/resources/views/**/*.blade.php",
+      "note": "Use {{ }} or {!! !!} syntax"
+    },
+    {
+      "id": "BLADE-AUD-02",
+      "flag": "AUDIT",
+      "purpose": "Blade @include with string path instead of ELC:: constant",
+      "regex": "@include\\s*\\(['\"][a-z._-]+['\"]",
+      "files": "_inc/laravel/resources/views/**/*.blade.php",
+      "note": "Consider using ExtendingLayoutsConstants (ELC::) for layout paths"
+    }
+  ]
+}
+}

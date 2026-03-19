@@ -31,14 +31,7 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : 4,
 
   /* Reporter to use */
-  reporter: [
-    [
-      "html",
-      { open: "never", outputFolder: "tests/frontend/js/playwright-report" },
-    ],
-    ["json", { outputFile: "tests/frontend/js/test-results.json" }],
-    ["list"],
-  ],
+  reporter: [["html", { open: "never", outputFolder: "tests/frontend/js/playwright-report" }], ["json", { outputFile: "tests/frontend/js/test-results.json" }], ["list"]],
 
   /* Shared settings for all the projects below */
   use: {

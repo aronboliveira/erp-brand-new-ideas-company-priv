@@ -39,7 +39,7 @@ $user = Auth::user();
     <div class="{{ VC::CD_BD }}">
         <div class="{{ VC::TX_END }}">
             <a href="#" id="payslip-download" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_DWN }}"></i></a>
-            <a title="Mail Send"
+            <a title="{{ __('Mail Send') }}"
                id="payslip-mail-send"
                href="{{ $sendUrl }}"
                data-url="{{ $sendUrl }}"

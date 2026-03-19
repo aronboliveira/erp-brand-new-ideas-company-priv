@@ -132,12 +132,12 @@ class ProposalController extends Controller
                 $creatorId = $user?->creatorId();
                 $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
-                $proposalNumber = $user?->proposalNumberFormat($this->proposalNumber());
+                $proposal_number = $user?->proposalNumberFormat($this->proposalNumber());
                 $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
-                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                $product_services = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('name', 'id')->prepend('--', '');
 
                 $this->logExecutionTime($stepStart, 'fetch proposal data', 'completed');
@@ -149,8 +149,8 @@ class ProposalController extends Controller
 
                 return view($view, compact(
                     DatabaseConstants::TABLE_CUSTOMERS,
-                    'proposalNumber',
-                    'productServices',
+                    'proposal_number',
+                    'product_services',
                     'category',
                     'customFields',
                     'customer_id'
@@ -342,9 +342,8 @@ class ProposalController extends Controller
                 $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
 
-                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
+                $product_services = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('name', 'id');
-
                 $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
 
@@ -363,7 +362,7 @@ class ProposalController extends Controller
 
                 return view($view, compact(
                     DatabaseConstants::TABLE_CUSTOMERS,
-                    'productServices',
+                    'product_services',
                     'proposal',
                     'proposalNumber',
                     'category',
@@ -1018,7 +1017,7 @@ class ProposalController extends Controller
             try {
                 $file = 'proposal_' . now()->format('Y-m-d_H_i_s') . '.xlsx';
                 $resp = Excel::download(new ProposalExport(), $file);
-                ob_end_clean();
+                if (ob_get_level() > 0) ob_end_clean();
                 $this->logExecutionTime($stepStart, 'export proposal', 'completed');
                 return $resp;
             } catch (\Throwable $e) {

@@ -188,7 +188,7 @@ $lang = Utility::fetchUserLang();
                     <div class="page-search">
                         <p class="{{ VC::TXT_MT }} {{ VC::MT3 }}">{{ __("It's looking like you may have taken a wrong turn. Don't worry... it happens to the best of us. Here's a little tip that might help you get back on track.")}}</p>
                         <div class="{{ VC::MT3 }}">
-                            <a class="btn-return-home badge-blue" href="{{route('home')}}"><i class="ti ti-reply"></i> {{ __('Return Home')}}</a>
+                            <a class="btn-return-home badge-blue" href="{{ Route::has('dashboard') ? route('dashboard') : '/' }}"><i class="ti ti-reply"></i> {{ __('Return Home')}}</a>
                         </div>
                     </div>
                 @endif
