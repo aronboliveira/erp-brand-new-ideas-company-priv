@@ -42,7 +42,7 @@ class LanguageController extends Controller
                 $user = $request->user();
                 Log::info("[$action] called", ['user_id' => $user?->id, 'lang' => $lang]);
                 $startUpdate = microtime(true);
-                $user->update(['lang' > $lang]);
+                $user->update(['lang' => $lang]);
                 $this->logExecutionTime($startUpdate, "{$action} updateLang", 'completed');
                 $rtlValue = in_array($lang, ['ar', 'he']) ? 'on' : 'off';
                 $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
