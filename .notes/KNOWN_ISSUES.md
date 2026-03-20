@@ -14,12 +14,12 @@ Full results archived in `_inc/laravel/.notes/.llms/.history/reports/route_verif
 
 **Remaining 4 route failures (data/config-dependent, not code bugs):**
 
-| Route | Status | Reason |
-|-------|--------|--------|
-| `/leaves/export` | 404 | Export route likely requires POST or query params |
-| `/pos/create` | 404 | POS create may use a different URL pattern |
-| `/email_templates/create` | 404 | Route naming mismatch |
-| `/debit_notes/bill` | 422 | Validation requires `bill_id` parameter |
+| Route                     | Status | Reason                                            |
+| ------------------------- | ------ | ------------------------------------------------- |
+| `/leaves/export`          | 404    | Export route likely requires POST or query params |
+| `/pos/create`             | 404    | POS create may use a different URL pattern        |
+| `/email_templates/create` | 404    | Route naming mismatch                             |
+| `/debit_notes/bill`       | 422    | Validation requires `bill_id` parameter           |
 
 **wget spider:** 18/18 key module pages OK.
 
@@ -51,16 +51,16 @@ project minimum is 8.1.
 
 ## OPEN — Baselines (as of 2026-03-20)
 
-| Suite | Result |
-|-------|--------|
-| PHPUnit | 12,177 tests, 21,156 assertions, **0 failures**, 122 skipped, 5 incomplete |
-| Playwright | **478 passed**, 13 skipped, 0 failed, 0 flaky (20.2 min) |
-| curl (287 routes) | **240 × 200**, 43 × 302, 4 × fail (data-dependent) |
-| wget spider (18 routes) | **18/18 OK** |
-| Blade view:cache | **all templates compile** |
-| MySQL | 211 tables, all key tables verified |
-| PHPStan L5 | clean |
-| ESLint | clean |
-| tsc | clean |
-| Jest | 319/322 suites |
-| pytest | 53/53 |
+| Suite                   | Result                                                                     |
+| ----------------------- | -------------------------------------------------------------------------- |
+| PHPUnit                 | 12,177 tests, 21,156 assertions, **0 failures**, 122 skipped, 5 incomplete |
+| Playwright              | **478 passed**, 13 skipped, 0 failed, 0 flaky (20.2 min)                   |
+| curl (287 routes)       | **240 × 200**, 43 × 302, 4 × fail (data-dependent)                         |
+| wget spider (18 routes) | **18/18 OK**                                                               |
+| Blade view:cache        | **all templates compile**                                                  |
+| MySQL                   | 211 tables, all key tables verified                                        |
+| PHPStan L5              | clean                                                                      |
+| ESLint                  | clean                                                                      |
+| tsc                     | clean                                                                      |
+| Jest                    | 319/322 suites                                                             |
+| pytest                  | 53/53                                                                      |

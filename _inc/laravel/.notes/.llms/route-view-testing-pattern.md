@@ -423,13 +423,14 @@ php artisan route:list --name=ROUTE_NAME
 ```javascript
 // Pattern: assert page renders with content
 async function assertPageRenders(page, url, expectedSelector) {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  expect(page.url()).not.toContain('/login');
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
+  expect(page.url()).not.toContain("/login");
   await expect(page.locator(expectedSelector)).toBeVisible({ timeout: 5000 });
 }
 ```
 
 **Playwright test files per module:**
+
 - `tests/e2e/hrm.spec.cjs` — HRM routes
 - `tests/e2e/financial.spec.cjs` — Finance routes
 - `tests/e2e/crm.spec.cjs` — CRM routes
@@ -442,28 +443,28 @@ async function assertPageRenders(page, url, expectedSelector) {
 
 ## Coverage Requirements
 
-| Method | Minimum Coverage | Notes |
-|--------|-----------------|-------|
-| curl | All index routes (no `{param}`) — ~120 routes | HTTP status code check (expect 200 or 302) |
-| wget | All dashboard + module index pages — ~30 routes | `--spider` mode |
-| php cli | `view:cache` must succeed | Catches Blade compilation errors |
-| Playwright | All module index + create pages — per spec file | Browser rendering with assertion |
+| Method     | Minimum Coverage                                | Notes                                      |
+| ---------- | ----------------------------------------------- | ------------------------------------------ |
+| curl       | All index routes (no `{param}`) — ~120 routes   | HTTP status code check (expect 200 or 302) |
+| wget       | All dashboard + module index pages — ~30 routes | `--spider` mode                            |
+| php cli    | `view:cache` must succeed                       | Catches Blade compilation errors           |
+| Playwright | All module index + create pages — per spec file | Browser rendering with assertion           |
 
 ---
 
 ## Route Count Summary
 
-| Category | Static GET Routes | Parameterised GET Routes |
-|----------|------------------|------------------------|
-| Auth | 6 | 0 |
-| Dashboards | 8 | 0 |
-| HRM | ~65 | ~30 |
-| Finance | ~45 | ~40 |
-| CRM | 16 | ~10 |
-| Projects | ~15 | ~15 |
-| POS | ~25 | ~10 |
-| Reports | ~30 | 0 |
-| Recruitment | 14 | ~8 |
-| Admin | ~25 | ~15 |
-| Other | ~30 | ~20 |
-| **Total** | **~377** | **~426** |
+| Category    | Static GET Routes | Parameterised GET Routes |
+| ----------- | ----------------- | ------------------------ |
+| Auth        | 6                 | 0                        |
+| Dashboards  | 8                 | 0                        |
+| HRM         | ~65               | ~30                      |
+| Finance     | ~45               | ~40                      |
+| CRM         | 16                | ~10                      |
+| Projects    | ~15               | ~15                      |
+| POS         | ~25               | ~10                      |
+| Reports     | ~30               | 0                        |
+| Recruitment | 14                | ~8                       |
+| Admin       | ~25               | ~15                      |
+| Other       | ~30               | ~20                      |
+| **Total**   | **~377**          | **~426**                 |

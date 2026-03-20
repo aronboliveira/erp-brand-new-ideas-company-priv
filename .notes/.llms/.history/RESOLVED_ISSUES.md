@@ -39,20 +39,20 @@ HTTP 500 errors on 46 out of 832 routes (5.5%) after `migrate:fresh --seed`.
 
 12 code bugs fixed across these categories:
 
-| # | Bug | Fix | Files |
-|---|-----|-----|-------|
-| 1 | Missing Spatie permissions (10 permissions) | Created permissions in DB + updated `PermissionsConstants.php` + `SeedersTemplating.php` | seeders, constants |
-| 2 | View `[app]` not found on Fortify/Jetstream routes | Created `resources/views/app.blade.php` (minimal Inertia layout) | `app.blade.php` |
-| 3 | `FaqController::create()` missing `$settings` variable | Added `$settings = LandingPageSetting::landingPageSetting();` | `FaqController.php` |
-| 4 | `TimesheetController` 7 broken guard patterns | Changed `if ($deny = $this->guard(...))` → `if (($deny = $this->guard(...)) !== true)` | `TimesheetController.php` |
-| 5 | `TimesheetController::filterTimesheetTable()` wrong return type | Changed catch block from `RedirectResponse` to `response()->json([...], 500)` | `TimesheetController.php` |
-| 6 | `HomeController::show()` strict int type hint | Changed `int $id` → `string\|int $id` | `HomeController.php` |
-| 7 | `BenefitPaymentController` missing dot in route name | `VW::INV . 'link.copy'` → `VW::INV . '.link.copy'` (3 occurrences) | `BenefitPaymentController.php` |
-| 8 | `forgot_password.blade.php` Collection cast + unsafe array access | Used `->all()` for Collection, added safe key fallback | `forgot_password.blade.php` |
-| 9 | Webhook view name mismatch | `webhook.xxx` → `webhooks.xxx` (3 references) | `SystemController.php` |
-| 10 | User notifications relationship mismatch | Added `notifications()` HasMany override using `user_id` | `User.php` |
-| 11 | Timesheets missing `deleted_at` column | Added column via Schema + migration | migration file |
-| 12 | `ModelNotFoundException` → 500 | Added detection in `Handler.php` + `ErrorHandlers.php` to return 404 | `Handler.php`, `ErrorHandlers.php` |
+| #   | Bug                                                               | Fix                                                                                      | Files                              |
+| --- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | Missing Spatie permissions (10 permissions)                       | Created permissions in DB + updated `PermissionsConstants.php` + `SeedersTemplating.php` | seeders, constants                 |
+| 2   | View `[app]` not found on Fortify/Jetstream routes                | Created `resources/views/app.blade.php` (minimal Inertia layout)                         | `app.blade.php`                    |
+| 3   | `FaqController::create()` missing `$settings` variable            | Added `$settings = LandingPageSetting::landingPageSetting();`                            | `FaqController.php`                |
+| 4   | `TimesheetController` 7 broken guard patterns                     | Changed `if ($deny = $this->guard(...))` → `if (($deny = $this->guard(...)) !== true)`   | `TimesheetController.php`          |
+| 5   | `TimesheetController::filterTimesheetTable()` wrong return type   | Changed catch block from `RedirectResponse` to `response()->json([...], 500)`            | `TimesheetController.php`          |
+| 6   | `HomeController::show()` strict int type hint                     | Changed `int $id` → `string\|int $id`                                                    | `HomeController.php`               |
+| 7   | `BenefitPaymentController` missing dot in route name              | `VW::INV . 'link.copy'` → `VW::INV . '.link.copy'` (3 occurrences)                       | `BenefitPaymentController.php`     |
+| 8   | `forgot_password.blade.php` Collection cast + unsafe array access | Used `->all()` for Collection, added safe key fallback                                   | `forgot_password.blade.php`        |
+| 9   | Webhook view name mismatch                                        | `webhook.xxx` → `webhooks.xxx` (3 references)                                            | `SystemController.php`             |
+| 10  | User notifications relationship mismatch                          | Added `notifications()` HasMany override using `user_id`                                 | `User.php`                         |
+| 11  | Timesheets missing `deleted_at` column                            | Added column via Schema + migration                                                      | migration file                     |
+| 12  | `ModelNotFoundException` → 500                                    | Added detection in `Handler.php` + `ErrorHandlers.php` to return 404                     | `Handler.php`, `ErrorHandlers.php` |
 
 **Result:** 500s reduced from 46 → 13 (71.7% reduction). Remaining 13 are data-dependent or POST-only routes.
 
@@ -68,13 +68,13 @@ Server-side locale and translation system had multiple bugs causing i18n failure
 
 ### How It Was Solved
 
-| # | Bug | Fix |
-|---|-----|-----|
-| 1 | `change-language` vs `change-languages` route URL | Updated 6 occurrences in `i18n.spec.cjs` to use `/change-languages/{lang}` |
-| 2 | `SetGuestLocale` middleware — unsupported locale fell through | Added validation against supported locales, fall back to `en` |
-| 3 | `SetLocale` middleware — missing `xx` config fallback | Added fallback for invalid locale codes |
-| 4 | Session locale not flushed across redirects | Added `Session::save()` before redirect in `change-languages` endpoint |
-| 5 | Arabic/Hebrew `dir="rtl"` missing on admin layout | Added RTL detection from `$lang` and set `dir` accordingly in `admin.blade.php` |
+| #   | Bug                                                           | Fix                                                                             |
+| --- | ------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1   | `change-language` vs `change-languages` route URL             | Updated 6 occurrences in `i18n.spec.cjs` to use `/change-languages/{lang}`      |
+| 2   | `SetGuestLocale` middleware — unsupported locale fell through | Added validation against supported locales, fall back to `en`                   |
+| 3   | `SetLocale` middleware — missing `xx` config fallback         | Added fallback for invalid locale codes                                         |
+| 4   | Session locale not flushed across redirects                   | Added `Session::save()` before redirect in `change-languages` endpoint          |
+| 5   | Arabic/Hebrew `dir="rtl"` missing on admin layout             | Added RTL detection from `$lang` and set `dir` accordingly in `admin.blade.php` |
 
 **Tests added:** 69 Playwright + 135 Jest tests.  
 **Result:** Full suite 300/301 (expense form failure fixed in Session 4).
@@ -93,12 +93,12 @@ Last remaining Playwright failure (`financial.spec.cjs:133`) — expense form re
 
 4 cascading bugs resolved:
 
-| # | Bug | Fix |
-|---|-----|-----|
-| 1 | `BankAccount::selectRaw()` wrong bindings type (3 locations) | Changed `selectRaw("CONCAT(...) AS name", 'id')` → `selectRaw("CONCAT(...) AS name, id")` |
-| 2 | Breadcrumb using `projects.expenses.index` (requires `{id}` param) | Changed to `route('expenses.index')` with `Route::has()` guard |
-| 3 | `@php` block used `VW::PRJ_EXP` for all route lookups | Changed all to `VW::EXP` (`expenses.*`) |
-| 4 | `Form::open()` received full URL in `'route'` key | Changed to `'url' => $storeUrl` |
+| #   | Bug                                                                | Fix                                                                                       |
+| --- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| 1   | `BankAccount::selectRaw()` wrong bindings type (3 locations)       | Changed `selectRaw("CONCAT(...) AS name", 'id')` → `selectRaw("CONCAT(...) AS name, id")` |
+| 2   | Breadcrumb using `projects.expenses.index` (requires `{id}` param) | Changed to `route('expenses.index')` with `Route::has()` guard                            |
+| 3   | `@php` block used `VW::PRJ_EXP` for all route lookups              | Changed all to `VW::EXP` (`expenses.*`)                                                   |
+| 4   | `Form::open()` received full URL in `'route'` key                  | Changed to `'url' => $storeUrl`                                                           |
 
 **Result:** financial.spec.cjs 35/35 ✅, full Playwright 329/329 ✅.
 
@@ -136,12 +136,12 @@ Controllers used inconsistent snake_case / raw string method names. No `public c
 
 ### How It Was Solved
 
-| # | Fix | Files |
-|---|-----|-------|
-| 13 | Fixed route pluralization in `RouteServiceProvider.php` (×2 locations) | `RouteServiceProvider.php` |
-| 14 | Fixed namespace collision for module controllers | `RouteServiceProvider.php` |
-| 15 | Made HTTP 4xx handler return appropriate messages per status code | `Handler.php` |
-| 16 | Renamed model relation aliases to avoid DB column collisions | 5 model files |
+| #   | Fix                                                                    | Files                      |
+| --- | ---------------------------------------------------------------------- | -------------------------- |
+| 13  | Fixed route pluralization in `RouteServiceProvider.php` (×2 locations) | `RouteServiceProvider.php` |
+| 14  | Fixed namespace collision for module controllers                       | `RouteServiceProvider.php` |
+| 15  | Made HTTP 4xx handler return appropriate messages per status code      | `Handler.php`              |
+| 16  | Renamed model relation aliases to avoid DB column collisions           | 5 model files              |
 
 **Result:** 0 HTTP 5xx errors, 0 timeouts on 191 tested routes.
 
@@ -158,10 +158,10 @@ Controllers used inconsistent snake_case / raw string method names. No `public c
 
 ### How It Was Solved
 
-| # | Fix | Files |
-|---|-----|-------|
-| 17 | Fixed FK constraint: `created_by` now uses valid UUID | `AuthenticatedSessionController.php` |
-| 18 | Fixed auth.setup.cjs: corrected waitForURL regex, fixed duplicate form IDs, added race-condition guards | `auth.setup.cjs` |
+| #   | Fix                                                                                                     | Files                                |
+| --- | ------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 17  | Fixed FK constraint: `created_by` now uses valid UUID                                                   | `AuthenticatedSessionController.php` |
+| 18  | Fixed auth.setup.cjs: corrected waitForURL regex, fixed duplicate form IDs, added race-condition guards | `auth.setup.cjs`                     |
 
 **Result:** PHPUnit 91.4%, Jest 100%, pytest 100%.
 
@@ -179,12 +179,12 @@ Controllers used inconsistent snake_case / raw string method names. No `public c
 
 Built full calendar testing infrastructure:
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| `CalendarGateway` interface | `app/Contracts/CalendarGateway.php` | 3 methods: `configure()`, `createEvent()`, `getEvents()` |
-| `GoogleCalendarGateway` | `app/Services/Calendar/GoogleCalendarGateway.php` | Real Spatie implementation |
-| `MockCalendarGateway` | `app/Services/Calendar/MockCalendarGateway.php` | In-memory mock with DB settings |
-| `CalendarService` | `app/Services/Calendar/CalendarService.php` | DI via `App::bound()` / `setGateway()` |
+| Component                   | File                                              | Purpose                                                  |
+| --------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| `CalendarGateway` interface | `app/Contracts/CalendarGateway.php`               | 3 methods: `configure()`, `createEvent()`, `getEvents()` |
+| `GoogleCalendarGateway`     | `app/Services/Calendar/GoogleCalendarGateway.php` | Real Spatie implementation                               |
+| `MockCalendarGateway`       | `app/Services/Calendar/MockCalendarGateway.php`   | In-memory mock with DB settings                          |
+| `CalendarService`           | `app/Services/Calendar/CalendarService.php`       | DI via `App::bound()` / `setGateway()`                   |
 
 All tests now use `CalendarService::setGateway($mock)`, `DB::table('settings')->updateOrInsert()`, and `Utility::resetSettingsCache()`.
 
@@ -206,14 +206,14 @@ Also fixed IDE errors: `AllowanceController` missing return type, unused imports
 
 **Utility delegation:** Extracted 68 methods into 6 service classes:
 
-| Service | Methods | Domain |
-|---------|---------|--------|
-| `AccountingService` | 12 | Chart of accounts, journal, trial balance |
-| `FileStorageService` | 10 | File upload/download, S3/Wasabi, storage settings |
-| `FinanceBillingService` | 14 | Invoices, bills, taxes, payments, proposals |
-| `LocalizationService` | 12 | Languages, currency, phone, date/time formatting |
-| `ModelLookupService` | 10 | Settings lookups, plan checks, model finders |
-| `NotificationService` | 10 | Email templates, Twilio SMS, Pusher, notifications |
+| Service                 | Methods | Domain                                             |
+| ----------------------- | ------- | -------------------------------------------------- |
+| `AccountingService`     | 12      | Chart of accounts, journal, trial balance          |
+| `FileStorageService`    | 10      | File upload/download, S3/Wasabi, storage settings  |
+| `FinanceBillingService` | 14      | Invoices, bills, taxes, payments, proposals        |
+| `LocalizationService`   | 12      | Languages, currency, phone, date/time formatting   |
+| `ModelLookupService`    | 10      | Settings lookups, plan checks, model finders       |
+| `NotificationService`   | 10      | Email templates, Twilio SMS, Pusher, notifications |
 
 `Utility.php`: 4,282 → 1,828 lines (57% reduction). All original method signatures preserved as delegation stubs with `@see` references.
 
@@ -288,12 +288,12 @@ Changed `private const TIME_LIMIT = 5.0;` → `private const TIME_LIMIT = 10.0;`
 
 ### How It Was Solved
 
-| Fix | How |
-|-----|-----|
-| Handler.php P1006 | Added `@var HttpRequest` annotations on `request()` and `app('request')` returns |
-| DashboardDataTest.php P1009 | Added `use Illuminate\Support\Facades\DB;`, replaced `\DB::` with `DB::` |
-| DashboardDataTest.php unused imports | Removed 9 unused model imports, collapsed `{Auth, DB, Log}` to just `DB` |
-| helpers.php P1013 | Added `**/vendor/laravel/framework/src/Illuminate/Foundation/helpers.php` to `intelephense.files.exclude` in `.vscode/settings.json` |
+| Fix                                  | How                                                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Handler.php P1006                    | Added `@var HttpRequest` annotations on `request()` and `app('request')` returns                                                     |
+| DashboardDataTest.php P1009          | Added `use Illuminate\Support\Facades\DB;`, replaced `\DB::` with `DB::`                                                             |
+| DashboardDataTest.php unused imports | Removed 9 unused model imports, collapsed `{Auth, DB, Log}` to just `DB`                                                             |
+| helpers.php P1013                    | Added `**/vendor/laravel/framework/src/Illuminate/Foundation/helpers.php` to `intelephense.files.exclude` in `.vscode/settings.json` |
 
 ---
 
@@ -321,17 +321,17 @@ Retroactively created 34 dated `commands.md` files (17 dates × 2 locations) by 
 
 All old names verified absent from source; all new names confirmed present:
 
-| Old name | Correct name | Verified |
-|----------|-------------|----------|
+| Old name               | Correct name           | Verified                                             |
+| ---------------------- | ---------------------- | ---------------------------------------------------- |
 | `AnnouncementEmployee` | `EmployeeAnnouncement` | ✅ `app/Models/Individuals/EmployeeAnnouncement.php` |
-| `AttendanceEmployee` | `EmployeeAttendance` | ✅ `app/Models/Individuals/EmployeeAttendance.php` |
-| `Contract_attachment` | `ContractAttachment` | ✅ `app/Models/Planning/ContractAttachment.php` |
-| `GenerateOfferLetter` | `GeneratedOfferLetter` | ✅ `app/Models/Ssr/GeneratedOfferLetter.php` |
-| `Vender` | `Vendor` | ✅ `app/Models/Companies/Vendor.php` |
-| `Projectstages` | `ProjectStage` | ✅ `app/Models/Planning/ProjectStage.php` |
-| `TrialBalancExport` | `TrialBalanceExport` | ✅ `app/Exports/TrialBalanceExport.php` |
-| `task_reportExport` | `TaskReportExport` | ✅ `app/Exports/TaskReportExport.php` |
-| `puserhConfig` | `PusherConfig` | ✅ `app/Http/Middleware/PusherConfig.php` |
+| `AttendanceEmployee`   | `EmployeeAttendance`   | ✅ `app/Models/Individuals/EmployeeAttendance.php`   |
+| `Contract_attachment`  | `ContractAttachment`   | ✅ `app/Models/Planning/ContractAttachment.php`      |
+| `GenerateOfferLetter`  | `GeneratedOfferLetter` | ✅ `app/Models/Ssr/GeneratedOfferLetter.php`         |
+| `Vender`               | `Vendor`               | ✅ `app/Models/Companies/Vendor.php`                 |
+| `Projectstages`        | `ProjectStage`         | ✅ `app/Models/Planning/ProjectStage.php`            |
+| `TrialBalancExport`    | `TrialBalanceExport`   | ✅ `app/Exports/TrialBalanceExport.php`              |
+| `task_reportExport`    | `TaskReportExport`     | ✅ `app/Exports/TaskReportExport.php`                |
+| `puserhConfig`         | `PusherConfig`         | ✅ `app/Http/Middleware/PusherConfig.php`            |
 
 ---
 
@@ -349,13 +349,13 @@ All old names verified absent from source; all new names confirmed present:
 
 **Status:** ✅ RESOLVED
 
-| Old | Corrected | Verified |
-|-----|-----------|----------|
-| `Purchase::$statues` | `$statuses` | ✅ `app/Models/Activity/Purchase.php:130` |
+| Old                                             | Corrected                  | Verified                                         |
+| ----------------------------------------------- | -------------------------- | ------------------------------------------------ |
+| `Purchase::$statues`                            | `$statuses`                | ✅ `app/Models/Activity/Purchase.php:130`        |
 | `SaturationDeduction::$saturationDeductiontype` | `$saturationDeductionType` | ✅ `app/Models/Bills/SaturationDeduction.php:27` |
-| `ZoomMeetingTrait::MEETING_TYPE_SCHEDULE` | `MEETING_TYPE_SCHEDULED` | ✅ `app/Traits/ZoomMeetingTrait.php:26` |
-| `Activity::get_activity` | `getActivity` | ✅ `app/Models/Activity/Activity.php:13` |
-| `ActivityLog::userdetail` | `userDetail` | ✅ `app/Models/Activity/ActivityLog.php:215` |
-| `ActivityLog::fetchgetRemark` | `fetchGetRemark` | ✅ `app/Models/Activity/ActivityLog.php:257` |
-| `Comission::$comissiontype` | `$comissionType` | ✅ already removed or renamed |
-| `DocumentUploads` table `ducument_uploads` | `document_uploads` | ✅ `DatabaseConstants.php:146` |
+| `ZoomMeetingTrait::MEETING_TYPE_SCHEDULE`       | `MEETING_TYPE_SCHEDULED`   | ✅ `app/Traits/ZoomMeetingTrait.php:26`          |
+| `Activity::get_activity`                        | `getActivity`              | ✅ `app/Models/Activity/Activity.php:13`         |
+| `ActivityLog::userdetail`                       | `userDetail`               | ✅ `app/Models/Activity/ActivityLog.php:215`     |
+| `ActivityLog::fetchgetRemark`                   | `fetchGetRemark`           | ✅ `app/Models/Activity/ActivityLog.php:257`     |
+| `Comission::$comissiontype`                     | `$comissionType`           | ✅ already removed or renamed                    |
+| `DocumentUploads` table `ducument_uploads`      | `document_uploads`         | ✅ `DatabaseConstants.php:146`                   |

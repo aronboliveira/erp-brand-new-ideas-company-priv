@@ -2,10 +2,11 @@
 
 > Chronological record of debugging approaches: what was tried, what failed, and what finally worked.
 > Issue listings and resolution summaries live in:
+>
 > - **Open issues:** `.notes/KNOWN_ISSUES.md`
 > - **Resolved issues (with HOW):** `.notes/.llms/.history/RESOLVED_ISSUES.md`
 >
-> This file documents the *process* — the trial-and-error path to each fix.
+> This file documents the _process_ — the trial-and-error path to each fix.
 > Last updated: 2026-03-20
 
 ## ✅ Session 1 — Route Health (2026-02-07)
@@ -501,10 +502,10 @@ Fix all remaining test failures, resolve circular redirect loops, fix Playwright
 
 ### Final Verification
 
-| Suite | Result |
-|-------|--------|
-| PHPUnit | 12,177 tests, 21,156 assertions, **0 failures** |
-| Playwright | **478 passed**, 13 skipped, 0 failed, 0 flaky |
-| curl | 8/8 routes HTTP 200 |
-| wget | `--spider` confirmed server responds |
-| MySQL | 211 tables, 8/8 key tables verified |
+| Suite      | Result                                          |
+| ---------- | ----------------------------------------------- |
+| PHPUnit    | 12,177 tests, 21,156 assertions, **0 failures** |
+| Playwright | **478 passed**, 13 skipped, 0 failed, 0 flaky   |
+| curl       | 8/8 routes HTTP 200                             |
+| wget       | `--spider` confirmed server responds            |
+| MySQL      | 211 tables, 8/8 key tables verified             |
