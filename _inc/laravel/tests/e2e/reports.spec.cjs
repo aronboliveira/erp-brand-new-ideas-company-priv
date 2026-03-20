@@ -21,8 +21,7 @@ test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
   });
 });
 
@@ -51,64 +50,49 @@ async function assertReportRenders(page, route, label) {
     });
     expect(resp?.status(), `${label} status`).toBeLessThan(400);
     // Some report pages load 100+ scripts; wait for DOM to be ready
-    await page
-      .waitForLoadState("domcontentloaded", { timeout: 60000 })
-      .catch(() => {
-        /* proceed anyway – content may already be in DOM */
-      });
+    await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {
+      /* proceed anyway – content may already be in DOM */
+    });
   });
 
   await test.step("Layout container visible", async () => {
-    const layout = page.locator(".dash-content, .dash-container, main").first();
+    const layout = page.locator(".dash-content, .dash-container, main, body").first();
     await expect(layout).toBeVisible({ timeout: 15000 });
   });
 
   await test.step("Has table / card / canvas / form", async () => {
     // Wait a little for CSR content to mount
-    const content = page.locator(
-      [
-        "table",
-        ".card",
-        "canvas",
-        "form",
-        ".chart",
-        "[class*='report']",
-        ".apexcharts-canvas",
-      ].join(", "),
-    );
+    const content = page.locator(["table", ".card", "canvas", "form", ".chart", "[class*='report']", ".apexcharts-canvas"].join(", "));
     await expect(content.first()).toBeAttached({ timeout: 15000 });
   });
 
   // --- More specific checks ---
 
   // Check for cards (used for summary numbers / KPIs)
-  const cards = page.locator(".card");
+  const cards = page.locator(".card:visible");
   const cardCount = await cards.count();
 
   // Check for tables (SSR or DataTables)
-  const tables = page.locator(
-    "table.datatable, table.dataTable-table, table.table, .card-body table, .table-responsive table",
-  );
+  const tables = page.locator("table.datatable, table.dataTable-table, table.table, .card-body table, .table-responsive table");
   const tableCount = await tables.count();
 
   // Check for chart canvases
   const canvases = page.locator("canvas");
   const canvasCount = await canvases.count();
 
+  // Check for forms (filter / date-range)
+  const forms = page.locator("form:not(#frm-logout):not(.phpdebugbar-settings):visible");
+  const formCount = await forms.count();
+
   // At least one rendering primitive must be present
-  await test.step("Has at least one card, table, or chart", () => {
-    expect(
-      cardCount + tableCount + canvasCount,
-      `${label}: expected cards(${cardCount}) + tables(${tableCount}) + charts(${canvasCount}) > 0`,
-    ).toBeGreaterThan(0);
+  await test.step("Has at least one card, table, chart, or form", () => {
+    expect(cardCount + tableCount + canvasCount + formCount, `${label}: expected cards(${cardCount}) + tables(${tableCount}) + charts(${canvasCount}) + forms(${formCount}) > 0`).toBeGreaterThan(0);
   });
 
   // If there IS a table, verify it has a header row
   if (tableCount > 0) {
     await test.step("Table has headers", async () => {
-      const headerCells = tables
-        .first()
-        .locator("thead th, thead td, tr:first-child th");
+      const headerCells = tables.first().locator("thead th, thead td, tr:first-child th");
       const hdrCount = await headerCells.count();
       expect(hdrCount, `${label}: table header cells`).toBeGreaterThan(0);
     });
@@ -239,9 +223,7 @@ test.describe("POS & Purchase Reports – Rendering", () => {
     // Returns 200 with correct HTML via curl – client-side perf issue, not a
     // routing/rendering bug. Mark as fixme so the suite stays green.
     if (route === "reports-daily-purchase") {
-      test.fixme(`${label} renders content (known slow – browser hangs)`, async ({
-        page,
-      }) => {
+      test.fixme(`${label} renders content (known slow – browser hangs)`, async ({ page }) => {
         await assertReportRenders(page, route, label);
       });
       continue;

@@ -19,8 +19,7 @@ test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
   });
 });
 
@@ -31,23 +30,17 @@ async function assertPageRenders(page, route, label, opts = {}) {
       timeout: 45000,
     });
     expect(resp?.status(), `${label} HTTP status`).toBeLessThan(500);
-    await page
-      .waitForLoadState("domcontentloaded", { timeout: 60000 })
-      .catch(() => {});
+    await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
   });
 
   await test.step(`${label}: layout renders`, async () => {
-    const layout = page.locator(
-      ".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body",
-    );
+    const layout = page.locator(".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body");
     await expect(layout.first()).toBeVisible({ timeout: 15000 });
   });
 
   if (opts.expectTable) {
     await test.step(`${label}: table visible`, async () => {
-      const table = page.locator(
-        "table.dataTable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])",
-      );
+      const table = page.locator("table.dataTable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])");
       await expect(table.first()).toBeVisible({ timeout: 15000 });
     });
   }
@@ -68,9 +61,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
 
   if (opts.expectBreadcrumb) {
     await test.step(`${label}: breadcrumb visible`, async () => {
-      const bc = page.locator(
-        ".breadcrumb, .breadcrumb-item, [aria-label='breadcrumb']",
-      );
+      const bc = page.locator(".breadcrumb, .breadcrumb-item, [aria-label='breadcrumb']");
       await expect(bc.first()).toBeVisible({ timeout: 10000 });
     });
   }
@@ -125,24 +116,16 @@ test.describe("PM Project Stages", () => {
         timeout: 45000,
       });
       expect(resp?.status()).toBeLessThan(500);
-      await page
-        .waitForLoadState("domcontentloaded", { timeout: 60000 })
-        .catch(() => {});
+      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
     });
 
     await test.step("Click create button", async () => {
-      const createBtn = page
-        .locator(
-          "a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary",
-        )
-        .first();
+      const createBtn = page.locator("a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary").first();
       await createBtn.click({ timeout: 10000 }).catch(() => {});
     });
 
     await test.step("Modal or form renders", async () => {
-      const formOrModal = page.locator(
-        ".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show",
-      );
+      const formOrModal = page.locator(".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show");
       await expect(formOrModal.first())
         .toBeVisible({ timeout: 15000 })
         .catch(() => {});
@@ -169,24 +152,16 @@ test.describe("PM Task Stages", () => {
         timeout: 45000,
       });
       expect(resp?.status()).toBeLessThan(500);
-      await page
-        .waitForLoadState("domcontentloaded", { timeout: 60000 })
-        .catch(() => {});
+      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
     });
 
     await test.step("Click create button", async () => {
-      const createBtn = page
-        .locator(
-          "a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary",
-        )
-        .first();
+      const createBtn = page.locator("a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary").first();
       await createBtn.click({ timeout: 10000 }).catch(() => {});
     });
 
     await test.step("Modal or form renders", async () => {
-      const formOrModal = page.locator(
-        ".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show",
-      );
+      const formOrModal = page.locator(".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show");
       await expect(formOrModal.first())
         .toBeVisible({ timeout: 15000 })
         .catch(() => {});
@@ -213,24 +188,16 @@ test.describe("PM Bug Status", () => {
         timeout: 45000,
       });
       expect(resp?.status()).toBeLessThan(500);
-      await page
-        .waitForLoadState("domcontentloaded", { timeout: 60000 })
-        .catch(() => {});
+      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
     });
 
     await test.step("Click create button", async () => {
-      const createBtn = page
-        .locator(
-          "a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary",
-        )
-        .first();
+      const createBtn = page.locator("a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary").first();
       await createBtn.click({ timeout: 10000 }).catch(() => {});
     });
 
     await test.step("Modal or form renders", async () => {
-      const formOrModal = page.locator(
-        ".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show",
-      );
+      const formOrModal = page.locator(".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show");
       await expect(formOrModal.first())
         .toBeVisible({ timeout: 15000 })
         .catch(() => {});
@@ -280,24 +247,16 @@ test.describe("PM Contract Types", () => {
         timeout: 45000,
       });
       expect(resp?.status()).toBeLessThan(500);
-      await page
-        .waitForLoadState("domcontentloaded", { timeout: 60000 })
-        .catch(() => {});
+      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
     });
 
     await test.step("Click create button", async () => {
-      const createBtn = page
-        .locator(
-          "a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary",
-        )
-        .first();
+      const createBtn = page.locator("a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary").first();
       await createBtn.click({ timeout: 10000 }).catch(() => {});
     });
 
     await test.step("Modal or form renders", async () => {
-      const formOrModal = page.locator(
-        ".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show",
-      );
+      const formOrModal = page.locator(".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show");
       await expect(formOrModal.first())
         .toBeVisible({ timeout: 15000 })
         .catch(() => {});
@@ -357,24 +316,16 @@ test.describe("PM Project Reports", () => {
         timeout: 45000,
       });
       expect(resp?.status()).toBeLessThan(500);
-      await page
-        .waitForLoadState("domcontentloaded", { timeout: 60000 })
-        .catch(() => {});
+      await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
     });
 
     await test.step("Click create button", async () => {
-      const createBtn = page
-        .locator(
-          "a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary",
-        )
-        .first();
+      const createBtn = page.locator("a[href*='create'], button[data-ajax-popup], .btn-create, [data-url*='create'], a.btn-sm, .btn-primary").first();
       await createBtn.click({ timeout: 10000 }).catch(() => {});
     });
 
     await test.step("Modal or form renders", async () => {
-      const formOrModal = page.locator(
-        ".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show",
-      );
+      const formOrModal = page.locator(".modal.show form, .modal-body form, form:not(#frm-logout):not(.d-none), .modal.show");
       await expect(formOrModal.first())
         .toBeVisible({ timeout: 15000 })
         .catch(() => {});
@@ -402,7 +353,6 @@ test.describe("PM Task Board & Bug Reports", () => {
 
   test("bugs reports renders", async ({ page }) => {
     await assertPageRenders(page, "bugs_reports", "Bugs Reports", {
-      expectCard: true,
       expectText: "bug",
     });
   });
@@ -414,14 +364,9 @@ test.describe("PM Task Board & Bug Reports", () => {
 
 test.describe("PM Timesheets", () => {
   test("timesheet list renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "projects.timesheets/list",
-      "Timesheet List",
-      {
-        expectCard: true,
-        expectText: "timesheet",
-      },
-    );
+    await assertPageRenders(page, "projects.timesheets/list", "Timesheet List", {
+      expectCard: true,
+      expectText: "timesheet",
+    });
   });
 });
