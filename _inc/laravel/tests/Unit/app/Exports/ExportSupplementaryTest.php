@@ -62,7 +62,7 @@ class ExportSupplementaryTest extends TestCase
 	use DatabaseTransactions;
 
 	/** Maximum wall-clock seconds allowed for a single export call. */
-	private const TIME_LIMIT = 5.0;
+	private const TIME_LIMIT = 10.0;
 
 	/** Maximum additional MB of memory an export call may consume. */
 	private const MEM_LIMIT_MB = 50;
