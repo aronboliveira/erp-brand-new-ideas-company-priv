@@ -101,7 +101,11 @@ final class Handler extends ExceptionHandler
     private static function resolveRequest(): ?HttpRequest
     {
         try {
-            if (function_exists('request')) return request();
+            if (function_exists('request')) {
+                /** @var HttpRequest $req */
+                $req = request();
+                return $req;
+            }
             if (class_exists(RequestFacade::class)) return RequestFacade::instance();
             return app('request');
         } catch (Throwable) {

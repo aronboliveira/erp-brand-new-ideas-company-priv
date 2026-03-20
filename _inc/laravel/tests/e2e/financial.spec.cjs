@@ -48,7 +48,7 @@ test.describe("Invoice Module", () => {
   });
 
   test.skip("should load invoice create form", async ({ page }) => {
-    // SKIP: /invoices/create redirects to /reports/income-summary (app routing issue)
+    // SKIP: /invoices/create redirects (app permission guard — chart_of_accounts/create) — no form rendered for test user
     await page.goto(`${BASE_URL}/invoices/create`, { waitUntil: "domcontentloaded", timeout: 30000 });
 
     // Page may redirect (e.g., permissions) — accept as long as it doesn't 500
@@ -64,7 +64,7 @@ test.describe("Invoice Module", () => {
   });
 
   test.skip("should have create button on invoice form", async ({ page }) => {
-    // SKIP: /invoices/create controller renders deals/create form (app routing issue)
+    // SKIP: /invoices/create redirects (app permission guard) — depends on "should load invoice create form"
     await page.goto(`${BASE_URL}/invoices/create`);
     const submitBtn = page.locator('button[type="submit"], input[type="submit"]').first();
     await expect(submitBtn).toBeAttached();
