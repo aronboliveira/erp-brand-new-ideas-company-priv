@@ -8,34 +8,25 @@ use App\Http\Controllers\Shapes\DashboardController;
 use App\Models\{
 	BankAccount,
 	Bill,
-	Contract,
 	Customer,
 	Deal,
 	Employee,
-	Event,
 	Goal,
 	Invoice,
 	Lead,
-	LeadStage,
-	Meeting,
 	Payment,
-	Pipeline,
-	Plan,
-	Pos,
 	ProductServiceCategory,
 	ProductServiceUnit,
 	Project,
 	ProjectTask,
-	Purchase,
 	Revenue,
-	Stage,
 	Tax,
 	User,
 	Vendor
 };
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, DB, Log};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View as IlluminateView;
 use Tests\TestCase;

@@ -107,7 +107,9 @@ final class Handler extends ExceptionHandler
                 return $req;
             }
             if (class_exists(RequestFacade::class)) return RequestFacade::instance();
-            return app('request');
+            /** @var HttpRequest $appReq */
+            $appReq = app('request');
+            return $appReq;
         } catch (Throwable) {
             return null;
         }
