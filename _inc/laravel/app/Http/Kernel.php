@@ -16,6 +16,7 @@ use App\Http\Middleware\{
     RedirectIfAuthenticated,
     RevalidateBackHistory,
     SecureHeaders,
+    SetGuestLocale,
     TrimStrings,
     TrustProxies,
     VerifyCsrfToken,
@@ -65,6 +66,7 @@ class Kernel extends HttpKernel
             ShareErrorsFromSession::class,
             VerifyCsrfToken::class,
             SubstituteBindings::class,
+            SetGuestLocale::class,
             SecureHeaders::class,
             DebugRouteToConsole::class,
             RecordLanding::class,
@@ -101,32 +103,16 @@ class Kernel extends HttpKernel
      */
     public function handle($request)
     {
-        $class  = class_basename(self::class);
-        $method = __FUNCTION__;
-        $tag    = "{$class}::{$method}";
-        error_log("{$tag} start " . json_encode([
-            'uri'    => $request->getRequestUri(),
-            'method' => $request->getMethod(),
-            'ip'     => $request->ip(),
-        ]));
         /** @phpstan-ignore-next-line */
         $this->requestStartedAt = Carbon::now();
         try {
             $request->enableHttpMethodParameterOverride();
             $response = $this->sendRequestThroughRouter($request);
-            $status  = $response->getStatusCode();
-            error_log("{$tag} response generated status={$status}");
         } catch (Throwable $e) {
-            error_log("{$tag} exception " . json_encode([
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-            ]));
             $this->reportException($e);
             $response = $this->renderException($request, $e);
         }
         $this->app['events']->dispatch(new RequestHandled($request, $response));
-        $duration = Carbon::now()->diffInMilliseconds($this->requestStartedAt);
-        error_log("{$tag} finished duration_ms={$duration}");
         return $response;
     }
     public function getMiddleware(): array
