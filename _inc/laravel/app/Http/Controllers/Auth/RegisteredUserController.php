@@ -119,7 +119,7 @@ class RegisteredUserController extends Controller
   }
 
   public const SHW_RG_FM = 'showRegistrationForm';
-  public function showRegistrationForm(string $lang = DatabaseConstants::DEFAULT_LANG): RedirectResponse|\Illuminate\View\View
+  public function showRegistrationForm(?string $lang = null): RedirectResponse|\Illuminate\View\View
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $lang) {
@@ -134,7 +134,7 @@ class RegisteredUserController extends Controller
         return redirect('login');
       }
       $localeStart = microtime(true);
-      $lang = $lang ?: Utility::getValByName(SettingsConstants::DEF_LNG);
+      $lang = $lang ?: App::getLocale() ?: Utility::getValByName(SettingsConstants::DEF_LNG);
       App::setLocale($lang);
       $this->logExecutionTime($localeStart, $action . '::setLocale', 'completed');
       return view(ViewsConstants::AUT . '.register', compact('lang'));

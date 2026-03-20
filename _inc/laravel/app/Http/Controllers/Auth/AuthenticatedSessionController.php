@@ -66,7 +66,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_LG_FM = 'showLoginForm';
-  public function showLoginForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showLoginForm(?string $lang = null): View|JsonResponse
   {
     $action = __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
@@ -461,7 +461,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_LG_RQ = 'showLoginRequestForm';
-  public function showLoginRequestForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showLoginRequestForm(?string $lang = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     $function = __FUNCTION__;
@@ -524,7 +524,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_CTM_LG_FM = 'showCustomerLoginForm';
-  public function showCustomerLoginForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showCustomerLoginForm(?string $lang = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
@@ -586,7 +586,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_VD_LG_FM = 'showVendorLoginForm';
-  public function showVendorLoginForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showVendorLoginForm(?string $lang = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $lang) {
@@ -634,7 +634,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_CTM_LR_FM = 'showCustomerLinkRequestForm';
-  public function showCustomerLinkRequestForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showCustomerLinkRequestForm(?string $lang = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
@@ -696,7 +696,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_VD_LR_FM = 'showVendorLinkRequestForm';
-  public function showVendorLinkRequestForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showVendorLinkRequestForm(?string $lang = null): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($lang, $action) {
@@ -1077,7 +1077,13 @@ class AuthenticatedSessionController extends Controller
 
   private static function _setLocale(?string $lang = null): string
   {
-    $lang ??= Utility::getValByName(SettingsConstants::DEF_LNG);
+    // When no explicit $lang, respect the locale already set by SetGuestLocale
+    // middleware (from cookie or route param) before falling back to DB/default.
+    $lang ??= App::getLocale() ?: Utility::getValByName(SettingsConstants::DEF_LNG);
+    $supported = array_keys(Utility::langList());
+    if (!in_array($lang, $supported, true)) {
+      $lang = DatabaseConstants::DEFAULT_LANG;
+    }
     App::setLocale($lang);
     return $lang;
   }
@@ -1089,7 +1095,7 @@ class AuthenticatedSessionController extends Controller
 
   private static function _updateLastLogin(object $user): void
   {
-    $user->update(['last_login_at' > Carbon::now()->toDateTimeString()]);
+    $user->update(['last_login_at' => Carbon::now()->toDateTimeString()]);
   }
 
   private static function _sendReset(
