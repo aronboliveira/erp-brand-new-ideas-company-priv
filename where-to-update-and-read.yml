@@ -1,0 +1,89 @@
+starters:
+    workspaces:
+        - app: _inc/laravel/*
+        - infra-os-utils: _inc/utils/*
+    documentation:
+        - README.md
+        - .notes/{.llms/.guidelines/*,*.md}
+        - _inc/utils/{.llms/*,prompts/.guidelines/*,*.md}
+    guidelines:
+        coding-style:
+          - .editorconfig
+          - .prettierrc
+        audits:
+            - commands: "Please save, as label:value (possibly prepending a comment for complex cases), uniquely (that is, if you use it twice in the same date do not write it again) used
+                - CLIs: in [_inc/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Regexes: in [_inc/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Grep : in [_inc/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Find (bash program): in [_inc/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}]
+        reports:
+            - extension-pick: _inc/utils/REPORT_FILE_PATTERN.md
+        agents:
+            baseline:
+                - .agent.md
+                - .instructions.md
+                - AGENTS.md
+                - copilot-instructions.md
+            contextual:
+                - general: _inc/.llms/*
+                - specifics: _inc/laravel/.notes/.llms/*
+    credentials:
+        - sudo: .gh/sudo.yml
+    note-taking:
+        - volatile: .tmp/*
+        - durable:
+              - .notes/*
+              - _inc/laravel/.notes/*
+        - notes: "Update these regularly, not only at the end of a prompt response"
+    scripts:
+        - volatile: .tmp/scripts/*
+        - durable:
+              - generic: _inc/scripts/*
+              - app-setup: _inc/laravel/scripts/*
+              - app-utils: _inc/laravel/utils/scripts/*
+        - javascript:
+            - guidelines: _inc/utils/JAVASCRIPT_FILE_PATTERN.md
+        - typescript:
+            - guidelines: _inc/utils/TYPESCRIPT_FILE_PATTERN.md
+        - css:
+            - guidelines: _inc/utils/CSS_FILE_PATTERN.toml
+    tests:
+        main-app:
+          - phpunit
+          - phpstan
+          - curl suites
+          - wget suites
+          - mysql suites
+        submodules:
+          - playwright
+          - jest
+          - pytest
+    backup:
+        - path:
+              - .backup/*
+              - _inc/laravel/.backup/*
+        - note: "This directory contains backup files for contingency operations. Ensure to update, do cleanup, and read from this location as needed."
+    ignore:
+        - .deprecated/*
+        - _old/*
+        - origin/*
+        - _inc/.seeders/*
+    outdated:
+        - path: **/.history/*
+        - note: "This directory contains historical files that are no longer relevant. Regularly review and clean up these locations to maintain an organized workspace."
+    etc:
+        checks:
+            - memory-usage: "Monitor memory constantly. You need to review how much memory_limit your're giving to php commands, and be sure to keep track of php and node processes with free, ps -o %mem or ps aux, or even tracking oom risk by calling dmesg or journalctl with grep -i oom or -u earlyoom. Sudo passowrd is available at .gh/sudo.yml, so you can echo sudo -S. Invoke sleeps before tasks until stabilization is achieved, and kill+restart processes as needed to prevent OOM crashes."
+        filesystem:
+            - long-processing: "For long processing tasks, consider using a dedicated directory for temporary files. This can help prevent clutter and ensure that important files are not accidentally deleted. Regularly review and clean up this directory to maintain an organized workspace. Also, try breaking into subprocedures, like fragments of files, and them merging them together (cleaning up the fragments later), so you don't lose progress, and saving in .tmp/copilot/{datetime}/ the steps you have taken already."
+            - issue-tracking:
+                  open-issues: .notes/KNOWN_ISSUES.md
+                  resolved-issues: .notes/.llms/.history/RESOLVED_ISSUES.md
+                  work-journal: .notes/CURRENT_WORKING_ISSUES_WORK.md
+                  rules:
+                      - "KNOWN_ISSUES.md contains ONLY open/unresolved issues"
+                      - "When an issue is resolved, move it to RESOLVED_ISSUES.md with HOW it was solved"
+                      - "CURRENT_WORKING_ISSUES_WORK.md documents the try/fail/✅success process for each fix"
+                      - "Mark successful approaches with ✅ in the work journal"
+                  testing-patterns: _inc/laravel/.notes/.llms/route-view-testing-pattern.md
+
