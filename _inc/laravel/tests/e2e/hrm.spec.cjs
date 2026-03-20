@@ -13,16 +13,6 @@ const path = require("path");
 const BASE_URL = "http://localhost:8000";
 const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
 
-test.use({ storageState: STORAGE_STATE });
-
-test.beforeEach(async ({ page }) => {
-  page.on("dialog", d => d.accept());
-  page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
-    const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
-  });
-});
-
 async function assertPageRenders(page, route, label, opts = {}) {
   await test.step(`Navigate to ${label}`, async () => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
@@ -77,6 +67,17 @@ async function assertPageRenders(page, route, label, opts = {}) {
 /* ═══════════════════════════════════════════════════════════════════
    SECTION 1 — Employee pages
    ═══════════════════════════════════════════════════════════════════ */
+
+test.describe("HRM Route Rendering", () => {
+  test.use({ storageState: STORAGE_STATE });
+
+  test.beforeEach(async ({ page }) => {
+    page.on("dialog", d => d.accept());
+    page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
+      const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
+    });
+  });
 
 test.describe("HRM Employee pages", () => {
   test("employee index renders table", async ({ page }) => {
@@ -361,3 +362,4 @@ test.describe("HRM Recruitment pages", () => {
     });
   }
 });
+}); // end HRM Route Rendering
