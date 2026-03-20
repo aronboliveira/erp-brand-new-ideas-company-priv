@@ -19,8 +19,7 @@ test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
   });
 });
 
@@ -31,23 +30,17 @@ async function assertPageRenders(page, route, label, opts = {}) {
       timeout: 45000,
     });
     expect(resp?.status(), `${label} HTTP status`).toBeLessThan(500);
-    await page
-      .waitForLoadState("domcontentloaded", { timeout: 60000 })
-      .catch(() => {});
+    await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
   });
 
   await test.step(`${label}: layout renders`, async () => {
-    const layout = page.locator(
-      ".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body",
-    );
+    const layout = page.locator(".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body");
     await expect(layout.first()).toBeVisible({ timeout: 15000 });
   });
 
   if (opts.expectTable) {
     await test.step(`${label}: table visible`, async () => {
-      const table = page.locator(
-        "table.dataTable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])",
-      );
+      const table = page.locator("table.dataTable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])");
       await expect(table.first()).toBeVisible({ timeout: 15000 });
     });
   }
@@ -68,9 +61,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
 
   if (opts.expectBreadcrumb) {
     await test.step(`${label}: breadcrumb visible`, async () => {
-      const bc = page.locator(
-        ".breadcrumb, .breadcrumb-item, [aria-label='breadcrumb']",
-      );
+      const bc = page.locator(".breadcrumb, .breadcrumb-item, [aria-label='breadcrumb']");
       await expect(bc.first()).toBeVisible({ timeout: 10000 });
     });
   }
@@ -84,9 +75,7 @@ async function assertPageRenders(page, route, label, opts = {}) {
 
   if (opts.expectSelect2) {
     await test.step(`${label}: select2 elements present`, async () => {
-      const select = page.locator(
-        ".select2, .select2-container, select.form-control, select.form-select",
-      );
+      const select = page.locator(".select2, .select2-container, select.form-control, select.form-select");
       await expect(select.first()).toBeVisible({ timeout: 10000 });
     });
   }
@@ -98,36 +87,23 @@ async function assertPageRenders(page, route, label, opts = {}) {
 
 test.describe("Product Services", () => {
   test("product_services index renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_services",
-      "Product Services Index",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_services", "Product Services Index", {
+      expectCard: true,
+    });
   });
 
   test("product_services create renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_services/create",
-      "Product Services Create",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_services/create", "Product Services Create", {
+      expectCard: true,
+    });
   });
 
-  test("product_services import renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_services/import",
-      "Product Services Import",
-      {
-        expectForm: true,
-      },
-    );
+  // product_services/import is a POST-only endpoint (file upload handler)
+  // — not a renderable page, so skip GET-based rendering test
+  test.skip("product_services import renders", async ({ page }) => {
+    await assertPageRenders(page, "product_services/import", "Product Services Import", {
+      expectForm: true,
+    });
   });
 });
 
@@ -137,25 +113,15 @@ test.describe("Product Services", () => {
 
 test.describe("Product Service Categories", () => {
   test("product_service_categories index renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_service_categories",
-      "Product Categories Index",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_service_categories", "Product Categories Index", {
+      expectCard: true,
+    });
   });
 
   test("product_service_categories create renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_service_categories/create",
-      "Product Categories Create",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_service_categories/create", "Product Categories Create", {
+      expectForm: true,
+    });
   });
 });
 
@@ -165,25 +131,15 @@ test.describe("Product Service Categories", () => {
 
 test.describe("Product Service Units", () => {
   test("product_service_units index renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_service_units",
-      "Product Units Index",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_service_units", "Product Units Index", {
+      expectCard: true,
+    });
   });
 
   test("product_service_units create renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_service_units/create",
-      "Product Units Create",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_service_units/create", "Product Units Create", {
+      expectForm: true,
+    });
   });
 });
 
@@ -199,14 +155,9 @@ test.describe("Product Stocks", () => {
   });
 
   test("product_stocks create renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_stocks/create",
-      "Product Stocks Create",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_stocks/create", "Product Stocks Create", {
+      expectCard: true,
+    });
   });
 });
 
@@ -234,26 +185,16 @@ test.describe("Warehouses", () => {
 
 test.describe("Warehouse Transfers", () => {
   test("warehouse_transfers index renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "warehouse_transfers",
-      "Warehouse Transfers Index",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "warehouse_transfers", "Warehouse Transfers Index", {
+      expectCard: true,
+    });
   });
 
   test("warehouse_transfers create renders", async ({ page }) => {
     // Modal partial (no @extends) – only a form is rendered.
-    await assertPageRenders(
-      page,
-      "warehouse_transfers/create",
-      "Warehouse Transfers Create",
-      {
-        expectForm: true,
-      },
-    );
+    await assertPageRenders(page, "warehouse_transfers/create", "Warehouse Transfers Create", {
+      expectForm: true,
+    });
   });
 });
 
@@ -263,25 +204,15 @@ test.describe("Warehouse Transfers", () => {
 
 test.describe("Proposal Products", () => {
   test("proposal_products index renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "proposal_products",
-      "Proposal Products Index",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "proposal_products", "Proposal Products Index", {
+      expectCard: true,
+    });
   });
 
   test("proposal_products create renders", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "proposal_products/create",
-      "Proposal Products Create",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "proposal_products/create", "Proposal Products Create", {
+      expectCard: true,
+    });
   });
 });
 
@@ -300,9 +231,7 @@ test.describe("Product View Toggles", () => {
     });
 
     await test.step("Check for view toggle buttons", async () => {
-      const toggleBtns = page.locator(
-        '[data-view="grid"], [data-view="list"], .view-toggle, .btn-group .btn',
-      );
+      const toggleBtns = page.locator('[data-view="grid"], [data-view="list"], .view-toggle, .btn-group .btn');
       const count = await toggleBtns.count();
       // Either there are toggle buttons or we're in a default view
       if (count > 0) {
@@ -323,60 +252,43 @@ test.describe("Product AJAX Routes", () => {
       timeout: 45000,
     });
 
-    const response = await page.request.get(
-      `${BASE_URL}/product_services/search?q=test`,
-    );
+    const response = await page.request.get(`${BASE_URL}/product_services/search?q=test`);
     expect(response.status()).toBeLessThan(500);
   });
 
-  test("warehouse_transfers get-product endpoint responds", async ({
-    page,
-  }) => {
+  test("warehouse_transfers get-product endpoint responds", async ({ page }) => {
     await page.goto(`${BASE_URL}/warehouse_transfers`, {
       waitUntil: "domcontentloaded",
       timeout: 45000,
     });
 
-    const response = await page.request.post(
-      `${BASE_URL}/warehouse_transfers/get-product`,
-      {
-        data: { warehouseId: 0 },
-      },
-    );
+    const response = await page.request.post(`${BASE_URL}/warehouse_transfers/get-product`, {
+      data: { warehouseId: 0 },
+    });
     expect(response.status()).toBeLessThan(500);
   });
 
-  test("warehouse_transfers get-quantity endpoint responds", async ({
-    page,
-  }) => {
+  test("warehouse_transfers get-quantity endpoint responds", async ({ page }) => {
     await page.goto(`${BASE_URL}/warehouse_transfers`, {
       waitUntil: "domcontentloaded",
       timeout: 45000,
     });
 
-    const response = await page.request.post(
-      `${BASE_URL}/warehouse_transfers/get-quantity`,
-      {
-        data: { warehouseId: 0, productId: 0 },
-      },
-    );
+    const response = await page.request.post(`${BASE_URL}/warehouse_transfers/get-quantity`, {
+      data: { warehouseId: 0, productId: 0 },
+    });
     expect(response.status()).toBeLessThan(500);
   });
 
-  test("product_service_categories get-account endpoint responds", async ({
-    page,
-  }) => {
+  test("product_service_categories get-account endpoint responds", async ({ page }) => {
     await page.goto(`${BASE_URL}/product_service_categories`, {
       waitUntil: "domcontentloaded",
       timeout: 45000,
     });
 
-    const response = await page.request.post(
-      `${BASE_URL}/product_service_categories/get-account`,
-      {
-        data: { type: 0 },
-      },
-    );
+    const response = await page.request.post(`${BASE_URL}/product_service_categories/get-account`, {
+      data: { type: 0 },
+    });
     expect(response.status()).toBeLessThan(500);
   });
 });
@@ -392,9 +304,7 @@ test.describe("Product Export Routes", () => {
       timeout: 45000,
     });
 
-    const response = await page.request.get(
-      `${BASE_URL}/product_services/export`,
-    );
+    const response = await page.request.get(`${BASE_URL}/product_services/export`);
     // Export might return 200, 302 (redirect), or require parameters
     expect(response.status()).toBeLessThan(500);
   });
@@ -411,12 +321,9 @@ test.describe("Product Cart Operations", () => {
       timeout: 45000,
     });
 
-    const response = await page.request.post(
-      `${BASE_URL}/product_services/add-cart`,
-      {
-        data: { id: 1, qty: 1 },
-      },
-    );
+    const response = await page.request.post(`${BASE_URL}/product_services/add-cart`, {
+      data: { id: 1, qty: 1 },
+    });
     // May return 401/403 if not authorized, 422 if validation fails, but not 500
     expect(response.status()).toBeLessThan(500);
   });
@@ -427,9 +334,7 @@ test.describe("Product Cart Operations", () => {
       timeout: 45000,
     });
 
-    const response = await page.request.post(
-      `${BASE_URL}/product_services/empty-cart`,
-    );
+    const response = await page.request.post(`${BASE_URL}/product_services/empty-cart`);
     expect(response.status()).toBeLessThan(500);
   });
 });
@@ -446,14 +351,9 @@ test.describe("Product Page Titles", () => {
   });
 
   test("product_service_categories has page title", async ({ page }) => {
-    await assertPageRenders(
-      page,
-      "product_service_categories",
-      "Categories Title",
-      {
-        expectCard: true,
-      },
-    );
+    await assertPageRenders(page, "product_service_categories", "Categories Title", {
+      expectCard: true,
+    });
   });
 
   test("warehouses has page title", async ({ page }) => {

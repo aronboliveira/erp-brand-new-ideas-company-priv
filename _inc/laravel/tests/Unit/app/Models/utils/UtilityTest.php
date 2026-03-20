@@ -138,14 +138,16 @@ class UtilityTest extends TestCase
 		// Use firstOrCreate to avoid duplicate entry errors when the DB
 		// already has this email (RefreshDatabase wraps in transactions but
 		// does not run migrate:fresh in this project).
-		$this->superAdmin = User::firstOrCreate(
+		# PULL REQUEST START — Retry to handle transient deadlocks
+		$this->superAdmin = retry(3, fn () => User::firstOrCreate(
 			['email' => 'super@example.com'],
 			[
 				'name' => 'Super Admin',
 				'password' => Hash::make('password'),
 				'type' => 'super admin'
 			]
-		);
+		), 200);
+		# PULL REQUEST END
 
 		// Disable ExtendsProductServiceTable trait sync to prevent
 		// transaction savepoint errors in financial tests that create
@@ -747,12 +749,22 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_settings_by_id_merges_values()
 	{
-		DB::table('settings')->insertOrIgnore([
-			'created_by' => DatabaseConstants::DEFAULT_UUID,
-			'user_id' => DatabaseConstants::DEFAULT_UUID,
-			'name'       => 'foo_key',
-			'value'      => 'foo_value'
-		]);
+		// PULL REQUEST START — use updateOrInsert so seeded rows don't shadow test data
+		DB::table('settings')->updateOrInsert(
+			[
+				'created_by' => DatabaseConstants::DEFAULT_UUID,
+				'name'       => 'foo_key',
+			],
+			[
+				'user_id' => DatabaseConstants::DEFAULT_UUID,
+				'value'   => 'foo_value',
+			]
+		);
+		// Clear static cache so fresh DB value is picked up
+		$prop = new \ReflectionProperty(Utility::class, 'getSettingsId');
+		$prop->setAccessible(true);
+		$prop->setValue(null, []);
+		// PULL REQUEST END
 
 		$result = Utility::settingsById(DatabaseConstants::DEFAULT_UUID);
 		$this->assertIsArray($result);
@@ -2339,7 +2351,11 @@ class UtilityTest extends TestCase
 		$wh = \App\Models\Warehouse::create(['name' => 'W3', 'zip' => '00003']);
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0006', 'type' => 'product', 'quantity' => 0]);
 		Utility::addWarehouseStock($prod->id, 10, $wh->id);
-		$rec = \App\Models\WarehouseProduct::first();
+		// PULL REQUEST START — query specific record, not first() which may return seeded data
+		$rec = \App\Models\WarehouseProduct::where('product_id', $prod->id)
+			->where('warehouse_id', $wh->id)
+			->first();
+		// PULL REQUEST END
 		$this->assertEquals(10, $rec->quantity);
 		Utility::addWarehouseStock($prod->id, 5, $wh->id);
 		$this->assertEquals(15, $rec->fresh()->quantity);

@@ -4,8 +4,8 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:8000}"
-ADMIN_EMAIL="u_7326b18f-27ca-4257-885b-29efec3f8cf9@test.local"
-ADMIN_PASS="Admin@1234"
+ADMIN_EMAIL="u_68ca0ef2-8cf2-4930-9129-24da61a4874a@test.local"
+ADMIN_PASS="password"
 REPORT_DIR="${REPORT_DIR:-$(dirname "$0")/../../.tmp/copilot/routes-$(date +%Y%m%dT%H%M)}"
 mkdir -p "$REPORT_DIR"
 

@@ -156,7 +156,11 @@ class EmailTest extends TestCase
 			'email_key' => 'test_email_key_' . uniqid('second_'),
 		]);
 
-		$ids = Email::all()->pluck('id')->all();
+		# PULL REQUEST START
+		// Escopo filtrado para apenas os registros criados neste teste
+		$ids = Email::whereIn('id', [$first->id, $second->id])
+			->pluck('id')->all();
 		$this->assertSame([$second->id, $first->id], $ids);
+		# PULL REQUEST END
 	}
 }

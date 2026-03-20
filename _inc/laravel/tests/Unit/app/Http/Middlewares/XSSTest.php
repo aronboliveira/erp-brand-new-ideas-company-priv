@@ -108,7 +108,7 @@ class XSSTest extends TestCase
 	 ** @test
 	 **
 	 ** If an exception occurs during request processing (e.g., in the next stage),
-	 ** the middleware logs an error and returns JSON 500 with the correct message.
+	 ** the middleware re-throws it so the global exception handler can manage it.
 	 **/
 	public function test_exceptions_are_caught_logged_and_return_json_error()
 	{
@@ -126,13 +126,13 @@ class XSSTest extends TestCase
 		$route->bind($request);
 		$request->setRouteResolver(fn () => $route);
 
-		$response = $middleware->handle($request, function () {
+		# PULL REQUEST START — XSS middleware now re-throws exceptions instead of catching them
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('boom');
+		# PULL REQUEST END
+
+		$middleware->handle($request, function () {
 			throw new \Exception('boom');
 		});
-
-		$this->assertEquals(500, $response->getStatusCode());
-		$json = json_decode($response->getContent(), true);
-		$this->assertArrayHasKey('error', $json);
-		$this->assertStringContainsString('boom', $json['error']);
 	}
 }

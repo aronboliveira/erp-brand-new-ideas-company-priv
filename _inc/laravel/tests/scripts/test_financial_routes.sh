@@ -6,7 +6,7 @@
 set -e
 
 COOKIE_FILE="/tmp/admin_smoke_cookies6.txt"
-BASE_URL="http://localhost:8888"
+BASE_URL="http://localhost:8000"
 OUTPUT_DIR="/tmp/erp_financial_tests"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
