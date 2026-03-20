@@ -259,7 +259,7 @@ $user = Auth::user();
                 node.innerHTML = `
                     <div class="{{ VC::DFL }}">
                     <div class="toast-body">${msg}</div>
-                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                     </div>
                 `;
                 container.appendChild(node);

@@ -65,7 +65,7 @@ $user = Auth::user();
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">{{ __('Notice') }}</strong><button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
                 }
                 const body = qs(".toast-body", t);
@@ -348,7 +348,7 @@ $user = Auth::user();
                                 <div class="{{ VC::C2 }}">
                                     <div class="btn-box">
                                         {{ Form::label('branch', __('Branch'), ['class'=> VC::FM_LB]) }}
-                                        <select class="{{ VC::FM_CT }} select" name="branch_id" id="branch_id" placeholder="Select Branch" required>
+                                        <select class="{{ VC::FM_CT }} select" name="branch_id" id="branch_id" placeholder="{{ __('Select Branch') }}" required>
                                             <option value="">{{ __('Select Branch') }}</option>
                                             @foreach(($branch ?? []) as $branchItem)
                                                 <option value="{{ $branchItem->id }}">{{ $branchItem->name ?? __('No branch name available') }}</option>

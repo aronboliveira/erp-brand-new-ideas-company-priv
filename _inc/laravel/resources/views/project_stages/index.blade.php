@@ -50,7 +50,7 @@ $lang = Utility::fetchUserLang();
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();

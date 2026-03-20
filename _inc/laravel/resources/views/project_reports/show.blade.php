@@ -194,7 +194,7 @@ $user        = Auth::user();
                     <div class="{{ VC::CM3 }}">
                         <div class="{{ VC::CD }}">
                             <div class="{{ VC::CD_HD }}">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Referrals') }}"><i></i></a></div>
                                 <h5>{{ __('Task Priority') }}</h5>
                             </div>
                             <div class="{{ VC::CD_BD }}" style="min-height:280px;">
@@ -206,7 +206,7 @@ $user        = Auth::user();
                     <div class="col-md-5">
                         <div class="{{ VC::CD }}">
                             <div class="{{ VC::CD_HD }}">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Referrals') }}"><i></i></a></div>
                                 <h5>{{ __('Task Status') }}</h5>
                             </div>
                             <div class="{{ VC::CD_BD }}" style="min-height:280px;">
@@ -218,7 +218,7 @@ $user        = Auth::user();
                     <div class="{{ VC::CM4 }}">
                         <div class="{{ VC::CD }}">
                             <div class="{{ VC::CD_HD }}">
-                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Refferals"><i></i></a></div>
+                                <div class="{{ VC::FEND }}"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ __('Referrals') }}"><i></i></a></div>
                                 <h5>{{ __('Hours Estimation') }}</h5>
                             </div>
                             <div class="{{ VC::CD_BD }}" style="min-height:280px;">
@@ -519,7 +519,7 @@ $user        = Auth::user();
                 t.id='error-toast';
                 t.className='toast align-items-center text-bg-danger border-0';
                 t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
-                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                t.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
                 document.body.appendChild(t);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();

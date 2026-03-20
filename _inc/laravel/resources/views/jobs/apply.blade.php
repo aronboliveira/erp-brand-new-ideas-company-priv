@@ -284,7 +284,7 @@ $data ??= [];
             <div id="liveToast" class="toast {{ VC::TXT_WT }} fade" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="{{ VC::DFL }}">
                     <div class="toast-body"></div>
-                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>

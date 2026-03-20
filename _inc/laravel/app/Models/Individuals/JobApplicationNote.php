@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 use Illuminate\Support\{Carbon};
 use Illuminate\Support\Facades\{Log};
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder whereApplicationId(mixed $value)
+ */
 class JobApplicationNote extends Model
 {
     use HasFactory;

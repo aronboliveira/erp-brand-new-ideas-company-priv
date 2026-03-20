@@ -21,6 +21,7 @@
     /** @type {string} */
     static #BTN_SUCCESS = "btn btn-success";
     /** @type {string} */
+    // eslint-disable-next-line no-unused-private-class-members
     static #BTN_PRIMARY = "btn btn-primary";
 
     /**
@@ -60,17 +61,11 @@
     #setupBasicDemos() {
       this.#bind(".bs-message", () => Swal.fire("Any fool can use a computer"));
 
-      this.#bind(".bs-tit-txt", () =>
-        Swal.fire("The Internet?", "That thing is still around?", "question")
-      );
+      this.#bind(".bs-tit-txt", () => Swal.fire("The Internet?", "That thing is still around?", "question"));
 
-      this.#bind(".bs-fot-msg", () =>
-        Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!", footer: "<a href>Why do I have this issue?</a>" })
-      );
+      this.#bind(".bs-fot-msg", () => Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!", footer: "<a href>Why do I have this issue?</a>" }));
 
-      this.#bind(".bs-lng-cnt", () =>
-        Swal.fire({ imageUrl: "https://placeholder.pics/svg/350", imageHeight: 1512, imageAlt: "A tall image" })
-      );
+      this.#bind(".bs-lng-cnt", () => Swal.fire({ imageUrl: "https://placeholder.pics/svg/350", imageHeight: 1512, imageAlt: "A tall image" }));
     }
 
     /**
@@ -91,9 +86,7 @@
       ];
 
       positions.forEach(([selector, position]) => {
-        this.#bind(selector, () =>
-          Swal.fire({ position, icon: "success", title: "Your work has been saved", showConfirmButton: false, timer: 1500 })
-        );
+        this.#bind(selector, () => Swal.fire({ position, icon: "success", title: "Your work has been saved", showConfirmButton: false, timer: 1500 }));
       });
     }
 
@@ -119,7 +112,7 @@
             title: "Custom animation with Animate.css",
             showClass: { popup: showClass },
             hideClass: { popup: hideClass },
-          })
+          }),
         );
       });
     }
@@ -138,9 +131,9 @@
           confirmButtonColor: "#3085d6",
           cancelButtonColor: "#d33",
           confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
+        }).then(result => {
           if (result.isConfirmed) Swal.fire("Deleted!", "Your file has been deleted.", "success");
-        })
+        }),
       );
 
       this.#bind(".bs-pas-p", () => {
@@ -148,19 +141,19 @@
           customClass: { confirmButton: SwalDemoController.#BTN_SUCCESS, cancelButton: SwalDemoController.#BTN_DANGER },
           buttonsStyling: false,
         });
-        swalWithBootstrapButtons.fire({
-          title: "Are you sure?",
-          text: "You won't be able to revert this!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Yes, delete it!",
-          cancelButtonText: "No, cancel!",
-          reverseButtons: true,
-        }).then((result) => {
-          result.isConfirmed
-            ? swalWithBootstrapButtons.fire("Deleted!", "Your file has been deleted.", "success")
-            : result.dismiss === Swal.DismissReason.cancel && swalWithBootstrapButtons.fire("Cancelled", "Your imaginary file is safe :)", "error");
-        });
+        swalWithBootstrapButtons
+          .fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!",
+            reverseButtons: true,
+          })
+          .then(result => {
+            result.isConfirmed ? swalWithBootstrapButtons.fire("Deleted!", "Your file has been deleted.", "success") : result.dismiss === Swal.DismissReason.cancel && swalWithBootstrapButtons.fire("Cancelled", "Your imaginary file is safe :)", "error");
+          });
       });
 
       this.#bind(".bs-img", () =>
@@ -171,7 +164,7 @@
           imageWidth: 400,
           imageHeight: 200,
           imageAlt: "Custom image",
-        })
+        }),
       );
 
       this.#bind(".bs-cst-wi", () =>
@@ -182,7 +175,7 @@
           color: "#716add",
           background: "#fff url(https://sweetalert2.github.io/images/trees.png)",
           backdrop: `rgba(0,0,123,0.4) url("https://sweetalert2.github.io/images/nyan-cat.gif") left top no-repeat`,
-        })
+        }),
       );
 
       this.#bind(".bs-auto-c", () => {
@@ -203,10 +196,10 @@
             }, 100);
           },
           willClose: () => clearInterval(timerInterval),
-        }).then((result) => {
+        }).then(result => {
           if (result.dismiss === Swal.DismissReason.timer) console.log("I was closed by the timer");
         });
-      };
+      });
     }
 
     /**
@@ -273,18 +266,18 @@
           inputOptions: { apples: "Apples", bananas: "Bananas", grapes: "Grapes", oranges: "Oranges" },
           inputPlaceholder: "Select a fruit",
           showCancelButton: true,
-          inputValidator: (value) => new Promise((resolve) => value === "oranges" ? resolve() : resolve("You need to select oranges :)")),
+          inputValidator: value => new Promise(resolve => (value === "oranges" ? resolve() : resolve("You need to select oranges :)"))),
         });
         if (fruit) Swal.fire(`You selected: ${fruit}`);
       });
 
       this.#bind(".bs-rdo", async () => {
-        const inputOptions = new Promise((resolve) => setTimeout(() => resolve({ "#ff0000": "Red", "#00ff00": "Green", "#0000ff": "Blue" }), 1000));
+        const inputOptions = new Promise(resolve => setTimeout(() => resolve({ "#ff0000": "Red", "#00ff00": "Green", "#0000ff": "Blue" }), 1000));
         const { value: color } = await Swal.fire({
           title: "Select color",
           input: "radio",
           inputOptions,
-          inputValidator: (value) => !value && "You need to choose something!",
+          inputValidator: value => !value && "You need to choose something!",
         });
         if (color) Swal.fire({ html: `You selected: ${color}` });
       });
@@ -296,7 +289,7 @@
           inputValue: 1,
           inputPlaceholder: "I agree with the terms and conditions",
           confirmButtonText: 'Continue <i class="fa fa-arrow-right"></i>',
-          inputValidator: (result) => !result && "You need to agree with T&C",
+          inputValidator: result => !result && "You need to agree with T&C",
         });
         if (accept) Swal.fire("You agreed with T&C :)");
       });
@@ -306,10 +299,10 @@
           title: "Select image",
           input: "file",
           inputAttributes: { accept: "image/*", "aria-label": "Upload your profile picture" },
-        }).then((result) => {
+        }).then(result => {
           if (result.value) {
             const reader = new FileReader();
-            reader.onload = (e) => Swal.fire({ title: "Your uploaded picture", imageUrl: e.target.result, imageAlt: "The uploaded picture" });
+            reader.onload = e => Swal.fire({ title: "Your uploaded picture", imageUrl: e.target.result, imageAlt: "The uploaded picture" });
             reader.readAsDataURL(result.value);
           }
         });
@@ -352,11 +345,9 @@
           showCancelButton: true,
           confirmButtonText: "Save",
           denyButtonText: "Don't save",
-        }).then((result) => {
-          result.isConfirmed
-            ? Swal.fire("Saved!", "", "success")
-            : result.isDenied && Swal.fire("Changes are not saved", "", "info");
-        })
+        }).then(result => {
+          result.isConfirmed ? Swal.fire("Saved!", "", "success") : result.isDenied && Swal.fire("Changes are not saved", "", "info");
+        }),
       );
 
       this.#bind(".bs-rtl", () =>
@@ -368,7 +359,7 @@
           cancelButtonText: "لا",
           showCancelButton: true,
           showCloseButton: true,
-        })
+        }),
       );
 
       this.#bind(".bs-mixin", () => {
@@ -378,7 +369,7 @@
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
-          didOpen: (toast) => {
+          didOpen: toast => {
             toast.addEventListener("mouseenter", Swal.stopTimer);
             toast.addEventListener("mouseleave", Swal.resumeTimer);
           },
@@ -394,33 +385,28 @@
           showCancelButton: true,
           confirmButtonText: "Look up",
           showLoaderOnConfirm: true,
-          preConfirm: (login) =>
+          preConfirm: login =>
             fetch(`//api.github.com/users/${login}`)
-              .then((response) => {
+              .then(response => {
                 if (!response.ok) throw new Error(response.statusText);
                 return response.json();
               })
-              .catch((error) => Swal.showValidationMessage(`Request failed: ${error}`)),
+              .catch(error => Swal.showValidationMessage(`Request failed: ${error}`)),
           allowOutsideClick: () => !Swal.isLoading(),
-        }).then((result) => {
-          if (result.isConfirmed)
-            Swal.fire({ title: `${result.value.login}'s avatar`, imageUrl: result.value.avatar_url });
-        })
+        }).then(result => {
+          if (result.isConfirmed) Swal.fire({ title: `${result.value.login}'s avatar`, imageUrl: result.value.avatar_url });
+        }),
       );
 
       this.#bind(".bs-que", () =>
         Swal.mixin({ input: "text", confirmButtonText: "Next &rarr;", showCancelButton: true, progressSteps: ["1", "2", "3"] })
-          .queue([
-            { title: "Question 1", text: "Chaining swal modals is easy" },
-            "Question 2",
-            "Question 3",
-          ])
-          .then((result) => {
+          .queue([{ title: "Question 1", text: "Chaining swal modals is easy" }, "Question 2", "Question 3"])
+          .then(result => {
             if (result.value) {
               const answers = JSON.stringify(result.value);
               Swal.fire({ title: "All done!", html: `Your answers: <pre><code>${answers}</code></pre>`, confirmButtonText: "Lovely!" });
             }
-          })
+          }),
       );
 
       this.#bind(".bs-dns", () =>
@@ -432,10 +418,10 @@
           showLoaderOnConfirm: true,
           preConfirm: () =>
             fetch("https://api.ipify.org?format=json")
-              .then((response) => response.json())
-              .then((data) => Swal.insertQueueStep(data.ip))
+              .then(response => response.json())
+              .then(data => Swal.insertQueueStep(data.ip))
               .catch(() => Swal.insertQueueStep({ icon: "error", title: "Unable to get your public IP" })),
-        })
+        }),
       );
     }
   }
@@ -451,7 +437,5 @@
     }
   };
 
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", initSwalDemos)
-    : initSwalDemos();
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initSwalDemos) : initSwalDemos();
 })();

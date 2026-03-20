@@ -198,7 +198,7 @@
                                     </ul>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                        aria-label="Toggle navigation">
+                                        aria-label="{{ __('Toggle navigation') }}">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -217,7 +217,7 @@
                                     </a>
                                     <button class="{{ ViewClassNamesConstants::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01"
-                                        aria-expanded="false" aria-label="Toggle navigation">
+                                        aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                                         <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
                                     </button>
                                 </div>
@@ -1048,7 +1048,7 @@
                                         <div class="input-wrapper border border-dark">
                                             <input type="email"
                                                 name="email"
-                                                placeholder="Type your email address…"
+                                                placeholder="{{ __('Type your email address') }}…"
                                                 {{ $joinUsRouteExists ? '' : 'disabled' }}>
                                             <button type="submit"
                                                     class="btn btn-dark rounded-pill"

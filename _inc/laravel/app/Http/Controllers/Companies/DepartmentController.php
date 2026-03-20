@@ -211,7 +211,7 @@ final class DepartmentController extends Controller
       : null;
   }
 
-  private static function branches(int $creator): array
+  private static function branches(int|string $creator): array
   {
     try {
       return Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)

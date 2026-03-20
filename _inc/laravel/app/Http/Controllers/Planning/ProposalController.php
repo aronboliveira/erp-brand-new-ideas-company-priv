@@ -822,7 +822,9 @@ class ProposalController extends Controller
             $guardStart = microtime(true);
             $c = $this->guard(request(), 'convert invoice', self::INDEX_ROUTE);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
-            if ($c) return $c;
+            // PULL REQUEST START — guard() returns true on success; only redirect on denial
+            if ($c !== true) return $c;
+            // PULL REQUEST END
 
             try {
                 $txStart = microtime(true);

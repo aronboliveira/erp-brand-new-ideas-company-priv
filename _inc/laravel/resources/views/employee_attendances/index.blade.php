@@ -39,7 +39,7 @@
             @if (session('status'))
                 <div class="{{ VC::ALT_DNG }} alert-dismissible fade show" role="alert">
                     {!! session('status') !!}
-                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
                 </div>
             @endif
             <div class="{{ VC::MT2 }}">

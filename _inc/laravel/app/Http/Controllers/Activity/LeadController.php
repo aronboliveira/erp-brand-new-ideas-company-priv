@@ -1034,10 +1034,15 @@ class LeadController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
             try {
+                // PULL REQUEST START — validate required input before processing
+                $post = $req->all();
+                if (empty($post['lead_id']) || empty($post['stage_id']) || !isset($post['order'])) {
+                    return response()->json(['error' => __('Missing required fields.')], 422);
+                }
+                // PULL REQUEST END
                 $authStart = microtime(true);
                 self::_authorize($req, 'move lead');
                 $this->logExecutionTime($authStart, $action, 'authorize');
-                $post = $req->all();
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $post['lead_id'] ?? null, 'stage_id' => $post['stage_id'] ?? null, 'order_count' => is_countable($post['order'] ?? null) ? count($post['order']) : 0]);
                 $leadFetchStart = microtime(true);
                 $lead = $this->lead($post['lead_id']);

@@ -11,14 +11,12 @@ Handles Excel export for sales reports (by Item or Customer) with:
 - Autofilter and print settings
 """
 import sys
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.styles import Alignment, Font, PatternFill
 
 from base_exporter import BaseExporter, ExportStyle, safe_get
 
@@ -93,7 +91,6 @@ class SalesReportExporter(BaseExporter):
         self._start_date = safe_get(self.data, "start_date", "")
         self._end_date = safe_get(self.data, "end_date", "")
         self._report_name = safe_get(self.data, "report_name", "Item")
-        currency_symbol: str = self.data.get("currency_symbol", "")
 
         rows: List[Dict[str, Any]] = self.data.get("rows", [])
         headings = self.get_headings()
@@ -456,7 +453,10 @@ class SalesReportExporter(BaseExporter):
                     self.sheet.cell(row=row_num, column=1, value=row.get("Customer Name", ""))
                     self.sheet.cell(row=row_num, column=2, value=row.get("Invoice Count", 0))
                     self.sheet.cell(row=row_num, column=3, value=row.get("_raw_sales", row.get("Sales", 0)))
-                    self.sheet.cell(row=row_num, column=4, value=row.get("_raw_sales_tax", row.get("Sales With Tax", 0)))
+                    self.sheet.cell(
+                        row=row_num, column=4,
+                        value=row.get("_raw_sales_tax", row.get("Sales With Tax", 0)),
+                    )
 
             # Apply styling
             self.auto_fit_columns(start_col=1, end_col=4, min_width=16, max_width=40)
@@ -464,7 +464,7 @@ class SalesReportExporter(BaseExporter):
             self._apply_row_styling(df)
             self._add_totals_row(df)
             self._add_formulas_and_filters(df)
-            
+
             if len(df) > 0:
                 data_end = data_start + len(df) - 1
 
@@ -483,7 +483,7 @@ class SalesReportExporter(BaseExporter):
 
             # Create dashboard
             self._create_dashboard()
-            
+
             # Create pivot table analysis by item/customer
             if len(df) > 5:
                 if self._report_name == "Item":

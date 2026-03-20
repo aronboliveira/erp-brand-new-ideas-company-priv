@@ -316,6 +316,11 @@ final class AppraisalController extends Controller
     return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", ['employee_id' => $req->employee]);
+        // PULL REQUEST START — validate employee field before findOrFail
+        if (!$req->filled('employee')) {
+          return response()->json(['error' => 'The employee field is required.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        // PULL REQUEST END
         $employee = Employee::findOrFail($req->employee);
         $indicator = Indicator::where([[strtolower(class_basename(Branch::class)), $employee->branch_id], [strtolower(class_basename(Department::class)), $employee->department_id], [strtolower(class_basename(Designation::class)), $employee->designation_id]])->first();
         $ratings = $indicator ? json_decode($indicator->rating, true) : [];
@@ -342,6 +347,11 @@ final class AppraisalController extends Controller
     return $this->measureProfile($action, function () use ($req, $action, $class, $viewPath) {
       try {
         Log::info("[{$class}::{$action}] start", [strtolower(class_basename(Employee::class)) => $req->employee, 'appraisal' => $req->appraisal]);
+        // PULL REQUEST START — validate required fields before findOrFail
+        if (!$req->filled('employee') || !$req->filled('appraisal')) {
+          return response()->json(['error' => 'The employee and appraisal fields are required.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        // PULL REQUEST END
         $employee = Employee::findOrFail($req->employee);
         $appraisal = Appraisal::findOrFail($req->appraisal);
         $indicator = Indicator::where([[strtolower(class_basename(Branch::class)), $employee->branch_id], [strtolower(class_basename(Department::class)), $employee->department_id], [strtolower(class_basename(Designation::class)), $employee->designation_id]])->first();
@@ -379,7 +389,8 @@ final class AppraisalController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'branch_id' => $request->branch_id]);
   }
 
-  private function buildAppraisal(Appraisal $appraisal, array $data, int $creatorId): Appraisal
+  // PULL REQUEST START — accept string|int for UUID creator IDs
+  private function buildAppraisal(Appraisal $appraisal, array $data, int|string $creatorId): Appraisal
   {
     Log::info(__CLASS__ . '::' . __FUNCTION__ . ' building appraisal', [
       'data'      => Arr::only($data, [

@@ -164,7 +164,7 @@ $lang = Utility::fetchUserLang();
                 toast.setAttribute('role', 'alert');
                 toast.setAttribute('aria-live', 'assertive');
                 toast.setAttribute('aria-atomic', 'true');
-                toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                toast.innerHTML = `<div class="toast-body">${msg}<button type="button" class="{{ VC::BT_CL }} {{ VC::MS2 }}" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
                 container.appendChild(toast);
                 window.bootstrap?.Toast?.getOrCreateInstance(toast)?.show() || alert(msg);
                 toast.addEventListener('hidden.bs.toast', () => toast.remove());

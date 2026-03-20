@@ -93,7 +93,7 @@ $authUser = Auth::user();
                 },
                 error(file, res) {
                   myDropzone.removeFile(file);
-                  show_toastr('error', res.error || 'Upload error', 'error');
+                  show_toastr('error', res.error || '{{ __("Upload error") }}', 'error');
                 }
               });
               myDropzone.on('sending', (file, xhr, formData) => {
@@ -115,7 +115,7 @@ $authUser = Auth::user();
                 del.innerHTML = "<i class='{{ VC::TI_TRS }}'></i>";
                 del.addEventListener('click', e => {
                   e.preventDefault(); e.stopPropagation();
-                  if (!confirm('Are you sure?')) return;
+                  if (!confirm('{{ __("Are you sure?") }}')) return;
                   $.ajax({
                     url: del.href,
                     type: 'DELETE',

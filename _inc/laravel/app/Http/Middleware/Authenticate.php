@@ -122,8 +122,6 @@ final class Authenticate extends Middleware
             $msg = "[Auth] {$base} Authentication successful for user ID {$user?->id}";
             app()->runningInConsole() ? $output->writeln("<info> {$msg} </info>") : $output->writeln($msg);
             $this->logExecutionTime($start, __METHOD__ . '::success');
-
-            return $next($request);
         } catch (AuthenticationException $e) {
             Log::notice(__METHOD__ . ' AuthenticationException', ['message' => $e->getMessage(), 'guards' => $guards, 'uri' => $request->getRequestUri()]);
             $this->logExecutionTime($start, __METHOD__ . '::AuthenticationException');
@@ -139,22 +137,26 @@ final class Authenticate extends Middleware
             $this->logExecutionTime($start, __METHOD__ . '::TokenMismatchException');
             app()->runningInConsole() ? $output->writeln("<error> [Auth] {$base} Session expired </error>") : $output->writeln("## AUTH ERROR: Session expired");
             return redirect()->route(self::REDIRECT_ROUTE)->with('error', __('Session expired, please try again.'));
-        } catch (\Throwable $e) {
-            $errCtx = [
-                'exception' => get_class($e),
-                'message' => $e->getMessage(),
-                'method' => $request->getMethod(),
-            ];
-            Log::error(__METHOD__ . ' UnexpectedException', $errCtx);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__METHOD__ . ' UnexpectedException', array_merge(
-                $errCtx,
-                ['trace' => $e->getTraceAsString()]
-            ));
-            $this->logExecutionTime($start, __METHOD__ . '::UnexpectedException');
-            $msg = "[Auth] {$base} Unexpected error: {$e->getMessage()}";
-            app()->runningInConsole() ? $output->writeln("<error> {$msg} </error>") : $output->writeln("## AUTH ERROR: {$msg}");
-            abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Internal server error.');
         }
+        # PULL REQUEST START — Remoção do catch genérico \Throwable que mascarava exceções downstream como falso erro 500
+        // catch (\Throwable $e) {
+        //     $errCtx = [
+        //         'exception' => get_class($e),
+        //         'message' => $e->getMessage(),
+        //         'method' => $request->getMethod(),
+        //     ];
+        //     Log::error(__METHOD__ . ' UnexpectedException', $errCtx);
+        //     Log::channel(SettingsConstants::ERR_TRACE)->debug(__METHOD__ . ' UnexpectedException', array_merge(
+        //         $errCtx,
+        //         ['trace' => $e->getTraceAsString()]
+        //     ));
+        //     $this->logExecutionTime($start, __METHOD__ . '::UnexpectedException');
+        //     $msg = "[Auth] {$base} Unexpected error: {$e->getMessage()}";
+        //     app()->runningInConsole() ? $output->writeln("<error> {$msg} </error>") : $output->writeln("## AUTH ERROR: {$msg}");
+        //     abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Internal server error.');
+        // }
+        # PULL REQUEST END
+        return $next($request);
     }
 
     /**

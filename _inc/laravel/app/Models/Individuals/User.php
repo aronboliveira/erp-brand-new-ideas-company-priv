@@ -252,27 +252,35 @@ class User extends Authenticatable implements MustVerifyEmail
         return Utility::settings()[SC::CR_SB];
     }
 
-    public function dateFormat(string $date): string
+    # PULL REQUEST START
+    public function dateFormat(?string $date): string
     {
-        return date(Utility::settings()[SC::DT_FM], strtotime($date));
+        return date(Utility::settings()[SC::DT_FM], strtotime((string) ($date ?? 'now')));
     }
+    # PULL REQUEST END
 
-    public function timeFormat(string $time): string
+    # PULL REQUEST START
+    public function timeFormat(?string $time): string
     {
-        return date(Utility::settings()[SC::TM_FM], strtotime($time));
+        return date(Utility::settings()[SC::TM_FM], strtotime((string) ($time ?? 'now')));
     }
+    # PULL REQUEST END
 
-    public function purchaseNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function purchaseNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::PRC_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
-    public function posNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function posNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::POS_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
     public function invoiceNumberFormat(int|string $number): string
     {
@@ -282,17 +290,21 @@ class User extends Authenticatable implements MustVerifyEmail
             : $prefix . $number;
     }
 
-    public function proposalNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function proposalNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::PPS_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
-    public function contractNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function contractNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::CTC_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
     public function billNumberFormat(int|string $number): string
     {
@@ -302,17 +314,21 @@ class User extends Authenticatable implements MustVerifyEmail
             : $prefix . $number;
     }
 
-    public function expenseNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function expenseNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::EXP_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
-    public function journalNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function journalNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::JRN_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
     public function getPlan(): HasOne
     {
@@ -360,22 +376,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return ['is_success' => true];
     }
 
-    public function customerNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function customerNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::CST_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
-    public function vendorNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function vendorNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::VND_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
-    public function venderNumberFormat(int $number): string // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
+    # PULL REQUEST START
+    public function venderNumberFormat(int|string $number): string // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
     {
         return $this->vendorNumberFormat($number);
     }
+    # PULL REQUEST END
 
     public function countUsers(): int
     {
@@ -782,10 +804,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return ProjectTask::whereRaw("find_in_set(?," . PJC::COL_ASGN . ")", [$this->id])->get();
     }
 
-    public function bugNumberFormat(int $number): string
+    # PULL REQUEST START
+    public function bugNumberFormat(int|string $number): string
     {
-        return Utility::settings()[SC::BUG_PFX] . sprintf('%05d', $number);
+        return Utility::settings()[SC::BUG_PFX] . sprintf('%05d', (int) $number);
     }
+    # PULL REQUEST END
 
     public function contacts(): HasMany
     {

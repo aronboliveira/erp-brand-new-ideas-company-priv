@@ -219,7 +219,7 @@ $user = Auth::user();
                             scheduleClickError(localize(document.body, "route_unavailable"));
                             return;
                         }
-                        if (window.confirm && !window.confirm("Are you sure ?")) return;
+                        if (window.confirm && !window.confirm("{{ __('Are you sure?') }}")) return;
                         $.ajax({
                             url: route,
                             type: "DELETE",

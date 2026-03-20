@@ -6,6 +6,7 @@ use Throwable;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Config\Constants\ViewsConstants;
 use App\Services\Resolvers\{BrasilApiCepV2Resolver, ViaCepResolver};
+use App\Support\SafeUrlGenerator;
 use App\Services\{ActivitysAndLogsRequestService, BugReportService, BusinessRequestService, ContractRequestService, DealRequestService, EmailRequestService, GeoLookupService, GoalRequestService, LeadRequestService, PipelineRequestService, PosRequestService, ProductOrServiceRequestService, ProjectRequestService, PurchaseRequestService, Providers\BrasilApiCepProvider, SupportHelperService, TaskRequestService, TemplateRequestService, WarehouseRequestService, ZipGeoService};
 use Doctrine\DBAL\DriverManager;
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -22,6 +23,22 @@ final class AppServiceProvider extends ServiceProvider
         // All Fortify routes are re-defined in routes/fortify.php with /fortify-* prefixes,
         // so the vendor routes just create duplicates (e.g. GET /login → Inertia blank page).
         Fortify::ignoreRoutes();
+        # PULL REQUEST START — Replace UrlGenerator with SafeUrlGenerator to handle '#' pseudo-route
+        $this->app->extend('url', function ($url, $app) {
+            $generator = new SafeUrlGenerator(
+                $app['router']->getRoutes(),
+                $url->getRequest(),
+                $app->bound('config') ? $app['config']['app.asset_url'] : null
+            );
+            $generator->setSessionResolver(function () use ($app) {
+                return $app->bound('session') ? $app['session']->driver() : null;
+            });
+            $generator->setKeyResolver(function () use ($app) {
+                return $app->bound('config') ? $app['config']['app.key'] : null;
+            });
+            return $generator;
+        });
+        # PULL REQUEST END — Replace UrlGenerator with SafeUrlGenerator
         $this->app->singleton(BrasilApiCepProvider::class);
         $this->app->singleton(ZipGeoService::class, function () {
             return new ZipGeoService([

@@ -171,7 +171,7 @@ $user = Auth::user() ?? null;
                                         <div class="{{ VC::TXCT_MT }}">{{ __('No applications available') }}</div>
                                     @endif
                                 </div>
-                                <span class="empty-container" data-placeholder="Empty"></span>
+                                <span class="empty-container" data-placeholder="{{ __('Empty') }}"></span>
                             </div>
                         </div>
                     @endforeach
@@ -281,7 +281,7 @@ $user = Auth::user() ?? null;
                                         old_status,
                                         _token: $('meta[name="csrf-token"]').attr('content')
                                     },
-                                    success: () => show_toastr('success','Job-application successfully updated','success'),
+                                    success: () => show_toastr('success','{{ __("Job-application successfully updated") }}','success'),
                                     error: (xhr) => {
                                         const err = xhr.responseJSON?.error || '';
                                         show_toastr('error', err, 'error');

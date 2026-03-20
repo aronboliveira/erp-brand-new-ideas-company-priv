@@ -132,7 +132,7 @@
                             type="button"
                             class="{{ VC::BT_CL }} {{ VC::FEND }}"
                             data-bs-dismiss="modal"
-                            aria-label="Close"
+                            aria-label="{{ __('Close') }}"
                         ></button>
                         <h6 class="{{ VC::MT2 }}">
                             <i data-feather="monitor" class="me-2"></i>{{ __('Desktop settings') }}
@@ -238,7 +238,7 @@
                 <div class="{{ VC::MDL_CTT }}">
                     <div class="{{ VC::MDL_HDR }}">
                         <h5 class="{{ VC::MDL_TTL }}" id="exampleModalLabel"></h5>
-                        <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="body">
                     </div>
@@ -251,7 +251,7 @@
                     <div class="{{ VC::MDL_HDR }}">
                         <h5 class="{{ VC::MDL_TTL }}" id="commonModalLabel"></h5>
                         <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                                aria-label="{{ __('Close') }}"></button>
                     </div>
                     <div class="modal-body">
                     </div>
@@ -263,16 +263,12 @@
                 <div class="{{ VC::DFL }}">
                     <div class="toast-body"></div>
                     <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
+                            aria-label="{{ __('Close') }}"></button>
                 </div>
             </div>
         </div>
         @include('partials.admin.footer')
         @include('Chatify::layouts.footer_links')
-        {{-- ERP Guard & Utils Core Classes (Deferred) --}}
-        <script src="{{ asset('assets/js/core/erp-guard.js') }}" defer></script>
-        <script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
-        <script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}" defer></script>
         <script src="{{ asset('assets/js/core/modal-autoopen.js') }}" defer></script>
         <script async src="{{ asset('assets/js/routes/generics/lang/utility.js') }}"></script>
         <script defer src="{{ asset('assets/js/routes/generics/utility.js') }}"></script>

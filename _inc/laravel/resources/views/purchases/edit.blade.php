@@ -429,7 +429,7 @@
 
         $(document).on('click', '[data-repeater-delete]', function () {
             // $('.delete_item').click(function () {
-            if (confirm('Are you sure you want to delete this element?')) {
+            if (confirm('{{ __("Are you sure you want to delete this element?") }}')) {
                 var el = $(this).parent().parent();
                 var id = $(el.find('.id')).val();
 

@@ -50,6 +50,7 @@ class EmployeeController extends Controller
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = 'employee';
+    private const VIEW_PREFIX = 'employees';
     private const REDIRECT_INDEX = '/';
 
     public function index(Request $r)
@@ -65,7 +66,7 @@ class EmployeeController extends Controller
                 ? Employee::where(UsersConstants::COL_USER_ID, $u->id)->get()
                 : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $this->logExecutionTime($t, $action, 'employeesLoaded');
-            $view = self::SINGULAR . '.' . $action;
+            $view = self::VIEW_PREFIX . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
             return ViewFacade::make($view, compact(DatabaseConstants::TABLE_EMPLOYEES));
         }, ['route' => Route::getCurrentRoute()?->getName(), 'class' => $base]);
@@ -88,7 +89,7 @@ class EmployeeController extends Controller
             $employees   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $employee_id = $u->employeeIdFormat(self::nextEmployeeNumber());
             $this->logExecutionTime($t, $action, 'formDataLoaded');
-            $view = self::SINGULAR . '.' . $action;
+            $view = self::VIEW_PREFIX . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
             return ViewFacade::make($view, compact(
                 DatabaseConstants::TABLE_EMPLOYEES,
@@ -202,7 +203,7 @@ class EmployeeController extends Controller
                     ->where(CompaniesConstants::COL_BRC_ID, $employee[CompaniesConstants::COL_BRC_ID])
                     ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $this->logExecutionTime($t, $action, 'formDataLoaded');
-                $view = self::SINGULAR . '.' . $action;
+                $view = self::VIEW_PREFIX . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
                 return ViewFacade::make($view, compact(
                     self::SINGULAR,
@@ -219,7 +220,8 @@ class EmployeeController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'class' => $base]);
     }
 
-    public function update(Request $r, int $id): RedirectResponse|JsonResponse
+    // PULL REQUEST START — accept string|int to handle UUID route params
+    public function update(Request $r, int|string $id): RedirectResponse|JsonResponse
     {
         $action = __FUNCTION__;
         $base = class_basename(static::class);
@@ -252,7 +254,8 @@ class EmployeeController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'class' => $base]);
     }
 
-    public function destroy(Request $r, int $id): RedirectResponse
+    // PULL REQUEST START — accept string|int to handle UUID route params
+    public function destroy(Request $r, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $base = class_basename(static::class);
@@ -295,7 +298,7 @@ class EmployeeController extends Controller
                 $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
                 $employee_id = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'detailLoaded');
-                $view = self::SINGULAR . '.' . $action;
+                $view = self::VIEW_PREFIX . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
                 return ViewFacade::make($view, compact(
                     self::SINGULAR,
@@ -339,7 +342,7 @@ class EmployeeController extends Controller
             $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend(__('All'), '');
             $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id')->prepend(__('All'), '');
             $this->logExecutionTime($t, $action, 'profileDataLoaded');
-            $view = self::SINGULAR . '.' . $action;
+            $view = self::VIEW_PREFIX . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
             return ViewFacade::make($view, compact(
                 DatabaseConstants::TABLE_EMPLOYEES,
@@ -427,14 +430,14 @@ class EmployeeController extends Controller
     public function joiningletterPdf(int $id): View|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, fn() => self::renderLetter(self::SINGULAR . '.templates.joining_letter_pdf', JoiningLetter::class, $id), ['id' => $id]);
+        return $this->measureProfile($action, fn() => self::renderLetter(self::VIEW_PREFIX . '.templates.joining_letter_pdf', JoiningLetter::class, $id), ['id' => $id]);
     }
 
     public const JNL_DOC = 'joiningLetterDoc';
     public function joiningletterDoc(int $id): View|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, fn() => self::renderLetter(self::SINGULAR . '.templates.joining_letter_doc', JoiningLetter::class, $id), ['id' => $id]);
+        return $this->measureProfile($action, fn() => self::renderLetter(self::VIEW_PREFIX . '.templates.joining_letter_doc', JoiningLetter::class, $id), ['id' => $id]);
     }
 
     public const EC_PDF = 'expCertificatePdf';
@@ -446,7 +449,7 @@ class EmployeeController extends Controller
             if (!$term?->termination_date) return back()->with('error', __('Termination date is required.'));
             $emp = Employee::find($id);
             $duration = $emp ? now()->diffInDays($emp->company_doj ?? now()) : 0;
-            return self::renderLetter(self::SINGULAR . '.templates.exp_certificate_pdf', ExperienceCertificate::class, $id, ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]);
+            return self::renderLetter(self::VIEW_PREFIX . '.templates.exp_certificate_pdf', ExperienceCertificate::class, $id, ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]);
         }, ['id' => $id]);
     }
 
@@ -459,7 +462,7 @@ class EmployeeController extends Controller
             if (!$term?->termination_date) return back()->with('error', __('Termination date is required.'));
             $emp = Employee::find($id);
             $duration = $emp ? now()->diffInDays($emp->company_doj ?? now()) : 0;
-            return self::renderLetter(self::SINGULAR . '.templates.exp_certificate_doc', ExperienceCertificate::class, $id, ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]);
+            return self::renderLetter(self::VIEW_PREFIX . '.templates.exp_certificate_doc', ExperienceCertificate::class, $id, ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]);
         }, ['id' => $id]);
     }
 
@@ -467,14 +470,14 @@ class EmployeeController extends Controller
     public function nocPdf(int $id): View|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, fn() => self::renderLetter(self::SINGULAR . '.templates.noc_pdf', Noc::class, $id), ['id' => $id]);
+        return $this->measureProfile($action, fn() => self::renderLetter(self::VIEW_PREFIX . '.templates.noc_pdf', Noc::class, $id), ['id' => $id]);
     }
 
     public const NOC_DOC = 'nocDoc';
     public function nocDoc(int $id): View|RedirectResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, fn() => self::renderLetter(self::SINGULAR . '.templates.noc_doc', Noc::class, $id), ['id' => $id]);
+        return $this->measureProfile($action, fn() => self::renderLetter(self::VIEW_PREFIX . '.templates.noc_doc', Noc::class, $id), ['id' => $id]);
     }
 
     public function export(): RedirectResponse|BinaryFileResponse

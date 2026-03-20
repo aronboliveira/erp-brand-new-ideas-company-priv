@@ -17,6 +17,10 @@ const JournalEntryRepeater = (() => {
   const ERR_FB = "# ERROR";
   const DATA_CLIENT_LOCALIZED = "data-client-localized";
   const DATA_GUARD_MSG = "data-guard-msg";
+  const CONFIRM_DELETE_MSG = (() => {
+    const l = document.documentElement?.lang || "en";
+    return window.translations?.[l]?.["Are you sure you want to delete this element?"] ?? "Are you sure you want to delete this element?";
+  })();
 
   /**
    * Get localized message from element attributes or translation object
@@ -92,19 +96,11 @@ const JournalEntryRepeater = (() => {
    * @param {boolean} [options.isEditMode] - Whether this is edit mode
    */
   const initRepeater = (options = {}) => {
-    const {
-      selector = "body",
-      maxUploadSize = "2048",
-      destroyRoute = null,
-      isEditMode = false,
-    } = options;
+    const { selector = "body", maxUploadSize = "2048", destroyRoute = null, isEditMode = false } = options;
 
     if (typeof $ === "undefined") {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      ) {
-        void("jQuery unavailable");
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        void "jQuery unavailable";
       }
       return;
     }
@@ -136,16 +132,14 @@ const JournalEntryRepeater = (() => {
           } catch {
             const el = this;
             if (!el.hasAttribute(DATA_LISTENER_ADDED)) {
-              el.addEventListener("click", () =>
-                handleErrorDisplay(el, "repeater_show_unavailable"),
-              );
+              el.addEventListener("click", () => handleErrorDisplay(el, "repeater_show_unavailable"));
               el.setAttribute(DATA_LISTENER_ADDED, "true");
             }
           }
         },
         hide(deleteElement) {
           try {
-            if (confirm("Are you sure you want to delete this element?")) {
+            if (confirm(CONFIRM_DELETE_MSG)) {
               const $row = $(this);
               $row.slideUp(deleteElement);
               $row.remove();
@@ -161,17 +155,14 @@ const JournalEntryRepeater = (() => {
                   data: { id },
                   cache: false,
                   success: () => {},
-                  error: () =>
-                    handleErrorDisplay($row[0], "destroy_unavailable"),
+                  error: () => handleErrorDisplay($row[0], "destroy_unavailable"),
                 });
               }
             }
           } catch {
             const el = this;
             if (!el.hasAttribute(DATA_LISTENER_ADDED)) {
-              el.addEventListener("click", () =>
-                handleErrorDisplay(el, "repeater_hide_unavailable"),
-              );
+              el.addEventListener("click", () => handleErrorDisplay(el, "repeater_hide_unavailable"));
               el.setAttribute(DATA_LISTENER_ADDED, "true");
             }
           }
@@ -198,9 +189,7 @@ const JournalEntryRepeater = (() => {
             });
           } else {
             list.forEach(item => {
-              const $row = $(
-                `#sortable-table .id[value="${item.id}"]`,
-              ).parent();
+              const $row = $(`#sortable-table .id[value="${item.id}"]`).parent();
               $row.find(".item").val(item.product_id);
               if (typeof changeItem === "function") {
                 changeItem($row.find(".item"));
@@ -208,17 +197,11 @@ const JournalEntryRepeater = (() => {
             });
           }
         } catch {
-          handleErrorDisplay(
-            document.querySelector(".repeater"),
-            "repeater_show_unavailable",
-          );
+          handleErrorDisplay(document.querySelector(".repeater"), "repeater_show_unavailable");
         }
       }
     } catch {
-      handleErrorDisplay(
-        document.querySelector(".repeater"),
-        "repeater_show_unavailable",
-      );
+      handleErrorDisplay(document.querySelector(".repeater"), "repeater_show_unavailable");
     }
 
     // Setup keyup handlers

@@ -19,10 +19,11 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
     dataErrGuard = "data-error-guard",
     dataBoundInit = "data-bound-grammar-init",
     dataBoundRegen = "data-bound-grammar-regen";
-  const qs = (
-    s: string,
-    r: Document | Element = document,
-  ): HTMLElement | null => r.querySelector(s);
+  const qs = (s: string, r: Document | Element = document): HTMLElement | null => r.querySelector(s);
+  const _t = (k: string): string => {
+    const l = document.documentElement?.lang || "en";
+    return (window as Record<string, any>).translations?.[l]?.[k] ?? k;
+  };
   const ensureToastContainer = (): HTMLElement => {
     const c = qs("#np-toast-container");
     if (c) return c;
@@ -35,10 +36,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
     return div;
   };
   const showErrorNow = (message: string): void => {
-    const hasBootstrap =
-      (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')) &&
-      window.bootstrap.Toast;
+    const hasBootstrap = (qs('link[rel="stylesheet"][href*="bootstrap"]') || qs('link[href*="bootstrap"]')) && window.bootstrap.Toast;
     if (hasBootstrap) {
       const container = ensureToastContainer();
       let t = qs("#np-toast", container);
@@ -52,8 +50,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
           "aria-atomic": "true",
         }))
           t.setAttribute(k, v);
-        t.innerHTML =
-          '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+        t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
@@ -91,26 +88,13 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
-    if (
-      el.getAttribute(dataSvLocalized) === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
+    if (el.getAttribute(dataSvLocalized) === "true" || el.getAttribute(dataClientLocalized) === "true") {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
+      msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
       if (el && msg !== errFb) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
@@ -118,27 +102,11 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
     }
     return msg;
   };
-  const resolveRoute = (
-    el: HTMLElement | undefined,
-    explicit: string,
-  ): string | null => {
+  const resolveRoute = (el: HTMLElement | undefined, explicit: string): string | null => {
     const url = el?.getAttribute("data-url") || "",
-      href = el
-        ? el.tagName === "FORM"
-          ? (el.getAttribute("action") ?? "")
-          : (el.getAttribute("href") ?? "")
-        : "";
-    if (
-      (!explicit || explicit === "#") &&
-      (!url || url === "#") &&
-      (!href || href === "#")
-    )
-      return null;
-    return explicit && explicit !== "#"
-      ? explicit
-      : url && url !== "#"
-        ? url
-        : href;
+      href = el ? (el.tagName === "FORM" ? (el.getAttribute("action") ?? "") : (el.getAttribute("href") ?? "")) : "";
+    if ((!explicit || explicit === "#") && (!url || url === "#") && (!href || href === "#")) return null;
+    return explicit && explicit !== "#" ? explicit : url && url !== "#" ? url : href;
   };
   const initGrammarSeed = (): void => {
     const host = document.body;
@@ -151,11 +119,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
       } else {
         if (!$.fn) {
           try {
-            if (
-              window.location.hostname === "localhost" ||
-              window.location.hostname === "127.0.0.1"
-            )
-              console.error("jQuery unavailable");
+            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("jQuery unavailable");
           } catch (_) {
             console.error(`[init] Error:`, _);
           }
@@ -165,9 +129,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
         if ("summernote" in $.fn && $(".summernote-simple").length > 0) {
           try {
             $(".summernote-simple").summernote();
-            summernoteValue = String(
-              $(".summernote-simple").summernote("code") ?? "",
-            );
+            summernoteValue = String($(".summernote-simple").summernote("code") ?? "");
           } catch (_) {
             summernoteValue = String($(".summernote-simple").val() ?? "");
           }
@@ -183,9 +145,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
         scheduleInteractiveError(getMsg(host, "grammar_init_unavailable"));
       }
     } catch (_) {
-      scheduleInteractiveError(
-        getMsg(document.body, "grammar_init_unavailable"),
-      );
+      scheduleInteractiveError(getMsg(document.body, "grammar_init_unavailable"));
     }
     const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(host)) o.disconnect();
@@ -219,9 +179,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
           beforeSend: function (): void {
             try {
               $("#regenerate").empty();
-              $("#regenerate").append(
-                '<span class="spinner-grow spinner-grow-sm" role="status"></span>',
-              );
+              $("#regenerate").append('<span class="spinner-grow spinner-grow-sm" role="status"></span>');
             } catch (_) {
               console.error(`[init] Error:`, _);
             }
@@ -231,8 +189,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
               $(".response").removeClass("d-none");
               $("#regenerate").text("Re-Generate");
               if (data.message) {
-                if (window.show_toastr)
-                  window.show_toastr("error", data.message, "error");
+                if (window.show_toastr) window.show_toastr("error", data.message, "error");
                 (
                   $("#commonModalOver") as JQuery<HTMLElement> & {
                     modal: (cmd: string) => void;
@@ -242,9 +199,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
                 $("#ai-description").val(String(data ?? ""));
               }
             } catch (_) {
-              scheduleInteractiveError(
-                getMsg(document.body, "generate_unavailable"),
-              );
+              scheduleInteractiveError(getMsg(document.body, "generate_unavailable"));
             }
           },
           error: function (): void {
@@ -278,26 +233,17 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
                 $(".summernote-simple").val(copied);
               }
             } else {
-              scheduleInteractiveError(
-                getMsg(document.body, "plugin_unavailable"),
-              );
+              scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
             }
           }
-          if (window.show_toastr)
-            window.show_toastr(
-              "success",
-              "Result text has been copied successfully",
-              "success",
-            );
+          if (window.show_toastr) window.show_toastr("success", _t("Result text has been copied successfully"), "success");
           (
             $("#commonModalOver") as JQuery<HTMLElement> & {
               modal: (cmd: string) => void;
             }
           ).modal("hide");
         } catch (_) {
-          scheduleInteractiveError(
-            getMsg(document.body, "grammar_init_unavailable"),
-          );
+          scheduleInteractiveError(getMsg(document.body, "grammar_init_unavailable"));
         }
       };
     }
@@ -305,11 +251,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
   const init = (): void => {
     if (!$.fn) {
       try {
-        if (
-          window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
-        )
-          console.error("jQuery unavailable");
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("jQuery unavailable");
       } catch (_) {
         console.error(`[init] Error:`, _);
       }
@@ -320,9 +262,7 @@ import type { GrammarAjaxResponse } from "../../../../../../declarations/routes/
     bindRegenerate();
     exposeCopy();
   };
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", init, { once: true })
-    : init();
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init, { once: true }) : init();
 })();
 
 export {};

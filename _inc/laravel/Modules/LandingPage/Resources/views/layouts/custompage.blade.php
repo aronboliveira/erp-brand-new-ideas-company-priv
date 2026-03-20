@@ -353,7 +353,7 @@
                                 </a>
                                 <button class="{{ VC::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
-                                    aria-label="Toggle navigation">
+                                    aria-label="{{ __('Toggle navigation') }}">
                                     <span class="{{ VC::NVB_TG_IC }}"></span>
                                 </button>
                             </div>

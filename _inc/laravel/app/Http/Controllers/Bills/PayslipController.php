@@ -599,6 +599,14 @@ final class PayslipController extends Controller
     }
 
     public const EDT_EMP = 'editEmployee';
+
+    // PULL REQUEST START — alias for resource route `payslips.edit`
+    public function edit(Request $request, int|string $id): View|RedirectResponse
+    {
+        return $this->editEmployee($id);
+    }
+    // PULL REQUEST END
+
     public function editEmployee(int|string $id): View|RedirectResponse
     {
         $cls = __CLASS__;
@@ -615,9 +623,15 @@ final class PayslipController extends Controller
             $c = self::guard(request(), PermissionsConstants::MNG_PSL, self::REDIRECT_INDEX);
             if ($c !== true) return $c;
 
-            return ViewFacade::make(VW::PY_SLP . '.salaryEdit', [
-                'payslip' => Payslip::findOrFail($id)
-            ]);
+            // PULL REQUEST START — catch missing payslip gracefully
+            try {
+                return ViewFacade::make(VW::PY_SLP . '.salaryEdit', [
+                    'payslip' => Payslip::findOrFail($id)
+                ]);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Payslip not found.'));
+            }
+            // PULL REQUEST END
         }, ['payslip_id' => $id]);
     }
 

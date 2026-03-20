@@ -71,8 +71,8 @@
         )
           console.error(
             "[assets/js/routes/aiTemplates/clipboard.js] Copy error:",
-            err?.constructor?.name ?? "Error",
-            err?.message ?? "Unknown error"
+            (err as Error)?.constructor?.name ?? "Error",
+            (err as Error)?.message ?? "Unknown error"
           );
         toast(errMsg);
       }
@@ -97,8 +97,8 @@
           )
             console.error(
               "[assets/js/routes/aiTemplates/clipboard.js] Copy-all click error:",
-              err2?.constructor?.name ?? "Error",
-              err2?.message ?? "Unknown error"
+              (err2 as Error)?.constructor?.name ?? "Error",
+              (err2 as Error)?.message ?? "Unknown error"
             );
         }
       });
@@ -129,8 +129,8 @@
           )
             console.error(
               "[assets/js/routes/aiTemplates/clipboard.js] Copy-selected click error:",
-              err2?.constructor?.name ?? "Error",
-              err2?.message ?? "Unknown error"
+              (err2 as Error)?.constructor?.name ?? "Error",
+              (err2 as Error)?.message ?? "Unknown error"
             );
         }
       });
@@ -142,8 +142,8 @@
     )
       console.error(
         "[assets/js/routes/aiTemplates/clipboard.js] Initialization error:",
-        error?.constructor?.name ?? "Error",
-        error?.message ?? "Unknown error"
+        (error as Error)?.constructor?.name ?? "Error",
+        (error as Error)?.message ?? "Unknown error"
       );
   }
 })();

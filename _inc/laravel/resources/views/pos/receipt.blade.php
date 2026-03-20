@@ -69,7 +69,7 @@
             };
             document.addEventListener("DOMContentLoaded", () => {
                 if (typeof $ !== 'function') {
-                    alert(`Failed to load necessary functions.`);
+                    alert(`{{ __('Failed to load necessary functions.') }}`);
                     return;
                 }
                 $(".product_barcode").each((_, el) => {

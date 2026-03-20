@@ -341,7 +341,7 @@ $user ??= null;
 
                 // delete via ajax
                 $(document).on('click', '[data-repeater-delete]', function() {
-                    if (!confirm('Are you sure you want to delete this element?')) return;
+                    if (!confirm('{{ __("Are you sure you want to delete this element?") }}')) return;
                     try {
                         const $el = $(this).closest('tr');
                         const id  = $el.find('.id').val();

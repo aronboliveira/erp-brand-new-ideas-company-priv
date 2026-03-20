@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 import pandas as pd
 from openpyxl.styles import Border, Font, PatternFill, Side
 
-from base_exporter import BaseExporter, ExportStyle, format_date, safe_get
+from base_exporter import BaseExporter, format_date, safe_get
 
 
 class BillExporter(BaseExporter):

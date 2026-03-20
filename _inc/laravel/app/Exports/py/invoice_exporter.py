@@ -11,15 +11,13 @@ Handles Excel export for invoice data with:
 - Excel formulas for dynamic status summary
 """
 import sys
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import pandas as pd
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.worksheet import Worksheet
 
 from base_exporter import BaseExporter, ExportStyle, format_date, safe_get
 
@@ -318,7 +316,7 @@ class InvoiceExporter(BaseExporter):
         # KPI Cards
         paid_count = self._status_counts.get("Paid", 0)
         paid_pct = paid_count / self._invoice_count if self._invoice_count else 0
-        overdue_pct = self._overdue_count / self._invoice_count if self._invoice_count else 0
+        self._overdue_count / self._invoice_count if self._invoice_count else 0
 
         kpis = [
             ("Total Invoices", self._invoice_count, "number", None),
@@ -454,13 +452,13 @@ class InvoiceExporter(BaseExporter):
             self.freeze_pane(f"A{data_start}")
             self._apply_row_styling(df)
             self._add_summary_section(df)
-            
+
             # Add data validation for status column (commented for reference)
             # If adding an editable status column, uncomment:
             # data_end = data_start + len(df) - 1
             # status_options = ["Draft", "Sent", "Partial", "Paid", "Cancelled"]
             # self.add_dropdown_validation(f"I{data_start}:I{data_end}", status_options)
-            
+
             # Add outlier detection for days overdue
             if len(df) > 5:
                 data_end = data_start + len(df) - 1

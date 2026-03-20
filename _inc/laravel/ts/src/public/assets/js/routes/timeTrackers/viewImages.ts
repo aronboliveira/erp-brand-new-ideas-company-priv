@@ -4,6 +4,12 @@
  * @module viewImages
  */
 
+const _t = (k: string): string => {
+  const l = (document.documentElement || ({} as HTMLElement)).lang || "en";
+  const t = (window as unknown as Record<string, unknown>).translations as Record<string, Record<string, string>> | undefined;
+  return t?.[l]?.[k] ?? k;
+};
+
 ((): void => {
   try {
     const items = document.querySelectorAll(".view-images");
@@ -21,15 +27,12 @@
 
             const url = img.getAttribute("data-url") ?? "#";
             if (!url || url === "#") {
-              const msg =
-                img.getAttribute("data-guard-msg") ??
-                "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
+              const msg = img.getAttribute("data-guard-msg") ?? "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
                 container.id = "toast-container";
-                container.className =
-                  "toast-container position-fixed top-0 end-0 p-3";
+                container.className = "toast-container position-fixed top-0 end-0 p-3";
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }
@@ -63,7 +66,7 @@
             const modal = document.getElementById("exampleModalCenter"),
               content = modal ? modal.querySelector(".image_sider_div") : null;
             if (!modal || !content) {
-              alert("Could not find images modal container");
+              alert(_t("Could not find images modal container"));
               return;
             }
             try {
@@ -82,15 +85,13 @@
                 m.show();
               }
             } catch (xhrErr) {
-              const msg =
-                  "Failed to load tracker images. Please try again later.",
+              const msg = _t("Failed to load tracker images. Please try again later."),
                 bsLink = document.querySelector('link[href*="bootstrap"]');
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
                 container.id = "toast-container";
-                container.className =
-                  "toast-container position-fixed top-0 end-0 p-3";
+                container.className = "toast-container position-fixed top-0 end-0 p-3";
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }

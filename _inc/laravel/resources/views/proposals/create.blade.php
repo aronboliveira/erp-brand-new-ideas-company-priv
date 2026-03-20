@@ -195,7 +195,7 @@ Object.keys(t).forEach(
                     },
                     hide:function(deleteElement){
                         try{
-                        if(window.confirm('Are you sure you want to delete this element?')){
+                        if(window.confirm('{{ __("Are you sure you want to delete this element?") }}')){
                             $(this).slideUp(deleteElement); $(this).remove();
                             recalcRowAndTotals($repRoot.find('.repeater-item').first());
                         }

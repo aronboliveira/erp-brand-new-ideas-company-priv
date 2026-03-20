@@ -140,6 +140,35 @@ class WarehouseTransferController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'transfer_id' => $transfer->id]);
     }
 
+    // PULL REQUEST START — add edit() method for resource route `warehouse_transfers.edit`
+    public function edit(Request $request, WarehouseTransfer $transfer): View|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::WRH_TRF . '.edit';
+        return $this->measureProfile($action, function () use ($req, $transfer, $action, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $redirect;
+            if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+            try {
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::warning("[{$base}::{$action}] edit view not found, falling back to show");
+                    return redirect()->route(ViewsConstants::WRH_TRF . '.show', $transfer->id);
+                }
+                return view($viewPath, compact('transfer'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['transfer_id' => $transfer->id ?? null]);
+    }
+    // PULL REQUEST END
+
     public function store(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;

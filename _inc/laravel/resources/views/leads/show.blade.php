@@ -730,7 +730,7 @@ $user = Auth::user();
                     toast.innerHTML = `
                         <div class="{{ VC::DFL }}">
                         <div class="toast-body">${text}</div>
-                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                         </div>`;
                     document.body.appendChild(toast);
                     }
@@ -857,7 +857,7 @@ $user = Auth::user();
                         const onDelete = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (!confirm("Are you sure ?")) return;
+                        if (!confirm("{{ __('Are you sure?') }}")) return;
                         if (routeGuard(del, del.href)) { guardOnce(del, "lead_delete_unavailable"); return; }
                         $.ajax({
                             url: del.href,
@@ -917,7 +917,7 @@ $user = Auth::user();
                         const onDelete = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (!confirm("Are you sure ?")) return;
+                            if (!confirm("{{ __('Are you sure?') }}")) return;
                             if (routeGuard(del, del.href)) { guardOnce(del, "lead_delete_unavailable"); return; }
                             $.ajax({
                             url: del.href,

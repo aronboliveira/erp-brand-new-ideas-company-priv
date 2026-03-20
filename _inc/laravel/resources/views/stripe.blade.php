@@ -220,7 +220,7 @@ Object.keys(t).forEach(
                     toast.innerHTML = `
                     <div class="{{ VC::DFL }}">
                         <div class="toast-body">${text}</div>
-                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
                     </div>`;
                     document.body.appendChild(toast);
                 }
@@ -335,7 +335,7 @@ Object.keys(t).forEach(
                         callback: response => {
                         window.location.href = `${paystack_callback}/${response.reference}/{{ encrypt($plan->id) }}?coupon_id=${coupon_id}`;
                         },
-                        onClose: ()=>{ try { alert('window closed'); } catch {} }
+                        onClose: ()=>{ try { alert('{{ __('Window closed') }}'); } catch {} }
                     });
                     handler.openIframe();
                     } else if (res.flag == 2) {

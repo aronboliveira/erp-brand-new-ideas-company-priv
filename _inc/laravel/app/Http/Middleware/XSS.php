@@ -119,20 +119,25 @@ class XSS
             $output->writeln("[{$class}] sanitization complete");
             $this->logExecutionTime($sanitStart, 'sanitization');
             return $next($request);
+        # PULL REQUEST START — Remoção do catch genérico \Throwable que mascarava exceções downstream como abort(500, 'XSS Sanitization failed')
+        // } catch (\Throwable $e) {
+        //     Log::error("{$class}::handle error", [
+        //         'exception' => get_class($e),
+        //         'message'   => $e->getMessage(),
+        //         'uri'       => $request->getPathInfo(),
+        //         'status'    => 500
+        //     ]);
+        //     $output->writeln("[{$class}] error: {$e->getMessage()}");
+        //     $this->logExecutionTime($authStart, 'handle_error');
+        //     if ($request->expectsJson())
+        //         return response()->json(['error' => "Unexpected error: {$e->getMessage()}"], 500);
+        //     Log::debug("{$class} ingested a throwable. Aborting.");
+        //     abort(500, 'XSS Sanitization failed.');
+        // }
         } catch (\Throwable $e) {
-            Log::error("{$class}::handle error", [
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-                'uri'       => $request->getPathInfo(),
-                'status'    => 500
-            ]);
-            $output->writeln("[{$class}] error: {$e->getMessage()}");
-            $this->logExecutionTime($authStart, 'handle_error');
-            if ($request->expectsJson())
-                return response()->json(['error' => "Unexpected error: {$e->getMessage()}"], 500);
-            Log::debug("{$class} ingested a throwable. Aborting.");
-            abort(500, 'XSS Sanitization failed.');
+            throw $e;
         }
+        # PULL REQUEST END
     }
 
     private function writeConsole(OutputInterface $out, string $message): void

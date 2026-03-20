@@ -216,7 +216,7 @@ $lang ??= 'en';
                                     {!! Form::date('end_date', null, ['class'=>VC::FM_CT]) !!}
                                 </div>
                                 <div class="form-group {{ VC::CM12 }}">
-                                    <input type="text" class="{{ VC::FM_CT }}" value="{{ !empty($job->skill) ? $job->skill : __('No name fetched for skill') }}" data-toggle="tags" name="skill" placeholder="Skill"/>
+                                    <input type="text" class="{{ VC::FM_CT }}" value="{{ !empty($job->skill) ? $job->skill : __('No name fetched for skill') }}" data-toggle="tags" name="skill" placeholder="{{ __('Skill') }}"/>
                                 </div>
                             </div>
                         </div>

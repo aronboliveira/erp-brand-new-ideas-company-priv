@@ -445,7 +445,7 @@
                                                                     ? $proposalConvertBaseName
                                                                     : (Route::has($proposalConvertKebabName) ? $proposalConvertKebabName : null);
                                                                 $proposalIdValue             = isset($pid) && !empty($pid) ? $pid : null;
-                                                                $proposalConvertRouteArray   = ($proposalConvertResolvedName && $proposalIdValue) ? [$proposalConvertResolvedName, $proposalIdValue] : ['#'];
+                                                                $proposalConvertRouteArray   = ($proposalConvertResolvedName && $proposalIdValue) ? [$proposalConvertResolvedName, $proposalIdValue] : null; # PULL REQUEST — changed fallback from ['#'] to null to prevent RouteNotFoundException
                                                                 $proposalConvertUrl          = ($proposalConvertResolvedName && $proposalIdValue) ? route($proposalConvertResolvedName, $proposalIdValue) : '#';
                                                                 $proposalConvertGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'convert_proposal_to_invoice_route_unavailable') ?? 'Convert proposal to invoice route is unavailable. Please contact technical support or your domain administrator.';
                                                                 $proposalConvertFormId       = 'proposal-form-'.($proposalIdValue ?? 'x');
@@ -454,14 +454,16 @@
                                                                 $proposalConvertOriginal     = __('Convert to Invoice');
                                                                 $proposalConvertConfirmMsg   = __('Do you want to confirm converting to invoice? Press Yes to continue or Cancel to go back');
                                                             @endphp
-                                                            {!! Form::open([
-                                                                'route'          => $proposalConvertRouteArray,
-                                                                'method'         => 'get',
-                                                                'accept-charset' => 'UTF-8',
-                                                                'id'             => $proposalConvertFormId,
-                                                                'data-url'       => $proposalConvertUrl,
-                                                                'data-guard-msg' => $proposalConvertGuardMsg
-                                                            ]) !!}
+                                                            {!! Form::open(array_merge(
+                                                                $proposalConvertRouteArray ? ['route' => $proposalConvertRouteArray] : ['url' => '#'],
+                                                                [
+                                                                    'method'         => 'get',
+                                                                    'accept-charset' => 'UTF-8',
+                                                                    'id'             => $proposalConvertFormId,
+                                                                    'data-url'       => $proposalConvertUrl,
+                                                                    'data-guard-msg' => $proposalConvertGuardMsg
+                                                                ]
+                                                            )) !!}
                                                                 <a href="#"
                                                                 id="{{ $proposalConvertLinkId }}"
                                                                 class="{{ VC::BT_SM_CT_PR }}"
@@ -611,7 +613,7 @@
                                                                     ? $proposalDuplicateBaseName
                                                                     : (Route::has($proposalDuplicateKebabName) ? $proposalDuplicateKebabName : null);
                                                                 $proposalIdValue               = isset($pid) && !empty($pid) ? $pid : null;
-                                                                $proposalDuplicateRouteArray   = ($proposalDuplicateResolvedName && $proposalIdValue) ? [$proposalDuplicateResolvedName, $proposalIdValue] : ['#'];
+                                                                $proposalDuplicateRouteArray   = ($proposalDuplicateResolvedName && $proposalIdValue) ? [$proposalDuplicateResolvedName, $proposalIdValue] : null; # PULL REQUEST — changed fallback from ['#'] to null to prevent RouteNotFoundException
                                                                 $proposalDuplicateUrl          = ($proposalDuplicateResolvedName && $proposalIdValue) ? route($proposalDuplicateResolvedName, $proposalIdValue) : '#';
                                                                 $proposalDuplicateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'duplicate_proposal_route_unavailable') ?? 'Duplicate proposal route is unavailable. Please contact technical support or your domain administrator.';
                                                                 $proposalDuplicateFormId       = 'duplicate-form-'.($proposalIdValue ?? 'x');
@@ -619,14 +621,16 @@
                                                                 $proposalDuplicateTitle        = __('Duplicate');
                                                                 $proposalDuplicateConfirm      = __('Do you want to confirm duplicating this proposal ? Press Yes to continue or Cancel to go back');
                                                             @endphp
-                                                            {!! Form::open([
-                                                                'route'          => $proposalDuplicateRouteArray,
-                                                                'method'         => 'get',
-                                                                'accept-charset' => 'UTF-8',
-                                                                'id'             => $proposalDuplicateFormId,
-                                                                'data-url'       => $proposalDuplicateUrl,
-                                                                'data-guard-msg' => $proposalDuplicateGuardMsg
-                                                            ]) !!}
+                                                            {!! Form::open(array_merge(
+                                                                $proposalDuplicateRouteArray ? ['route' => $proposalDuplicateRouteArray] : ['url' => '#'],
+                                                                [
+                                                                    'method'         => 'get',
+                                                                    'accept-charset' => 'UTF-8',
+                                                                    'id'             => $proposalDuplicateFormId,
+                                                                    'data-url'       => $proposalDuplicateUrl,
+                                                                    'data-guard-msg' => $proposalDuplicateGuardMsg
+                                                                ]
+                                                            )) !!}
                                                                 <a href="#"
                                                                 id="{{ $proposalDuplicateLinkId }}"
                                                                 class="{{ VC::BT_SM_CT_PR }}"
@@ -847,7 +851,7 @@
                                                                     ? $proposalDestroyBaseName
                                                                     : (Route::has($proposalDestroyKebabName) ? $proposalDestroyKebabName : null);
                                                                 $proposalIdValue             = isset($pid) && !empty($pid) ? $pid : null;
-                                                                $proposalDestroyRouteArray   = ($proposalDestroyResolvedName && $proposalIdValue) ? [$proposalDestroyResolvedName, $proposalIdValue] : ['#'];
+                                                                $proposalDestroyRouteArray   = ($proposalDestroyResolvedName && $proposalIdValue) ? [$proposalDestroyResolvedName, $proposalIdValue] : null; # PULL REQUEST — changed fallback from ['#'] to null to prevent RouteNotFoundException
                                                                 $proposalDestroyUrl          = ($proposalDestroyResolvedName && $proposalIdValue) ? route($proposalDestroyResolvedName, $proposalIdValue) : '#';
                                                                 $proposalDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'delete_proposal_route_unavailable') ?? 'Delete proposal route is unavailable. Please contact technical support or your domain administrator.';
                                                                 $proposalDestroyFormId       = 'delete-form-'.($proposalIdValue ?? 'x');
@@ -857,14 +861,16 @@
                                                                 $confirmBody                 = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
                                                                 $confirmCombined             = $confirmTitle.'|'.$confirmBody;
                                                             @endphp
-                                                            {!! Form::open([
-                                                                'route'          => $proposalDestroyRouteArray,
-                                                                'method'         => 'delete',
-                                                                'accept-charset' => 'UTF-8',
-                                                                'id'             => $proposalDestroyFormId,
-                                                                'data-url'       => $proposalDestroyUrl,
-                                                                'data-guard-msg' => $proposalDestroyGuardMsg
-                                                            ]) !!}
+                                                            {!! Form::open(array_merge(
+                                                                $proposalDestroyRouteArray ? ['route' => $proposalDestroyRouteArray] : ['url' => '#'],
+                                                                [
+                                                                    'method'         => 'delete',
+                                                                    'accept-charset' => 'UTF-8',
+                                                                    'id'             => $proposalDestroyFormId,
+                                                                    'data-url'       => $proposalDestroyUrl,
+                                                                    'data-guard-msg' => $proposalDestroyGuardMsg
+                                                                ]
+                                                            )) !!}
                                                                 @csrf
                                                                 <a href="#"
                                                                 id="{{ $proposalDestroyLinkId }}"

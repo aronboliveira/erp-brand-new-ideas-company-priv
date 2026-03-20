@@ -63,26 +63,29 @@ final class VerifyCsrfToken extends Middleware
                     Response::HTTP_FORBIDDEN
                 );
             abort(419, 'CSRF token mismatch');
-        } catch (\Throwable $e) {
-            $headers = $response?->headers?->all() ?? ['FAILED' => 'Failed to parse cookies'];
-            Log::error('VerifyCsrfToken error', [
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-                'uri'       => $request->getRequestUri(),
-                'status'    => '403',
-            ]);
-            $msg = "[VerifyCsrfToken] Error: {$e->getMessage()}";
-            app()->runningInConsole() ?
-                $output->writeln('<error> ' . $msg . ' </error>') :
-                $output->writeln("## CSRF ERROR: {$msg}");
-            if ($request->expectsJson())
-                return response()->json(
-                    ['error' => 'CSRF verification failed'],
-                    Response::HTTP_INTERNAL_SERVER_ERROR
-                );
-            Log::debug(get_class($this) . " ingested a throwable. Aborting.");
-            abort(500, 'CSRF verification failed');
         }
+        # PULL REQUEST START — Remoção do catch genérico \Throwable que mascarava exceções downstream como falsos erros CSRF 500
+        // catch (\Throwable $e) {
+        //     $headers = $response?->headers?->all() ?? ['FAILED' => 'Failed to parse cookies'];
+        //     Log::error('VerifyCsrfToken error', [
+        //         'exception' => get_class($e),
+        //         'message'   => $e->getMessage(),
+        //         'uri'       => $request->getRequestUri(),
+        //         'status'    => '403',
+        //     ]);
+        //     $msg = "[VerifyCsrfToken] Error: {$e->getMessage()}";
+        //     app()->runningInConsole() ?
+        //         $output->writeln('<error> ' . $msg . ' </error>') :
+        //         $output->writeln("## CSRF ERROR: {$msg}");
+        //     if ($request->expectsJson())
+        //         return response()->json(
+        //             ['error' => 'CSRF verification failed'],
+        //             Response::HTTP_INTERNAL_SERVER_ERROR
+        //         );
+        //     Log::debug(get_class($this) . " ingested a throwable. Aborting.");
+        //     abort(500, 'CSRF verification failed');
+        // }
+        # PULL REQUEST END
     }
 
     protected function tokensMatch($request): bool

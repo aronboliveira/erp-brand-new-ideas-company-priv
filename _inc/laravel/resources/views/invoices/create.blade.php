@@ -138,7 +138,7 @@ $user ??= null;
                                         <button type="button"
                                                 class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                                 data-bs-dismiss="toast"
-                                                aria-label="Close"></button>
+                                                aria-label="{{ __('Close') }}"></button>
                                     </div>`;
                 document.body.appendChild(toast);
             }
@@ -200,7 +200,7 @@ $user ??= null;
                 },
                 hide(deleteElement) {
                 try {
-                    if (confirm("Are you sure you want to delete this element?")) {
+                    if (confirm("{{ __('Are you sure you want to delete this element?') }}")) {
                     $(this).slideUp(deleteElement);
                     $(this).remove();
                     let subTotal = 0;
