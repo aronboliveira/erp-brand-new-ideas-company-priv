@@ -1,6 +1,7 @@
 # Grep Commands — 2026-03-19
 
 ## Blade i18n audit
+
 - `grep -rn 'ac-alert' resources/views/ Modules/ --include='*.blade.php' | head -20`: find custom alert components
 - `grep -rn 'aria-label="Close"' resources/views/ Modules/ --include='*.blade.php' | grep -v '{{ __' | grep -v '{!! __'`: untranslated Close labels
 - `grep -rn 'aria-label="Toggle navigation"' resources/views/ Modules/ --include='*.blade.php' | grep -v '{{ __' | wc -l`: untranslated Toggle navigation count
@@ -11,6 +12,7 @@
 - `grep -rn 'aria-label="Toggle navigation"' resources/views/ Modules/ --include='*.blade.php' | grep -v '{{ __' | wc -l`: Toggle nav after fix
 
 ## ViewsConstants + LangsConstants analysis
+
 - `grep -oP "const\s+\K[A-Z_]+" app/Config/Constants/ViewsConstants.php | sort -u | wc -l`: count ViewsConstants
 - `grep -oP 'ViewsConstants::\K[A-Z_]+' app/Config/Constants/LangsConstants.php | sort -u | wc -l`: count LangsConstants refs
 - `grep -oP "const \K[A-Z_]+" app/Config/Constants/ViewsConstants.php | sort -u > /tmp/views_modules.txt`: export views modules

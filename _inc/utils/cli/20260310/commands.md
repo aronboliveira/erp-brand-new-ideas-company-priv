@@ -1,16 +1,20 @@
 # CLI Commands — 2026-03-10
 
 ## Routes & Controllers
+
 - `php artisan route:list --columns=method,uri,name,action`: list all registered routes
 - `php artisan serve --port=8000`: start dev server
 
 ## PHPStan
+
 - `php -d memory_limit=512M vendor/bin/phpstan analyse --level=5 --no-progress`: static analysis
 
 ## PHPUnit
+
 - `php -d memory_limit=512M vendor/bin/phpunit --no-coverage`: full test suite run
 
 ## Git
+
 - `git add -A && git commit -m "fix(routes): fix login pluralization, namespace collision, and 4xx error handling"`: commit 1d79c15
 - `git add -A && git commit -m "fix(phpstan): resolve undefined constants and return type mismatches"`: commit f9e7058
 - `git add -A && git commit -m "fix(config): phpstan ignoreErrors + phpunit granular sub-suites"`: commit cdb9e75
@@ -27,5 +31,6 @@
 - `git push origin develop`: push to remote
 
 ## Misc
+
 - `free -m`: memory check
 - `ps aux --sort=-%mem | head -10`: top memory processes

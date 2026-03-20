@@ -1,6 +1,7 @@
 # Regex Commands — 2026-03-17
 
 ## Mypy type: ignore annotations via sed
+
 - `sed -i '477s|account_type_groups = {}|account_type_groups: dict = {}  # type: ignore[var-annotated]|' app/Exports/py/trial_balance_exporter.py`: annotate dict
 - `sed -i '140s|) -> Tuple\[CellIsRule, CellIsRule\]:|) -> Tuple[CellIsRule, CellIsRule]:  # type: ignore[valid-type]|' app/Exports/py/excel_utils.py`: CellIsRule tuple
 - `sed -i '163s|) -> DataBarRule:|) -> DataBarRule:  # type: ignore[valid-type]|' app/Exports/py/excel_utils.py`: DataBarRule
