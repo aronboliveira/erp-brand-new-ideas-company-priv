@@ -26,9 +26,7 @@ final class PurchaseProduct extends Model
         DC::COL_TABLE_CREATOR,
     ];
 
-    protected $with = [
-        'purchase',
-    ];
+    protected $with = [];
 
     protected $casts = [
         'quantity' => 'integer',

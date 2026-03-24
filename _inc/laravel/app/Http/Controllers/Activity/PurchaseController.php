@@ -676,7 +676,7 @@ class PurchaseController extends Controller
             Log::info("[{$class}::{$action}] start", ['purchase_id' => $request->input('purchase_id'), 'product_id' => $request->input('product_id'), 'method' => $method]);
             try {
                 $valStart = microtime(true);
-                $data = $request->validate(['purchase_id' => ['required', 'integer', 'min:1'], 'product_id' => ['required', 'integer', 'min:1']]);
+                $data = $request->validate(['purchase_id' => ['required', 'uuid'], 'product_id' => ['required', 'uuid']]);
                 $this->logExecutionTime($valStart, $action, 'validateItemsRequest');
             } catch (ValidationException $e) {
                 Log::warning("[{$class}::{$action}] validation_failed", ['errors' => $e->errors()]);
