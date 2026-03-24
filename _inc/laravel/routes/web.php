@@ -362,7 +362,7 @@ R::group(['middleware' => [MWC::VF]], function () {
         function () {
             R::get(VW::CST . '/{id}/show', [CustomerController::class, 'show'])
                 ->name(VW::CST . '.show');
-            R::resource(VW::CST, CustomerController::class);
+            R::resource(VW::CST, CustomerController::class)->where(['customer' => '[0-9]+']);
         }
     );
     #endregion
@@ -380,7 +380,7 @@ R::group(['middleware' => [MWC::VF]], function () {
         function () {
             R::get(VW::VND . '/{id}/show', [VendorController::class, 'show'])
                 ->name(VW::VND . '.show');
-            R::resource(VW::VND, VendorController::class);
+            R::resource(VW::VND, VendorController::class)->where(['vendor' => '[0-9]+']);
         }
     );
     #endregion
@@ -460,7 +460,7 @@ R::group(['middleware' => [MWC::VF]], function () {
                 ->name(VW::INV . '.payment.destroy');
             R::get(VW::INV . '/items', [InvoiceController::class, 'items'])->name(VW::INV . '.items');
             R::get(VW::INV . '/create/{cid}', [InvoiceController::class, 'create'])->name(VW::INV . '.create');
-            R::resource(VW::INV, InvoiceController::class);
+            R::resource(VW::INV, InvoiceController::class)->where(['invoice' => '[0-9]+']);
         }
     );
     R::get(VW::INV . '/preview/{template}/{color}', [InvoiceController::class, InvoiceController::INV_PRV])->name(VW::INV . '.preview');
@@ -563,7 +563,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::post(VW::BIL . '{id}/payment/{pid}/destroy', [BillController::class, BillController::PAY_DST])->name(VW::BIL . '.payment.destroy');
             R::get(VW::BIL . 'items', [BillController::class, 'items'])->name(VW::BIL . '.items');
             R::get(VW::BIL . 'create/{cid}', [BillController::class, 'create'])->name(VW::BIL . '.create');
-            R::resource(VW::BIL, BillController::class);
+            R::resource(VW::BIL, BillController::class)->where(['bill' => '[0-9]+']);
         }
     );
     #endregion
@@ -666,7 +666,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::get(VW::PPS . '/{id}/sent', [ProposalController::class, 'sent'])->name(VW::PPS . '.sent');
             R::get(VW::PPS . '/{id}/resent', [ProposalController::class, 'resent'])->name(VW::PPS . '.resent');
             R::get(VW::PPS . '/create/{cid}', [ProposalController::class, 'create'])->name(VW::PPS . '.create');
-            R::resource('proposal', ProposalController::class);
+            R::resource('proposal', ProposalController::class)->where(['proposal' => '[0-9]+']);
         }
     );
     R::get(VW::PPS . '/preview/{template}/{color}', [ProposalController::class, ProposalController::PV_PPS])->name(VW::PPS . '.preview');
@@ -996,7 +996,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::resource(VW::TRF, TransferController::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::EMP_ATD . '', EmployeeAttendanceController::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::LV_TP, LeaveTypeController::class)->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource('leave', LeaveController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource('leave', LeaveController::class)->middleware([MWC::AUTH, MWC::XSS])->where(['leave' => '[0-9]+']);
     //crm report
     R::get(VW::RPT . '-lead', [RPC::class, 'leadReport'])->name(VW::RPT . '.lead')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::RPT . '-deal', [RPC::class, 'dealReport'])->name(VW::RPT . '.deal')->middleware([MWC::AUTH, MWC::XSS]);
