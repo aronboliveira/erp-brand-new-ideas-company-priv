@@ -16,51 +16,32 @@
 
 > **Note:** 7 installer routes (`/install`, `/installs/*`) excluded — expected 404 post-installation.
 
-#### 4xx Client Errors (4 routes after exclusions)
+#### 4xx Client Errors (1 open — documentation only)
 
-| #   | Route               | HTTP | Status   | Root Cause / Resolution                                            |
-| --- | ------------------- | ---- | -------- | ------------------------------------------------------------------ |
-| 1   | `/debit_notes/bill` | 422→200 | VERIFIED | Requires `bill_id` query param; tested with real data → `{"due":1275.45}` |
-| 2   | `/purchases/items`  | 422→200 | FIXED | Validation demanded `integer` but DB uses UUIDs; changed to `uuid`. Also fixed OOM crash from circular eager-load in PurchaseProduct model |
-| 3   | `/pos/create`       | 422  | FIXED    | Was 404 — empty cart now returns 422 (semantically correct)         |
-| 4   | `/email_templates/create` | 200 | FIXED | Was 404 — view path used singular constant; fixed to `VW::EML_TMP` |
+| #   | Route               | HTTP    | Status   | Root Cause / Resolution                                                   |
+| --- | ------------------- | ------- | -------- | ------------------------------------------------------------------------- |
+| 1   | `/debit_notes/bill` | 422→200 | VERIFIED | Requires `bill_id` query param; tested with real data → `{"due":1275.45}`. Not a bug — works as designed. |
 
-**Resolved routes (previously 404, now 200):**
+#### Timeouts (1 route — 30s max-time exceeded)
 
-- `/email_templates/create` — view path fixed (singular→plural constant)
-- `/leaves/export` — resource route `->where()` constraint prevents `{leave}` from capturing `/export`
-- `/pos/create` — empty cart returns 422 instead of incorrect 404
-- 6 export routes (`/bills/export`, `/customers/export`, `/invoices/export`, `/proposals/export`, `/vendors/export`, `/leaves/export`) — resource route `->where()` numeric constraints added
-
-#### Timeouts (5 routes — 30s max-time exceeded)
-
-| #   | Route                    | Issue                                                       |
-| --- | ------------------------ | ----------------------------------------------------------- |
-| 1   | `/updates/database`      | Update wizard — hangs waiting for DB migration lock         |
-| 2   | `/updates/final`         | Update wizard — hangs waiting for finalization              |
-| 3   | `/updates/overview`      | Update wizard — hangs on version check                      |
-| 4   | `/user/confirm-password` | Password confirmation page — likely session/auth loop       |
-| 5   | `/users`                 | User management — **CRITICAL**: 30s timeout on user listing |
+| #   | Route    | Issue                                                       |
+| --- | -------- | ----------------------------------------------------------- |
+| 1   | `/users` | User management — **PREVIOUSLY CRITICAL**, now fixed (see Section 3.3) |
 
 **Actionable timeouts:**
 
-- `/users` — **INVESTIGATE**: Super admin user listing should not take 30s
-- `/user/confirm-password` — likely infinite redirect or session issue
-- `/updates/*` — expected behavior (update wizard not applicable in dev)
+- `/users` — **FIXED** (see Section 3.3): batch GROUP BY replaced N+1 queries
+- `/user/confirm-password` — **FIXED** (see Section 3.4): removed duplicate route causing redirect loop
+- `/updates/*` — **FIXED** (see Section 3.5): blocked in non-local environments via middleware
 
-#### Slow Responses (>3s TTFB, 3 routes)
+#### Slow Responses (>3s TTFB, 2 routes)
 
-| Route                              | TTFB (s) | Total (s) | Size   |
-| ---------------------------------- | -------- | --------- | ------ |
-| `/` (root)                         | 3.35     | 3.36      | 1.0 MB |
-| `/account_assets`                  | 15.02    | 15.02     | 583 KB |
-| `/users/confirmed-password-status` | 29.46    | 29.46     | 613 KB |
+| Route                              | TTFB (s) | Total (s) | Size   | Status |
+| ---------------------------------- | -------- | --------- | ------ | ------ |
+| `/account_assets`                  | 15.02    | 15.02     | 583 KB | FIXED (see 3.3) |
+| `/users/confirmed-password-status` | 29.46    | 29.46     | 613 KB | FIXED (see 3.3) |
 
-**Actionable slow routes:**
-
-- `/account_assets` — **CRITICAL**: 15s TTFB — likely N+1 query or missing index
-- `/users/confirmed-password-status` — **CRITICAL**: 29s — investigate query performance
-- `/` — 3.35s is borderline; large page (1MB) contributes
+**Note:** `/` (root/dashboard) previously 3.35s — now loads chart data asynchronously via `/account-dashboard/chart-data` JSON endpoint (see Section 3.6).
 
 ---
 
@@ -180,17 +161,13 @@ wget `--spider` with cookie auth. Some pages return 404 due to wget cookie-forma
 
 ### 1.4 Curl Timing — Performance Concerns
 
-| Metric                      | Threshold | Routes Exceeding        |
-| --------------------------- | --------- | ----------------------- |
-| TTFB (`time_starttransfer`) | >3s       | 3 routes                |
-| Total time (`time_total`)   | >5s       | 5 routes (all timeouts) |
-| Speed download              | <1KB/s    | 5 routes (timeouts)     |
+| Metric                      | Threshold | Routes Exceeding          |
+| --------------------------- | --------- | ------------------------- |
+| TTFB (`time_starttransfer`) | >3s       | 0 routes (all fixed)      |
+| Total time (`time_total`)   | >5s       | 1 route (`/users` — fixed) |
+| Speed download              | <1KB/s    | 1 route (timeout — fixed) |
 
-The 3 slow routes and their response characteristics:
-
-- `/` — 3.35s TTFB, 1MB response (dashboard with heavy queries)
-- `/account_assets` — 15s TTFB, 583KB response (**N+1 query suspected**)
-- `/users/confirmed-password-status` — 29.4s TTFB, 613KB (**investigate**)
+All previously slow routes have been resolved — see Section 3.
 
 ---
 
@@ -361,3 +338,60 @@ Empty tables (29): activities, admin_payment_settings, app_personal_access_token
 | `wget-spider.log`         | wget spider output                       |
 | `mysql-health.log`        | MySQL diagnostics                        |
 | `blade-viewcache.log`     | Blade compilation output                 |
+
+---
+
+---
+
+## ✔ SECTION 3 — RESOLVED ISSUES
+
+---
+
+### 3.1 Fixed 4xx Client Errors
+
+| #   | Route                     | HTTP    | Status | Fix Applied                                                                                                                                  |
+| --- | ------------------------- | ------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `/purchases/items`        | 422→200 | FIXED  | Validation demanded `integer` but DB uses UUIDs; changed to `uuid`. Also fixed OOM crash from circular eager-load in `PurchaseProduct` model |
+| 2   | `/pos/create`             | 422     | FIXED  | Was 404 — empty cart now returns 422 (semantically correct)                                                                                  |
+| 3   | `/email_templates/create` | 200     | FIXED  | Was 404 — view path used singular constant; fixed to `VW::EML_TMP`                                                                           |
+
+### 3.2 Resolved Routes (previously 404, now 200)
+
+- `/email_templates/create` — view path fixed (singular→plural constant)
+- `/leaves/export` — resource route `->where()` constraint prevents `{leave}` from capturing `/export`
+- `/pos/create` — empty cart returns 422 instead of incorrect 404
+- 6 export routes (`/bills/export`, `/customers/export`, `/invoices/export`, `/proposals/export`, `/vendors/export`, `/leaves/export`) — resource route `->where()` numeric constraints added
+
+### 3.3 Fixed Performance / N+1 Issues
+
+| Route                              | Before (TTFB) | After (TTFB)         | Fix Applied                                                                  |
+| ---------------------------------- | ------------- | -------------------- | ---------------------------------------------------------------------------- |
+| `/users`                           | ~30s          | 0.40s                | Batch GROUP BY queries in `UserController`; blade now uses pre-computed maps |
+| `/account_assets`                  | 15.02s        | 0.23s                | Replaced dead `users()` call with `employees()` + eager-load                 |
+| `/account-dashboard`               | 3.35s         | 0.50s (0.24s cached) | Wrapped 6 uncached chart/invoice methods in `Cache::remember()` (2 min TTL)  |
+| `/users/confirmed-password-status` | 29.46s        | 0.08s (302)          | Was a redirect to the slow `/users` page — resolved by the users N+1 fix     |
+
+### 3.4 Fixed `/user/confirm-password` Redirect Loop
+
+**Root cause:** Duplicate route name `password.confirm` registered in both `routes/auth.php` (`/confirm-password`) and `routes/fortify.php` (`/user/confirm-password`). The `EnsurePasswordIsConfirmed` middleware resolves `route('password.confirm')` → last-registered path, creating an infinite redirect.
+
+**Fix:** Removed the duplicate GET `/confirm-password` route from `routes/auth.php`. Fortify now solely owns the `password.confirm` named route.
+
+### 3.5 Fixed `/updates/*` 30s Hangs
+
+**Root cause:** `RachidLaasri\LaravelInstaller` vendor routes `/updates/database`, `/updates/final`, `/updates/overview` attempt DB migration operations that hang waiting for locks.
+
+**Fix:** Created `RequireLocalEnvironment` middleware (`app/Http/Middleware/RequireLocalEnvironment.php`) that returns 403 unless `app()->isLocal()`. Prepended to both `update` and `install` middleware groups via `AppServiceProvider::boot()`. Non-local environments now get instant 403 instead of hanging.
+
+### 3.6 Async Dashboard Charts + Gzip
+
+**Problem:** Dashboard page loaded all 5 chart datasets (bar, line, 2 × donut, radial) synchronously in the initial PHP response, blocking first paint.
+
+**Fix:**
+- Created `GET /account-dashboard/chart-data` JSON endpoint (`DashboardController::chartData`) that returns all chart data
+- Blade now shows spinner placeholders with labels (e.g. "Loading income & expense chart...") in each chart container
+- JS fetches chart data asynchronously after DOM load and renders ApexCharts on response
+- Spinner containers use `min-height: 180px` to reserve page space during load
+- Added `text/html` to `gzip_types` in `nginx/default.conf`
+
+**Playwright test coverage:** 3 new tests verify spinner presence (5 spinners), accessible loading labels, and minimum height reservation. 218/220 passed (2 pre-existing mobile viewport failures unrelated to changes).

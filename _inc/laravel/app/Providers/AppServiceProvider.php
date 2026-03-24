@@ -90,6 +90,16 @@ final class AppServiceProvider extends ServiceProvider
         } catch (Throwable $e) {
             Log::critical(__CLASS__ . '::boot enum mapping failed', ['message' => $e->getMessage()]);
         }
+        // Guard installer/updater wizard routes so they return 403
+        // instead of hanging for 30 s in non-local environments.
+        try {
+            /** @var \Illuminate\Routing\Router $router */
+            $router = $this->app['router'];
+            $router->prependMiddlewareToGroup('update', \App\Http\Middleware\RequireLocalEnvironment::class);
+            $router->prependMiddlewareToGroup('install', \App\Http\Middleware\RequireLocalEnvironment::class);
+        } catch (Throwable $e) {
+            Log::warning(__CLASS__ . '::boot updater guard failed', ['message' => $e->getMessage()]);
+        }
     }
 
     public static function ensureEnumMapsToString(?string $connectionName = null): void

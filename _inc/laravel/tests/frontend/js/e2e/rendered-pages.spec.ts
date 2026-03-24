@@ -16,22 +16,7 @@ const BASE = "http://localhost:3847/mocks/rendered";
 /* ------------------------------------------------------------------ */
 /*  Helper: benign JS error patterns (same as module-pages.spec.cjs)  */
 /* ------------------------------------------------------------------ */
-const benignPatterns = [
-  "bootstrap is not defined",
-  "Expected one of the following types",
-  "simpleDatatables",
-  "net::ERR",
-  "favicon",
-  "404 (Not Found)",
-  "403 (Forbidden)",
-  "ResizeObserver",
-  "Non-Error promise rejection",
-  "Cannot read properties of undefined",
-  "reading 'require'",
-  "Identifier '",
-  "has already been declared",
-  "Dragula unavailable",
-];
+const benignPatterns = ["bootstrap is not defined", "Expected one of the following types", "simpleDatatables", "net::ERR", "favicon", "404 (Not Found)", "403 (Forbidden)", "ResizeObserver", "Non-Error promise rejection", "Cannot read properties of undefined", "reading 'require'", "Identifier '", "has already been declared", "Dragula unavailable"];
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -41,9 +26,7 @@ const benignPatterns = [
 async function loadMock(page, file, errors = []) {
   page.on("pageerror", err => {
     const msg = err.message || String(err);
-    const isBenign = benignPatterns.some(p =>
-      msg.toLowerCase().includes(p.toLowerCase()),
-    );
+    const isBenign = benignPatterns.some(p => msg.toLowerCase().includes(p.toLowerCase()));
     if (!isBenign) errors.push(msg);
   });
   const resp = await page.goto(`${BASE}/${file}`, {
@@ -60,9 +43,7 @@ test.describe("Users Index Mock — /users selectors", () => {
   test("page has .dash-content visible", async ({ page }) => {
     await loadMock(page, "users-index.html");
     // Same selector as financial.spec.cjs "Super Admin Access" tests
-    const content = page
-      .locator(".dash-content, .dash-container, .col-md-12")
-      .first();
+    const content = page.locator(".dash-content, .dash-container, .col-md-12").first();
     await expect(content).toBeVisible();
   });
 
@@ -129,18 +110,14 @@ test.describe("Users Index Mock — /users selectors", () => {
 test.describe("Assets Index Mock — /account_assets selectors", () => {
   test("page has .dash-content visible", async ({ page }) => {
     await loadMock(page, "assets-index.html");
-    const content = page
-      .locator(".dash-content, .dash-container, .col-md-12")
-      .first();
+    const content = page.locator(".dash-content, .dash-container, .col-md-12").first();
     await expect(content).toBeVisible();
   });
 
   test("DataTable structure: table.datatable exists", async ({ page }) => {
     await loadMock(page, "assets-index.html");
     // Same selector as financial.spec.cjs
-    const table = page
-      .locator("table.datatable, table.dataTable-table")
-      .first();
+    const table = page.locator("table.datatable, table.dataTable-table").first();
     await expect(table).toBeVisible();
   });
 
@@ -159,9 +136,7 @@ test.describe("Assets Index Mock — /account_assets selectors", () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test("DataTable wrapper present (simple-datatables init)", async ({
-    page,
-  }) => {
+  test("DataTable wrapper present (simple-datatables init)", async ({ page }) => {
     await loadMock(page, "assets-index.html");
     // After simple-datatables initializes, it wraps the table in .dataTable-wrapper
     const wrapper = page.locator(".dataTable-wrapper");
@@ -196,9 +171,7 @@ test.describe("Assets Index Mock — /account_assets selectors", () => {
 test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
   test("page has .dash-content visible", async ({ page }) => {
     await loadMock(page, "dashboard-account.html");
-    const content = page
-      .locator(".dash-content, .dash-container, .col-md-12")
-      .first();
+    const content = page.locator(".dash-content, .dash-container, .col-md-12").first();
     await expect(content).toBeVisible();
   });
 
@@ -221,9 +194,7 @@ test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
     }
   });
 
-  test("chart containers exist (#incExpBarChart, #cash-flow)", async ({
-    page,
-  }) => {
+  test("chart containers exist (#incExpBarChart, #cash-flow)", async ({ page }) => {
     await loadMock(page, "dashboard-account.html");
     const barChart = page.locator("#incExpBarChart");
     await expect(barChart).toBeAttached();
@@ -231,9 +202,7 @@ test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
     await expect(cashFlow).toBeAttached();
   });
 
-  test("donut chart containers exist (#expenseByCategory, #incomeByCategory)", async ({
-    page,
-  }) => {
+  test("donut chart containers exist (#expenseByCategory, #incomeByCategory)", async ({ page }) => {
     await loadMock(page, "dashboard-account.html");
     const expense = page.locator("#expenseByCategory");
     await expect(expense).toBeAttached();
@@ -247,15 +216,41 @@ test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
     await expect(limitChart).toBeAttached();
   });
 
+  test("chart spinner placeholders visible in all 5 containers", async ({ page }) => {
+    await loadMock(page, "dashboard-account.html");
+    const spinners = page.locator(".dashboard-chart-spinner");
+    expect(await spinners.count()).toBe(5);
+    for (let i = 0; i < 5; i++) {
+      await expect(spinners.nth(i)).toBeVisible();
+    }
+  });
+
+  test("spinners have accessible loading labels", async ({ page }) => {
+    await loadMock(page, "dashboard-account.html");
+    const labels = page.locator(".dashboard-chart-spinner .text-muted.small");
+    expect(await labels.count()).toBe(5);
+    for (let i = 0; i < 5; i++) {
+      const text = await labels.nth(i).textContent();
+      expect(text?.toLowerCase()).toContain("loading");
+    }
+  });
+
+  test("spinners reserve minimum height for chart space", async ({ page }) => {
+    await loadMock(page, "dashboard-account.html");
+    const spinners = page.locator(".dashboard-chart-spinner");
+    for (let i = 0; i < await spinners.count(); i++) {
+      const box = await spinners.nth(i).boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.height).toBeGreaterThanOrEqual(140);
+    }
+  });
+
   test("Account Balance table has rows", async ({ page }) => {
     await loadMock(page, "dashboard-account.html");
     // Searches for table with Bank / Holder Name / Balance headers
     const bankTh = page.locator("th", { hasText: "Bank" });
     await expect(bankTh.first()).toBeVisible();
-    const rows = bankTh
-      .first()
-      .locator("xpath=ancestor::table")
-      .locator("tbody tr");
+    const rows = bankTh.first().locator("xpath=ancestor::table").locator("tbody tr");
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
   });
@@ -292,9 +287,7 @@ test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
 test.describe("POS Mock — /pos selectors", () => {
   test("page has .dash-content visible", async ({ page }) => {
     await loadMock(page, "pos-index.html");
-    const content = page
-      .locator(".dash-content, .dash-container, .col-md-12")
-      .first();
+    const content = page.locator(".dash-content, .dash-container, .col-md-12").first();
     await expect(content).toBeVisible();
   });
 
@@ -345,9 +338,7 @@ test.describe("POS Mock — /pos selectors", () => {
 test.describe("Export Routes Mock — fixed route verification", () => {
   test("page has .dash-content visible", async ({ page }) => {
     await loadMock(page, "export-routes.html");
-    const content = page
-      .locator(".dash-content, .dash-container, .col-md-12")
-      .first();
+    const content = page.locator(".dash-content, .dash-container, .col-md-12").first();
     await expect(content).toBeVisible();
   });
 
@@ -360,9 +351,7 @@ test.describe("Export Routes Mock — fixed route verification", () => {
 
   test("all export routes show Fixed status", async ({ page }) => {
     await loadMock(page, "export-routes.html");
-    const fixedBadges = page.locator(
-      '#export-routes-table .badge-success:has-text("Fixed")',
-    );
+    const fixedBadges = page.locator('#export-routes-table .badge-success:has-text("Fixed")');
     const count = await fixedBadges.count();
     expect(count).toBe(6);
   });
@@ -381,14 +370,7 @@ test.describe("Export Routes Mock — fixed route verification", () => {
 
   test("specific export routes listed", async ({ page }) => {
     await loadMock(page, "export-routes.html");
-    const routes = [
-      "/bills/export",
-      "/customers/export",
-      "/invoices/export",
-      "/proposals/export",
-      "/vendors/export",
-      "/leaves/export",
-    ];
+    const routes = ["/bills/export", "/customers/export", "/invoices/export", "/proposals/export", "/vendors/export", "/leaves/export"];
     for (const route of routes) {
       const row = page.locator(`tr[data-route="${route}"]`);
       await expect(row).toBeAttached();

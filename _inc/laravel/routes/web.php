@@ -223,6 +223,9 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get('/account-dashboard', [DSBC::class, DSBC::ACC_DSB_IDX])
         ->name(DSBC::ENTITY)
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
+    R::get('/account-dashboard/chart-data', [DSBC::class, DSBC::CHART_DATA])
+        ->name('dashboard.chart-data')
+        ->middleware([MWC::AUTH, MWC::XSS]);
     R::get('/project-dashboard', [DSBC::class, DSBC::PRJ_DSB_IDX])
         ->name(VW::PRJ . '.dashboard')
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);

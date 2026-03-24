@@ -65,9 +65,11 @@ Route::middleware([MiddlewaresConstants::WEB, MiddlewaresConstants::AUTH])
     Route::get('/verify/{lang?}', [
       EmailVerificationPromptController::class, '__invoke'
     ])->name('verification.notice');
-    Route::get('/confirm-password', [
-      ConfirmablePasswordController::class, 'show'
-    ])->name('password.confirm');
+    // NOTE: GET /confirm-password removed — Fortify owns this route at
+    // /user/confirm-password (fortify.php) with name 'password.confirm'.
+    // Keeping both caused the 'password.confirm' name to resolve to
+    // /confirm-password while Fortify middleware redirected to
+    // /user/confirm-password, creating an infinite redirect loop.
   });
 
 Route::middleware([

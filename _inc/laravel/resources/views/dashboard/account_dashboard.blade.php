@@ -38,20 +38,48 @@
                 const RG = window.RouteGuard || {};
                 const getMsg = RG.getMsg || ((k, el) => el?.getAttribute?.('data-guard-msg') || '');
                 const showError = RG.showToast || (m => { if (m) console.warn('[Dashboard]', m); });
-                const renderCashFlow = () => {
+
+                const CHART_DATA_URL = "{{ route('dashboard.chart-data') }}";
+                const SPINNER_CLASS = 'dashboard-chart-spinner';
+
+                const spinnerHTML = (label) =>
+                    `<div class="${SPINNER_CLASS}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;gap:8px;">` +
+                    `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">${label}</span></div>` +
+                    `<span class="text-muted small">${label}</span></div>`;
+
+                const chartIds = {
+                    'cash-flow': "{{ __('Loading cash flow chart...') }}",
+                    'incExpBarChart': "{{ __('Loading income & expense chart...') }}",
+                    'expenseByCategory': "{{ __('Loading expense chart...') }}",
+                    'incomeByCategory': "{{ __('Loading income chart...') }}",
+                    'limit-chart': "{{ __('Loading storage chart...') }}"
+                };
+
+                Object.entries(chartIds).forEach(([id, label]) => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = spinnerHTML(label);
+                });
+
+                const clearSpinner = (el) => {
+                    const sp = el?.querySelector('.' + SPINNER_CLASS);
+                    if (sp) sp.remove();
+                };
+
+                const renderCashFlow = (d) => {
                     try {
                         const el = document.querySelector("#cash-flow");
                         if (!el || !window.ApexCharts) throw new Error('cash_flow_unavailable');
+                        clearSpinner(el);
                         new ApexCharts(el, {
                             series: [
-                                { name: "{{__('Income')}}", data: {!! !empty($incExpLineChartData['income']) ? json_encode($incExpLineChartData['income']) : '[]' !!} },
-                                { name: "{{__('Expense')}}", data: {!! !empty($incExpLineChartData['expense']) ? json_encode($incExpLineChartData['expense']) : '[]' !!} }
+                                { name: "{{__('Income')}}", data: d.incExpLineChartData?.income || [] },
+                                { name: "{{__('Expense')}}", data: d.incExpLineChartData?.expense || [] }
                             ],
                             chart: { height: 250, type: "area", dropShadow: { enabled: true, color: "#000", top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
                             dataLabels: { enabled: false },
                             stroke: { width: 2, curve: "smooth" },
                             title: { text: "", align: "left" },
-                            xaxis: { categories: {!! json_encode($incExpLineChartData['day'] ?? []) !!}, title: { text: "{{ __('Date') }}" } },
+                            xaxis: { categories: d.incExpLineChartData?.day || [], title: { text: "{{ __('Date') }}" } },
                             colors: ["#6fd944", "#ff3a6e"],
                             grid: { strokeDashArray: 4 },
                             legend: { show: false },
@@ -59,19 +87,20 @@
                         }).render();
                     } catch (e) { showError(getMsg(e.message, document.body)); }
                 };
-                const renderIncExpBar = () => {
+                const renderIncExpBar = (d) => {
                     try {
                         const el = document.querySelector("#incExpBarChart");
                         if (!el || !window.ApexCharts) throw new Error('incExpBarChart_unavailable');
+                        clearSpinner(el);
                         new ApexCharts(el, {
                             chart: { height: 180, type: "bar", toolbar: { show: false } },
                             dataLabels: { enabled: false },
                             stroke: { width: 2, curve: "smooth" },
                             series: [
-                                { name: "{{__('Income')}}", data: {!! !empty($incExpBarChartData['income']) ? json_encode($incExpBarChartData['income']) : '[]' !!} },
-                                { name: "{{__('Expense')}}", data: {!! !empty($incExpBarChartData['expense']) ? json_encode($incExpBarChartData['expense']) : '[]' !!} }
+                                { name: "{{__('Income')}}", data: d.incExpBarChartData?.income || [] },
+                                { name: "{{__('Expense')}}", data: d.incExpBarChartData?.expense || [] }
                             ],
-                            xaxis: { categories: {!! json_encode($incExpBarChartData['month'] ?? []) !!} },
+                            xaxis: { categories: d.incExpBarChartData?.month || [] },
                             colors: ["#3ec9d6", "#FF3A6E"],
                             fill: { type: "solid" },
                             grid: { strokeDashArray: 4 },
@@ -79,42 +108,45 @@
                         }).render();
                     } catch (e) { showError(getMsg(e.message, document.body)); }
                 };
-                const renderExpenseByCategory = () => {
+                const renderExpenseByCategory = (d) => {
                     try {
                         const el = document.querySelector("#expenseByCategory");
                         if (!el || !window.ApexCharts) throw new Error('expenseByCategory_unavailable');
+                        clearSpinner(el);
                         new ApexCharts(el, {
                             chart: { height: 140, type: "donut" },
                             dataLabels: { enabled: false },
                             plotOptions: { pie: { donut: { size: "70%" } } },
-                            series: {!! json_encode($expenseCatAmount) !!},
-                            colors: {!! json_encode($expenseCategoryColor) !!},
-                            labels: {!! json_encode($expenseCategory) !!},
+                            series: d.expenseCatAmount || [],
+                            colors: d.expenseCategoryColor || [],
+                            labels: d.expenseCategory || [],
                             legend: { show: true }
                         }).render();
                     } catch (e) { showError(getMsg(e.message, document.body)); }
                 };
-                const renderIncomeByCategory = () => {
+                const renderIncomeByCategory = (d) => {
                     try {
                         const el = document.querySelector("#incomeByCategory");
                         if (!el || !window.ApexCharts) throw new Error('incomeByCategory_unavailable');
+                        clearSpinner(el);
                         new ApexCharts(el, {
                             chart: { height: 140, type: "donut" },
                             dataLabels: { enabled: false },
                             plotOptions: { pie: { donut: { size: "70%" } } },
-                            series: {!! !empty($incomeCatAmount) ? json_encode($incomeCatAmount) : '[]' !!},
-                            colors: {!! !empty($incomeCategoryColor) ? json_encode($incomeCategoryColor) : '[]' !!},
-                            labels: {!! !empty($incomeCategory) ? json_encode($incomeCategory) : '[]' !!},
+                            series: d.incomeCatAmount || [],
+                            colors: d.incomeCategoryColor || [],
+                            labels: d.incomeCategory || [],
                             legend: { show: true }
                         }).render();
                     } catch (e) { showError(getMsg(e.message, document.body)); }
                 };
-                const renderLimitChart = () => {
+                const renderLimitChart = (d) => {
                     try {
                         const el = document.querySelector("#limit-chart");
                         if (!el || !window.ApexCharts) throw new Error('limitChart_unavailable');
+                        clearSpinner(el);
                         new ApexCharts(el, {
-                            series: [{{ round($storage_limit,2) }}],
+                            series: [d.storage_limit ?? 0],
                             chart: { height: 350, type: "radialBar", offsetY: -20, sparkline: { enabled: true } },
                             plotOptions: { radialBar: { startAngle: -90, endAngle: 90, track: { background: "#e7e7e7", strokeWidth: "97%", margin: 5 }, dataLabels: { name: { show: true }, value: { offsetY: -50, fontSize: "20px" } } } },
                             grid: { padding: { top: -10 } },
@@ -123,11 +155,25 @@
                         }).render();
                     } catch (e) { showError(getMsg(e.message, document.body)); }
                 };
-                renderCashFlow();
-                renderIncExpBar();
-                renderExpenseByCategory();
-                renderIncomeByCategory();
-                renderLimitChart();
+
+                fetch(CHART_DATA_URL, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                })
+                .then(r => { if (!r.ok) throw new Error('chart_data_fetch_failed'); return r.json(); })
+                .then(d => {
+                    renderCashFlow(d);
+                    renderIncExpBar(d);
+                    renderExpenseByCategory(d);
+                    renderIncomeByCategory(d);
+                    renderLimitChart(d);
+                })
+                .catch(e => {
+                    console.error('[Dashboard] Failed to load chart data', e);
+                    document.querySelectorAll('.' + SPINNER_CLASS).forEach(sp => {
+                        sp.innerHTML = '<span class="text-danger small">{{ __("Failed to load chart data. Please reload.") }}</span>';
+                    });
+                });
             })();
         </script>
     @endif

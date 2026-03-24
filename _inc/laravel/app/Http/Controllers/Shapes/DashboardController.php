@@ -146,34 +146,7 @@ final class DashboardController extends Controller
                     Log::error("[$action] failed latestExpense", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
                 $this->logExecutionTime($startExpense, "{$action} fetchLatestExpense", 'completed');
-                $startIncChart = microtime(true);
-                try {
-                    [$data['incomeCategoryColor'], $data['incomeCategory'], $data['incomeCatAmount']] = $this->buildCategoryChart('income', $creatorId);
-                } catch (\Throwable $e) {
-                    Log::error("[$action] failed buildIncomeChart", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
-                }
-                $this->logExecutionTime($startIncChart, "{$action} buildIncomeChart", 'completed');
-                $startExpChart = microtime(true);
-                try {
-                    [$data['expenseCategoryColor'], $data['expenseCategory'], $data['expenseCatAmount']] = $this->buildCategoryChart('expense', $creatorId);
-                } catch (\Throwable $e) {
-                    Log::error("[$action] failed buildExpenseChart", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
-                }
-                $this->logExecutionTime($startExpChart, "{$action} buildExpenseChart", 'completed');
-                $startBar = microtime(true);
-                try {
-                    $data['incExpBarChartData'] = Cache::remember("dsb.bar_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpBarChartData()) ?? [];
-                } catch (\Throwable $e) {
-                    Log::error("[$action] failed barChartData", ['error' => $e->getMessage(), 'user_id' => $user->id]);
-                }
-                $this->logExecutionTime($startBar, "{$action} barChartData", 'completed');
-                $startLine = microtime(true);
-                try {
-                    $data['incExpLineChartData'] = Cache::remember("dsb.line_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpLineChartDate()) ?? [];
-                } catch (\Throwable $e) {
-                    Log::error("[$action] failed lineChartData", ['error' => $e->getMessage(), 'user_id' => $user->id]);
-                }
-                $this->logExecutionTime($startLine, "{$action} lineChartData", 'completed');
+                // Chart data (bar, line, category donuts, storage) moved to chartData() JSON endpoint
                 $startConst = microtime(true);
                 try {
                     $data['constant'] = $this->loadConstants($creatorId) ?? [];
@@ -252,13 +225,6 @@ final class DashboardController extends Controller
                     Log::error("[$action] failed fetchPlan", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
                 $this->logExecutionTime($startPlan, "{$action} fetchPlan", 'completed');
-                $startStorage = microtime(true);
-                try {
-                    $data['storage_limit'] = $this->calcStorageUsage($creatorId);
-                } catch (\Throwable $e) {
-                    Log::error("[$action] failed calcStorageUsage", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
-                }
-                $this->logExecutionTime($startStorage, "{$action} calcStorageUsage", 'completed');
                 Log::info("[$action] rendering view", ['data_keys' => array_keys($data)]);
                 $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
                 $view = VW::DSB . '.account_dashboard';
@@ -273,6 +239,44 @@ final class DashboardController extends Controller
                 return Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
         }, ['req' => $req]);
+    }
+
+    public const CHART_DATA = 'chartData';
+    /**
+     * Return chart data as JSON so the dashboard page can load charts asynchronously.
+     */
+    public function chartData(Request $req): JsonResponse
+    {
+        $action = __CLASS__ . '::' . __FUNCTION__;
+        try {
+            $userOrRedirect = self::_checkLogin();
+            if (!($userOrRedirect instanceof User)) {
+                return response()->json(['error' => 'Unauthenticated'], HttpResponse::HTTP_UNAUTHORIZED);
+            }
+            $user = $userOrRedirect;
+            $creatorId = $user->creatorId() ?? 0;
+
+            $barChart = Cache::remember("dsb.bar_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpBarChartData()) ?? [];
+            $lineChart = Cache::remember("dsb.line_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpLineChartDate()) ?? [];
+            [$incomeCategoryColor, $incomeCategory, $incomeCatAmount] = $this->buildCategoryChart('income', $creatorId);
+            [$expenseCategoryColor, $expenseCategory, $expenseCatAmount] = $this->buildCategoryChart('expense', $creatorId);
+            $storageLimit = $this->calcStorageUsage($creatorId);
+
+            return response()->json([
+                'incExpBarChartData' => $barChart,
+                'incExpLineChartData' => $lineChart,
+                'incomeCategoryColor' => $incomeCategoryColor,
+                'incomeCategory' => $incomeCategory,
+                'incomeCatAmount' => $incomeCatAmount,
+                'expenseCategoryColor' => $expenseCategoryColor,
+                'expenseCategory' => $expenseCategory,
+                'expenseCatAmount' => $expenseCatAmount,
+                'storage_limit' => round($storageLimit, 2),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("[$action] error", ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to load chart data'], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public const PRJ_DSB_IDX = 'projectDashboardIndex';
