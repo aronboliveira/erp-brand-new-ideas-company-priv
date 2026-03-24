@@ -1,0 +1,6 @@
+Error: /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/playwright.config.cjs does not exist
+    at resolveConfigFile (/home/aronboliveira/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:321:11)
+    at resolveConfigLocation (/home/aronboliveira/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:302:30)
+    at loadConfigFromFile (/home/aronboliveira/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/common/configLoader.js:331:27)
+    at runTests (/home/aronboliveira/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js:197:67)
+    at async i.<anonymous> (/home/aronboliveira/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/lib/program.js:70:7)

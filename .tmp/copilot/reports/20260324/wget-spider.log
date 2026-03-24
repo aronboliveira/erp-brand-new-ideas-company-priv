@@ -1,0 +1,263 @@
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:05--  http://127.0.0.1:8000/dashboard
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:09--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:10--  http://127.0.0.1:8000/employees
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:12--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:15--  http://127.0.0.1:8000/attendances
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:15--  http://127.0.0.1:8000/leaves
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:15--  http://127.0.0.1:8000/departments
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:16--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:18--  http://127.0.0.1:8000/designations
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:18--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:18--  http://127.0.0.1:8000/awards
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:19--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:19--  http://127.0.0.1:8000/invoices
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:19--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:19--  http://127.0.0.1:8000/proposals
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:20--  http://127.0.0.1:8000/bills
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:20--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:20--  http://127.0.0.1:8000/revenues
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:20--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:20--  http://127.0.0.1:8000/expenses
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:21--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:21--  http://127.0.0.1:8000/customers
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:21--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:22--  http://127.0.0.1:8000/vendors
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:22--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:23--  http://127.0.0.1:8000/leads
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:23--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:23--  http://127.0.0.1:8000/deals
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:24--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:24--  http://127.0.0.1:8000/projects
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:24--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:26--  http://127.0.0.1:8000/contracts
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:26--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:27--  http://127.0.0.1:8000/assets
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:28--  http://127.0.0.1:8000/tickets
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:28--  http://127.0.0.1:8000/products
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:28--  http://127.0.0.1:8000/pos
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:29--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:29--  http://127.0.0.1:8000/coupons
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: http://127.0.0.1:8000/login [following]
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:29--  http://127.0.0.1:8000/login
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Remote file exists and could contain further links,
+but recursion is disabled -- not retrieving.
+
+Spider mode enabled. Check if remote file exists.
+--2026-03-24 13:57:30--  http://127.0.0.1:8000/purchase
+Connecting to 127.0.0.1:8000... connected.
+HTTP request sent, awaiting response... 404 Not Found
+Remote file does not exist -- broken link!!!
+
