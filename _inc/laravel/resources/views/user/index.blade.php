@@ -120,13 +120,13 @@
                                                 <div class="{{ VC::CD_BD }} p-3">
                                                     <div class="row">
                                                         <div class="col-4">
-                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Users')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{$user->totalCompanyUser($user->id)}}</p>
+                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Users')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{ $userCounts[$user->id] ?? 0 }}</p>
                                                         </div>
                                                         <div class="col-4">
-                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Customers')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{$user->totalCompanyCustomer($user->id)}}</p>
+                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Customers')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{ $customerCounts[$user->id] ?? 0 }}</p>
                                                         </div>
                                                         <div class="col-4">
-                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Vendors')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{$user->totalCompanyVendor($user->id)}}</p>
+                                                            <p class="{{ VC::TXT_MT_TXSM_MB0 }}" data-bs-toggle="tooltip" title="{{__('Vendors')}}"><i class="{{ VC::TI_USRS }} card-icon-text-space"></i>{{ $vendorCounts[$user->id] ?? 0 }}</p>
                                                         </div>
                                                     </div>
                                                 </div>

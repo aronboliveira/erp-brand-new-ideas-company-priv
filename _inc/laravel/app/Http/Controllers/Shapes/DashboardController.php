@@ -162,14 +162,14 @@ final class DashboardController extends Controller
                 $this->logExecutionTime($startExpChart, "{$action} buildExpenseChart", 'completed');
                 $startBar = microtime(true);
                 try {
-                    $data['incExpBarChartData'] = $user->getIncExpBarChartData() ?? [];
+                    $data['incExpBarChartData'] = Cache::remember("dsb.bar_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpBarChartData()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed barChartData", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
                 $this->logExecutionTime($startBar, "{$action} barChartData", 'completed');
                 $startLine = microtime(true);
                 try {
-                    $data['incExpLineChartData'] = $user->getIncExpLineChartDate() ?? [];
+                    $data['incExpLineChartData'] = Cache::remember("dsb.line_chart.{$creatorId}", self::CACHE_TTL, fn() => $user->getIncExpLineChartDate()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed lineChartData", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
@@ -197,14 +197,14 @@ final class DashboardController extends Controller
                 $this->logExecutionTime($startInv, "{$action} fetchRecentInvoice", 'completed');
                 $startWkInv = microtime(true);
                 try {
-                    $data['weeklyInvoice'] = $user->weeklyInvoice() ?? [];
+                    $data['weeklyInvoice'] = Cache::remember("dsb.weekly_invoice.{$creatorId}", self::CACHE_TTL, fn() => $user->weeklyInvoice()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed weeklyInvoice", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
                 $this->logExecutionTime($startWkInv, "{$action} weeklyInvoice", 'completed');
                 $startMthInv = microtime(true);
                 try {
-                    $data['monthlyInvoice'] = $user->monthlyInvoice() ?? [];
+                    $data['monthlyInvoice'] = Cache::remember("dsb.monthly_invoice.{$creatorId}", self::CACHE_TTL, fn() => $user->monthlyInvoice()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed monthlyInvoice", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
@@ -218,14 +218,14 @@ final class DashboardController extends Controller
                 $this->logExecutionTime($startBill, "{$action} fetchRecentBill", 'completed');
                 $startWkBill = microtime(true);
                 try {
-                    $data['weeklyBill'] = $user->weeklyBill() ?? [];
+                    $data['weeklyBill'] = Cache::remember("dsb.weekly_bill.{$creatorId}", self::CACHE_TTL, fn() => $user->weeklyBill()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed weeklyBill", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }
                 $this->logExecutionTime($startWkBill, "{$action} weeklyBill", 'completed');
                 $startMthBill = microtime(true);
                 try {
-                    $data['monthlyBill'] = $user->monthlyBill() ?? [];
+                    $data['monthlyBill'] = Cache::remember("dsb.monthly_bill.{$creatorId}", self::CACHE_TTL, fn() => $user->monthlyBill()) ?? [];
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed monthlyBill", ['error' => $e->getMessage(), 'user_id' => $user->id]);
                 }

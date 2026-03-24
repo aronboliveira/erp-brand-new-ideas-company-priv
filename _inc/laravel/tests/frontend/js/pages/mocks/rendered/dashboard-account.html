@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" id="csrf-token" content="mock-csrf-token-dashboard" />
+  <title>ERP Nova Prestech - Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; }
+    .loader-bg { display: none; }
+    .dash-sidebar { width: 260px; position: fixed; height: 100%; background: #fff; border-right: 1px solid #e0e0e0; }
+    .dash-navbar { list-style: none; padding: 1rem; }
+    .dash-item { margin-bottom: 0.25rem; }
+    .dash-link { text-decoration: none; color: #333; display: flex; align-items: center; padding: 0.5rem; }
+    .dash-micon { margin-right: 0.5rem; }
+    .dash-content { margin-left: 260px; padding: 1.5rem; }
+    .page-header { margin-bottom: 1.5rem; }
+    .breadcrumb { list-style: none; display: flex; gap: 0.5rem; font-size: 0.85rem; }
+    .breadcrumb-item + .breadcrumb-item::before { content: "/"; margin-right: 0.5rem; color: #999; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+    .card-header { padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .card-body { padding: 1rem; }
+    .row { display: flex; flex-wrap: wrap; margin: -0.5rem; }
+    .col-lg-3 { flex: 0 0 25%; max-width: 25%; padding: 0.5rem; }
+    .col-6 { flex: 0 0 50%; max-width: 50%; padding: 0.5rem; }
+    .col-md-12 { flex: 0 0 100%; max-width: 100%; padding: 0.5rem; }
+    .col-xxl-7 { flex: 0 0 58.333%; max-width: 58.333%; padding: 0.5rem; }
+    .col-xxl-5 { flex: 0 0 41.667%; max-width: 41.667%; padding: 0.5rem; }
+    .col-xxl-12 { flex: 0 0 100%; max-width: 100%; padding: 0.5rem; }
+    .text-center { text-align: center; }
+    .text-muted { color: #6c757d; }
+    .mb-0 { margin-bottom: 0; }
+    .mb-3 { margin-bottom: 1rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .text-sm { font-size: 0.85rem; }
+    .dash-container { display: flex; min-height: 100vh; }
+    .dash-header { height: 60px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 0 1.5rem; margin-left: 260px; }
+    .dash-footer { margin-left: 260px; padding: 1rem; text-align: center; color: #999; font-size: 0.8rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; font-weight: 600; font-size: 0.85rem; }
+    td { font-size: 0.85rem; }
+    .table-responsive { overflow-x: auto; }
+    .theme-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem; margin-bottom: 0.5rem; }
+    .theme-avatar.bg-primary { background: #6366f1; }
+    .theme-avatar.bg-info { background: #06b6d4; }
+    .theme-avatar.bg-warning { background: #f59e0b; }
+    .theme-avatar.bg-danger { background: #ef4444; }
+    .bg-secondary { background: #6b7280; color: #fff; }
+    .bg-warning { background: #f59e0b; color: #fff; }
+    .bg-danger { background: #ef4444; color: #fff; }
+    .bg-info { background: #06b6d4; color: #fff; }
+    .bg-primary { background: #6366f1; color: #fff; }
+    .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+    .float-end { float: right; }
+    .font-style { font-style: normal; }
+    /* ApexCharts placeholder */
+    .apexcharts-canvas { min-height: 180px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; }
+    .chart-placeholder { min-height: 140px; background: #f8f9fa; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; }
+  </style>
+</head>
+<body class="theme-3">
+  <div class="loader-bg"><div class="loader-track"><div class="loader-fill"></div></div></div>
+  <nav class="dash-sidebar light-sidebar">
+    <div class="navbar-wrapper">
+      <div class="m-header main-logo"><a href="#" class="b-brand"><img src="#" alt="ERP" class="logo logo-lg"></a></div>
+      <div class="navbar-content">
+        <ul class="dash-navbar">
+          <li class="dash-item active"><a href="#" class="dash-link"><span class="dash-micon"><i class="ti ti-home"></i></span><span class="dash-mtext">Dashboard</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="dash-container">
+    <div class="dash-header transparent-bg"><div><span>ERP Nova Prestech</span></div></div>
+    <div class="dash-content">
+      <div class="page-header">
+        <div class="page-block">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="page-header-title"><h4 class="m-b-10">Dashboard</h4></div>
+              <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/account-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item">Account</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xxl-12">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="row">
+                <!-- Metric cards -->
+                <div class="col-lg-3 col-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="theme-avatar bg-primary"><i class="ti ti-users"></i></div>
+                      <p class="text-muted text-sm mt-4 mb-2">Total</p>
+                      <h6 class="mb-3">Customers</h6>
+                      <h3 class="mb-0">24</h3>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="theme-avatar bg-info"><i class="ti ti-users"></i></div>
+                      <p class="text-muted text-sm mt-4 mb-2">Total</p>
+                      <h6 class="mb-3">Vendors</h6>
+                      <h3 class="mb-0">18</h3>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="theme-avatar bg-warning"><i class="ti ti-report-money"></i></div>
+                      <p class="text-muted text-sm mt-4 mb-2">Total</p>
+                      <h6 class="mb-3">Invoices</h6>
+                      <h3 class="mb-0">156</h3>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="theme-avatar bg-danger"><i class="ti ti-report-money"></i></div>
+                      <p class="text-muted text-sm mt-4 mb-2">Total</p>
+                      <h6 class="mb-3">Bills</h6>
+                      <h3 class="mb-0">89</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Income & Expense Bar Chart -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Income &amp; Expense <span class="float-end text-muted">2025</span></h5>
+              </div>
+              <div class="card-body">
+                <div id="incExpBarChart" class="apexcharts-canvas">[Bar Chart Placeholder]</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Balance Table -->
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mt-1 mb-0">Account Balance</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Bank</th>
+                        <th>Holder Name</th>
+                        <th>Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="font-style">
+                        <td>First National Bank</td>
+                        <td>ERP Prestech LLC</td>
+                        <td>$45,230.50</td>
+                      </tr>
+                      <tr class="font-style">
+                        <td>Commerce Bank</td>
+                        <td>ERP Prestech LLC</td>
+                        <td>$12,890.75</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latest Income Table -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mt-1 mb-0">Latest Income</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Amount Due</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="font-style">
+                        <td>Jan 20, 2025</td>
+                        <td>Acme Corp</td>
+                        <td>$5,400.00</td>
+                      </tr>
+                      <tr class="font-style">
+                        <td>Jan 18, 2025</td>
+                        <td>TechStart Inc</td>
+                        <td>$2,150.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latest Expense Table -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mt-1 mb-0">Latest Expense</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Vendor</th>
+                        <th>Amount Due</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="font-style">
+                        <td>Jan 19, 2025</td>
+                        <td>Office Supplies Co</td>
+                        <td>$340.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cash Flow Chart -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Cash Flow</h5>
+              </div>
+              <div class="card-body">
+                <div id="cash-flow" class="apexcharts-canvas">[Cash Flow Chart Placeholder]</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Invoices -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mt-1 mb-0">Recent Invoices</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><a href="#">#INV-001</a></td>
+                        <td>Acme Corp</td>
+                        <td>Jan 15, 2025</td>
+                        <td>Feb 15, 2025</td>
+                        <td>$5,400.00</td>
+                        <td><span class="badge bg-primary">Sent</span></td>
+                      </tr>
+                      <tr>
+                        <td><a href="#">#INV-002</a></td>
+                        <td>TechStart Inc</td>
+                        <td>Jan 10, 2025</td>
+                        <td>Feb 10, 2025</td>
+                        <td>$2,150.00</td>
+                        <td><span class="badge bg-warning">Draft</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Bills -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mt-1 mb-0">Recent Bills</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Bill</th>
+                        <th>Vendor</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>#BILL-001</td>
+                        <td>Office Supplies Co</td>
+                        <td>Jan 12, 2025</td>
+                        <td>Feb 12, 2025</td>
+                        <td>$340.00</td>
+                        <td><span class="badge bg-info">Unpaid</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Donut Charts -->
+          <div class="col-xxl-12">
+            <div class="row">
+              <div class="col-xxl-5">
+                <div class="card">
+                  <div class="card-header"><h5>Expense by Category</h5></div>
+                  <div class="card-body">
+                    <div id="expenseByCategory" class="chart-placeholder">[Expense Donut Placeholder]</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xxl-5">
+                <div class="card">
+                  <div class="card-header"><h5>Income by Category</h5></div>
+                  <div class="card-body">
+                    <div id="incomeByCategory" class="chart-placeholder">[Income Donut Placeholder]</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storage Limit -->
+          <div class="col-xxl-12">
+            <div class="card">
+              <div class="card-header"><h5>Storage Status</h5></div>
+              <div class="card-body">
+                <div id="limit-chart" class="chart-placeholder">[Storage Radial Placeholder]</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-footer">ERP Nova Prestech &copy; 2025</div>
+  </div>
+  <div class="modal fade" id="commonModal" tabindex="-1" role="dialog"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div><div class="body"></div></div></div></div>
+</body>
+</html>

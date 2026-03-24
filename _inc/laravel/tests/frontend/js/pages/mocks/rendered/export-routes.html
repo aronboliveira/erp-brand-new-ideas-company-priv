@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" id="csrf-token" content="mock-csrf-token-exports" />
+  <title>ERP Nova Prestech - Export Routes</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; }
+    .loader-bg { display: none; }
+    .dash-sidebar { width: 260px; position: fixed; height: 100%; background: #fff; border-right: 1px solid #e0e0e0; }
+    .dash-navbar { list-style: none; padding: 1rem; }
+    .dash-item { margin-bottom: 0.25rem; }
+    .dash-link { text-decoration: none; color: #333; display: flex; align-items: center; padding: 0.5rem; }
+    .dash-micon { margin-right: 0.5rem; }
+    .dash-content { margin-left: 260px; padding: 1.5rem; }
+    .dash-container { display: flex; min-height: 100vh; }
+    .dash-header { height: 60px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 0 1.5rem; margin-left: 260px; }
+    .dash-footer { margin-left: 260px; padding: 1rem; text-align: center; color: #999; font-size: 0.8rem; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+    .card-header { padding: 1rem; border-bottom: 1px solid #eee; }
+    .card-body { padding: 1rem; }
+    .row { display: flex; flex-wrap: wrap; margin: -0.5rem; }
+    .col-md-12 { flex: 0 0 100%; max-width: 100%; padding: 0.5rem; }
+    .breadcrumb { list-style: none; display: flex; gap: 0.5rem; font-size: 0.85rem; }
+    .breadcrumb-item + .breadcrumb-item::before { content: "/"; margin-right: 0.5rem; color: #999; }
+    .btn { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 4px; text-decoration: none; cursor: pointer; border: none; }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+    .btn-success { background: #22c55e; color: #fff; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; font-weight: 600; font-size: 0.85rem; }
+    .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-info { background: #e0f2fe; color: #075985; }
+    .text-center { text-align: center; }
+    .float-end { float: right; }
+    .alert { padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    .alert-info { background: #e0f2fe; border: 1px solid #bae6fd; color: #075985; }
+    .export-status { display: inline-flex; align-items: center; gap: 0.25rem; }
+    .export-status .check { color: #22c55e; }
+  </style>
+</head>
+<body class="theme-3">
+  <div class="loader-bg"><div class="loader-track"><div class="loader-fill"></div></div></div>
+  <nav class="dash-sidebar light-sidebar">
+    <div class="navbar-wrapper">
+      <div class="m-header main-logo"><a href="#" class="b-brand"><img src="#" alt="ERP" class="logo logo-lg"></a></div>
+      <div class="navbar-content">
+        <ul class="dash-navbar">
+          <li class="dash-item"><a href="#" class="dash-link"><span class="dash-micon"><i class="ti ti-home"></i></span><span class="dash-mtext">Dashboard</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="dash-container">
+    <div class="dash-header transparent-bg"><div><span>ERP Nova Prestech</span></div></div>
+    <div class="dash-content">
+      <div class="page-header">
+        <div class="page-block">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="page-header-title"><h4 class="m-b-10">Export Routes Status</h4></div>
+              <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/account-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item">Export Verification</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        Export routes return file downloads (Excel/CSV). The routes below were previously colliding with resource show routes
+        and were fixed by adding <code>->where()</code> regex constraints. This page verifies the fix status.
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Export Route Health Check</h5>
+            </div>
+            <div class="card-body">
+              <table class="table" id="export-routes-table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>HTTP Method</th>
+                    <th>Controller</th>
+                    <th>Previous Issue</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-route="/bills/export">
+                    <td><code>/bills/export</code></td>
+                    <td>GET</td>
+                    <td>BillController@export</td>
+                    <td>Collided with /bills/{bill} — resolved <code>export</code> as {bill} param</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                  <tr data-route="/customers/export">
+                    <td><code>/customers/export</code></td>
+                    <td>GET</td>
+                    <td>CustomerController@export</td>
+                    <td>Collided with /customers/{customer}</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                  <tr data-route="/invoices/export">
+                    <td><code>/invoices/export</code></td>
+                    <td>GET</td>
+                    <td>InvoiceController@export</td>
+                    <td>Collided with /invoices/{invoice}</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                  <tr data-route="/proposals/export">
+                    <td><code>/proposals/export</code></td>
+                    <td>GET</td>
+                    <td>ProposalController@export</td>
+                    <td>Collided with /proposals/{proposal}</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                  <tr data-route="/vendors/export">
+                    <td><code>/vendors/export</code></td>
+                    <td>GET</td>
+                    <td>VendorController@export</td>
+                    <td>Collided with /vendors/{vendor}</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                  <tr data-route="/leaves/export">
+                    <td><code>/leaves/export</code></td>
+                    <td>GET</td>
+                    <td>LeaveController@export</td>
+                    <td>Collided with /leaves/{leave}</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (200)</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debit Note Bill -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Debit Note Bill Route</h5>
+            </div>
+            <div class="card-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>HTTP Method</th>
+                    <th>Controller</th>
+                    <th>Issue</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-route="/debit_notes/{id}/bill">
+                    <td><code>/debit_notes/{id}/bill</code></td>
+                    <td>GET</td>
+                    <td>DebitNoteController@bill</td>
+                    <td>Required valid debit note ID; 404 with invalid ID</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-info">Working</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POS Create -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>POS Create Route</h5>
+            </div>
+            <div class="card-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Route</th>
+                    <th>HTTP Method</th>
+                    <th>Controller</th>
+                    <th>Issue</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-route="/pos/create">
+                    <td><code>/pos/create</code></td>
+                    <td>POST</td>
+                    <td>PosController@store</td>
+                    <td>404 changed to 422 — returns JSON error when cart is empty</td>
+                    <td><span class="export-status"><span class="check">&#10003;</span> <span class="badge badge-success">Fixed (422)</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-footer">ERP Nova Prestech &copy; 2025</div>
+  </div>
+</body>
+</html>
