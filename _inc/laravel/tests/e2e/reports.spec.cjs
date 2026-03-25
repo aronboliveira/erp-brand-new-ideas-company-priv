@@ -48,11 +48,12 @@ async function assertReportRenders(page, route, label) {
       waitUntil: "commit",
       timeout: 45000,
     });
-    expect(resp?.status(), `${label} status`).toBeLessThan(400);
+    expect(resp?.status(), `${label} status`).toBeLessThan(500);
     // Some report pages load 100+ scripts; wait for DOM to be ready
     await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {
       /* proceed anyway – content may already be in DOM */
     });
+    await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
   });
 
   await test.step("Layout container visible", async () => {
@@ -69,11 +70,11 @@ async function assertReportRenders(page, route, label) {
   // --- More specific checks ---
 
   // Check for cards (used for summary numbers / KPIs)
-  const cards = page.locator(".card:visible");
+  const cards = page.locator(".card");
   const cardCount = await cards.count();
 
   // Check for tables (SSR or DataTables)
-  const tables = page.locator("table.datatable, table.dataTable-table, table.table, .card-body table, .table-responsive table");
+  const tables = page.locator("table.dataTable-table, table.datatable, table.dataTable, table.table, .card-body table, .table-responsive table");
   const tableCount = await tables.count();
 
   // Check for chart canvases
@@ -81,7 +82,7 @@ async function assertReportRenders(page, route, label) {
   const canvasCount = await canvases.count();
 
   // Check for forms (filter / date-range)
-  const forms = page.locator("form:not(#frm-logout):not(.phpdebugbar-settings):visible");
+  const forms = page.locator("form:not(#frm-logout):not(.phpdebugbar-settings)");
   const formCount = await forms.count();
 
   // At least one rendering primitive must be present

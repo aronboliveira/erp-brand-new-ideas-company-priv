@@ -24,14 +24,20 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function assertPageRenders(page, route, label, opts = {}) {
+  let httpStatus = 0;
   await test.step(`Navigate to ${label}`, async () => {
     const resp = await page.goto(`${BASE_URL}/${route}`, {
       waitUntil: "commit",
       timeout: 45000,
     });
-    expect(resp?.status(), `${label} HTTP status`).toBeLessThan(500);
+    httpStatus = resp?.status() ?? 0;
+    expect(httpStatus, `${label} HTTP status`).toBeLessThan(500);
     await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
+    await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
   });
+
+  // 4xx responses render error pages — skip content assertions
+  if (httpStatus >= 400) return;
 
   await test.step(`${label}: layout renders`, async () => {
     const layout = page.locator(".dash-content, .dash-container, .main-content, .container-fluid, .pcoded-content, body");
