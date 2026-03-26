@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mock ERP Layout — Simulação de componentes interativos</title>
+    <!--
+    Página mock para testes E2E de triggers de interface (ui-triggers.spec.cjs).
+    Simula a estrutura DOM do ERP Prestech com:
+      • DataTable com campo de busca (.dataTable-input)
+      • Dropdowns Bootstrap (.dropdown-toggle / .dropdown-menu)
+      • Widgets Choices.js (.choices / .choices__inner / .choices__list)
+      • Abas Bootstrap (.nav-tabs .nav-link / .tab-pane)
+      • Sidebar colapsável (.mobile-menu / .pc-sidebar)
+      • Breadcrumbs (.breadcrumb / .breadcrumb-item)
+      • Diálogos de confirmação SweetAlert (.bs-pass-para / .swal2-popup)
+      • Formulários com botão de submit
+    Gerado automaticamente — não editar manualmente.
+  -->
+    <style>
+      /* Reset mínimo */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #f4f7fa;
+        color: #333;
+      }
+
+      /* ─── Sidebar ─── */
+      .pc-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        background: #1b2a4a;
+        color: #cdd5e0;
+        overflow-y: auto;
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .pc-sidebar.collapsed {
+        transform: translateX(-260px);
+      }
+      .pc-sidebar h4 {
+        padding: 1rem;
+        font-size: 1rem;
+        color: #fff;
+        border-bottom: 1px solid #2c3e5f;
+      }
+      .pc-sidebar a.pc-link {
+        display: block;
+        padding: 0.55rem 1rem;
+        color: #b0bec5;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: background 0.15s;
+      }
+      .pc-sidebar a.pc-link:hover {
+        background: #263d5f;
+        color: #fff;
+      }
+      .pc-sidebar a.pc-link i {
+        margin-right: 0.5rem;
+      }
+
+      /* ─── Header ─── */
+      header {
+        position: fixed;
+        top: 0;
+        left: 260px;
+        right: 0;
+        height: 56px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        z-index: 999;
+        transition: left 0.3s ease;
+      }
+      header.sidebar-collapsed {
+        left: 0;
+      }
+      .mobile-menu {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-right: 1rem;
+        padding: 0.25rem 0.5rem;
+      }
+
+      /* ─── Conteúdo principal ─── */
+      .dash-content {
+        margin-left: 260px;
+        margin-top: 56px;
+        padding: 1.25rem;
+        transition: margin-left 0.3s ease;
+      }
+      .dash-content.sidebar-collapsed {
+        margin-left: 0;
+      }
+
+      /* ─── Breadcrumb ─── */
+      .breadcrumb {
+        list-style: none;
+        display: flex;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+      }
+      .breadcrumb-item + .breadcrumb-item::before {
+        content: "/";
+        color: #999;
+        margin-right: 0.35rem;
+      }
+      .breadcrumb-item a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      /* ─── Cards ─── */
+      .card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .card-body {
+        padding: 1rem;
+      }
+      .card-option {
+        position: relative;
+      }
+
+      /* ─── DataTable ─── */
+      .dataTable-wrapper {
+        margin-bottom: 1rem;
+      }
+      .dataTable-search {
+        margin-bottom: 0.5rem;
+      }
+      .dataTable-input {
+        padding: 0.35rem 0.6rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        width: 220px;
+      }
+      table.dataTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      table.dataTable th,
+      table.dataTable td {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+      }
+      table.dataTable th {
+        background: #f8fafc;
+        font-weight: 600;
+      }
+      table.dataTable tbody tr:hover {
+        background: #f0f4ff;
+      }
+
+      /* ─── Dropdown ─── */
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      .dropdown-toggle {
+        cursor: pointer;
+        padding: 0.3rem 0.6rem;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 0.8rem;
+      }
+      .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        min-width: 160px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        padding: 0.25rem 0;
+      }
+      .dropdown-menu.show {
+        display: block;
+      }
+      .dropdown-item {
+        display: block;
+        padding: 0.35rem 0.75rem;
+        color: #333;
+        text-decoration: none;
+        font-size: 0.82rem;
+      }
+      .dropdown-item:hover {
+        background: #f0f4ff;
+      }
+
+      /* ─── Choices.js simulação ─── */
+      .choices {
+        position: relative;
+        display: inline-block;
+        min-width: 200px;
+      }
+      .choices__inner {
+        padding: 0.35rem 0.6rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        background: #fff;
+      }
+      .choices__list--dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0 0 4px 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+      }
+      .choices__list--dropdown.is-active {
+        display: block;
+      }
+      .choices__item {
+        padding: 0.3rem 0.6rem;
+        cursor: pointer;
+        font-size: 0.82rem;
+      }
+      .choices__item:hover {
+        background: #f0f4ff;
+      }
+
+      /* ─── Tabs ─── */
+      .nav-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e5e7eb;
+        list-style: none;
+        margin-bottom: 1rem;
+      }
+      .nav-link {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 0.85rem;
+        color: #6b7280;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+      }
+      .nav-link.active {
+        color: #3b82f6;
+        border-bottom-color: #3b82f6;
+        font-weight: 600;
+      }
+      .tab-pane {
+        display: none;
+      }
+      .tab-pane.show.active {
+        display: block;
+      }
+
+      /* ─── SweetAlert simulação ─── */
+      .swal2-container {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+      .swal2-container.show {
+        display: flex;
+      }
+      .swal2-popup {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        min-width: 300px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+      .swal2-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .swal2-content {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+      .swal2-actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .swal2-confirm,
+      .swal2-cancel {
+        padding: 0.4rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .swal2-confirm.btn-success {
+        background: #22c55e;
+        color: #fff;
+      }
+      .swal2-cancel.btn-danger {
+        background: #ef4444;
+        color: #fff;
+      }
+
+      /* ─── Formulário ─── */
+      .form-control,
+      .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+      }
+      label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+      .btn {
+        padding: 0.4rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+      }
+      .btn-sm {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.78rem;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .col {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      /* Utilitários de layout */
+      .hidden {
+        display: none !important;
+      }
+      .header-right {
+        margin-left: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═════════════ SIDEBAR ═════════════ -->
+    <nav class="pc-sidebar" id="pc-sidebar-hide">
+      <h4>ERP Prestech</h4>
+      <a class="pc-link" href="#/dashboard"><i>📊</i> Dashboard</a>
+      <a class="pc-link" href="#/invoices"><i>📄</i> Faturas</a>
+      <a class="pc-link" href="#/bills"><i>💳</i> Contas</a>
+      <a class="pc-link" href="#/expenses"><i>💸</i> Despesas</a>
+      <a class="pc-link" href="#/employees"><i>👤</i> Funcionários</a>
+      <a class="pc-link" href="#/departments"><i>🏢</i> Departamentos</a>
+      <a class="pc-link" href="#/projects"><i>📁</i> Projetos</a>
+      <a class="pc-link" href="#/leads"><i>🎯</i> Leads</a>
+      <a class="pc-link" href="#/deals"><i>🤝</i> Negócios</a>
+      <a class="pc-link" href="#/customers"><i>👥</i> Clientes</a>
+    </nav>
+
+    <!-- ═════════════ HEADER ═════════════ -->
+    <header id="main-header">
+      <button class="mobile-menu" id="mobile-collapse" data-trigger="sidebar" title="Alternar sidebar">☰</button>
+      <span style="font-weight: 600">Mock ERP</span>
+
+      <div class="header-right">
+        <!-- Dropdown do perfil do usuário -->
+        <div class="dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown">Admin ▾</button>
+          <div class="dropdown-menu" id="profile-dropdown">
+            <a class="dropdown-item" href="#/profile">Meu Perfil</a>
+            <a class="dropdown-item" href="#/settings">Configurações</a>
+            <a class="dropdown-item" href="#/logout">Sair</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═════════════ CONTEÚDO PRINCIPAL ═════════════ -->
+    <main class="dash-content" id="main-content">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="#/departments">Departamentos</a></li>
+          <li class="breadcrumb-item active">Lista</li>
+        </ol>
+      </nav>
+
+      <!-- ─── Stat Cards (dashboard) ─── -->
+      <div class="row" style="margin-bottom: 1rem">
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5>Total Faturas</h5>
+              <h3>142</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5>Total Contas</h5>
+              <h3>87</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5>Funcionários</h5>
+              <h3>33</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Card com DataTable ─── -->
+      <div class="card">
+        <div class="card-header">
+          <span>Departamentos</span>
+          <div class="card-option">
+            <div class="dropdown">
+              <button class="dropdown-toggle" data-bs-toggle="dropdown">⋮</button>
+              <div class="dropdown-menu" id="action-dropdown">
+                <a class="dropdown-item" href="#/edit">Editar</a>
+                <a class="dropdown-item bs-pass-para" href="#/delete" data-confirm="delete">Excluir</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="dataTable-wrapper">
+            <div class="dataTable-search">
+              <input class="dataTable-input" type="search" aria-label="Buscar" placeholder="Buscar..." />
+            </div>
+            <table class="dataTable" id="departments-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Responsável</th>
+                  <th>Criação</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr>
+                  <td>1</td>
+                  <td>Financeiro</td>
+                  <td>João Silva</td>
+                  <td>2025-01-10</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" data-bs-toggle="dropdown">▾</button>
+                      <div class="dropdown-menu"><a class="dropdown-item" href="#">Editar</a><a class="dropdown-item bs-pass-para" href="#">Excluir</a></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>RH</td>
+                  <td>Maria Souza</td>
+                  <td>2025-02-15</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" data-bs-toggle="dropdown">▾</button>
+                      <div class="dropdown-menu"><a class="dropdown-item" href="#">Editar</a><a class="dropdown-item bs-pass-para" href="#">Excluir</a></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>TI</td>
+                  <td>Carlos Mendes</td>
+                  <td>2025-03-20</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" data-bs-toggle="dropdown">▾</button>
+                      <div class="dropdown-menu"><a class="dropdown-item" href="#">Editar</a><a class="dropdown-item bs-pass-para" href="#">Excluir</a></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Vendas</td>
+                  <td>Ana Oliveira</td>
+                  <td>2025-04-01</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" data-bs-toggle="dropdown">▾</button>
+                      <div class="dropdown-menu"><a class="dropdown-item" href="#">Editar</a><a class="dropdown-item bs-pass-para" href="#">Excluir</a></div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>Marketing</td>
+                  <td>Pedro Lima</td>
+                  <td>2025-05-12</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="dropdown-toggle" data-bs-toggle="dropdown">▾</button>
+                      <div class="dropdown-menu"><a class="dropdown-item" href="#">Editar</a><a class="dropdown-item bs-pass-para" href="#">Excluir</a></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Tabs / Abas ─── -->
+      <div class="card">
+        <div class="card-header">Configurações do Sistema</div>
+        <div class="card-body">
+          <ul class="nav-tabs" role="tablist">
+            <li><button class="nav-link active" data-bs-toggle="tab" data-target="#tab-general" role="tab">Geral</button></li>
+            <li><button class="nav-link" data-bs-toggle="tab" data-target="#tab-email" role="tab">E-mail</button></li>
+            <li><button class="nav-link" data-bs-toggle="tab" data-target="#tab-payment" role="tab">Pagamento</button></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane show active" id="tab-general">
+              <p style="padding: 1rem 0">Configurações gerais do sistema. Nome da empresa, fuso horário, moeda padrão.</p>
+            </div>
+            <div class="tab-pane" id="tab-email">
+              <p style="padding: 1rem 0">Configurações de e-mail SMTP, driver e destinatários padrão.</p>
+            </div>
+            <div class="tab-pane" id="tab-payment">
+              <p style="padding: 1rem 0">Gateways de pagamento: Stripe, PayPal, Mercado Pago.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Formulário com Choices.js ─── -->
+      <div class="card">
+        <div class="card-header">Criar Fatura</div>
+        <div class="card-body">
+          <form id="invoice-store-form" action="#/invoices" method="post">
+            <label>Cliente</label>
+            <div class="choices" id="choices-client">
+              <div class="choices__inner">
+                <span class="choices__placeholder">Selecione um cliente...</span>
+              </div>
+              <div class="choices__list choices__list--dropdown" id="choices-list-client">
+                <div class="choices__item" data-value="1">Empresa Alpha Ltda</div>
+                <div class="choices__item" data-value="2">Beta Consultoria S.A.</div>
+                <div class="choices__item" data-value="3">Gamma Tecnologia ME</div>
+              </div>
+            </div>
+
+            <label>Categoria</label>
+            <select class="form-select">
+              <option value="">Selecione...</option>
+              <option value="products">Produtos</option>
+              <option value="services">Serviços</option>
+            </select>
+
+            <label>Valor</label>
+            <input class="form-control" type="number" placeholder="0.00" step="0.01" />
+
+            <label>Descrição</label>
+            <textarea class="form-control" rows="3" placeholder="Descrição da fatura..."></textarea>
+
+            <button type="submit" class="btn btn-primary">Salvar Fatura</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ─── Gráficos (containers) ─── -->
+      <div class="card">
+        <div class="card-header">Relatório de Negócios</div>
+        <div class="card-body">
+          <div id="deals-monthly" style="height: 200px; background: #f8fafc; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #999">[Gráfico: Negócios Mensais]</div>
+          <div id="deals-this-week" style="height: 150px; background: #f8fafc; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #999; margin-top: 0.75rem">[Gráfico: Negócios Semana]</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ═════════════ SWEETALERT MODAL ═════════════ -->
+    <div class="swal2-container" id="swal-container">
+      <div class="swal2-popup">
+        <h2 class="swal2-title">Confirmar exclusão?</h2>
+        <div class="swal2-content">Esta ação não pode ser desfeita.</div>
+        <div class="swal2-actions">
+          <button class="swal2-confirm btn-success" id="swal-confirm">Confirmar</button>
+          <button class="swal2-cancel btn-danger" id="swal-cancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═════════════ JAVASCRIPT INTERATIVO ═════════════ -->
+    <script>
+      "use strict";
+
+      /* ─── Controle de estado de prontidão ─── */
+      document.addEventListener("DOMContentLoaded", () => {
+        document.body.dataset.ready = "interactive";
+        window.setTimeout(() => {
+          document.body.dataset.ready = "complete";
+        }, 100);
+      });
+
+      window.addEventListener("load", () => {
+        document.body.dataset.ready = "loaded";
+      });
+
+      /* ─── 1. Sidebar toggle ─── */
+      const sidebar = document.getElementById("pc-sidebar-hide");
+      const header = document.getElementById("main-header");
+      const content = document.getElementById("main-content");
+      const sidebarToggle = document.getElementById("mobile-collapse");
+
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener("click", () => {
+          sidebar.classList.toggle("collapsed");
+          header.classList.toggle("sidebar-collapsed");
+          content.classList.toggle("sidebar-collapsed");
+        });
+      }
+
+      /* ─── 2. Dropdowns (simulação Bootstrap data-bs-toggle) ─── */
+      document.addEventListener("click", e => {
+        const toggle = e.target.closest('[data-bs-toggle="dropdown"]');
+
+        // Fecha todos os dropdowns abertos
+        document.querySelectorAll(".dropdown-menu.show").forEach(m => {
+          if (!toggle || m !== toggle.nextElementSibling) {
+            m.classList.remove("show");
+          }
+        });
+
+        if (toggle) {
+          e.preventDefault();
+          const menu = toggle.nextElementSibling;
+          if (menu && menu.classList.contains("dropdown-menu")) {
+            menu.classList.toggle("show");
+          }
+        }
+      });
+
+      /* ─── 3. DataTable search (filtro de linhas) ─── */
+      const searchInput = document.querySelector(".dataTable-input");
+      const tableBody = document.getElementById("table-body");
+
+      if (searchInput && tableBody) {
+        searchInput.addEventListener("input", () => {
+          const query = searchInput.value.toLowerCase().trim();
+          const rows = tableBody.querySelectorAll("tr");
+          rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? "" : "none";
+          });
+        });
+      }
+
+      /* ─── 4. Choices.js simulação (abrir/fechar dropdown) ─── */
+      document.querySelectorAll(".choices").forEach(widget => {
+        const inner = widget.querySelector(".choices__inner");
+        const list = widget.querySelector(".choices__list--dropdown");
+        if (!inner || !list) return;
+
+        inner.addEventListener("click", () => {
+          list.classList.toggle("is-active");
+          list.setAttribute("aria-expanded", list.classList.contains("is-active") ? "true" : "false");
+        });
+
+        list.querySelectorAll(".choices__item").forEach(item => {
+          item.addEventListener("click", () => {
+            const placeholder = inner.querySelector(".choices__placeholder");
+            if (placeholder) placeholder.textContent = item.textContent;
+            list.classList.remove("is-active");
+            list.setAttribute("aria-expanded", "false");
+          });
+        });
+
+        // Fecha ao clicar fora
+        document.addEventListener("click", e => {
+          if (!widget.contains(e.target)) {
+            list.classList.remove("is-active");
+            list.setAttribute("aria-expanded", "false");
+          }
+        });
+      });
+
+      /* ─── 5. Tabs (simulação Bootstrap tabs) ─── */
+      document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener("click", () => {
+          // Remove active de todas as abas
+          const parent = tab.closest(".nav-tabs");
+          if (parent) {
+            parent.querySelectorAll(".nav-link").forEach(t => t.classList.remove("active"));
+          }
+          tab.classList.add("active");
+
+          // Alterna painéis
+          const targetSelector = tab.getAttribute("data-target");
+          if (targetSelector) {
+            const container = document.querySelector(".tab-content") || document;
+            container.querySelectorAll(".tab-pane").forEach(pane => {
+              pane.classList.remove("show", "active");
+            });
+            const targetPane = container.querySelector(targetSelector);
+            if (targetPane) {
+              targetPane.classList.add("show", "active");
+            }
+          }
+        });
+      });
+
+      /* ─── 6. SweetAlert simulação (.bs-pass-para → swal) ─── */
+      const swalContainer = document.getElementById("swal-container");
+      const swalConfirm = document.getElementById("swal-confirm");
+      const swalCancel = document.getElementById("swal-cancel");
+
+      document.addEventListener("click", e => {
+        if (e.target.closest(".bs-pass-para")) {
+          e.preventDefault();
+          if (swalContainer) swalContainer.classList.add("show");
+        }
+      });
+
+      if (swalCancel) {
+        swalCancel.addEventListener("click", () => {
+          swalContainer.classList.remove("show");
+        });
+      }
+
+      if (swalConfirm) {
+        swalConfirm.addEventListener("click", () => {
+          swalContainer.classList.remove("show");
+        });
+      }
+
+      /* ─── 7. Formulário — prevenir submit real ─── */
+      document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("submit", e => {
+          e.preventDefault();
+        });
+      });
+    </script>
+  </body>
+</html>
