@@ -20,6 +20,7 @@ and iterate with `getTotal()`/`getDue()`.
 First load still runs all queries; subsequent loads within TTL are instant.
 
 **Further optimization (suggested, not applied):**
+
 - Rewrite `getIncExpBarChartData()` to use 2 aggregate SQL queries instead of 24 individual ones
 - Rewrite `getIncExpLineChartDate()` to use 2 aggregate queries instead of 30
 - Add DB indexes on `(created_by, date)` and `(created_by, send_date)` — **requires approval before applying**
@@ -34,6 +35,7 @@ First load still runs all queries; subsequent loads within TTL are instant.
 The actual relationship is `employees()` (BelongsToMany).
 
 **Fix applied:**
+
 - Changed blade from `$asset->users(...)` to `$asset->employees`
 - Added `->with('employees')` eager loading in `AssetController::index()`
 
@@ -65,6 +67,7 @@ All 6 export routes previously collided with resource `{param}` routes and retur
 Fixed with `->where()` regex constraints in prior session (commit `f46e23c48`).
 
 **Current status:** All verified HTTP 200:
+
 - `/bills/export` (0.08s), `/customers/export` (0.13s), `/invoices/export` (0.10s)
 - `/proposals/export`, `/vendors/export`, `/leaves/export` (2.73s — leave data volume)
 
@@ -102,6 +105,7 @@ project minimum is 8.1.
 ### 11. No E2E Tests for Export Routes, POS, Debit Notes
 
 Playwright specs (`financial.spec.cjs`, `module-pages.spec.cjs`) do not cover:
+
 - Any of the 6 export routes (file download responses)
 - `/pos/*` routes (cart-dependent, returns JSON)
 - `/debit_notes/{id}/bill` (requires valid debit note data)
@@ -113,29 +117,29 @@ cover structural validation of these pages but not live backend interaction.
 
 ## OPEN — Baselines (as of 2026-07-24)
 
-| Suite                      | Result                                                                      |
-| -------------------------- | --------------------------------------------------------------------------- |
-| PHPUnit                    | 12,177 tests, 21,156 assertions, **0 failures**, 122 skipped, 5 incomplete |
-| Playwright (E2E)           | **478 passed**, 13 skipped, 0 failed, 0 flaky                              |
-| Playwright (mock pages)    | **41 passed**, 0 failed (rendered-pages.spec.ts)                            |
-| curl (287 routes)          | **240 × 200**, 43 × 302, 0 × fail after fixes                              |
-| wget spider (18 routes)    | **18/18 OK**                                                                |
-| Blade view:cache           | **all templates compile**                                                   |
-| MySQL                      | 211 tables, all key tables verified                                         |
-| PHPStan L5                 | clean                                                                       |
-| ESLint                     | clean                                                                       |
-| tsc                        | clean                                                                       |
-| Jest                       | 319/322 suites                                                              |
-| pytest                     | 53/53                                                                       |
+| Suite                   | Result                                                                     |
+| ----------------------- | -------------------------------------------------------------------------- |
+| PHPUnit                 | 12,177 tests, 21,156 assertions, **0 failures**, 122 skipped, 5 incomplete |
+| Playwright (E2E)        | **478 passed**, 13 skipped, 0 failed, 0 flaky                              |
+| Playwright (mock pages) | **41 passed**, 0 failed (rendered-pages.spec.ts)                           |
+| curl (287 routes)       | **240 × 200**, 43 × 302, 0 × fail after fixes                              |
+| wget spider (18 routes) | **18/18 OK**                                                               |
+| Blade view:cache        | **all templates compile**                                                  |
+| MySQL                   | 211 tables, all key tables verified                                        |
+| PHPStan L5              | clean                                                                      |
+| ESLint                  | clean                                                                      |
+| tsc                     | clean                                                                      |
+| Jest                    | 319/322 suites                                                             |
+| pytest                  | 53/53                                                                      |
 
 ### TTFB Benchmarks (empty data, post-optimization)
 
-| Route                            | TTFB (1st) | TTFB (cached) |
-| -------------------------------- | ---------- | ------------- |
-| `/users`                         | 0.40s      | —             |
-| `/account_assets`                | 0.23s      | —             |
-| `/account-dashboard`             | 0.50s      | 0.24s         |
-| `/users/confirmed-password-status` | 0.08s    | —             |
+| Route                              | TTFB (1st) | TTFB (cached) |
+| ---------------------------------- | ---------- | ------------- |
+| `/users`                           | 0.40s      | —             |
+| `/account_assets`                  | 0.23s      | —             |
+| `/account-dashboard`               | 0.50s      | 0.24s         |
+| `/users/confirmed-password-status` | 0.08s      | —             |
 
 ---
 
@@ -146,19 +150,19 @@ cover structural validation of these pages but not live backend interaction.
 
 ### Resolved — Route Health
 
-| Issue                              | Status           | How Fixed                                          | Commit      |
-| ---------------------------------- | ---------------- | -------------------------------------------------- | ----------- |
-| 6 export route collisions          | ✅ Fixed (200)   | `->where()` regex constraints on resource routes   | `f46e23c48` |
-| `/pos/create` 404                  | ✅ Fixed (422)   | Changed 404 → 422 JSON with validation message     | `f46e23c48` |
-| `/email_templates/create` 404      | ✅ Fixed (200)   | View path `email_template` → `email_templates`     | `f46e23c48` |
-| Purchase UUID validation           | ✅ Fixed         | Added UUID format check before DB query            | `51724bb86` |
-| PurchaseProduct OOM circular load  | ✅ Fixed         | Removed circular eager-load in ORM relationship    | `51724bb86` |
+| Issue                             | Status         | How Fixed                                        | Commit      |
+| --------------------------------- | -------------- | ------------------------------------------------ | ----------- |
+| 6 export route collisions         | ✅ Fixed (200) | `->where()` regex constraints on resource routes | `f46e23c48` |
+| `/pos/create` 404                 | ✅ Fixed (422) | Changed 404 → 422 JSON with validation message   | `f46e23c48` |
+| `/email_templates/create` 404     | ✅ Fixed (200) | View path `email_template` → `email_templates`   | `f46e23c48` |
+| Purchase UUID validation          | ✅ Fixed       | Added UUID format check before DB query          | `51724bb86` |
+| PurchaseProduct OOM circular load | ✅ Fixed       | Removed circular eager-load in ORM relationship  | `51724bb86` |
 
 ### Resolved — Performance
 
-| Issue                              | Status           | How Fixed                                          |
-| ---------------------------------- | ---------------- | -------------------------------------------------- |
-| `/users` N+1 (3 queries/user)     | ✅ Fixed         | Batch GROUP BY in UserController, no blade N+1     |
-| `/account_assets` dead `users()`  | ✅ Fixed         | Changed to `employees()` + eager loading           |
-| Dashboard 108+ uncached queries   | ✅ Mitigated     | `Cache::remember()` on 6 heavy data calls (2m TTL) |
-| `/users/confirmed-password-status` | ✅ Not a bug    | Fast endpoint (0.08s), was bottlenecked by `/users` |
+| Issue                              | Status       | How Fixed                                           |
+| ---------------------------------- | ------------ | --------------------------------------------------- |
+| `/users` N+1 (3 queries/user)      | ✅ Fixed     | Batch GROUP BY in UserController, no blade N+1      |
+| `/account_assets` dead `users()`   | ✅ Fixed     | Changed to `employees()` + eager loading            |
+| Dashboard 108+ uncached queries    | ✅ Mitigated | `Cache::remember()` on 6 heavy data calls (2m TTL)  |
+| `/users/confirmed-password-status` | ✅ Not a bug | Fast endpoint (0.08s), was bottlenecked by `/users` |

@@ -520,13 +520,13 @@ Fix all remaining test failures, resolve circular redirect loops, fix Playwright
 
 Created 5 mock HTML pages in `tests/frontend/js/pages/mocks/rendered/` replicating blade-rendered output WITH populated data:
 
-| Mock Page                | Simulates              | Key Selectors Validated                                             |
-| ------------------------ | ---------------------- | ------------------------------------------------------------------- |
-| `users-index.html`       | `/users`               | `.dash-content`, `.card-2`, user cards, counts, breadcrumb          |
-| `assets-index.html`      | `/account_assets`      | `table.datatable`, `.dataTable-wrapper`, 7 columns, action buttons  |
-| `dashboard-account.html` | `/account-dashboard`   | 4 metric cards, 5 chart containers, 5 data tables                  |
-| `pos-index.html`         | `/pos`                 | Product grid, cart, 422 error simulation                            |
-| `export-routes.html`     | Export verification     | 6 export routes with status badges, debit note, POS create         |
+| Mock Page                | Simulates            | Key Selectors Validated                                            |
+| ------------------------ | -------------------- | ------------------------------------------------------------------ |
+| `users-index.html`       | `/users`             | `.dash-content`, `.card-2`, user cards, counts, breadcrumb         |
+| `assets-index.html`      | `/account_assets`    | `table.datatable`, `.dataTable-wrapper`, 7 columns, action buttons |
+| `dashboard-account.html` | `/account-dashboard` | 4 metric cards, 5 chart containers, 5 data tables                  |
+| `pos-index.html`         | `/pos`               | Product grid, cart, 422 error simulation                           |
+| `export-routes.html`     | Export verification  | 6 export routes with status badges, debit note, POS create         |
 
 **Playwright spec:** `tests/frontend/js/e2e/rendered-pages.spec.ts` — **41/41 tests passed** (Chromium). Validates all DOM selectors match real blade output. Confirms E2E failures on live endpoints are timing-related (N+1), not structural.
 
@@ -560,9 +560,9 @@ Created 5 mock HTML pages in `tests/frontend/js/pages/mocks/rendered/` replicati
 ### TTFB Benchmarks (Post-Fix)
 
 | Route                | Before (reported) | After (1st load) | After (cached) |
-| -------------------- | ----------------- | ----------------- | -------------- |
-| `/users`             | 30s               | 0.40s             | —              |
-| `/account_assets`    | 15s               | 0.23s             | —              |
-| `/account-dashboard` | 3.35s             | 0.50s             | 0.24s          |
+| -------------------- | ----------------- | ---------------- | -------------- |
+| `/users`             | 30s               | 0.40s            | —              |
+| `/account_assets`    | 15s               | 0.23s            | —              |
+| `/account-dashboard` | 3.35s             | 0.50s            | 0.24s          |
 
-*Note: "Before" values are with populated data under load. "After" values are with empty data but fixes applied. Real improvement with data will be much larger due to eliminated N+1.*
+_Note: "Before" values are with populated data under load. "After" values are with empty data but fixes applied. Real improvement with data will be much larger due to eliminated N+1._
