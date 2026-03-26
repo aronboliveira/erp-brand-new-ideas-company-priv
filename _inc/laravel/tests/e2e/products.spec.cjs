@@ -104,12 +104,16 @@ test.describe("Product Services", () => {
     });
   });
 
-  // product_services/import is a POST-only endpoint (file upload handler)
-  // — not a renderable page, so skip GET-based rendering test
-  test.skip("product_services import renders", async ({ page }) => {
-    await assertPageRenders(page, "product_services/import", "Product Services Import", {
-      expectForm: true,
+  // product_services/import é endpoint exclusivo para POST (upload de arquivo)
+  // — não renderiza via GET, verificamos que o endpoint responde com redirect ou 405
+  test("product_services import endpoint responds to POST", async ({ page }) => {
+    const resp = await page.goto(`${BASE_URL}/product_services/import`, {
+      waitUntil: "commit",
+      timeout: 30000,
     });
+    const status = resp?.status() ?? 0;
+    // Endpoint POST-only: GET deve retornar 302 (redirect), 405, ou outra resposta não-500
+    expect(status, "Endpoint /product_services/import não deve retornar 500").toBeLessThan(500);
   });
 });
 

@@ -42,13 +42,17 @@ async function pollFor(page, predicate, { maxRetries = 8, delay = 500 } = {}) {
 
 async function waitAndCheckTable(page, label) {
   const table = page.locator("table.dataTable-table, table.datatable, table.dataTable, table.table").first();
-  const isVisible = await pollFor(page, async () => {
-    return table.isVisible().catch(() => false);
-  }, { maxRetries: 8, delay: 500 });
+  const isVisible = await pollFor(
+    page,
+    async () => {
+      return table.isVisible().catch(() => false);
+    },
+    { maxRetries: 8, delay: 500 },
+  );
   if (!isVisible) {
     const wrapper = page.locator(".dataTable-wrapper, .dataTable-container");
     const emptyMsg = page.locator("text=/No (records|entries|data) found/i");
-    const hasAlt = (await wrapper.count() > 0) || (await emptyMsg.count() > 0);
+    const hasAlt = (await wrapper.count()) > 0 || (await emptyMsg.count()) > 0;
     expect(hasAlt, `${label}: table, wrapper, or empty-state should be present`).toBe(true);
   }
 }
@@ -67,28 +71,39 @@ test.describe("Invoice Module", () => {
     expect(headerCount).toBeGreaterThanOrEqual(0);
   });
 
-  test.skip("should load invoice create form", async ({ page }) => {
-    // SKIP: /invoices/create redirects (app permission guard — chart_of_accounts/create) — no form rendered for test user
+  test("should load invoice create form", async ({ page }) => {
+    // /invoices/create pode redirecionar se chart_of_accounts não existir — skip condicional
     await page.goto(`${BASE_URL}/invoices/create`, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
 
-    // Page may redirect (e.g., permissions) — accept as long as it doesn't 500
     const url = page.url();
     if (url.includes("/login")) {
-      test.skip(true, "Redirected to login — auth state issue");
+      test.skip(true, "Redirecionou para login — sessão inválida");
+      return;
+    }
+    if (!url.includes("invoice")) {
+      test.skip(true, "Redirecionou para fora de /invoices/create — chart_of_accounts ausente");
       return;
     }
 
-    // Should have form elements (main content form, not debugbar)
+    // Formulário principal deve estar visível (excluindo debugbar e logout)
     const form = page.locator("#invoice-store-form, .card form, form[action*='invoice'], form:not(#frm-logout):not(.d-none)").first();
     await expect(form).toBeVisible({ timeout: 15000 });
   });
 
-  test.skip("should have create button on invoice form", async ({ page }) => {
-    // SKIP: /invoices/create redirects (app permission guard) — depends on "should load invoice create form"
-    await page.goto(`${BASE_URL}/invoices/create`);
+  test("should have create button on invoice form", async ({ page }) => {
+    // Depende de /invoices/create carregar — skip se redirecionar
+    await page.goto(`${BASE_URL}/invoices/create`, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+
+    const url = page.url();
+    if (!url.includes("invoice")) {
+      test.skip(true, "Redirecionou para fora de /invoices/create — chart_of_accounts ausente");
+      return;
+    }
+
     const submitBtn = page.locator('button[type="submit"], input[type="submit"]').first();
-    await expect(submitBtn).toBeAttached();
-    await expect(page).toHaveURL(/.*invoices/);
+    await expect(submitBtn).toBeAttached({ timeout: 10000 });
   });
 });
 

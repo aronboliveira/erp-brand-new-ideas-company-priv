@@ -82,13 +82,17 @@ test.describe("Dashboard chart containers", () => {
     // Check for known chart containers or any generic chart element
     const chartSelectors = ["#chart-sales", "#task_overview", "#cash-flow", "#incExpBarChart", ".apexcharts-canvas", "canvas", '[id*="chart"]'];
 
-    const foundChart = await pollFor(page, async () => {
-      for (const sel of chartSelectors) {
-        const count = await page.locator(sel).count();
-        if (count > 0) return true;
-      }
-      return false;
-    }, { maxRetries: 10, delay: 500 });
+    const foundChart = await pollFor(
+      page,
+      async () => {
+        for (const sel of chartSelectors) {
+          const count = await page.locator(sel).count();
+          if (count > 0) return true;
+        }
+        return false;
+      },
+      { maxRetries: 10, delay: 500 },
+    );
     expect(foundChart, "At least one chart container should be in the DOM").toBe(true);
   });
 });
@@ -211,7 +215,7 @@ test.describe("Kanban boards render stage columns", () => {
 test.describe("Report page chart containers", () => {
   const reportPages = [
     {
-      route: "reports/deal",
+      route: "reports-deal",
       label: "Deal Report",
       chartIds: ["deals-monthly", "deals-this-week"],
     },
@@ -482,41 +486,7 @@ test.describe("No critical JS errors on data-heavy pages", () => {
   const dataPages = ["dashboard", "invoices", "leads", "deals", "projects", "departments", "plans"];
 
   // Known benign errors to ignore
-  const benignPatterns = [
-    "bootstrap is not defined",
-    "Expected one of the following types",
-    "simpleDatatables",
-    "net::ERR",
-    "favicon",
-    "404 (Not Found)",
-    "403 (Forbidden)",
-    "ResizeObserver",
-    "Non-Error promise rejection",
-    "Cannot read properties of undefined",
-    "Cannot read properties of null",
-    "reading 'require'",
-    "Identifier '",
-    "has already been declared",
-    "Dragula unavailable",
-    "dragula",
-    "is not a function",
-    "is not defined",
-    "ApexCharts",
-    "apexcharts",
-    "Chart is not defined",
-    "Select2",
-    "select2",
-    "Choices",
-    "flatpickr",
-    "Summernote",
-    "summernote",
-    "DataTable",
-    "datatable",
-    "deprecated",
-    "Failed to load resource",
-    "loading chunk",
-    "phpdebugbar",
-  ];
+  const benignPatterns = ["bootstrap is not defined", "Expected one of the following types", "simpleDatatables", "net::ERR", "favicon", "404 (Not Found)", "403 (Forbidden)", "ResizeObserver", "Non-Error promise rejection", "Cannot read properties of undefined", "Cannot read properties of null", "reading 'require'", "Identifier '", "has already been declared", "Dragula unavailable", "dragula", "is not a function", "is not defined", "ApexCharts", "apexcharts", "Chart is not defined", "Select2", "select2", "Choices", "flatpickr", "Summernote", "summernote", "DataTable", "datatable", "deprecated", "Failed to load resource", "loading chunk", "phpdebugbar"];
 
   for (const route of dataPages) {
     test(`${route}: no uncaught JS errors`, async ({ page }) => {
