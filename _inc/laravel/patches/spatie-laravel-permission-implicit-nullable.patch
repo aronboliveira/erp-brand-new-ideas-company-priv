@@ -1,0 +1,29 @@
+--- a/src/Traits/HasRoles.php
++++ b/src/Traits/HasRoles.php
+@@ -183,7 +183,7 @@
+      *
+      * @param  string|int|array|\Spatie\Permission\Contracts\Role|\Illuminate\Support\Collection  $roles
+      */
+-    public function hasRole($roles, string $guard = null): bool
++    public function hasRole($roles, ?string $guard = null): bool
+     {
+         $this->loadMissing('roles');
+ 
+@@ -240,7 +240,7 @@
+      *
+      * @param  string|array|\Spatie\Permission\Contracts\Role|\Illuminate\Support\Collection  $roles
+      */
+-    public function hasAllRoles($roles, string $guard = null): bool
++    public function hasAllRoles($roles, ?string $guard = null): bool
+     {
+         $this->loadMissing('roles');
+ 
+@@ -274,7 +274,7 @@
+      *
+      * @param  string|array|\Spatie\Permission\Contracts\Role|\Illuminate\Support\Collection  $roles
+      */
+-    public function hasExactRoles($roles, string $guard = null): bool
++    public function hasExactRoles($roles, ?string $guard = null): bool
+     {
+         $this->loadMissing('roles');
+ 

@@ -1,0 +1,29 @@
+--- a/src/Json.php
++++ b/src/Json.php
+@@ -34,7 +34,7 @@
+      * @param mixed                             $path
+      * @param \Illuminate\Filesystem\Filesystem $filesystem
+      */
+-    public function __construct($path, Filesystem $filesystem = null)
++    public function __construct($path, ?Filesystem $filesystem = null)
+     {
+         $this->path = (string) $path;
+         $this->filesystem = $filesystem ?: new Filesystem();
+@@ -97,7 +97,7 @@
+      *
+      * @return static
+      */
+-    public static function make($path, Filesystem $filesystem = null)
++    public static function make($path, ?Filesystem $filesystem = null)
+     {
+         return new static($path, $filesystem);
+     }
+@@ -142,7 +142,7 @@
+      *
+      * @return string
+      */
+-    public function toJsonPretty(array $data = null)
++    public function toJsonPretty(?array $data = null)
+     {
+         return json_encode($data ?: $this->attributes, JSON_PRETTY_PRINT);
+     }

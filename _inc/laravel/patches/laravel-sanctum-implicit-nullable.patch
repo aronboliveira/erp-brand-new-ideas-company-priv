@@ -1,0 +1,11 @@
+--- a/src/HasApiTokens.php
++++ b/src/HasApiTokens.php
+@@ -43,7 +43,7 @@
+      * @param  \DateTimeInterface|null  $expiresAt
+      * @return \Laravel\Sanctum\NewAccessToken
+      */
+-    public function createToken(string $name, array $abilities = ['*'], DateTimeInterface $expiresAt = null)
++    public function createToken(string $name, array $abilities = ['*'], ?DateTimeInterface $expiresAt = null)
+     {
+         $plainTextToken = $this->generateTokenString();
+ 
