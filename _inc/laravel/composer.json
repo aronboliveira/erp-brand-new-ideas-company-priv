@@ -1,505 +1,505 @@
 {
-    "name": "laravel/laravel",
-    "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": [
-        "framework",
-        "laravel"
+  "name": "laravel/laravel",
+  "type": "project",
+  "description": "The Laravel Framework.",
+  "keywords": [
+    "framework",
+    "laravel"
+  ],
+  "license": "MIT",
+  "require": {
+    "php": "^8.1",
+    "anandsiddharth/laravel-paytm-wallet": "^2.0",
+    "anhskohbo/no-captcha": "^3.5",
+    "arkitecht/laravel-twilio": "^1.6",
+    "coingate/coingate-php": "^4.1",
+    "cweagans/composer-patches": "^1.7",
+    "doctrine/dbal": "^3.7",
+    "guzzlehttp/guzzle": "^7.8",
+    "inertiajs/inertia-laravel": "^2.0",
+    "iyzico/iyzipay-php": "^2.0",
+    "kkomelin/laravel-translatable-string-exporter": "^1.21",
+    "laravel/fortify": "^1.25",
+    "laravel/framework": "^10.10",
+    "laravel/jetstream": "^4.3",
+    "laravel/sanctum": "^3.4",
+    "laravel/tinker": "^2.8",
+    "laravel/ui": "^4.1",
+    "laravelcollective/html": "^6.4",
+    "league/flysystem-aws-s3-v3": "^3.16",
+    "maatwebsite/excel": "^3.1",
+    "mashape/unirest-php": "^3.0",
+    "mercadopago/dx-php": "^2.5",
+    "midtrans/midtrans-php": "^2.5",
+    "milon/barcode": "^10.0",
+    "mollie/mollie-api-php": "^2.25",
+    "munafio/chatify": "*",
+    "nwidart/laravel-modules": "9.*",
+    "obydul/laraskrill": "^1.2",
+    "orhanerday/open-ai": "^4.8",
+    "paymentwall/paymentwall-php": "^2.2",
+    "paytabscom/laravel_paytabs": "^1.4",
+    "phpoffice/phpspreadsheet": "^1.30",
+    "psr/simple-cache": "^2.0|^3.0",
+    "rachidlaasri/laravel-installer": "^4.1",
+    "spatie/browsershot": "^3.58",
+    "spatie/laravel-google-calendar": "^3.5",
+    "spatie/laravel-permission": "^5.5",
+    "srmklive/paypal": "^3.0",
+    "stripe/stripe-php": "^13.0",
+    "twilio/sdk": "^6.43",
+    "whichbrowser/parser": "^2.1",
+    "xendit/xendit-php": "^2.19",
+    "yoomoney/yookassa-sdk-php": "^3.1"
+  },
+  "require-dev": {
+    "barryvdh/laravel-debugbar": "^3.9",
+    "barryvdh/laravel-ide-helper": "^3.1",
+    "brianium/paratest": "^7.4",
+    "fakerphp/faker": "^1.9.1",
+    "laravel/pint": "^1.0",
+    "laravel/sail": "^1.18",
+    "mockery/mockery": "^1.4.4",
+    "nunomaduro/collision": "^7.0",
+    "phpstan/phpstan": "*",
+    "phpunit/phpunit": "^10.1",
+    "spatie/laravel-ignition": "^2.0",
+    "squizlabs/php_codesniffer": "^3.13"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\Config\\Constants\\": [
+        "app/Config/Constants/"
+      ],
+      "App\\Enums\\": [
+        "app/Enums/"
+      ],
+      "App\\Exports\\": [
+        "app/Exports/"
+      ],
+      "App\\Helpers\\": [
+        "app/Helpers/"
+      ],
+      "App\\Http\\Controllers\\": [
+        "app/Http/Controllers/"
+      ],
+      "App\\Imports\\": [
+        "app/Imports/"
+      ],
+      "App\\Jobs\\": [
+        "app/Jobs/"
+      ],
+      "App\\Logging\\": [
+        "app/Logging/"
+      ],
+      "App\\Models\\": [
+        "app/Models/"
+      ],
+      "App\\Traits\\": [
+        "app/Traits/",
+        "app/Http/Controllers/Traits/",
+        "app/Models/Traits"
+      ],
+      "App\\Services\\": [
+        "app/Services/"
+      ],
+      "App\\Services\\Contracts\\": [
+        "app/Services/Contracts/"
+      ],
+      "App\\Services\\DTO\\": [
+        "app/Services/DTO/"
+      ],
+      "App\\Services\\Resolvers\\": [
+        "app/Services/Resolvers/"
+      ],
+      "App\\Services\\Providers\\": [
+        "app/Services/Providers/"
+      ],
+      "App\\": [
+        "app/"
+      ],
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/",
+      "Modules\\": "Modules/",
+      "Modules\\LandingPage\\Config\\Constants\\": [
+        "Modules/LandingPage/Config/Constants"
+      ],
+      "Modules\\LandingPage\\Database\\Factories\\": [
+        "Modules/LandingPage/Database/Factories"
+      ],
+      "Modules\\LandingPage\\Entities\\": [
+        "Modules/LandingPage/Entities"
+      ]
+    },
+    "classmap": [
+      "app/Http/Controllers/",
+      "app/Models/"
     ],
-    "license": "MIT",
-    "require": {
-        "php": "^8.1",
-        "anandsiddharth/laravel-paytm-wallet": "^2.0",
-        "anhskohbo/no-captcha": "^3.5",
-        "arkitecht/laravel-twilio": "^1.6",
-        "coingate/coingate-php": "^4.1",
-        "doctrine/dbal": "^3.7",
-        "guzzlehttp/guzzle": "^7.8",
-        "inertiajs/inertia-laravel": "^2.0",
-        "iyzico/iyzipay-php": "^2.0",
-        "kkomelin/laravel-translatable-string-exporter": "^1.21",
-        "laravel/fortify": "^1.25",
-        "laravel/framework": "^10.10",
-        "laravel/jetstream": "^4.3",
-        "laravel/sanctum": "^3.2",
-        "laravel/tinker": "^2.8",
-        "laravel/ui": "^4.1",
-        "laravelcollective/html": "^6.4",
-        "league/flysystem-aws-s3-v3": "^3.16",
-        "maatwebsite/excel": "^3.1",
-        "mashape/unirest-php": "^3.0",
-        "mercadopago/dx-php": "^2.5",
-        "midtrans/midtrans-php": "^2.5",
-        "milon/barcode": "^10.0",
-        "mollie/mollie-api-php": "^2.25",
-        "munafio/chatify": "*",
-        "nwidart/laravel-modules": "9.*",
-        "obydul/laraskrill": "^1.2",
-        "orhanerday/open-ai": "^4.8",
-        "paymentwall/paymentwall-php": "^2.2",
-        "paytabscom/laravel_paytabs": "^1.4",
-        "phpoffice/phpspreadsheet": "^1.30",
-        "psr/simple-cache": "^2.0|^3.0",
-        "rachidlaasri/laravel-installer": "^4.1",
-        "spatie/browsershot": "^3.58",
-        "spatie/laravel-google-calendar": "^3.5",
-        "spatie/laravel-permission": "^5.5",
-        "srmklive/paypal": "^3.0",
-        "stripe/stripe-php": "^13.0",
-        "twilio/sdk": "^6.43",
-        "whichbrowser/parser": "^2.1",
-        "xendit/xendit-php": "^2.19",
-        "yoomoney/yookassa-sdk-php": "^3.1",
-        "cweagans/composer-patches": "^1.7"
+    "exclude-from-classmap": [
+      "app/tests/",
+      "app/Http/_Controllers_old/",
+      "app/Exports/_withPython/",
+      "app/Imports/_withPython/",
+      "tests/",
+      "tests/Unit/",
+      "tests/Feature/"
+    ],
+    "files": [
+      "app/Models/Helpers/fields.php",
+      "app/Http/Controllers/Helpers/http.php",
+      "app/Http/Controllers/Helpers/ErrorHandlers.php",
+      "app/Http/Controllers/Helpers/security.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "auth:refresh": [
+      "node tests/e2e/auth.setup.cjs"
+    ],
+    "e2e": [
+      "node tests/e2e/auth.setup.cjs",
+      "npx playwright test tests/e2e/ --reporter=list --timeout=60000"
+    ],
+    "e2e:headed": [
+      "node tests/e2e/auth.setup.cjs",
+      "npx playwright test tests/e2e/ --headed --reporter=list --timeout=60000"
+    ],
+    "clear-logs": [
+      "@php -r 'foreach (glob(\"./storage/logs/*.log\") as $f) { file_put_contents($f, \"\"); }' && echo \"Logs cleared successfully.\""
+    ],
+    "rm-logs": [
+      "find storage/logs -type f -name '*.log' -exec rm -f {} \\; && echo \"Logs removal complete.\" || echo \"Logs removal attempted.\""
+    ],
+    "clear-logs-ps": [
+      "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Clear-Content; Write-Host 'Logs cleared successfully.' -ForegroundColor Green\""
+    ],
+    "rm-logs-ps": [
+      "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Remove-Item -Force; Write-Host 'Logs removed successfully.' -ForegroundColor Green\""
+    ],
+    "clear-all-cache": [
+      "@php artisan clear-compiled",
+      "@php artisan cache:clear",
+      "@php artisan config:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@composer dump-autoload -o"
+    ],
+    "serve-ps--hard": [
+      "@php artisan db:wipe --drop-views --force",
+      "@php artisan migrate",
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear || true",
+      "@php artisan cache:clear || true",
+      "@php artisan optimize:clear || true",
+      "@php artisan route:clear || true",
+      "@php artisan view:clear || true",
+      "@php artisan clear-compiled",
+      "@php -r \"@unlink('bootstrap/cache/services.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/packages.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/compiled.php');\" || true",
+      "@php -r \"@unlink('bootstrap/cache/routes.php');\" || true",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
+      "@php artisan route:list --sort=uri",
+      "@php artisan serve"
+    ],
+    "serve-ps--mixed": [
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear",
+      "@php artisan cache:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@php artisan clear-compiled",
+      "@php -r \"@unlink('bootstrap/cache/services.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/packages.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/compiled.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/routes.php');\"",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed --force",
+      "@php artisan serve"
+    ],
+    "serve-ps--soft": [
+      "@php artisan clear-compiled",
+      "@php -r \"@unlink('bootstrap/cache/services.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/packages.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/compiled.php');\"",
+      "@php -r \"@unlink('bootstrap/cache/routes.php');\"",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan serve"
+    ],
+    "serve-sh--hard": [
+      "@php artisan db:wipe --drop-views --force",
+      "@php artisan migrate",
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear || true",
+      "@php artisan cache:clear || true",
+      "@php artisan optimize:clear || true",
+      "@php artisan route:clear || true",
+      "@php artisan view:clear || true",
+      "@php artisan clear-compiled",
+      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
+      "@php artisan serve"
+    ],
+    "serve-sh--mixed": [
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear",
+      "@php artisan cache:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@php artisan clear-compiled",
+      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan serve"
+    ],
+    "serve-sh--soft": [
+      "@php artisan clear-compiled",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan serve"
+    ],
+    "serve-ps": "@serve-ps--mixed",
+    "serve-sh": "@serve-sh--soft",
+    "serve--hard": "@serve-ps--hard",
+    "serve--mixed": "@serve-ps--mixed",
+    "serve--soft": "@serve-ps--soft",
+    "serve--ps": "@serve-ps--soft",
+    "serve--sh": "@serve-sh--mixed",
+    "artisan-serve-ps--hard": "@serve-ps--hard",
+    "artisan-serve-ps--mixed": "@serve-ps--mixed",
+    "artisan-serve-ps--soft": "@serve-ps--soft",
+    "artisan-serve-sh--hard": "@serve-sh--hard",
+    "artisan-serve-sh--mixed": "@serve-sh--mixed",
+    "artisan-serve-sh--soft": "@serve-sh--soft",
+    "artisan-serve-ps": "@serve-ps--soft",
+    "artisan-serve-sh": "@serve-sh--soft",
+    "artisan-serve--hard": "@serve-ps--hard",
+    "artisan-serve--mixed": "@serve-ps--mixed",
+    "artisan-serve--soft": "@serve-ps--soft",
+    "artisan-serve--ps": "@serve-ps--soft",
+    "artisan-serve--sh": "@serve-sh--soft",
+    "artisan-serve": "@serve-ps--soft",
+    "artclrs-ps--hard": "@serve-ps--hard",
+    "artclrs-ps--mixed": "@serve-ps--mixed",
+    "artclrs-ps--soft": "@serve-ps--soft",
+    "artclrs-sh--hard": "@serve-sh--hard",
+    "artclrs-sh--mixed": "@serve-sh--mixed",
+    "artclrs-sh--soft": "@serve-sh--soft",
+    "artclrs-ps": "@serve-ps--soft",
+    "artclrs-sh": "@serve-sh--soft",
+    "artclrs--hard": "@serve-ps--hard",
+    "artclrs--mixed": "@serve-ps--mixed",
+    "artclrs--soft": "@serve-ps--soft",
+    "artclrs--ps": "@serve-ps--soft",
+    "artclrs--sh": "@serve-sh--soft",
+    "artclrs": "@serve-ps--soft",
+    "artisan-artclrs-ps--hard": "@serve-ps--hard",
+    "artisan-artclrs-ps--mixed": "@serve-ps--mixed",
+    "artisan-artclrs-ps--soft": "@serve-ps--soft",
+    "artisan-artclrs-sh--hard": "@serve-sh--hard",
+    "artisan-artclrs-sh--mixed": "@serve-sh--mixed",
+    "artisan-artclrs-sh--soft": "@serve-sh--soft",
+    "artisan-artclrs-ps": "@serve-ps--soft",
+    "artisan-artclrs-sh": "@serve-sh--soft",
+    "artisan-artclrs--hard": "@serve-ps--hard",
+    "artisan-artclrs--mixed": "@serve-ps--mixed",
+    "artisan-artclrs--soft": "@serve-ps--soft",
+    "artisan-artclrs--ps": "@serve-ps--soft",
+    "artisan-artclrs--sh": "@serve-sh--soft",
+    "artisan-artclrs": "@serve-ps--soft",
+    "test-php": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage"
+    ],
+    "test-php-fast": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --stop-on-failure"
+    ],
+    "test-php-feature": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Feature/"
+    ],
+    "test-php-controllers": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit tests/Unit/app/Http/Controllers/"
+    ],
+    "test-php-models": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Models/"
+    ],
+    "test-js-cjs": [
+      "npx jest --config jest.config.cjs --verbose"
+    ],
+    "test-js-ts": [
+      "cd tests/frontend/js && npx jest --verbose"
+    ],
+    "test-js-all": [
+      "@composer test-js-cjs",
+      "@composer test-js-ts"
+    ],
+    "test-python": [
+      "python3 -m pytest tests/python/ -v"
+    ],
+    "test-playwright": [
+      "cd tests/frontend/js && npx playwright test --reporter=list"
+    ],
+    "test-all": [
+      "@composer test-php",
+      "@composer test-js-all",
+      "@composer test-python"
+    ],
+    "test-curl": [
+      "python3 ../utils/.llms/scripts/curl_route_tester.py --parallel 6 --timeout 10"
+    ],
+    "test-curl-fail": [
+      "python3 ../utils/.llms/scripts/curl_route_tester.py --parallel 6 --timeout 10 --only-failures"
+    ],
+    "smoke-routes": [
+      "python3 ../utils/.llms/scripts/smoke_test_routes.py"
+    ],
+    "smoke-routes-auth": [
+      "python3 ../utils/.llms/scripts/smoke_test_authenticated.py"
+    ],
+    "audit-routes": [
+      "python3 ../utils/.llms/scripts/audit_route_constants.py"
+    ],
+    "migrate-vc": [
+      "python3 ../utils/.llms/scripts/migrate_vc_constants.py --dry-run"
+    ],
+    "migrate-vw": [
+      "python3 ../utils/.llms/scripts/migrate_vw_route_constants.py --dry-run"
+    ],
+    "lint-php": [
+      "@php vendor/bin/phpstan analyse --memory-limit=1G"
+    ],
+    "lint-js": [
+      "npx eslint public/assets/js/ --ext .js --max-warnings=50 || true"
+    ],
+    "lint-python": [
+      "python3 -m flake8 tests/python/ resources/python/ --max-line-length=120 || true"
+    ],
+    "docker-build": [
+      "docker compose build --no-cache"
+    ],
+    "docker-up": [
+      "docker compose up -d"
+    ],
+    "docker-down": [
+      "docker compose down -v"
+    ],
+    "docker-smoke": [
+      "docker compose exec app php artisan migrate:status",
+      "docker compose exec app php artisan route:list --compact | head -20"
+    ],
+    "smoke-test": [
+      "@php artisan migrate:status",
+      "@php artisan route:list --compact | head -20",
+      "curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/login || echo 'Server not running'"
+    ],
+    "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
+    "test-php-exports": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exports/"
+    ],
+    "test-php-imports": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Imports/"
+    ],
+    "test-php-services": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Services/"
+    ],
+    "test-php-jobs": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Jobs/"
+    ],
+    "test-php-mail": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Mail/"
+    ],
+    "test-php-providers": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Providers/"
+    ],
+    "test-php-exceptions": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exceptions/"
+    ],
+    "test-php-traits": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Traits/"
+    ],
+    "test-php-enums": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Enums/"
+    ],
+    "test-php-middleware": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Middleware/"
+    ],
+    "test-php-seeders": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/database/seeders/"
+    ],
+    "test-php-modules": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Modules/"
+    ],
+    "test-php-unit-all": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit"
+    ],
+    "test-php-filter": [
+      "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --filter"
+    ],
+    "phpstan": "@lint-php",
+    "phpstan-baseline": [
+      "@php vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline"
+    ],
+    "post-autoload-dump": [
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+      "@php artisan package:discover --ansi"
+    ],
+    "post-update-cmd": [
+      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+    ],
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "post-create-project-cmd": [
+      "@php artisan key:generate --ansi"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "dont-discover": []
     },
-    "require-dev": {
-        "barryvdh/laravel-debugbar": "^3.9",
-        "barryvdh/laravel-ide-helper": "^3.1",
-        "brianium/paratest": "^7.4",
-        "fakerphp/faker": "^1.9.1",
-        "laravel/pint": "^1.0",
-        "laravel/sail": "^1.18",
-        "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^7.0",
-        "phpstan/phpstan": "*",
-        "phpunit/phpunit": "^10.1",
-        "spatie/laravel-ignition": "^2.0",
-        "squizlabs/php_codesniffer": "^3.13"
+    "patches": {
+      "laravelcollective/html": {
+        "PHP 8.4 implicit-nullable fix (FormBuilder, HtmlBuilder)": "patches/laravelcollective-html-implicit-nullable.patch"
+      },
+      "nwidart/laravel-modules": {
+        "PHP 8.4 implicit-nullable fix (Json: __construct, make, toJsonPretty)": "patches/nwidart-laravel-modules-implicit-nullable.patch"
+      },
+      "spatie/laravel-permission": {
+        "PHP 8.4 implicit-nullable fix (HasRoles: hasRole, hasAllRoles, hasExactRoles)": "patches/spatie-laravel-permission-implicit-nullable.patch"
+      }
     },
-    "autoload": {
-        "psr-4": {
-            "App\\Config\\Constants\\": [
-                "app/Config/Constants/"
-            ],
-            "App\\Enums\\": [
-                "app/Enums/"
-            ],
-            "App\\Exports\\": [
-                "app/Exports/"
-            ],
-            "App\\Helpers\\": [
-                "app/Helpers/"
-            ],
-            "App\\Http\\Controllers\\": [
-                "app/Http/Controllers/"
-            ],
-            "App\\Imports\\": [
-                "app/Imports/"
-            ],
-            "App\\Jobs\\": [
-                "app/Jobs/"
-            ],
-            "App\\Logging\\": [
-                "app/Logging/"
-            ],
-            "App\\Models\\": [
-                "app/Models/"
-            ],
-            "App\\Traits\\": [
-                "app/Traits/",
-                "app/Http/Controllers/Traits/",
-                "app/Models/Traits"
-            ],
-            "App\\Services\\": [
-                "app/Services/"
-            ],
-            "App\\Services\\Contracts\\": [
-                "app/Services/Contracts/"
-            ],
-            "App\\Services\\DTO\\": [
-                "app/Services/DTO/"
-            ],
-            "App\\Services\\Resolvers\\": [
-                "app/Services/Resolvers/"
-            ],
-            "App\\Services\\Providers\\": [
-                "app/Services/Providers/"
-            ],
-            "App\\": [
-                "app/"
-            ],
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/",
-            "Modules\\": "Modules/",
-            "Modules\\LandingPage\\Config\\Constants\\": [
-                "Modules/LandingPage/Config/Constants"
-            ],
-            "Modules\\LandingPage\\Database\\Factories\\": [
-                "Modules/LandingPage/Database/Factories"
-            ],
-            "Modules\\LandingPage\\Entities\\": [
-                "Modules/LandingPage/Entities"
-            ]
-        },
-        "classmap": [
-            "app/Http/Controllers/",
-            "app/Models/"
-        ],
-        "exclude-from-classmap": [
-            "app/tests/",
-            "app/Http/_Controllers_old/",
-            "app/Exports/_withPython/",
-            "app/Imports/_withPython/",
-            "tests/",
-            "tests/Unit/",
-            "tests/Feature/"
-        ],
-        "files": [
-            "app/Models/Helpers/fields.php",
-            "app/Http/Controllers/Helpers/http.php",
-            "app/Http/Controllers/Helpers/ErrorHandlers.php",
-            "app/Http/Controllers/Helpers/security.php"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
-    },
-    "scripts": {
-        "auth:refresh": [
-            "node tests/e2e/auth.setup.cjs"
-        ],
-        "e2e": [
-            "node tests/e2e/auth.setup.cjs",
-            "npx playwright test tests/e2e/ --reporter=list --timeout=60000"
-        ],
-        "e2e:headed": [
-            "node tests/e2e/auth.setup.cjs",
-            "npx playwright test tests/e2e/ --headed --reporter=list --timeout=60000"
-        ],
-        "clear-logs": [
-            "@php -r 'foreach (glob(\"./storage/logs/*.log\") as $f) { file_put_contents($f, \"\"); }' && echo \"Logs cleared successfully.\""
-        ],
-        "rm-logs": [
-            "find storage/logs -type f -name '*.log' -exec rm -f {} \\; && echo \"Logs removal complete.\" || echo \"Logs removal attempted.\""
-        ],
-        "clear-logs-ps": [
-            "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Clear-Content; Write-Host 'Logs cleared successfully.' -ForegroundColor Green\""
-        ],
-        "rm-logs-ps": [
-            "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Remove-Item -Force; Write-Host 'Logs removed successfully.' -ForegroundColor Green\""
-        ],
-        "clear-all-cache": [
-            "@php artisan clear-compiled",
-            "@php artisan cache:clear",
-            "@php artisan config:clear",
-            "@php artisan optimize:clear",
-            "@php artisan route:clear",
-            "@php artisan view:clear",
-            "@composer dump-autoload -o"
-        ],
-        "serve-ps--hard": [
-            "@php artisan db:wipe --drop-views --force",
-            "@php artisan migrate",
-            "@php artisan permission:cache-reset",
-            "@php artisan config:clear || true",
-            "@php artisan cache:clear || true",
-            "@php artisan optimize:clear || true",
-            "@php artisan route:clear || true",
-            "@php artisan view:clear || true",
-            "@php artisan clear-compiled",
-            "@php -r \"@unlink('bootstrap/cache/services.php');\" || true",
-            "@php -r \"@unlink('bootstrap/cache/packages.php');\" || true",
-            "@php -r \"@unlink('bootstrap/cache/compiled.php');\" || true",
-            "@php -r \"@unlink('bootstrap/cache/routes.php');\" || true",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
-            "@php artisan route:list --sort=uri",
-            "@php artisan serve"
-        ],
-        "serve-ps--mixed": [
-            "@php artisan permission:cache-reset",
-            "@php artisan config:clear",
-            "@php artisan cache:clear",
-            "@php artisan optimize:clear",
-            "@php artisan route:clear",
-            "@php artisan view:clear",
-            "@php artisan clear-compiled",
-            "@php -r \"@unlink('bootstrap/cache/services.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/packages.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/compiled.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/routes.php');\"",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed --force",
-            "@php artisan serve"
-        ],
-        "serve-ps--soft": [
-            "@php artisan clear-compiled",
-            "@php -r \"@unlink('bootstrap/cache/services.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/packages.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/compiled.php');\"",
-            "@php -r \"@unlink('bootstrap/cache/routes.php');\"",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed",
-            "@php artisan serve"
-        ],
-        "serve-sh--hard": [
-            "@php artisan db:wipe --drop-views --force",
-            "@php artisan migrate",
-            "@php artisan permission:cache-reset",
-            "@php artisan config:clear || true",
-            "@php artisan cache:clear || true",
-            "@php artisan optimize:clear || true",
-            "@php artisan route:clear || true",
-            "@php artisan view:clear || true",
-            "@php artisan clear-compiled",
-            "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed --force || php artisan migrate:refresh --seed --force",
-            "@php artisan serve"
-        ],
-        "serve-sh--mixed": [
-            "@php artisan permission:cache-reset",
-            "@php artisan config:clear",
-            "@php artisan cache:clear",
-            "@php artisan optimize:clear",
-            "@php artisan route:clear",
-            "@php artisan view:clear",
-            "@php artisan clear-compiled",
-            "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed",
-            "@php artisan serve"
-        ],
-        "serve-sh--soft": [
-            "@php artisan clear-compiled",
-            "@composer dump-autoload -o",
-            "@php artisan migrate:status",
-            "@php artisan migrate:reset",
-            "@php artisan migrate:fresh --seed",
-            "@php artisan serve"
-        ],
-        "serve-ps": "@serve-ps--mixed",
-        "serve-sh": "@serve-sh--soft",
-        "serve--hard": "@serve-ps--hard",
-        "serve--mixed": "@serve-ps--mixed",
-        "serve--soft": "@serve-ps--soft",
-        "serve--ps": "@serve-ps--soft",
-        "serve--sh": "@serve-sh--mixed",
-        "artisan-serve-ps--hard": "@serve-ps--hard",
-        "artisan-serve-ps--mixed": "@serve-ps--mixed",
-        "artisan-serve-ps--soft": "@serve-ps--soft",
-        "artisan-serve-sh--hard": "@serve-sh--hard",
-        "artisan-serve-sh--mixed": "@serve-sh--mixed",
-        "artisan-serve-sh--soft": "@serve-sh--soft",
-        "artisan-serve-ps": "@serve-ps--soft",
-        "artisan-serve-sh": "@serve-sh--soft",
-        "artisan-serve--hard": "@serve-ps--hard",
-        "artisan-serve--mixed": "@serve-ps--mixed",
-        "artisan-serve--soft": "@serve-ps--soft",
-        "artisan-serve--ps": "@serve-ps--soft",
-        "artisan-serve--sh": "@serve-sh--soft",
-        "artisan-serve": "@serve-ps--soft",
-        "artclrs-ps--hard": "@serve-ps--hard",
-        "artclrs-ps--mixed": "@serve-ps--mixed",
-        "artclrs-ps--soft": "@serve-ps--soft",
-        "artclrs-sh--hard": "@serve-sh--hard",
-        "artclrs-sh--mixed": "@serve-sh--mixed",
-        "artclrs-sh--soft": "@serve-sh--soft",
-        "artclrs-ps": "@serve-ps--soft",
-        "artclrs-sh": "@serve-sh--soft",
-        "artclrs--hard": "@serve-ps--hard",
-        "artclrs--mixed": "@serve-ps--mixed",
-        "artclrs--soft": "@serve-ps--soft",
-        "artclrs--ps": "@serve-ps--soft",
-        "artclrs--sh": "@serve-sh--soft",
-        "artclrs": "@serve-ps--soft",
-        "artisan-artclrs-ps--hard": "@serve-ps--hard",
-        "artisan-artclrs-ps--mixed": "@serve-ps--mixed",
-        "artisan-artclrs-ps--soft": "@serve-ps--soft",
-        "artisan-artclrs-sh--hard": "@serve-sh--hard",
-        "artisan-artclrs-sh--mixed": "@serve-sh--mixed",
-        "artisan-artclrs-sh--soft": "@serve-sh--soft",
-        "artisan-artclrs-ps": "@serve-ps--soft",
-        "artisan-artclrs-sh": "@serve-sh--soft",
-        "artisan-artclrs--hard": "@serve-ps--hard",
-        "artisan-artclrs--mixed": "@serve-ps--mixed",
-        "artisan-artclrs--soft": "@serve-ps--soft",
-        "artisan-artclrs--ps": "@serve-ps--soft",
-        "artisan-artclrs--sh": "@serve-sh--soft",
-        "artisan-artclrs": "@serve-ps--soft",
-        "test-php": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage"
-        ],
-        "test-php-fast": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --stop-on-failure"
-        ],
-        "test-php-feature": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Feature/"
-        ],
-        "test-php-controllers": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit tests/Unit/app/Http/Controllers/"
-        ],
-        "test-php-models": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Models/"
-        ],
-        "test-js-cjs": [
-            "npx jest --config jest.config.cjs --verbose"
-        ],
-        "test-js-ts": [
-            "cd tests/frontend/js && npx jest --verbose"
-        ],
-        "test-js-all": [
-            "@composer test-js-cjs",
-            "@composer test-js-ts"
-        ],
-        "test-python": [
-            "python3 -m pytest tests/python/ -v"
-        ],
-        "test-playwright": [
-            "cd tests/frontend/js && npx playwright test --reporter=list"
-        ],
-        "test-all": [
-            "@composer test-php",
-            "@composer test-js-all",
-            "@composer test-python"
-        ],
-        "test-curl": [
-            "python3 ../utils/.llms/scripts/curl_route_tester.py --parallel 6 --timeout 10"
-        ],
-        "test-curl-fail": [
-            "python3 ../utils/.llms/scripts/curl_route_tester.py --parallel 6 --timeout 10 --only-failures"
-        ],
-        "smoke-routes": [
-            "python3 ../utils/.llms/scripts/smoke_test_routes.py"
-        ],
-        "smoke-routes-auth": [
-            "python3 ../utils/.llms/scripts/smoke_test_authenticated.py"
-        ],
-        "audit-routes": [
-            "python3 ../utils/.llms/scripts/audit_route_constants.py"
-        ],
-        "migrate-vc": [
-            "python3 ../utils/.llms/scripts/migrate_vc_constants.py --dry-run"
-        ],
-        "migrate-vw": [
-            "python3 ../utils/.llms/scripts/migrate_vw_route_constants.py --dry-run"
-        ],
-        "lint-php": [
-            "@php vendor/bin/phpstan analyse --memory-limit=1G"
-        ],
-        "lint-js": [
-            "npx eslint public/assets/js/ --ext .js --max-warnings=50 || true"
-        ],
-        "lint-python": [
-            "python3 -m flake8 tests/python/ resources/python/ --max-line-length=120 || true"
-        ],
-        "docker-build": [
-            "docker compose build --no-cache"
-        ],
-        "docker-up": [
-            "docker compose up -d"
-        ],
-        "docker-down": [
-            "docker compose down -v"
-        ],
-        "docker-smoke": [
-            "docker compose exec app php artisan migrate:status",
-            "docker compose exec app php artisan route:list --compact | head -20"
-        ],
-        "smoke-test": [
-            "@php artisan migrate:status",
-            "@php artisan route:list --compact | head -20",
-            "curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/login || echo 'Server not running'"
-        ],
-        "__ ISOLATED TESTING (subagent-friendly) __": "--- section marker ---",
-        "test-php-exports": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exports/"
-        ],
-        "test-php-imports": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Imports/"
-        ],
-        "test-php-services": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Services/"
-        ],
-        "test-php-jobs": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Jobs/"
-        ],
-        "test-php-mail": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Mail/"
-        ],
-        "test-php-providers": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Providers/"
-        ],
-        "test-php-exceptions": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Exceptions/"
-        ],
-        "test-php-traits": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/app/Traits/"
-        ],
-        "test-php-enums": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Enums/"
-        ],
-        "test-php-middleware": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Middleware/"
-        ],
-        "test-php-seeders": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/database/seeders/"
-        ],
-        "test-php-modules": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage tests/Unit/Modules/"
-        ],
-        "test-php-unit-all": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --testsuite Unit"
-        ],
-        "test-php-filter": [
-            "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage --filter"
-        ],
-        "phpstan": "@lint-php",
-        "phpstan-baseline": [
-            "@php vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline"
-        ],
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ]
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": []
-        },
-        "patches": {
-            "laravelcollective/html": {
-                "PHP 8.4 implicit-nullable fix (FormBuilder, HtmlBuilder)": "patches/laravelcollective-html-implicit-nullable.patch"
-            },
-            "nwidart/laravel-modules": {
-                "PHP 8.4 implicit-nullable fix (Json: __construct, make, toJsonPretty)": "patches/nwidart-laravel-modules-implicit-nullable.patch"
-            },
-            "laravel/sanctum": {
-                "PHP 8.4 implicit-nullable fix (HasApiTokens::createToken)": "patches/laravel-sanctum-implicit-nullable.patch"
-            },
-            "spatie/laravel-permission": {
-                "PHP 8.4 implicit-nullable fix (HasRoles: hasRole, hasAllRoles, hasExactRoles)": "patches/spatie-laravel-permission-implicit-nullable.patch"
-            }
-        },
-        "composer-exit-on-patch-failure": true
-    },
-    "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "process-timeout": 0
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "composer-exit-on-patch-failure": true
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "process-timeout": 0,
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

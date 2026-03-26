@@ -62,15 +62,22 @@ async function assertPageRenders(page, route, label, opts = {}) {
       // simpleDatatables transforms .datatable → .dataTable-table inside .dataTable-wrapper
       const table = page.locator("table.dataTable-table, table.dataTable, table.datatable, table.table, .table-responsive table, .card-body table, table:not(.phpdebugbar-widgets-params):not([class*='phpdebugbar'])");
       // Retry: simpleDatatables may still be initializing
-      const isVisible = await pollFor(page, async () => {
-        return table.first().isVisible().catch(() => false);
-      }, { maxRetries: 8, delay: 500 });
+      const isVisible = await pollFor(
+        page,
+        async () => {
+          return table
+            .first()
+            .isVisible()
+            .catch(() => false);
+        },
+        { maxRetries: 8, delay: 500 },
+      );
 
       if (!isVisible) {
         // Fallback: accept .dataTable-wrapper container or empty-state message as valid
         const wrapper = page.locator(".dataTable-wrapper, .dataTable-container");
         const emptyMsg = page.locator("text=/No (records|entries|data) found/i");
-        const hasAlt = (await wrapper.count() > 0) || (await emptyMsg.count() > 0);
+        const hasAlt = (await wrapper.count()) > 0 || (await emptyMsg.count()) > 0;
         expect(hasAlt, `${label}: table, dataTable-wrapper, or empty-state should be present`).toBe(true);
       }
     });
