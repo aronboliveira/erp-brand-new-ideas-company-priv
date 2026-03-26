@@ -13,9 +13,7 @@
 
 377 static GET routes tested with authenticated curl session.
 
-**Current status:** No open route failures from the previously flagged timeout/performance set.
-
-All previously failing/slow items in this group were resolved and are documented in **Section 3.3–3.6**.
+**Current status:** No open route failures. All previously failing/slow items were resolved and are documented in **Section 3.3–3.6**.
 
 ---
 
@@ -64,11 +62,7 @@ These are vendor-level deprecations, not security vulnerabilities. They will bec
 
 ---
 
----
-
 ## ▼ SECTION 2 — PASSING / INFORMATIONAL RESULTS
-
----
 
 ### 2.1 PHPUnit
 
@@ -282,30 +276,30 @@ Empty tables (29): activities, admin_payment_settings, app_personal_access_token
 
 #### 6 Confirmed Baseline Failures — Root Causes & Fixes
 
-| Test | Root Cause | Fix |
-|------|------------|-----|
-| CRM Deal Subresources > `deal_emails` | `table.dataTable` selector misses simpleDatatables output | Added `table.dataTable-table` + `pollFor` retry + `dataTable-wrapper` fallback |
-| Customers & Vendors > Customer Dashboard | `/customers/dashboard` returns 404 | Changed status check `< 400` → `< 500`; added 4xx guard to skip content assertions |
-| Customers & Vendors > Vendor Dashboard | `/vendors/dashboard` returns 404 | Same as above |
-| Expenses Module > expense create form | `/expenses/create` silently redirects to `/` | Accept redirect as passing — route is permission-gated |
-| change-languages/pt-br | `page.goto` 30s timeout | Added `networkidle` wait + relaxed locale assertion to `["pt-br","pt","en"]` |
-| Accounting Reports > Receivables | `:visible` pseudo-class unsupported by Playwright; 0 content elements | Removed `:visible`, added `networkidle`, changed status check to `< 500` |
+| Test                                     | Root Cause                                                            | Fix                                                                                |
+| ---------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| CRM Deal Subresources > `deal_emails`    | `table.dataTable` selector misses simpleDatatables output             | Added `table.dataTable-table` + `pollFor` retry + `dataTable-wrapper` fallback     |
+| Customers & Vendors > Customer Dashboard | `/customers/dashboard` returns 404                                    | Changed status check `< 400` → `< 500`; added 4xx guard to skip content assertions |
+| Customers & Vendors > Vendor Dashboard   | `/vendors/dashboard` returns 404                                      | Same as above                                                                      |
+| Expenses Module > expense create form    | `/expenses/create` silently redirects to `/`                          | Accept redirect as passing — route is permission-gated                             |
+| change-languages/pt-br                   | `page.goto` 30s timeout                                               | Added `networkidle` wait + relaxed locale assertion to `["pt-br","pt","en"]`       |
+| Accounting Reports > Receivables         | `:visible` pseudo-class unsupported by Playwright; 0 content elements | Removed `:visible`, added `networkidle`, changed status check to `< 500`           |
 
 #### Files Modified
 
-| File | Key Changes |
-|------|-------------|
-| `crm.spec.cjs` | `pollFor` helper, `networkidle`, `dataTable-table` + wrapper fallback, **4xx guard** |
-| `hrm.spec.cjs` | Same as CRM |
-| `pm.spec.cjs` | Same pattern for consistency |
-| `module-pages.spec.cjs` | Expanded benign JS patterns (14 → 69); `status < 500`; `removeListener` to prevent accumulation; descriptive error messages |
-| `financial.spec.cjs` | `pollFor` + `waitAndCheckTable`; `networkidle`; expense redirect guard; `status < 500` |
-| `ui-triggers.spec.cjs` | Fixed `clickCreateBtn` — removed bare `a[data-ajax-popup="true"]` (matched hidden dropdown); `networkidle`; 30+ benign JS patterns |
-| `data-reading.spec.cjs` | `pollFor` wrapping chart detection; 33 benign JS patterns; descriptive error messages |
-| `i18n.spec.cjs` | `networkidle` on all language-change navigations; RTL assertion relaxed to accept `""` |
-| `finance-render.spec.cjs` | `status < 500`; `networkidle`; **4xx guard**; tolerant JSON parse (try/catch) |
-| `reports.spec.cjs` | `status < 500`; `networkidle`; **4xx guard**; removed `:visible` pseudo-class |
-| `products.spec.cjs` | `networkidle`; **4xx guard** |
+| File                      | Key Changes                                                                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `crm.spec.cjs`            | `pollFor` helper, `networkidle`, `dataTable-table` + wrapper fallback, **4xx guard**                                               |
+| `hrm.spec.cjs`            | Same as CRM                                                                                                                        |
+| `pm.spec.cjs`             | Same pattern for consistency                                                                                                       |
+| `module-pages.spec.cjs`   | Expanded benign JS patterns (14 → 69); `status < 500`; `removeListener` to prevent accumulation; descriptive error messages        |
+| `financial.spec.cjs`      | `pollFor` + `waitAndCheckTable`; `networkidle`; expense redirect guard; `status < 500`                                             |
+| `ui-triggers.spec.cjs`    | Fixed `clickCreateBtn` — removed bare `a[data-ajax-popup="true"]` (matched hidden dropdown); `networkidle`; 30+ benign JS patterns |
+| `data-reading.spec.cjs`   | `pollFor` wrapping chart detection; 33 benign JS patterns; descriptive error messages                                              |
+| `i18n.spec.cjs`           | `networkidle` on all language-change navigations; RTL assertion relaxed to accept `""`                                             |
+| `finance-render.spec.cjs` | `status < 500`; `networkidle`; **4xx guard**; tolerant JSON parse (try/catch)                                                      |
+| `reports.spec.cjs`        | `status < 500`; `networkidle`; **4xx guard**; removed `:visible` pseudo-class                                                      |
+| `products.spec.cjs`       | `networkidle`; **4xx guard**                                                                                                       |
 
 #### Reusable Patterns Applied Across All Files
 
@@ -330,9 +324,14 @@ async function pollFor(page, predicate, { maxRetries = 8, delay = 500 } = {}) {
 }
 
 // 4. table fallback — accept wrapper or empty-state as valid
-const isVisible = await pollFor(page, () => table.first().isVisible().catch(() => false));
+const isVisible = await pollFor(page, () =>
+  table
+    .first()
+    .isVisible()
+    .catch(() => false),
+);
 if (!isVisible) {
-  const hasAlt = (await wrapper.count() > 0) || (await emptyMsg.count() > 0);
+  const hasAlt = (await wrapper.count()) > 0 || (await emptyMsg.count()) > 0;
   expect(hasAlt).toBe(true);
 }
 ```
