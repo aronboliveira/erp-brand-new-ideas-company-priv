@@ -1,160 +1,348 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="csrf-token" id="csrf-token" content="mock-csrf-token-pos" />
-  <title>ERP Nova Prestech - POS</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #fafafa; }
-    .loader-bg { display: none; }
-    .dash-sidebar { width: 260px; position: fixed; height: 100%; background: #fff; border-right: 1px solid #e0e0e0; }
-    .dash-navbar { list-style: none; padding: 1rem; }
-    .dash-item { margin-bottom: 0.25rem; }
-    .dash-link { text-decoration: none; color: #333; display: flex; align-items: center; padding: 0.5rem; }
-    .dash-micon { margin-right: 0.5rem; }
-    .dash-content { margin-left: 260px; padding: 1.5rem; }
-    .dash-container { display: flex; min-height: 100vh; }
-    .dash-header { height: 60px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 0 1.5rem; margin-left: 260px; }
-    .dash-footer { margin-left: 260px; padding: 1rem; text-align: center; color: #999; font-size: 0.8rem; }
-    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .card-header { padding: 1rem; border-bottom: 1px solid #eee; }
-    .card-body { padding: 1rem; }
-    .row { display: flex; flex-wrap: wrap; margin: -0.5rem; }
-    .col-md-12 { flex: 0 0 100%; max-width: 100%; padding: 0.5rem; }
-    .col-md-6 { flex: 0 0 50%; max-width: 50%; padding: 0.5rem; }
-    .col-md-4 { flex: 0 0 33.333%; max-width: 33.333%; padding: 0.5rem; }
-    .col-md-3 { flex: 0 0 25%; max-width: 25%; padding: 0.5rem; }
-    .text-center { text-align: center; }
-    .float-end { float: right; }
-    .btn { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 4px; text-decoration: none; cursor: pointer; border: none; }
-    .btn-primary { background: #6366f1; color: #fff; }
-    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
-    .breadcrumb { list-style: none; display: flex; gap: 0.5rem; font-size: 0.85rem; }
-    .breadcrumb-item + .breadcrumb-item::before { content: "/"; margin-right: 0.5rem; color: #999; }
-    .product-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: box-shadow 0.2s; }
-    .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-    .product-card img { max-width: 100%; height: 120px; object-fit: contain; margin-bottom: 0.5rem; }
-    .product-card h6 { margin: 0.5rem 0; font-size: 0.9rem; }
-    .product-card .price { font-weight: 700; color: #6366f1; }
-    .cart-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1rem; }
-    .cart-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
-    .cart-total { display: flex; justify-content: space-between; padding: 0.75rem 0; font-weight: 700; font-size: 1.1rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
-    .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
-    .form-label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.85rem; }
-    /* JSON error response (simulates the real /pos/create 422 when no cart) */
-    .error-response { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1.5rem; text-align: center; color: #dc2626; }
-  </style>
-</head>
-<body class="theme-3">
-  <div class="loader-bg"><div class="loader-track"><div class="loader-fill"></div></div></div>
-  <nav class="dash-sidebar light-sidebar">
-    <div class="navbar-wrapper">
-      <div class="m-header main-logo"><a href="#" class="b-brand"><img src="#" alt="ERP" class="logo logo-lg"></a></div>
-      <div class="navbar-content">
-        <ul class="dash-navbar">
-          <li class="dash-item"><a href="#" class="dash-link"><span class="dash-micon"><i class="ti ti-home"></i></span><span class="dash-mtext">Dashboard</span></a></li>
-          <li class="dash-item active"><a href="#" class="dash-link"><span class="dash-micon"><i class="ti ti-shopping-cart"></i></span><span class="dash-mtext">POS</span></a></li>
-        </ul>
-      </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" id="csrf-token" content="mock-csrf-token-pos" />
+    <title>ERP Nova Prestech - POS</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #fafafa;
+      }
+      .loader-bg {
+        display: none;
+      }
+      .dash-sidebar {
+        width: 260px;
+        position: fixed;
+        height: 100%;
+        background: #fff;
+        border-right: 1px solid #e0e0e0;
+      }
+      .dash-navbar {
+        list-style: none;
+        padding: 1rem;
+      }
+      .dash-item {
+        margin-bottom: 0.25rem;
+      }
+      .dash-link {
+        text-decoration: none;
+        color: #333;
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+      }
+      .dash-micon {
+        margin-right: 0.5rem;
+      }
+      .dash-content {
+        margin-left: 260px;
+        padding: 1.5rem;
+      }
+      .dash-container {
+        display: flex;
+        min-height: 100vh;
+      }
+      .dash-header {
+        height: 60px;
+        background: #fff;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        margin-left: 260px;
+      }
+      .dash-footer {
+        margin-left: 260px;
+        padding: 1rem;
+        text-align: center;
+        color: #999;
+        font-size: 0.8rem;
+      }
+      .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+      }
+      .card-header {
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+      }
+      .card-body {
+        padding: 1rem;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: -0.5rem;
+      }
+      .col-md-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0.5rem;
+      }
+      .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 0.5rem;
+      }
+      .col-md-4 {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+        padding: 0.5rem;
+      }
+      .col-md-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 0.5rem;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .float-end {
+        float: right;
+      }
+      .btn {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        border-radius: 4px;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary {
+        background: #6366f1;
+        color: #fff;
+      }
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+      }
+      .breadcrumb {
+        list-style: none;
+        display: flex;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+      }
+      .breadcrumb-item + .breadcrumb-item::before {
+        content: "/";
+        margin-right: 0.5rem;
+        color: #999;
+      }
+      .product-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+      }
+      .product-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+      .product-card img {
+        max-width: 100%;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 0.5rem;
+      }
+      .product-card h6 {
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+      }
+      .product-card .price {
+        font-weight: 700;
+        color: #6366f1;
+      }
+      .cart-section {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+      }
+      .cart-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+      }
+      .cart-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .form-label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+      /* JSON error response (simulates the real /pos/create 422 when no cart) */
+      .error-response {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        color: #dc2626;
+      }
+    </style>
+  </head>
+  <body class="theme-3">
+    <div class="loader-bg">
+      <div class="loader-track"><div class="loader-fill"></div></div>
     </div>
-  </nav>
-  <div class="dash-container">
-    <div class="dash-header transparent-bg"><div><span>ERP Nova Prestech</span></div></div>
-    <div class="dash-content">
-      <div class="page-header">
-        <div class="page-block">
-          <div class="row align-items-center">
-            <div class="col-auto">
-              <div class="page-header-title"><h4 class="m-b-10">Point of Sale</h4></div>
-              <ul class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/account-dashboard">Dashboard</a></li>
-                <li class="breadcrumb-item">POS</li>
-              </ul>
-            </div>
-          </div>
+    <nav class="dash-sidebar light-sidebar">
+      <div class="navbar-wrapper">
+        <div class="m-header main-logo">
+          <a href="#" class="b-brand"><img src="#" alt="ERP" class="logo logo-lg" /></a>
+        </div>
+        <div class="navbar-content">
+          <ul class="dash-navbar">
+            <li class="dash-item">
+              <a href="#" class="dash-link"
+                ><span class="dash-micon"><i class="ti ti-home"></i></span><span class="dash-mtext">Dashboard</span></a
+              >
+            </li>
+            <li class="dash-item active">
+              <a href="#" class="dash-link"
+                ><span class="dash-micon"><i class="ti ti-shopping-cart"></i></span><span class="dash-mtext">POS</span></a
+              >
+            </li>
+          </ul>
         </div>
       </div>
-
-      <!-- POS Layout: Product Grid + Cart -->
-      <div class="row">
-        <!-- Products -->
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h5>Products</h5>
-              <input type="text" class="form-control" placeholder="Search products..." style="max-width:300px;margin-top:0.5rem;" />
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="product-card" data-id="1">
-                    <img src="#" alt="Widget A">
-                    <h6>Widget A</h6>
-                    <span class="price">$25.00</span>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="product-card" data-id="2">
-                    <img src="#" alt="Gadget B">
-                    <h6>Gadget B</h6>
-                    <span class="price">$49.99</span>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="product-card" data-id="3">
-                    <img src="#" alt="Service C">
-                    <h6>Service C</h6>
-                    <span class="price">$100.00</span>
-                  </div>
-                </div>
+    </nav>
+    <div class="dash-container">
+      <div class="dash-header transparent-bg">
+        <div><span>ERP Nova Prestech</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="page-header">
+          <div class="page-block">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <div class="page-header-title"><h4 class="m-b-10">Point of Sale</h4></div>
+                <ul class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="/account-dashboard">Dashboard</a></li>
+                  <li class="breadcrumb-item">POS</li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Cart -->
-        <div class="col-md-6">
-          <div class="cart-section">
-            <h5 style="margin-bottom:1rem;">Cart</h5>
-            <div class="cart-item">
-              <span>Widget A x2</span>
-              <span>$50.00</span>
-            </div>
-            <div class="cart-item">
-              <span>Gadget B x1</span>
-              <span>$49.99</span>
-            </div>
-            <div class="cart-total">
-              <span>Total</span>
-              <span>$99.99</span>
-            </div>
-            <div style="margin-top:1rem;">
-              <label class="form-label">Customer</label>
-              <select class="form-control" name="customer_id">
-                <option value="">Walk-in Customer</option>
-                <option value="1">Acme Corp</option>
-                <option value="2">TechStart Inc</option>
-              </select>
-            </div>
-            <div style="margin-top:1rem;display:flex;gap:0.5rem;">
-              <button type="button" class="btn btn-primary" id="pos-submit-btn">Complete Sale</button>
-              <button type="button" class="btn" style="background:#eee;" id="pos-clear-btn">Clear Cart</button>
+        <!-- POS Layout: Product Grid + Cart -->
+        <div class="row">
+          <!-- Products -->
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5>Products</h5>
+                <input type="text" class="form-control" placeholder="Search products..." style="max-width: 300px; margin-top: 0.5rem" />
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="product-card" data-id="1">
+                      <img src="#" alt="Widget A" />
+                      <h6>Widget A</h6>
+                      <span class="price">$25.00</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="product-card" data-id="2">
+                      <img src="#" alt="Gadget B" />
+                      <h6>Gadget B</h6>
+                      <span class="price">$49.99</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="product-card" data-id="3">
+                      <img src="#" alt="Service C" />
+                      <h6>Service C</h6>
+                      <span class="price">$100.00</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Error state (simulates 422 empty cart) -->
-          <div class="error-response" style="margin-top:1rem;">
-            <strong>Error:</strong> Add some products to cart!
+          <!-- Cart -->
+          <div class="col-md-6">
+            <div class="cart-section">
+              <h5 style="margin-bottom: 1rem">Cart</h5>
+              <div class="cart-item">
+                <span>Widget A x2</span>
+                <span>$50.00</span>
+              </div>
+              <div class="cart-item">
+                <span>Gadget B x1</span>
+                <span>$49.99</span>
+              </div>
+              <div class="cart-total">
+                <span>Total</span>
+                <span>$99.99</span>
+              </div>
+              <div style="margin-top: 1rem">
+                <label class="form-label">Customer</label>
+                <select class="form-control" name="customer_id">
+                  <option value="">Walk-in Customer</option>
+                  <option value="1">Acme Corp</option>
+                  <option value="2">TechStart Inc</option>
+                </select>
+              </div>
+              <div style="margin-top: 1rem; display: flex; gap: 0.5rem">
+                <button type="button" class="btn btn-primary" id="pos-submit-btn">Complete Sale</button>
+                <button type="button" class="btn" style="background: #eee" id="pos-clear-btn">Clear Cart</button>
+              </div>
+            </div>
+
+            <!-- Error state (simulates 422 empty cart) -->
+            <div class="error-response" style="margin-top: 1rem"><strong>Error:</strong> Add some products to cart!</div>
           </div>
         </div>
       </div>
+      <div class="dash-footer">ERP Nova Prestech &copy; 2025</div>
     </div>
-    <div class="dash-footer">ERP Nova Prestech &copy; 2025</div>
-  </div>
-  <div class="modal fade" id="commonModal" tabindex="-1" role="dialog"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"></h5></div><div class="body"></div></div></div></div>
-</body>
+    <div class="modal fade" id="commonModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title"></h5></div>
+          <div class="body"></div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

@@ -238,7 +238,7 @@ test.describe("Dashboard Mock — / (account-dashboard) selectors", () => {
   test("spinners reserve minimum height for chart space", async ({ page }) => {
     await loadMock(page, "dashboard-account.html");
     const spinners = page.locator(".dashboard-chart-spinner");
-    for (let i = 0; i < await spinners.count(); i++) {
+    for (let i = 0; i < (await spinners.count()); i++) {
       const box = await spinners.nth(i).boundingBox();
       expect(box).not.toBeNull();
       expect(box!.height).toBeGreaterThanOrEqual(140);
