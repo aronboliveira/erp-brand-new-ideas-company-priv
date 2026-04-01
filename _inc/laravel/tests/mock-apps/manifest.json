@@ -12,6 +12,14 @@
     "api-test": {
       "path": "api-test/index.html",
       "purpose": "Simulates API calls for interception and parameter tampering"
+    },
+    "websocket-test": {
+      "path": "websocket-test/index.html",
+      "purpose": "Mock WebSocket endpoint without auth for message interception tests"
+    },
+    "upload-test": {
+      "path": "upload-test/index.html",
+      "purpose": "File upload without MIME/size validation for malicious upload testing"
     }
   },
   "legacy-mocks": {

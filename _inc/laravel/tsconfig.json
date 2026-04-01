@@ -40,8 +40,13 @@
     "node_modules",
     "**/*.test.ts",
     "**/*.test.js",
+    "**/*.test.cjs",
+    "**/*.spec.cjs",
     "_test.js",
     "**__dummy**",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "tests/Feature/security/roleplay/**/scripts/**",
+    "tests/Unit/security/roleplay/**/*.cjs",
+    "tests/e2e/**/*.cjs"
   ]
 }
