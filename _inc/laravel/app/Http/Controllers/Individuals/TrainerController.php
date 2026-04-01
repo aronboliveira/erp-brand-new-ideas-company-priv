@@ -87,8 +87,8 @@ class TrainerController extends Controller
             Log::debug("$action called", ['input' => $request->all()]);
             $rules = [
                 'branch'     => 'required|exists:branches,id',
-                'firstname' => 'required|string',
-                'lastname'  => 'required|string',
+                'first_name' => 'required|string',
+                'last_name'  => 'required|string',
                 'contact'    => 'required|string',
                 'email'      => 'required|email'
             ];
@@ -101,8 +101,8 @@ class TrainerController extends Controller
             try {
                 DB::transaction(fn() => Trainer::create([
                     'branch'     => $request->branch,
-                    'firstname' => $request->firstname,
-                    'lastname'  => $request->lastname,
+                    'first_name' => $request->first_name,
+                    'last_name'  => $request->last_name,
                     'contact'    => $request->contact,
                     'email'      => $request->email,
                     'address'    => $request->address,
@@ -161,8 +161,8 @@ class TrainerController extends Controller
             Log::debug("$action called", ['trainer_id' => $trainer->id, 'input' => $request->all()]);
             $rules = [
                 'branch'     => 'required|exists:branches,id',
-                'firstname' => 'required|string',
-                'lastname'  => 'required|string',
+                'first_name' => 'required|string',
+                'last_name'  => 'required|string',
                 'contact'    => 'required|string',
                 'email'      => 'required|email'
             ];
@@ -175,8 +175,8 @@ class TrainerController extends Controller
             try {
                 DB::transaction(fn() => $trainer->update([
                     'branch'     => $request->branch,
-                    'firstname' => $request->firstname,
-                    'lastname'  => $request->lastname,
+                    'first_name' => $request->first_name,
+                    'last_name'  => $request->last_name,
                     'contact'    => $request->contact,
                     'email'      => $request->email,
                     'address'    => $request->address,

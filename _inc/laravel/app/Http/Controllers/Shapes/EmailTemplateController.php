@@ -82,7 +82,7 @@ class EmailTemplateController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = VW::EML_TMP . '.' . $action;
+        $viewPath = self::SINGULAR . '.' . $action;
 
         return $this->measureProfile($action, function () use ($sig, $viewPath) {
             Log::info("$sig start");

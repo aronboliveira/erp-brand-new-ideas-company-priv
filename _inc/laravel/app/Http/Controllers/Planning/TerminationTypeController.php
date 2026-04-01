@@ -19,9 +19,7 @@ class TerminationTypeController extends Controller
 
     use ChecksLogin, ChecksPermissions;
 
-    // PULL REQUEST START — route name is 'terminationtype', not the VW constant
-    private const REDIRECT_INDEX = 'terminationtype.index';
-    // PULL REQUEST END
+    private const REDIRECT_INDEX = VW::TMN_TP . '.index';
     public const IDX = 'index';
     public const CRT = 'create';
     public const STR = 'store';

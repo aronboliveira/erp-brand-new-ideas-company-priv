@@ -69,20 +69,9 @@ class UserController extends AppController
                 $users = $user[UC::COL_TP] === PMC::SA
                     ? $query->where(UC::COL_TP, PMC::CPN)->get()
                     : $query->where(UC::COL_TP, '!=', PMC::CL)->get();
-                // Pre-compute counts in 3 batch queries instead of N×3 (N+1 fix)
-                $userIds = $users->pluck('id');
-                $userCounts = $userIds->isEmpty() ? collect() : User::whereIn(DC::COL_TABLE_CREATOR, $userIds)
-                    ->selectRaw(DC::COL_TABLE_CREATOR . ' as cid, count(*) as cnt')
-                    ->groupBy(DC::COL_TABLE_CREATOR)->pluck('cnt', 'cid');
-                $customerCounts = $userIds->isEmpty() ? collect() : \App\Models\Customer::whereIn(DC::COL_TABLE_CREATOR, $userIds)
-                    ->selectRaw(DC::COL_TABLE_CREATOR . ' as cid, count(*) as cnt')
-                    ->groupBy(DC::COL_TABLE_CREATOR)->pluck('cnt', 'cid');
-                $vendorCounts = $userIds->isEmpty() ? collect() : \App\Models\Vendor::whereIn(DC::COL_TABLE_CREATOR, $userIds)
-                    ->selectRaw(DC::COL_TABLE_CREATOR . ' as cid, count(*) as cnt')
-                    ->groupBy(DC::COL_TABLE_CREATOR)->pluck('cnt', 'cid');
                 $view = VW::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
-                return ViewFacade::make($view, compact(DC::TABLE_USERS, 'userCounts', 'customerCounts', 'vendorCounts'));
+                return ViewFacade::make($view, compact(DC::TABLE_USERS));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, "$cls::$action");
             } catch (\Throwable $e) {

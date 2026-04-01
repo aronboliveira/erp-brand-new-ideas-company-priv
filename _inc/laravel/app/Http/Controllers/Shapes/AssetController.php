@@ -85,7 +85,7 @@ final class AssetController extends Controller
         $this->logExecutionTime($t, $fn . '::authorize', 'completed');
         $t = microtime(true);
         $creatorId = $user->creatorId() ?? null;
-        $assets = Asset::where(DC::COL_TABLE_CREATOR, $creatorId)->with('employees')->get();
+        $assets = Asset::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($t, $fn . '::fetchAssets', 'completed');
         $viewPath = VW::AST . '.' . $fn;
         $t = microtime(true);

@@ -69,7 +69,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index'))) return $c;
 			Log::debug($method . ' filters', $request->only(['start_date', 'end_date', 'job']));
 			$stages = JobStage::whereCreatedBy($user?->creatorId())->orderBy('order')->get();
 			$jobs = Job::whereCreatedBy($user?->creatorId())->pluck('title', 'id')->prepend('All', '');
@@ -92,7 +92,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index'))) return $c;
 			$jobs = Job::whereCreatedBy($user?->creatorId())->pluck('title', 'id')->prepend('-', '');
 			$questions = CustomQuestion::whereCreatedBy($user?->creatorId())->get();
 			$view = ViewsConstants::JB_APL . '.create';
@@ -108,7 +108,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index'))) return $c;
 			$validated = $request->validate([
 				'job'    => 'required',
 				'name'   => 'required',
@@ -150,7 +150,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($encId, $request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'show job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'show job application', ViewsConstants::JB_APL . '.index'))) return $c;
 			try {
 				$id = Crypt::decrypt($encId);
 			} catch (\Throwable $e) {
@@ -173,7 +173,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $jobApplication, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'delete job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'delete job application', ViewsConstants::JB_APL . '.index'))) return $c;
 			if (($jobApplication[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method, route(ViewsConstants::JB_APL . '.index'));
 			$jobApplication->delete();
 			collect([
@@ -189,7 +189,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'move job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'move job application', ViewsConstants::JB_APL . '.index'))) return $c;
 			collect($request->input('order', []))->each(function ($item, $key) use ($request) {
 				JobApplication::whereKey($item)->update(['order' => $key, 'stage' => $request->stage_id]);
 			});
@@ -203,7 +203,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'add job application skill', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'add job application skill', ViewsConstants::JB_APL . '.index'))) return $c;
 			$request->validate(['skill' => 'required']);
 			JobApplication::whereKey($id)->update(['skill' => $request->skill]);
 			return back()->with('success', __('Skill added.'));
@@ -217,7 +217,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'add job application note', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'add job application note', ViewsConstants::JB_APL . '.index'))) return $c;
 			$request->validate(['note' => 'required']);
 			JobApplicationNote::create([
 				'application_id' => $id,
@@ -236,7 +236,7 @@ class JobApplicationController extends Controller
 		$request = request();
 		return $this->measureProfile($action, function () use ($id, $request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'delete job application note', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'delete job application note', ViewsConstants::JB_APL . '.index'))) return $c;
 			JobApplicationNote::whereKey($id)->delete();
 			return back()->with('success', __('Note deleted.'));
 		}, ['route' => Route::getCurrentRoute()?->getName(), 'id' => $id]);
