@@ -31,7 +31,14 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : 4,
 
   /* Reporter to use */
-  reporter: [["html", { open: "never", outputFolder: "tests/frontend/js/playwright-report" }], ["json", { outputFile: "tests/frontend/js/test-results.json" }], ["list"]],
+  reporter: [
+    [
+      "html",
+      { open: "never", outputFolder: "tests/frontend/js/playwright-report" },
+    ],
+    ["json", { outputFile: "tests/frontend/js/test-results.json" }],
+    ["list"],
+  ],
 
   /* Shared settings for all the projects below */
   use: {
@@ -83,9 +90,9 @@ module.exports = defineConfig({
 
   /* Web server for serving mock pages with ES module support */
   webServer: {
-    command: "npx http-server tests/frontend/js/pages -p 3847 -c-1",
-    url: "http://localhost:3847",
-    reuseExistingServer: false,
+    command: "npx http-server tests/frontend/js/pages -p 3000 -c-1",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
     timeout: 10000,
   },
 
