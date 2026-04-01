@@ -1,8 +1,51 @@
 
-In ClassLoader.php line 576:
+   FAIL  Tests\Security\Unit\MassAssignmentTest
+  ⨯ model has fillable or guarded
+
+   PASS  Tests\Unit\Models\ActivityLogTest
+  ✓ get remark returns raw remark for unknown log type                  10.81s  
+  ✓ get remark builds invite user message                                0.28s  
+  ✓ user relation resolves to user model                                 0.31s  
+
+   PASS  Tests\Unit\Models\ActivityTest
+  ✓ get activity returns default name for unknown module type            0.06s  
+  ✓ get activity returns user name for contact module type               0.81s  
+  ✓ get activity returns user name for company module type               0.50s  
+  ✓ get activity returns employee full name for employee module type     0.78s  
+
+   PASS  Tests\Unit\Models\AppraisalTest
+  ✓ branches relation resolves to branch model                           0.07s  
+  ✓ employees relation resolves to employee model                        0.06s  
+
+   PASS  Tests\Unit\Models\AwardTest
+...
                                                                                
-  include(/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp  
-  _prestech/_inc/laravel/vendor/composer/../munafio/chatify/src/ChatifyServic  
-  eProvider.php): Failed to open stream: No such file or directory             
+  Cannot redeclare class App\Models\BillProduct (previously declared in /home  
+  /aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_in  
+  c/laravel/app/Models/Bills/BillProduct.php:26)                               
+                                                                               
+
+
+In BillProduct.php line 26:
+                                                                               
+  Cannot redeclare class App\Models\BillProduct (previously declared in /home  
+  /aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_in  
+  c/laravel/app/Models/Bills/BillProduct.php:26)                               
+                                                                               
+
+
+In BillProduct.php line 26:
+                                                                               
+  Cannot redeclare class App\Models\BillProduct (previously declared in /home  
+  /aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_in  
+  c/laravel/app/Models/Bills/BillProduct.php:26)                               
+                                                                               
+
+
+In BillProduct.php line 26:
+                                                                               
+  Cannot redeclare class App\Models\BillProduct (previously declared in /home  
+  /aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_in  
+  c/laravel/app/Models/Bills/BillProduct.php:26)                               
                                                                                
 

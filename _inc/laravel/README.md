@@ -179,6 +179,18 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
+### Latest Results (2026-04-01)
+
+| Tool | Result |
+|------|--------|
+| PHPUnit | 176 PASS suites, 874 ✓, 7 FAIL suites (10 ⨯), 40 WARN |
+| Jest | 28/28 suites, 652/652 tests passed |
+| PHPStan | 0 errors |
+| Playwright | 9 passed, 3 skipped |
+| TSC | 1 error (casing conflict in ts/dist/) |
+| flake8 | 147 issues (style) |
+| mypy | 37 errors in 6 files |
+
 ### PHPUnit (backend)
 
 ```bash
@@ -191,16 +203,15 @@ php artisan test --testsuite=Feature       # feature only
 ### Jest (frontend)
 
 ```bash
-npm test                                   # all (510+ tests)
-npm test -- --testPathPattern="erp-guard"  # specific file
-npm test -- --watch                        # watch mode
+npx jest --config jest.config.cjs          # all (652 tests)
+npx jest --config jest.config.cjs --testPathPattern="erp-guard"  # specific file
 ```
 
 ### PHPStan (static analysis)
 
 ```bash
-vendor/bin/phpstan analyse                 # full codebase
-vendor/bin/phpstan analyse app/Models/     # specific directory
+vendor/bin/phpstan analyse --memory-limit=2G  # full codebase (2G required)
+vendor/bin/phpstan analyse app/Models/        # specific directory
 ```
 
 ---

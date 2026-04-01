@@ -2,6 +2,7 @@
 
 > Reference: `.notes/.llms/.guidelines/security-roleplay-profiles.xml`
 > Generated: 2026-03-31
+> Updated: 2026-04-01
 
 ---
 
@@ -12,11 +13,11 @@ Covers: HTTP routes, raw queries, Blade views, mass assignment, Eloquent models.
 
 ## 2. Vulnerabilities Found & Fixed
 
-| #   | File                                                      | Vulnerability                                                         | Severity | Fix                       |
-| --- | --------------------------------------------------------- | --------------------------------------------------------------------- | -------- | ------------------------- |
-| 1   | `app/Http/Controllers/Activity/EventController.php:62`    | `whereRaw('MONTH(start_date)=' . $todayMonth)` — string concatenation | HIGH     | Parameterized binding `?` |
-| 2   | `app/Http/Controllers/Shapes/DashboardController.php:314` | `find_in_set('{$user?->id}',...)` — string interpolation              | HIGH     | Parameterized binding `?` |
-| 3   | `app/Models/Activity/Activity.php`                        | Missing `$guarded` — mass assignment vulnerable                       | MEDIUM   | Added `$guarded = ['id']` |
+| # | File | Vulnerability | Severity | Fix |
+|---|------|--------------|----------|-----|
+| 1 | `app/Http/Controllers/Activity/EventController.php:62` | `whereRaw('MONTH(start_date)=' . $todayMonth)` — string concatenation | HIGH | Parameterized binding `?` |
+| 2 | `app/Http/Controllers/Shapes/DashboardController.php:314` | `find_in_set('{$user?->id}',...)` — string interpolation | HIGH | Parameterized binding `?` |
+| 3 | `app/Models/Activity/Activity.php` | Missing `$guarded` — mass assignment vulnerable | MEDIUM | Added `$guarded = ['id']` |
 
 ### Informational Findings (not fixed — medium/low risk)
 
@@ -31,13 +32,13 @@ Covers: HTTP routes, raw queries, Blade views, mass assignment, Eloquent models.
 
 Located in `tests/{e2e,Unit}/security/{php,js,py}/`:
 
-| Test File                                              | Framework | Tests | Purpose                                                |
-| ------------------------------------------------------ | --------- | ----- | ------------------------------------------------------ |
-| `e2e/security/php/SqlInjectionTest.php`                | PHPUnit   | 217   | HTTP SQLi pen-test (GET, POST, path, headers, JSON)    |
-| `Unit/security/php/MassAssignmentTest.php`             | PHPUnit   | 190   | Dynamic Eloquent model scan for `$fillable`/`$guarded` |
-| `Unit/security/php/RawQueryAuditTest.php`              | PHPUnit   | 4     | Static SAST for raw SQL patterns                       |
-| `python/security/test_sqli_payloads.py`                | pytest    | 171   | HTTP SQLi via requests (login, search, path, blind)    |
-| `Unit/frontend/js/security/sqli-sanitization.test.cjs` | Jest      | 13    | Client-side sanitization, DOM, Blade scan              |
+| Test File | Framework | Tests | Purpose |
+|-----------|-----------|-------|---------|
+| `e2e/security/php/SqlInjectionTest.php` | PHPUnit | 217 | HTTP SQLi pen-test (GET, POST, path, headers, JSON) |
+| `Unit/security/php/MassAssignmentTest.php` | PHPUnit | 190 | Dynamic Eloquent model scan for `$fillable`/`$guarded` |
+| `Unit/security/php/RawQueryAuditTest.php` | PHPUnit | 4 | Static SAST for raw SQL patterns |
+| `python/security/test_sqli_payloads.py` | pytest | 171 | HTTP SQLi via requests (login, search, path, blind) |
+| `Unit/frontend/js/security/sqli-sanitization.test.cjs` | Jest | 13 | Client-side sanitization, DOM, Blade scan |
 
 ### 3.2 Roleplay tests (actor-specific simulation)
 
@@ -48,14 +49,14 @@ See `.notes/.llms/.guidelines/security-roleplay-profiles.xml` for role definitio
 
 **Actors:**
 
-| Actor                 | Mindset                           | Test Style                                        | Risk Level |
-| --------------------- | --------------------------------- | ------------------------------------------------- | ---------- |
-| **green-hat**         | Beginner, curious, learning       | Simple smoke tests, naive inputs, quick runs      | LOW        |
-| **white-hat**         | Ethical pentester, methodical     | Structured OWASP payloads, proper reporting       | MEDIUM     |
-| **black-hat**         | Malicious, sophisticated          | Obfuscated, evasive, destructive; **GIT-IGNORED** | CRITICAL   |
-| **ciso**              | Executive oversight, compliance   | Policy validation, audit checklists, KPI metrics  | MEDIUM     |
-| **qa**                | Quality tester, client-side focus | UI interaction, form validation, edge cases       | LOW-MEDIUM |
-| **backend-developer** | Internal dev, code review         | Query patterns, ORM misuse, config checks         | MEDIUM     |
+| Actor | Mindset | Test Style | Risk Level |
+|-------|---------|------------|------------|
+| **green-hat** | Beginner, curious, learning | Simple smoke tests, naive inputs, quick runs | LOW |
+| **white-hat** | Ethical pentester, methodical | Structured OWASP payloads, proper reporting | MEDIUM |
+| **black-hat** | Malicious, sophisticated | Obfuscated, evasive, destructive; **GIT-IGNORED** | CRITICAL |
+| **ciso** | Executive oversight, compliance | Policy validation, audit checklists, KPI metrics | MEDIUM |
+| **qa** | Quality tester, client-side focus | UI interaction, form validation, edge cases | LOW-MEDIUM |
+| **backend-developer** | Internal dev, code review | Query patterns, ORM misuse, config checks | MEDIUM |
 
 ## 4. File Naming Conventions
 
@@ -88,3 +89,27 @@ npx playwright test tests/e2e/security/
 # curl (direct)
 # See scripts in _inc/utils/scripts/
 ```
+
+## 7. Latest Run Results (2026-04-01)
+
+| Tool | Result |
+|------|--------|
+| PHPUnit | 874 ✓, 10 ⨯ (7 suites failing), 40 warnings. Feature tests blocked by BillProduct fatal. |
+| Jest | 28/28 suites, 652/652 tests — all passed (16.1s) |
+| Playwright | 9 passed, 3 skipped (3.6 min) |
+| PHPStan | 0 errors |
+| flake8 | 147 issues (style) |
+| mypy | 37 errors in 6 files |
+
+### Security Headers (verified via curl)
+- `X-Content-Type-Options: nosniff` ✓
+- `X-Frame-Options: DENY` ✓
+- `Strict-Transport-Security: max-age=31536000; includeSubDomains` ✓
+- Full `Content-Security-Policy` ✓
+- CSRF tokens active on all forms ✓
+
+### HTTP Route Verification
+- `GET /login` → 200 ✓
+- `GET /register` → 200 ✓
+- Auth-protected routes → 302 (redirect to login) ✓
+- No 5xx errors detected across 40+ tested paths ✓

@@ -1,0 +1,66 @@
+=== ERP Prestech — Test Suite Summary (2026-04-01) ===
+
+PHPUnit 10.5.55 (sequential, --no-coverage)
+  PASS suites:  176
+  FAIL suites:  7
+  WARN suites:  40
+  Individual ✓: 874
+  Individual ⨯: 10
+  Fatal:        BillProduct class redeclaration (Feature tests skipped)
+
+Failing suites:
+  - Tests\Security\Unit\MassAssignmentTest (model has fillable or guarded)
+  - Tests\Unit\Models\BugTest (relation resolution failures)
+  - Tests\Unit\Models\EmailTest (global scope ordering)
+  - JobStageTest (fillable fields mismatch)
+  - Tests\Unit\Models\ProductServiceUnitTest (user relation)
+  - Tests\Unit\Models\LabelTest (fillable array)
+  - Tests\Unit\Models\GeneratedOfferLetterTest (record count)
+
+Jest 29.7.0 (--config jest.config.cjs --no-coverage --forceExit)
+  Suites: 28 passed / 28 total
+  Tests:  652 passed / 652 total
+  Time:   16.1s
+
+PHPStan (level from phpstan.neon, --memory-limit=2G)
+  Result: [OK] No errors
+
+TSC (--noEmit)
+  Errors: 1 (casing conflict in ts/dist/ — payslip.d.ts vs paySlip.d.ts)
+
+ESLint (flat config)
+  Total issues: 77,576 errors + 203 warnings
+  Distribution: ts/ (2250 files), .backup/ (939), public/ (368), Modules/ (250)
+  Core test/util files: ~40 errors (Node.js globals: process, __dirname, console)
+
+Playwright (--config playwright.config.cjs)
+  Passed:  9
+  Skipped: 3
+  Time:    3.6 min
+
+flake8 (63 Python files)
+  Issues: 147 (4 E401, 3 E402, 5 E501, 73 F401, 8 F541, 9 F841, 2 W291, 39 W293, 4 W503)
+
+mypy (mypy.ini, 63 Python files)
+  Errors: 37 in 6 files (openpyxl Reference overloads, None attribute access, type annotations)
+
+MySQL (erp_prestech_db)
+  Tables: 211
+  Migrations: 219
+  Foreign keys: 1044
+  Users: 101
+  Permissions: 1680
+  Roles: 8
+  Core data: Invoices=5, Bills=4, Proposals=2, Employees=9, Projects=4
+
+HTTP Routes (curl, 40+ paths)
+  login/register: 200
+  Auth-protected routes: 302 (redirect to login ✓)
+  No 5xx errors detected
+
+Security Headers:
+  X-Content-Type-Options: nosniff ✓
+  X-Frame-Options: DENY ✓
+  Strict-Transport-Security: max-age=31536000; includeSubDomains ✓
+  Content-Security-Policy: Full CSP with connect/script/style/img/font directives ✓
+  CSRF: Active (5 token references on login page) ✓

@@ -33,21 +33,21 @@ These scripts produce breaches or audit results that the test files validate.
 
 ### Test Files
 
-| Subfolder | Language   | Framework                      | File Pattern                |
-| --------- | ---------- | ------------------------------ | --------------------------- |
-| `php/`    | PHP 8.4    | PHPUnit 10                     | `*Test.php`                 |
+| Subfolder | Language   | Framework                      | File Pattern                 |
+| --------- | ---------- | ------------------------------ | ---------------------------- |
+| `php/`    | PHP 8.4    | PHPUnit 10                     | `*Test.php`                  |
 | `js/`     | JavaScript | Jest (Unit) / Playwright (e2e) | `*.test.cjs` / `*.spec.cjs` |
-| `py/`     | Python 3   | pytest                         | `test_*.py`                 |
+| `py/`     | Python 3   | pytest                         | `test_*.py`                  |
 
 ### Attack/Evaluation Scripts
 
-| Subfolder       | Language      | Executable        | Purpose                          |
-| --------------- | ------------- | ----------------- | -------------------------------- |
-| `js/scripts/`   | JavaScript    | `node script.cjs` | Client-side attacks, DOM probing |
-| `py/scripts/`   | Python 3      | `python3 x.py`    | HTTP attacks, data extraction    |
-| `php/scripts/`  | PHP 8.4       | `php script.php`  | Server-side probing              |
-| `bash/scripts/` | Bash          | `bash script.sh`  | Orchestration, curl chains       |
-| `wasm/scripts/` | C→WebAssembly | `node loader.cjs` | Binary encoding, obfuscation     |
+| Subfolder      | Language     | Executable       | Purpose                          |
+| -------------- | ------------ | ---------------- | -------------------------------- |
+| `js/scripts/`  | JavaScript   | `node script.cjs`| Client-side attacks, DOM probing |
+| `py/scripts/`  | Python 3     | `python3 x.py`  | HTTP attacks, data extraction    |
+| `php/scripts/` | PHP 8.4      | `php script.php` | Server-side probing              |
+| `bash/scripts/`| Bash         | `bash script.sh` | Orchestration, curl chains       |
+| `wasm/scripts/`| C→WebAssembly| `node loader.cjs`| Binary encoding, obfuscation     |
 
 ### Which framework goes where?
 
@@ -62,11 +62,11 @@ These scripts produce breaches or audit results that the test files validate.
 
 Target applications for attack scripts live in `tests/mock-apps/`:
 
-| App             | File                         | Purpose                                      |
-| --------------- | ---------------------------- | -------------------------------------------- |
-| Vulnerable Form | `vulnerable-form/index.html` | Form with intentional client-side weaknesses |
-| Session Test    | `session-test/index.html`    | Exposes session/cookie handling for probing  |
-| API Endpoint    | `api-test/index.html`        | Simulates API calls for interception tests   |
+| App                | File                       | Purpose                                      |
+| ------------------ | -------------------------- | -------------------------------------------- |
+| Vulnerable Form    | `vulnerable-form/index.html` | Form with intentional client-side weaknesses |
+| Session Test       | `session-test/index.html`    | Exposes session/cookie handling for probing  |
+| API Endpoint       | `api-test/index.html`        | Simulates API calls for interception tests   |
 
 Existing frontend mocks in `tests/frontend/js/pages/mocks/` are referenced via
 `tests/mock-apps/manifest.json` for unified access.
