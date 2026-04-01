@@ -1,6 +1,5 @@
 /** @requires ERPGuard */
 (function () {
-  if (!window.ERPBootstrap) return;
   const { guard } = window.ERPBootstrap.require("ERPGuard");
   if (!guard) return;
   const $ = window.jQuery;
@@ -9,14 +8,10 @@
   const dataBindPipe = "data-pipeline-bound";
   const ns = "._npLeads";
   const qs = (s, r = document) => r.querySelector(s);
-  const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ?? "";
-  const ensureDragula = () => {
-    if (typeof window.dragula === "function") return true;
-    try {
-      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("Dragula unavailable");
-    } catch (_) {}
-    return false;
-  };
+  const csrf = () =>
+    document
+      .querySelector('meta[name="csrf-token"]')
+      ?.getAttribute("content") ?? "";
   const bindDragula = () => {
     if (!(window.jQuery && window.jQuery.fn) || !ensureDragula()) return;
     if (document.body.getAttribute(dataBindDrag) === "true") return;
@@ -79,11 +74,15 @@
             },
             success: function () {},
             error: function (xhr) {
-              guard.scheduleInteractiveError(guard.getMsg("leads_order_unavailable"));
+              guard.scheduleInteractiveError(
+                guard.getMsg("leads_order_unavailable")
+              );
             },
           });
         } catch (_) {
-          guard.scheduleInteractiveError(guard.getMsg("leads_order_unavailable"));
+          guard.scheduleInteractiveError(
+            guard.getMsg("leads_order_unavailable")
+          );
         }
       });
     });
@@ -125,7 +124,7 @@
         bindDragula();
         bindPipelineChange();
       },
-      { once: true },
+      { once: true }
     );
   } else {
     bindDragula();

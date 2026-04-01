@@ -1,8 +1,3 @@
-const _t = k => {
-  const l = (document.documentElement || {}).lang || "en";
-  const t = window.translations;
-  return (t && t[l] && t[l][k]) || k;
-};
 (() => {
   const guard = typeof window !== "undefined" ? window.ERPGuard : null;
   if (!guard) return;
@@ -22,16 +17,20 @@ const _t = k => {
 
             const url = img.getAttribute("data-url") ?? "#";
             if (!url || url === "#") {
-              const msg = img.getAttribute("data-guard-msg") || "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
+              const msg =
+                img.getAttribute("data-guard-msg") ||
+                "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
               guard.showToast(msg);
               img.setAttribute("data-failed-route", "true");
               return;
             }
 
             const modal = document.getElementById("exampleModalCenter");
-            const content = modal ? modal.querySelector(".image_sider_div") : null;
+            const content = modal
+              ? modal.querySelector(".image_sider_div")
+              : null;
             if (!modal || !content) {
-              alert(_t("Could not find images modal container"));
+              alert("Could not find images modal container");
               return;
             }
 
@@ -45,12 +44,16 @@ const _t = k => {
               const html = await rsp.text();
               content.innerHTML = html;
 
-              if (typeof window.bootstrap !== "undefined" && window.bootstrap?.Modal) {
+              if (
+                typeof window.bootstrap !== "undefined" &&
+                window.bootstrap?.Modal
+              ) {
                 const m = window.bootstrap.Modal.getOrCreateInstance(modal);
                 m.show();
               }
             } catch (xhrErr) {
-              const msg = _t("Failed to load tracker images. Please try again later.");
+              const msg =
+                "Failed to load tracker images. Please try again later.";
               guard.showToast(msg);
             }
           } catch {}

@@ -53,7 +53,9 @@
       if (document.body?.hasAttribute(RecoveryOverlay.#DATA_INIT)) return;
 
       this.#isModal = !document.body || !!document.querySelector(".modal-body, .modal-header, .modal-content");
-      this.#targetElement = this.#isModal ? document.documentElement || document.querySelector("form, div") : document.body;
+      this.#targetElement = this.#isModal
+        ? document.documentElement || document.querySelector("form, div")
+        : document.body;
 
       if (!this.#targetElement) return;
 
@@ -75,9 +77,18 @@
      * @private
      */
     #ensureDependencies() {
-      this.#ensureStylesheet(RecoveryOverlay.#BOOTSTRAP_CSS, 'link[rel="stylesheet"][href*="bootstrap"][href$=".css"]:not([href*="icons"])');
-      this.#ensureStylesheet(RecoveryOverlay.#BOOTSTRAP_ICONS, 'link[rel="stylesheet"][href*="bootstrap-icons"]');
-      this.#ensureScript(RecoveryOverlay.#BOOTSTRAP_JS, 'script[src*="bootstrap"][src*="bundle"]');
+      this.#ensureStylesheet(
+        RecoveryOverlay.#BOOTSTRAP_CSS,
+        'link[rel="stylesheet"][href*="bootstrap"][href$=".css"]:not([href*="icons"])'
+      );
+      this.#ensureStylesheet(
+        RecoveryOverlay.#BOOTSTRAP_ICONS,
+        'link[rel="stylesheet"][href*="bootstrap-icons"]'
+      );
+      this.#ensureScript(
+        RecoveryOverlay.#BOOTSTRAP_JS,
+        'script[src*="bootstrap"][src*="bundle"]'
+      );
     }
 
     /**
@@ -131,16 +142,22 @@
     #applyOverlayStyles() {
       if (!this.#overlay) return;
 
-      const baseClass = this.#isModal ? "position-relative w-100 d-flex align-items-center justify-content-center p-3" : "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3";
+      const baseClass = this.#isModal
+        ? "position-relative w-100 d-flex align-items-center justify-content-center p-3"
+        : "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3";
 
-      if (this.#overlay.getAttribute("class") !== baseClass) this.#overlay.className = baseClass;
+      if (this.#overlay.getAttribute("class") !== baseClass)
+        this.#overlay.className = baseClass;
 
       const bgStyle = this.#isModal ? "rgba(255,255,255,.95)" : "rgba(0,0,0,.25)";
-      if (this.#overlay.style.background !== bgStyle) this.#overlay.style.background = bgStyle;
+      if (this.#overlay.style.background !== bgStyle)
+        this.#overlay.style.background = bgStyle;
 
-      if (!this.#isModal && this.#overlay.style.zIndex !== "2147483000") this.#overlay.style.zIndex = "2147483000";
+      if (!this.#isModal && this.#overlay.style.zIndex !== "2147483000")
+        this.#overlay.style.zIndex = "2147483000";
 
-      if (this.#isModal && this.#overlay.style.minHeight !== "300px") this.#overlay.style.minHeight = "300px";
+      if (this.#isModal && this.#overlay.style.minHeight !== "300px")
+        this.#overlay.style.minHeight = "300px";
     }
 
     /**
@@ -155,7 +172,9 @@
         "aria-labelledby": "diagTitle",
         "aria-describedby": "diagDesc",
       };
-      for (const [key, value] of Object.entries(attrs)) if (this.#overlay.getAttribute(key) !== value) this.#overlay.setAttribute(key, value);
+      for (const [key, value] of Object.entries(attrs))
+        if (this.#overlay.getAttribute(key) !== value)
+          this.#overlay.setAttribute(key, value);
     }
 
     /**
@@ -229,7 +248,9 @@
       const desc = document.createElement("p");
       desc.id = "diagDesc";
       desc.className = "text-muted mb-3";
-      desc.innerHTML = this.#isModal ? "We found unexpected content in this modal. Please try closing and reopening it." : "We found unexpected content at the start of this page. You can safely navigate using the options below.";
+      desc.innerHTML = this.#isModal
+        ? "We found unexpected content in this modal. Please try closing and reopening it."
+        : "We found unexpected content at the start of this page. You can safely navigate using the options below.";
       return desc;
     }
 
@@ -273,7 +294,9 @@
       const actions = document.createElement("div");
       actions.className = "d-grid gap-2 d-sm-flex justify-content-sm-center mt-3";
 
-      this.#isModal ? this.#createModalActions(actions) : this.#createPageActions(actions);
+      this.#isModal
+        ? this.#createModalActions(actions)
+        : this.#createPageActions(actions);
 
       return actions;
     }
@@ -332,7 +355,7 @@
       btn.type = "button";
       btn.className = className;
       btn.setAttribute("aria-label", ariaLabel);
-      btn.innerHTML = `<i class="bi bi-${iconName}" aria-hidden="true"></i> ${text}`;
+      btn.innerHTML = \`<i class="bi bi-\${iconName}" aria-hidden="true"></i> \${text}\`;
       return btn;
     }
 
@@ -345,7 +368,7 @@
       const hint = document.createElement("p");
       hint.className = "mt-3 small text-muted";
       const message = this.#isModal ? "to dismiss." : "to dismiss this message.";
-      hint.innerHTML = `<i class="bi bi-info-circle" aria-hidden="true"></i> Press <kbd style="margin-inline: 0.15rem;">Esc</kbd> ${message}`;
+      hint.innerHTML = \`<i class="bi bi-info-circle" aria-hidden="true"></i> Press <kbd style="margin-inline: 0.15rem;">Esc</kbd> \${message}\`;
       return hint;
     }
 
@@ -357,7 +380,8 @@
       if (!this.#overlay || !this.#targetElement) return;
       this.#targetElement.appendChild(this.#overlay);
 
-      if (!this.#isModal && !document.body.classList.contains(RecoveryOverlay.#OVERFLOW_CLASS)) document.body.classList.add(RecoveryOverlay.#OVERFLOW_CLASS);
+      if (!this.#isModal && !document.body.classList.contains(RecoveryOverlay.#OVERFLOW_CLASS))
+        document.body.classList.add(RecoveryOverlay.#OVERFLOW_CLASS);
 
       setTimeout(() => this.#overlay?.focus(), 0);
     }
@@ -367,7 +391,7 @@
      * @private
      */
     #setupEscapeHandler() {
-      this.#escHandler = e => {
+      this.#escHandler = (e) => {
         if (e.key !== "Escape") return;
         this.dismiss();
       };
@@ -383,7 +407,8 @@
         this.#escHandler = null;
       }
       this.#overlay?.remove();
-      if (!this.#isModal && document.body.classList.contains(RecoveryOverlay.#OVERFLOW_CLASS)) document.body.classList.remove(RecoveryOverlay.#OVERFLOW_CLASS);
+      if (!this.#isModal && document.body.classList.contains(RecoveryOverlay.#OVERFLOW_CLASS))
+        document.body.classList.remove(RecoveryOverlay.#OVERFLOW_CLASS);
       document.body?.removeAttribute(RecoveryOverlay.#DATA_INIT);
     }
 
@@ -397,7 +422,9 @@
         if (!modalElement) return this.dismiss();
 
         const modal = window.bootstrap?.Modal?.getInstance(modalElement);
-        modal ? modal.hide() : modalElement.querySelector('[data-bs-dismiss="modal"]')?.click();
+        modal
+          ? modal.hide()
+          : modalElement.querySelector('[data-bs-dismiss="modal"]')?.click();
       } catch (err) {
         console.error("[RecoveryOverlay] Error closing modal:", err);
       } finally {
@@ -417,5 +444,7 @@
     }
   };
 
-  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initRecoveryCheck) : initRecoveryCheck();
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", initRecoveryCheck)
+    : initRecoveryCheck();
 })();

@@ -6,11 +6,6 @@
  */
 
 "use strict";
-function __erp_t(k) {
-  var l = (document.documentElement || {}).lang || "en";
-  var t = window.translations || {};
-  return (t[l] && t[l][k]) || k;
-}
 // for pos system
 var session_key = $(location).attr("href").split("/").pop();
 //
@@ -46,14 +41,10 @@ function daterange() {
 function select2() {
   if ($(".select2").length > 0) {
     $($(".select2")).each(function (index, element) {
-      if (element.getAttribute("data-choice") || element.classList.contains("choices__input")) return;
-      try {
-        var multipleCancelButton = new Choices(element, {
-          removeItemButton: true,
-        });
-      } catch (e) {
-        /* Choices.js init failed for element */
-      }
+      var id = $(element).attr("id");
+      var multipleCancelButton = new Choices("#" + id, {
+        removeItemButton: true,
+      });
     });
   }
 }
@@ -69,48 +60,52 @@ function show_toastr(type, message) {
   $("#liveToast .toast-body").html(message);
 }
 
-$(document).on("click", 'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]', function () {
-  var data = {};
-  var title1 = $(this).data("title");
+$(document).on(
+  "click",
+  'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]',
+  function () {
+    var data = {};
+    var title1 = $(this).data("title");
 
-  var title2 = $(this).data("bs-original-title");
-  var title3 = $(this).data("original-title");
-  var title = title1 != undefined ? title1 : title2;
-  var title = title != undefined ? title : title3;
+    var title2 = $(this).data("bs-original-title");
+    var title3 = $(this).data("original-title");
+    var title = title1 != undefined ? title1 : title2;
+    var title = title != undefined ? title : title3;
 
-  $(".modal-dialog").removeClass("modal-xl");
-  var size = $(this).data("size") == "" ? "md" : $(this).data("size");
+    $(".modal-dialog").removeClass("modal-xl");
+    var size = $(this).data("size") == "" ? "md" : $(this).data("size");
 
-  var url = $(this).data("url");
-  $("#commonModal .modal-title").html(title);
-  $("#commonModal .modal-dialog").addClass("modal-" + size);
+    var url = $(this).data("url");
+    $("#commonModal .modal-title").html(title);
+    $("#commonModal .modal-dialog").addClass("modal-" + size);
 
-  if ($("#vc_name_hidden").length > 0) {
-    data["vc_name"] = $("#vc_name_hidden").val();
+    if ($("#vc_name_hidden").length > 0) {
+      data["vc_name"] = $("#vc_name_hidden").val();
+    }
+    if ($("#warehouse_name_hidden").length > 0) {
+      data["warehouse_name"] = $("#warehouse_name_hidden").val();
+    }
+    if ($("#discount_hidden").length > 0) {
+      data["discount"] = $("#discount_hidden").val();
+    }
+    $.ajax({
+      url: url,
+      data: data,
+      success: function (data) {
+        $("#commonModal .body").html(data);
+        $("#commonModal").modal("show");
+        // daterange_set();
+        taskCheckbox();
+        common_bind("#commonModal");
+        commonLoader();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        show_toastr("Error", data.error, "error");
+      },
+    });
   }
-  if ($("#warehouse_name_hidden").length > 0) {
-    data["warehouse_name"] = $("#warehouse_name_hidden").val();
-  }
-  if ($("#discount_hidden").length > 0) {
-    data["discount"] = $("#discount_hidden").val();
-  }
-  $.ajax({
-    url: url,
-    data: data,
-    success: function (data) {
-      $("#commonModal .body").html(data);
-      $("#commonModal").modal("show");
-      // daterange_set();
-      taskCheckbox();
-      common_bind("#commonModal");
-      commonLoader();
-    },
-    error: function (data) {
-      data = data.responseJSON;
-      show_toastr(__erp_t("Error"), data.error, "error");
-    },
-  });
-});
+);
 
 function arrayToJson(form) {
   var data = $(form).serializeArray();
@@ -187,12 +182,18 @@ function commonLoader() {
   e1.length &&
     e1.each(function () {
       var e1 = $(this);
-      (e1.on("change", function (t) {
+      e1.on("change", function (t) {
         !(function (e, t, a) {
           var n,
             o = e.next("label"),
             i = o.html();
-          (t && t.files.length > 1 ? (n = (t.getAttribute("data-multiple-caption") || "").replace("{count}", t.files.length)) : a.target.value && (n = a.target.value.split("\\").pop()), n ? o.find("span").html(n) : o.html(i));
+          t && t.files.length > 1
+            ? (n = (t.getAttribute("data-multiple-caption") || "").replace(
+                "{count}",
+                t.files.length
+              ))
+            : a.target.value && (n = a.target.value.split("\\").pop()),
+            n ? o.find("span").html(n) : o.html(i);
         })(e1, this, t);
       }),
         e1
@@ -205,7 +206,7 @@ function commonLoader() {
             !(function (e) {
               e.removeClass("has-focus");
             })(e1);
-          }));
+          });
     });
 
   // var e2 = $('[data-toggle="autosize"]');
@@ -357,32 +358,36 @@ function deleteAjax(url, data, cb) {
 }
 
 // Google calendar
-$(document).on("click", ".local_calendar .fc-daygrid-event, .fc-timegrid-event", function (e) {
-  // if (!$(this).hasClass('project')) {
-  e.preventDefault();
-  var event = $(this);
-  var title1 = $(".fc-event-title").html();
-  var title2 = $(this).data("bs-original-title");
-  var title = title1 != undefined ? title1 : title2;
-  // var size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
-  var size = "md";
-  var url = $(this).attr("href");
-  $("#commonModal .modal-title").html(title);
-  $("#commonModal .modal-dialog").addClass("modal-" + size);
-  $.ajax({
-    url: url,
-    success: function (data) {
-      $("#commonModal .body").html(data);
-      $("#commonModal").modal("show");
-      common_bind();
-    },
-    error: function (data) {
-      data = data.responseJSON;
-      toastrs("Error", data.error, "error");
-    },
-  });
-  // }
-});
+$(document).on(
+  "click",
+  ".local_calendar .fc-daygrid-event, .fc-timegrid-event",
+  function (e) {
+    // if (!$(this).hasClass('project')) {
+    e.preventDefault();
+    var event = $(this);
+    var title1 = $(".fc-event-title").html();
+    var title2 = $(this).data("bs-original-title");
+    var title = title1 != undefined ? title1 : title2;
+    // var size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
+    var size = "md";
+    var url = $(this).attr("href");
+    $("#commonModal .modal-title").html(title);
+    $("#commonModal .modal-dialog").addClass("modal-" + size);
+    $.ajax({
+      url: url,
+      success: function (data) {
+        $("#commonModal .body").html(data);
+        $("#commonModal").modal("show");
+        common_bind();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        toastrs("Error", data.error, "error");
+      },
+    });
+    // }
+  }
+);
 
 //date value 4
 
@@ -407,18 +412,32 @@ function addCommas(num) {
   var number = parseFloat(num)
     .toFixed(2)
     .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
-  return (site_currency_symbol_position == "pre" ? site_currency_symbol : "") + number + (site_currency_symbol_position == "post" ? site_currency_symbol : "");
+  return (
+    (site_currency_symbol_position == "pre" ? site_currency_symbol : "") +
+    number +
+    (site_currency_symbol_position == "post" ? site_currency_symbol : "")
+  );
 }
 
 // PLUS MINUS QUANTITY JS
 function wcqib_refresh_quantity_increments() {
-  jQuery("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").each(function (a, b) {
+  jQuery(
+    "div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)"
+  ).each(function (a, b) {
     var c = jQuery(b);
-    (c.addClass("buttons_added"), c.children().first().before('<input type="button" value="-" class="minus" />'), c.children().last().after('<input type="button" value="+" class="plus" />'));
+    c.addClass("buttons_added"),
+      c
+        .children()
+        .first()
+        .before('<input type="button" value="-" class="minus" />'),
+      c
+        .children()
+        .last()
+        .after('<input type="button" value="+" class="plus" />');
   });
 }
 
-(String.prototype.getDecimals ||
+String.prototype.getDecimals ||
   (String.prototype.getDecimals = function () {
     var a = this,
       b = ("" + a).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
@@ -431,59 +450,84 @@ function wcqib_refresh_quantity_increments() {
     wcqib_refresh_quantity_increments();
   }),
   jQuery(document).on("click", ".plus, .minus", function () {
-    var a = jQuery(this).closest(".quantity").find('input[name="quantity"], input[name="quantity[]"]'),
+    var a = jQuery(this)
+        .closest(".quantity")
+        .find('input[name="quantity"], input[name="quantity[]"]'),
       b = parseFloat(a.val()),
       c = parseFloat(a.attr("max")),
       d = parseFloat(a.attr("min")),
       e = a.attr("step");
-    ((b && "" !== b && "NaN" !== b) || (b = 0), ("" !== c && "NaN" !== c) || (c = ""), ("" !== d && "NaN" !== d) || (d = 0), ("any" !== e && "" !== e && void 0 !== e && "NaN" !== parseFloat(e)) || (e = 1), jQuery(this).is(".plus") ? (c && b >= c ? a.val(c) : a.val((b + parseFloat(e)).toFixed(e.getDecimals()))) : d && b <= d ? a.val(d) : b > 0 && a.val((b - parseFloat(e)).toFixed(e.getDecimals())), a.trigger("change"));
-  }));
+    (b && "" !== b && "NaN" !== b) || (b = 0),
+      ("" !== c && "NaN" !== c) || (c = ""),
+      ("" !== d && "NaN" !== d) || (d = 0),
+      ("any" !== e && "" !== e && void 0 !== e && "NaN" !== parseFloat(e)) ||
+        (e = 1),
+      jQuery(this).is(".plus")
+        ? c && b >= c
+          ? a.val(c)
+          : a.val((b + parseFloat(e)).toFixed(e.getDecimals()))
+        : d && b <= d
+        ? a.val(d)
+        : b > 0 && a.val((b - parseFloat(e)).toFixed(e.getDecimals())),
+      a.trigger("change");
+  });
 
-$(document).on("click", 'input[name="quantity"], input[name="quantity[]"]', function (e) {
-  // Allow: backspace, delete, tab, escape, enter and .
-  if (
-    $.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
-    // Allow: Ctrl+A
-    (e.keyCode == 65 && e.ctrlKey === true) ||
-    // Allow: home, end, left, right
-    (e.keyCode >= 35 && e.keyCode <= 39)
-  ) {
-    // let it happen, don't do anything
-    return;
+$(document).on(
+  "click",
+  'input[name="quantity"], input[name="quantity[]"]',
+  function (e) {
+    // Allow: backspace, delete, tab, escape, enter and .
+    if (
+      $.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
+      // Allow: Ctrl+A
+      (e.keyCode == 65 && e.ctrlKey === true) ||
+      // Allow: home, end, left, right
+      (e.keyCode >= 35 && e.keyCode <= 39)
+    ) {
+      // let it happen, don't do anything
+      return;
+    }
+    // Ensure that it is a number and stop the keypress
+    if (
+      (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+      (e.keyCode < 96 || e.keyCode > 105)
+    ) {
+      e.preventDefault();
+    }
   }
-  // Ensure that it is a number and stop the keypress
-  if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
-    e.preventDefault();
-  }
-});
+);
 
 //for ai module
-$(document).on("click", 'a[data-ajax-popup-over="true"], button[data-ajax-popup-over="true"], div[data-ajax-popup-over="true"]', function () {
-  var validate = $(this).attr("data-validate");
-  var id = "";
-  if (validate) {
-    id = $(validate).val();
-  }
-  var title_over = $(this).data("title");
-  $("#commonModalOver .modal-dialog").removeClass("modal-lg");
-  var size_over = $(this).data("size") == "" ? "md" : $(this).data("size");
+$(document).on(
+  "click",
+  'a[data-ajax-popup-over="true"], button[data-ajax-popup-over="true"], div[data-ajax-popup-over="true"]',
+  function () {
+    var validate = $(this).attr("data-validate");
+    var id = "";
+    if (validate) {
+      id = $(validate).val();
+    }
+    var title_over = $(this).data("title");
+    $("#commonModalOver .modal-dialog").removeClass("modal-lg");
+    var size_over = $(this).data("size") == "" ? "md" : $(this).data("size");
 
-  var url = $(this).data("url");
-  $("#commonModalOver .modal-title").html(title_over);
-  $("#commonModalOver .modal-dialog").addClass("modal-" + size_over);
-  $.ajax({
-    url: url + "?id=" + id,
-    success: function (data) {
-      $("#commonModalOver .modal-body").html(data);
-      $("#commonModalOver").modal("show");
-      taskCheckbox();
-    },
-    error: function (data) {
-      data = data.responseJSON;
-      show_toastr(__erp_t("Error"), data.error, "error");
-    },
-  });
-});
+    var url = $(this).data("url");
+    $("#commonModalOver .modal-title").html(title_over);
+    $("#commonModalOver .modal-dialog").addClass("modal-" + size_over);
+    $.ajax({
+      url: url + "?id=" + id,
+      success: function (data) {
+        $("#commonModalOver .modal-body").html(data);
+        $("#commonModalOver").modal("show");
+        taskCheckbox();
+      },
+      error: function (data) {
+        data = data.responseJSON;
+        show_toastr("Error", data.error, "error");
+      },
+    });
+  }
+);
 
 //start input serach box
 function JsSearchBox() {

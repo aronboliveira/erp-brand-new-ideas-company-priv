@@ -72,8 +72,10 @@
       notFound: "Resource not found",
       timeout: "Request timed out",
       notice: "Notice",
-      login_submit_unavailable: "Login submit route is unavailable. Please contact technical support or your domain administrator.",
-      route_unavailable: "This route is unavailable. Please contact technical support.",
+      login_submit_unavailable:
+        "Login submit route is unavailable. Please contact technical support or your domain administrator.",
+      route_unavailable:
+        "This route is unavailable. Please contact technical support.",
     },
     pt: {
       error: "Ocorreu um erro",
@@ -96,32 +98,10 @@
       notFound: "Recurso não encontrado",
       timeout: "Tempo de requisição esgotado",
       notice: "Aviso",
-      login_submit_unavailable: "A rota de envio de login está indisponível. Contacte o suporte técnico ou o administrador do seu domínio.",
-      route_unavailable: "Esta rota está indisponível. Contacte o suporte técnico.",
-    },
-    "pt-br": {
-      error: "Ocorreu um erro",
-      success: "Operação concluída com sucesso",
-      warning: "Aviso",
-      info: "Informação",
-      confirm: "Tem certeza?",
-      yes: "Sim",
-      no: "Não",
-      cancel: "Cancelar",
-      ok: "OK",
-      loading: "Carregando...",
-      invalidUrl: "URL inválida detectada",
-      invalidForm: "Por favor, preencha todos os campos obrigatórios",
-      networkError: "Erro de rede. Por favor, tente novamente.",
-      serverError: "Erro no servidor. Por favor, entre em contato com o suporte.",
-      validationError: "Falha na validação",
-      unauthorized: "Acesso não autorizado",
-      forbidden: "Acesso proibido",
-      notFound: "Recurso não encontrado",
-      timeout: "Tempo de requisição esgotado",
-      notice: "Aviso",
-      login_submit_unavailable: "A rota de envio de login está indisponível. Entre em contato com o suporte técnico ou o administrador do seu domínio.",
-      route_unavailable: "Esta rota está indisponível. Entre em contato com o suporte técnico.",
+      login_submit_unavailable:
+        "A rota de envio de login está indisponível. Contacte o suporte técnico ou o administrador do seu domínio.",
+      route_unavailable:
+        "Esta rota está indisponível. Contacte o suporte técnico.",
     },
     es: {
       error: "Ocurrió un error",
@@ -144,8 +124,10 @@
       notFound: "Recurso no encontrado",
       timeout: "Tiempo de solicitud agotado",
       notice: "Aviso",
-      login_submit_unavailable: "La ruta de envío de inicio de sesión no está disponible. Comuníquese con el soporte técnico.",
-      route_unavailable: "Esta ruta no está disponible. Comuníquese con el soporte técnico.",
+      login_submit_unavailable:
+        "La ruta de envío de inicio de sesión no está disponible. Comuníquese con el soporte técnico.",
+      route_unavailable:
+        "Esta ruta no está disponible. Comuníquese con el soporte técnico.",
     },
     fr: {
       error: "Une erreur est survenue",
@@ -168,8 +150,10 @@
       notFound: "Ressource introuvable",
       timeout: "Délai de la requête dépassé",
       notice: "Avis",
-      login_submit_unavailable: "La route de soumission de connexion est indisponible. Contactez le support technique.",
-      route_unavailable: "Cette route est indisponible. Contactez le support technique.",
+      login_submit_unavailable:
+        "La route de soumission de connexion est indisponible. Contactez le support technique.",
+      route_unavailable:
+        "Cette route est indisponible. Contactez le support technique.",
     },
     de: {
       error: "Ein Fehler ist aufgetreten",
@@ -192,8 +176,10 @@
       notFound: "Ressource nicht gefunden",
       timeout: "Zeitüberschreitung der Anfrage",
       notice: "Hinweis",
-      login_submit_unavailable: "Die Anmelde-Route ist nicht verfügbar. Wenden Sie sich an den technischen Support.",
-      route_unavailable: "Diese Route ist nicht verfügbar. Wenden Sie sich an den technischen Support.",
+      login_submit_unavailable:
+        "Die Anmelde-Route ist nicht verfügbar. Wenden Sie sich an den technischen Support.",
+      route_unavailable:
+        "Diese Route ist nicht verfügbar. Wenden Sie sich an den technischen Support.",
     },
     it: {
       error: "Si è verificato un errore",
@@ -216,8 +202,10 @@
       notFound: "Risorsa non trovata",
       timeout: "Timeout della richiesta",
       notice: "Avviso",
-      login_submit_unavailable: "Il percorso di invio del login non è disponibile. Contattare il supporto tecnico.",
-      route_unavailable: "Questo percorso non è disponibile. Contattare il supporto tecnico.",
+      login_submit_unavailable:
+        "Il percorso di invio del login non è disponibile. Contattare il supporto tecnico.",
+      route_unavailable:
+        "Questo percorso non è disponibile. Contattare il supporto tecnico.",
     },
     ja: {
       error: "エラーが発生しました",
@@ -240,8 +228,10 @@
       notFound: "リソースが見つかりません",
       timeout: "リクエストがタイムアウトしました",
       notice: "お知らせ",
-      login_submit_unavailable: "ログイン送信ルートが利用できません。テクニカルサポートにお問い合わせください。",
-      route_unavailable: "このルートは利用できません。テクニカルサポートにお問い合わせください。",
+      login_submit_unavailable:
+        "ログイン送信ルートが利用できません。テクニカルサポートにお問い合わせください。",
+      route_unavailable:
+        "このルートは利用できません。テクニカルサポートにお問い合わせください。",
     },
     ru: {
       error: "Произошла ошибка",
@@ -264,8 +254,10 @@
       notFound: "Ресурс не найден",
       timeout: "Время запроса истекло",
       notice: "Уведомление",
-      login_submit_unavailable: "Маршрут отправки входа недоступен. Обратитесь в техническую поддержку.",
-      route_unavailable: "Этот маршрут недоступен. Обратитесь в техническую поддержку.",
+      login_submit_unavailable:
+        "Маршрут отправки входа недоступен. Обратитесь в техническую поддержку.",
+      route_unavailable:
+        "Этот маршрут недоступен. Обратитесь в техническую поддержку.",
     },
     zh: {
       error: "发生错误",
@@ -312,7 +304,8 @@
       notFound: "لم يتم العثور على المورد",
       timeout: "انتهت مهلة الطلب",
       notice: "إشعار",
-      login_submit_unavailable: "مسار تسجيل الدخول غير متاح. يرجى الاتصال بالدعم الفني.",
+      login_submit_unavailable:
+        "مسار تسجيل الدخول غير متاح. يرجى الاتصال بالدعم الفني.",
       route_unavailable: "هذا المسار غير متاح. يرجى الاتصال بالدعم الفني.",
     },
     tr: {
@@ -336,8 +329,10 @@
       notFound: "Kaynak bulunamadı",
       timeout: "İstek zaman aşımına uğradı",
       notice: "Bildirim",
-      login_submit_unavailable: "Giriş gönderim yolu kullanılamıyor. Teknik destek ile iletişime geçin.",
-      route_unavailable: "Bu yol kullanılamıyor. Teknik destek ile iletişime geçin.",
+      login_submit_unavailable:
+        "Giriş gönderim yolu kullanılamıyor. Teknik destek ile iletişime geçin.",
+      route_unavailable:
+        "Bu yol kullanılamıyor. Teknik destek ile iletişime geçin.",
     },
     nl: {
       error: "Er is een fout opgetreden",
@@ -360,8 +355,10 @@
       notFound: "Bron niet gevonden",
       timeout: "Verzoek is verlopen",
       notice: "Kennisgeving",
-      login_submit_unavailable: "De inlogroute is niet beschikbaar. Neem contact op met de technische ondersteuning.",
-      route_unavailable: "Deze route is niet beschikbaar. Neem contact op met de technische ondersteuning.",
+      login_submit_unavailable:
+        "De inlogroute is niet beschikbaar. Neem contact op met de technische ondersteuning.",
+      route_unavailable:
+        "Deze route is niet beschikbaar. Neem contact op met de technische ondersteuning.",
     },
     pl: {
       error: "Wystąpił błąd",
@@ -384,8 +381,10 @@
       notFound: "Nie znaleziono zasobu",
       timeout: "Przekroczono limit czasu żądania",
       notice: "Powiadomienie",
-      login_submit_unavailable: "Trasa logowania jest niedostępna. Skontaktuj się z pomocą techniczną.",
-      route_unavailable: "Ta trasa jest niedostępna. Skontaktuj się z pomocą techniczną.",
+      login_submit_unavailable:
+        "Trasa logowania jest niedostępna. Skontaktuj się z pomocą techniczną.",
+      route_unavailable:
+        "Ta trasa jest niedostępna. Skontaktuj się z pomocą techniczną.",
     },
     da: {
       error: "Der opstod en fejl",
@@ -408,8 +407,10 @@
       notFound: "Ressource ikke fundet",
       timeout: "Anmodningen fik timeout",
       notice: "Besked",
-      login_submit_unavailable: "Login-ruten er ikke tilgængelig. Kontakt teknisk support.",
-      route_unavailable: "Denne rute er ikke tilgængelig. Kontakt teknisk support.",
+      login_submit_unavailable:
+        "Login-ruten er ikke tilgængelig. Kontakt teknisk support.",
+      route_unavailable:
+        "Denne rute er ikke tilgængelig. Kontakt teknisk support.",
     },
     he: {
       error: "אירעה שגיאה",
@@ -512,7 +513,9 @@
      */
     constructor() {
       if (ERPGuard.#instance) {
-        throw new Error("ERPGuard is a singleton. Use ERPGuard.getInstance() or window.ERPGuard");
+        throw new Error(
+          "ERPGuard is a singleton. Use ERPGuard.getInstance() or window.ERPGuard",
+        );
       }
       this.#init();
     }
@@ -616,7 +619,11 @@
      * @returns {boolean} True if Bootstrap is available
      */
     hasBootstrap() {
-      return !!(typeof bootstrap !== "undefined" && bootstrap.Toast && bootstrap.Modal);
+      return !!(
+        typeof bootstrap !== "undefined" &&
+        bootstrap.Toast &&
+        bootstrap.Modal
+      );
     }
 
     /**
@@ -647,7 +654,8 @@
         if (!this.#toastContainer) {
           this.#toastContainer = document.createElement("div");
           this.#toastContainer.id = TOAST_CONTAINER_ID;
-          this.#toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
+          this.#toastContainer.className =
+            "toast-container position-fixed top-0 end-0 p-3";
           this.#toastContainer.style.cssText = "z-index: 1100;";
           this.#toastContainer.setAttribute("aria-live", "polite");
           this.#toastContainer.setAttribute("aria-atomic", "true");
@@ -678,20 +686,34 @@
      * @returns {ERPGuard} This instance for chaining
      */
     showToast(message, type = "info", options = {}) {
-      const { duration = DEFAULT_TOAST_DURATION, autohide = true, title = "", closable = true } = options;
+      const {
+        duration = DEFAULT_TOAST_DURATION,
+        autohide = true,
+        title = "",
+        closable = true,
+      } = options;
 
       if (!message) return this;
 
       // Fallback to alert if Bootstrap not available
       if (!this.hasToast()) {
-        const prefix = type === "error" ? "❌ " : type === "success" ? "✅ " : type === "warning" ? "⚠️ " : "ℹ️ ";
+        const prefix =
+          type === "error"
+            ? "❌ "
+            : type === "success"
+              ? "✅ "
+              : type === "warning"
+                ? "⚠️ "
+                : "ℹ️ ";
         alert(prefix + (title ? `${title}: ` : "") + message);
         return this;
       }
 
       this.#ensureContainers();
 
-      const toastId = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const toastId = `toast-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 9)}`;
       const classes = TOAST_CLASSES[type] || TOAST_CLASSES.info;
 
       const toastHtml = `
@@ -701,14 +723,22 @@
               ? `
           <div class="toast-header ${classes}">
             <strong class="me-auto">${this.#escapeHtml(title)}</strong>
-            ${closable ? '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' : ""}
+            ${
+              closable
+                ? '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>'
+                : ""
+            }
           </div>
           `
               : ""
           }
           <div class="toast-body d-flex align-items-center justify-content-between">
             <span>${this.#escapeHtml(message)}</span>
-            ${!title && closable ? '<button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>' : ""}
+            ${
+              !title && closable
+                ? '<button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>'
+                : ""
+            }
           </div>
         </div>
       `;
@@ -759,7 +789,11 @@
      * @returns {ERPGuard} This instance for chaining
      */
     warning(message, options = {}) {
-      return this.showToast(message || this.getMsg("warning"), "warning", options);
+      return this.showToast(
+        message || this.getMsg("warning"),
+        "warning",
+        options,
+      );
     }
 
     /**
@@ -785,11 +819,23 @@
      * @returns {Object|null} Modal instance or null if Bootstrap unavailable
      */
     showModal(options = {}) {
-      const { title = "", body = "", size = "md", closable = true, buttons = [], onShow = null, onHide = null, centered = true, scrollable = false } = options;
+      const {
+        title = "",
+        body = "",
+        size = "md",
+        closable = true,
+        buttons = [],
+        onShow = null,
+        onHide = null,
+        centered = true,
+        scrollable = false,
+      } = options;
 
       // Fallback if Bootstrap not available
       if (!this.hasModal()) {
-        const confirmed = buttons.length ? confirm(`${title}\n\n${body}`) : (alert(`${title}\n\n${body}`), true);
+        const confirmed = buttons.length
+          ? confirm(`${title}\n\n${body}`)
+          : (alert(`${title}\n\n${body}`), true);
         if (buttons.length && confirmed && buttons[0]?.onClick) {
           buttons[0].onClick();
         }
@@ -798,7 +844,9 @@
 
       this.#ensureContainers();
 
-      const modalId = `modal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const modalId = `modal-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 9)}`;
       const sizeClass = size !== "md" ? `modal-${size}` : "";
       const centeredClass = centered ? "modal-dialog-centered" : "";
       const scrollableClass = scrollable ? "modal-dialog-scrollable" : "";
@@ -814,15 +862,27 @@
         .join("");
 
       const modalHtml = `
-        <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}-label" aria-hidden="true" ${closable ? "" : 'data-bs-backdrop="static" data-bs-keyboard="false"'}>
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}-label" aria-hidden="true" ${
+          closable ? "" : 'data-bs-backdrop="static" data-bs-keyboard="false"'
+        }>
           <div class="modal-dialog ${sizeClass} ${centeredClass} ${scrollableClass}">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="${modalId}-label">${this.#escapeHtml(title)}</h5>
-                ${closable ? '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' : ""}
+                <h5 class="modal-title" id="${modalId}-label">${this.#escapeHtml(
+                  title,
+                )}</h5>
+                ${
+                  closable
+                    ? '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>'
+                    : ""
+                }
               </div>
               <div class="modal-body">${body}</div>
-              ${buttons.length ? `<div class="modal-footer">${buttonsHtml}</div>` : ""}
+              ${
+                buttons.length
+                  ? `<div class="modal-footer">${buttonsHtml}</div>`
+                  : ""
+              }
             </div>
           </div>
         </div>
@@ -964,7 +1024,11 @@
      * @returns {boolean} True if URL is valid
      */
     isInvalidUrl(url, options = {}) {
-      const { allowRelative = true, requireHttps = false, allowedHosts = [] } = options;
+      const {
+        allowRelative = true,
+        requireHttps = false,
+        allowedHosts = [],
+      } = options;
 
       if (!url || typeof url !== "string") return true;
 
@@ -973,7 +1037,10 @@
       if (dangerous.test(url.trim())) return true;
 
       // Relative URL check
-      if (allowRelative && (url.startsWith("/") || url.startsWith(".") || !url.includes(":"))) {
+      if (
+        allowRelative &&
+        (url.startsWith("/") || url.startsWith(".") || !url.includes(":"))
+      ) {
         return false;
       }
 
@@ -984,7 +1051,8 @@
         if (requireHttps && parsed.protocol !== "https:") return true;
 
         // Allowed hosts check
-        if (allowedHosts.length > 0 && !allowedHosts.includes(parsed.host)) return true;
+        if (allowedHosts.length > 0 && !allowedHosts.includes(parsed.host))
+          return true;
 
         return false;
       } catch (_e) {
@@ -999,7 +1067,11 @@
      * @returns {string} CSRF token value
      */
     getCsrfToken() {
-      return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+      return (
+        document
+          .querySelector('meta[name="csrf-token"]')
+          ?.getAttribute("content") || ""
+      );
     }
 
     /**
@@ -1013,7 +1085,10 @@
       if (explicit && explicit !== "#") return explicit;
 
       const url = el?.getAttribute?.("data-url") || "";
-      const href = el?.tagName === "FORM" ? el.getAttribute("action") || "" : el?.getAttribute?.("href") || "";
+      const href =
+        el?.tagName === "FORM"
+          ? el.getAttribute("action") || ""
+          : el?.getAttribute?.("href") || "";
 
       if ((!url || url === "#") && (!href || href === "#")) {
         return null;
@@ -1042,7 +1117,8 @@
           },
         });
 
-        if (!resp.ok) return { ok: false, status: resp.status, error: resp.statusText };
+        if (!resp.ok)
+          return { ok: false, status: resp.status, error: resp.statusText };
 
         const data = await resp.json().catch(() => ({}));
         return { ok: true, data };
@@ -1115,11 +1191,22 @@
      * @returns {void}
      */
     guardedAjax(config = {}) {
-      const { url, type = "GET", data, success, error: onError, guardEl, guardMsgKey = "ajax_unavailable", ...rest } = config;
+      const {
+        url,
+        type = "GET",
+        data,
+        success,
+        error: onError,
+        guardEl,
+        guardMsgKey = "ajax_unavailable",
+        ...rest
+      } = config;
 
       const resolved = this.resolveUrl(guardEl, url);
       if (!resolved) {
-        this.scheduleInteractiveError(this.getMsg(guardMsgKey, "This action is currently unavailable."));
+        this.scheduleInteractiveError(
+          this.getMsg(guardMsgKey, "This action is currently unavailable."),
+        );
         return;
       }
 
@@ -1138,7 +1225,9 @@
             if (typeof onError === "function") {
               onError(xhr);
             } else {
-              this.scheduleInteractiveError(this.getMsg(guardMsgKey, "Request failed."));
+              this.scheduleInteractiveError(
+                this.getMsg(guardMsgKey, "Request failed."),
+              );
             }
           },
         });
@@ -1160,7 +1249,8 @@
 
         this.safeFetch(resolved, fetchOpts).then(result => {
           if (result.ok && typeof success === "function") success(result.data);
-          if (!result.ok && typeof onError === "function") onError({ status: result.status, statusText: result.error });
+          if (!result.ok && typeof onError === "function")
+            onError({ status: result.status, statusText: result.error });
         });
       }
     }
@@ -1520,7 +1610,10 @@
             message = error.statusText || message;
         }
       } else if (error instanceof Error) {
-        if (error.name === "NetworkError" || error.message.includes("network")) {
+        if (
+          error.name === "NetworkError" ||
+          error.message.includes("network")
+        ) {
           message = this.getMsg("networkError");
         } else if (error.name === "AbortError") {
           message = this.getMsg("timeout");
@@ -1537,39 +1630,6 @@
         this.scheduleError(message);
       }
 
-      return this;
-    }
-
-    /**
-     * Initialize confirm modals on elements matching selector.
-     * The actual confirm behaviour is handled by custom.js (jQuery delegation on .bs-pass-para).
-     * This method exists so route-guard scripts can call it without throwing.
-     * @param {string} [selector=".bs-pass-para"] - CSS selector for confirm trigger elements
-     * @returns {ERPGuard} This instance for chaining
-     */
-    initConfirmModals(selector) {
-      // custom.js already delegates click on .bs-pass-para via $(document).on
-      // Nothing extra needed — method exists for API completeness.
-      return this;
-    }
-
-    /**
-     * Initialize Bootstrap tooltips on elements with data-bs-toggle="tooltip"
-     * @param {string|HTMLElement} [scope=document] - Scope to search within
-     * @returns {ERPGuard} This instance for chaining
-     */
-    initTooltips(scope) {
-      const root = typeof scope === "string" ? document.querySelector(scope) : scope || document;
-      if (!root) return this;
-      try {
-        const els = root.querySelectorAll('[data-bs-toggle="tooltip"]:not([data-tooltip-init])');
-        if (window.bootstrap?.Tooltip) {
-          els.forEach(el => {
-            new window.bootstrap.Tooltip(el);
-            el.setAttribute("data-tooltip-init", "true");
-          });
-        }
-      } catch (_) {}
       return this;
     }
 
