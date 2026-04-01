@@ -33,7 +33,6 @@ use App\Models\{
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{
   Request,
   Response,
@@ -1566,12 +1565,6 @@ class DealController extends Controller
         return $response;
       } catch (AuthorizationException $e) {
         return response()->json(['error' => __('Permission Denied.')], 401);
-      # PULL REQUEST START
-      } catch (ModelNotFoundException $e) {
-        // Retorna 404 quando o deal não é encontrado
-        Log::warning("[{$class}::{$action}] deal não encontrado", ['deal_id' => $id]);
-        return response()->json(['error' => __('Deal not found.')], 404);
-      # PULL REQUEST END
       } catch (\Throwable $e) {
         Log::error("[{$class}::{$action}] failed", ['err' => $e->getMessage(), 'deal_id' => $id]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1743,12 +1736,6 @@ class DealController extends Controller
         return $response;
       } catch (AuthorizationException $e) {
         return response()->json(['error' => __('Permission Denied.')], 401);
-      # PULL REQUEST START
-      } catch (ModelNotFoundException $e) {
-        // Retorna 404 quando o deal não é encontrado
-        Log::warning("[{$class}::{$action}] deal não encontrado", ['deal_id' => $id]);
-        return response()->json(['error' => __('Deal not found.')], 404);
-      # PULL REQUEST END
       } catch (\Throwable $e) {
         Log::error("[{$class}::{$action}] failed", ['err' => $e->getMessage(), 'deal_id' => $id]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);

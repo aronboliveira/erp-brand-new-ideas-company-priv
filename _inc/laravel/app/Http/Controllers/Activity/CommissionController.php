@@ -95,7 +95,7 @@ class CommissionController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
   }
 
-  public function create(Request $request, int|string|null $employeeId = null): View|RedirectResponse
+  public function create(Request $request, int|string $employeeId): View|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;

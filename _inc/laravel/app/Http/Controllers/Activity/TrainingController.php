@@ -102,7 +102,7 @@ class TrainingController extends Controller
             $listsStart = microtime(true);
             $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
             $trainingTypes = TrainingType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('firstname', 'id');
+            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
             $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
             $options = Training::$options;
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
@@ -238,7 +238,7 @@ class TrainingController extends Controller
             $listsStart = microtime(true);
             $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
             $trainingTypes = TrainingType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('firstname', 'id');
+            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
             $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
             $options = Training::$options;
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');

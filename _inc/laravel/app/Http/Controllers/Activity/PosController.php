@@ -108,7 +108,7 @@ final class PosController extends Controller
         $cart = session('pos', []);
         if (empty($cart)) {
           Log::warning("[{$class}::{$action}] empty cart", ['method' => $method]);
-          return response()->json(['error' => 'Add some products to cart!'], 422);
+          return response()->json(['error' => 'Add some products to cart!'], 404);
         }
         $user = $u;
         $creatorId = $user?->creatorId();
