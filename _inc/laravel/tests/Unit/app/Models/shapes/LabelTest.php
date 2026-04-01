@@ -5,13 +5,12 @@ namespace Tests\Unit\Models;
 use App\Models\Label;
 use Tests\TestCase;
 
-use Illuminate\Support\Facades\DB;
 class LabelTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	/**
 	 ** @test
@@ -36,7 +35,6 @@ class LabelTest extends TestCase
 			'name',
 			'color',
 			'pipeline_id',
-			'created_by',
 		];
 		$this->assertSame($expected, (new Label)->getFillable());
 	}

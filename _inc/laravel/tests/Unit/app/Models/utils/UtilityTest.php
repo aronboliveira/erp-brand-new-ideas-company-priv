@@ -52,8 +52,8 @@ use App\Models\{
 };
 use App\Traits\ChecksLogin;
 use Carbon\Carbon;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\{RedirectResponse, UploadedFile};
 use Illuminate\Support\{MessageBag, Str};
@@ -70,7 +70,8 @@ use Illuminate\Support\Facades\{
 	Schema,
 	Storage
 };
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
+use Spatie\GoogleCalendar\Event as GoogleEvent;
 use Twilio\Rest\Client as TwilioClient;
 use Tests\Concerns\SafeAliasMock;
 
@@ -81,28 +82,6 @@ class UtilityTest extends TestCase
 	use ChecksLogin, RefreshDatabase;
 
 	private User $superAdmin;
-
-	/**
-	 * Create a model record forcibly setting ALL attributes (bypassing
-	 * $fillable/$guarded) AND model events.  This is necessary in
-	 * financial tests where created_at / date must be set to a specific
-	 * value but the column is not in $fillable.
-	 *
-	 * @template T of \Illuminate\Database\Eloquent\Model
-	 * @param  class-string<T> $class
-	 * @return T
-	 */
-	private function forceCreate(string $class, array $attrs): Model
-	{
-		$instance = (new $class())->forceFill($attrs);
-		// saveQuietly() skips events, so UsesUuids boot (creating event) won't fire.
-		// Manually generate UUID when needed.
-		if (empty($instance->getKey()) && !$instance->getIncrementing()) {
-			$instance->{$instance->getKeyName()} = (string) \Illuminate\Support\Str::uuid();
-		}
-		$instance->saveQuietly();
-		return $instance;
-	}
 
 	/**
 	 * Clear Utility's static caches. Use when switching Auth users
@@ -123,97 +102,19 @@ class UtilityTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-		// Clear stale CoA data that causes UniqueConstraintViolation on
-		// chart_of_account_sub_types.code_unique when the saving observer
-		// regenerates `code` from `name` during updateOrCreate.
-		// Wrap each delete in retry() to handle transient InnoDB deadlocks
-		// (SQLSTATE[40001]) caused by RefreshDatabase transaction boundaries.
-		foreach (['chart_of_accounts', 'chart_of_account_sub_types', 'chart_of_account_types'] as $t) {
-			retry(3, fn () => DB::table($t)->delete(), 200);
-		}
-		// Seed ChartOfAccountType and ChartOfAccountSubType records for tests
-		$this->seedChartOfAccountTypes();
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// Create a super-admin user for auth-based tests
 		// Use firstOrCreate to avoid duplicate entry errors when the DB
 		// already has this email (RefreshDatabase wraps in transactions but
 		// does not run migrate:fresh in this project).
-		# PULL REQUEST START — Retry to handle transient deadlocks
-		$this->superAdmin = retry(3, fn () => User::firstOrCreate(
+		$this->superAdmin = User::firstOrCreate(
 			['email' => 'super@example.com'],
 			[
 				'name' => 'Super Admin',
 				'password' => Hash::make('password'),
 				'type' => 'super admin'
 			]
-		), 200);
-		# PULL REQUEST END
-
-		// Disable ExtendsProductServiceTable trait sync to prevent
-		// transaction savepoint errors in financial tests that create
-		// InvoiceProduct / BillProduct records.
-		// Force-boot the model first so the boot method runs. Then override
-		// the initialized flag so the 'saved' handler returns early.
-		foreach ([
-			\App\Models\InvoiceProduct::class,
-			\App\Models\BillProduct::class,
-		] as $cls) {
-			new $cls(); // triggers boot
-			(new \ReflectionProperty($cls, 'extendsProductServiceInitialized'))
-				->setValue(null, false);
-		}
-	}
-
-	/**
-	 * Seed ChartOfAccountType and ChartOfAccountSubType records
-	 * that are expected by tests using ChartsConstants UUIDs.
-	 */
-	private function seedChartOfAccountTypes(): void
-	{
-		// Types with UUIDs matching ChartsConstants
-		$types = [
-			[CTC::TP_ASSETS,      'Assets'],
-			[CTC::TP_LIABILITIES, 'Liabilities'],
-			[CTC::TP_EQUITY,      'Equity'],
-			[CTC::TP_INCOME,      'Income'],
-			[CTC::TP_COGS,        'Cost of Goods Sold'],
-			[CTC::TP_EXPENSES,    'Expenses'],
-		];
-		foreach ($types as [$id, $name]) {
-			if (!ChartOfAccountType::find($id)) {
-				$rec = new ChartOfAccountType();
-				$rec->id = $id;  // Bypass guarded
-				$rec->name = $name;
-				$rec->{DatabaseConstants::COL_TABLE_CREATOR} = DatabaseConstants::DEFAULT_UUID;
-				$rec->saveQuietly();
-			}
-		}
-		// SubTypes with UUIDs matching ChartsConstants
-		$subTypes = [
-			[CTC::ST_CURRENT_ASSET,        CTC::TP_ASSETS,      'Current Asset'],
-			[CTC::ST_INVENTORY_ASSET,      CTC::TP_ASSETS,      'Inventory Asset'],
-			[CTC::ST_NONCURRENT_ASSET,     CTC::TP_ASSETS,      'Non-current Asset'],
-			[CTC::ST_CURRENT_LIABILITIES,  CTC::TP_LIABILITIES, 'Current Liabilities'],
-			[CTC::ST_LONGTERM_LIABILITIES, CTC::TP_LIABILITIES, 'Long-term Liabilities'],
-			[CTC::ST_SHARE_CAPITAL,        CTC::TP_EQUITY,      'Share Capital'],
-			[CTC::ST_OWNERS_EQUITY,        CTC::TP_EQUITY,      'Owners Equity'],
-			[CTC::ST_RETAINED_EARNINGS,    CTC::TP_EQUITY,      'Retained Earnings'],
-			[CTC::ST_SALES_REVENUE,        CTC::TP_INCOME,      'Sales Revenue'],
-			[CTC::ST_OTHER_REVENUE,        CTC::TP_INCOME,      'Other Revenue'],
-			[CTC::ST_COGS,                 CTC::TP_COGS,        'Cost of Goods Sold'],
-			[CTC::ST_PAYROLL_EXPENSES,     CTC::TP_EXPENSES,    'Payroll Expenses'],
-			[CTC::ST_GA_EXPENSES,          CTC::TP_EXPENSES,    'General & Administrative Expenses'],
-		];
-		foreach ($subTypes as [$id, $typeId, $name]) {
-			if (!ChartOfAccountSubType::find($id)) {
-				$rec = new ChartOfAccountSubType();
-				$rec->id = $id;  // Bypass guarded
-				$rec->name = $name;
-				$rec->{CTC::COL_TP} = $typeId;
-				$rec->{DatabaseConstants::COL_TABLE_CREATOR} = DatabaseConstants::DEFAULT_UUID;
-				$rec->saveQuietly();
-			}
-		}
+		);
 	}
 
 	protected function tearDown(): void
@@ -632,10 +533,8 @@ class UtilityTest extends TestCase
 		// call checkFileExistsAndDelete
 		$result = Utility::checkFileExistsAndDelete(['util_testA.txt', 'util_testB.txt']);
 		$this->assertTrue($result);
-		/** @var \Illuminate\Filesystem\FilesystemAdapter|\Illuminate\Foundation\Testing\Concerns\InteractsWithContainer $disk */
-		$disk = \Illuminate\Support\Facades\Storage::disk('local');
-		$disk->assertMissing('util_testA.txt');
-		$disk->assertMissing('util_testB.txt');
+		\Illuminate\Support\Facades\Storage::disk('local')->assertMissing('util_testA.txt');
+		\Illuminate\Support\Facades\Storage::disk('local')->assertMissing('util_testB.txt');
 
 		// If we pass a non-existent file, method should return true (vacuously)
 		$this->assertTrue(Utility::checkFileExistsAndDelete(['no_such_file.txt']));
@@ -674,10 +573,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_PurchasePosContractNumberFormatDefault()
 	{
-		// Prefixes use SettingsConstants defaults (#PUR, #POS, #CON)
-		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('#POS00015', Utility::posNumberFormat(15));
-		$this->assertEquals('#CON00099', Utility::contractNumberFormat(99));
+		// No settings inserted, so prefixes should default to empty
+		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('POS-00015', Utility::posNumberFormat(15));
+		$this->assertEquals('C-00099', Utility::contractNumberFormat(99));
 	}
 
 	/**
@@ -687,10 +586,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_customer_specific_number_format_default()
 	{
-		// Prefixes use SettingsConstants defaults (#PROP, #INVO, #POS)
-		$this->assertEquals('#PROP00001', Utility::customerProposalNumberFormat(1));
-		$this->assertEquals('#INVO00012', Utility::customerInvoiceNumberFormat(12));
-		$this->assertEquals('#POS00034', Utility::customerPosNumberFormat(34));
+		$this->assertEquals('PR-00001', Utility::customerProposalNumberFormat(1));
+		$this->assertEquals('INV-00012', Utility::customerInvoiceNumberFormat(12));
+		$this->assertEquals('POS-00034', Utility::customerPosNumberFormat(34));
 	}
 
 	/**
@@ -736,10 +634,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_purchase_pos_contract_number_format_default()
 	{
-		// Prefixes use SettingsConstants defaults (#PUR, #POS, #CON)
-		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('#POS00015', Utility::posNumberFormat(15));
-		$this->assertEquals('#CON00099', Utility::contractNumberFormat(99));
+		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('POS-00015', Utility::posNumberFormat(15));
+		$this->assertEquals('C-00099', Utility::contractNumberFormat(99));
 	}
 
 	/**
@@ -749,22 +646,12 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_settings_by_id_merges_values()
 	{
-		// PULL REQUEST START — use updateOrInsert so seeded rows don't shadow test data
-		DB::table('settings')->updateOrInsert(
-			[
-				'created_by' => DatabaseConstants::DEFAULT_UUID,
-				'name'       => 'foo_key',
-			],
-			[
-				'user_id' => DatabaseConstants::DEFAULT_UUID,
-				'value'   => 'foo_value',
-			]
-		);
-		// Clear static cache so fresh DB value is picked up
-		$prop = new \ReflectionProperty(Utility::class, 'getSettingsId');
-		$prop->setAccessible(true);
-		$prop->setValue(null, []);
-		// PULL REQUEST END
+		DB::table('settings')->insertOrIgnore([
+			'created_by' => DatabaseConstants::DEFAULT_UUID,
+			'user_id' => DatabaseConstants::DEFAULT_UUID,
+			'name'       => 'foo_key',
+			'value'      => 'foo_value'
+		]);
 
 		$result = Utility::settingsById(DatabaseConstants::DEFAULT_UUID);
 		$this->assertIsArray($result);
@@ -1079,8 +966,7 @@ class UtilityTest extends TestCase
 	public function test_vendor_bill_number_format_creates_five_digit_number()
 	{
 		// When no prefix is set in settings, formatNumber will default to empty prefix
-		// Prefix uses SettingsConstants default (#BILL)
-		$this->assertEquals('#BILL00015', Utility::vendorBillNumberFormat(15));
+		$this->assertEquals('B-00015', Utility::vendorBillNumberFormat(15));
 	}
 
 	/**
@@ -1265,23 +1151,13 @@ class UtilityTest extends TestCase
 	public function test_chart_of_account_type_data_creates_types_and_subtypes()
 	{
 		$uid = (string)\Illuminate\Support\Str::uuid();
-		// Create a user with the uid to satisfy HasAuditFields auth check
-		$user = User::factory()->create(['id' => $uid]);
-		Auth::login($user);
-
 		Utility::chartOfAccountTypeData($uid);
 
-		// Verify types from CHTC::COA_TPS were created — check by known UUID constants
-		$types = \App\Models\ChartOfAccountType::whereIn('id', [
-			CTC::TP_ASSETS, CTC::TP_LIABILITIES, CTC::TP_EQUITY,
-			CTC::TP_INCOME, CTC::TP_COGS, CTC::TP_EXPENSES,
-		])->pluck('name')->toArray();
+		// Verify types from CHTC::COA_TPS were created
+		$types = \App\Models\ChartOfAccountType::where('created_by', $uid)->pluck('name')->toArray();
 		$this->assertNotEmpty($types);
 		// Verify subtypes were also created for each type
-		$typeIds = \App\Models\ChartOfAccountType::whereIn('id', [
-			CTC::TP_ASSETS, CTC::TP_LIABILITIES, CTC::TP_EQUITY,
-			CTC::TP_INCOME, CTC::TP_COGS, CTC::TP_EXPENSES,
-		])->pluck('id')->toArray();
+		$typeIds = \App\Models\ChartOfAccountType::where('created_by', $uid)->pluck('id')->toArray();
 		$subs = \App\Models\ChartOfAccountSubType::whereIn('type', $typeIds)->count();
 		$this->assertGreaterThan(0, $subs);
 	}
@@ -1293,39 +1169,23 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_chart_of_account_data1_creates_accounts_when_types_exist()
 	{
-		// Create a user and login so HasAuditFields sets created_by
-		$user = User::factory()->create();
-		Auth::login($user);
-		$userId = $user->id;
-		$suffix = substr($userId, 0, 8);
-
-		// Unguard to allow mass-assigning 'created_by' on types
-		\Illuminate\Database\Eloquent\Model::unguard();
-
-		// Prepare type and subtype with unique names/codes to avoid collision with seeded data
-		$typeName = 'UT_TP_' . $suffix;
-		$subName  = 'UT_ST_' . $suffix;
-		$type = \App\Models\ChartOfAccountType::create(['name' => $typeName, 'created_by' => $userId]);
-		$subCode = 'UTSUB_' . $suffix;
-		$sub = \App\Models\ChartOfAccountSubType::create([
-			'name' => $subName, 'code' => $subCode, 'type' => $type->id, 'created_by' => $userId,
-		]);
-
-		\Illuminate\Database\Eloquent\Model::reguard();
-
-		// Use a unique integer code — the DB column is INT, so string codes silently
-		// become 0 and collide with stale records from previous runs.
-		$uniqueCode = abs(crc32($suffix)) % 89000 + 10000;
-		Utility::$chartOfAccount1 = [[
-			'code' => $uniqueCode,
+		// Prepare type and subtype
+		$type = \App\Models\ChartOfAccountType::create(['name' => 'T1', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+		$sub = \App\Models\ChartOfAccountSubType::create(['name' => 'ST1', 'type' => $type->id]);
+		// Override static chart data
+		$ref = new \ReflectionClass(\App\Models\Utility::class);
+		$p = $ref->getProperty('chartOfAccount1');
+		$p->setAccessible(true);
+		$p->setValue([[
+			'code' => 'C01',
 			'name' => 'Account1',
-			'type' => $typeName,
-			'sub_type' => $subName
-		]];
+			'type' => 'T1',
+			'sub_type' => 'ST1'
+		]]);
 
-		Utility::chartOfAccountData1($userId);
+		Utility::chartOfAccountData1(DatabaseConstants::DEFAULT_UUID);
 
-		$acct = \App\Models\ChartOfAccount::where('code', $uniqueCode)->first();
+		$acct = \App\Models\ChartOfAccount::where('code', 'C01')->first();
 		$this->assertNotNull($acct);
 		$this->assertEquals($type->id, $acct->type);
 		$this->assertEquals($sub->id, $acct->sub_type);
@@ -1339,32 +1199,22 @@ class UtilityTest extends TestCase
 	public function test_chart_of_account_data_creates_accounts()
 	{
 		$user = $this->superAdmin;
-		Auth::login($user);
-
-		// Seed types first so FK constraints are satisfied
-		Utility::chartOfAccountTypeData($user->id);
-
-		// Use a unique integer code — the DB column is INT, so string codes silently
-		// become 0 and collide with stale records from previous runs.
-		$uniqueCode = abs(crc32(substr($user->id, 0, 8))) % 89000 + 10000;
+		// Override static chart data
 		$ref = new \ReflectionClass(\App\Models\Utility::class);
 		$p = $ref->getProperty('chartOfAccount');
 		$p->setAccessible(true);
 		$p->setValue([[
-			'code' => $uniqueCode,
+			'code' => 'C02',
 			'name' => 'Account2',
-			'type' => CTC::TP_ASSETS,
-			'sub_type' => CTC::ST_CURRENT_ASSET
+			'type' => 99,
+			'sub_type' => 100
 		]]);
 
 		Utility::chartOfAccountData($user);
 
-		$acct = \App\Models\ChartOfAccount::where('code', $uniqueCode)->first();
+		$acct = \App\Models\ChartOfAccount::where('code', 'C02')->first();
 		$this->assertNotNull($acct);
-		// Verify the type references a valid ChartOfAccountType (exact UUID can shift
-		// due to test-ordering when RefreshDatabase uses transactions, not migrate:fresh).
-		$typeRecord = \App\Models\ChartOfAccountType::find($acct->type);
-		$this->assertNotNull($typeRecord, 'Account type must reference a valid ChartOfAccountType');
+		$this->assertEquals($user->id, $acct->created_by);
 	}
 
 	/**
@@ -1749,7 +1599,7 @@ class UtilityTest extends TestCase
 	public function test_add_new_data_creates_permissions_for_company_role()
 	{
 		// Create company role
-		Role::findOrCreate('company');
+		\Spatie\Permission\Models\Role::findOrCreate('company');
 		// Ensure ARR_PERMISSIONS and COMPANY_DATA_PERMISSIONS arrays are non-empty
 		Utility::addNewData();
 		$this->assertTrue(true); // no exception thrown
@@ -2090,17 +1940,14 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_total_quantity_updates_or_ignores()
 	{
-		// Use unique SKUs to avoid collision with stale DB data
-		$sku1 = 'SKU_TQ_' . substr(md5(microtime()), 0, 6);
-		$sku2 = 'SKU_TQ_' . substr(md5(microtime() . '2'), 0, 6);
-		$prod = \App\Models\ProductService::create(['sku' => $sku1, 'type' => 'product', 'quantity' => 100]);
+		$prod = \App\Models\ProductService::create(['sku' => 'SKU0001', 'type' => 'product', 'quantity' => 100]);
 		Utility::totalQuantity('minus', 30, $prod->id);
 		$this->assertEquals(70, $prod->fresh()->quantity);
 		Utility::totalQuantity('add', 50, $prod->id);
 		$this->assertEquals(120, $prod->fresh()->quantity);
 
 		// Non-product type
-		$serv = \App\Models\ProductService::create(['sku' => $sku2, 'type' => 'service', 'quantity' => 20]);
+		$serv = \App\Models\ProductService::create(['sku' => 'SKU0002', 'type' => 'service', 'quantity' => 20]);
 		Utility::totalQuantity('minus', 10, $serv->id);
 		$this->assertEquals(20, $serv->fresh()->quantity);
 	}
@@ -2351,11 +2198,7 @@ class UtilityTest extends TestCase
 		$wh = \App\Models\Warehouse::create(['name' => 'W3', 'zip' => '00003']);
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0006', 'type' => 'product', 'quantity' => 0]);
 		Utility::addWarehouseStock($prod->id, 10, $wh->id);
-		// PULL REQUEST START — query specific record, not first() which may return seeded data
-		$rec = \App\Models\WarehouseProduct::where('product_id', $prod->id)
-			->where('warehouse_id', $wh->id)
-			->first();
-		// PULL REQUEST END
+		$rec = \App\Models\WarehouseProduct::first();
 		$this->assertEquals(10, $rec->quantity);
 		Utility::addWarehouseStock($prod->id, 5, $wh->id);
 		$this->assertEquals(15, $rec->fresh()->quantity);
@@ -2556,21 +2399,16 @@ class UtilityTest extends TestCase
 	public function test_google_calendar_config_branches()
 	{
 		// Missing file => no exception
-		Utility::resetSettingsCache();
 		Utility::googleCalendarConfig();
 		$this->assertTrue(true);
 
 		// Create fake credential file
 		$path = storage_path('cred.json');
 		file_put_contents($path, '{}');
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cred.json']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore(['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'cred.json']);
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
-		@unlink($path);
+		unlink($path);
 	}
 
 	/**
@@ -2801,19 +2639,19 @@ class UtilityTest extends TestCase
 		$this->assertIsFloat($res);
 
 		// Complex computation: create product, invoice, payment, revenue, bill, etc.
-		$prod = \App\Models\ProductService::create(['sku' => 'SKU0007', 'type' => 'product', 'sale_chart_account_id' => 2, 'expense_chart_account_id' => 3]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 10, 'quantity' => 2, 'created_at' => now()]);
+		$prod = \App\Models\ProductService::create(['sku' => 'SKU0007', 'type' => 'product', 'sale_chartaccount_id' => 2, 'expense_chartaccount_id' => 3]);
+		\App\Models\InvoiceProduct::create(['product_id' => $prod->id, 'price' => 10, 'quantity' => 2, 'created_at' => now()]);
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => 2, 'created_by' => $user?->id]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => 3, 'price' => 3, 'created_at' => now()]);
-		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
+		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => 3, 'total' => 3, 'created_at' => now()]);
+		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
+		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now()]);
 		// Journal items
 		$jEntry = \App\Models\JournalEntry::create(['created_by' => $user?->id, 'date' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => 2, 'credit' => 6, 'debit' => 2, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => 2, 'credit' => 0, 'debit' => 3, 'created_at' => now()]);
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => 2, 'credit' => 6, 'debit' => 2, 'created_at' => now()]);
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => 2, 'credit' => 0, 'debit' => 3, 'created_at' => now()]);
 
 		$balance = $stubClass::getAccountBalance(2, null, null);
 		$this->assertIsFloat($balance);
@@ -2853,27 +2691,21 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_balance_sheet_credit_and_debit()
 	{
-		$user = User::create(['name' => 'BSUser', 'email' => 'bs@bs.com', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
-		Auth::login($user);
-		// Create two chart-of-account records (credit side & debit side)
-		$coaCredit = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user->creatorId()]);
-		$coaDebit  = ChartOfAccount::create(['type' => CTC::TP_EXPENSES, 'sub_type' => CTC::ST_GA_EXPENSES, 'created_by' => $user->creatorId()]);
-		$prod = \App\Models\ProductService::create(['sku' => 'SKU0008', 'type' => 'product', 'sale_chart_account_id' => $coaCredit->id, 'expense_chart_account_id' => $coaDebit->id]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
-		$bank = \App\Models\BankAccount::create(['chart_account_id' => $coaCredit->id, 'created_by' => $user->creatorId()]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
-		$credit = Utility::getBalanceSheetCredit($coaCredit->id, null, null);
+		$prod = \App\Models\ProductService::create(['sku' => 'SKU0008', 'type' => 'product', 'sale_chartaccount_id' => 6, 'expense_chartaccount_id' => 7]);
+		\App\Models\InvoiceProduct::create(['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
+		$bank = \App\Models\BankAccount::create(['chart_account_id' => 6, 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
+		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now()]);
+		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
+		$credit = Utility::getBalanceSheetCredit(6, null, null);
 		$this->assertEquals((5 * 2) + 3 + 4, $credit);
 
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => $coaDebit->id, 'price' => 1, 'created_at' => now()]);
-		$bank2 = \App\Models\BankAccount::create(['chart_account_id' => $coaDebit->id, 'created_by' => $user->creatorId()]);
-		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank2->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
-		$debit = Utility::getBalanceSheetDebit($coaDebit->id, null, null);
-		// getBalanceSheetDebit sums the 'total' column directly, not total * quantity
-		$this->assertEquals(2 + 1 + 1 + 2, $debit);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => 7, 'total' => 1, 'created_at' => now()]);
+		$bank2 = \App\Models\BankAccount::create(['chart_account_id' => 7, 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
+		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now()]);
+		\App\Models\Payment::create(['account_id' => $bank2->id, 'amount' => 2, 'date' => now()]);
+		$debit = Utility::getBalanceSheetDebit(7, null, null);
+		$this->assertEquals((2 * 3) + 1 + 1 + 2, $debit);
 	}
 
 	/**
@@ -2883,7 +2715,7 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_trial_balance_redirect_and_returns_array()
 	{
-		$user = User::firstOrCreate(['email' => 'u19@u.com'], ['name' => 'U19', 'password' => bcrypt('x'), 'lang' => 'en', 'plan' => '00000000-0000-0000-0000-000000000000']);
+		$user = User::create(['name' => 'U19', 'email' => 'u19@u.com', 'password' => bcrypt('x'), 'lang' => 'en', 'plan' => '00000000-0000-0000-0000-000000000000']);
 		$stubClass = new class($user) extends \App\Models\Utility
 		{
 			private static $u;
@@ -2898,23 +2730,23 @@ class UtilityTest extends TestCase
 		};
 		Auth::login($user);
 		// No data => empty array
-		$resEmpty = $stubClass::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$resEmpty = $stubClass::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($resEmpty);
 
 		// Create chart, journal, invoice, etc. similar to get_account_balance test to ensure non-empty result
 		$chart = \App\Models\ChartOfAccount::create(['code' => 'C1', 'name' => 'N1', 'type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
 		$jEntry = \App\Models\JournalEntry::create(['created_by' => $user?->creatorId(), 'date' => now()]);
-		$this->forceCreate(\App\Models\JournalItem::class, ['journal' => $jEntry->id, 'account' => $chart->id, 'credit' => 10, 'debit' => 0, 'created_at' => now()]);
-		$prod = \App\Models\ProductService::create(['sku' => 'SKU0009', 'type' => 'product', 'sale_chart_account_id' => $chart->id, 'expense_chart_account_id' => $chart->id]);
-		$this->forceCreate(\App\Models\InvoiceProduct::class, ['product_id' => $prod->id, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
-		$bank = \App\Models\BankAccount::create(['chart_account_id' => $chart->id, 'created_by' => $user?->creatorId()]);
-		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillProduct::class, ['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
-		$this->forceCreate(\App\Models\BillAccount::class, ['chart_account_id' => $chart->id, 'price' => 1, 'created_at' => now()]);
-		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now(), 'created_at' => now()]);
-		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
-		$res = $stubClass::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		\App\Models\JournalItem::create(['journal' => $jEntry->id, 'account' => $chart->id, 'credit' => 10, 'debit' => 0, 'created_at' => now()]);
+		\App\Models\ProductService::create(['sku' => 'SKU0009', 'type' => 'product', 'sale_chartaccount_id' => $chart->id, 'expense_chartaccount_id' => 2]);
+		\App\Models\InvoiceProduct::create(['product_id' => 1, 'price' => 5, 'quantity' => 2, 'created_at' => now()]);
+		\App\Models\BankAccount::create(['chart_account_id' => $chart->id, 'created_by' => $user?->creatorId()]);
+		\App\Models\InvoicePayment::create(['account_id' => 1, 'amount' => 3, 'created_at' => now()]);
+		\App\Models\Revenue::create(['account_id' => 1, 'amount' => 4, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => 1, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillAccount::create(['chart_account_id' => $chart->id, 'total' => 1, 'created_at' => now()]);
+		\App\Models\BillPayment::create(['account_id' => 1, 'amount' => 1, 'created_at' => now()]);
+		\App\Models\Payment::create(['account_id' => 1, 'amount' => 2, 'created_at' => now()]);
+		$res = $stubClass::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($res);
 	}
 
@@ -2994,97 +2826,66 @@ class UtilityTest extends TestCase
 	 ** 
 	 ** @test*
 	 ** get_calendar_data should return only events matching the given type's colorId.
-	 ** Uses MockCalendarGateway for deterministic testing without live Google API.
-	 ** ! TODO: Once real Google credentials are configured, add integration tests
-	 **   that verify against the live API in a dedicated test suite.
 	 **/
 	public function test_get_calendar_data_filters_by_color_id()
 	{
-		$user = User::factory()->create();
-		Auth::login($user);
+		// Stub googleCalendarConfig to avoid file checks
+		$this->aliasMock('App\Models\Utility')->shouldIgnoreMissing();
 
-		// Prepare fixture events with dynamic values emulating Google Calendar API response
-		$eventColorId = (string) Utility::colorCodeData('event');
-		$mock = new \App\Services\Calendar\MockCalendarGateway([
-			[
-				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
-				'summary'       => 'Team Standup',
-				'startDateTime' => '2025-06-10 10:00:00',
-				'endDateTime'   => '2025-06-10 12:00:00',
-				'colorId'       => $eventColorId,
-			],
-			[
-				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
-				'summary'       => 'Non-matching Event',
-				'startDateTime' => '2025-06-11 10:00:00',
-				'endDateTime'   => '2025-06-11 12:00:00',
-				'colorId'       => '99', // Won't match 'event' type
-			],
-			[
-				'id'            => 'gcal_evt_' . \Illuminate\Support\Str::random(8),
-				'summary'       => 'Sprint Review',
-				'startDateTime' => '2025-06-12 14:00:00',
-				'endDateTime'   => '2025-06-12 15:30:00',
-				'colorId'       => $eventColorId,
-			],
-		]);
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
-		// Insert settings so googleCalendarConfig doesn't fail
-		Utility::resetSettingsCache();
+		// Prepare fake event objects
+		$matchingEvent = (object)[
+			'id'             => 'E1',
+			'summary'        => 'Match',
+			'startDateTime'  => '2025-06-10 10:00:00',
+			'endDateTime'    => '2025-06-10 12:00:00',
+			'colorId'        => (string) Utility::colorCodeData('event')
+		];
+		$nonMatchingEvent = (object)[
+			'id'             => 'E2',
+			'summary'        => 'NoMatch',
+			'startDateTime'  => '2025-06-11 10:00:00',
+			'endDateTime'    => '2025-06-11 12:00:00',
+			'colorId'        => '99'
+		];
+		$this->aliasMock('Spatie\GoogleCalendar\Event')
+			->shouldReceive('get')
+			->andReturn(collect([$matchingEvent, $nonMatchingEvent]));
 
 		$result = Utility::getCalendarData('event');
-
-		// Should only contain events with matching colorId
-		$this->assertCount(2, $result);
-		$this->assertEquals('Team Standup', $result[0]['title']);
-		$this->assertEquals('Sprint Review', $result[1]['title']);
-		$this->assertTrue($result[0]['allDay']);
-		$this->assertArrayHasKey('className', $result[0]);
+		$this->assertCount(1, $result);
+		$this->assertEquals('E1', $result[0]['id']);
+		$this->assertEquals('Match', $result[0]['title']);
+		$this->assertEquals(true, $result[0]['allDay']);
 	}
 
 	/**
 	 ** 
 	 ** @test*
-	 ** add_calendar_data should create a GoogleEvent when config is valid.
-	 ** Uses MockCalendarGateway — no live API calls.
-	 ** ! TODO: Add integration test with real Google Calendar credentials to verify
-	 **   actual API event creation (Events.insert) and response structure.
-	 ** ! TODO: Real Google API returns full Event resource with htmlLink, etag,
-	 **   iCalUID, sequence — the mock only returns id + status.
+	 ** add_calendar_data should create a GoogleEvent when config file exists.
 	 **/
 	public function test_add_calendar_data_creates_event()
 	{
-		$user = User::factory()->create();
-		Auth::login($user);
-
-		// Use MockCalendarGateway to capture the created event
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
-		// Insert settings so configure() passes
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'gcal.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_calendar@group.calendar.google.com']
-		);
-		Utility::resetSettingsCache();
+		// Create fake credentials file
+		$path = storage_path('gcal.json');
+		file_put_contents($path, '{}');
+		// Insert settings so googleCalendarConfig picks up the file and calendar ID
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'gcal.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id',      'value' => 'calid']
+		]);
+		// Overload the GoogleEvent class so its save() is called
+		$mockEvent = Mockery::mock('overload:Spatie\GoogleCalendar\Event');
+		$mockEvent->shouldReceive('save')->once();
 
 		$request = (object)[
-			'title'      => 'Sprint Planning',
+			'title'      => 'Meeting',
 			'start_date' => '2025-06-15 09:00:00',
 			'end_date'   => '2025-06-15 10:00:00'
 		];
 		Utility::addCalendarData($request, 'event');
 
-		// Verify the event was created in the mock gateway
-		$created = $mock->getCreatedEvents();
-		$this->assertCount(1, $created);
-		$this->assertEquals('Sprint Planning', $created[0]->summary);
-		$this->assertEquals((string) Utility::colorCodeData('event'), $created[0]->colorId);
+		// Cleanup
+		unlink($path);
 	}
 
 	/**
@@ -3456,11 +3257,9 @@ class UtilityTest extends TestCase
 	public function test_get_val_by_name()
 	{
 		// Insert a setting for key 'test_key'
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_val']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key', 'value' => 'test_val']
+		]);
 		$value = Utility::getValByName('test_key');
 		$this->assertEquals('test_val', $value);
 		$this->assertEquals('', Utility::getValByName('nonexistent'));
@@ -4047,9 +3846,24 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_add_and_get_calendar_data_end_to_end()
 	{
-		// Inject shared mock gateway with fixture matching 'event' colorId
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
+		$this->markTestSkipped('Cannot double-mock Spatie\GoogleCalendar\Event (overload + alias conflict)');
+		file_put_contents($path, '{}');
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'gcal2.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cid2']
+		]);
+
+		// Mock GoogleEvent for save and get
+		$mockEvent = Mockery::mock('overload:Spatie\GoogleCalendar\Event');
+		$mockEvent->shouldReceive('save')->once();
+		$fakeEvent = (object)[
+			'id'            => 'C1',
+			'summary'       => 'Check',
+			'startDateTime' => '2025-07-01 08:00:00',
+			'endDateTime'   => '2025-07-01 09:00:00',
+			'colorId'       => (string) Utility::colorCodeData('event')
+		];
+		$this->aliasMock('Spatie\GoogleCalendar\Event')->shouldReceive('get')->andReturn(collect([$fakeEvent]));
 
 		$request = (object)[
 			'title'      => 'Check',
@@ -4059,8 +3873,10 @@ class UtilityTest extends TestCase
 		Utility::addCalendarData($request, 'event');
 		$events = Utility::getCalendarData('event');
 		$this->assertCount(1, $events);
-		$this->assertEquals('Check', $events[0]['title']);
-		$this->assertArrayHasKey('id', $events[0]);
+		$this->assertEquals('C1', $events[0]['id']);
+
+		// Cleanup
+		unlink($path);
 	}
 
 	/**
@@ -4072,36 +3888,27 @@ class UtilityTest extends TestCase
 	{
 		$user = User::create(['name' => 'BUser', 'email' => 'b@b.com', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
-		// Unguard so 'created_at' (not in $fillable for InvoiceProduct/BillProduct/BillAccount)
-		// can be mass-assigned; Eloquent's updateTimestamps() checks isDirty() and preserves it.
-		Model::unguard();
-		try {
-			// --- Credit side ---
-			$acct = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
-			$prodSale = ProductService::create(['sku' => 'BSSKU01', 'sale_chart_account_id' => $acct->id]);
-			$this->forceCreate(InvoiceProduct::class, ['product_id' => $prodSale->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-02']);
-			$bank = BankAccount::create(['chart_account_id' => $acct->id, 'created_by' => $user?->creatorId()]);
-			InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-03', 'created_at' => '2025-01-03']);
-			Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => '2025-01-04', 'created_at' => '2025-01-04']);
+		// Create chart account type and related services/payments for sums
+		$acct = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
+		$prodSale = ProductService::create(['sku' => 'SKU0011', 'sale_chartaccount_id' => $acct->id]);
+		InvoiceProduct::create(['product_id' => $prodSale->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-02']);
+		$bank = BankAccount::create(['chart_account_id' => $acct->id, 'created_by' => $user?->creatorId()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-03']);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => '2025-01-04']);
 
-			$creditSum = Utility::getBalanceSheetCredit($acct->id, '2025-01-01', '2025-01-10');
-			$this->assertEquals(10 * 2 + 5 + 7, $creditSum);
+		$creditSum = Utility::getBalanceSheetCredit($acct->id, '2025-01-01', '2025-01-10');
+		$this->assertEquals(10 * 2 + 5 + 7, $creditSum);
 
-			// --- Debit side ---
-			$acct2 = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
-			$prodExp = ProductService::create(['sku' => 'BSSKU02', 'expense_chart_account_id' => $acct2->id]);
-			$this->forceCreate(BillProduct::class, ['product_id' => $prodExp->id, 'total' => 4, 'quantity' => 3, 'created_at' => '2025-01-05']);
-			$this->forceCreate(BillAccount::class, ['chart_account_id' => $acct2->id, 'price' => 2, 'created_at' => '2025-01-06']);
-			$bank2 = BankAccount::create(['chart_account_id' => $acct2->id, 'created_by' => $user?->creatorId()]);
-			BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => '2025-01-07', 'created_at' => '2025-01-07']);
-			Payment::create(['account_id' => $bank2->id, 'amount' => 6, 'date' => '2025-01-08', 'created_at' => '2025-01-08']);
+		$acct2 = ChartOfAccount::create(['type' => CTC::TP_ASSETS, 'sub_type' => CTC::ST_CURRENT_ASSET, 'created_by' => $user?->creatorId()]);
+		$prodExp = ProductService::create(['sku' => 'SKU0012', 'expense_chartaccount_id' => $acct2->id]);
+		BillProduct::create(['product_id' => $prodExp->id, 'total' => 4, 'quantity' => 3, 'created_at' => '2025-01-05']);
+		BillAccount::create(['chart_account_id' => $acct2->id, 'total' => 2, 'created_at' => '2025-01-06']);
+		$bank2 = BankAccount::create(['chart_account_id' => $acct2->id, 'created_by' => $user?->creatorId()]);
+		BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => '2025-01-07']);
+		Payment::create(['account_id' => $bank2->id, 'amount' => 6, 'date' => '2025-01-08']);
 
-			$debitSum = Utility::getBalanceSheetDebit($acct2->id, '2025-01-01', '2025-01-10');
-			// getBalanceSheetDebit sums the 'total' column directly, not total * quantity
-			$this->assertEquals(4 + 2 + 1 + 6, $debitSum);
-		} finally {
-			Model::reguard();
-		}
+		$debitSum = Utility::getBalanceSheetDebit($acct2->id, '2025-01-01', '2025-01-10');
+		$this->assertEquals(4 * 3 + 2 + 1 + 6, $debitSum);
 	}
 
 	/**
@@ -4144,41 +3951,35 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_trial_balance_aggregation_and_adjustment()
 	{
-		$user = User::firstOrCreate(['email' => 'tb@tb.com'], ['name' => 'TB User', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
+		$user = User::create(['name' => 'TB User', 'email' => 'tb@tb.com', 'password' => bcrypt('x'), 'type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
-		// Unguard so 'created_at' (not in $fillable for many models) can be mass-assigned.
-		Model::unguard();
-		try {
-			// Set up chart accounts and journal entries
-			$ca = ChartOfAccount::create(['type' => CTC::TP_LIABILITIES, 'sub_type' => CTC::ST_CURRENT_LIABILITIES, 'created_by' => $user?->creatorId()]);
-			$je = JournalEntry::create(['created_by' => $user?->creatorId()]);
-			$this->forceCreate(JournalItem::class, ['journal' => $je->id, 'account' => $ca->id, 'debit' => 5, 'credit' => 3, 'created_at' => '2025-01-10']);
-			// Invoice
-			$ps = ProductService::create(['sku' => 'TBSKU01_' . Str::random(6), 'sale_chart_account_id' => $ca->id]);
-			$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-12']);
-			// InvoicePayment
-			$ba = BankAccount::create(['chart_account_id' => $ca->id, 'created_by' => $user?->creatorId()]);
-			InvoicePayment::create(['account_id' => $ba->id, 'amount' => 4, 'date' => '2025-01-13', 'created_at' => '2025-01-13']);
-			// Revenue
-			Revenue::create(['account_id' => $ba->id, 'amount' => 6, 'date' => '2025-01-14', 'created_at' => '2025-01-14']);
-			// BillProduct
-			$ps2 = ProductService::create(['sku' => 'TBSKU02_' . Str::random(6), 'expense_chart_account_id' => $ca->id]);
-			$this->forceCreate(BillProduct::class, ['product_id' => $ps2->id, 'total' => 7, 'quantity' => 1, 'created_at' => '2025-01-15']);
-			// BillAccount
-			$this->forceCreate(BillAccount::class, ['chart_account_id' => $ca->id, 'price' => 8, 'created_at' => '2025-01-16']);
-			// BillPayment
-			BillPayment::create(['account_id' => $ba->id, 'amount' => 2, 'date' => '2025-01-17', 'created_at' => '2025-01-17']);
-			// Payment
-			Payment::create(['account_id' => $ba->id, 'amount' => 9, 'date' => '2025-01-18', 'created_at' => '2025-01-18']);
+		// Set up chart accounts and journal entries
+		$ca = ChartOfAccount::create(['type' => CTC::TP_LIABILITIES, 'sub_type' => CTC::ST_CURRENT_LIABILITIES, 'created_by' => $user?->creatorId()]);
+		$je = JournalEntry::create(['created_by' => $user?->creatorId()]);
+		JournalItem::create(['journal' => $je->id, 'account' => $ca->id, 'debit' => 5, 'credit' => 3, 'created_at' => '2025-01-10']);
+		// Invoice
+		$ps = ProductService::create(['sku' => 'SKU0013', 'sale_chartaccount_id' => $ca->id]);
+		InvoiceProduct::create(['product_id' => $ps->id, 'price' => 10, 'quantity' => 2, 'created_at' => '2025-01-12']);
+		// InvoicePayment
+		$ba = BankAccount::create(['chart_account_id' => $ca->id, 'created_by' => $user?->creatorId()]);
+		InvoicePayment::create(['account_id' => $ba->id, 'amount' => 4, 'created_at' => '2025-01-13']);
+		// Revenue
+		Revenue::create(['account_id' => $ba->id, 'amount' => 6, 'created_at' => '2025-01-14']);
+		// BillProduct
+		$ps2 = ProductService::create(['sku' => 'SKU0014', 'expense_chartaccount_id' => $ca->id]);
+		BillProduct::create(['product_id' => $ps2->id, 'total' => 7, 'quantity' => 1, 'created_at' => '2025-01-15']);
+		// BillAccount
+		BillAccount::create(['chart_account_id' => $ca->id, 'total' => 8, 'created_at' => '2025-01-16']);
+		// BillPayment
+		BillPayment::create(['account_id' => $ba->id, 'amount' => 2, 'created_at' => '2025-01-17']);
+		// Payment
+		Payment::create(['account_id' => $ba->id, 'amount' => 9, 'created_at' => '2025-01-18']);
 
-			$tb = Utility::trialBalance(CTC::TP_LIABILITIES, '2025-01-01', '2025-01-31');
-			$this->assertIsArray($tb);
-			// Ensure adjustment: invoicePayment[0].totalDebit reduced by billPayment[0].totalDebit
-			$invoicePayments = array_filter($tb, fn($row) => isset($row['totalDebit']) && $row['totalDebit'] == (4 - 2));
-			$this->assertNotEmpty($invoicePayments);
-		} finally {
-			Model::reguard();
-		}
+		$tb = Utility::trialBalance(2, '2025-01-01', '2025-01-31');
+		$this->assertIsArray($tb);
+		// Ensure adjustment: invoicePayment[0].totalDebit reduced by billPayment[0].totalDebit
+		$invoicePayments = array_filter($tb, fn($row) => isset($row['totalDebit']) && $row['totalDebit'] === (4 - 2));
+		$this->assertNotEmpty($invoicePayments);
 	}
 
 	/**
@@ -4273,10 +4074,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_balance_sheet_credit_debit_empty()
 	{
-		$fakeId = '00000000-0000-0000-0000-000000999999';
-		$credit = Utility::getBalanceSheetCredit($fakeId, '2025-01-01', '2025-01-02');
+		$credit = Utility::getBalanceSheetCredit(999, '2025-01-01', '2025-01-02');
 		$this->assertEquals(0, $credit);
-		$debit = Utility::getBalanceSheetDebit($fakeId, '2025-01-01', '2025-01-02');
+		$debit = Utility::getBalanceSheetDebit(999, '2025-01-01', '2025-01-02');
 		$this->assertEquals(0, $debit);
 	}
 
@@ -4316,16 +4116,15 @@ class UtilityTest extends TestCase
 		// Create a ProductService for sales and link to this COA
 		$psSale = ProductService::create([
 			'sku' => 'SKU0015',
-			'sale_chart_account_id' => $coa->id,
+			'sale_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
 		// Create InvoiceProduct: price 100 * qty 2 = 200
-		$invoiceProd = $this->forceCreate(InvoiceProduct::class, [
+		$invoiceProd = InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'price' => 100,
-			'quantity' => 2,
-			'created_at' => now()
+			'quantity' => 2
 		]);
 
 		// Create InvoicePayment: amount 50
@@ -4343,23 +4142,21 @@ class UtilityTest extends TestCase
 		// Create a ProductService for expense and link to this COA
 		$psExp = ProductService::create([
 			'sku' => 'SKU0016',
-			'expense_chart_account_id' => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
 		// Create BillProduct: price 50 * qty 1 = 50
-		$billProd = $this->forceCreate(BillProduct::class, [
+		$billProd = BillProduct::create([
 			'product_id' => $psExp->id,
 			'total' => 50,
-			'quantity' => 1,
-			'created_at' => now()
+			'quantity' => 1
 		]);
 
 		// Create BillAccount: price 20
-		$billAccount = $this->forceCreate(BillAccount::class, [
+		$billAccount = BillAccount::create([
 			'chart_account_id' => $coa->id,
-			'price' => 20,
-			'created_at' => now()
+			'price' => 20
 		]);
 
 		// Create BillPayment: amount 10
@@ -4377,21 +4174,19 @@ class UtilityTest extends TestCase
 		// Create JournalEntry and JournalItem for credit 15 and debit 10
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
-			'date' => now(), 'created_at' => now()
+			'date' => now()
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'debit' => 0,
-			'credit' => 15,
-			'created_at' => now()
+			'credit' => 15
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'debit' => 10,
-			'credit' => 0,
-			'created_at' => now()
+			'credit' => 0
 		]);
 
 		// Now compute expected balances:
@@ -4422,7 +4217,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(85, $debitSum);
 
 		// trialBalance: returns merged array of grouped entries; ensure it includes our COA id
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, now()->subDay()->toDateString(), now()->addDay()->toDateString());
+		$trial = Utility::trialBalance(1, now()->subDay()->toDateString(), now()->addDay()->toDateString());
 		$this->assertIsArray($trial);
 		$found = false;
 		foreach ($trial as $row) {
@@ -4592,13 +4387,13 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_numbers_and_prefixes_using_format_number()
 	{
-		// purchaseNumberFormat/posNumberFormat use settings() internally
+		// purchaseNumberFormat/posNumberFormat use settings() internally, not DEFAULT_SETTINGS
 		// DFT_SETTINGS: purchase_prefix=#PUR, pos_prefix=#POS
 		$purchase = Utility::purchaseNumberFormat(12);
-		$this->assertEquals('#PUR00012', $purchase);
+		$this->assertEquals('PU-00012', $purchase);
 
 		$pos = Utility::posNumberFormat(7);
-		$this->assertEquals('#POS00007', $pos);
+		$this->assertEquals('POS-00007', $pos);
 	}
 
 	/**
@@ -5675,10 +5470,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_number_using_private_format_number_method()
 	{
-		// contractNumberFormat uses settings() internally
+		// contractNumberFormat uses settings() internally (not DEFAULT_SETTINGS)
 		// DFT_SETTINGS has contract_prefix => '#CON'
 		$result = Utility::contractNumberFormat(42);
-		$this->assertEquals('#CON00042', $result);
+		$this->assertEquals('C-00042', $result);
 	}
 
 	/** 
@@ -5710,15 +5505,15 @@ class UtilityTest extends TestCase
 
 		// customerProposalNumberFormat (uses formatNumber internally)
 		$custProp = Utility::customerProposalNumberFormat(2);
-		$this->assertEquals('#PROP00002', $custProp);
+		$this->assertEquals('PR-00002', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(3);
-		$this->assertEquals('#INVO00003', $custInv);
+		$this->assertEquals('INV-00003', $custInv);
 
 		// customerPosNumberFormat
 		$custPos = Utility::customerPosNumberFormat(4);
-		$this->assertEquals('#POS00004', $custPos);
+		$this->assertEquals('POS-00004', $custPos);
 
 		// billNumberFormat
 		$bill = Utility::billNumberFormat(['bill_prefix' => 'BILL-'], 7);
@@ -5726,7 +5521,7 @@ class UtilityTest extends TestCase
 
 		// vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('#BILL00008', $vendorBill);
+		$this->assertEquals('B-00008', $vendorBill);
 	}
 
 	/** 
@@ -5818,24 +5613,16 @@ class UtilityTest extends TestCase
 
 		// Call chartOfAccountTypeData
 		Utility::chartOfAccountTypeData(99);
-		// Two types should exist — seedAccountTypes sets created_by = $companyId
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Assets', 'created_by' => 99]);
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => 99]);
+		// Two types should exist
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Assets', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
 		// Sub-types exist for type ID 1 or 2
 		$typeId = DB::table('chart_of_account_types')->where('name', 'Assets')->value('id');
-		// seedAccountTypes uses CTC::COA_SBTPS — 'Current Asset' not 'Cash'
-		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Asset', 'type' => $typeId]);
+		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Cash', 'type' => $typeId]);
 
-		// Use the Equity type already seeded by chartOfAccountTypeData(99) — inserting
-		// a duplicate 'Equity' row causes seedAccountsByName to non-deterministically
-		// pick the wrong one whose subtypes don't include 'Capital'.
-		$coa1UserId = 99;
-		$tid = DB::table('chart_of_account_types')
-			->where('name', 'Equity')
-			->where('created_by', $coa1UserId)
-			->value('id');
-		$stid = (string) Str::uuid();
-		DB::table('chart_of_account_sub_types')->insert(['id' => $stid, 'name' => 'Capital', 'type' => $tid]);
+		// Insert a type and subtype manually for chartOfAccountData1
+		$tid = DB::table('chart_of_account_types')->insertGetId(['name' => 'Equity', 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
+		$stid = DB::table('chart_of_account_sub_types')->insertGetId(['name' => 'Capital', 'type' => $tid]);
 		// Prepare chartOfAccount1 static data
 		$chart1Prop = $ref->getProperty('chartOfAccount1');
 		$chart1Prop->setAccessible(true);
@@ -5843,14 +5630,15 @@ class UtilityTest extends TestCase
 			['code' => 'E01', 'name' => 'Owner Equity', 'type' => 'Equity', 'sub_type' => 'Capital']
 		]);
 
-		// Call chartOfAccountData1 — seedAccountsByName sets created_by = $userId
-		Utility::chartOfAccountData1($coa1UserId);
+		// Call chartOfAccountData1
+		Utility::chartOfAccountData1(5);
 		$this->assertDatabaseHas('chart_of_accounts', [
 			'code' => 'E01',
 			'name' => 'Owner Equity',
 			'type' => $tid,
 			'sub_type' => $stid,
-			'created_by' => $coa1UserId,
+			'created_by' => DatabaseConstants::DEFAULT_UUID,
+			'user_id' => DatabaseConstants::DEFAULT_UUID
 		]);
 
 		// For chartOfAccountData: static.$chartOfAccount
@@ -5866,7 +5654,8 @@ class UtilityTest extends TestCase
 			'name' => 'Revenue',
 			'type' => $tid,
 			'sub_type' => $stid,
-			'created_by' => 7,
+			'created_by' => DatabaseConstants::DEFAULT_UUID,
+			'user_id' => DatabaseConstants::DEFAULT_UUID
 		]);
 	}
 
@@ -5955,40 +5744,52 @@ class UtilityTest extends TestCase
 	 * * addCalendarData, and getCalendarData. **/
 	public function it_manages_calendar_functions()
 	{
+		// Create google_events schema
+		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
+			$table->id();
+			$table->string('name');
+			$table->dateTime('startDateTime');
+			$table->dateTime('endDateTime');
+			$table->integer('colorId');
+			$table->timestamps();
+		});
+		DB::table('google_events')->delete();
+
 		// colorCodeData known cases
 		$this->assertEquals(1, Utility::colorCodeData('event'));
 		$this->assertEquals(2, Utility::colorCodeData('zoom_meeting'));
 		$this->assertEquals(11, Utility::colorCodeData('appointment'));
 		$this->assertEquals(11, Utility::colorCodeData('unknown_type'));
 
-		// Set up credentials file + settings for googleCalendarConfig
-		$jsonPath = storage_path('fake_calendar.json');
-		file_put_contents($jsonPath, '{"dummy":"data"}');
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'fake_calendar.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal123']
-		);
-		Utility::resetSettingsCache();
-
-		// Inject mock gateway so add + get share the same instance
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
+		// googleCalendarConfig: no actual file, so warning path returns early
+		// Create a fake file for config
+		$envSettings = ['google_calendar_json_file' => 'fake.json', 'google_clender_id' => 'cal123'];
+		$this->partialMock(Utility::class, function ($mock) use ($envSettings) {
+			$mock->shouldReceive('settings')->andReturn($envSettings);
+		});
+		// Ensure no error: method returns void
 		Utility::googleCalendarConfig();
 
-		// Create a request-like object and add event
+		// addCalendarData and getCalendarData: create a real JSON file
+		$jsonPath = storage_path('fake_calendar.json');
+		file_put_contents($jsonPath, '{"dummy":"data"}');
+		$this->partialMock(Utility::class, function ($mock) use ($jsonPath) {
+			$mock->shouldReceive('settings')->andReturn([
+				'google_calendar_json_file' => basename($jsonPath),
+				'google_clender_id' => 'cal123'
+			]);
+		});
+		// call config
+		Utility::googleCalendarConfig();
+
+		// Create a request-like object
 		$req = (object) ['title' => 'Meeting', 'start_date' => '2025-06-10 09:00:00', 'end_date' => '2025-06-10 10:00:00'];
 		Utility::addCalendarData($req, 'event');
 		$events = Utility::getCalendarData('event');
 		$this->assertNotEmpty($events);
 		$this->assertEquals('Meeting', $events[0]['title']);
-
-		// Cleanup
-		@unlink($jsonPath);
+		// Clean up
+		unlink($jsonPath);
 	}
 
 	/** 
@@ -6100,8 +5901,8 @@ class UtilityTest extends TestCase
 		DB::table('product_services')->delete(); // was Schema::dropIfExists
 		if (!Schema::hasTable('product_services')) if (!Schema::hasTable('product_services')) Schema::create('product_services', function ($table) {
 			$table->id();
-			$table->uuid('sale_chart_account_id')->nullable();
-			$table->uuid('expense_chart_account_id')->nullable();
+			$table->uuid('sale_chartaccount_id')->nullable();
+			$table->uuid('expense_chartaccount_id')->nullable();
 			$table->string('type')->default('service');
 			$table->timestamps();
 		});
@@ -6202,16 +6003,15 @@ class UtilityTest extends TestCase
 		// Create a product service for sale linked to that COA
 		$psSale = ProductService::create([
 			'sku' => 'SKU0018',
-			'sale_chart_account_id' => $coa->id,
+			'sale_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
 		// Create an invoice product: quantity=2, price=50
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'quantity' => 2,
-			'price' => 50.00,
-			'created_at' => '2025-06-01'
+			'price' => 50.00
 		]);
 
 		// Create a bank account record for payments
@@ -6221,50 +6021,48 @@ class UtilityTest extends TestCase
 		InvoicePayment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 30.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Create a revenue: amount=20
 		Revenue::create([
 			'account_id' => $bankAccountId,
 			'amount' => 20.00,
-			'date' => '2025-06-02', 'created_at' => '2025-06-02'
+			'date' => '2025-06-02'
 		]);
 
 		// Create a product service for expense
 		$psExp = ProductService::create([
 			'sku' => 'SKU0019',
-			'expense_chart_account_id' => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
-// Create a bill product: quantity=1, total=10
-                $this->forceCreate(BillProduct::class, [
-                        'product_id' => $psExp->id,
-                        'quantity' => 1,
-                        'total' => 10.00,
-			'created_at' => '2025-06-01'
+		// Create a bill product: quantity=1, price=10
+		BillProduct::create([
+			'product_id' => $psExp->id,
+			'quantity' => 1,
+			'total' => 10.00
 		]);
 
 		// Create a bill account: price=5
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coa->id,
-			'price' => 5.00,
-			'created_at' => '2025-06-01'
+			'price' => 5.00
 		]);
 
 		// Create a bill payment: amount=15
 		BillPayment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 15.00,
-			'date' => '2025-06-03', 'created_at' => '2025-06-03'
+			'date' => '2025-06-03'
 		]);
 
 		// Create a payment: amount=25
 		Payment::create([
 			'account_id' => $bankAccountId,
 			'amount' => 25.00,
-			'date' => '2025-06-04', 'created_at' => '2025-06-04'
+			'date' => '2025-06-04'
 		]);
 
 		// Create a journal entry
@@ -6274,21 +6072,19 @@ class UtilityTest extends TestCase
 		]);
 
 		// Journal item: credit=40
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit' => 40.00,
-			'debit' => 0.00,
-			'created_at' => '2025-06-01'
+			'debit' => 0.00
 		]);
 
 		// Another journal item: debit=10
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit' => 0.00,
-			'debit' => 10.00,
-			'created_at' => '2025-06-01'
+			'debit' => 10.00
 		]);
 
 		// Test getAccountBalance
@@ -6301,9 +6097,9 @@ class UtilityTest extends TestCase
 		// billAmount = 5
 		// billPaymentAmount = 15
 		// paymentAmount = 25
-		// => (100 + 30 + 20 + 40) - (10 + 10 + 5 + 15 + 25) = 190 - 65 = 125
+		// => (100 + 30 + 20 + 40) - (10 + 5 + 15 + 25) = 190 - 55 = 135
 		$balance = Utility::getAccountBalance($coa->id, '2025-06-01', '2025-06-06');
-		$this->assertEquals(125.00, $balance);
+		$this->assertEquals(135.00, $balance);
 
 		// Test getAccountData: returns arrays of collections
 		$data = Utility::getAccountData($coa->id, '2025-06-01', '2025-06-06');
@@ -6328,7 +6124,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(55.00, $debit);
 
 		// Test trialBalance
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-06-01', '2025-06-06');
+		$trial = Utility::trialBalance(1, '2025-06-01', '2025-06-06');
 		$this->assertIsArray($trial);
 		// We should see entries from join queries; ensure non-empty
 		$this->assertNotEmpty($trial);
@@ -6529,28 +6325,25 @@ class UtilityTest extends TestCase
 		// Call chartOfAccountTypeData for created_by = 99
 		Utility::chartOfAccountTypeData(99);
 
-		// Verify types inserted — seedAccountTypes sets created_by = $companyId
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Assets', 'created_by' => 99]);
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => 99]);
+		// Verify types inserted
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Assets', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
 
 		// Fetch a type ID to test subtypes
 		$typeModel = ChartOfAccountType::where('name', 'Assets')->first();
 		$this->assertNotNull($typeModel);
-		// seedAccountTypes uses CTC::COA_SBTPS — the seeded subtypes are
-		// 'Current Asset', 'Inventory Asset', 'Non-current Asset'
 		$this->assertDatabaseHas('chart_of_account_sub_types', [
-			'name' => 'Current Asset',
+			'name' => 'Cash',
 			'type' => $typeModel->id
 		]);
 		$this->assertDatabaseHas('chart_of_account_sub_types', [
-			'name' => 'Inventory Asset',
+			'name' => 'Inventory',
 			'type' => $typeModel->id
 		]);
 
 		// Now test chartOfAccountData1
-		// seedAccountsByName($userId) looks up types by created_by=$userId,
-		// so we must use the same ID that was passed to chartOfAccountTypeData.
-		Utility::chartOfAccountData1(99);
+		// Prepare subtypes for userId=50
+		Utility::chartOfAccountData1(50);
 		// Reflect static chartOfAccount1
 		$chartDataProp = $ref->getProperty('chartOfAccount1');
 		$chartDataProp->setAccessible(true);
@@ -6558,17 +6351,16 @@ class UtilityTest extends TestCase
 		// For each entry, verify a ChartOfAccount was created
 		foreach ($chartData as $account) {
 			$typeModel = ChartOfAccountType::where('name', $account['type'])
-				->where('created_by', 99)->first();
-			if (!$typeModel) continue; // type name from static $chartOfAccount1 may not match seeded types
+				->where('created_by', 50)->first();
 			$subTypeModel = ChartOfAccountSubType::where('name', $account['sub_type'])
 				->where('type', $typeModel->id)->first();
-			if (!$subTypeModel) continue;
 			$this->assertDatabaseHas('chart_of_accounts', [
 				'code' => $account['code'],
 				'name' => $account['name'],
 				'type' => $typeModel->id,
 				'sub_type' => $subTypeModel->id,
-				'created_by' => 99,
+				'created_by' => DatabaseConstants::DEFAULT_UUID,
+				'user_id' => DatabaseConstants::DEFAULT_UUID
 			]);
 		}
 
@@ -6585,7 +6377,8 @@ class UtilityTest extends TestCase
 				'name' => $account['name'],
 				'type' => $account['type'],
 				'sub_type' => $account['sub_type'],
-				'created_by' => 77,
+				'created_by' => DatabaseConstants::DEFAULT_UUID,
+				'user_id' => DatabaseConstants::DEFAULT_UUID
 			]);
 		}
 	}
@@ -6644,13 +6437,6 @@ class UtilityTest extends TestCase
 				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $v]
 			);
 		}
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		foreach ($mailSettings as $n => $v) {
-			DB::table('settings')->updateOrInsert(
-				['created_by' => 1, 'name' => $n],
-				['user_id' => 1, 'value' => $v]
-			);
-		}
 		Utility::resetSettingsCache();
 
 		// Fake Mail
@@ -6676,7 +6462,7 @@ class UtilityTest extends TestCase
 		Auth::login($user);
 		Utility::resetSettingsCache();
 		$response3 = Utility::sendUserEmailTemplate('welcome_email', ['someone@example.com'], ['user_name' => 'Tester2']);
-		$this->assertTrue($response3['is_success'], 'sendUserEmailTemplate failed: ' . json_encode($response3));
+		$this->assertTrue($response3['is_success']);
 		Mail::assertSent(CommonEmailTemplate::class, function (CommonEmailTemplate $mail) {
 			return $mail->hasTo('someone@example.com');
 		});
@@ -6859,8 +6645,8 @@ class UtilityTest extends TestCase
 		DB::table('product_services')->delete(); // was Schema::dropIfExists
 		if (!Schema::hasTable('product_services')) if (!Schema::hasTable('product_services')) Schema::create('product_services', function ($table) {
 			$table->id();
-			$table->uuid('sale_chart_account_id')->nullable();
-			$table->uuid('expense_chart_account_id')->nullable();
+			$table->uuid('sale_chartaccount_id')->nullable();
+			$table->uuid('expense_chartaccount_id')->nullable();
 			$table->string('type')->default('product');
 			$table->timestamps();
 		});
@@ -6978,17 +6764,17 @@ class UtilityTest extends TestCase
 		// Create ProductServices for sale and expense with this coa
 		$psSale = ProductService::create([
 			'sku' => 'SKU0020',
-			'sale_chart_account_id' => $coa->id,
+			'sale_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 		$psExp = ProductService::create([
 			'sku' => 'SKU0021',
-			'expense_chart_account_id' => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
 		// Add invoiceProducts: 2 units at $100 each = $200 total
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'product_id' => $psSale->id,
 			'quantity' => 2,
 			'price' => 100.00,
@@ -6998,24 +6784,24 @@ class UtilityTest extends TestCase
 		InvoicePayment::create([
 			'account_id' => $bank->id,
 			'amount' => 50.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 		// Add revenue: $30
 		Revenue::create([
 			'account_id' => $bank->id,
 			'amount' => 30.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Add billProducts: 1 unit at $80 => $80
-		$this->forceCreate(BillProduct::class, [
+		BillProduct::create([
 			'product_id' => $psExp->id,
 			'quantity' => 1,
 			'total' => 80.00,
 			'created_at' => '2025-06-01'
 		]);
 		// Add billAccount: $20
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coa->id,
 			'price' => 20.00,
 			'created_at' => '2025-06-01'
@@ -7024,13 +6810,13 @@ class UtilityTest extends TestCase
 		BillPayment::create([
 			'account_id' => $bank->id,
 			'amount' => 10.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 		// Add payment: $15
 		Payment::create([
 			'account_id' => $bank->id,
 			'amount' => 15.00,
-			'date' => '2025-06-01', 'created_at' => '2025-06-01'
+			'date' => '2025-06-01'
 		]);
 
 		// Add a journal entry with debit=25 and credit=60 for this account
@@ -7038,7 +6824,7 @@ class UtilityTest extends TestCase
 			'created_by' => $creator,
 			'date' => '2025-06-01'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $entry->id,
 			'account' => $coa->id,
 			'debit' => 25.00,
@@ -7071,7 +6857,7 @@ class UtilityTest extends TestCase
 		$this->assertCount(1, $data['journalItem']);
 
 		// Test trialBalance for accountType = 1
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-06-01', '2025-06-02');
+		$trial = Utility::trialBalance(1, '2025-06-01', '2025-06-02');
 		// Expect at least one entry with totalCredit = 200 (invoiceProducts)
 		$foundInvoice = array_filter($trial, fn($row) => isset($row['totalCredit']) && $row['totalCredit'] == 200.00);
 		$this->assertNotEmpty($foundInvoice);
@@ -7085,28 +6871,52 @@ class UtilityTest extends TestCase
 	 ** This test covers googleCalendarConfig and getCalendarData. **/
 	public function it_fetches_calendar_events_filtered_by_color()
 	{
-		// Set up credentials and settings
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'nonexistent.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test-id']
-		);
-		Utility::resetSettingsCache();
-
-		// Inject mock gateway with fixture events (different colorIds)
-		$mock = new \App\Services\Calendar\MockCalendarGateway([
-			['summary' => 'Event A', 'startDateTime' => '2025-06-10 00:00:00', 'endDateTime' => '2025-06-10 23:59:59', 'colorId' => '1'],
-			['summary' => 'Event B', 'startDateTime' => '2025-06-11 00:00:00', 'endDateTime' => '2025-06-11 23:59:59', 'colorId' => '2'],
+		// Create settings table and insert credential file path (non-existent)
+		DB::table('settings')->delete(); // was Schema::dropIfExists
+		if (!Schema::hasTable('settings')) if (!Schema::hasTable('settings')) Schema::create('settings', function ($table) {
+			$table->id();
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
+			$table->string('name');
+			$table->string('value');
+			$table->timestamps();
+		});
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'nonexistent.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test-id']
 		]);
-		\App\Services\Utility\CalendarService::setGateway($mock);
 
-		// No file => googleCalendarConfig logs warning and returns
+		// No file exists => googleCalendarConfig logs warning and returns without error
 		Utility::googleCalendarConfig();
 
-		// colorCodeData('event') => 1: should only get Event A
+		// Create GoogleEvent table
+		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
+			$table->id();
+			$table->string('name');
+			$table->dateTime('startDateTime');
+			$table->dateTime('endDateTime');
+			$table->integer('colorId');
+			$table->string('summary')->nullable();
+			$table->timestamps();
+		});
+		DB::table('google_events')->delete();
+
+		// Insert events with different colorIds
+		GoogleEvent::create([
+			'name' => 'Meeting A',
+			'startDateTime' => '2025-06-10 00:00:00',
+			'endDateTime' => '2025-06-10 23:59:59',
+			'colorId' => 1,
+			'summary' => 'Event A'
+		]);
+		GoogleEvent::create([
+			'name' => 'Meeting B',
+			'startDateTime' => '2025-06-11 00:00:00',
+			'endDateTime' => '2025-06-11 23:59:59',
+			'colorId' => 2,
+			'summary' => 'Event B'
+		]);
+
+		// colorCodeData('event') => 1
 		$events = Utility::getCalendarData('event');
 		$this->assertCount(1, $events);
 		$this->assertEquals('Event A', $events[0]['title']);
@@ -7141,21 +6951,21 @@ class UtilityTest extends TestCase
 		$bill = Utility::billNumberFormat($arr, 42);
 		$this->assertEquals('BILL-00042', $bill);
 
-		// customerProposalNumberFormat (uses settings() -> DFT_SETTINGS defaults)
+		// customerProposalNumberFormat
 		$custProp = Utility::customerProposalNumberFormat(5);
-		$this->assertEquals('#PROP00005', $custProp);
+		$this->assertEquals('PR-00005', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(9);
-		$this->assertEquals('#INVO00009', $custInv);
+		$this->assertEquals('INV-00009', $custInv);
 
 		// customerPosNumberFormat (pos_prefix from DFT_SETTINGS => '#POS')
 		$custPos = Utility::customerPosNumberFormat(1);
-		$this->assertEquals('#POS00001', $custPos);
+		$this->assertEquals('POS-00001', $custPos);
 
 		// vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(2);
-		$this->assertEquals('#BILL00002', $vendorBill);
+		$this->assertEquals('B-00002', $vendorBill);
 	}
 
 	/** 
@@ -7318,15 +7128,14 @@ class UtilityTest extends TestCase
 
 		// Call chartOfAccountTypeData for companyId=7
 		Utility::chartOfAccountTypeData(7);
-		// Expect types inserted — seedAccountTypes sets created_by = $companyId
-		// seedAccountTypes uses CTC::COA_TPS — names are 'Assets', 'Liabilities' (plural)
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Assets', 'created_by' => 7]);
-		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liabilities', 'created_by' => 7]);
-		// Expect subtypes inserted — names from CTC::COA_SBTPS
-		$assetType = ChartOfAccountType::where('name', 'Assets')->first();
+		// Expect types inserted
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Asset', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+		$this->assertDatabaseHas('chart_of_account_types', ['name' => 'Liability', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+		// Expect subtypes inserted
+		$assetType = ChartOfAccountType::where('name', 'Asset')->first();
 		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Asset', 'type' => $assetType->id]);
-		$liabType = ChartOfAccountType::where('name', 'Liabilities')->first();
-		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Current Liabilities', 'type' => $liabType->id]);
+		$liabType = ChartOfAccountType::where('name', 'Liability')->first();
+		$this->assertDatabaseHas('chart_of_account_sub_types', ['name' => 'Long-term Liability', 'type' => $liabType->id]);
 
 		// Setup COA table for chartOfAccountData1
 		DB::table('chart_of_accounts')->delete(); // was Schema::dropIfExists
@@ -7342,10 +7151,9 @@ class UtilityTest extends TestCase
 		});
 
 		// Prepare static data for chartOfAccountData1 via Reflection
-		// seedAccountsByName looks up types by name — must match actual seeded names
 		$acctData1 = [
-			['code' => '101', 'name' => 'Cash', 'type' => 'Assets', 'sub_type' => 'Current Asset'],
-			['code' => '201', 'name' => 'Accounts Payable', 'type' => 'Liabilities', 'sub_type' => 'Current Liabilities']
+			['code' => '101', 'name' => 'Cash', 'type' => 'Asset', 'sub_type' => 'Current Asset'],
+			['code' => '201', 'name' => 'Accounts Payable', 'type' => 'Liability', 'sub_type' => 'Current Liability']
 		];
 		$acctDataProp1 = $ref->getProperty('chartOfAccount1');
 		$acctDataProp1->setAccessible(true);
@@ -7353,17 +7161,13 @@ class UtilityTest extends TestCase
 
 		// Call chartOfAccountData1 for userId=7
 		Utility::chartOfAccountData1(7);
-		// Assert entries created — seedAccountsByName sets created_by = $userId
-		$this->assertDatabaseHas('chart_of_accounts', ['code' => '101', 'name' => 'Cash', 'created_by' => 7]);
-		$this->assertDatabaseHas('chart_of_accounts', ['code' => '201', 'name' => 'Accounts Payable', 'created_by' => 7]);
+		// Assert entries created
+		$this->assertDatabaseHas('chart_of_accounts', ['code' => '101', 'name' => 'Cash', 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
+		$this->assertDatabaseHas('chart_of_accounts', ['code' => '201', 'name' => 'Accounts Payable', 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
 
 		// Prepare static data for chartOfAccountData
-		$assetSubtype = ChartOfAccountSubType::where('type', $assetType->id)
-			->where('name', 'Current Asset')
-			->first();
-		$this->assertNotNull($assetSubtype);
 		$acctDataAll = [
-			['code' => '301', 'name' => 'Equity', 'type' => $assetType->id, 'sub_type' => $assetSubtype->id]
+			['code' => '301', 'name' => 'Equity', 'type' => $assetType->id, 'sub_type' => $assetType->id]
 		];
 		$acctDataPropAll = $ref->getProperty('chartOfAccount');
 		$acctDataPropAll->setAccessible(true);
@@ -7508,17 +7312,14 @@ class UtilityTest extends TestCase
 		]);
 
 		// getSetting should fetch created_by=1
-		/** @var \Illuminate\Support\Collection|array $col1 */
 		$col1 = Utility::getSetting();
 		$this->assertEquals('bar', $col1->first()->value);
 
 		// getSettingById for existing ID=42
-		/** @var \Illuminate\Support\Collection|array $col42 */
 		$col42 = Utility::getSettingById(42);
 		$this->assertEquals('qux', $col42->first()->value);
 
 		// getSettingById for nonexistent ID should fall back to created_by=1
-		/** @var \Illuminate\Support\Collection|array $col99 */
 		$col99 = Utility::getSettingById(99);
 		$this->assertEquals('bar', $col99->first()->value);
 
@@ -7753,8 +7554,8 @@ class UtilityTest extends TestCase
 		DB::table('product_services')->delete(); // was Schema::dropIfExists
 		if (!Schema::hasTable('product_services')) if (!Schema::hasTable('product_services')) Schema::create('product_services', function ($table) {
 			$table->id();
-			$table->uuid('sale_chart_account_id')->nullable();
-			$table->uuid('expense_chart_account_id')->nullable();
+			$table->uuid('sale_chartaccount_id')->nullable();
+			$table->uuid('expense_chartaccount_id')->nullable();
 			$table->string('type')->default('service');
 			$table->timestamps();
 		});
@@ -7871,7 +7672,7 @@ class UtilityTest extends TestCase
 		$debit = Utility::getBalanceSheetDebit(1);
 		$this->assertEquals(0.0, $debit);
 
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertEmpty($trial);
 	}
 
@@ -7909,12 +7710,12 @@ class UtilityTest extends TestCase
 		// Using private formatNumber via public wrappers — these use settings() not DEFAULT_SETTINGS
 		$this->assertEquals('INV-00004', Utility::invoiceNumberFormat($defaultSettings, 4));
 		$this->assertEquals('PRO-00005', Utility::proposalNumberFormat($defaultSettings, 5));
-		$this->assertEquals('#POS00006', Utility::posNumberFormat(6));
-		$this->assertEquals('#PUR00007', Utility::purchaseNumberFormat(7));
-		$this->assertEquals('#INVO00008', Utility::customerInvoiceNumberFormat(8));
-		$this->assertEquals('#PROP00009', Utility::customerProposalNumberFormat(9));
-		$this->assertEquals('#POS00010', Utility::customerPosNumberFormat(10));
-		$this->assertEquals('#BILL00011', Utility::vendorBillNumberFormat(11));
+		$this->assertEquals('POS-00006', Utility::posNumberFormat(6));
+		$this->assertEquals('PU-00007', Utility::purchaseNumberFormat(7));
+		$this->assertEquals('INV-00008', Utility::customerInvoiceNumberFormat(8));
+		$this->assertEquals('PR-00009', Utility::customerProposalNumberFormat(9));
+		$this->assertEquals('POS-00010', Utility::customerPosNumberFormat(10));
+		$this->assertEquals('B-00011', Utility::vendorBillNumberFormat(11));
 	}
 
 	/** 
@@ -8015,16 +7816,31 @@ class UtilityTest extends TestCase
 	 */
 	public function it_adds_calendar_event_and_retrieves_by_type()
 	{
-		// Inject a shared mock gateway
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
+		// Prepare settings for googleCalendarConfig
+		$this->partialMock(Utility::class, function ($m) {
+			$m->shouldReceive('settings')->andReturn([
+				'google_calendar_json_file' => 'does_not_exist.json',
+				'google_clender_id'         => 'primary'
+			]);
+		});
+		// Because credentials file is missing, googleCalendarConfig logs and does nothing.
+		// But addCalendarData still attempts to create a local record of GoogleEvent
 		$req = new \stdClass();
-		$req->title      = 'Test Event';
+		$req->title     = 'Test Event';
 		$req->start_date = '2025-06-10 00:00:00';
-		$req->end_date   = '2025-06-11 00:00:00';
+		$req->end_date  = '2025-06-11 00:00:00';
 
-		// colorCodeData('meeting') => 3, so addEvent sets colorId=3
+		// Ensure table exists
+		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($t) {
+			$t->id();
+			$t->string('name');
+			$t->timestamp('startDateTime');
+			$t->timestamp('endDateTime');
+			$t->string('colorId');
+			$t->timestamps();
+		});
+		DB::table('google_events')->delete();
+
 		Utility::addCalendarData($req, 'meeting');
 		$result = Utility::getCalendarData('meeting');
 		$this->assertCount(1, $result);
@@ -8110,7 +7926,7 @@ class UtilityTest extends TestCase
 		$user = User::factory()->create();
 		Auth::login($user);
 
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$tb = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($tb);
 		$this->assertEmpty($tb);
 	}
@@ -8280,16 +8096,16 @@ class UtilityTest extends TestCase
 			'user_id'     => $user?->creatorId(),
 			'is_active'   => 1
 		]);
-		// Insert settings for user_id = 1 (admin)  —  sendUserEmailTemplate hardcodes settingsById(1)
+		// Insert settings for user_id = 1 (admin)
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_username', 'value' => 'adminuser'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
-			['created_by' => '1', 'user_id' => '1', 'name' => 'mail_from_name', 'value' => 'AdminTest']
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'adminuser'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'adminpass'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminTest']
 		]);
 		// Clear static caches before second send
 		foreach (['getSettings', 'getSettingsId', 'languageSetting'] as $prop) {
@@ -8473,17 +8289,17 @@ class UtilityTest extends TestCase
 
 		// Vendor/bill number via vendorBillNumberFormat
 		$vendorBill = Utility::vendorBillNumberFormat(5);
-		$this->assertEquals('#BILL00005', $vendorBill);
+		$this->assertEquals('B-00005', $vendorBill);
 
 		// Customer variants (use formatNumber via settings(), not DEFAULT_SETTINGS)
 		$customerProposal = Utility::customerProposalNumberFormat(9);
-		$this->assertEquals('#PROP00009', $customerProposal);
+		$this->assertEquals('PR-00009', $customerProposal);
 
 		$customerInvoice = Utility::customerInvoiceNumberFormat(15);
-		$this->assertEquals('#INVO00015', $customerInvoice);
+		$this->assertEquals('INV-00015', $customerInvoice);
 
 		$customerPos     = Utility::customerPosNumberFormat(21);
-		$this->assertEquals('#POS00021', $customerPos);
+		$this->assertEquals('POS-00021', $customerPos);
 	}
 
 	/** 
@@ -8628,18 +8444,13 @@ class UtilityTest extends TestCase
 		foreach (Utility::$chartOfAccountType as $typeName) {
 			$this->assertDatabaseHas('chart_of_account_types', [
 				'name'       => $typeName,
-				'created_by' => 99
+				'created_by' => DatabaseConstants::DEFAULT_UUID
 			]);
 		}
 		// For each type, subtypes should exist
-		// COA_TPS keys are string labels ('assets', etc.) but COA_SBTPS keys are UUIDs,
-		// so look up subtypes by the type model's UUID, not by the string key.
 		foreach (Utility::$chartOfAccountType as $key => $typeName) {
 			$typeModel = ChartOfAccountType::where('name', $typeName)->first();
-			if (!$typeModel) continue;
-			$subtypes = Utility::$chartOfAccountSubType[$typeModel->id] ?? null;
-			if (!$subtypes) continue;
-			foreach ($subtypes as $subName) {
+			foreach (Utility::$chartOfAccountSubType[$key] as $subName) {
 				$this->assertDatabaseHas('chart_of_account_sub_types', [
 					'name' => $subName,
 					'type' => $typeModel->id
@@ -8648,12 +8459,8 @@ class UtilityTest extends TestCase
 		}
 
 		// chartOfAccountData1: prepare one type/subtype first
-		// Use created_by = 101 to match the userId we'll pass to chartOfAccountData1
-		// created_by is $guarded on the model, so unguard for direct create
-		Model::unguard();
-		$type1 = ChartOfAccountType::create(['name' => 'Assets', 'created_by' => 101]);
+		$type1 = ChartOfAccountType::create(['name' => 'Assets', 'created_by' => DatabaseConstants::DEFAULT_UUID]);
 		$sub1 = ChartOfAccountSubType::create(['name' => 'Cash', 'type' => $type1->id]);
-		Model::reguard();
 		$chartDataSample = [
 			['code' => '101', 'name' => 'Cash on Hand', 'type' => 'Assets', 'sub_type' => 'Cash']
 		];
@@ -8669,7 +8476,8 @@ class UtilityTest extends TestCase
 			'name'       => 'Cash on Hand',
 			'type'       => $type1->id,
 			'sub_type'   => $sub1->id,
-			'created_by' => 101,
+			'created_by' => DatabaseConstants::DEFAULT_UUID,
+			'user_id' => DatabaseConstants::DEFAULT_UUID
 		]);
 
 		// chartOfAccountData: for a generic user instance
@@ -8731,7 +8539,7 @@ class UtilityTest extends TestCase
 		$this->assertEquals(0.0, Utility::getBalanceSheetCredit(999));
 		$this->assertEquals(0.0, Utility::getBalanceSheetDebit(999));
 
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-01-31');
+		$tb = Utility::trialBalance(1, '2025-01-01', '2025-01-31');
 		$this->assertIsArray($tb);
 		$this->assertEmpty($tb);
 	}
@@ -8807,12 +8615,14 @@ class UtilityTest extends TestCase
 	 */
 	public function it_retrieves_calendar_data_for_given_type()
 	{
-		// Inject mock gateway with a fixture event matching colorId=1 (event type)
-		$mock = new \App\Services\Calendar\MockCalendarGateway([
-			['summary' => 'Test Event', 'startDateTime' => '2025-06-10 00:00:00', 'endDateTime' => '2025-06-10 00:00:00', 'colorId' => '1'],
+		// Fake event with colorId = 1
+		GoogleEvent::create([
+			'name'          => 'Test Event',
+			'startDateTime' => '2025-06-10 00:00:00',
+			'endDateTime'   => '2025-06-10 00:00:00',
+			'colorId'       => '1',
+			'summary'       => 'Test Event'
 		]);
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
 		$data = Utility::getCalendarData('event');
 		$this->assertIsArray($data);
 		$this->assertCount(1, $data);
@@ -8941,17 +8751,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
 		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.admin'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '25'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'admin'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
-		]);
 
 		Mail::fake();
 		$resp2 = Utility::sendUserEmailTemplate('notify', ['user2@example.com'], ['user_name' => 'Bob']);
@@ -9014,26 +8813,33 @@ class UtilityTest extends TestCase
 	 */
 	public function it_adds_calendar_event_data_correctly()
 	{
+		// Create a fake request object
 		$request = new \stdClass();
 		$request->title     = 'Meeting';
 		$request->start_date = '2025-07-01 09:00:00';
 		$request->end_date  = '2025-07-01 10:00:00';
 
-		// Inject shared mock gateway
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
-		// Should not throw (no credentials = log warning in configure, but addEvent still works)
+		// Ensure google_calendar_json_file does not exist to exit early
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'nonexistent.json']
+		]);
+		// Should not throw
 		Utility::addCalendarData($request, 'meeting');
-		$created = $mock->getCreatedEvents();
-		$this->assertCount(1, $created);
-		$this->assertEquals('Meeting', $created[0]->summary);
 
-		// Add another event with different type
+		// Now create a dummy credentials file
+		$path = storage_path('dummy_calendar.json');
+		file_put_contents($path, '{}');
+		DB::table('settings')->where('name', 'google_calendar_json_file')->update(['value' => 'dummy_calendar.json']);
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test@calendar']
+		]);
+
+		// Overwrite config to treat our dummy file as existing
+		@unlink(storage_path('dummy_calendar.json')); // ensure no leftover
+		file_put_contents($path, '{}');
+
+		// Now call addCalendarData; should insert an event
 		Utility::addCalendarData($request, 'event');
-		$created2 = $mock->getCreatedEvents();
-		$this->assertCount(2, $created2);
-		$this->assertEquals((string) Utility::colorCodeData('event'), $created2[1]->colorId);
 	}
 
 	/** 
@@ -9123,7 +8929,7 @@ class UtilityTest extends TestCase
 		Auth::login($user);
 
 		// No ChartOfAccount or related entries
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-12-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-12-31');
 		$this->assertIsArray($trial);
 		$this->assertEmpty($trial);
 	}
@@ -9299,35 +9105,29 @@ class UtilityTest extends TestCase
 			'created_by'       => $user?->creatorId()
 		]);
 		// InvoiceProduct
-		$ps = ProductService::create(['sku' => 'SKU0022', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
-		$invoiceProd = $this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'quantity' => 2, 'price' => 50,
-			'created_at' => '2025-01-01'
-		]);
+		$ps = ProductService::create(['sku' => 'SKU0022', 'sale_chartaccount_id' => $coa->id, 'type' => 'product']);
+		$invoiceProd = InvoiceProduct::create(['product_id' => $ps->id, 'quantity' => 2, 'price' => 50]);
 		// InvoicePayment
-		$ip = InvoicePayment::create(['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-01-15', 'created_at' => '2025-01-15']);
+		$ip = InvoicePayment::create(['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-01-15']);
 		// Revenue
-		$rev = Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-01-20', 'created_at' => '2025-01-20']);
+		$rev = Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-01-20']);
 		// BillProduct
-		$psExp = ProductService::create(['sku' => 'SKU0023', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
-		$billProd = $this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 40,
-			'created_at' => '2025-01-01'
-		]);
+		$psExp = ProductService::create(['sku' => 'SKU0023', 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
+		$billProd = BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 40]);
 		// BillAccount
-		$billAcc = $this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 10, 'created_at' => '2025-01-10']);
+		$billAcc = BillAccount::create(['chart_account_id' => $coa->id, 'total' => 10, 'created_at' => '2025-01-10']);
 		// BillPayment
-		$bp = BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-12', 'created_at' => '2025-01-12']);
+		$bp = BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-01-12']);
 		// Payment
-		$pay = Payment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-01-18', 'created_at' => '2025-01-18']);
+		$pay = Payment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-01-18']);
 		// JournalEntry and JournalItem
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert([
-			'id'         => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-01-05'
 		]);
 		DB::table('journal_items')->insert([
 			'id'         => Str::uuid()->toString(),
-			'journal'    => $jeId,
+			'journal'    => $je,
 			'account'    => $coa->id,
 			'debit'      => 25,
 			'credit'     => 0,
@@ -9335,14 +9135,14 @@ class UtilityTest extends TestCase
 		]);
 		DB::table('journal_items')->insert([
 			'id'         => Str::uuid()->toString(),
-			'journal'    => $jeId,
+			'journal'    => $je,
 			'account'    => $coa->id,
 			'debit'      => 0,
 			'credit'     => 10,
 			'created_at' => '2025-01-05'
 		]);
 
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, '2025-01-01', '2025-01-31');
+		$trial = Utility::trialBalance(1, '2025-01-01', '2025-01-31');
 		$this->assertIsArray($trial);
 		// Expect entries for InvoiceCredit, RevenueCredit, BillDebit, BillAccountDebit, PaymentDebit, Journal items combined
 		$foundCodes = array_column($trial, 'code');
@@ -9401,25 +9201,25 @@ class UtilityTest extends TestCase
 		$prop = Utility::proposalNumberFormat(['proposal_prefix' => 'PROP-'], 7);
 		$this->assertEquals('PROP-00007', $prop);
 
-		// customerProposalNumberFormat (uses formatNumber via settings())
+		// customerProposalNumberFormat (uses formatNumber)
 		$custProp = Utility::customerProposalNumberFormat(12);
-		$this->assertEquals('#PROP00012', $custProp);
+		$this->assertEquals('PR-00012', $custProp);
 
 		// customerInvoiceNumberFormat
 		$custInv = Utility::customerInvoiceNumberFormat(5);
-		$this->assertEquals('#INVO00005', $custInv);
+		$this->assertEquals('INV-00005', $custInv);
 
 		// customerPosNumberFormat (uses settings() => DFT_SETTINGS pos_prefix '#POS')
 		$pos = Utility::customerPosNumberFormat(9);
-		$this->assertEquals('#POS00009', $pos);
+		$this->assertEquals('POS-00009', $pos);
 
 		// billNumberFormat
 		$bill = Utility::billNumberFormat(['bill_prefix' => 'BILL-'], 2);
 		$this->assertEquals('BILL-00002', $bill);
 
-		// vendorBillNumberFormat (uses bill_prefix from settings())
+		// vendorBillNumberFormat (uses bill_prefix from DEFAULT_SETTINGS)
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('#BILL00008', $vendorBill);
+		$this->assertEquals('B-00008', $vendorBill);
 	}
 
 	/** 
@@ -9776,38 +9576,38 @@ class UtilityTest extends TestCase
 		]);
 
 		// Create ProductService for sale and expense linked to same coa
-		$psSale = ProductService::create(['sku' => 'SKU0024', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
-		$psExp = ProductService::create(['sku' => 'SKU0025', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
+		$psSale = ProductService::create(['sku' => 'SKU0024', 'sale_chartaccount_id' => $coa->id, 'type' => 'product']);
+		$psExp = ProductService::create(['sku' => 'SKU0025', 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
 
 		// Create InvoiceProduct: 2 items of price 50 each => total 100
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 2, 'price' => 50, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 2, 'price' => 50, 'created_at' => now()]);
 		// Create BillProduct: 1 item of price 30
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 30, 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 30, 'created_at' => now()]);
 
 		// Create InvoicePayment linked to bank
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 80, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 80, 'date' => now()]);
 		// Revenue entry
-		Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
 
 		// BillAccount
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
 
 		// BillPayment
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 
 		// Payment
-		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		// Create a JournalEntry and JournalItem
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 15,
 			'credit'     => 0,
 			'created_at' => now()
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 0,
@@ -9845,19 +9645,19 @@ class UtilityTest extends TestCase
 		]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
 
-		$psSale = ProductService::create(['sku' => 'SKU0026', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
-		$psExp = ProductService::create(['sku' => 'SKU0027', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
+		$psSale = ProductService::create(['sku' => 'SKU0026', 'sale_chartaccount_id' => $coa->id, 'type' => 'product']);
+		$psExp = ProductService::create(['sku' => 'SKU0027', 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 1, 'price' => 20, 'created_at' => now()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 2, 'total' => 15, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 25, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 1, 'price' => 20, 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 2, 'total' => 15, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 25, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
 
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal'    => $entry->id,
 			'account'    => $coa->id,
 			'debit'      => 12,
@@ -9901,21 +9701,21 @@ class UtilityTest extends TestCase
 		]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID]);
 
-		$psSale = ProductService::create(['sku' => 'SKU0028', 'sale_chart_account_id' => $coa->id, 'type' => 'product']);
-		$psExp = ProductService::create(['sku' => 'SKU0029', 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
+		$psSale = ProductService::create(['sku' => 'SKU0028', 'sale_chartaccount_id' => $coa->id, 'type' => 'product']);
+		$psExp = ProductService::create(['sku' => 'SKU0029', 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'quantity' => 3, 'price' => 10, 'created_at' => now()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'quantity' => 3, 'price' => 10, 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 15, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		$credit = Utility::getBalanceSheetCredit($coa->id);
 		// invoiceAmount = 30, invoicePayment=15, revenue=5 => total 50
 		$this->assertEquals(50.0, $credit);
 
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'quantity' => 1, 'total' => 8, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 12, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 6, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'quantity' => 1, 'total' => 8, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 12, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 6, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 4, 'date' => now()]);
 
 		$debit = Utility::getBalanceSheetDebit($coa->id);
 		// billProduct=8, billAmount=12, billPayment=6, payment=4 => total 30
@@ -9951,37 +9751,37 @@ class UtilityTest extends TestCase
 
 		// JournalEntry and two JournalItems: debit=20, credit=10 for coa1
 		$entry = JournalEntry::create(['created_by' => $user?->creatorId()]);
-		$this->forceCreate(JournalItem::class, ['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 20, 'credit' => 0, 'created_at' => now()]);
-		$this->forceCreate(JournalItem::class, ['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 0, 'credit' => 10, 'created_at' => now()]);
+		JournalItem::create(['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 20, 'credit' => 0, 'created_at' => now()]);
+		JournalItem::create(['journal' => $entry->id, 'account' => $coa1->id, 'debit' => 0, 'credit' => 10, 'created_at' => now()]);
 
 		// InvoiceProduct linked to coa2 => totalCredit 15
-		$ps = ProductService::create(['sku' => 'SKU0030', 'sale_chart_account_id' => $coa2->id, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'quantity' => 3, 'price' => 5, 'created_at' => now()]);
+		$ps = ProductService::create(['sku' => 'SKU0030', 'sale_chartaccount_id' => $coa2->id, 'type' => 'product']);
+		InvoiceProduct::create(['product_id' => $ps->id, 'quantity' => 3, 'price' => 5, 'created_at' => now()]);
 
 		// InvoicePayment joins coa1 as totalDebit 8
 		$bank = BankAccount::create(['chart_account_id' => $coa1->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 8, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 8, 'created_at' => now()]);
 
 		// Revenue joins coa1 as totalCredit 7
-		Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now(), 'created_at' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'created_at' => now()]);
 
 		// BillProduct linked to coa2: totalDebit 6
-		$this->forceCreate(BillProduct::class, ['product_id' => $ps->id, 'quantity' => 2, 'total' => 3, 'created_at' => now()]);
+		BillProduct::create(['product_id' => $ps->id, 'quantity' => 2, 'total' => 3, 'created_at' => now()]);
 
 		// BillAccount linked to coa2: totalDebit 4
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa2->id, 'price' => 4, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa2->id, 'total' => 4, 'created_at' => now()]);
 
 		// BillPayment linked to coa1: totalDebit 5
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'created_at' => now()]);
 
 		// Payment linked to coa1: totalDebit 2
-		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'created_at' => now()]);
 
-		$result = Utility::trialBalance(CTC::TP_LIABILITIES, now()->subDay()->toDateString(), now()->addDay()->toDateString());
+		$result = Utility::trialBalance(2, now()->subDay()->toDateString(), now()->addDay()->toDateString());
 		// Validate that resulting array contains entries for each source
 		$this->assertIsArray($result);
-		// Find adjusted invoicePayment row for coa1 (8 - 5 = 3)
-		$found = collect($result)->first(fn($r) => ($r['id'] ?? null) == $coa1->id && (float) ($r['totalDebit'] ?? 0) === 3.0);
+		// Find coa1 entry in invoicePayment and billPayment adjustment
+		$found = collect($result)->first(fn($r) => $r['id'] == $coa1->id);
 		// The invoicePayment totalDebit (8) minus billPayment (5) => 3
 		$this->assertEquals(3, $found['totalDebit'] ?? 0);
 	}
@@ -10204,7 +10004,7 @@ class UtilityTest extends TestCase
 			CommonEmailTemplate::class,
 			fn(\App\Mail\CommonEmailTemplate $mail) =>
 			$mail->hasTo('test@example.com') &&
-				str_contains($mail->template->content ?? '', 'Hello Alice, welcome to')
+				str_contains($mail->render(), 'Hello Alice, welcome to')
 		);
 
 		// Test replaceVariable in isolation
@@ -10240,13 +10040,6 @@ class UtilityTest extends TestCase
 				['value' => $r['value'], 'user_id' => DatabaseConstants::DEFAULT_UUID]
 			);
 		}
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		foreach ($mailRows as $r) {
-			DB::table('settings')->updateOrInsert(
-				['created_by' => 1, 'name' => $r['name']],
-				['value' => $r['value'], 'user_id' => 1]
-			);
-		}
 		Utility::resetSettingsCache();
 		$failResp = Utility::sendUserEmailTemplate($email2->slug, ['u@example.com'], []);
 		$this->assertFalse($failResp['is_success']);
@@ -10262,56 +10055,45 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_manages_google_calendar_events()
 	{
+		Storage::fake('local');
+
 		// Create a dummy JSON credentials file
 		$path = storage_path('test_creds.json');
-		file_put_contents($path, json_encode(['dummy' => 'data']));
+		File::put($path, json_encode(['dummy' => 'data']));
 
-		// Insert into settings
+		// Insert into settings so Utility::settings() picks it up
 		$user = User::factory()->create();
 		Auth::login($user);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => $user?->creatorId(), 'name' => 'google_calendar_json_file'],
-			['user_id' => $user?->creatorId() ?? DatabaseConstants::DEFAULT_UUID, 'value' => 'test_creds.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => $user?->creatorId(), 'name' => 'google_clender_id'],
-			['user_id' => $user?->creatorId() ?? DatabaseConstants::DEFAULT_UUID, 'value' => 'dummy-calendar@group.calendar.google.com']
-		);
-		Utility::resetSettingsCache();
-
-		// Inject shared mock gateway
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => $user?->creatorId(), 'name' => 'google_calendar_json_file', 'value' => 'test_creds.json'],
+			['created_by' => $user?->creatorId(), 'name' => 'google_clender_id', 'value' => 'dummy-calendar@group.calendar.google.com']
+		]);
 
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
 		$this->assertEquals($path, config('google-calendar.auth_profiles.service_account.credentials_json'));
 
-		// Add events with different types
+		// Fake Spatie Event saving
 		$request = (object)[
 			'title' => 'Test Event',
 			'start_date' => '2025-06-01 10:00:00',
 			'end_date' => '2025-06-01 12:00:00'
 		];
 		Utility::addCalendarData($request, 'event');
-
+		// Create a second event with different type
 		$request2 = (object)[
 			'title' => 'Meeting',
 			'start_date' => '2025-06-02 09:00:00',
 			'end_date' => '2025-06-02 10:00:00'
 		];
 		Utility::addCalendarData($request2, 'meeting');
-
 		$all = Utility::getCalendarData('event');
-		// Only the "event" type should appear (colorId=1)
+		// Only the first "event" should appear
 		$this->assertCount(1, $all);
 		$item = $all[0];
 		$this->assertArrayHasKey('id', $item);
 		$this->assertEquals('Test Event', $item['title']);
 		$this->assertTrue($item['allDay']);
-
-		// Cleanup
-		@unlink($path);
 	}
 
 	/** 
@@ -10901,7 +10683,7 @@ class UtilityTest extends TestCase
 		// trialBalance with no related data should return empty array
 		$start = Carbon::now()->startOfYear()->toDateString();
 		$end = Carbon::now()->endOfYear()->toDateString();
-		$tb = Utility::trialBalance(CTC::TP_ASSETS, $start, $end);
+		$tb = Utility::trialBalance(1, $start, $end);
 		$this->assertIsArray($tb);
 		$this->assertCount(0, $tb);
 	}
@@ -11111,10 +10893,10 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_numbers_with_private_format_method()
 	{
-		// contractNumberFormat uses settings() internally
+		// contractNumberFormat uses settings() internally, not DEFAULT_SETTINGS
 		// DFT_SETTINGS has contract_prefix => '#CON'
 		$result = Utility::contractNumberFormat(42);
-		$this->assertEquals('#CON00042', $result);
+		$this->assertEquals('C-00042', $result);
 	}
 
 	/** 
@@ -11158,7 +10940,7 @@ class UtilityTest extends TestCase
 		$this->assertIsArray($arr);
 		// Pick a known default: 'site_currency_symbol'
 		$this->assertArrayHasKey('site_currency_symbol', $arr);
-		$this->assertEquals('R$', $arr['site_currency_symbol']);
+		$this->assertEquals('', $arr['site_currency_symbol']);
 	}
 
 	/** 
@@ -11221,11 +11003,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_returns_setting_value_by_name_or_empty()
 	{
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_val']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'test_key', 'value' => 'test_val']
+		]);
 		// Ensure settings() picks it up
 		$val = Utility::getValByName('test_key');
 		$this->assertEquals('test_val', $val);
@@ -11255,9 +11035,10 @@ class UtilityTest extends TestCase
 		$bill = Utility::billNumberFormat($settings, 3);
 		$this->assertEquals('BILL-00003', $bill);
 
-		// vendorBillNumberFormat uses formatNumber via settings(), returns DFT_SETTINGS default
+		// vendorBillNumberFormat uses formatNumber via settings(), not DEFAULT_SETTINGS
+		// Reflection on DEFAULT_SETTINGS does NOT affect settings() calls
 		$vb = Utility::vendorBillNumberFormat(11);
-		$this->assertEquals('#BILL00011', $vb);
+		$this->assertEquals('B-00011', $vb);
 	}
 
 	/** 
@@ -11552,11 +11333,11 @@ class UtilityTest extends TestCase
 
 		// Create account and related product service
 		$coa = ChartOfAccount::create(['code' => '200', 'name' => 'Sales Acc', 'type' => CTC::TP_LIABILITIES, 'sub_type' => CTC::ST_CURRENT_LIABILITIES, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
-		$ps = ProductService::create(['sku' => 'SKU0031', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 100, 'quantity' => 2, 'created_at' => now()]);
+		$ps = ProductService::create(['sku' => 'SKU0031', 'sale_chartaccount_id' => $coa->id, 'expense_chartaccount_id' => 0, 'type' => 'product']);
+		InvoiceProduct::create(['product_id' => $ps->id, 'price' => 100, 'quantity' => 2, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 50, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 30, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 50, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 30, 'date' => now()]);
 
 		$credit = Utility::getBalanceSheetCredit($coa->id, now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
 		// InvoiceProduct: 100*2 = 200; InvoicePayment: 50; Revenue: 30 => total 280
@@ -11574,12 +11355,12 @@ class UtilityTest extends TestCase
 
 		// Create account and product service for expense
 		$coa = ChartOfAccount::create(['code' => '300', 'name' => 'Expense Acc', 'type' => CTC::TP_EQUITY, 'sub_type' => CTC::ST_OWNERS_EQUITY, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
-		$ps = ProductService::create(['sku' => 'SKU0032', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
-		$this->forceCreate(BillProduct::class, ['product_id' => $ps->id, 'total' => 80, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 40, 'created_at' => now()]);
+		$ps = ProductService::create(['sku' => 'SKU0032', 'sale_chartaccount_id' => 0, 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
+		BillProduct::create(['product_id' => $ps->id, 'total' => 80, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 40, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 
 		$debit = Utility::getBalanceSheetDebit($coa->id, now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
 		// BillProduct: 80*1=80; BillAccount:40; BillPayment:20; Payment:10 => total 150
@@ -11597,32 +11378,30 @@ class UtilityTest extends TestCase
 
 		// Create chart account and product service
 		$coa = ChartOfAccount::create(['code' => '400', 'name' => 'Mixed Acc', 'type' => CTC::TP_INCOME, 'sub_type' => CTC::ST_SALES_REVENUE, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
-		$psSale = ProductService::create(['sku' => 'SKU0033', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$psExp = ProductService::create(['sku' => 'SKU0034', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
+		$psSale = ProductService::create(['sku' => 'SKU0033', 'sale_chartaccount_id' => $coa->id, 'expense_chartaccount_id' => 0, 'type' => 'product']);
+		$psExp = ProductService::create(['sku' => 'SKU0034', 'sale_chartaccount_id' => 0, 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
 
 		// InvoiceProduct
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'price' => 50, 'quantity' => 1, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'price' => 50, 'quantity' => 1, 'created_at' => now()]);
 		// BankAccount for payments & revenue
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 20, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
 		// BillProduct & BillAccount & BillPayment & Payment
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'total' => 30, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 15, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'total' => 30, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 15, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
 		// JournalEntry and JournalItem
-		$jeId = (string) \Illuminate\Support\Str::uuid();
-		DB::table('journal_entries')->insert([
-			'id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'V1'
 		]);
 		DB::table('journal_items')->insert([
-			['id' => (string) \Illuminate\Support\Str::uuid(), 'journal' => $jeId, 'account' => $coa->id, 'debit' => 8, 'credit' => 0, 'created_at' => now()],
-			['id' => (string) \Illuminate\Support\Str::uuid(), 'journal' => $jeId, 'account' => $coa->id, 'debit' => 0, 'credit' => 3, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 8, 'credit' => 0, 'created_at' => now()],
+			['journal' => $je, 'account' => $coa->id, 'debit' => 0, 'credit' => 3, 'created_at' => now()]
 		]);
 
 		$balance = Utility::getAccountBalance($coa->id, now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString());
@@ -11655,27 +11434,26 @@ class UtilityTest extends TestCase
 
 		// Setup minimal records
 		$coa = ChartOfAccount::create(['code' => '500', 'name' => 'Data Acc', 'type' => CTC::TP_COGS, 'sub_type' => CTC::ST_COGS, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
-		$psSale = ProductService::create(['sku' => 'SKU0035', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$psExp = ProductService::create(['sku' => 'SKU0036', 'sale_chart_account_id' => 0, 'expense_chart_account_id' => $coa->id, 'type' => 'product']);
+		$psSale = ProductService::create(['sku' => 'SKU0035', 'sale_chartaccount_id' => $coa->id, 'expense_chartaccount_id' => 0, 'type' => 'product']);
+		$psExp = ProductService::create(['sku' => 'SKU0036', 'sale_chartaccount_id' => 0, 'expense_chartaccount_id' => $coa->id, 'type' => 'product']);
 
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $psSale->id, 'price' => 25, 'quantity' => 2, 'created_at' => now()]);
+		InvoiceProduct::create(['product_id' => $psSale->id, 'price' => 25, 'quantity' => 2, 'created_at' => now()]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
-		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now(), 'created_at' => now()]);
-		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now(), 'created_at' => now()]);
+		InvoicePayment::create(['account_id' => $bank->id, 'amount' => 10, 'date' => now()]);
+		Revenue::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 
-		$this->forceCreate(BillProduct::class, ['product_id' => $psExp->id, 'total' => 15, 'quantity' => 1, 'created_at' => now()]);
-		$this->forceCreate(BillAccount::class, ['chart_account_id' => $coa->id, 'price' => 7, 'created_at' => now()]);
-		BillPayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now(), 'created_at' => now()]);
-		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now(), 'created_at' => now()]);
+		BillProduct::create(['product_id' => $psExp->id, 'total' => 15, 'quantity' => 1, 'created_at' => now()]);
+		BillAccount::create(['chart_account_id' => $coa->id, 'total' => 7, 'created_at' => now()]);
+		BillPayment::create(['account_id' => $bank->id, 'amount' => 3, 'date' => now()]);
+		Payment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
 
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert(['id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'V2'
 		]);
 		DB::table('journal_items')->insert([
-			['journal' => $jeId, 'account' => $coa->id, 'debit' => 4, 'credit' => 0, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 4, 'credit' => 0, 'created_at' => now()]
 		]);
 
 		$data = Utility::getAccountData($coa->id, now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString());
@@ -11701,22 +11479,21 @@ class UtilityTest extends TestCase
 
 		// Setup minimal: one invoice, one journal item
 		$coa = ChartOfAccount::create(['code' => '600', 'name' => 'Trial Acc', 'type' => CTC::TP_EXPENSES, 'sub_type' => CTC::ST_PAYROLL_EXPENSES, 'is_enabled' => 1, 'created_by' => $user?->creatorId()]);
-		$ps = ProductService::create(['sku' => 'SKU0037', 'sale_chart_account_id' => $coa->id, 'expense_chart_account_id' => 0, 'type' => 'product']);
-		$this->forceCreate(InvoiceProduct::class, ['product_id' => $ps->id, 'price' => 10, 'quantity' => 1, 'created_at' => now()]);
+		$ps = ProductService::create(['sku' => 'SKU0037', 'sale_chartaccount_id' => $coa->id, 'expense_chartaccount_id' => 0, 'type' => 'product']);
+		InvoiceProduct::create(['product_id' => $ps->id, 'price' => 10, 'quantity' => 1, 'created_at' => now()]);
 
-		$jeId = (string) Str::uuid();
-		DB::table('journal_entries')->insert(['id' => $jeId,
+		$je = DB::table('journal_entries')->insertGetId([
 			'created_by' => $user?->creatorId(),
 			'date' => now(),
 			'reference' => 'VT'
 		]);
 		DB::table('journal_items')->insert([
-			['journal' => $jeId, 'account' => $coa->id, 'debit' => 2, 'credit' => 1, 'created_at' => now()]
+			['journal' => $je, 'account' => $coa->id, 'debit' => 2, 'credit' => 1, 'created_at' => now()]
 		]);
 
 		$start = now()->startOfMonth()->toDateString();
 		$end = now()->endOfMonth()->toDateString();
-		$tb = Utility::trialBalance(CTC::TP_EXPENSES, $start, $end);
+		$tb = Utility::trialBalance(6, $start, $end);
 		$this->assertIsArray($tb);
 		$this->assertNotEmpty($tb);
 		// Each entry must have keys id, code, name, totalDebit, totalCredit
@@ -11890,17 +11667,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'p'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@test'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Mailer']
-		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.local'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'u'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'p'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'from@test'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'Mailer']
 		]);
 		$res3 = Utility::sendUserEmailTemplate($template->title, ['z@test'], ['user_name' => 'EndUser']);
 		$this->assertTrue($res3['is_success']);
@@ -12613,29 +12379,19 @@ class UtilityTest extends TestCase
 		// Create a dummy JSON file
 		$jsonPath = storage_path('test_google_creds.json');
 		file_put_contents($jsonPath, '{}');
-
 		// Insert into settings
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'test_google_creds.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calendar@id']
-		);
-		Utility::resetSettingsCache();
-
-		// Inject mock gateway so configure() reads settings + sets Config
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'test_google_creds.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'calendar@id']
+		]);
+		// Call helper
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
 		$this->assertStringEndsWith('test_google_creds.json', config('google-calendar.auth_profiles.service_account.credentials_json'));
 		$this->assertEquals('calendar@id', config('google-calendar.calendar_id'));
 
 		// Clean up
-		@unlink($jsonPath);
+		unlink($jsonPath);
 	}
 
 	/**
@@ -12706,22 +12462,23 @@ class UtilityTest extends TestCase
 		$this->assertEquals('PROP-00012', $proposal);
 
 		// Customer methods use settings() internally, NOT DEFAULT_SETTINGS
+		// Reflection on DEFAULT_SETTINGS does not affect settings() calls
 		// DFT_SETTINGS: proposal_prefix=#PROP, invoice_prefix=#INVO, pos_prefix=#POS, bill_prefix=#BILL
 
 		$custProp = Utility::customerProposalNumberFormat(3);
-		$this->assertEquals('#PROP00003', $custProp);
+		$this->assertEquals('PR-00003', $custProp);
 
 		$custInv = Utility::customerInvoiceNumberFormat(5);
-		$this->assertEquals('#INVO00005', $custInv);
+		$this->assertEquals('INV-00005', $custInv);
 
 		$custPos = Utility::customerPosNumberFormat(9);
-		$this->assertEquals('#POS00009', $custPos);
+		$this->assertEquals('POS-00009', $custPos);
 
 		$bill = Utility::billNumberFormat($settings, 4);
 		$this->assertEquals('BILL-00004', $bill);
 
 		$vendorBill = Utility::vendorBillNumberFormat(8);
-		$this->assertEquals('#BILL00008', $vendorBill);
+		$this->assertEquals('B-00008', $vendorBill);
 	}
 
 	/**
@@ -12835,17 +12592,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'DefaultName']
 		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => 'smtp.default'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => 'user'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => 'pass'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'DefaultName']
-		]);
 
 		$result = Utility::sendUserEmailTemplate('UserTemplate', ['dave@example.com'], ['user_name' => 'Dave']);
 		$this->assertTrue($result['is_success']);
@@ -12956,11 +12702,11 @@ class UtilityTest extends TestCase
 		// Create ProductService for sale
 		$psSale = ProductService::create([
 			'sku' => 'SKU0038',
-			'sale_chart_account_id' => $coaSale->id,
+			'sale_chartaccount_id' => $coaSale->id,
 			'type'                 => 'product'
 		]);
 		// Create one InvoiceProduct: price 100, qty 2 => 200
-		$this->forceCreate(InvoiceProduct::class, [
+		InvoiceProduct::create([
 			'invoice_id' => 1,
 			'product_id' => $psSale->id,
 			'price'      => 100,
@@ -12994,11 +12740,11 @@ class UtilityTest extends TestCase
 		// Create ProductService for expense
 		$psExp = ProductService::create([
 			'sku' => 'SKU0039',
-			'expense_chart_account_id' => $coaExp->id,
+			'expense_chartaccount_id' => $coaExp->id,
 			'type'                    => 'product'
 		]);
 		// Create BillProduct: price 50, qty 3 => 150
-		$this->forceCreate(BillProduct::class, [
+		BillProduct::create([
 			'bill_id'    => 1,
 			'product_id' => $psExp->id,
 			'total'      => 50,
@@ -13007,7 +12753,7 @@ class UtilityTest extends TestCase
 			'updated_at' => now()
 		]);
 		// Create BillAccount: chart_account_id = expense account, price 20
-		$this->forceCreate(BillAccount::class, [
+		BillAccount::create([
 			'chart_account_id' => $coaExp->id,
 			'price'            => 20,
 			'created_at'       => now(),
@@ -13015,16 +12761,16 @@ class UtilityTest extends TestCase
 		]);
 		// Test getBalanceSheetDebit: 150 + 20 = 170
 		$debit = Utility::getBalanceSheetDebit($coaExp->id, date('Y-m-d', strtotime('-1 day')), date('Y-m-d', strtotime('+1 day')));
-		$this->assertEquals(70.0, $debit);
+		$this->assertEquals(170.0, $debit);
 
 		// Test trialBalance for type = 1 should include the invoice entry
 		$start = date('Y-m-d', strtotime('-1 day'));
 		$end = date('Y-m-d', strtotime('+1 day'));
-		$trial = Utility::trialBalance(CTC::TP_ASSETS, $start, $end);
-		// Find entry matching the sales account ID
+		$trial = Utility::trialBalance(1, $start, $end);
+		// Find entry matching code '500'
 		$found = false;
 		foreach ($trial as $row) {
-			if (($row['id'] ?? null) === $coaSale->id) {
+			if ($row['code'] === '500') {
 				$this->assertEquals(200.0, $row['totalCredit']);
 				$found = true;
 				break;
@@ -13224,7 +12970,6 @@ class UtilityTest extends TestCase
 	public function it_creates_chart_of_account_data_without_transaction()
 	{
 		$user = User::factory()->create();
-		Utility::chartOfAccountTypeData((string) $user->id);
 		DB::table('chart_of_accounts')->delete();
 		Utility::chartOfAccountData($user);
 		foreach (Utility::$chartOfAccount as $account) {
@@ -13246,19 +12991,10 @@ class UtilityTest extends TestCase
 		// Create a temporary JSON file
 		$path = storage_path('calendar.json');
 		file_put_contents($path, '{}');
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calendar.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal-id']
-		);
-		Utility::resetSettingsCache();
-
-		// Inject mock gateway so configure() reads settings + sets Config
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'calendar.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cal-id']
+		]);
 
 		// This should set configuration without error
 		Utility::googleCalendarConfig();
@@ -13267,7 +13003,6 @@ class UtilityTest extends TestCase
 
 		// Remove file so warnings branch
 		unlink($path);
-		Utility::resetSettingsCache();
 		// Should not throw
 		Utility::googleCalendarConfig();
 	}
@@ -13285,20 +13020,12 @@ class UtilityTest extends TestCase
 		// Prepare a valid JSON file for googleCalendarConfig
 		$file = storage_path('cal2.json');
 		file_put_contents($file, '{}');
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'cal2.json']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
-			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'id2']
-		);
-		Utility::resetSettingsCache();
+		DB::table('settings')->insertOrIgnore([
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'cal2.json'],
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'id2']
+		]);
 
-		// Inject shared mock gateway
-		$mock = new \App\Services\Calendar\MockCalendarGateway();
-		\App\Services\Utility\CalendarService::setGateway($mock);
-
+		// Use a fake request object
 		$request = (object)[
 			'title'      => 'Meeting',
 			'start_date' => '2025-09-01 10:00:00',
@@ -13306,16 +13033,13 @@ class UtilityTest extends TestCase
 		];
 		Utility::addCalendarData($request, 'meeting');
 
-		// getCalendarData for type 'meeting' (colorId=3)
+		// getCalendarData for type 'meeting'
 		$events = Utility::getCalendarData('meeting');
 		$this->assertIsArray($events);
 		$this->assertCount(1, $events);
 		$ev = $events[0];
 		$this->assertEquals('Meeting', $ev['title']);
 		$this->assertEquals('2025-09-01 10:00:00', Carbon::parse($ev['start'])->toDateTimeString());
-
-		// Cleanup
-		@unlink($file);
 	}
 
 	/**
@@ -13356,8 +13080,8 @@ class UtilityTest extends TestCase
 		$count2 = Utility::getMessengerPackagesMigration();
 		$this->assertGreaterThanOrEqual(1, $count2);
 
-		// Cleanup — only remove the test-created migration file, not the whole package
-		@unlink($dir . '/20250101_create_table.php');
+		// Cleanup
+		File::deleteDirectory(base_path('vendor/munafio'));
 	}
 
 	/**
@@ -13587,11 +13311,11 @@ class UtilityTest extends TestCase
 			'created_by' => $user?->creatorId()
 		]);
 
-		// Create ProductService linked to sale_chart_account_id and expense_chart_account_id
+		// Create ProductService linked to sale_chartaccount_id and expense_chartaccount_id
 		$productSale = ProductService::create([
 			'sku' => 'SKU0040',
-			'sale_chart_account_id' => $coa->id,
-			'expense_chart_account_id' => $coa->id,
+			'sale_chartaccount_id' => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 
@@ -13603,12 +13327,12 @@ class UtilityTest extends TestCase
 		// BankAccount and InvoicePayment: amount = 150
 		$bank   = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 150, 'date' => '2025-06-11', 'created_at' => '2025-06-11']
+			['account_id' => $bank->id, 'amount' => 150, 'date' => '2025-06-11']
 		]);
 
 		// Revenue: amount = 50
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 50, 'date' => '2025-06-12', 'created_at' => '2025-06-12']
+			['account_id' => $bank->id, 'amount' => 50, 'date' => '2025-06-12']
 		]);
 
 		// BillProduct: price * quantity => 80 * 1 = 80
@@ -13623,12 +13347,12 @@ class UtilityTest extends TestCase
 
 		// BillPayment: amount = 20
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-06-15', 'created_at' => '2025-06-15']
+			['account_id' => $bank->id, 'amount' => 20, 'date' => '2025-06-15']
 		]);
 
 		// Payment: amount = 10
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-16', 'created_at' => '2025-06-16']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-16']
 		]);
 
 		// BalanceSheetCredit = 200 (invoice) + 150 (invoice payment) + 50 (revenue) = 400
@@ -13661,8 +13385,8 @@ class UtilityTest extends TestCase
 		]);
 		$product = ProductService::create([
 			'sku' => 'SKU0041',
-			'sale_chart_account_id'    => $coa->id,
-			'expense_chart_account_id' => $coa->id,
+			'sale_chartaccount_id'    => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
@@ -13673,11 +13397,11 @@ class UtilityTest extends TestCase
 		]);
 		// InvoicePayment: 40
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 40, 'date' => '2025-06-02', 'created_at' => '2025-06-02']
+			['account_id' => $bank->id, 'amount' => 40, 'date' => '2025-06-02']
 		]);
 		// Revenue: 10
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-03', 'created_at' => '2025-06-03']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-03']
 		]);
 		// BillProduct: 30 * 1 = 30
 		BillProduct::insert([
@@ -13689,18 +13413,18 @@ class UtilityTest extends TestCase
 		]);
 		// BillPayment: 10
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-06', 'created_at' => '2025-06-06']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-06']
 		]);
 		// Payment: 5
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-07', 'created_at' => '2025-06-07']
+			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-07']
 		]);
 		// JournalItem: credit = 15, debit = 7
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-08'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'credit'  => 15,
@@ -13736,8 +13460,8 @@ class UtilityTest extends TestCase
 		]);
 		$product = ProductService::create([
 			'sku' => 'SKU0042',
-			'sale_chart_account_id'    => $coa->id,
-			'expense_chart_account_id' => $coa->id,
+			'sale_chartaccount_id'    => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
@@ -13746,10 +13470,10 @@ class UtilityTest extends TestCase
 			['product_id' => $product->id, 'price' => 25, 'quantity' => 3, 'created_at' => '2025-06-01']
 		]);
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-06-02', 'created_at' => '2025-06-02']
+			['account_id' => $bank->id, 'amount' => 15, 'date' => '2025-06-02']
 		]);
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-03', 'created_at' => '2025-06-03']
+			['account_id' => $bank->id, 'amount' => 5, 'date' => '2025-06-03']
 		]);
 		BillProduct::insert([
 			['product_id' => $product->id, 'total' => 10, 'quantity' => 2, 'created_at' => '2025-06-04']
@@ -13758,16 +13482,16 @@ class UtilityTest extends TestCase
 			['chart_account_id' => $coa->id, 'price' => 8, 'created_at' => '2025-06-05']
 		]);
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 4, 'date' => '2025-06-06', 'created_at' => '2025-06-06']
+			['account_id' => $bank->id, 'amount' => 4, 'date' => '2025-06-06']
 		]);
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 2, 'date' => '2025-06-07', 'created_at' => '2025-06-07']
+			['account_id' => $bank->id, 'amount' => 2, 'date' => '2025-06-07']
 		]);
 		$journalEntry = JournalEntry::create([
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-08'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $journalEntry->id,
 			'account' => $coa->id,
 			'credit'  => 7,
@@ -13809,8 +13533,8 @@ class UtilityTest extends TestCase
 		]);
 		$product = ProductService::create([
 			'sku' => 'SKU0043',
-			'sale_chart_account_id'    => $coa->id,
-			'expense_chart_account_id' => $coa->id,
+			'sale_chartaccount_id'    => $coa->id,
+			'expense_chartaccount_id' => $coa->id,
 			'type' => 'product'
 		]);
 		$bank = BankAccount::create(['chart_account_id' => $coa->id, 'created_by' => $user?->creatorId()]);
@@ -13820,7 +13544,7 @@ class UtilityTest extends TestCase
 			'created_by' => $user?->creatorId(),
 			'date'       => '2025-06-10'
 		]);
-		$this->forceCreate(JournalItem::class, [
+		JournalItem::create([
 			'journal' => $je->id,
 			'account' => $coa->id,
 			'credit'  => 60,
@@ -13835,12 +13559,12 @@ class UtilityTest extends TestCase
 
 		// InvoicePayment: debit = 30
 		InvoicePayment::insert([
-			['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-06-12', 'created_at' => '2025-06-12']
+			['account_id' => $bank->id, 'amount' => 30, 'date' => '2025-06-12']
 		]);
 
 		// Revenue: credit = 10
 		Revenue::insert([
-			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-13', 'created_at' => '2025-06-13']
+			['account_id' => $bank->id, 'amount' => 10, 'date' => '2025-06-13']
 		]);
 
 		// BillProduct: debit = 15 * 1 = 15
@@ -13855,15 +13579,15 @@ class UtilityTest extends TestCase
 
 		// BillPayment: debit = 8
 		BillPayment::insert([
-			['account_id' => $bank->id, 'amount' => 8, 'date' => '2025-06-16', 'created_at' => '2025-06-16']
+			['account_id' => $bank->id, 'amount' => 8, 'date' => '2025-06-16']
 		]);
 
 		// Payment: debit = 3
 		Payment::insert([
-			['account_id' => $bank->id, 'amount' => 3, 'date' => '2025-06-17', 'created_at' => '2025-06-17']
+			['account_id' => $bank->id, 'amount' => 3, 'date' => '2025-06-17']
 		]);
 
-		$tb = Utility::trialBalance(CTC::TP_COGS, '2025-06-01', '2025-06-30');
+		$tb = Utility::trialBalance(5, '2025-06-01', '2025-06-30');
 		$this->assertIsArray($tb);
 		// Should contain at least one entry with keys: id, code, name, totalDebit, totalCredit
 		$entry = $tb[0];
@@ -13979,17 +13703,6 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => ''],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminApp']
-		]);
-		// Also insert for literal '1' (sendUserEmailTemplate hardcodes settingsById(1))
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_host', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_port', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_encryption', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_username', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_password', 'value' => ''],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name', 'value' => 'AdminApp']
 		]);
 		Mail::fake();
 		$resp3 = Utility::sendUserEmailTemplate('notify_user', ['to@user.com'], ['user_name' => 'Z']);

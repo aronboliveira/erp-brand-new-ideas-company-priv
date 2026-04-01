@@ -6,7 +6,6 @@ use Tests\TestCase;
 use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Carbon};
 use App\Models\{User, ZoomMeeting};
 
-use Illuminate\Support\Facades\DB;
 class ZoomMeetingTest extends TestCase
 {
 	use RefreshDatabase;
@@ -14,7 +13,7 @@ class ZoomMeetingTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		Carbon::setTestNow(now());
 	}
 	/**
@@ -82,7 +81,7 @@ class ZoomMeetingTest extends TestCase
 		$uuid = \Illuminate\Support\Str::uuid()->toString();
 
 		// Mock DB::selectOne to bypass raw query referencing nonexistent columns
-		DB::shouldReceive('selectOne')
+		\DB::shouldReceive('selectOne')
 			->once()
 			->andReturn((object) ['nm' => 'Alice', 'first_name' => '', 'last_name' => '']);
 

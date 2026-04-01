@@ -3262,8 +3262,6 @@ class ProposalControllerTest extends TestCase
     {
         $this->loginMockUser();
         $ctrl = new ProposalController();
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             $result = $ctrl->export();
             $this->assertTrue($result instanceof \Illuminate\Http\Response || $result instanceof \Symfony\Component\HttpFoundation\Response, 'export must return valid type');
@@ -3297,9 +3295,6 @@ class ProposalControllerTest extends TestCase
             } catch (\Throwable $e) {
                 $this->assertNotEmpty($e->getMessage());
                 return;
-            } finally {
-                while (ob_get_level() > $obLevel) { ob_end_clean(); }
-                while (ob_get_level() < $obLevel) { ob_start(); }
             }
     }
 
@@ -3314,17 +3309,12 @@ class ProposalControllerTest extends TestCase
         $memBefore = memory_get_usage(true);
         $timeBefore = microtime(true);
         
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             for ($i = 0; $i < 3; $i++) {
                 $ctrl->export();
             }
         } catch (\Throwable $e) {
             // Method may throw, that's OK for perf test
-        } finally {
-            while (ob_get_level() > $obLevel) { ob_end_clean(); }
-            while (ob_get_level() < $obLevel) { ob_start(); }
         }
         
         $timeAfter = microtime(true);

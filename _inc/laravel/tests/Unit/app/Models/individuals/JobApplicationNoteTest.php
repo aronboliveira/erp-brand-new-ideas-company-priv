@@ -4,13 +4,12 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\{JobApplication, JobApplicationNote, Note, User};
 
-use Illuminate\Support\Facades\DB;
 class JobApplicationNoteTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

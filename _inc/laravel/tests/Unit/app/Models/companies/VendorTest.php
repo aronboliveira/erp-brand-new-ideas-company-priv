@@ -11,7 +11,6 @@ use Illuminate\{
 };
 use App\Models\{Vendor, User};
 
-use Illuminate\Support\Facades\DB;
 class VendorTest extends TestCase
 {
     protected function setUp(): void

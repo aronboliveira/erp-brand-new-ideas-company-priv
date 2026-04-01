@@ -10,7 +10,6 @@ use Illuminate\{
 };
 use App\Models\{Payslip, Employee};
 
-use Illuminate\Support\Facades\DB;
 class PayslipTest extends TestCase
 {
     protected function setUp(): void

@@ -10,13 +10,12 @@ use Illuminate\{
 };
 use App\Models\{InvoiceBankTransfer, Invoice, Order, User};
 
-use Illuminate\Support\Facades\DB;
 class InvoiceBankTransferTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

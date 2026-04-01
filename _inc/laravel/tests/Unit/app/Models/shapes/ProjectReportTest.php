@@ -7,13 +7,12 @@ use Mockery;
 use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 
-use Illuminate\Support\Facades\DB;
 class ProjectReportTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	use SafeAliasMock;

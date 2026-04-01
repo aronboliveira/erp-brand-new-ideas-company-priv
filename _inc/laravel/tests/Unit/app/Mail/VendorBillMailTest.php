@@ -89,8 +89,8 @@ class VendorBillMailTest extends TestCase
 		// Subject should be translated "Your Invoice" plus " #XYZ-789"
 		$this->assertSame('Your Invoice #XYZ-789', $built->subject);
 
-		// Markdown view used
-		$this->assertSame('emails.vendor.bill', $built->markdown);
+		// View should be the vendor bill markdown
+		$this->assertSame('emails.vendor.bill', $built->view);
 
 		// View data should contain the bill instance
 		$this->assertArrayHasKey('bill', $built->viewData);

@@ -6,13 +6,12 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\{Bug, BugFile};
 
-use Illuminate\Support\Facades\DB;
 class BugFileTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

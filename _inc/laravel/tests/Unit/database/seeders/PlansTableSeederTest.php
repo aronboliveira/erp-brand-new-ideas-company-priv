@@ -8,15 +8,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Carbon, Str};
 use Database\Seeders\PlansTableSeeder;
 
-use Illuminate\Support\Facades\DB;
 class PlansTableSeederTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-        retry(3, fn () => DB::table('plans')->delete(), 200);
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=1');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 
@@ -38,19 +35,18 @@ class PlansTableSeederTest extends TestCase
 		// Run the seeder
 		(new PlansTableSeeder())->run();
 
-		// Plans should now exist (seeder creates multiple tiers)
-		$this->assertGreaterThan(0, Plan::count());
+		// Exactly one plan should now exist
+		$this->assertDatabaseCount('plans', 1);
 
 		/** @var Plan $plan */
-		$plan = Plan::where('name', 'Free')->first();
-		$this->assertNotNull($plan, 'Free plan should be seeded');
+		$plan = Plan::first();
 
 		// ID should be a valid UUID
 		$this->assertTrue(Str::isUuid($plan->id), "Plan ID {$plan->id} is not a valid UUID");
 
 		// Core attributes
-		$this->assertEquals('Free', $plan->name);
-		$this->assertEquals(0, (float) $plan->price);
+		$this->assertEquals('Free Plan', $plan->name);
+		$this->assertEquals(0, $plan->price);
 		$this->assertEquals('lifetime', $plan->duration);
 		$this->assertEquals(5, $plan->max_users);
 		$this->assertEquals(5, $plan->max_customers);
@@ -63,7 +59,7 @@ class PlansTableSeederTest extends TestCase
 		$this->assertTrue((bool) $plan->project);
 		$this->assertTrue((bool) $plan->pos);
 		$this->assertTrue((bool) $plan->chatgpt);
-		$this->assertEquals('plans/free_plan.png', $plan->image);
+		$this->assertEquals('free_plan.png', $plan->image);
 
 		// Timestamps should match the frozen "now"
 		$this->assertEquals($now->toDateTimeString(), $plan->created_at->toDateTimeString());

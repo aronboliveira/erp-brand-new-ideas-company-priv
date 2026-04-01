@@ -26,11 +26,7 @@ class SecureHeadersTest extends TestCase
 
 		$this->assertEquals('nosniff', $response->headers->get('X-Content-Type-Options'));
 		$this->assertEquals('max-age=31536000; includeSubDomains', $response->headers->get('Strict-Transport-Security'));
-		$csp = $response->headers->get('Content-Security-Policy');
-		$this->assertNotNull($csp);
-		$this->assertStringContainsString("default-src 'self'", $csp);
-		$this->assertStringContainsString('script-src', $csp);
-		$this->assertStringContainsString('style-src', $csp);
+		$this->assertEquals("default-src 'self'", $response->headers->get('Content-Security-Policy'));
 		$this->assertEquals('DENY', $response->headers->get('X-Frame-Options'));
 	}
 

@@ -2647,8 +2647,6 @@ class CustomerControllerTest extends TestCase
     {
         $this->loginMockUser();
         $ctrl = new CustomerController();
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             $result = $ctrl->export($this->makeRequest());
             $this->assertTrue(true, 'Method executed without fatal error');
@@ -2682,9 +2680,6 @@ class CustomerControllerTest extends TestCase
             } catch (\Throwable $e) {
                 $this->assertNotEmpty($e->getMessage());
                 return;
-            } finally {
-                while (ob_get_level() > $obLevel) { ob_end_clean(); }
-                while (ob_get_level() < $obLevel) { ob_start(); }
             }
     }
 
@@ -2692,8 +2687,6 @@ class CustomerControllerTest extends TestCase
     {
         $this->loginMockUser();
         $ctrl = new CustomerController();
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             $result = $ctrl->export($this->makeRequest('/', 'POST', []));
             $this->assertTrue(true, 'Method executed without fatal error');
@@ -2727,9 +2720,6 @@ class CustomerControllerTest extends TestCase
             } catch (\Throwable $e) {
                 $this->assertNotEmpty($e->getMessage());
                 return;
-            } finally {
-                while (ob_get_level() > $obLevel) { ob_end_clean(); }
-                while (ob_get_level() < $obLevel) { ob_start(); }
             }
     }
 
@@ -2737,8 +2727,6 @@ class CustomerControllerTest extends TestCase
     {
         $this->loginMockUser();
         $ctrl = new CustomerController();
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             $result = $ctrl->export($this->makeRequest('/', 'GET', [], true));
             $this->assertTrue(true, 'Method executed without fatal error');
@@ -2772,9 +2760,6 @@ class CustomerControllerTest extends TestCase
             } catch (\Throwable $e) {
                 $this->assertNotEmpty($e->getMessage());
                 return;
-            } finally {
-                while (ob_get_level() > $obLevel) { ob_end_clean(); }
-                while (ob_get_level() < $obLevel) { ob_start(); }
             }
     }
 
@@ -2789,17 +2774,12 @@ class CustomerControllerTest extends TestCase
         $memBefore = memory_get_usage(true);
         $timeBefore = microtime(true);
         
-        $obLevel = ob_get_level();
-        ob_start();
         try {
             for ($i = 0; $i < 3; $i++) {
                 $ctrl->export($this->makeRequest());
             }
         } catch (\Throwable $e) {
             // Method may throw, that's OK for perf test
-        } finally {
-            while (ob_get_level() > $obLevel) { ob_end_clean(); }
-            while (ob_get_level() < $obLevel) { ob_start(); }
         }
         
         $timeAfter = microtime(true);

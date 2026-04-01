@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Carbon, Facades\Auth};
 use Tests\Concerns\SafeAliasMock;
 
-use Illuminate\Support\Facades\DB;
 class CustomerTest extends TestCase
 {
 	use SafeAliasMock;
@@ -21,7 +20,7 @@ class CustomerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// stub Utility::settings and Utility::getValByName
 		$this->aliasMock('App\Models\Utility')
 			->shouldReceive('settings')->andReturn([

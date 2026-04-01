@@ -8,13 +8,12 @@ use Database\Seeders\AiTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Carbon, Str};
 
-use Illuminate\Support\Facades\DB;
 class AiTemplateSeederTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 
@@ -29,9 +28,6 @@ class AiTemplateSeederTest extends TestCase
 		// Freeze time so timestamps are consistent
 		$now = Carbon::create(2025, 6, 10, 12, 0, 0);
 		Carbon::setTestNow($now);
-
-		// Clean slate
-		DB::table('templates')->delete();
 
 		// Run the seeder
 		(new AiTemplateSeeder())->run();

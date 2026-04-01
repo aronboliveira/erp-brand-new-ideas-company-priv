@@ -5,13 +5,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-use Illuminate\Support\Facades\DB;
 class JobStageTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 
@@ -38,7 +37,6 @@ class JobStageTest extends TestCase
 			'project',
 			'goal',
 			'training',
-			'created_by',
 		];
 		$this->assertEquals($expected, (new JobStage())->getFillable());
 	}

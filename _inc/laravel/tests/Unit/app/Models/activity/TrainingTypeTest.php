@@ -7,13 +7,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use App\Models\TrainingType;
 
-use Illuminate\Support\Facades\DB;
 class TrainingTypeTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

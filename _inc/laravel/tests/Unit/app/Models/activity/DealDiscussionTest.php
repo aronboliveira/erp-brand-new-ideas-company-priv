@@ -7,7 +7,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{DealDiscussion, User};
 
-use Illuminate\Support\Facades\DB;
 class DealDiscussionTest extends TestCase
 {
 	protected function setUp(): void

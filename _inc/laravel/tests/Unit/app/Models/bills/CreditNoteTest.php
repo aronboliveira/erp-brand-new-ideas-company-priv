@@ -7,7 +7,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 use App\Models\{CreditNote, Invoice, Customer};
 
-use Illuminate\Support\Facades\DB;
 class CreditNoteTest extends TestCase
 {
 	protected function setUp(): void

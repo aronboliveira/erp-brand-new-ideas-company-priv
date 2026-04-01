@@ -19,13 +19,12 @@ use App\Models\{
 	DebitNote
 };
 
-use Illuminate\Support\Facades\DB;
 class BillTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 
@@ -235,7 +234,7 @@ class BillTest extends TestCase
 	 **/
 	public function get_subtotal_calculation_is_correct()
 	{
-		DB::table('bill_accounts')->delete();
+		\DB::table('bill_accounts')->delete();
 
 		// BillAccount::saving overwrites price with parent Bill's `amount`,
 		// so we control `amount` to pin the account total.
@@ -278,7 +277,7 @@ class BillTest extends TestCase
 	 **/
 	public function get_total_tax_calculation_is_correct()
 	{
-		DB::table('bill_accounts')->delete();
+		\DB::table('bill_accounts')->delete();
 
 		$bill = Bill::factory()->create([
 			'items' => [
@@ -322,9 +321,9 @@ class BillTest extends TestCase
 	 **/
 	public function get_due_calculation_is_correct()
 	{
-		DB::table('bill_accounts')->delete();
-		DB::table('bill_payments')->delete();
-		DB::table('debit_notes')->delete();
+		\DB::table('bill_accounts')->delete();
+		\DB::table('bill_payments')->delete();
+		\DB::table('debit_notes')->delete();
 
 		$bill = Bill::factory()->create([
 			'items' => [
@@ -354,7 +353,7 @@ class BillTest extends TestCase
 	 **/
 	public function get_account_total_calculation_is_correct()
 	{
-		DB::table('bill_accounts')->delete();
+		\DB::table('bill_accounts')->delete();
 
 		// BillAccount::saving overwrites price → Bill.amount, so pin amount=5
 		$bill = Bill::factory()->create(['amount' => 5.00]);

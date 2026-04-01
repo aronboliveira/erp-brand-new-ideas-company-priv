@@ -11,16 +11,6 @@ class MessageControllerTest extends TestCase
 {
 	use RefreshDatabase;
 
-	protected function setUp(): void
-	{
-		parent::setUp();
-		try {
-			app('router')->getRoutes()->match(request()->create('/chatify', 'GET'));
-		} catch (\Throwable) {
-			$this->markTestSkipped('Chatify routes are not registered in this environment.');
-		}
-	}
-
 	/**
 	 ** @test
 	 **

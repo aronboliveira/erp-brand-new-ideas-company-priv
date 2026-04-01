@@ -94,9 +94,10 @@ class ImportSupplementaryTest extends TestCase
 	{
 		$import = new CustomerImport();
 		$result = $import->model([]);
-		$this->assertNull(
+		$this->assertInstanceOf(
+			\Illuminate\Http\RedirectResponse::class,
 			$result,
-			'Empty row with no auth should return null (redirect is suppressed).'
+			'Empty row with no auth should redirect.'
 		);
 	}
 

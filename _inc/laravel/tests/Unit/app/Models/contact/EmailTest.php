@@ -7,7 +7,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\{Facades\Auth, Str};
 use App\Models\{Email, User};
 
-use Illuminate\Support\Facades\DB;
 class EmailTest extends TestCase
 {
 	use RefreshDatabase;
@@ -156,11 +155,7 @@ class EmailTest extends TestCase
 			'email_key' => 'test_email_key_' . uniqid('second_'),
 		]);
 
-		# PULL REQUEST START
-		// Escopo filtrado para apenas os registros criados neste teste
-		$ids = Email::whereIn('id', [$first->id, $second->id])
-			->pluck('id')->all();
+		$ids = Email::all()->pluck('id')->all();
 		$this->assertSame([$second->id, $first->id], $ids);
-		# PULL REQUEST END
 	}
 }

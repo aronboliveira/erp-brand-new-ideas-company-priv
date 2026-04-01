@@ -10,13 +10,12 @@ use Illuminate\{
 };
 use App\Models\{PosPayment, Pos, BankAccount};
 
-use Illuminate\Support\Facades\DB;
 class PosPaymentTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

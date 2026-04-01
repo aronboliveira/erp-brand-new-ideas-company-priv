@@ -5,11 +5,13 @@ namespace Tests\Unit\app\Http\Middlewares;
 use Tests\TestCase;
 use App\Http\Middleware\XSS;
 use App\Models\User;
+use App\Models\Utility;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Group;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * XSSTest requires a full HTTP pipeline dispatch that accumulates too much
@@ -58,7 +60,7 @@ class XSSTest extends TestCase
 	 **/
 	public function test_guests_are_redirected_to_login()
 	{
-		$response = $this->post('/test-xss', ['foo' => '<b>bar</b>']);
+		$response = $this->postJson('/test-xss', ['foo' => '<b>bar</b>']);
 		$response->assertRedirect(route('login'));
 	}
 
@@ -73,6 +75,10 @@ class XSSTest extends TestCase
 	{
 		$admin = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
 		Auth::login($admin);
+
+		Utility::shouldReceive('getMessengerPackagesMigration')->andReturn(1);
+		Utility::shouldReceive('addNewData')->once();
+		\App\Models\User::shouldReceive('defaultEmail')->once();
 
 		$response = $this->post('/test-xss', ['irrelevant' => 'data']);
 
@@ -108,31 +114,26 @@ class XSSTest extends TestCase
 	 ** @test
 	 **
 	 ** If an exception occurs during request processing (e.g., in the next stage),
-	 ** the middleware re-throws it so the global exception handler can manage it.
+	 ** the middleware logs an error and returns JSON 500 with the correct message.
 	 **/
 	public function test_exceptions_are_caught_logged_and_return_json_error()
 	{
 		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		Auth::login($user);
 
-		$middleware = app(XSS::class);
-		$request = \Illuminate\Http\Request::create('/test-xss-error', 'POST', ['foo' => 'bar']);
-		$request->headers->set('Accept', 'application/json');
-		$request->setUserResolver(fn () => $user);
-		$request->setLaravelSession(app('session.store'));
+		Log::shouldReceive('error')
+			->once()
+			->with(
+				XSS::class . '::handle failed',
+				\Mockery::on(function ($context) {
+					return isset($context['exception'], $context['message'], $context['uri'])
+						&& $context['message'] === 'boom';
+				})
+			);
 
-		// Bind a real route so the middleware can inspect route details
-		$route = new \Illuminate\Routing\Route('POST', '/test-xss-error', fn () => null);
-		$route->bind($request);
-		$request->setRouteResolver(fn () => $route);
+		$response = $this->postJson('/test-xss-error', ['foo' => 'bar']);
 
-		# PULL REQUEST START — XSS middleware now re-throws exceptions instead of catching them
-		$this->expectException(\Exception::class);
-		$this->expectExceptionMessage('boom');
-		# PULL REQUEST END
-
-		$middleware->handle($request, function () {
-			throw new \Exception('boom');
-		});
+		$response->assertStatus(500)
+			->assertJson(['error' => 'Unexpected error during request validation']);
 	}
 }

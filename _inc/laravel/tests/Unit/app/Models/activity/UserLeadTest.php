@@ -9,13 +9,12 @@ use App\Models\UserLead;
 use App\Models\User;
 use App\Models\Lead;
 
-use Illuminate\Support\Facades\DB;
 class UserLeadTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 

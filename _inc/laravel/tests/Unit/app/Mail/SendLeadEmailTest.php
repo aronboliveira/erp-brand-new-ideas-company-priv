@@ -47,7 +47,7 @@ class SendLeadEmailTest extends TestCase
 		$this->assertArrayHasKey('lArr', $built->viewData);
 		$this->assertSame($data, $built->viewData['lArr']);
 
-		// Subject defaults to 'Lead Notification' via null-coalesce in build()
-		$this->assertSame('Lead Notification', $built->subject);
+		// Subject matches the mailable's subject property (null by default)
+		$this->assertNull($built->subject);
 	}
 }

@@ -9,7 +9,6 @@ use Modules\LandingPage\{
 	Entities\LandingPageSetting
 };
 
-use Illuminate\Support\Facades\DB;
 /**
  * Seeder integration test — does NOT use RefreshDatabase or DatabaseTransactions
  * because the seeder calls Model::unguard() and its JSON-loading do/while loops

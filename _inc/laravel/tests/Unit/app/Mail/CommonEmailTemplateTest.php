@@ -56,14 +56,13 @@ class CommonEmailTemplateTest extends TestCase
 		// Subject
 		$this->assertSame('Greetings!', $built->subject);
 
-		// From address and name (Laravel stores from as [['address'=>..,'name'=>..]])
+		// From address and name
 		$from = $built->from;
-		$this->assertNotEmpty($from);
-		$this->assertSame('no-reply@acme.test', $from[0]['address']);
-		$this->assertSame('AcmeApp', $from[0]['name']);
+		$this->assertArrayHasKey('no-reply@acme.test', $from);
+		$this->assertSame('AcmeApp', $from['no-reply@acme.test']);
 
-		// Markdown view used
-		$this->assertSame('email.common_email_template', $built->markdown);
+		// View used
+		$this->assertSame('email.common_email_template', $built->view);
 
 		// View Data
 		$data = $built->viewData;

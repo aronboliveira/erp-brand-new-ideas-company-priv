@@ -11,7 +11,6 @@ use App\Models\TrainingType;
 use App\Models\Employee;
 use App\Models\Trainer;
 
-use Illuminate\Support\Facades\DB;
 class TrainingTest extends TestCase
 {
 	protected function setUp(): void

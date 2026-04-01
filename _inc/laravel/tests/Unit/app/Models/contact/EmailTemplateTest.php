@@ -10,7 +10,6 @@ use Illuminate\{
 };
 use App\Models\{EmailTemplate, User};
 
-use Illuminate\Support\Facades\DB;
 class EmailTemplateTest extends TestCase
 {
 	use RefreshDatabase;
@@ -20,7 +19,7 @@ class EmailTemplateTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// Clear the static template cache between tests
 		$ref = new \ReflectionProperty(EmailTemplate::class, 'templateData');
 		$ref->setAccessible(true);
@@ -79,21 +78,6 @@ class EmailTemplateTest extends TestCase
 	 **/
 	public function email_template_data_returns_and_caches_first()
 	{
-		// Seed an EmailTemplate record so emailTemplateData() can find one
-		\Illuminate\Database\Eloquent\Model::unguard();
-		EmailTemplate::create([
-			'title'       => 'Test Template',
-			'slug'        => 'test_template',
-			'from'        => 'noreply@test.com',
-			'created_by'  => $this->user->id,
-		]);
-		\Illuminate\Database\Eloquent\Model::reguard();
-
-		// Clear the static cache so the freshly-seeded record is found
-		$ref = new \ReflectionProperty(EmailTemplate::class, 'templateData');
-		$ref->setAccessible(true);
-		$ref->setValue(null, null);
-
 		$data1 = EmailTemplate::emailTemplateData();
 		$data2 = EmailTemplate::emailTemplateData();
 

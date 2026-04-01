@@ -9,7 +9,6 @@ use Illuminate\{
 };
 use App\Models\ClientPermission;
 
-use Illuminate\Support\Facades\DB;
 class ClientPermissionTest extends TestCase
 {
     protected function setUp(): void

@@ -16,13 +16,12 @@ use App\Models\{
 	BillPayment
 };
 
-use Illuminate\Support\Facades\DB;
 class TransactionTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

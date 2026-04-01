@@ -7,7 +7,6 @@ use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Facades\Auth};
 use App\Models\{User, UserEmailTemplate};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-use Illuminate\Support\Facades\DB;
 class UserEmailTemplateTest extends TestCase
 {
 	use RefreshDatabase;
@@ -15,7 +14,7 @@ class UserEmailTemplateTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		// authenticate a user for the relation scope (though relation does not filter here)
 		Auth::login(User::factory()->create());
 	}

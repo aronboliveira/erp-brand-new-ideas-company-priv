@@ -6,7 +6,6 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Warning;
 
-use Illuminate\Support\Facades\DB;
 class WarningTest extends TestCase
 {
 	use RefreshDatabase;
@@ -14,7 +13,7 @@ class WarningTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
 	/**

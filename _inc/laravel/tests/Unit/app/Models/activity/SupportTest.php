@@ -11,13 +11,12 @@ use App\Models\Support;
 use App\Models\User;
 use App\Models\SupportReply;
 
-use Illuminate\Support\Facades\DB;
 class SupportTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

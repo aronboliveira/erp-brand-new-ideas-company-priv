@@ -15,15 +15,15 @@ class VerifyCsrfTokenTest extends TestCase
 	{
 		parent::setUp();
 
-		// Route matching an exempt URI pattern (must match VerifyCsrfToken::EXEMPT_URIS)
-		Route::post('/plan-pay-with-paymentwall/123', function () {
+		// Route matching an exempt URI pattern
+		Route::post('/plan/paytm/123', function () {
 			return response('EXEMPT OK', 200);
-		})->middleware('web');
+		})->middleware(VerifyCsrfToken::class);
 
 		// Non-exempt route
 		Route::post('/protected', function () {
 			return response('PROTECTED OK', 200);
-		})->middleware('web');
+		})->middleware(VerifyCsrfToken::class);
 	}
 
 	/**
@@ -34,7 +34,7 @@ class VerifyCsrfTokenTest extends TestCase
 	 **/
 	public function exempt_uris_bypass_csrf_protection()
 	{
-		$response = $this->post('/plan-pay-with-paymentwall/123');
+		$response = $this->post('/plan/paytm/123');
 
 		$response->assertStatus(200)
 			->assertSee('EXEMPT OK');
@@ -48,14 +48,7 @@ class VerifyCsrfTokenTest extends TestCase
 	 **/
 	public function non_exempt_uris_require_csrf_token()
 	{
-		// Laravel's parent VerifyCsrfToken bypasses CSRF when runningUnitTests().
-		// Temporarily switch APP_ENV so the bypass is disabled.
-		$prev = $this->app['env'];
-		$this->app->detectEnvironment(fn () => 'production');
-
 		$response = $this->post('/protected');
-
-		$this->app->detectEnvironment(fn () => $prev);
 
 		$response->assertStatus(419);
 	}

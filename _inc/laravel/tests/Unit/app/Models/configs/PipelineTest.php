@@ -7,7 +7,6 @@ use Illuminate\{
 };
 use App\Models\Pipeline;
 
-use Illuminate\Support\Facades\DB;
 class PipelineTest extends TestCase
 {
     protected function setUp(): void

@@ -8,13 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Order;
 use App\Models\UserCoupon;
 
-use Illuminate\Support\Facades\DB;
 class OrderTest extends TestCase
 {
 	protected function setUp(): void
 	{
 		parent::setUp();
-		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		\DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 	}
 	use RefreshDatabase;
 

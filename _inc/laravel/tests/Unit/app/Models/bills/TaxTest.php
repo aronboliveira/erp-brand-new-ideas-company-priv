@@ -6,13 +6,12 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Tax;
 
-use Illuminate\Support\Facades\DB;
 class TaxTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 
@@ -24,7 +23,7 @@ class TaxTest extends TestCase
 	public function tax_is_fillable()
 	{
 		$data = [
-			'name'       => 'VAT_' . uniqid(),
+			'name'       => 'VAT',
 			'rate'       => 12.5,
 		];
 

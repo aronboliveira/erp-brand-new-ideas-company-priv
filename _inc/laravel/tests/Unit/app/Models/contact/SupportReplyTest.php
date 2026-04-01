@@ -6,7 +6,6 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\{SupportReply, User};
 
-use Illuminate\Support\Facades\DB;
 class SupportReplyTest extends TestCase
 {
     protected function setUp(): void

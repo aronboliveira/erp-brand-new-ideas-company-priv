@@ -19,15 +19,7 @@ class NotificationSeederTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-        foreach ([
-            DatabaseConstants::TABLE_NOTIFICATION_TEMPLATE_LANGS,
-            DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES,
-            DatabaseConstants::TABLE_USERS,
-        ] as $t) {
-            retry(3, fn () => DB::table($t)->delete(), 200);
-        }
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=1');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 	use RefreshDatabase;
 
@@ -69,7 +61,7 @@ class NotificationSeederTest extends TestCase
 
 		foreach ($templates as $tpl) {
 			$this->assertTrue(Str::isUuid($tpl->id), "Invalid UUID: {$tpl->id}");
-			$this->assertEquals($creatorId, $tpl->created_by);
+			$this->assertEquals($creatorId, $tpl->creator);
 			$this->assertEquals($now->toDateTimeString(), $tpl->created_at);
 			$this->assertEquals($now->toDateTimeString(), $tpl->updated_at);
 		}
@@ -88,7 +80,7 @@ class NotificationSeederTest extends TestCase
 
 		foreach ($langs as $lang) {
 			$this->assertTrue(Str::isUuid($lang->id), "Invalid UUID: {$lang->id}");
-			$this->assertEquals($creatorId, $lang->created_by);
+			$this->assertEquals($creatorId, $lang->creator);
 			$this->assertEquals($now->toDateTimeString(), $lang->created_at);
 			$this->assertEquals($now->toDateTimeString(), $lang->updated_at);
 		}
@@ -128,12 +120,12 @@ class NotificationSeederTest extends TestCase
 		// All templates must reference the existing user
 		DB::table(DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES)
 			->get()
-			->each(fn ($row) => $this->assertEquals($customId, $row->created_by));
+			->each(fn ($row) => $this->assertEquals($customId, $row->creator));
 
 		// All language rows must reference the existing user
 		DB::table(DatabaseConstants::TABLE_NOTIFICATION_TEMPLATE_LANGS)
 			->get()
-			->each(fn ($row) => $this->assertEquals($customId, $row->created_by));
+			->each(fn ($row) => $this->assertEquals($customId, $row->creator));
 	}
 
 	/**

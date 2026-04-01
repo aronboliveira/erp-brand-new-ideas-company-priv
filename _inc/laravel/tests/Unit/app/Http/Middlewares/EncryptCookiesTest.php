@@ -33,9 +33,9 @@ class EncryptCookiesTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** Exceptions from the next middleware propagate (not caught by EncryptCookies).
+	 ** This function should catch exceptions from the next middleware and return a 500 JSON error.
 	 **/
-	public function handle_lets_exceptions_propagate()
+	public function handle_catches_exception_and_returns_json_error()
 	{
 		$middleware = $this->app->make(EncryptCookies::class);
 
@@ -44,8 +44,10 @@ class EncryptCookiesTest extends TestCase
 			throw new \RuntimeException('boom');
 		};
 
-		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('boom');
-		$middleware->handle($request, $next);
+		$response = $middleware->handle($request, $next);
+
+		$this->assertInstanceOf(JsonResponse::class, $response);
+		$this->assertEquals(500, $response->getStatusCode());
+		$this->assertEquals(['error' => 'Cookie encryption failed.'], $response->getData(true));
 	}
 }

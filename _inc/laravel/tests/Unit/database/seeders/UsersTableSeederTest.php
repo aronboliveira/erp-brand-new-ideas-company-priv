@@ -18,9 +18,13 @@ use App\Models\{
 };
 use Database\Seeders\UsersTableSeeder;
 
-use Illuminate\Support\Facades\DB;
 class UsersTableSeederTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+    }
 	use RefreshDatabase;
 
 	/**
@@ -31,10 +35,17 @@ class UsersTableSeederTest extends TestCase
 	 **/
 	public function it_seeds_permissions_roles_users_and_related_entities()
 	{
-		$this->markTestSkipped(
-			'UsersTableSeeder::run() hangs in CLI/test context (>30 s). '
-			. 'Seeder internals (Utility helpers, language loading) need investigation.'
-		);
+		// Freeze time for consistent timestamps
+		$now = Carbon::create(2025, 6, 10, 12, 0, 0);
+		Carbon::setTestNow($now);
+
+		// Ensure clean slate
+		$this->assertDatabaseCount(DatabaseConstants::TABLE_USERS, 0);
+		$this->assertDatabaseCount('permissions', 0);
+		$this->assertDatabaseCount('roles', 0);
+		$this->assertDatabaseCount((new ChartOfAccountType)->getTable(), 0);
+		$this->assertDatabaseCount((new BankAccount)->getTable(), 0);
+		$this->assertDatabaseCount(DatabaseConstants::TABLE_SETTINGS, 0);
 
 		// Run the seeder (returns void)
 		(new UsersTableSeeder())->run();

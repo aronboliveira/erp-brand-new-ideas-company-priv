@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\{Auth, Log};
+use Mockery;
 use Tests\TestCase;
 
 class EmployeesImportTest extends TestCase
@@ -48,11 +49,12 @@ class EmployeesImportTest extends TestCase
 	public function model_returns_employee_with_mapped_and_cleaned_attributes(): void
 	{
 		$user = User::factory()->create();
-		Auth::guard()->setUser($user);
+		Auth::login($user);
 
+		// prepare a row: empty email should become null
 		$row = [
 			'name'        => 'Alice',
-			'email'       => 'alice@example.com',
+			'email'       => '',            // becomes null
 			'employee_id' => 'EMP001',
 			'foo'         => 'bar',         // not fillable, ignored
 		];
@@ -61,12 +63,10 @@ class EmployeesImportTest extends TestCase
 		$result = $import->model($row);
 
 		$this->assertInstanceOf(Employee::class, $result);
-		$this->assertSame('Alice',              $result->name);
-		$this->assertSame('alice@example.com',  $result->email);
-		// employee_id is required by the import but not in $fillable, so not set via mass-assignment
-		$this->assertNull($result->employee_id);
-		// created_by is also not in Employee::$fillable, so mass-assignment ignores it
-		$this->assertNull($result->created_by);
+		$this->assertSame('Alice',      $result->name);
+		$this->assertNull($result->email);
+		$this->assertSame('EMP001',     $result->employee_id);
+		$this->assertSame($user?->id,     $result->created_by);
 	}
 
 	/**
@@ -77,8 +77,24 @@ class EmployeesImportTest extends TestCase
 	 **/
 	public function model_logs_error_and_returns_null_on_exception(): void
 	{
-		// Alias mocks require the class to not be loaded yet, which is impossible
-		// in a single PHPUnit run since Employee is already autoloaded.
-		$this->markTestSkipped('Cannot alias-mock Employee after autoloading.');
+		$user = User::factory()->create();
+		Auth::login($user);
+
+		// Alias-mock Employee so getFillable() throws
+		Mockery::mock('alias:App\Models\Employee')
+			->shouldReceive('getFillable')
+			->andThrow(new \Exception('fail-fillable'));
+
+		Log::spy();
+
+		$import = new EmployeesImport();
+		$row   = ['name' => 'Bob', 'email' => 'b@example.com', 'employee_id' => 'E002'];
+
+		$result = $import->model($row);
+
+		$this->assertNull($result);
+		Log::shouldHaveReceived('error')
+			->with('App\\Imports\\EmployeesImport::model failed: fail-fillable')
+			->once();
 	}
 }

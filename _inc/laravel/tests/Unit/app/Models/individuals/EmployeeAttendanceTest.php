@@ -7,7 +7,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\EmployeeAttendance;
 use App\Models\Employee;
 
-use Illuminate\Support\Facades\DB;
 class EmployeeAttendanceTest extends TestCase
 {
     protected function setUp(): void

@@ -47,7 +47,6 @@ class AddMenuProviderTest extends TestCase
 		$provider->boot();
 
 		View::shouldHaveReceived('composer')->once();
-		$this->addToAssertionCount(1);
 	}
 
 	/**
@@ -66,7 +65,6 @@ class AddMenuProviderTest extends TestCase
 		$provider->boot();
 
 		View::shouldNotHaveReceived('composer');
-		$this->addToAssertionCount(1);
 	}
 
 	/**

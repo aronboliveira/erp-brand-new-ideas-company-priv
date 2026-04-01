@@ -16,7 +16,6 @@ use Mockery;
 use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 
-use Illuminate\Support\Facades\DB;
 class ProjectTest extends TestCase
 {
 	use SafeAliasMock;
@@ -30,7 +29,7 @@ class ProjectTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
 		$this->cacheProp = (new \ReflectionClass(Project::class))
 			->getProperty('projectTask');

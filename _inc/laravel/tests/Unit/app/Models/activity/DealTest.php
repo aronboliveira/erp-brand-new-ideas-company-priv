@@ -19,7 +19,6 @@ use App\Models\{
 	DealDiscussion
 };
 
-use Illuminate\Support\Facades\DB;
 class DealTest extends TestCase
 {
 	protected function setUp(): void
