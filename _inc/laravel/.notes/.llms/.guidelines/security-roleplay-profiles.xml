@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Security Roleplay Test Profiles
+  Defines the actor personas, their behavior patterns, and test expectations.
+  Referenced by: .notes/.llms/security-testing-audit.md
+  Generated: 2026-03-31
+-->
+<security-roleplay-profiles>
+
+  <meta>
+    <project>ERP Prestech (Laravel 10 / PHP 8.4 / MySQL 8.4)</project>
+    <base-url>http://127.0.0.1:8000</base-url>
+    <test-root>tests/{e2e,Feature,Unit}/security/roleplay</test-root>
+    <script-root>tests/Feature/security/roleplay/{actor}/{lang}/scripts</script-root>
+    <mock-apps>tests/mock-apps</mock-apps>
+    <languages>
+      <language id="php"  framework="phpunit"    ext=".php" />
+      <language id="js"   framework="jest"       ext=".test.cjs" />
+      <language id="js"   framework="playwright" ext=".spec.cjs" />
+      <language id="py"   framework="pytest"     ext=".py" />
+      <language id="bash" framework="shell"      ext=".sh" />
+      <language id="wasm" framework="emscripten" ext=".c" />
+    </languages>
+  </meta>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  GREEN HAT — Script kiddie / Beginner                     -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="green-hat">
+    <name>Green Hat</name>
+    <description>
+      Iniciante curioso, aprendendo segurança. Usa ferramentas prontas,
+      tenta payloads simples copiados da internet. Não entende o que faz.
+    </description>
+    <mindset>Naive, tentativa-e-erro, smoke testing</mindset>
+    <risk-level>LOW</risk-level>
+    <test-characteristics>
+      <characteristic>Testes simples e rápidos (smoke tests)</characteristic>
+      <characteristic>Poucos payloads, os mais conhecidos (OR 1=1)</characteristic>
+      <characteristic>Sem sofisticação — copiar-e-colar de tutoriais</characteristic>
+      <characteristic>Execução rápida, sem complexidade</characteristic>
+      <characteristic>Verifica apenas "funcionou ou não"</characteristic>
+    </test-characteristics>
+    <payload-examples>
+      <payload>' OR '1'='1</payload>
+      <payload>admin'--</payload>
+      <payload>1 OR 1=1</payload>
+    </payload-examples>
+    <expected-test-count min="5" max="20" />
+    <scripts count="3" weight="LOW">
+      <script lang="js"   path="js/scripts/cookie_stealer.cjs"   desc="Naive localStorage/cookie theft from tutorial" />
+      <script lang="bash" path="bash/scripts/brute_login.sh"     desc="Basic curl brute-force against /login" />
+      <script lang="py"   path="py/scripts/session_dump.py"      desc="Simple session cookie decoder/dumper" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  WHITE HAT — Ethical Pentester                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="white-hat">
+    <name>White Hat</name>
+    <description>
+      Pentester ético e metódico. Segue OWASP Testing Guide, documenta
+      achados, envia relatórios formatados. Testa cada vetor com variantes.
+    </description>
+    <mindset>Metodológico, OWASP-driven, report-oriented</mindset>
+    <risk-level>MEDIUM</risk-level>
+    <test-characteristics>
+      <characteristic>Segue metodologia OWASP (OTG-INPVAL-005)</characteristic>
+      <characteristic>Payloads categorizados por tipo (union, blind, error-based)</characteristic>
+      <characteristic>Validações estruturadas com assertions claras</characteristic>
+      <characteristic>Relatório de achados com severidade</characteristic>
+      <characteristic>Testes de regressão para vulnerabilidades conhecidas</characteristic>
+    </test-characteristics>
+    <payload-examples>
+      <payload>' UNION SELECT NULL,NULL,NULL --</payload>
+      <payload>1' AND SLEEP(5) --</payload>
+      <payload>' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--</payload>
+      <payload>1' AND (SELECT COUNT(*) FROM information_schema.tables)>0 --</payload>
+    </payload-examples>
+    <expected-test-count min="30" max="80" />
+    <scripts count="6" weight="MEDIUM">
+      <script lang="bash" path="bash/scripts/owasp_sqli_scan.sh"     desc="Systematic OWASP SQLi scan with categorized payloads" />
+      <script lang="py"   path="py/scripts/owasp_header_audit.py"    desc="HTTP security header analysis per OWASP" />
+      <script lang="js"   path="js/scripts/dom_xss_probe.cjs"        desc="DOM-based XSS probing via innerHTML/document.write" />
+      <script lang="php"  path="php/scripts/param_tamper.php"        desc="GET/POST parameter tampering and type juggling" />
+      <script lang="bash" path="bash/scripts/session_fixation_test.sh" desc="Session fixation/cookie replay test" />
+      <script lang="py"   path="py/scripts/auth_bypass_probe.py"     desc="Authentication bypass via header/cookie manipulation" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  BLACK HAT — Malicious Attacker                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="black-hat">
+    <name>Black Hat</name>
+    <description>
+      Atacante malicioso e sofisticado. Usa técnicas de evasão, ofuscação,
+      encoding duplo, payloads polimórficos. Objetivo: exfiltrar dados,
+      destruir banco, escalar privilégios.
+    </description>
+    <mindset>Sofisticado, evasivo, destrutivo, sem limites éticos</mindset>
+    <risk-level>CRITICAL</risk-level>
+    <git-policy>ALWAYS IGNORED — nunca commitar em repositório público</git-policy>
+    <test-characteristics>
+      <characteristic>Payloads ofuscados (hex, unicode, double-encoding)</characteristic>
+      <characteristic>WAF bypass techniques (comentários inline, case mixing)</characteristic>
+      <characteristic>Time-based blind SQLi com delays calibrados</characteristic>
+      <characteristic>Tentativas de exfiltração via DNS/HTTP out-of-band</characteristic>
+      <characteristic>Polyglot payloads (SQLi + XSS + SSTI combinados)</characteristic>
+      <characteristic>Tentativas de escalação de privilégio</characteristic>
+      <characteristic>Testes destrutivos (DROP, TRUNCATE, UPDATE sem WHERE)</characteristic>
+    </test-characteristics>
+    <payload-examples>
+      <payload>%2527%20OR%20%25271%2527%253D%25271</payload>
+      <payload>/*!50000UNION*/+/*!50000SELECT*/+1,2,3--</payload>
+      <payload>1'/**/AnD/**/sLeEp(5)--</payload>
+      <payload>'; LOAD_FILE('/etc/passwd'); --</payload>
+      <payload>1'; DROP TABLE users; --</payload>
+    </payload-examples>
+    <expected-test-count min="40" max="100" />
+    <scripts count="9" weight="CRITICAL">
+      <script lang="bash" path="bash/scripts/sqli_chain.sh"           desc="Orchestrator: shell→node→wasm multi-stage SQLi" />
+      <script lang="js"   path="js/scripts/payload_obfuscator.cjs"    desc="Obfuscated payload generator (hex, unicode, double-enc)" />
+      <script lang="py"   path="py/scripts/blind_sqli_extractor.py"   desc="Boolean blind SQLi binary search data exfiltrator" />
+      <script lang="wasm" path="wasm/scripts/encoder.c"               desc="C source for WASM binary payload encoder" />
+      <script lang="js"   path="wasm/scripts/encoder_loader.cjs"      desc="JS loader/bridge for WASM encoder module" />
+      <script lang="php"  path="php/scripts/webshell_probe.php"       desc="Webshell upload/detection simulator" />
+      <script lang="bash" path="bash/scripts/privesc_probe.sh"        desc="Privilege escalation via role/token manipulation" />
+      <script lang="js"   path="js/scripts/polyglot_factory.cjs"      desc="Polyglot factory: SQLi+XSS+SSTI combined payloads" />
+      <script lang="py"   path="py/scripts/time_blind_sqli.py"        desc="Time-based blind SQLi with calibrated SLEEP" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  CISO — Chief Information Security Officer                -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="ciso">
+    <name>CISO</name>
+    <description>
+      Executivo de segurança. Foco em compliance, políticas, KPIs de
+      segurança, cobertura de testes. Não executa ataques — valida que
+      as proteções existem e estão configuradas.
+    </description>
+    <mindset>Governance, compliance, audit checklist</mindset>
+    <risk-level>MEDIUM</risk-level>
+    <test-characteristics>
+      <characteristic>Verificar que CSRF está ativo em todas as rotas POST</characteristic>
+      <characteristic>Verificar que modelos têm $guarded/$fillable</characteristic>
+      <characteristic>Verificar headers de segurança (CSP, X-Frame, HSTS)</characteristic>
+      <characteristic>Verificar que APP_DEBUG=false em "produção"</characteristic>
+      <characteristic>Verificar que prepared statements são usados</characteristic>
+      <characteristic>Métricas: % de cobertura, nº de achados, severidades</characteristic>
+    </test-characteristics>
+    <expected-test-count min="15" max="40" />
+    <scripts count="5" weight="MEDIUM">
+      <script lang="bash" path="bash/scripts/security_header_scan.sh" desc="HTTP security header compliance scanner" />
+      <script lang="py"   path="py/scripts/compliance_audit.py"       desc="OWASP Top 10 compliance checklist automation" />
+      <script lang="php"  path="php/scripts/csrf_audit.php"           desc="CSRF middleware presence validator" />
+      <script lang="js"   path="js/scripts/csp_analyzer.cjs"          desc="CSP policy parser and violation detector" />
+      <script lang="bash" path="bash/scripts/cookie_flags_audit.sh"   desc="Cookie security flags (HttpOnly, Secure, SameSite)" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  QA — Quality Assurance Tester                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="qa">
+    <name>QA Tester</name>
+    <description>
+      Testador de qualidade focado em UX e comportamento do cliente.
+      Usa o sistema como um usuário final, mas tenta inputs inesperados,
+      edge cases, e campos com dados inválidos.
+    </description>
+    <mindset>Client-side, persistente, bug hunter, edge cases</mindset>
+    <risk-level>LOW-MEDIUM</risk-level>
+    <test-characteristics>
+      <characteristic>Preencher formulários com caracteres especiais</characteristic>
+      <characteristic>Testar campos obrigatórios vazios</characteristic>
+      <characteristic>Submeter formulários incompletos repetidamente</characteristic>
+      <characteristic>Verificar mensagens de erro amigáveis (sem stack trace)</characteristic>
+      <characteristic>Testar navegação com URL manipulation</characteristic>
+      <characteristic>Verificar que validação client-side existe</characteristic>
+    </test-characteristics>
+    <payload-examples>
+      <payload>O'Brien</payload>
+      <payload>名前</payload>
+      <payload>&lt;script&gt;alert(1)&lt;/script&gt;</payload>
+      <payload>  </payload>
+      <payload>aaaa....(2000 chars)</payload>
+    </payload-examples>
+    <expected-test-count min="15" max="40" />
+    <scripts count="3" weight="LOW-MEDIUM">
+      <script lang="js"   path="js/scripts/form_fuzzer.cjs"       desc="Automated form fuzzer with XSS/SQLi payloads" />
+      <script lang="py"   path="py/scripts/boundary_value_gen.py" desc="Boundary value generator for input fields" />
+      <script lang="bash" path="bash/scripts/url_tamper.sh"       desc="URL parameter manipulation and path traversal" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  BACKEND DEVELOPER — Internal Code Reviewer               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <actor id="backend-developer">
+    <name>Backend Developer</name>
+    <description>
+      Desenvolvedor interno fazendo code review de segurança.
+      Foco em padrões de código, uso correto do ORM, configuração
+      de banco, e boas práticas de query building.
+    </description>
+    <mindset>Code review, ORM patterns, config validation</mindset>
+    <risk-level>MEDIUM</risk-level>
+    <test-characteristics>
+      <characteristic>Verificar que raw queries usam binding</characteristic>
+      <characteristic>Verificar que env() não é chamado fora de config/</characteristic>
+      <characteristic>Verificar que dd()/dump() não está em produção</characteristic>
+      <characteristic>Verificar relações Eloquent e eager loading</characteristic>
+      <characteristic>Verificar que migrations usam tipos seguros</characteristic>
+      <characteristic>Verificar middleware stack nas rotas</characteristic>
+    </test-characteristics>
+    <expected-test-count min="10" max="30" />
+    <scripts count="4" weight="MEDIUM">
+      <script lang="bash" path="bash/scripts/sast_scanner.sh"         desc="Grep-based SAST scanner for dangerous patterns" />
+      <script lang="py"   path="py/scripts/dependency_audit.py"       desc="Composer/npm dependency vulnerability checker" />
+      <script lang="php"  path="php/scripts/raw_query_detector.php"   desc="Raw DB query pattern detector in source files" />
+      <script lang="js"   path="js/scripts/frontend_audit.cjs"        desc="Frontend code audit (eval, innerHTML, inline events)" />
+    </scripts>
+  </actor>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  Directory Structure Template                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <directory-structure>
+    <template>
+      tests/{scope}/security/roleplay/{actor}/{lang}/           — test files
+      tests/Feature/security/roleplay/{actor}/{lang}/scripts/   — attack/audit scripts
+      tests/mock-apps/{app}/                                    — target mock HTML apps
+      
+      Where:
+        scope  = e2e | Feature | Unit
+        actor  = green-hat | white-hat | black-hat | ciso | qa | backend-developer
+        lang   = php | js | py | bash | wasm
+    </template>
+    <file-naming>
+      <rule lang="php">  {Actor}{Topic}Test.php          (PascalCase)</rule>
+      <rule lang="js">   {actor}-{topic}.test.cjs        (kebab-case, Jest)</rule>
+      <rule lang="js">   {actor}-{topic}.spec.cjs        (kebab-case, Playwright)</rule>
+      <rule lang="py">   test_{actor}_{topic}.py          (snake_case)</rule>
+      <rule lang="bash"> {purpose}.sh                     (snake_case script)</rule>
+      <rule lang="wasm"> {purpose}.c + {purpose}_loader.cjs (C source + JS loader)</rule>
+    </file-naming>
+    <mock-apps>
+      <app id="vulnerable-form" path="tests/mock-apps/vulnerable-form/index.html" />
+      <app id="session-test"    path="tests/mock-apps/session-test/index.html" />
+      <app id="api-test"        path="tests/mock-apps/api-test/index.html" />
+    </mock-apps>
+  </directory-structure>
+
+</security-roleplay-profiles>

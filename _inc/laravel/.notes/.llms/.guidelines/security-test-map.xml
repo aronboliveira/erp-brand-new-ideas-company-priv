@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Security Testing Directory Map
+  Cross-references all test files by scope, actor, language, and framework.
+  Referenced by: .notes/.llms/security-testing-audit.md
+  Generated: 2026-03-31
+-->
+<security-test-map>
+
+  <!-- ═══ Non-roleplay (generic) tests ═══ -->
+  <generic-tests>
+    <test scope="e2e" lang="php" framework="phpunit"
+          path="tests/e2e/security/php/SqlInjectionTest.php"
+          count="217" description="HTTP SQLi penetration (GET, POST, path, headers, JSON)" />
+    <test scope="Unit" lang="php" framework="phpunit"
+          path="tests/Unit/security/php/MassAssignmentTest.php"
+          count="190" description="Dynamic Eloquent model scan for $fillable/$guarded" />
+    <test scope="Unit" lang="php" framework="phpunit"
+          path="tests/Unit/security/php/RawQueryAuditTest.php"
+          count="4" description="Static SAST for raw SQL patterns" />
+    <test scope="Unit" lang="py" framework="pytest"
+          path="tests/python/security/test_sqli_payloads.py"
+          count="171" description="HTTP SQLi via requests library" />
+    <test scope="Unit" lang="js" framework="jest"
+          path="tests/Unit/frontend/js/security/sqli-sanitization.test.cjs"
+          count="13" description="Client-side sanitization, DOM, Blade scan" />
+  </generic-tests>
+
+  <!-- ═══ Roleplay tests ═══ -->
+  <roleplay-tests>
+    <!-- Each actor × scope × lang produces one or more test files -->
+    <!-- See security-roleplay-profiles.xml for actor definitions -->
+
+    <actor id="green-hat" git-ignored="false" />
+    <actor id="white-hat" git-ignored="false" />
+    <actor id="black-hat" git-ignored="true" />
+    <actor id="ciso"      git-ignored="false" />
+    <actor id="qa"        git-ignored="false" />
+    <actor id="backend-developer" git-ignored="false" />
+  </roleplay-tests>
+
+  <!-- ═══ Vulnerability log ═══ -->
+  <vulnerabilities-fixed date="2026-03-31">
+    <vuln id="1" severity="HIGH"
+          file="app/Http/Controllers/Activity/EventController.php" line="62"
+          type="SQL Injection (concatenation in whereRaw)"
+          fix="Parameterized binding with ?" />
+    <vuln id="2" severity="HIGH"
+          file="app/Http/Controllers/Shapes/DashboardController.php" line="314"
+          type="SQL Injection (interpolation in find_in_set)"
+          fix="Parameterized binding with ?" />
+    <vuln id="3" severity="MEDIUM"
+          file="app/Models/Activity/Activity.php"
+          type="Mass Assignment (missing $guarded)"
+          fix="Added $guarded = ['id']" />
+  </vulnerabilities-fixed>
+
+</security-test-map>
