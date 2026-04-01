@@ -10,7 +10,7 @@
  */
 import { test, expect, Page } from "@playwright/test";
 
-const TEST_BASE_PATH = "./pages/mocks/rbac";
+const TEST_BASE_PATH = "./tests/frontend/js/pages/mocks/rbac";
 
 interface ApiTestResult {
   passed: number;
@@ -68,7 +68,9 @@ async function getResponseBody(page: Page): Promise<any> {
 
 test.describe("Success Responses (2xx)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -85,7 +87,9 @@ test.describe("Success Responses (2xx)", () => {
     expect(body.success).toBe(true);
   });
 
-  test("201 Created response should include created resource data", async ({ page }) => {
+  test("201 Created response should include created resource data", async ({
+    page,
+  }) => {
     await page.click("#test-201");
     await waitForResponseUpdate(page);
 
@@ -117,7 +121,9 @@ test.describe("Success Responses (2xx)", () => {
 
 test.describe("Client Errors (4xx)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -135,7 +141,9 @@ test.describe("Client Errors (4xx)", () => {
     expect(body.message).toBeDefined();
   });
 
-  test("401 Unauthorized should indicate authentication required", async ({ page }) => {
+  test("401 Unauthorized should indicate authentication required", async ({
+    page,
+  }) => {
     await page.click("#test-401");
     await waitForResponseUpdate(page);
 
@@ -171,7 +179,9 @@ test.describe("Client Errors (4xx)", () => {
     expect(body.message.toLowerCase()).toContain("not found");
   });
 
-  test("422 Validation Error should include field-level errors", async ({ page }) => {
+  test("422 Validation Error should include field-level errors", async ({
+    page,
+  }) => {
     await page.click("#test-422");
     await waitForResponseUpdate(page);
 
@@ -206,11 +216,15 @@ test.describe("Client Errors (4xx)", () => {
 
 test.describe("Server Errors (5xx)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
-  test("500 Internal Server Error should indicate server failure", async ({ page }) => {
+  test("500 Internal Server Error should indicate server failure", async ({
+    page,
+  }) => {
     await page.click("#test-500");
     await waitForResponseUpdate(page);
 
@@ -222,7 +236,9 @@ test.describe("Server Errors (5xx)", () => {
     expect(body.message).toBeDefined();
   });
 
-  test("503 Service Unavailable should include retry information", async ({ page }) => {
+  test("503 Service Unavailable should include retry information", async ({
+    page,
+  }) => {
     await page.click("#test-503");
     await waitForResponseUpdate(page);
 
@@ -253,7 +269,9 @@ test.describe("Server Errors (5xx)", () => {
 
 test.describe("Network Errors", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -295,7 +313,9 @@ test.describe("Network Errors", () => {
 
 test.describe("CRUD Operations", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -383,7 +403,9 @@ test.describe("CRUD Operations", () => {
 
 test.describe("Form Submission", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -412,7 +434,9 @@ test.describe("Form Submission", () => {
     });
   });
 
-  test('form with "error" as name triggers validation error', async ({ page }) => {
+  test('form with "error" as name triggers validation error', async ({
+    page,
+  }) => {
     await page.fill("#form-name", "error");
     await page.fill("#form-email", "test@example.com");
 
@@ -453,7 +477,9 @@ test.describe("Form Submission", () => {
 
 test.describe("Inline API Tests", () => {
   test("all inline API tests should pass", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html?autorun=true`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html?autorun=true`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     // Wait for tests to complete
@@ -487,7 +513,9 @@ test.describe("Inline API Tests", () => {
 
 test.describe("Response Time", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -517,7 +545,9 @@ test.describe("Response Time", () => {
 
 test.describe("Error Recovery", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/api-scenarios.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 

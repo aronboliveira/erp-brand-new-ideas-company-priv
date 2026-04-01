@@ -6,7 +6,10 @@ import path from "path";
 import fs from "fs";
 
 // Path constants
-export const PUBLIC_JS_PATH = path.resolve(__dirname, "../../../public/assets/js");
+export const PUBLIC_JS_PATH = path.resolve(
+  __dirname,
+  "../../../public/assets/js",
+);
 export const CORE_PATH = path.join(PUBLIC_JS_PATH, "core");
 export const GENERIC_PATH = path.join(PUBLIC_JS_PATH, "generic");
 export const PAGES_PATH = path.join(PUBLIC_JS_PATH, "pages");
@@ -41,7 +44,7 @@ export function readJsFile(relativePath: string): string {
 /**
  * Creates a mock Bootstrap object
  */
-export function createMockBootstrap(): Pick<typeof window.bootstrap, "Toast" | "Modal"> {
+export function createMockBootstrap(): typeof window.bootstrap {
   const mockToastInstances = new Map<Element, any>();
   const mockModalInstances = new Map<Element, any>();
 
@@ -139,7 +142,9 @@ export function wait(ms: number): Promise<void> {
 /**
  * Creates a form element with specified attributes
  */
-export function createForm(attributes: Record<string, string> = {}): HTMLFormElement {
+export function createForm(
+  attributes: Record<string, string> = {},
+): HTMLFormElement {
   const form = document.createElement("form");
   Object.entries(attributes).forEach(([key, value]) => {
     form.setAttribute(key, value);
@@ -151,7 +156,10 @@ export function createForm(attributes: Record<string, string> = {}): HTMLFormEle
 /**
  * Creates an input element with specified attributes
  */
-export function createInput(type: string = "text", attributes: Record<string, string> = {}): HTMLInputElement {
+export function createInput(
+  type: string = "text",
+  attributes: Record<string, string> = {},
+): HTMLInputElement {
   const input = document.createElement("input");
   input.type = type;
   Object.entries(attributes).forEach(([key, value]) => {
@@ -163,7 +171,10 @@ export function createInput(type: string = "text", attributes: Record<string, st
 /**
  * Creates a button element with specified attributes
  */
-export function createButton(text: string = "Click", attributes: Record<string, string> = {}): HTMLButtonElement {
+export function createButton(
+  text: string = "Click",
+  attributes: Record<string, string> = {},
+): HTMLButtonElement {
   const button = document.createElement("button");
   button.textContent = text;
   Object.entries(attributes).forEach(([key, value]) => {
@@ -199,7 +210,10 @@ export function simulateSubmit(form: HTMLFormElement): void {
  * Simulates an input event on an element
  */
 export function simulateInput(element: HTMLElement, value: string): void {
-  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement
+  ) {
     element.value = value;
   }
   element.dispatchEvent(new Event("input", { bubbles: true }));
@@ -209,7 +223,11 @@ export function simulateInput(element: HTMLElement, value: string): void {
  * Simulates a change event on an element
  */
 export function simulateChange(element: HTMLElement, value?: string): void {
-  if (value !== undefined && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+  if (
+    value !== undefined &&
+    (element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement)
+  ) {
     element.value = value;
   }
   element.dispatchEvent(new Event("change", { bubbles: true }));
@@ -218,7 +236,12 @@ export function simulateChange(element: HTMLElement, value?: string): void {
 /**
  * Simulates a keyboard event
  */
-export function simulateKeyboard(element: HTMLElement | Document, eventType: "keydown" | "keyup" | "keypress", key: string, options: Partial<KeyboardEventInit> = {}): void {
+export function simulateKeyboard(
+  element: HTMLElement | Document,
+  eventType: "keydown" | "keyup" | "keypress",
+  key: string,
+  options: Partial<KeyboardEventInit> = {},
+): void {
   const event = new KeyboardEvent(eventType, {
     key,
     bubbles: true,

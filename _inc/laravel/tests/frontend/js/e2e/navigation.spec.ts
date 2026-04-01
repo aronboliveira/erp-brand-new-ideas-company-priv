@@ -6,7 +6,7 @@
  */
 import { test, expect, Page } from "@playwright/test";
 
-const TEST_BASE_PATH = "./pages/mocks/rbac";
+const TEST_BASE_PATH = "./tests/frontend/js/pages/mocks/rbac";
 
 /**
  * Helper to check element visibility
@@ -45,7 +45,9 @@ async function getVisibleNavLinks(page: Page): Promise<string[]> {
 test.describe("Navigation Structure", () => {
   test.describe("Super Admin Navigation", () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+      await page.goto(
+        `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+      );
       await page.waitForLoadState("domcontentloaded");
     });
 
@@ -78,7 +80,9 @@ test.describe("Navigation Structure", () => {
       await page.waitForLoadState("domcontentloaded");
     });
 
-    test("should have navigation options with permission attributes", async ({ page }) => {
+    test("should have navigation options with permission attributes", async ({
+      page,
+    }) => {
       // Check that client page has nav links
       const visibleLinks = await getVisibleNavLinks(page);
       expect(visibleLinks.length).toBeGreaterThan(0);
@@ -122,14 +126,22 @@ test.describe("Sidebar Navigation", () => {
 
   test.describe("Super Admin Sidebar", () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+      await page.goto(
+        `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+      );
       await page.waitForLoadState("domcontentloaded");
     });
 
     test("should have all sidebar sections present", async ({ page }) => {
-      const adminSection = page.locator('.sidebar-section[data-permission="manage super admin dashboard"]');
-      const hrmSection = page.locator('.sidebar-section[data-permission="show hrm dashboard"]');
-      const financeSection = page.locator('.sidebar-section[data-permission*="invoice"]');
+      const adminSection = page.locator(
+        '.sidebar-section[data-permission="manage super admin dashboard"]',
+      );
+      const hrmSection = page.locator(
+        '.sidebar-section[data-permission="show hrm dashboard"]',
+      );
+      const financeSection = page.locator(
+        '.sidebar-section[data-permission*="invoice"]',
+      );
 
       expect(await adminSection.count()).toBeGreaterThanOrEqual(1);
       expect(await hrmSection.count()).toBeGreaterThanOrEqual(1);
@@ -144,30 +156,42 @@ test.describe("Sidebar Navigation", () => {
     });
 
     test("should have HRM section", async ({ page }) => {
-      const hrmSection = page.locator('.sidebar-section[data-permission="show hrm dashboard"]');
+      const hrmSection = page.locator(
+        '.sidebar-section[data-permission="show hrm dashboard"]',
+      );
       expect(await hrmSection.count()).toBeGreaterThanOrEqual(1);
     });
 
-    test("admin and finance sections have permission attributes", async ({ page }) => {
+    test("admin and finance sections have permission attributes", async ({
+      page,
+    }) => {
       // Verify sections that should be hidden have permission attributes
-      const protectedSections = page.locator(".sidebar-section[data-permission]");
+      const protectedSections = page.locator(
+        ".sidebar-section[data-permission]",
+      );
       expect(await protectedSections.count()).toBeGreaterThan(0);
     });
   });
 
   test.describe("Accountant Sidebar", () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`);
+      await page.goto(
+        `file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`,
+      );
       await page.waitForLoadState("domcontentloaded");
     });
 
     test("should have Accounting section", async ({ page }) => {
-      const accountingSection = page.locator('.sidebar-section[data-permission="show account dashboard"]');
+      const accountingSection = page.locator(
+        '.sidebar-section[data-permission="show account dashboard"]',
+      );
       expect(await accountingSection.count()).toBeGreaterThanOrEqual(1);
     });
 
     test("sidebar sections have permission protection", async ({ page }) => {
-      const protectedSections = page.locator(".sidebar-section[data-permission]");
+      const protectedSections = page.locator(
+        ".sidebar-section[data-permission]",
+      );
       expect(await protectedSections.count()).toBeGreaterThan(0);
     });
   });
@@ -179,7 +203,9 @@ test.describe("Sidebar Navigation", () => {
 
 test.describe("Link Click Behavior", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -243,7 +269,9 @@ test.describe("Route Protection", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // Finance elements should have permission attributes
-    const financeEl = page.locator('[data-permission*="invoice"], [data-permission*="bill"], [data-permission*="account dashboard"]');
+    const financeEl = page.locator(
+      '[data-permission*="invoice"], [data-permission*="bill"], [data-permission*="account dashboard"]',
+    );
     expect(await financeEl.count()).toBeGreaterThan(0);
   });
 
@@ -273,7 +301,9 @@ test.describe("Route Protection", () => {
 
 test.describe("Active State Handling", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -295,7 +325,9 @@ test.describe("Active State Handling", () => {
 
 test.describe("Navigation Accessibility", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -333,7 +365,9 @@ test.describe("Navigation Accessibility", () => {
     }
 
     // Should be focused on a nav link
-    const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
+    const focusedElement = await page.evaluate(
+      () => document.activeElement?.tagName,
+    );
     expect(focusedElement?.toLowerCase()).toBe("a");
   });
 });
@@ -344,7 +378,9 @@ test.describe("Navigation Accessibility", () => {
 
 test.describe("Page Header", () => {
   test("Super Admin page has correct header", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const header = await page.locator(".page-header h1").textContent();
@@ -360,7 +396,9 @@ test.describe("Page Header", () => {
   });
 
   test("Accountant page has correct header", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const header = await page.locator(".page-header h1").textContent();
@@ -390,22 +428,36 @@ test.describe("Page Header", () => {
 
 test.describe("User Menu", () => {
   test("displays user name for authenticated roles", async ({ page }) => {
-    const authenticatedPages = ["super-admin.html", "admin.html", "hr.html", "accountant.html", "client.html"];
+    const authenticatedPages = [
+      "super-admin.html",
+      "admin.html",
+      "hr.html",
+      "accountant.html",
+      "client.html",
+    ];
 
     for (const pageName of authenticatedPages) {
       await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/${pageName}`);
       await page.waitForLoadState("domcontentloaded");
 
       const userName = page.locator("#user-name");
-      expect(await userName.count(), `User name should exist on ${pageName}`).toBe(1);
+      expect(
+        await userName.count(),
+        `User name should exist on ${pageName}`,
+      ).toBe(1);
 
       const nameText = await userName.textContent();
-      expect(nameText?.trim().length, `User name should have text on ${pageName}`).toBeGreaterThan(0);
+      expect(
+        nameText?.trim().length,
+        `User name should have text on ${pageName}`,
+      ).toBeGreaterThan(0);
     }
   });
 
   test("displays role badge for authenticated roles", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const roleBadge = page.locator(".user-role.badge");
@@ -416,7 +468,9 @@ test.describe("User Menu", () => {
   });
 
   test("has logout button for authenticated users", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     expect(await isVisible(page, "#btn-logout")).toBe(true);
@@ -437,7 +491,13 @@ test.describe("User Menu", () => {
 
 test.describe("Footer Navigation", () => {
   test("footer exists on authenticated pages", async ({ page }) => {
-    const authenticatedPages = ["super-admin.html", "admin.html", "hr.html", "accountant.html", "client.html"];
+    const authenticatedPages = [
+      "super-admin.html",
+      "admin.html",
+      "hr.html",
+      "accountant.html",
+      "client.html",
+    ];
 
     for (const pageName of authenticatedPages) {
       await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/${pageName}`);
@@ -446,12 +506,16 @@ test.describe("Footer Navigation", () => {
       const footer = page.locator(".app-footer");
       // Footer may or may not exist depending on page structure
       const footerCount = await footer.count();
-      expect(footerCount, `Footer count on ${pageName}`).toBeGreaterThanOrEqual(0);
+      expect(footerCount, `Footer count on ${pageName}`).toBeGreaterThanOrEqual(
+        0,
+      );
     }
   });
 
   test("footer has copyright text when present", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const footer = page.locator(".app-footer");

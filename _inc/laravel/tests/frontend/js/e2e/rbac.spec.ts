@@ -18,7 +18,7 @@
  */
 import { test, expect, Page } from "@playwright/test";
 
-const TEST_BASE_PATH = "./pages/mocks/rbac";
+const TEST_BASE_PATH = "./tests/frontend/js/pages/mocks/rbac";
 
 /**
  * Helper to check if element exists in DOM
@@ -38,7 +38,11 @@ async function _getElementCount(page: Page, selector: string): Promise<number> {
 /**
  * Helper to get attribute value
  */
-async function getAttribute(page: Page, selector: string, attr: string): Promise<string | null> {
+async function getAttribute(
+  page: Page,
+  selector: string,
+  attr: string,
+): Promise<string | null> {
   const element = page.locator(selector).first();
   if ((await element.count()) === 0) return null;
   return await element.getAttribute(attr);
@@ -56,7 +60,10 @@ async function getUserRole(page: Page): Promise<string> {
 /**
  * Helper to check permission attribute on element
  */
-async function getPermission(page: Page, selector: string): Promise<string | null> {
+async function getPermission(
+  page: Page,
+  selector: string,
+): Promise<string | null> {
   return await getAttribute(page, selector, "data-permission");
 }
 
@@ -66,7 +73,9 @@ async function getPermission(page: Page, selector: string): Promise<string | nul
 
 test.describe("Super Admin Role", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -76,7 +85,9 @@ test.describe("Super Admin Role", () => {
   });
 
   test("should have dashboard navigation link", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#dashboard"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#dashboard"]')).toBe(
+      true,
+    );
   });
 
   test("should have HRM navigation link", async ({ page }) => {
@@ -88,26 +99,36 @@ test.describe("Super Admin Role", () => {
   });
 
   test("should have Finance navigation link", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(
+      true,
+    );
   });
 
   test("should have Settings navigation link", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#settings"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#settings"]')).toBe(
+      true,
+    );
   });
 
-  test("should have revenue widget with correct permission", async ({ page }) => {
+  test("should have revenue widget with correct permission", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-revenue")).toBe(true);
     const permission = await getPermission(page, "#widget-revenue");
     expect(permission).toBe("show account dashboard");
   });
 
-  test("should have employees widget with correct permission", async ({ page }) => {
+  test("should have employees widget with correct permission", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-employees")).toBe(true);
     const permission = await getPermission(page, "#widget-employees");
     expect(permission).toBe("show hrm dashboard");
   });
 
-  test("should have system widget with super admin permission", async ({ page }) => {
+  test("should have system widget with super admin permission", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-system")).toBe(true);
     const permission = await getPermission(page, "#widget-system");
     expect(permission).toBe("manage super admin dashboard");
@@ -118,7 +139,9 @@ test.describe("Super Admin Role", () => {
     expect(await sidebarSections.count()).toBeGreaterThan(0);
   });
 
-  test("should have protected elements with data-permission attributes", async ({ page }) => {
+  test("should have protected elements with data-permission attributes", async ({
+    page,
+  }) => {
     const protectedElements = page.locator("[data-permission]");
     expect(await protectedElements.count()).toBeGreaterThan(0);
   });
@@ -152,7 +175,9 @@ test.describe("Admin Role", () => {
   });
 
   test("should have Finance navigation link", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(
+      true,
+    );
   });
 
   test("should have user management controls", async ({ page }) => {
@@ -165,15 +190,21 @@ test.describe("Admin Role", () => {
     expect(await sidebarSections.count()).toBeGreaterThan(0);
   });
 
-  test("should have employees widget with permission attribute", async ({ page }) => {
+  test("should have employees widget with permission attribute", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-employees")).toBe(true);
   });
 
-  test("should have revenue widget with permission attribute", async ({ page }) => {
+  test("should have revenue widget with permission attribute", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-revenue")).toBe(true);
   });
 
-  test("should have system widget with super-admin-only permission", async ({ page }) => {
+  test("should have system widget with super-admin-only permission", async ({
+    page,
+  }) => {
     // System widget exists but has super-admin permission (would be hidden by JS)
     expect(await elementExists(page, "#widget-system")).toBe(true);
     const permission = await getPermission(page, "#widget-system");
@@ -184,7 +215,9 @@ test.describe("Admin Role", () => {
     expect(await elementExists(page, "#users-table")).toBe(true);
   });
 
-  test("should have permission attributes on protected elements", async ({ page }) => {
+  test("should have permission attributes on protected elements", async ({
+    page,
+  }) => {
     const protectedElements = page.locator("[data-permission]");
     expect(await protectedElements.count()).toBeGreaterThan(0);
   });
@@ -235,15 +268,21 @@ test.describe("HR Role", () => {
     expect(await elementExists(page, "#leaves-table")).toBe(true);
   });
 
-  test("should have revenue widget with finance permission (would be hidden by JS)", async ({ page }) => {
+  test("should have revenue widget with finance permission (would be hidden by JS)", async ({
+    page,
+  }) => {
     // Revenue widget exists but has finance permission - HR doesnt have this
     expect(await elementExists(page, "#widget-revenue")).toBe(true);
     const permission = await getPermission(page, "#widget-revenue");
     expect(permission).toBe("show account dashboard");
   });
 
-  test("should have HRM permission attributes on elements", async ({ page }) => {
-    const hrmElements = page.locator('[data-permission*="hrm"], [data-permission*="employee"], [data-permission*="attendance"]');
+  test("should have HRM permission attributes on elements", async ({
+    page,
+  }) => {
+    const hrmElements = page.locator(
+      '[data-permission*="hrm"], [data-permission*="employee"], [data-permission*="attendance"]',
+    );
     expect(await hrmElements.count()).toBeGreaterThan(0);
   });
 });
@@ -254,7 +293,9 @@ test.describe("HR Role", () => {
 
 test.describe("Accountant Role", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
   });
 
@@ -264,7 +305,9 @@ test.describe("Accountant Role", () => {
   });
 
   test("should have Finance navigation link", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#finance"]')).toBe(
+      true,
+    );
   });
 
   test("should have revenue widget", async ({ page }) => {
@@ -298,14 +341,18 @@ test.describe("Accountant Role", () => {
     expect(await elementExists(page, "#bills-table")).toBe(true);
   });
 
-  test("should have system widget with super-admin permission (would be hidden)", async ({ page }) => {
+  test("should have system widget with super-admin permission (would be hidden)", async ({
+    page,
+  }) => {
     expect(await elementExists(page, "#widget-system")).toBe(true);
     const permission = await getPermission(page, "#widget-system");
     expect(permission).toBe("manage super admin dashboard");
   });
 
   test("should have finance permission attributes", async ({ page }) => {
-    const financeElements = page.locator('[data-permission*="invoice"], [data-permission*="bill"], [data-permission*="account"]');
+    const financeElements = page.locator(
+      '[data-permission*="invoice"], [data-permission*="bill"], [data-permission*="account"]',
+    );
     expect(await financeElements.count()).toBeGreaterThan(0);
   });
 });
@@ -326,15 +373,21 @@ test.describe("Client Role", () => {
   });
 
   test("should have dashboard navigation", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#dashboard"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#dashboard"]')).toBe(
+      true,
+    );
   });
 
   test("should have projects navigation", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#projects"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#projects"]')).toBe(
+      true,
+    );
   });
 
   test("should have invoices navigation", async ({ page }) => {
-    expect(await elementExists(page, '#main-nav a[href="#invoices"]')).toBe(true);
+    expect(await elementExists(page, '#main-nav a[href="#invoices"]')).toBe(
+      true,
+    );
   });
 
   test("should have projects widget", async ({ page }) => {
@@ -357,7 +410,9 @@ test.describe("Client Role", () => {
     expect(await elementExists(page, "#projects-table")).toBe(true);
   });
 
-  test("should have internal widgets with restricting permissions (would be hidden by JS)", async ({ page }) => {
+  test("should have internal widgets with restricting permissions (would be hidden by JS)", async ({
+    page,
+  }) => {
     // These widgets have permissions client doesnt have - JS would hide them
     expect(await elementExists(page, "#widget-revenue")).toBe(true);
     expect(await elementExists(page, "#widget-system")).toBe(true);
@@ -470,7 +525,9 @@ test.describe("Role Comparison - Role Attributes", () => {
 
 test.describe("Permission System Structure", () => {
   test("Super Admin page has all permission types", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const protectedElements = page.locator("[data-permission]");
@@ -481,29 +538,47 @@ test.describe("Permission System Structure", () => {
     await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/hr.html`);
     await page.waitForLoadState("domcontentloaded");
 
-    const hrmPermissions = page.locator('[data-permission*="hrm"], [data-permission*="employee"]');
+    const hrmPermissions = page.locator(
+      '[data-permission*="hrm"], [data-permission*="employee"]',
+    );
     expect(await hrmPermissions.count()).toBeGreaterThan(0);
   });
 
   test("Accountant page has finance-related permissions", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
-    const financePermissions = page.locator('[data-permission*="account"], [data-permission*="invoice"]');
+    const financePermissions = page.locator(
+      '[data-permission*="account"], [data-permission*="invoice"]',
+    );
     expect(await financePermissions.count()).toBeGreaterThan(0);
   });
 
-  test("Widget permissions match expected permission constants", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+  test("Widget permissions match expected permission constants", async ({
+    page,
+  }) => {
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     // Check specific widget permissions match PHP constants
-    expect(await getPermission(page, "#widget-system")).toBe("manage super admin dashboard");
-    expect(await getPermission(page, "#widget-revenue")).toBe("show account dashboard");
-    expect(await getPermission(page, "#widget-employees")).toBe("show hrm dashboard");
+    expect(await getPermission(page, "#widget-system")).toBe(
+      "manage super admin dashboard",
+    );
+    expect(await getPermission(page, "#widget-revenue")).toBe(
+      "show account dashboard",
+    );
+    expect(await getPermission(page, "#widget-employees")).toBe(
+      "show hrm dashboard",
+    );
   });
 
-  test("System widget has super-admin exclusive permission", async ({ page }) => {
+  test("System widget has super-admin exclusive permission", async ({
+    page,
+  }) => {
     const pages = ["admin.html", "hr.html", "accountant.html", "client.html"];
 
     for (const pageName of pages) {
@@ -524,7 +599,9 @@ test.describe("Permission System Structure", () => {
 
 test.describe("Navigation Structure", () => {
   test("Super Admin has most navigation links", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
     const superAdminNavLinks = await page.locator("#main-nav a").count();
 
@@ -536,7 +613,13 @@ test.describe("Navigation Structure", () => {
   });
 
   test("All authenticated pages have navigation", async ({ page }) => {
-    const authenticatedPages = ["super-admin.html", "admin.html", "hr.html", "accountant.html", "client.html"];
+    const authenticatedPages = [
+      "super-admin.html",
+      "admin.html",
+      "hr.html",
+      "accountant.html",
+      "client.html",
+    ];
 
     for (const pageName of authenticatedPages) {
       await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/${pageName}`);
@@ -547,7 +630,9 @@ test.describe("Navigation Structure", () => {
   });
 
   test("Navigation links have href attributes", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const navLinks = page.locator("#main-nav a");
@@ -574,19 +659,28 @@ test.describe("Accessibility", () => {
     const passwordInput = page.locator("#password");
 
     // Check for label, aria-label, or placeholder
-    const emailHasLabel = (await page.locator('label[for="email"]').count()) > 0;
+    const emailHasLabel =
+      (await page.locator('label[for="email"]').count()) > 0;
     const emailHasAria = (await emailInput.getAttribute("aria-label")) !== null;
-    const emailHasPlaceholder = (await emailInput.getAttribute("placeholder")) !== null;
+    const emailHasPlaceholder =
+      (await emailInput.getAttribute("placeholder")) !== null;
     expect(emailHasLabel || emailHasAria || emailHasPlaceholder).toBe(true);
 
-    const passwordHasLabel = (await page.locator('label[for="password"]').count()) > 0;
-    const passwordHasAria = (await passwordInput.getAttribute("aria-label")) !== null;
-    const passwordHasPlaceholder = (await passwordInput.getAttribute("placeholder")) !== null;
-    expect(passwordHasLabel || passwordHasAria || passwordHasPlaceholder).toBe(true);
+    const passwordHasLabel =
+      (await page.locator('label[for="password"]').count()) > 0;
+    const passwordHasAria =
+      (await passwordInput.getAttribute("aria-label")) !== null;
+    const passwordHasPlaceholder =
+      (await passwordInput.getAttribute("placeholder")) !== null;
+    expect(passwordHasLabel || passwordHasAria || passwordHasPlaceholder).toBe(
+      true,
+    );
   });
 
   test("Buttons have accessible text or labels", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     const buttons = page.locator("button");
@@ -598,7 +692,8 @@ test.describe("Accessibility", () => {
       const ariaLabel = await button.getAttribute("aria-label");
       const title = await button.getAttribute("title");
 
-      const hasAccessibleName = (text && text.trim().length > 0) || ariaLabel || title;
+      const hasAccessibleName =
+        (text && text.trim().length > 0) || ariaLabel || title;
       expect(hasAccessibleName).toBeTruthy();
     }
   });
@@ -608,7 +703,9 @@ test.describe("Accessibility", () => {
     await page.waitForLoadState("domcontentloaded");
 
     expect(await page.locator("#email").getAttribute("type")).toBe("email");
-    expect(await page.locator("#password").getAttribute("type")).toBe("password");
+    expect(await page.locator("#password").getAttribute("type")).toBe(
+      "password",
+    );
   });
 });
 
@@ -618,7 +715,9 @@ test.describe("Accessibility", () => {
 
 test.describe("Data Tables", () => {
   test("Super Admin page has activities table", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/super-admin.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     expect(await elementExists(page, "#activities-table")).toBe(true);
@@ -635,7 +734,9 @@ test.describe("Data Tables", () => {
   });
 
   test("Accountant page has invoices table", async ({ page }) => {
-    await page.goto(`file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`);
+    await page.goto(
+      `file://${process.cwd()}/${TEST_BASE_PATH}/accountant.html`,
+    );
     await page.waitForLoadState("domcontentloaded");
 
     expect(await elementExists(page, "#invoices-table")).toBe(true);

@@ -1,5 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-import * as path from "node:path";
 
 /**
  * Playwright configuration for ERP Prestech E2E tests
@@ -25,12 +24,10 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: `node ${path.resolve(__dirname, "mock-server.cjs")}`,
-    url: "http://localhost:3847",
-    reuseExistingServer: false,
-    timeout: 30000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+  /* Optionally start the dev server before tests */
+  // webServer: {
+  //   command: 'php artisan serve',
+  //   url: 'http://127.0.0.1:8000',
+  //   reuseExistingServer: !process.env.CI,
+  // },
 });
