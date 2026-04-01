@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\{Log};
 class Activity extends Model
 {
     use LogsIcons, UsesUuids;
+    # PULL REQUEST START — Proteção contra mass assignment
+    protected $guarded = ['id'];
+    # PULL REQUEST END
     public static function getActivity(string $moduleType, string|int|null $moduleId): array
     {
         try {

@@ -59,7 +59,7 @@ class EventController extends Controller
         $transDate = date('Y-m-d');
         $todayMonth = date('m');
         $cmQStart = microtime(true);
-        $currentMonthEvents = Event::query()->select('id', 'start_date', 'end_date', 'title', 'created_at', 'color')->whereRaw('MONTH(start_date)=' . $todayMonth)->whereRaw('MONTH(end_date)=' . $todayMonth)->get();
+        $currentMonthEvents = Event::query()->select('id', 'start_date', 'end_date', 'title', 'created_at', 'color')->whereRaw('MONTH(start_date) = ?', [$todayMonth])->whereRaw('MONTH(end_date) = ?', [$todayMonth])->get(); # Correção de SQL injection: binding parametrizado em whereRaw
         $this->logExecutionTime($cmQStart, $action, 'fetchCurrentMonthEvents');
         $mapStart = microtime(true);
         $arrEvents = $events->map(fn($e) => ['id' => $e->id, 'title' => $e->title, 'start' => $e->start_date, 'end' => $e->end_date, 'className' => $e->color, 'url' => route(ViewsConstants::EVT . '.edit', $e->id)])->toJson();

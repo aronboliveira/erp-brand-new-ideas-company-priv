@@ -311,7 +311,7 @@ final class DashboardController extends Controller
                 $sevenDays   = Utility::getLastSevenDays();
                 $homeData    = [];
                 $homeData['totalProject'] = ['total' => count($projectIds), 'percentage' => Utility::getPercentage($user?->projects()->where(AC::COL_TSK_STT, PJC::STT_CPT_K)->count(), count($projectIds))];
-                $homeData['totalTask']    = ['total' => $tasks->count(), 'percentage' => Utility::getPercentage($tasks->where(PJC::COL_IS_CP, 1)->whereRaw("find_in_set('{$user?->id}'," . PJC::COL_ASGN . ")")->count(), $tasks->count())];
+                $homeData['totalTask']    = ['total' => $tasks->count(), 'percentage' => Utility::getPercentage($tasks->where(PJC::COL_IS_CP, 1)->whereRaw('find_in_set(?,' . PJC::COL_ASGN . ')', [$user?->id])->count(), $tasks->count())]; # Correção de SQL injection: binding parametrizado em find_in_set
                 $totalBudget = $user?->projects->sum('budget');
                 $totalExpense = $expenses->sum('amount');
                 $homeData['totalExpense'] = ['total' => $expenses->count(), 'percentage' => Utility::getPercentage($totalExpense, $totalBudget)];
