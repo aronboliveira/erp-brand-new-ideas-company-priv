@@ -1,7 +1,39 @@
 # Known / Open Issues
 
 > Open issues only. Resolved issues are archived in `.notes/.llms/.history/RESOLVED_ISSUES.md`.
-> Last updated: 2026-07-24
+> Last updated: 2026-04-01
+
+---
+
+## OPEN — Test Suite & Build (2026-04-01)
+
+### BillProduct Class Redeclaration (BLOCKING)
+
+**File:** `app/Models/Bills/BillProduct.php`
+**Issue:** Uses `namespace App\Models` but file is in `app/Models/Bills/`. Causes `Cannot redeclare class` fatal when Feature tests try to autoload.
+**Impact:** All PHPUnit Feature tests are blocked.
+**Fix:** Change namespace to `App\Models\Bills` and update all imports, OR move file to `app/Models/BillProduct.php`.
+
+### MessagesController Missing
+
+**Issue:** `Class "MessagesController" does not exist` when running `php artisan route:list`.
+**Impact:** Cannot list/audit routes via artisan.
+**Fix:** Remove the route referencing it, or create the controller.
+
+### 7 PHPUnit Failures
+
+- `MassAssignmentTest` — model fillable/guarded assertion
+- `BugTest` — relation resolution (bug_status, assign_to, created_by, project)
+- `EmailTest` — global scope ordering
+- `JobStageTest` — fillable fields mismatch
+- `ProductServiceUnitTest` — user relation type
+- `LabelTest` — fillable array mismatch
+- `GeneratedOfferLetterTest` — default record count
+
+### ESLint Scope Too Wide
+
+**Issue:** ESLint scans `ts/`, `.backup/`, `public/`, `Modules/` → 77,576 false errors.
+**Fix:** Add these directories to ignores in `eslint.config.mjs`.
 
 ---
 

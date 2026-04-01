@@ -1,21 +1,22 @@
 # NEXT STEPS
 
-> Last updated: 2026-03-15
+> Last updated: 2026-04-01
 > Full resolution history in `.notes/.llms/.history/`. Coding patterns in `.notes/.llms/.guidelines/`.
 
 ---
 
 ## IMMEDIATE
 
-1. ~~**Review PHPStan L3 fresh result**~~ — ✅ DONE (0 errors)
-2. ~~**Fix `npm run test:pytest` `/bin/sh` failure**~~ — ✅ DONE (replaced `source` with `.`)
-3. **Run Playwright E2E** — Requires `php artisan serve` running. Then `npm run test:playwright` (9 specs, auth setup must succeed)
-4. **Run curl timing** — `bash tests/curl_timing.sh` (requires running server, benchmarks 18+ routes)
+1. ~~**Run Playwright E2E**~~ — ✅ DONE (9 passed, 3 skipped, 3.6 min)
+2. ~~**Run curl timing**~~ — ✅ DONE (40+ routes tested, no 5xx, all security headers present)
+3. **Fix BillProduct class redeclaration** — `app/Models/Bills/BillProduct.php` uses namespace `App\Models` instead of `App\Models\Bills`. Feature tests crash on autoload.
+4. **Fix MessagesController missing** — Blocks `php artisan route:list`. Remove route or create controller.
 5. **Test shared-link password flow** — existing shared links require password re-entry (base64→bcrypt migration)
 6. **Replace JS route files** — Use `ts/dist-iife/` output to replace `public/assets/js/routes/` (1,097 files). Core singleton `erp-core.js` should be loaded in Blade footer before route scripts.
-7. ~~**Utility class delegation**~~ — ✅ DONE (2026-03-15). 68 methods extracted to 6 service classes (`AccountingService`, `FileStorageService`, `FinanceBillingService`, `LocalizationService`, `ModelLookupService`, `NotificationService`). `Utility.php` reduced 4,282 → 1,828 lines. All delegation stubs preserved.
-8. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
-9. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
+7. **ESLint ignores** — Add `ts/`, `.backup/`, `public/`, `Modules/` to ESLint ignores in `eslint.config.mjs`
+8. **Fix 7 PHPUnit failures** — BugTest relations, EmailTest scope, JobStageTest fillable, LabelTest fillable, ProductServiceUnitTest relation, GeneratedOfferLetterTest record count, MassAssignmentTest guarded
+9. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
+10. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
 
 ---
 
