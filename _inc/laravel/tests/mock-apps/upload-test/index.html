@@ -1,52 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Mock — File Upload Test</title>
-</head>
-<body>
-  <h1>Upload de Arquivo (Mock Vulnerável)</h1>
-  <p>Sem validação de tipo MIME, sem size limit, sem scanning — apenas para testes.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mock — File Upload Test</title>
+  </head>
+  <body>
+    <h1>Upload de Arquivo (Mock Vulnerável)</h1>
+    <p>Sem validação de tipo MIME, sem size limit, sem scanning — apenas para testes.</p>
 
-  <form id="upload-form" action="/mock-upload" method="POST" enctype="multipart/form-data">
-    <label for="file">Arquivo:</label>
-    <input type="file" id="file" name="file">
-    <!-- No accept attribute — intentionally allows anything -->
+    <form id="upload-form" action="/mock-upload" method="POST" enctype="multipart/form-data">
+      <label for="file">Arquivo:</label>
+      <input type="file" id="file" name="file" />
+      <!-- No accept attribute — intentionally allows anything -->
 
-    <label for="description">Descrição:</label>
-    <input type="text" id="description" name="description">
+      <label for="description">Descrição:</label>
+      <input type="text" id="description" name="description" />
 
-    <button type="submit">Upload</button>
-  </form>
+      <button type="submit">Upload</button>
+    </form>
 
-  <div id="upload-result"></div>
+    <div id="upload-result"></div>
 
-  <script>
-    document.getElementById("upload-form").addEventListener("submit", function(e) {
-      e.preventDefault();
-      var file = document.getElementById("file").files[0];
-      if (!file) return;
+    <script>
+      document.getElementById("upload-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var file = document.getElementById("file").files[0];
+        if (!file) return;
 
-      // Intentionally insecure: reads file content and exposes it
-      var reader = new FileReader();
-      reader.onload = function(ev) {
-        var content = ev.target.result;
-        // Vulnerable: directly renders file content as HTML
-        document.getElementById("upload-result").innerHTML =
-          "<p>Arquivo: " + file.name + "</p>" +
-          "<p>Tipo: " + file.type + "</p>" +
-          "<p>Tamanho: " + file.size + " bytes</p>" +
-          "<pre>" + content + "</pre>";
+        // Intentionally insecure: reads file content and exposes it
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          var content = ev.target.result;
+          // Vulnerable: directly renders file content as HTML
+          document.getElementById("upload-result").innerHTML = "<p>Arquivo: " + file.name + "</p>" + "<p>Tipo: " + file.type + "</p>" + "<p>Tamanho: " + file.size + " bytes</p>" + "<pre>" + content + "</pre>";
+        };
+        reader.readAsText(file);
+      });
+
+      window.__MOCK_UPLOAD = {
+        maxSize: Infinity,
+        allowedTypes: ["*/*"],
+        scanEnabled: false,
+        csrfToken: null,
       };
-      reader.readAsText(file);
-    });
-
-    window.__MOCK_UPLOAD = {
-      maxSize: Infinity,
-      allowedTypes: ["*/*"],
-      scanEnabled: false,
-      csrfToken: null
-    };
-  </script>
-</body>
+    </script>
+  </body>
 </html>

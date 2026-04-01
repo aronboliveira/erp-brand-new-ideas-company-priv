@@ -1,45 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Mock — WebSocket Test</title>
-</head>
-<body>
-  <h1>WebSocket Test (Mock Vulnerável)</h1>
-  <p>Simula endpoint WebSocket sem autenticação — usado para testes de interceptação.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mock — WebSocket Test</title>
+  </head>
+  <body>
+    <h1>WebSocket Test (Mock Vulnerável)</h1>
+    <p>Simula endpoint WebSocket sem autenticação — usado para testes de interceptação.</p>
 
-  <div id="ws-log"></div>
+    <div id="ws-log"></div>
 
-  <script>
-    // Mock WebSocket server state
-    window.__WS_MESSAGES = [];
-    window.__WS_CONNECTED = false;
+    <script>
+      // Mock WebSocket server state
+      window.__WS_MESSAGES = [];
+      window.__WS_CONNECTED = false;
 
-    // Intentionally insecure: no token validation, no origin check
-    window.__MOCK_WS = {
-      url: "ws://127.0.0.1:8080/ws",
-      protocols: [],
-      authRequired: false,
-      originCheck: false
-    };
+      // Intentionally insecure: no token validation, no origin check
+      window.__MOCK_WS = {
+        url: "ws://127.0.0.1:8080/ws",
+        protocols: [],
+        authRequired: false,
+        originCheck: false,
+      };
 
-    // Simulated message handler — logs everything without filtering
-    window.handleWsMessage = function(data) {
-      window.__WS_MESSAGES.push({
-        timestamp: Date.now(),
-        raw: data,
-        parsed: null
-      });
-      try {
-        window.__WS_MESSAGES[window.__WS_MESSAGES.length - 1].parsed = JSON.parse(data);
-      } catch (_) { /* intentionally swallow */ }
+      // Simulated message handler — logs everything without filtering
+      window.handleWsMessage = function (data) {
+        window.__WS_MESSAGES.push({
+          timestamp: Date.now(),
+          raw: data,
+          parsed: null,
+        });
+        try {
+          window.__WS_MESSAGES[window.__WS_MESSAGES.length - 1].parsed = JSON.parse(data);
+        } catch (_) {
+          /* intentionally swallow */
+        }
 
-      var log = document.getElementById("ws-log");
-      if (log) log.innerHTML += "<pre>" + data + "</pre>"; // Vulnerable: innerHTML
-    };
+        var log = document.getElementById("ws-log");
+        if (log) log.innerHTML += "<pre>" + data + "</pre>"; // Vulnerable: innerHTML
+      };
 
-    // Token exposed in global scope
-    window.__AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4ifQ.fake";
-  </script>
-</body>
+      // Token exposed in global scope
+      window.__AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4ifQ.fake";
+    </script>
+  </body>
 </html>
