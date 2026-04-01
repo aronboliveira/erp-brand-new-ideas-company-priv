@@ -1557,6 +1557,6 @@ log_info "Timing report saved to $TIMING_FILE"
 
 # ── Summary: top 20 slowest ──
 log_info "Top 20 slowest routes:"
-grep -v '^method' "$TIMING_FILE" | sort -t',' -k4 -rn | head -20 | while IFS=',' read -r m u c t _ _ _ _; do
+sort -t',' -k4 -rn "$TIMING_FILE" | head -21 | tail -20 | while IFS=',' read -r m u c t _ _ _ _; do
     printf "  %6s %-50s %s %.3fs\n" "$m" "$u" "$c" "$t"
-done || true
+done
