@@ -8,10 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 ROUTES_FILE = "/tmp/routes_full.json"
-OUTPUT_DIR = (
-    "/home/aronboliveira/Desktop/programming/Prestech/erp/"
-    "erpgo-fork/erp_prestech/_inc/laravel/tests/frontend/js/pages/mocks"
-)
+OUTPUT_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/tests/frontend/js/pages/mocks"
 
 TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -220,11 +217,7 @@ def gen_html(category: str, routes: list[dict[str, Any]]) -> str:
         safe_uri = html.escape(uri)
         safe_name = html.escape(name)
         safe_action = html.escape(action)
-        auth_badge = (
-            '<span class="badge auth">Auth</span>'
-            if needs_auth
-            else '<span class="badge public">Public</span>'
-        )
+        auth_badge = '<span class="badge auth">Auth</span>' if needs_auth else '<span class="badge public">Public</span>'
 
         route_rows.append(f"""      <tr data-route-idx="{i}" data-uri="/{uri}">
         <td><code>{', '.join(raw_methods)}</code></td>
@@ -259,14 +252,12 @@ def gen_html(category: str, routes: list[dict[str, Any]]) -> str:
   <title>Mock Test Page — {safe_cat}</title>
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-    body {{ font-family: system-ui, -apple-system, sans-serif; padding: 1rem;
-      background: #fafafa; color: #222; }}
+    body {{ font-family: system-ui, -apple-system, sans-serif; padding: 1rem; background: #fafafa; color: #222; }}
     h1 {{ font-size: 1.4rem; margin-bottom: 0.2rem; }}
     .timestamp {{ font-size: 0.75rem; color: #888; margin-bottom: 1rem; }}
     .summary {{ font-size: 0.85rem; margin-bottom: 1rem; color: #555; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 0.8rem; }}
-    th, td {{ border: 1px solid #ddd; padding: 4px 6px;
-      text-align: left; vertical-align: top; }}
+    th, td {{ border: 1px solid #ddd; padding: 4px 6px; text-align: left; vertical-align: top; }}
     th {{ background: #f0f0f0; position: sticky; top: 0; }}
     .action-col {{ max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
     .badge {{ padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }}
@@ -279,12 +270,10 @@ def gen_html(category: str, routes: list[dict[str, Any]]) -> str:
     .status.err {{ color: red; }}
     .status.pending {{ color: orange; }}
     #results {{ margin-top: 1rem; }}
-    .result-card {{ margin-bottom: 0.5rem; padding: 0.5rem;
-      border: 1px solid #ccc; border-radius: 4px; background: #fff; }}
+    .result-card {{ margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }}
     .result-card.ok {{ border-color: #4ade80; }}
     .result-card.err {{ border-color: #f87171; }}
-    .result-card pre {{ font-size: 0.7rem; max-height: 200px;
-      overflow: auto; white-space: pre-wrap; word-break: break-all; }}
+    .result-card pre {{ font-size: 0.7rem; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }}
     #bulk-controls {{ margin-bottom: 0.5rem; }}
     #bulk-controls button {{ margin-right: 0.5rem; padding: 4px 10px; cursor: pointer; }}
     #filter {{ margin-bottom: 0.5rem; padding: 4px 8px; width: 300px; font-size: 0.8rem; }}

@@ -19,9 +19,9 @@ MYSQL_T="mysql -u${DB_USER} -p${DB_PASS} -h${DB_HOST} -P${DB_PORT}"
 RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[0;33m'; CYN='\033[0;36m'; RST='\033[0m'
 PASS_N=0; FAIL_N=0; WARN_N=0
 
-ok()   { ((PASS_N++)) || true; printf "${GRN}[PASS]${RST} %s\n" "$1"; }
-fail() { ((FAIL_N++)) || true; printf "${RED}[FAIL]${RST} %s\n" "$1"; }
-warn() { ((WARN_N++)) || true; printf "${YLW}[WARN]${RST} %s\n" "$1"; }
+ok()   { ((PASS_N++)); printf "${GRN}[PASS]${RST} %s\n" "$1"; }
+fail() { ((FAIL_N++)); printf "${RED}[FAIL]${RST} %s\n" "$1"; }
+warn() { ((WARN_N++)); printf "${YLW}[WARN]${RST} %s\n" "$1"; }
 info() { printf "${CYN}[INFO]${RST} %s\n" "$1"; }
 hdr()  { printf "\n${CYN}═══ %s ═══${RST}\n" "$1"; }
 
