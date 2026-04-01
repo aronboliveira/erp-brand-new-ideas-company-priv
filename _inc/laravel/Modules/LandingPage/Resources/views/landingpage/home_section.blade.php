@@ -280,7 +280,7 @@
                                                                 <div class="col-auto actions">
                                                                     <a class="action-item {{ ViewClassNamesConstants::BT_SM }} btn-icon btn-light-secondary"
                                                                         href="{{ $logo . '/' . $home_logo }}" download=""
-                                                                        data-toggle="tooltip" data-original-title="{{ __('Download') }}">
+                                                                        data-toggle="tooltip" data-original-title="Download">
                                                                         <i class="{{ ViewClassNamesConstants::TI_DWN }}"></i>
                                                                     </a>
                                                                 </div>
@@ -564,7 +564,7 @@ Object.keys(t).forEach(
                   <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                   </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -583,7 +583,7 @@ Object.keys(t).forEach(
                   $(this).slideDown();
                 },
                 hide(deleteElement) {
-                  if (confirm("{{ __('Are you sure you want to delete this element?') }}")) {
+                  if (confirm("Are you sure you want to delete this element?")) {
                     $(this).slideUp(deleteElement);
                   }
                 },
@@ -676,7 +676,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();
@@ -775,7 +775,7 @@ Object.keys(t).forEach(
                 <div class="d-flex">
                     <div class="toast-body">${msg}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>`;
                 document.body.appendChild(toast);
                 new bootstrap.Toast(toast).show();

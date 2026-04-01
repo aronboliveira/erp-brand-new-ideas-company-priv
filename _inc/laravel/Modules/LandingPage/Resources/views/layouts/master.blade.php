@@ -12,7 +12,7 @@
             'meta_title' => $meta_title,
             'meta_desc' => $meta_desc
         ])
-        <title>{{ __('LandingPage') }}</title>
+        <title>LandingPage</title>
         {{-- Laravel Vite - CSS File --}}
         {{-- {{ module_vite('build-landingpage', 'Resources/assets/sass/app.scss') }} --}}
     </head>

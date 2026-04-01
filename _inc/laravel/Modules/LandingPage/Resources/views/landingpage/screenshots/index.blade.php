@@ -98,7 +98,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                                {{ Form::text(LPSC::SC_HDG_K,$lpSettings[LPSC::SC_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                                {{ Form::text(SettingsConstants::SC_HDG_K,$lpSettings[SettingsConstants::SC_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                                 @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -168,7 +168,7 @@
                                                 @foreach ($screenshots as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ !empty($value[LPSC::SC_HDG_K]) ? $value[LPSC::SC_HDG_K] : __('No heading available') }}</td>
+                                                        <td>{{ !empty($value[SettingsConstants::SC_HDG_K]) ? $value[SettingsConstants::SC_HDG_K] : __('No heading available') }}</td>
                                                         <td>
                                                             <span>
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">

@@ -13,14 +13,20 @@ document.addEventListener("DOMContentLoaded", function () {
     addscroller();
   }
   if (document.querySelector("body").classList.contains("dash-horizontal")) {
-    if (document.querySelector(".dash-horizontal").classList.contains("navbar-overlay")) {
+    if (
+      document
+        .querySelector(".dash-horizontal")
+        .classList.contains("navbar-overlay")
+    ) {
       addscroller();
     }
   }
   var hamburger = document.querySelector(".hamburger:not(.is-active)");
   if (hamburger) {
     hamburger.addEventListener("click", function () {
-      if (document.querySelector(".hamburger").classList.contains("is-active")) {
+      if (
+        document.querySelector(".hamburger").classList.contains("is-active")
+      ) {
         document.querySelector(".hamburger").classList.remove("is-active");
       } else {
         document.querySelector(".hamburger").classList.add("is-active");
@@ -32,15 +38,28 @@ document.addEventListener("DOMContentLoaded", function () {
   if (tempoverlaymenu) {
     tempoverlaymenu.addEventListener("click", function () {
       menuclick();
-      if (document.querySelector(".dash-sidebar").classList.contains("dash-over-menu-active")) {
+      if (
+        document
+          .querySelector(".dash-sidebar")
+          .classList.contains("dash-over-menu-active")
+      ) {
         rmovermenu();
       } else {
-        document.querySelector(".dash-sidebar").classList.add("dash-over-menu-active");
-        document.querySelector(".dash-sidebar").insertAdjacentHTML("beforeend", '<div class="dash-menu-overlay"></div>');
-        document.querySelector(".dash-menu-overlay").addEventListener("click", function () {
-          rmovermenu();
-          document.querySelector(".hamburger").classList.remove("is-active");
-        });
+        document
+          .querySelector(".dash-sidebar")
+          .classList.add("dash-over-menu-active");
+        document
+          .querySelector(".dash-sidebar")
+          .insertAdjacentHTML(
+            "beforeend",
+            '<div class="dash-menu-overlay"></div>'
+          );
+        document
+          .querySelector(".dash-menu-overlay")
+          .addEventListener("click", function () {
+            rmovermenu();
+            document.querySelector(".hamburger").classList.remove("is-active");
+          });
       }
     });
   }
@@ -55,7 +74,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // menuclick();
 
         // ===============
-        var elem = document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu");
+        var elem = document.querySelectorAll(
+          ".dash-navbar li:not(.dash-trigger) .dash-submenu"
+        );
         for (var j = 0; j < elem.length; j++) {
           elem[j].style.display = "none";
         }
@@ -76,20 +97,37 @@ document.addEventListener("DOMContentLoaded", function () {
   var mobilecollapsever = document.querySelector("#mobile-collapse");
   if (mobilecollapsever) {
     mobilecollapsever.addEventListener("click", function () {
-      if (!document.querySelector("body").classList.contains("dash-horizontal")) {
+      if (
+        !document.querySelector("body").classList.contains("dash-horizontal")
+      ) {
         // menuclick();
       }
       var tempsdbr = document.querySelector(".dash-sidebar");
       if (tempsdbr) {
-        if (document.querySelector(".dash-sidebar").classList.contains("mob-sidebar-active")) {
+        if (
+          document
+            .querySelector(".dash-sidebar")
+            .classList.contains("mob-sidebar-active")
+        ) {
           rmmenu();
         } else {
-          document.querySelector(".dash-sidebar").classList.add("mob-sidebar-active");
-          document.querySelector(".dash-sidebar").insertAdjacentHTML("beforeend", '<div class="dash-menu-overlay"></div>');
-          document.querySelector(".dash-menu-overlay").addEventListener("click", function () {
-            document.querySelector(".hamburger").classList.remove("is-active");
-            rmmenu();
-          });
+          document
+            .querySelector(".dash-sidebar")
+            .classList.add("mob-sidebar-active");
+          document
+            .querySelector(".dash-sidebar")
+            .insertAdjacentHTML(
+              "beforeend",
+              '<div class="dash-menu-overlay"></div>'
+            );
+          document
+            .querySelector(".dash-menu-overlay")
+            .addEventListener("click", function () {
+              document
+                .querySelector(".hamburger")
+                .classList.remove("is-active");
+              rmmenu();
+            });
         }
       }
     });
@@ -97,18 +135,31 @@ document.addEventListener("DOMContentLoaded", function () {
   // Menu collapse click end
 
   // Menu collapse click start
-  var mobilecollapse = document.querySelector(".dash-horizontal #mobile-collapse");
+  var mobilecollapse = document.querySelector(
+    ".dash-horizontal #mobile-collapse"
+  );
   if (mobilecollapse) {
     mobilecollapse.addEventListener("click", function () {
-      if (document.querySelector(".topbar").classList.contains("mob-sidebar-active")) {
+      if (
+        document
+          .querySelector(".topbar")
+          .classList.contains("mob-sidebar-active")
+      ) {
         rmmenu();
       } else {
         document.querySelector(".topbar").classList.add("mob-sidebar-active");
-        document.querySelector(".topbar").insertAdjacentHTML("beforeend", '<div class="dash-menu-overlay"></div>');
-        document.querySelector(".dash-menu-overlay").addEventListener("click", function () {
-          rmmenu();
-          document.querySelector(".hamburger").classList.remove("is-active");
-        });
+        document
+          .querySelector(".topbar")
+          .insertAdjacentHTML(
+            "beforeend",
+            '<div class="dash-menu-overlay"></div>'
+          );
+        document
+          .querySelector(".dash-menu-overlay")
+          .addEventListener("click", function () {
+            rmmenu();
+            document.querySelector(".hamburger").classList.remove("is-active");
+          });
       }
     });
   }
@@ -168,7 +219,9 @@ document.addEventListener("DOMContentLoaded", function () {
   //   });
   // mobile header click end
   // Horizontal menu click js start
-  var topbarlinklist = document.querySelector(".dash-horizontal .topbar .dash-navbar>li>a");
+  var topbarlinklist = document.querySelector(
+    ".dash-horizontal .topbar .dash-navbar>li>a"
+  );
   if (topbarlinklist) {
     topbarlinklist.addEventListener("click", function (e) {
       var targetElement = e.target;
@@ -219,7 +272,9 @@ function horizontalmobilemenuclick() {
     pcnavlinklist.removeEventListener("click", function () {});
   }
 
-  var pclinkclick = document.querySelectorAll(".dash-navbar > li:not(.dash-caption)");
+  var pclinkclick = document.querySelectorAll(
+    ".dash-navbar > li:not(.dash-caption)"
+  );
   for (var i = 0; i < pclinkclick.length; i++) {
     pclinkclick[i].addEventListener("click", function (event) {
       var targetElement = event.target;
@@ -239,7 +294,9 @@ function horizontalmobilemenuclick() {
       }
     });
   }
-  var pcsublinkclick = document.querySelectorAll(".dash-navbar > li:not(.dash-caption) > .dash-submenu > li");
+  var pcsublinkclick = document.querySelectorAll(
+    ".dash-navbar > li:not(.dash-caption) > .dash-submenu > li"
+  );
   for (var n = 0; n < pcsublinkclick.length; n++) {
     pcsublinkclick[n].addEventListener("click", function (event) {
       event.stopPropagation();
@@ -260,7 +317,9 @@ function horizontalmobilemenuclick() {
       }
     });
   }
-  var pcsubchildlinkclick = document.querySelectorAll(".dash-navbar > li:not(.dash-caption) > .dash-submenu >  li > .dash-submenu >  li");
+  var pcsubchildlinkclick = document.querySelectorAll(
+    ".dash-navbar > li:not(.dash-caption) > .dash-submenu >  li > .dash-submenu >  li"
+  );
   for (var n = 0; n < pcsubchildlinkclick.length; n++) {
     pcsubchildlinkclick[n].addEventListener("click", function (event) {
       event.stopPropagation();
@@ -272,7 +331,9 @@ function horizontalmobilemenuclick() {
       if (targetElement.parentNode.classList.contains("dash-trigger")) {
         targetElement.parentNode.classList.remove("dash-trigger");
       } else {
-        var tc = document.querySelectorAll(".dash-submenu .dash-submenu li.dash-trigger");
+        var tc = document.querySelectorAll(
+          ".dash-submenu .dash-submenu li.dash-trigger"
+        );
         for (var t = 0; t < tc.length; t++) {
           var c = tc[t];
           c.classList.remove("dash-trigger");
@@ -311,11 +372,15 @@ function menuclick() {
   }
 
   if (!document.querySelector("body").classList.contains("minimenu")) {
-    var elem = document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu");
+    var elem = document.querySelectorAll(
+      ".dash-navbar li:not(.dash-trigger) .dash-submenu"
+    );
     for (var j = 0; j < elem.length; j++) {
       elem[j].style.display = "none";
     }
-    var pclinkclick = document.querySelectorAll(".dash-navbar > li:not(.dash-caption)");
+    var pclinkclick = document.querySelectorAll(
+      ".dash-navbar > li:not(.dash-caption)"
+    );
     for (var i = 0; i < pclinkclick.length; i++) {
       pclinkclick[i].addEventListener("click", function (event) {
         event.stopPropagation();
@@ -342,7 +407,9 @@ function menuclick() {
         }
       });
     }
-    var pcsublinkclick = document.querySelectorAll(".dash-navbar > li:not(.dash-caption) li");
+    var pcsublinkclick = document.querySelectorAll(
+      ".dash-navbar > li:not(.dash-caption) li"
+    );
     for (var i = 0; i < pcsublinkclick.length; i++) {
       pcsublinkclick[i].addEventListener("click", function (event) {
         var targetElement = event.target;
@@ -378,19 +445,29 @@ function menuclick() {
 }
 
 function rmdrp() {
-  document.querySelector(".dash-header:not(.dash-mob-header) .dash-mob-drp").classList.remove("mob-drp-active");
-  document.querySelector(".dash-header:not(.dash-mob-header) .dash-md-overlay").remove();
+  document
+    .querySelector(".dash-header:not(.dash-mob-header) .dash-mob-drp")
+    .classList.remove("mob-drp-active");
+  document
+    .querySelector(".dash-header:not(.dash-mob-header) .dash-md-overlay")
+    .remove();
 }
 
 function rmthead() {
-  document.querySelector(".dash-header:not(.dash-mob-header)").classList.remove("mob-header-active");
-  document.querySelector(".dash-header:not(.dash-mob-header) .dash-md-overlay").remove();
+  document
+    .querySelector(".dash-header:not(.dash-mob-header)")
+    .classList.remove("mob-header-active");
+  document
+    .querySelector(".dash-header:not(.dash-mob-header) .dash-md-overlay")
+    .remove();
 }
 
 function rmmenu() {
   var tempov = document.querySelector(".dash-sidebar");
   if (tempov) {
-    document.querySelector(".dash-sidebar").classList.remove("mob-sidebar-active");
+    document
+      .querySelector(".dash-sidebar")
+      .classList.remove("mob-sidebar-active");
   }
   if (document.querySelector(".topbar")) {
     document.querySelector(".topbar").classList.remove("mob-sidebar-active");
@@ -401,7 +478,9 @@ function rmmenu() {
 }
 
 function rmovermenu() {
-  document.querySelector(".dash-sidebar").classList.remove("dash-over-menu-active");
+  document
+    .querySelector(".dash-sidebar")
+    .classList.remove("dash-over-menu-active");
   if (document.querySelector(".topbar")) {
     document.querySelector(".topbar").classList.remove("mob-sidebar-active");
   }
@@ -410,8 +489,12 @@ function rmovermenu() {
 }
 
 function rmactive() {
-  document.querySelector(".dash-sidebar .dash-navbar li").classList.remove("active");
-  document.querySelector(".dash-sidebar .dash-navbar li").classList.remove("dash-trigger");
+  document
+    .querySelector(".dash-sidebar .dash-navbar li")
+    .classList.remove("active");
+  document
+    .querySelector(".dash-sidebar .dash-navbar li")
+    .classList.remove("dash-trigger");
   document.querySelector(".topbar .dropdown").classList.remove("show");
   document.querySelector(".topbar .dropdown-menu").classList.remove("show");
   document.querySelector(".dash-sidebar .dash-menu-overlay").remove();
@@ -455,11 +538,15 @@ window.addEventListener("resize", function () {
 });
 
 window.addEventListener("load", function () {
-  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  );
   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl);
   });
-  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  var popoverTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="popover"]')
+  );
   var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
     return new bootstrap.Popover(popoverTriggerEl);
   });
@@ -479,16 +566,30 @@ for (var l = 0; l < elem.length; l++) {
     elem[l].parentNode.parentNode.parentNode.classList.add("dash-trigger");
     elem[l].parentNode.parentNode.style.display = "block";
 
-    elem[l].parentNode.parentNode.parentNode.parentNode.parentNode.classList.add("active");
-    elem[l].parentNode.parentNode.parentNode.parentNode.parentNode.classList.add("dash-trigger");
+    elem[
+      l
+    ].parentNode.parentNode.parentNode.parentNode.parentNode.classList.add(
+      "active"
+    );
+    elem[
+      l
+    ].parentNode.parentNode.parentNode.parentNode.parentNode.classList.add(
+      "dash-trigger"
+    );
     elem[l].parentNode.parentNode.parentNode.parentNode.style.display = "block";
 
     // elem[i].parentNode('li').parentNode().parentNode('.sidelink').classList.add("active");
     // elem[i].parentNodes('.dash-tabcontent').classList.add('active');
     if (document.body.classList.contains("tab-layout")) {
-      var temp = document.querySelector(".dash-tabcontent.active").getAttribute("data-value");
-      document.querySelector(".tab-sidemenu > ul > li").classList.remove("active");
-      document.querySelector('.tab-sidemenu > ul > li > a[data-cont="' + temp + '"]').parentNode.classList.add("active");
+      var temp = document
+        .querySelector(".dash-tabcontent.active")
+        .getAttribute("data-value");
+      document
+        .querySelector(".tab-sidemenu > ul > li")
+        .classList.remove("active");
+      document
+        .querySelector('.tab-sidemenu > ul > li > a[data-cont="' + temp + '"]')
+        .parentNode.classList.add("active");
     }
   }
 }
@@ -522,11 +623,19 @@ if (tablayclick) {
         targetElement = targetElement.parentNode.parentNode;
       }
       var tempcont = targetElement.children[0].getAttribute("data-cont");
-      document.querySelector(".navbar-content .dash-tabcontent.active").classList.remove("active");
-      document.querySelector(".tab-sidemenu > ul > li.active").classList.remove("active");
+      document
+        .querySelector(".navbar-content .dash-tabcontent.active")
+        .classList.remove("active");
+      document
+        .querySelector(".tab-sidemenu > ul > li.active")
+        .classList.remove("active");
       targetElement.classList.add("active");
       console.log(tempcont);
-      document.querySelector('.navbar-content .dash-tabcontent[data-value="' + tempcont + '"]').classList.add("active");
+      document
+        .querySelector(
+          '.navbar-content .dash-tabcontent[data-value="' + tempcont + '"]'
+        )
+        .classList.add("active");
     });
   }
 }
@@ -535,18 +644,26 @@ if (tablayclick) {
 var pctogglesidemenu = document.querySelector(".dash-toggle-sidemenu");
 if (pctogglesidemenu) {
   pctogglesidemenu.addEventListener("click", function () {
-    if (!document.querySelector(".dash-toggle-sidemenu").classList.contains("active")) {
+    if (
+      !document
+        .querySelector(".dash-toggle-sidemenu")
+        .classList.contains("active")
+    ) {
       document.querySelector(".dash-sideoverlay").classList.add("active");
       document.querySelector(".page-sidebar").classList.add("active");
       document.querySelector(".dash-toggle-sidemenu").classList.add("active");
     } else {
       document.querySelector(".dash-sideoverlay").classList.remove("active");
       document.querySelector(".page-sidebar").classList.remove("active");
-      document.querySelector(".dash-toggle-sidemenu").classList.remove("active");
+      document
+        .querySelector(".dash-toggle-sidemenu")
+        .classList.remove("active");
     }
   });
 }
-var pcovelayclk = document.querySelector(".dash-sideoverlay, .dash-toggle-sidemenu.active");
+var pcovelayclk = document.querySelector(
+  ".dash-sideoverlay, .dash-toggle-sidemenu.active"
+);
 if (pcovelayclk) {
   pcovelayclk.addEventListener("click", function () {
     document.querySelector(".dash-sideoverlay").classList.remove("active");
@@ -557,7 +674,9 @@ if (pcovelayclk) {
 // nested Layout end
 
 if (document.querySelector("body").classList.contains("layout-topbar")) {
-  var tplink = document.querySelectorAll(".dash-header .list-unstyled > .dropdown");
+  var tplink = document.querySelectorAll(
+    ".dash-header .list-unstyled > .dropdown"
+  );
   for (var t = 0; t < tplink.length; t++) {
     var c = tplink[t];
     c.addEventListener("mouseenter", showmenu);
@@ -580,12 +699,14 @@ if (document.querySelector("body").classList.contains("dash-horizontal")) {
   var docW = window.innerWidth;
 
   if (docW > 1024) {
-    var topbarhasmenu = document.querySelector(".dash-horizontal .topbar .dash-submenu .dash-hasmenu");
+    var topbarhasmenu = document.querySelector(
+      ".dash-horizontal .topbar .dash-submenu .dash-hasmenu"
+    );
     if (topbarhasmenu) {
       topbarhasmenu.addEventListener(
         "mouseenter",
         function () {
-          var elm = targetElement.children[1]; // eslint-disable-line no-undef
+          var elm = targetElement.children[1];
           var off = elm.getBoundingClientRect();
           var l = off.left;
           var t = off.top;
@@ -606,8 +727,10 @@ if (document.querySelector("body").classList.contains("dash-horizontal")) {
         },
         function () {
           document.querySelector(".scroll-menu").removeAttribute("style");
-          document.querySelector(".scroll-menu").classList.remove("scroll-menu");
-        },
+          document
+            .querySelector(".scroll-menu")
+            .classList.remove("scroll-menu");
+        }
       );
     }
   }
@@ -619,7 +742,9 @@ function collapseedge() {
   var docH = window.innerHeight;
   var docW = window.innerWidth;
   if (docW > 1024) {
-    var minimenuhasmenu = document.querySelector(".minimenu .dash-sidebar .dash-submenu .dash-hasmenu");
+    var minimenuhasmenu = document.querySelector(
+      ".minimenu .dash-sidebar .dash-submenu .dash-hasmenu"
+    );
     if (minimenuhasmenu) {
       minimenuhasmenu.addEventListener(
         "mouseenter",
@@ -642,8 +767,10 @@ function collapseedge() {
         },
         function () {
           document.querySelector(".scroll-menu").removeAttribute("style");
-          document.querySelector(".scroll-menu").classList.remove("scroll-menu");
-        },
+          document
+            .querySelector(".scroll-menu")
+            .classList.remove("scroll-menu");
+        }
       );
     }
   }
@@ -656,8 +783,13 @@ for (var t = 0; t < tc.length; t++) {
     if (event.currentTarget.checked) {
       prodlike = event.target;
       // console.log(prodlike.parentNode);
-      prodlike.parentNode.insertAdjacentHTML("beforeend", '<div class="dash-like"><div class="like-wrapper"><span><span class="dash-group"><span class="dash-dots"></span><span class="dash-dots"></span><span class="dash-dots"></span><span class="dash-dots"></span></span></span></div></div>');
-      prodlike.parentNode.querySelector(".dash-like").classList.add("dash-like-animate");
+      prodlike.parentNode.insertAdjacentHTML(
+        "beforeend",
+        '<div class="dash-like"><div class="like-wrapper"><span><span class="dash-group"><span class="dash-dots"></span><span class="dash-dots"></span><span class="dash-dots"></span><span class="dash-dots"></span></span></span></div></div>'
+      );
+      prodlike.parentNode
+        .querySelector(".dash-like")
+        .classList.add("dash-like-animate");
       setTimeout(function () {
         prodlike.parentNode.querySelector(".dash-like").remove();
       }, 3000);
