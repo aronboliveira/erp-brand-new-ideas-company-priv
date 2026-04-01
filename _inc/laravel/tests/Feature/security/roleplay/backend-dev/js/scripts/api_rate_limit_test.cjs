@@ -27,7 +27,7 @@ const ENDPOINTS_TO_TEST = [
  * @returns {Promise<object>}
  */
 function testRateLimit(targetUrl, endpoint, count = 30) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const results = [];
     let completed = 0;
     let rateLimited = false;
@@ -44,21 +44,15 @@ function testRateLimit(targetUrl, endpoint, count = 30) {
         },
       };
 
-      const req = http.request(opts, (res) => {
+      const req = http.request(opts, res => {
         let body = "";
-        res.on("data", (d) => (body += d));
+        res.on("data", d => (body += d));
         res.on("end", () => {
           results.push({ status: res.statusCode, headers: res.headers });
           if (res.statusCode === 429) rateLimited = true;
 
           // Check rate limit headers
-          const rlHeaders = [
-            "x-ratelimit-limit",
-            "x-ratelimit-remaining",
-            "retry-after",
-            "x-rate-limit-limit",
-            "ratelimit-limit",
-          ];
+          const rlHeaders = ["x-ratelimit-limit", "x-ratelimit-remaining", "retry-after", "x-rate-limit-limit", "ratelimit-limit"];
           for (const h of rlHeaders) {
             if (res.headers[h]) {
               rateLimitHeader = { name: h, value: res.headers[h] };
@@ -126,12 +120,10 @@ function generateReport(results) {
     }
   }
 
-  const criticalEndpoints = results.filter((r) => r.critical && !r.error);
-  const criticalProtected = criticalEndpoints.filter((r) => r.protected);
+  const criticalEndpoints = results.filter(r => r.critical && !r.error);
+  const criticalProtected = criticalEndpoints.filter(r => r.protected);
 
-  const score = results.length > 0
-    ? Math.round((protectedCount / results.length) * 100)
-    : 0;
+  const score = results.length > 0 ? Math.round((protectedCount / results.length) * 100) : 0;
 
   const grade = score >= 90 ? "A" : score >= 70 ? "B" : score >= 50 ? "C" : score >= 30 ? "D" : "F";
 
@@ -178,7 +170,7 @@ if (require.main === module) {
 
     if (report.issues.length) {
       console.log("\n  Issues:");
-      report.issues.forEach((i) => console.log(`    - ${i}`));
+      report.issues.forEach(i => console.log(`    - ${i}`));
     }
 
     console.log("\n[BACKEND-DEV] Rate Limit Test completo");
