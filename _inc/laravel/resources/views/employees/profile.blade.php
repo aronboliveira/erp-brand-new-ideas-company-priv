@@ -74,7 +74,7 @@ $user ??= null;
 				</div>
 			</div>
 			<div class="{{ VC::C_AT }} {{ VC::TX_END }} my-auto">
-				<a href="#" class="apply-btn" onclick="document.getElementById('employee_profile_filter').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
+				<a href="#" class="apply-btn" data-submit-form="employee_profile_filter" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
 					<span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
 				</a>
 				<a href="{{ route(VW::EMP.'.profile') }}" class="reset-btn" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
@@ -82,6 +82,7 @@ $user ??= null;
 				</a>
 			</div>
 			@push(ST::ADM_SCR_PG)
+				<script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
 				<script defer src="{{ asset('assets/js/routes/employees/profile.js') }}"></script>
 			@endpush
 		{{ Form::close() }}

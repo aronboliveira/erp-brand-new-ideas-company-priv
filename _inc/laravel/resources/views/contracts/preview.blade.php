@@ -256,9 +256,10 @@ $user = Auth::user();
                                 $desc = isset($contract->description) ? $contract->description : null;
                                 $cdesc = isset($contract->contract_description) ? $contract->contract_description : null;
 @endphp
-                            <div class="text-md">{!! $desc ?: e(__('No description available')) !!}</div>
+                            {{-- purify_html: contract descriptions are rich-text editor content stored in DB --}}
+                            <div class="text-md">{!! !empty($desc) ? purify_html($desc) : e(__('No description available')) !!}</div>
                             <br>
-                            <div class="text-md">{!! $cdesc ?: e(__('No contract description available')) !!}</div>
+                            <div class="text-md">{!! !empty($cdesc) ? purify_html($cdesc) : e(__('No contract description available')) !!}</div>
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::C6 }}">
                                     <div>

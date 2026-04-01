@@ -103,7 +103,7 @@
                                 <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                     <div class="row">
                                         <div class="{{ VC::C_AT }}">
-                                            <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('{{ $formId }}').submit();return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
+                                            <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="{{ $formId }}" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                             </a>
                                             <a href="{{ $indexUrl }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
@@ -216,3 +216,6 @@
         </div>
     </div>
 @endsection
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
+@endpush

@@ -103,7 +103,7 @@ $user = Auth::user();
                                 <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                     <div class="row">
                                         <div class="{{ VC::C_AT }}">
-                                            <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('{{ $formId }}').submit();return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}">
+                                            <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="{{ $formId }}" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}">
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                             </a>
                                             <a href="{{ $indexUrl }}" id="{{ $resetClass }}" class="{{ VC::BT_SM_DG }} {{ $resetClass }}" data-url="{{ $indexUrl }}"
@@ -236,6 +236,7 @@ $user = Auth::user();
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
     <script defer src="{{ asset('assets/js/core/route-guard.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/attendances/lang/date.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/attendances/date.js') }}"></script>

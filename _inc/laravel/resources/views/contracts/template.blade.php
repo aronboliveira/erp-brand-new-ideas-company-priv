@@ -31,8 +31,8 @@ $user = Auth::user();
                                         $startDateText = isset($contract->start_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->start_date) ?? __('Failed to format start date')) : __('Failed to format start date')) : __('No start date available');
                                         $endDateText = isset($contract->end_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->end_date) ?? __('Failed to format end date')) : __('Failed to format end date')) : __('No end date available');
                                         $logoSrc = !empty($img) ? $img : '';
-                                        $descHtml = !empty($contract->description) ? $contract->description : e(__('No description available'));
-                                        $contractDescHtml = !empty($contract->contract_description) ? $contract->contract_description : e(__('No contract description available'));
+                                        $descHtml = !empty($contract->description) ? purify_html($contract->description) : e(__('No description available'));
+                                        $contractDescHtml = !empty($contract->contract_description) ? purify_html($contract->contract_description) : e(__('No contract description available'));
                                         $companySig = !empty($contract->company_signature) ? $contract->company_signature : null;
                                         $clientSig = !empty($contract->client_signature) ? $contract->client_signature : null;
                                     } catch (\Throwable $e) {

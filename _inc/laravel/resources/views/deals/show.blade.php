@@ -1590,6 +1590,7 @@ $authUser = Auth::user();
                                         @php
                                             try {
                                                 $icon     = method_exists($activity, 'logIcon') ? $activity->logIcon() : 'circle-dashed';
+                                                {{-- Safe: getRemark() builds structural HTML with all user values escaped via e(); fallback also uses e() --}}
                                                 $remark   = method_exists($activity, 'getRemark') ? $activity->getRemark() : e($activity->remark ?? '');
                                                 $logType  = $activity->log_type ?? '-';
                                                 $when     = $activity->created_at ? $activity->created_at->diffForHumans() : '-';

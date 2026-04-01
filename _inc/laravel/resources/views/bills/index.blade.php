@@ -26,6 +26,7 @@
     {{__('Manage Bills')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/bills/lang/copy.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/bills/copy.js') }}"></script>
 @endpush
@@ -128,7 +129,7 @@
                                 </div>
                                 <div class="{{ VC::C_AT_FEND }}">
                                     <div class="{{ VC::DFL_JCB }}">
-                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('frm_submit').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
+                                        <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="frm_submit" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
                                             <span class="btn-inner--icon">
                                                 <i class="{{ VC::TI_SRC }}"></i>
                                             </span>
