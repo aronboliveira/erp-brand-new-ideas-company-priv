@@ -18,8 +18,6 @@ use App\Models\{
     Client,
     Customer,
     Employee,
-    Indicator,
-    Plan,
     Product,
     ProductCategory,
     ProductService,
@@ -788,30 +786,5 @@ class ModelLookupService
             SC::MD_LO        => $modeLayout,
             SC::CPN_CFG      => $settings,
         ];
-    }
-
-    /**
-     * Calculate the target rating for a designation based on its indicator ratings.
-     */
-    public static function getTargetRating(int $designationId, int $competencyCount): float
-    {
-        $indicator = Indicator::where('designation', $designationId)->first();
-        if ($indicator && !empty($indicator->rating) && $competencyCount > 0) {
-            $ratingArray = json_decode($indicator->rating, true) ?: [];
-            $starSum = array_sum($ratingArray);
-            return $starSum / $competencyCount;
-        }
-        return 0.0;
-    }
-
-    /**
-     * Retrieve the ChatGPT/AI plan settings for the current user.
-     */
-    public static function getChatGPTPlan(User $user): ?Plan
-    {
-        $creator = User::find($user->creatorId());
-        if (!$creator)
-            return null;
-        return Plan::find($creator->plan);
     }
 }

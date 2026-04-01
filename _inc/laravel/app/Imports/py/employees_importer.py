@@ -2,10 +2,12 @@
 """Employees Importer — parses employee spreadsheets via Python."""
 
 import logging
+import sys
 from typing import Any, Dict, List, Optional
 
+import pandas as pd
 
-from base_importer import BaseImporter
+from base_importer import BaseImporter, safe_get
 
 logger: logging.Logger = logging.getLogger(__name__)
 

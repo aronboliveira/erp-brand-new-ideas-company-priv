@@ -8,11 +8,13 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     PermissionsConstants as PMC,
     SettingsConstants as SC,
+    UsersConstants as UC,
 };
 use App\Models\{
     BankAccount,
     Bill,
     Customer,
+    Product,
     ProductService,
     Project,
     StockReport,
@@ -23,7 +25,7 @@ use App\Models\{
 };
 use App\Traits\ChecksLogin;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\{Auth, DB, Log};
 
 /**
  * FinanceBillingService — extracted from Utility.php
@@ -245,7 +247,7 @@ class FinanceBillingService
     public static function totalQuantity(string $type, int $quantity, string|int $productId): void
     {
         $product = ProductService::find($productId);
-        if (!$product || ($product->type ?? '') !== 'product') return;
+        if (!$product) return;
         DB::transaction(function () use ($product, $type, $quantity) {
             $currentQty = $product->quantity ?? 0;
             $newQty = $type === 'minus'

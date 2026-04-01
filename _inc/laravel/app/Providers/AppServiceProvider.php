@@ -6,7 +6,6 @@ use Throwable;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Config\Constants\ViewsConstants;
 use App\Services\Resolvers\{BrasilApiCepV2Resolver, ViaCepResolver};
-use App\Support\SafeUrlGenerator;
 use App\Services\{ActivitysAndLogsRequestService, BugReportService, BusinessRequestService, ContractRequestService, DealRequestService, EmailRequestService, GeoLookupService, GoalRequestService, LeadRequestService, PipelineRequestService, PosRequestService, ProductOrServiceRequestService, ProjectRequestService, PurchaseRequestService, Providers\BrasilApiCepProvider, SupportHelperService, TaskRequestService, TemplateRequestService, WarehouseRequestService, ZipGeoService};
 use Doctrine\DBAL\DriverManager;
 use Illuminate\Support\Facades\{DB, Log, Schema};
@@ -23,22 +22,6 @@ final class AppServiceProvider extends ServiceProvider
         // All Fortify routes are re-defined in routes/fortify.php with /fortify-* prefixes,
         // so the vendor routes just create duplicates (e.g. GET /login → Inertia blank page).
         Fortify::ignoreRoutes();
-        # PULL REQUEST START — Replace UrlGenerator with SafeUrlGenerator to handle '#' pseudo-route
-        $this->app->extend('url', function ($url, $app) {
-            $generator = new SafeUrlGenerator(
-                $app['router']->getRoutes(),
-                $url->getRequest(),
-                $app->bound('config') ? $app['config']['app.asset_url'] : null
-            );
-            $generator->setSessionResolver(function () use ($app) {
-                return $app->bound('session') ? $app['session']->driver() : null;
-            });
-            $generator->setKeyResolver(function () use ($app) {
-                return $app->bound('config') ? $app['config']['app.key'] : null;
-            });
-            return $generator;
-        });
-        # PULL REQUEST END — Replace UrlGenerator with SafeUrlGenerator
         $this->app->singleton(BrasilApiCepProvider::class);
         $this->app->singleton(ZipGeoService::class, function () {
             return new ZipGeoService([
@@ -89,16 +72,6 @@ final class AppServiceProvider extends ServiceProvider
             self::ensureEnumMapsToString();
         } catch (Throwable $e) {
             Log::critical(__CLASS__ . '::boot enum mapping failed', ['message' => $e->getMessage()]);
-        }
-        // Guard installer/updater wizard routes so they return 403
-        // instead of hanging for 30 s in non-local environments.
-        try {
-            /** @var \Illuminate\Routing\Router $router */
-            $router = $this->app['router'];
-            $router->prependMiddlewareToGroup('update', \App\Http\Middleware\RequireLocalEnvironment::class);
-            $router->prependMiddlewareToGroup('install', \App\Http\Middleware\RequireLocalEnvironment::class);
-        } catch (Throwable $e) {
-            Log::warning(__CLASS__ . '::boot updater guard failed', ['message' => $e->getMessage()]);
         }
     }
 

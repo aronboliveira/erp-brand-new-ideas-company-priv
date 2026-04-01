@@ -2,10 +2,13 @@
 """Product/Service Importer — parses product/service spreadsheets via Python."""
 
 import logging
+import re
+import sys
 from typing import Any, Dict, List, Optional
 
+import pandas as pd
 
-from base_importer import BaseImporter
+from base_importer import BaseImporter, normalise_header, safe_get
 
 logger: logging.Logger = logging.getLogger(__name__)
 

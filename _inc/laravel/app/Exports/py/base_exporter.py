@@ -14,17 +14,19 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, LineChart, PieChart, Reference
+from openpyxl.chart.series import DataPoint
 from openpyxl.formatting.rule import CellIsRule, ColorScaleRule, DataBarRule, Rule
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Alignment, Border, Fill, Font, NamedStyle, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.cell import range_boundaries
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
 logging.basicConfig(
@@ -283,11 +285,11 @@ class BaseExporter(ABC):
                                 cell_len = len(str(cell.value))
                         else:
                             cell_len = len(str(cell.value))
-
+                        
                         # Account for bold/larger fonts
                         if cell.font and cell.font.bold:
                             cell_len = int(cell_len * 1.1)
-
+                        
                         max_length = max(max_length, cell_len)
                 except (AttributeError, TypeError):
                     pass
@@ -295,8 +297,8 @@ class BaseExporter(ABC):
             # Apply width with limits
             adjusted_width = max(min_width, min(max_length + padding, max_width))
             self.sheet.column_dimensions[col_letter].width = adjusted_width
-
-        self.logger.debug("Auto-fitted columns %d-%d with limits [%d, %d]",
+            
+        self.logger.debug("Auto-fitted columns %d-%d with limits [%d, %d]", 
                          start_col, end_col, min_width, max_width)
 
     def dataframe_to_sheet(
@@ -490,7 +492,7 @@ class BaseExporter(ABC):
         chart.grouping = "clustered"
         chart.title = title
         chart.style = 10
-        chart.width = width  # type: ignore[assignment]
+        chart.width = width
         chart.height = height
 
         data_ref = Reference(
@@ -551,7 +553,7 @@ class BaseExporter(ABC):
         chart = LineChart()
         chart.title = title
         chart.style = 10
-        chart.width = width  # type: ignore[assignment]
+        chart.width = width
         chart.height = height
 
         data_ref = Reference(
@@ -576,7 +578,7 @@ class BaseExporter(ABC):
         for series in chart.series:
             series.smooth = smooth
 
-        chart.legend.position = "b"  # type: ignore[union-attr]
+        chart.legend.position = "b"
         ws.add_chart(chart, anchor)
         self.logger.info("Added line chart '%s' at %s", title, anchor)
         return chart
@@ -612,7 +614,7 @@ class BaseExporter(ABC):
         chart = PieChart()
         chart.title = title
         chart.style = 10
-        chart.width = width  # type: ignore[assignment]
+        chart.width = width
         chart.height = height
 
         data_ref = Reference(
@@ -865,7 +867,7 @@ class BaseExporter(ABC):
         except ValueError:
             self.logger.warning("Invalid cell range for outlier formatting: %s", cell_range)
             return
-        anchor_cell = f"{get_column_letter(min_col)}{min_row}"  # type: ignore[arg-type]
+        anchor_cell = f"{get_column_letter(min_col)}{min_row}"
 
         # Create formula for outlier detection: value >/< mean +/- threshold*stdev
         avg_formula = f"AVERAGE({cell_range})"
@@ -878,8 +880,8 @@ class BaseExporter(ABC):
         upper_fill = PatternFill(start_color=outlier_color, end_color=outlier_color, fill_type="solid")
         upper_font = Font(color=outlier_font_color, bold=True)
         upper_rule = Rule(type="expression", formula=upper_formula)
-        upper_rule.fill = upper_fill  # type: ignore[attr-defined]
-        upper_rule.font = upper_font  # type: ignore[attr-defined]
+        upper_rule.fill = upper_fill
+        upper_rule.font = upper_font
 
         # Lower outlier rule (value < mean - threshold*std)
         lower_formula = [
@@ -888,9 +890,9 @@ class BaseExporter(ABC):
         lower_fill = PatternFill(start_color=outlier_color, end_color=outlier_color, fill_type="solid")
         lower_font = Font(color=outlier_font_color, bold=True)
         lower_rule = Rule(type="expression", formula=lower_formula)
-        lower_rule.fill = lower_fill  # type: ignore[attr-defined]
-        lower_rule.font = lower_font  # type: ignore[attr-defined]
-
+        lower_rule.fill = lower_fill
+        lower_rule.font = lower_font
+        
         self.sheet.conditional_formatting.add(cell_range, upper_rule)
         self.sheet.conditional_formatting.add(cell_range, lower_rule)
         self.logger.info("Added outlier formatting to %s (threshold: %.1f σ)", cell_range, std_threshold)
@@ -919,14 +921,14 @@ class BaseExporter(ABC):
         if self.sheet is None:
             return summary_start_row
 
-        get_column_letter(summary_col)
-        get_column_letter(summary_col + 1)
+        col_letter = get_column_letter(summary_col)
+        val_col_letter = get_column_letter(summary_col + 1)
 
         # Title
         title_cell = self.sheet.cell(row=summary_start_row, column=summary_col, value="Statistical Summary")
         title_cell.font = Font(bold=True, size=12, color="1F4E79")
         title_cell.fill = PatternFill(start_color="E8F4FD", end_color="E8F4FD", fill_type="solid")
-
+        
         summary_start_row += 1
 
         stats = [
@@ -948,13 +950,13 @@ class BaseExporter(ABC):
             label_cell = self.sheet.cell(row=current_row, column=summary_col, value=label)
             label_cell.font = Font(bold=True, size=10)
             label_cell.alignment = Alignment(horizontal="left")
-
+            
             # Value cell with formula
             value_cell = self.sheet.cell(row=current_row, column=summary_col + 1, value=formula)
             value_cell.number_format = num_format if num_format else "#,##0.00"
             value_cell.alignment = Alignment(horizontal="right")
             value_cell.border = ExportStyle.THIN_BORDER
-
+            
             current_row += 1
 
         self.logger.info("Added statistical summary at row %d", summary_start_row)
@@ -987,7 +989,7 @@ class BaseExporter(ABC):
         dv.errorTitle = error_title
         dv.prompt = f"Please select: {', '.join(options[:3])}{'...' if len(options) > 3 else ''}"
         dv.promptTitle = "Select Option"
-
+        
         self.sheet.add_data_validation(dv)
         dv.add(cell_range)
         self.logger.info("Added dropdown validation to %s with %d options", cell_range, len(options))
@@ -1011,17 +1013,10 @@ class BaseExporter(ABC):
             return
 
         if min_value is not None and max_value is not None:
-            dv = DataValidation(
-                type="whole", operator="between",
-                formula1=min_value, formula2=max_value,
-                allow_blank=allow_blank,
-            )
+            dv = DataValidation(type="whole", operator="between", formula1=min_value, formula2=max_value, allow_blank=allow_blank)
             dv.error = f"Value must be between {min_value} and {max_value}"
         elif min_value is not None:
-            dv = DataValidation(
-                type="whole", operator="greaterThanOrEqual",
-                formula1=min_value, allow_blank=allow_blank,
-            )
+            dv = DataValidation(type="whole", operator="greaterThanOrEqual", formula1=min_value, allow_blank=allow_blank)
             dv.error = f"Value must be >= {min_value}"
         elif max_value is not None:
             dv = DataValidation(type="whole", operator="lessThanOrEqual", formula1=max_value, allow_blank=allow_blank)
@@ -1032,7 +1027,7 @@ class BaseExporter(ABC):
         dv.errorTitle = "Invalid Number"
         dv.promptTitle = "Enter Number"
         dv.prompt = dv.error
-
+        
         self.sheet.add_data_validation(dv)
         dv.add(cell_range)
         self.logger.info("Added number validation to %s", cell_range)
@@ -1056,11 +1051,7 @@ class BaseExporter(ABC):
             return
 
         if min_date and max_date:
-            dv = DataValidation(
-                type="date", operator="between",
-                formula1=min_date, formula2=max_date,
-                allow_blank=allow_blank,
-            )
+            dv = DataValidation(type="date", operator="between", formula1=min_date, formula2=max_date, allow_blank=allow_blank)
             dv.error = f"Date must be between {min_date} and {max_date}"
         elif min_date:
             dv = DataValidation(type="date", operator="greaterThanOrEqual", formula1=min_date, allow_blank=allow_blank)
@@ -1074,7 +1065,7 @@ class BaseExporter(ABC):
         dv.errorTitle = "Invalid Date"
         dv.promptTitle = "Enter Date"
         dv.prompt = dv.error
-
+        
         self.sheet.add_data_validation(dv)
         dv.add(cell_range)
         self.logger.info("Added date validation to %s", cell_range)
@@ -1157,7 +1148,7 @@ class BaseExporter(ABC):
         if self.sheet is None:
             return
 
-        self.logger.info("Added sparkline approximation at column %d (rows %d-%d)",
+        self.logger.info("Added sparkline approximation at column %d (rows %d-%d)", 
                         sparkline_col, start_row, start_row + num_rows - 1)
         # Note: Full sparklines require Excel's native sparkline feature which openpyxl doesn't support
         # This is a placeholder for documentation
@@ -1192,8 +1183,8 @@ class BaseExporter(ABC):
         chart.width = width
         chart.height = height
 
-        data = Reference(self.sheet, range_string=values_range)  # type: ignore[call-overload]
-        cats = Reference(self.sheet, range_string=categories_range)  # type: ignore[call-overload]
+        data = Reference(self.sheet, range_string=values_range)
+        cats = Reference(self.sheet, range_string=categories_range)
 
         chart.add_data(data, titles_from_data=False)
         chart.set_categories(cats)
@@ -1228,8 +1219,8 @@ class BaseExporter(ABC):
         if self.workbook is None:
             self.create_workbook()
 
-        va_sheet = self.workbook.create_sheet(sheet_name)  # type: ignore[union-attr]
-
+        va_sheet = self.workbook.create_sheet(sheet_name)
+        
         # Headers
         headers = [category_col, "Actual", "Budget", "Variance", "Variance %"]
         for col_idx, header in enumerate(headers, start=1):
@@ -1252,11 +1243,11 @@ class BaseExporter(ABC):
             va_sheet.cell(row=row_num, column=1, value=row[category_col])
             va_sheet.cell(row=row_num, column=2, value=row["Actual"]).number_format = "#,##0.00"
             va_sheet.cell(row=row_num, column=3, value=row["Budget"]).number_format = "#,##0.00"
-
+            
             # Variance formula
             var_cell = va_sheet.cell(row=row_num, column=4, value=f"=B{row_num}-C{row_num}")
             var_cell.number_format = "#,##0.00"
-
+            
             # Variance % formula
             var_pct_cell = va_sheet.cell(row=row_num, column=5, value=f"=IF(C{row_num}=0,0,D{row_num}/C{row_num})")
             var_pct_cell.number_format = "0.0%"
@@ -1317,7 +1308,7 @@ class BaseExporter(ABC):
         if self.workbook is None:
             self.create_workbook()
 
-        pivot_sheet = self.workbook.create_sheet(sheet_name)  # type: ignore[union-attr]
+        pivot_sheet = self.workbook.create_sheet(sheet_name)
 
         # Create pivot table using pandas
         pivot = pd.pivot_table(data, index=rows, values=values, aggfunc=aggfunc, fill_value=0)
@@ -1327,7 +1318,7 @@ class BaseExporter(ABC):
         for r_idx, row in enumerate(dataframe_to_rows(pivot, index=False, header=True), 1):
             for c_idx, value in enumerate(row, 1):
                 cell = pivot_sheet.cell(row=r_idx, column=c_idx, value=value)
-
+                
                 # Header row styling
                 if r_idx == 1:
                     cell.font = Font(bold=True, color="FFFFFF")
@@ -1354,7 +1345,7 @@ class BaseExporter(ABC):
 
             chart.add_data(data_ref, titles_from_data=True)
             chart.set_categories(cats_ref)
-
+            
             chart_pos = get_column_letter(len(pivot.columns) + 2) + "2"
             pivot_sheet.add_chart(chart, chart_pos)
 
@@ -1374,7 +1365,7 @@ class BaseExporter(ABC):
         """
         if self.workbook is None:
             self.create_workbook()
-        ws = self.workbook.create_sheet(name, 0)  # type: ignore[union-attr]
+        ws = self.workbook.create_sheet(name, 0)
         ws.sheet_view.showGridLines = False
         return ws
 

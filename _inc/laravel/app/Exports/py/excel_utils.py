@@ -5,15 +5,17 @@ Excel Utilities Module — Charts, Formulas, Conditional Formatting, Dashboards.
 Professional spreadsheet utilities for accountants and managers.
 Provides reusable components for dynamic Excel reports.
 """
-from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from openpyxl.chart import BarChart, LineChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
+from openpyxl.chart.series import DataPoint
 from openpyxl.formatting.rule import (
     CellIsRule,
     ColorScaleRule,
     DataBarRule,
+    FormulaRule,
     IconSetRule,
 )
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -137,7 +139,7 @@ def positive_negative_rule(
     end_cell: str,
     positive_color: str = COLORS.SUCCESS,
     negative_color: str = COLORS.DANGER,
-) -> Tuple[CellIsRule, CellIsRule]:  # type: ignore[valid-type]
+) -> Tuple[CellIsRule, CellIsRule]:
     """Create rules for positive/negative value formatting.
 
     Args:
@@ -160,7 +162,7 @@ def data_bar_rule(
     color: str = COLORS.ACCENT,
     min_type: str = "min",
     max_type: str = "max",
-) -> DataBarRule:  # type: ignore[valid-type]
+) -> DataBarRule:
     """Create a data bar rule for visual comparison.
 
     Args:
@@ -185,7 +187,7 @@ def color_scale_rule(
     start_color: str = COLORS.DANGER,
     mid_color: str = COLORS.WARNING,
     end_color: str = COLORS.SUCCESS,
-) -> ColorScaleRule:  # type: ignore[valid-type]
+) -> ColorScaleRule:
     """Create a 3-color scale rule.
 
     Args:
@@ -207,7 +209,7 @@ def color_scale_rule(
     )
 
 
-def icon_set_rule(icon_style: str = "3Arrows") -> IconSetRule:  # type: ignore[valid-type]
+def icon_set_rule(icon_style: str = "3Arrows") -> IconSetRule:
     """Create icon set rule for trend indicators.
 
     Args:
@@ -260,7 +262,7 @@ def create_bar_chart(
     chart.grouping = "clustered"
     chart.title = title
     chart.style = style
-    chart.width = width  # type: ignore[assignment]
+    chart.width = width
     chart.height = height
     if x_title:
         chart.x_axis.title = x_title
@@ -306,7 +308,7 @@ def create_line_chart(
     chart = LineChart()
     chart.title = title
     chart.style = style
-    chart.width = width  # type: ignore[assignment]
+    chart.width = width
     chart.height = height
     if x_title:
         chart.x_axis.title = x_title
@@ -317,7 +319,7 @@ def create_line_chart(
         chart.set_categories(categories_ref)
     for series in chart.series:
         series.smooth = smooth
-    chart.legend.position = "b"  # type: ignore[union-attr]
+    chart.legend.position = "b"
     return chart
 
 
@@ -347,7 +349,7 @@ def create_pie_chart(
     chart = PieChart()
     chart.title = title
     chart.style = style
-    chart.width = width  # type: ignore[assignment]
+    chart.width = width
     chart.height = height
     chart.add_data(data_ref, titles_from_data=True)
     if categories_ref:
@@ -743,7 +745,7 @@ def create_named_range(
         The range string created.
     """
     range_str = f"'{ws.title}'!${col}${start_row}:${col}${end_row}"
-    ws.parent.defined_names.add(f"{name}={range_str}")  # type: ignore[union-attr]
+    ws.parent.defined_names.add(f"{name}={range_str}")
     return range_str
 
 

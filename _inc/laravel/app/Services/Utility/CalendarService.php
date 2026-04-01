@@ -4,104 +4,81 @@ declare(strict_types=1);
 
 namespace App\Services\Utility;
 
-use App\Contracts\CalendarGateway;
 use App\Models\Utility;
-use App\Services\Calendar\{GoogleCalendarGateway, MockCalendarGateway};
+use Illuminate\Support\Facades\{Config, DB, Log};
+use Spatie\GoogleCalendar\Event as GoogleEvent;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\{App, Log};
 
 /**
  * CalendarService — extracted from Utility.php
  *
- * Handles Google Calendar API interactions via a CalendarGateway abstraction:
+ * Handles Google Calendar API interactions:
  * - Configuration from DB settings
- * - Event creation
+ * - Event creation via Spatie\GoogleCalendar
  * - Event retrieval with color-based filtering
  *
- * Uses dependency injection via Laravel's service container. By default binds
- * GoogleCalendarGateway in production and MockCalendarGateway in testing.
- *
  * @see \App\Models\Utility — delegates to this service
- * @see \App\Contracts\CalendarGateway — abstraction interface
- * @see \App\Services\Calendar\GoogleCalendarGateway — production implementation
- * @see \App\Services\Calendar\MockCalendarGateway — test mock implementation
  *
- * ! TODO: Register CalendarGateway binding in AppServiceProvider for explicit
- *   environment-based resolution. Currently uses runtime fallback.
- * ! TODO: Fix typo in DB settings key: 'google_clender_id' → 'google_calendar_id'
- *   (requires data migration for existing production installations)
+ * TODO: Replace live Google API calls with a testable abstraction layer.
+ *       Consider creating a CalendarGateway interface with GoogleCalendarGateway
+ *       and MockCalendarGateway implementations for proper DI-based testing.
+ * TODO: Fix typo in DB settings key: 'google_clender_id' → 'google_calendar_id'
+ *       (requires data migration for existing production installations)
  */
 class CalendarService
 {
     /**
-     * Resolve the CalendarGateway implementation from the container,
-     * falling back to a sensible default based on environment.
-     *
-     * ! TODO: Move this binding to AppServiceProvider::register() for cleaner DI:
-     *   $this->app->bind(CalendarGateway::class, function ($app) {
-     *       return $app->environment('testing')
-     *           ? new MockCalendarGateway()
-     *           : new GoogleCalendarGateway();
-     *   });
-     */
-    public static function gateway(): CalendarGateway
-    {
-        if (App::bound(CalendarGateway::class)) {
-            return App::make(CalendarGateway::class);
-        }
-
-        // Fallback: use mock in testing, real gateway in production
-        if (App::environment('testing')) {
-            return new MockCalendarGateway();
-        }
-
-        return new GoogleCalendarGateway();
-    }
-
-    /**
-     * Inject a specific gateway instance (useful in tests).
-     *
-     * Usage in tests:
-     * ```php
-     * $mock = new MockCalendarGateway([
-     *     ['summary' => 'Test Event', 'startDateTime' => '...', 'endDateTime' => '...', 'colorId' => '1'],
-     * ]);
-     * CalendarService::setGateway($mock);
-     * ```
-     */
-    public static function setGateway(CalendarGateway $gateway): void
-    {
-        App::instance(CalendarGateway::class, $gateway);
-    }
-
-    /**
      * Configure google-calendar package from DB settings.
      *
-     * @see CalendarGateway::configure()
+     * Reads the service account credentials file path and calendar ID
+     * from the `settings` table and pushes them into Laravel config.
+     *
+     * TODO: The settings key uses 'google_clender_id' (typo). A migration
+     *       should rename it to 'google_calendar_id' and update this code.
      */
     public static function configure(): void
     {
-        self::gateway()->configure();
+        $settings = Utility::settings();
+        $path     = storage_path($settings['google_calendar_json_file'] ?? '');
+
+        if (!file_exists($path)) {
+            Log::warning(self::class . '::configure — credentials file not found at ' . $path);
+            return;
+        }
+
+        Config::set([
+            'google-calendar.default_auth_profile'                           => 'service_account',
+            'google-calendar.auth_profiles.service_account.credentials_json' => $path,
+            'google-calendar.auth_profiles.oauth.credentials_json'           => $path,
+            'google-calendar.auth_profiles.oauth.token_json'                 => $path,
+            'google-calendar.calendar_id'                                    => $settings['google_clender_id'] ?? '',
+            'google-calendar.user_to_impersonate'                            => '',
+        ]);
     }
 
     /**
-     * Add a calendar event via the configured gateway.
+     * Add a calendar event via Google Calendar API.
      *
-     * ! TODO: The return value from gateway->createEvent() is currently
-     *   discarded. Consider returning it so callers can get the event ID.
+     * TODO: This method calls `GoogleEvent::save()` directly — it should
+     *       be refactored to use a CalendarGateway interface so the API
+     *       call can be mocked without overloading the class.
      *
      * @param object $request Expected to have: title, start_date, end_date
      * @param string $type    Event type for color mapping (e.g. 'event', 'task')
      */
     public static function addEvent(object $request, string $type): void
     {
+        self::configure();
+
         try {
-            self::gateway()->createEvent(
-                name:    $request->title,
-                start:   Carbon::parse($request->start_date),
-                end:     Carbon::parse($request->end_date),
-                colorId: Utility::colorCodeData($type),
-            );
+            DB::transaction(function () use ($request, $type) {
+                $event                = new GoogleEvent();
+                $event->name          = $request->title;
+                $event->startDateTime = Carbon::parse($request->start_date);
+                $event->endDateTime   = Carbon::parse($request->end_date);
+                $event->colorId       = Utility::colorCodeData($type);
+                $event->save();
+            });
         } catch (\Throwable $e) {
             Log::error(self::class . '::addEvent — failed adding calendar event: ' . $e->getMessage());
         }
@@ -110,19 +87,24 @@ class CalendarService
     /**
      * Retrieve calendar events filtered by color code for the given type.
      *
+     * TODO: GoogleEvent::get() makes a live HTTP call to Google APIs.
+     *       This should be abstracted behind a CalendarGateway interface.
+     *
      * @param string $type Event type for color filtering
      * @return list<array{id: string, title: string, start: string, end: string, className: string, allDay: bool}>
      */
     public static function getEvents(string $type): array
     {
+        self::configure();
+
         try {
-            $events = self::gateway()->getEvents();
+            $events = GoogleEvent::get();
         } catch (\Throwable $e) {
             Log::error(self::class . '::getEvents — failed fetching calendar events: ' . $e->getMessage());
             return [];
         }
 
-        if ($events->isEmpty()) {
+        if ($events === null) {
             return [];
         }
 

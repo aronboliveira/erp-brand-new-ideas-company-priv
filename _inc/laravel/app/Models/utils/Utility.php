@@ -3,51 +3,111 @@
 namespace App\Models;
 
 use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    BillsConstants as BC,
     ChartsConstants as CTC,
+    CompaniesConstants as CPC,
     DatabaseConstants as DC,
     EmailsConstants as EC,
     FormsConstants as FC,
+    LangsConstants as LC,
     PermissionsConstants as PMC,
     ProjectsConstants as PJC,
     SettingsConstants as SC,
-    UsersConstants as UC,
+    UsersConstants as UC
 };
-use App\Helpers\SafeConsoleOutput;
+use App\Enums\{BrazilState, UserType};
+use App\Helpers\ErrorHandler;
+use App\Mail\CommonEmailTemplate;
 use App\Models\{
-    Budget,
-    Plan,
+    Branch,
+    Client,
+    Department,
+    Designation,
+    Employee,
+    Permission,
+    Role,
     Tax,
-    User,
-};
-use App\Services\Utility\{
-    AccountingService,
-    CalendarService,
-    FileStorageService,
-    FinanceBillingService,
-    LocalizationService,
-    ModelLookupService,
-    NotificationService,
-    SettingsService,
-    TenantSetupService,
+    User
 };
 use App\Traits\ChecksLogin;
 use Carbon\{Carbon, CarbonPeriod};
 use Faker\Factory as Faker;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\{RedirectResponse, Request};
+use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\{Collection, Str};
 use Illuminate\Support\Facades\{
     App,
+    Artisan,
     Auth,
+    Cache,
     Config,
+    DB,
+    File,
     Http,
+    Mail,
     Lang,
     Log,
     Route,
+    Schema,
+    Storage,
+    Validator
 };
-use Symfony\Component\HttpKernel\Exception\{MethodNotAllowedHttpException, NotFoundHttpException};
+use App\Helpers\SafeConsoleOutput;
+use App\Services\Utility\AccountingService;
+use App\Services\Utility\CalendarService;
+use App\Services\Utility\FileStorageService;
+use App\Services\Utility\FinanceBillingService;
+use App\Services\Utility\LocalizationService;
+use App\Services\Utility\ModelLookupService;
+use App\Services\Utility\NotificationService;
+use App\Services\Utility\TenantSetupService;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Twilio\Rest\Client as TwilioClient;
+use Illuminate\Filesystem\FilesystemAdapter;
+
+// Same-namespace explicit imports (silences PHP Namespace Resolver)
+use App\Models\BankAccount;
+use App\Models\BillAccount;
+use App\Models\BillPayment;
+use App\Models\BillProduct;
+use App\Models\Budget;
+use App\Models\BugStatus;
+use App\Models\Customer;
+use App\Models\EmailTemplate;
+use App\Models\EmailTemplateLang;
+use App\Models\Indicator;
+use App\Models\InvoicePayment;
+use App\Models\InvoiceProduct;
+use App\Models\JobStage;
+use App\Models\JournalItem;
+use App\Models\Label;
+use App\Models\Language;
+use App\Models\LeadStage;
+use App\Models\NotificationTemplate;
+use App\Models\NotificationTemplateLang;
+use App\Models\Payment;
+use App\Models\Payslip;
+use App\Models\PayslipType;
+use App\Models\Pipeline;
+use App\Models\Plan;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\ProductService;
+use App\Models\ProductServiceCategory;
+use App\Models\Project;
+use App\Models\Revenue;
+use App\Models\Source;
+use App\Models\Stage;
+use App\Models\StockReport;
+use App\Models\TaskStage;
+use App\Models\UserEmailTemplate;
+use App\Models\Vendor;
+use App\Models\WarehouseProduct;
+use App\Models\WebhookSettings;
 
 class Utility extends Model
 {
@@ -312,7 +372,10 @@ class Utility extends Model
         $output->writeln("## [{$tag}] Getting global settings");
         if (!self::$getSettings) {
             try {
-                $data = SettingsService::fetchGlobalSettings();
+                $data = DB::table(DC::TABLE_SETTINGS)
+                    ->where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
+                    ->pluck('value', 'name')
+                    ->toArray();
                 if (empty($data)) {
                     Log::warning("{$tag} no default settings found; using system default");
                     $data = SC::DFT_SETTINGS;
@@ -386,10 +449,16 @@ class Utility extends Model
         $output->writeln("## [{$tag}] Fetching settings for user ID {$id}");
         if (!isset(self::$getSettingsId[$id])) {
             try {
-                $data = SettingsService::fetchSettingsForUser($id);
+                $data = DB::table(DC::TABLE_SETTINGS)
+                    ->where(DC::COL_TABLE_CREATOR, $id)
+                    ->pluck('value', 'name')
+                    ->toArray();
                 if (empty($data)) {
                     Log::info("{$tag} no settings for user {$id}, falling back to user defaults");
-                    $data = SettingsService::fetchGlobalSettings();
+                    $data = DB::table(DC::TABLE_SETTINGS)
+                        ->where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
+                        ->pluck('value', 'name')
+                        ->toArray();
                 }
                 if (empty($data)) {
                     Log::notice("{$tag} no default settings found; using system default");
@@ -952,10 +1021,13 @@ class Utility extends Model
         return TenantSetupService::employeePayslipDetail($employeeId, $month);
     }
 
-    /** @see \App\Services\Utility\SettingsService::getCompanyData() */
     public static function companyData(string|int $companyId, string $key): string
     {
-        return SettingsService::getCompanyData($companyId, $key);
+        $row = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, $companyId)
+            ->where('name', $key)
+            ->first();
+        return $row->value ?? '';
     }
 
     /** @see \App\Services\Utility\TenantSetupService::addNewData() */
@@ -964,19 +1036,35 @@ class Utility extends Model
         TenantSetupService::addNewData();
     }
 
-    /** @see \App\Services\Utility\SettingsService::getAdminPaymentSettings() */
     public static function getAdminPaymentSetting(): array
     {
-        return SettingsService::getAdminPaymentSettings(Auth::user());
+        try {
+            $query   = DB::table('admin_payment_settings');
+            $user = Auth::user();
+            if (Auth::check())
+                $query->where(DC::COL_TABLE_CREATOR, $user?->{UC::COL_TP} === PMC::SA ? $user->id : DC::DEFAULT_UUID);
+            $rows    = $query->get();
+            $settings = [];
+            foreach ($rows as $row)
+                $settings[$row->name] = $row->value;
+            return $settings;
+        } catch (\Throwable $e) {
+            Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed fetching admin payment settings: {$e->getMessage()}");
+            return [];
+        }
     }
 
-    /** @see \App\Services\Utility\SettingsService::getCompanyPaymentSettings() */
     public static function getCompanyPaymentSetting(string|int $userId): array
     {
-        return SettingsService::getCompanyPaymentSettings($userId);
+        $rows    = DB::table('company_payment_settings')
+            ->where(DC::COL_TABLE_CREATOR, $userId)
+            ->get();
+        $settings = [];
+        foreach ($rows as $row)
+            $settings[$row->name] = $row->value;
+        return $settings;
     }
 
-    /** @see \App\Services\Utility\SettingsService::getCompanyPaymentForUser() */
     public static function getCompanyPayment(): array|RedirectResponse
     {
         if (
@@ -984,7 +1072,15 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        return SettingsService::getCompanyPaymentForUser($userOrRedirect);
+        $user = $userOrRedirect;
+        $query   = DB::table('company_payment_settings');
+        if (Auth::check())
+            $query->where(DC::COL_TABLE_CREATOR, $user?->creatorId());
+        $rows    = $query->get();
+        $settings = [];
+        foreach ($rows as $row)
+            $settings[$row->name] = $row->value;
+        return $settings;
     }
 
     public static function errorRes(string $msg = "", array $args = []): array
@@ -1097,7 +1193,6 @@ class Utility extends Model
         FinanceBillingService::addProductStock($productId, $quantity, $type, $description, $typeId);
     }
 
-    /** @see \App\Services\Utility\SettingsService::getThemeSettings() */
     public static function g(): array|RedirectResponse
     {
         if (
@@ -1105,10 +1200,25 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        return SettingsService::getThemeSettings($userOrRedirect);
+        $user = $userOrRedirect;
+        $query = DB::table(DC::TABLE_SETTINGS);
+        if (Auth::check()) {
+            $query = $query->where(UC::COL_USER_ID, $user?->creatorId());
+            $rows = $query->get();
+            if ($rows->isEmpty())
+                $rows = DB::table(DC::TABLE_SETTINGS)->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
+        } else
+            $rows = $query->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
+        $defaults = [
+            SC::CST_DRK => 'off',
+            SC::CST_BG   => 'on',
+            SC::CLR           => '',
+        ];
+        foreach ($rows as $row)
+            $defaults[$row->name] = $row->value;
+        return $defaults;
     }
 
-    /** @see \App\Services\Utility\SettingsService::getColorSettings() */
     public static function colorset(): array
     {
         $default = [
@@ -1117,19 +1227,57 @@ class Utility extends Model
         $userOrRedirect = self::_checkLogin(haltRedirect: true);
         if (!$userOrRedirect instanceof User)
             return $default;
-        return SettingsService::getColorSettings($userOrRedirect);
+        $user  = $userOrRedirect;
+        $role  = Auth::user()[UC::COL_TP];
+        $userId = $user?->id;
+        $creator = $user?->creatorId();
+        $qb = DB::table(DC::TABLE_SETTINGS)
+            ->select('name', 'value');
+        if (in_array($role, [
+            PMC::SA,
+            PMC::ADM,
+            PMC::CPN,
+        ], true))
+            $rows = $qb
+                ->where('user_id', $userId)
+                ->orWhere(DC::COL_TABLE_CREATOR, $creator)
+                ->get();
+        else
+            $rows = $qb
+                ->where('user_id', $userId)
+                ->get();
+        $fetched = $rows->pluck('value', 'name')->toArray();
+        $colorSettings = $default + $fetched;
+        if (empty($colorSettings[SC::CST_DRK]))
+            $colorSettings[SC::CST_DRK] = 'off';
+        return $colorSettings;
     }
 
-    /** @see \App\Services\Utility\SettingsService::getSeoSettings() */
     public static function getSeoSetting(): array
     {
-        return SettingsService::getSeoSettings();
+        $rows = DB::table(DC::TABLE_SETTINGS)
+            ->whereIn('name', [
+                SC::MT_TTL_K,
+                SC::MT_DSC_K,
+                SC::MT_IMG_K
+            ])
+            ->get();
+        $settings = [];
+        foreach ($rows as $row)
+            $settings[$row->name] = $row->value;
+        return $settings;
     }
 
-    /** @see \App\Services\Utility\SettingsService::getSuperadminLogo() */
     public static function getSuperadminLogo(): string
     {
-        return SettingsService::getSuperadminLogo();
+        $settings = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, Auth::user()->id)
+            ->pluck('value', 'name')
+            ->toArray();
+        $mode = $settings[SC::CST_DRK] ?? 'off';
+        if ($mode === 'on')
+            return SC::CPN_LG_LT_DEF;
+        return SC::CPN_LG_DK_DEF;
     }
 
     public static function getLogo(string $settingKey = '', string $fallbackKey = '', int|string|null $creatorId = null): string
@@ -1145,10 +1293,18 @@ class Utility extends Model
             : self::getValByName('dark_logo');
     }
 
-    /** @see \App\Services\Utility\SettingsService::getGdprSettings() */
     public static function getGdpr(): array
     {
-        return SettingsService::getGdprSettings();
+        $rows = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, DC::DEFAULT_UUID)
+            ->get();
+        $defaults = [
+            'gdpr_cookie' => '',
+            'cookie_text' => '',
+        ];
+        foreach ($rows as $row)
+            $defaults[$row->name] = $row->value;
+        return $defaults;
     }
 
     public static function getValByName1(string $key): string
@@ -1192,10 +1348,15 @@ class Utility extends Model
         return FileStorageService::getStorageSetting();
     }
 
-    /** @see \App\Services\Utility\ModelLookupService::getTargetRating() */
     public static function getTargetRating(int $designationId, int $competencyCount): float
     {
-        return ModelLookupService::getTargetRating($designationId, $competencyCount);
+        $indicator = Indicator::where('designation', $designationId)->first();
+        if ($indicator && !empty($indicator->rating) && $competencyCount > 0) {
+            $ratingArray = json_decode($indicator->rating, true) ?: [];
+            $starSum = array_sum($ratingArray);
+            return $starSum / $competencyCount;
+        }
+        return 0.0;
     }
 
     public static function colorCodeData(string $type): int
@@ -1255,10 +1416,34 @@ class Utility extends Model
         return NotificationService::webhookCall($url, $parameter, $method);
     }
 
-    /** @see \App\Services\Utility\SettingsService::getCookieSettings() */
     public static function getCookieSetting(): array
     {
-        return SettingsService::getCookieSettings();
+        $rows = DB::table(DC::TABLE_SETTINGS)
+            ->whereIn('name', [
+                'enable_cookie',
+                'cookie_logging',
+                'cookie_title',
+                'cookie_description',
+                'necessary_cookies',
+                'strictly_cookie_title',
+                'strictly_cookie_description',
+                'more_information_description',
+                'contactus_url'
+            ])->get();
+        $defaults = [
+            'enable_cookie'              => 'off',
+            'necessary_cookies'          => 'on',
+            'cookie_logging'             => 'on',
+            'cookie_title'               => '',
+            'cookie_description'         => '',
+            'strictly_cookie_title'      => '',
+            'strictly_cookie_description' => '',
+            'more_information_description' => '',
+            'contactus_url'              => '#',
+        ];
+        foreach ($rows as $row)
+            $defaults[$row->name] = $row->value;
+        return $defaults;
     }
 
     public static function getDeviceType(string $userAgent): string
@@ -1351,13 +1536,15 @@ class Utility extends Model
         LocalizationService::languageCreate($createdBy);
     }
 
-    /** @see \App\Services\Utility\SettingsService::getLangSettings() */
     public static function langSetting(): array
     {
-        return SettingsService::getLangSettings();
+        $rows = DB::table(DC::TABLE_SETTINGS)->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
+        $settings = [];
+        foreach ($rows as $row)
+            $settings[$row->name] = $row->value;
+        return $settings;
     }
 
-    /** @see \App\Services\Utility\ModelLookupService::getChatGPTPlan() */
     public static function getChatGPTSettings(): Plan|RedirectResponse|null
     {
         if (
@@ -1365,10 +1552,12 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        return ModelLookupService::getChatGPTPlan($userOrRedirect);
+        $user = User::find($userOrRedirect->creatorId());
+        if (!$user)
+            return null;
+        return Plan::find($user?->plan);
     }
 
-    /** @see AccountingService::getAccountBalance() */
     public static function getAccountBalance(string|int $accountId, ?string $startDate = null, ?string $endDate = null): float|RedirectResponse
     {
         if (
@@ -1376,10 +1565,49 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        return AccountingService::getAccountBalance($accountId, $startDate, $endDate, $userOrRedirect);
+        $user = $userOrRedirect;
+        $start = $startDate ?: date('Y-01-01');
+        $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
+        $invoiceProductIds = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
+        $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProductIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->sum(DB::raw('price * quantity'));
+        $accountIds = BankAccount::where('chart_account_id', $accountId)
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+            ->pluck('id');
+        $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->sum('amount');
+        $revenueAmount = Revenue::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->sum('amount');
+        $billProductIds = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
+        $billProductAmount = BillProduct::whereIn('product_id', $billProductIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->sum('total');
+        $billAmount = BillAccount::where('chart_account_id', $accountId)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->sum('price');
+        $billPaymentAmount = BillPayment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->sum('amount');
+        $paymentAmount = Payment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->sum('amount');
+        $journalCredit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
+            ->where('journal_items.account', $accountId)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->sum('credit');
+        $journalDebit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
+            ->where('journal_items.account', $accountId)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->sum('debit');
+        return ($invoiceAmount + $invoicePaymentAmount + $revenueAmount + $journalCredit)
+            - ($journalDebit + $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount);
     }
 
-    /** @see AccountingService::getAccountData() */
     public static function getAccountData(string|int $accountId, ?string $startDate = null, ?string $endDate = null): array|RedirectResponse
     {
         if (
@@ -1387,7 +1615,50 @@ class Utility extends Model
             instanceof RedirectResponse
         )
             return $userOrRedirect;
-        return AccountingService::getAccountData($accountId, $startDate, $endDate, $userOrRedirect);
+        $user = $userOrRedirect;
+        $start = $startDate ?: date('Y-01-01');
+        $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
+        $invoiceProducts = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
+        $invoice = InvoiceProduct::whereIn('product_id', $invoiceProducts)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->get();
+        $accountIds = BankAccount::where('chart_account_id', $accountId)
+            ->pluck('id');
+        $invoicePayment = InvoicePayment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->get();
+        $revenue = Revenue::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->get();
+        $billProducts = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
+        $bill = BillProduct::whereIn('product_id', $billProducts)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->get();
+        $billData = BillAccount::where('chart_account_id', $accountId)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->get();
+        $billPayment = BillPayment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->get();
+        $payment = Payment::whereIn('account_id', $accountIds)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
+            ->get();
+        $journalItems = JournalItem::select(DC::TABLE_JOURNAL_ENTRIES . '.journal_id', DC::TABLE_JOURNAL_ENTRIES . '.date as transaction_date', 'journal_items.*')
+            ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
+            ->where('journal_items.account', $accountId)
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->get();
+        return [
+            'invoice'        => $invoice,
+            'invoicepayment' => $invoicePayment,
+            'revenue'        => $revenue,
+            'bill'           => $bill,
+            'billdata'       => $billData,
+            'billpayment'    => $billPayment,
+            'payment'        => $payment,
+            'journalItem'    => $journalItems,
+        ];
     }
 
     /** @see AccountingService::getBalanceSheetCredit() */

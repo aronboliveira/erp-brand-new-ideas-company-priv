@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC};
-use App\Enums\{BillStatus, ProposalStatus};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Enums\{BillStatus, ProposalStatus, UserType};
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, StoresManyRefJson, UsesUuids};
 use Illuminate\Database\Eloquent\{Builder, Model};
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -879,7 +879,7 @@ class Proposal extends Model
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn($p): float => (float) Utility::totalTaxRate($p->tax) / 100.0 // @phpstan-ignore property.notFound
+            fn($p): float => (float) \Utility::totalTaxRate($p->tax) / 100.0 // @phpstan-ignore property.notFound
                 * ((float) $p->price * (float) $p->quantity - (float) $p->discount) // @phpstan-ignore property.notFound, property.notFound, property.notFound
         );
     }
@@ -1027,8 +1027,8 @@ class Proposal extends Model
 
         $ids = [];
         foreach ($items as $item) {
-            if (is_string($item) && Utility::looksLikeUuid($item)) $ids[] = $item;
-            elseif (is_array($item) && isset($item['id']) && Utility::looksLikeUuid((string) $item['id']))
+            if (is_string($item) && \Utility::looksLikeUuid($item)) $ids[] = $item;
+            elseif (is_array($item) && isset($item['id']) && \Utility::looksLikeUuid((string) $item['id']))
                 $ids[] = (string) $item['id'];
         }
 

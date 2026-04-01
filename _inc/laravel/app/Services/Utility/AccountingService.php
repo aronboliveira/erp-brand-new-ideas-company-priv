@@ -13,17 +13,20 @@ use App\Models\{
     ChartOfAccountType,
     ChartOfAccountSubType,
     BankAccount,
-    BillAccount,
-    BillPayment,
-    BillProduct,
     InvoicePayment,
     InvoiceProduct,
+    JournalEntry,
     JournalItem,
-    Payment,
     ProductService,
     Revenue,
     User,
 };
+use App\Models\Bills\{
+    BillAccount,
+    BillPayment,
+    BillProduct,
+};
+use App\Models\Payments\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{Auth, DB, Log};
@@ -140,9 +143,8 @@ class AccountingService
             foreach ($chartData as $acct) {
                 try {
                     DB::transaction(function () use ($acct, $userId) {
-                        $typeName = $acct[CTC::COL_TP];
                         $type = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $userId)
-                            ->where(CTC::COL_NM, $typeName)
+                            ->where(CTC::COL_NM, $acct[CTC::COL_TP])
                             ->firstOrFail();
 
                         $sub = ChartOfAccountSubType::where(CTC::COL_TP, $type->id)
@@ -280,8 +282,7 @@ class AccountingService
             ->groupBy('account')
             ->get()->toArray();
 
-        // setEagerLoads([]) prevents $with eager-loads from conflicting with custom select() columns
-        $invoice = InvoiceProduct::query()->setEagerLoads([])->select(
+        $invoice = InvoiceProduct::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('0 as totalDebit'), DB::raw('sum(price * invoice_products.quantity) as totalCredit')
         )
@@ -293,7 +294,7 @@ class AccountingService
             ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chart_account_id')
             ->get()->toArray();
 
-        $invoicePayment = InvoicePayment::query()->setEagerLoads([])->select(
+        $invoicePayment = InvoicePayment::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'), DB::raw('0 as totalCredit')
         )
@@ -305,7 +306,7 @@ class AccountingService
             ->groupBy('account_id')
             ->get()->toArray();
 
-        $revenue = Revenue::query()->setEagerLoads([])->select(
+        $revenue = Revenue::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('0 as totalDebit'), DB::raw('sum(amount) as totalCredit')
         )
@@ -317,7 +318,7 @@ class AccountingService
             ->groupBy('chart_account_id')
             ->get()->toArray();
 
-        $bill = BillProduct::query()->setEagerLoads([])->select(
+        $bill = BillProduct::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('sum(bill_products.total) as totalDebit'), DB::raw('0 as totalCredit')
         )
@@ -340,7 +341,7 @@ class AccountingService
             ->groupBy('chart_account_id')
             ->get()->toArray();
 
-        $billPayment = BillPayment::query()->setEagerLoads([])->select(
+        $billPayment = BillPayment::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'), DB::raw('0 as totalCredit')
         )
@@ -352,7 +353,7 @@ class AccountingService
             ->groupBy('account_id')
             ->get()->toArray();
 
-        $payments = Payment::query()->setEagerLoads([])->select(
+        $payments = Payment::select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'), DB::raw('0 as totalCredit')
         )
@@ -372,128 +373,5 @@ class AccountingService
         }
 
         return array_merge($invoice, $journalItem, $revenue, $bill, $billAccount, $payments, $invoicePayment);
-    }
-
-    /**
-     * Calculate the net account balance across invoices, payments, revenue,
-     * bills, journal entries, etc. for a given chart-of-account.
-     */
-    public static function getAccountBalance(
-        string|int $accountId,
-        ?string    $startDate,
-        ?string    $endDate,
-        User       $user
-    ): float {
-        $start = $startDate ?: date('Y-01-01');
-        $end   = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
-        $creatorId = $user->creatorId();
-
-        $invoiceProductIds = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
-        $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProductIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum(DB::raw('price * quantity'));
-
-        $accountIds = BankAccount::where('chart_account_id', $accountId)
-            ->where(DC::COL_TABLE_CREATOR, $creatorId)
-            ->pluck('id');
-
-        $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        $revenueAmount = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-
-        $billProductIds = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
-        $billProductAmount = BillProduct::whereIn('product_id', $billProductIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum('total');
-        $billAmount = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->sum('price');
-        $billPaymentAmount = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-        $paymentAmount = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->sum('amount');
-
-        $journalCredit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
-            ->sum('credit');
-        $journalDebit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
-            ->sum('debit');
-
-        return ($invoiceAmount + $invoicePaymentAmount + $revenueAmount + $journalCredit)
-            - ($journalDebit + $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount);
-    }
-
-    /**
-     * Retrieve detailed transaction data for a given chart-of-account
-     * across invoices, payments, revenue, bills, and journal entries.
-     */
-    public static function getAccountData(
-        string|int $accountId,
-        ?string    $startDate,
-        ?string    $endDate,
-        User       $user
-    ): array {
-        $start = $startDate ?: date('Y-01-01');
-        $end   = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
-        $creatorId = $user->creatorId();
-
-        $invoiceProducts = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
-        $invoice = InvoiceProduct::whereIn('product_id', $invoiceProducts)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->get();
-
-        $accountIds = BankAccount::where('chart_account_id', $accountId)->pluck('id');
-        $invoicePayment = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->get();
-        $revenue = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->get();
-
-        $billProducts = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
-        $bill = BillProduct::whereIn('product_id', $billProducts)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->get();
-        $billData = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
-            ->get();
-        $billPayment = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->get();
-        $payment = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
-            ->get();
-
-        $journalItems = JournalItem::select(
-            DC::TABLE_JOURNAL_ENTRIES . '.journal_id',
-            DC::TABLE_JOURNAL_ENTRIES . '.date as transaction_date',
-            'journal_items.*'
-        )
-            ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
-            ->get();
-
-        return [
-            'invoice'        => $invoice,
-            'invoicepayment' => $invoicePayment,
-            'revenue'        => $revenue,
-            'bill'           => $bill,
-            'billdata'       => $billData,
-            'billpayment'    => $billPayment,
-            'payment'        => $payment,
-            'journalItem'    => $journalItems,
-        ];
     }
 }

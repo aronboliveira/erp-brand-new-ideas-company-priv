@@ -11,14 +11,16 @@ Handles Excel export for profit and loss statement reports with:
 - Dynamic formulas for trend analysis
 """
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
-from base_exporter import BaseExporter, ExportStyle, safe_get
+from base_exporter import BaseExporter, ExportStyle, format_currency, safe_get
 
 
 class ProfitLossExporter(BaseExporter):
@@ -426,7 +428,7 @@ class ProfitLossExporter(BaseExporter):
 
         # Margin analysis section
         analysis_row = data_end + 3
-        self.data.get("currency_symbol", "")
+        currency_symbol = self.data.get("currency_symbol", "")
 
         self.sheet.cell(row=analysis_row, column=1, value="Key Metrics")
         self.sheet["A" + str(analysis_row)].font = Font(bold=True, size=12, color="1F4E79")
@@ -500,13 +502,13 @@ class ProfitLossExporter(BaseExporter):
             self.freeze_pane(f"A{data_start}")
             self._apply_row_styling(df)
             self._add_analysis_formulas(df)
-
+            
             # Add outlier detection for amounts
             if len(df) > 5:
                 data_end = data_start + len(df) - 1
                 amount_range = f"C{data_start}:C{data_end - 2}"  # Exclude totals
                 self.add_outlier_formatting(amount_range, std_threshold=2.0)
-
+            
             # Add statistical summary
             stats_row = data_start + len(df) + 15
             self.add_statistical_summary(
@@ -518,7 +520,7 @@ class ProfitLossExporter(BaseExporter):
 
             # Create dashboard
             self._create_dashboard()
-
+            
             # Create variance analysis sheet if budget data available
             budget_data = self.data.get("budget_data")
             if budget_data and len(budget_data) > 0:

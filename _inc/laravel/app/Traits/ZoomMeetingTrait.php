@@ -15,7 +15,7 @@ use Throwable;
  */
 trait ZoomMeetingTrait
 {
-    public string $jwt = '';
+    public string $jwt;
     public string $meeting_url = "https://api.zoom.us/v2/";
     private const BASE_URL            = 'https://api.zoom.us/v2/';
     private const OAUTH_TOKEN_ENDPOINT = 'https://zoom.us/oauth/token';

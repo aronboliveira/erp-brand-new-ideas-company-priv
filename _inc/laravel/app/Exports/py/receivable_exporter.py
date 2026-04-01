@@ -11,15 +11,16 @@ Handles Excel export for accounts receivable reports with:
 - Excel formulas for dynamic calculations
 """
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.chart.label import DataLabelList
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
-from base_exporter import BaseExporter, ExportStyle, safe_get
+from base_exporter import BaseExporter, ExportStyle, format_currency, safe_get
 
 
 class ReceivableExporter(BaseExporter):
@@ -75,6 +76,7 @@ class ReceivableExporter(BaseExporter):
         self._company_name = safe_get(self.data, "company_name", "Company")
         self._start_date = safe_get(self.data, "start_date", "")
         self._end_date = safe_get(self.data, "end_date", "")
+        currency_symbol: str = self.data.get("currency_symbol", "")
 
         rows: List[Dict[str, Any]] = self.data.get("rows", [])
         if not rows:
@@ -269,17 +271,8 @@ class ReceivableExporter(BaseExporter):
         metrics = [
             ("Total Customers", self._customer_count, "number"),
             ("Customers with Credits", self._customers_with_credit, "number"),
-            (
-                "Average Balance",
-                self._total_balance / self._customer_count if self._customer_count else 0,
-                "currency",
-            ),
-            (
-                "Credit Utilization",
-                self._total_credits / self._total_invoice_balance
-                if self._total_invoice_balance else 0,
-                "percent",
-            ),
+            ("Average Balance", self._total_balance / self._customer_count if self._customer_count else 0, "currency"),
+            ("Credit Utilization", self._total_credits / self._total_invoice_balance if self._total_invoice_balance else 0, "percent"),
         ]
 
         for i, (label, value, fmt) in enumerate(metrics):
@@ -320,11 +313,7 @@ class ReceivableExporter(BaseExporter):
 
         # KPI Cards
         avg_balance = self._total_balance / self._customer_count if self._customer_count else 0
-        collection_rate = (
-            (self._total_invoice_balance - self._total_balance)
-            / self._total_invoice_balance
-            if self._total_invoice_balance else 0
-        )
+        collection_rate = (self._total_invoice_balance - self._total_balance) / self._total_invoice_balance if self._total_invoice_balance else 0
 
         kpis = [
             ("Total Outstanding", self._total_balance, "currency", "down" if self._total_balance > 0 else None),
@@ -464,12 +453,12 @@ class ReceivableExporter(BaseExporter):
             self.freeze_pane(f"A{data_start}")
             self._apply_row_styling(df)
             self._add_analysis_section(df)
-
+            
             # Add outlier detection for balances
             if len(df) > 5:
                 data_end = data_start + len(df) - 2  # Exclude total row
                 self.add_outlier_formatting(f"D{data_start}:D{data_end}", std_threshold=2.5)
-
+            
             # Add statistical summary for balance column
             stats_row = data_start + len(df) + 10
             self.add_statistical_summary(
@@ -489,7 +478,7 @@ class ReceivableExporter(BaseExporter):
 
             # Create dashboard
             self._create_dashboard()
-
+            
             # Add waterfall chart for aging analysis
             if len(df) > 0 and "Balance" in df.columns:
                 # Create aging buckets data on dashboard sheet
@@ -497,7 +486,7 @@ class ReceivableExporter(BaseExporter):
                 aging_start_row = 25
                 dash.cell(row=aging_start_row, column=2, value="Aging Buckets")
                 dash[f"B{aging_start_row}"].font = Font(bold=True, size=12)
-
+                
                 # Add waterfall chart for cumulative aging
                 # Note: This creates a bar chart approximation
                 self.add_waterfall_chart(

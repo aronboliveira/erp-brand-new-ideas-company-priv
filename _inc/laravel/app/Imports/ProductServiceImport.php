@@ -3,16 +3,13 @@
 namespace App\Imports;
 
 use App\Models\ProductService;
-use App\Traits\DelegatesPythonImport;
 use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{Importable, ToModel};
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 
 final class ProductServiceImport implements ToModel
 {
-    use DelegatesPythonImport, Importable;
-
-    private const PYTHON_IMPORTER = 'ProductServiceImport';
+    use Importable;
 
     private ?int $headerStartIndex = null;
     private ?array $headers       = null;

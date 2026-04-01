@@ -420,39 +420,39 @@ class TenantSetupService
 
         foreach ($payslips as $p) {
             $basic = $p->gross_salary;
-            $allowances = json_decode($p->allowance ?? '[]', true) ?: [];
+            $allowances = json_decode($p->allowance, true) ?: [];
             foreach ($allowances as $a) {
                 $amount = $a['type'] === 'percentage'
                     ? ($a['amount'] * $basic / 100)
                     : $a['amount'];
                 $totalAllowance += $amount;
             }
-            $commissions = json_decode($p->commission ?? '[]', true) ?: [];
+            $commissions = json_decode($p->commission, true) ?: [];
             foreach ($commissions as $c) {
                 $amount = $c['type'] === 'percentage'
                     ? ($c['amount'] * $basic / 100)
                     : $c['amount'];
                 $totalCommission += $amount;
             }
-            $otherPays = json_decode($p->other_payment ?? '[]', true) ?: [];
+            $otherPays = json_decode($p->other_payment, true) ?: [];
             foreach ($otherPays as $o) {
                 $amount = $o['type'] === 'percentage'
                     ? ($o['amount'] * $basic / 100)
                     : $o['amount'];
                 $totalOtherPayment += $amount;
             }
-            $overtimes = json_decode($p->overtime ?? '[]', true) ?: [];
+            $overtimes = json_decode($p->overtime, true) ?: [];
             foreach ($overtimes as $o) {
                 $totalOvertime += ($o['number_of_days'] * $o['hours'] * $o['rate']);
             }
-            $loans = json_decode($p->loan ?? '[]', true) ?: [];
+            $loans = json_decode($p->loan, true) ?: [];
             foreach ($loans as $l) {
                 $amount = $l['type'] === 'percentage'
                     ? ($l['amount'] * $basic / 100)
                     : $l['amount'];
                 $totalLoan += $amount;
             }
-            $deductions = json_decode($p->saturation_deduction ?? '[]', true) ?: [];
+            $deductions = json_decode($p->saturation_deduction, true) ?: [];
             foreach ($deductions as $d) {
                 $amount = $d['type'] === 'percentage'
                     ? ($d['amount'] * $basic / 100)

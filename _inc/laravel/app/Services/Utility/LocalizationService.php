@@ -12,11 +12,12 @@ use App\Config\Constants\{
 };
 use App\Enums\BrazilState;
 use App\Helpers\SafeConsoleOutput;
-use App\Models\{Language, User, Utility};
+use App\Models\{Language, Utility};
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\{Collection, Str};
-use Illuminate\Support\Facades\{Cache, Log, Schema};
+use Illuminate\Support\Facades\{Cache, DB, Log, Schema};
+use App\Models\User;
 
 /**
  * LocalizationService — extracted from Utility.php
@@ -300,11 +301,11 @@ class LocalizationService
     public static function generateBrazilianPhone($mobile = true, $formatted = true): string
     {
         $areaCodes = BrazilState::DDD;
-        $areaCode = (int) $areaCodes[array_rand($areaCodes)];
+        $areaCode = $areaCodes[array_rand($areaCodes)];
         if ($mobile) {
             $firstDigit = 9;
             $secondDigit = rand(6, 9);
-            $remaining = str_pad((string) rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
             $number = $firstDigit . $secondDigit . $remaining;
 
             if ($formatted) {
@@ -326,7 +327,7 @@ class LocalizationService
             }
         } else {
             $firstDigit = rand(2, 5);
-            $remaining = str_pad((string) rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
             $number = $firstDigit . $remaining;
 
             if ($formatted) {
