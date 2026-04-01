@@ -40,8 +40,8 @@ class SystemController extends Controller
 
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = VW::SET;
-    private const REDIRECT_COMPANY = VW::SET;
+    private const REDIRECT_INDEX = VW::SET . '.index';
+    private const REDIRECT_COMPANY = VW::SET . '.' . PermissionsConstants::CPN;
 
     public function index(Request $request): View|RedirectResponse|null
     {
@@ -1009,7 +1009,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $webhookSettings = WebhookSettings::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
-                $view = 'webhooks.index';
+                $view = 'webhook.index';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'count' => $webhookSettings->count()]);
                 return ViewFacade::exists($view)
                     ? view($view, compact('webhookSettings'))
@@ -1033,7 +1033,7 @@ class SystemController extends Controller
             try {
                 $modules = WebhookSettings::$modules;
                 $methods = WebhookSettings::$method;
-                $view = 'webhooks.create';
+                $view = 'webhook.create';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return ViewFacade::exists($view)
                     ? view($view, compact('modules', 'methods'))
@@ -1088,7 +1088,7 @@ class SystemController extends Controller
                 $webhook = WebhookSettings::findOrFail($id);
                 $modules = WebhookSettings::$modules;
                 $methods = WebhookSettings::$method;
-                $view = 'webhooks.edit';
+                $view = 'webhook.edit';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return ViewFacade::exists($view)
                     ? view($view, compact('webhook', 'modules', 'methods'))

@@ -8,17 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\{Auth, Log, Redirect, Route};
 use Symfony\Component\HttpFoundation\Response;
 
-if (!function_exists('App\Http\Controllers\Helpers\wouldLoopBack')) {
-	/** Detect if redirect()->back() would loop to the same URL. */
-	function wouldLoopBack(Request $request): bool
-	{
-		$referer = $request->headers->get('referer', '');
-		$current = $request->fullUrl();
-		if (empty($referer)) return true;
-		return rtrim(strtok($referer, '?'), '/') === rtrim(strtok($current, '?'), '/');
-	}
-}
-
 if (!function_exists('App\Http\Controllers\Helpers\defaultPermissionDenial')) {
 	function defaultPermissionDenial(
 		Request $request,
@@ -35,11 +24,12 @@ if (!function_exists('App\Http\Controllers\Helpers\defaultPermissionDenial')) {
 		if (!Auth::check())
 			return redirect('/login')->with('error', 'You must be logged in to access this page.');
 		if (!$request->wantsJson()) {
-			if ($autoBack && !wouldLoopBack($request)) return redirect()->back()->with('error', 'You do not have permission to perform this action.');
-			$redirectPath = $redirectPath !== '/' && str_starts_with($redirectPath, '/') && Utility::isValidRouteUrl($redirectPath) ? $redirectPath : '/';
-			return !str_starts_with($redirectPath, '/') && Route::has($redirectPath)
-				? redirect()->route($redirectPath)->with('error', 'You do not have permission to perform this action.')
-				: redirect($redirectPath)->with('error', 'You do not have permission to perform this action.');
+			if ($autoBack) return redirect()->back()->with('error', 'You do not have permission to perform this action.');
+			if ($autoRedirect || !$request->wantsJson()) {
+				$redirectPath = $redirectPath !== '/' && str_starts_with($redirectPath, '/') && Utility::isValidRouteUrl($redirectPath) ? $redirectPath : '/';
+				return !str_starts_with($redirectPath, '/') && Route::has($redirectPath)
+					? redirect()->route($redirectPath) : redirect('/');
+			}
 		}
 		return $autoRedirect
 			? Redirect::to(getRedirectUrl($request, $redirectPath))
@@ -79,11 +69,12 @@ if (!function_exists('App\Http\Controllers\Helpers\defaultUndefinedException')) 
 		if (!Auth::check())
 			return redirect('/login')->with('error', $errMsg . ' Code: ' . $status);
 		if (!$request->wantsJson()) {
-			if ($autoBack && !wouldLoopBack($request)) return redirect()->back()->with('error', $errMsg . ' Code: ' . $status);
-			$redirectPath = $redirectPath !== '/' && str_starts_with($redirectPath, '/') && Utility::isValidRouteUrl($redirectPath) ? $redirectPath : '/';
-			return !str_starts_with($redirectPath, '/') && Route::has($redirectPath)
-				? redirect()->route($redirectPath)->with('error', $errMsg . ' Code: ' . $status)
-				: redirect($redirectPath)->with('error', $errMsg . ' Code: ' . $status);
+			if ($autoBack) return redirect()->back()->with('error', $errMsg . ' Code: ' . $status);
+			if ($autoRedirect || !$request->wantsJson()) {
+				$redirectPath = $redirectPath !== '/' && str_starts_with($redirectPath, '/') && Utility::isValidRouteUrl($redirectPath) ? $redirectPath : '/';
+				return !str_starts_with($redirectPath, '/') && Route::has($redirectPath)
+					? redirect()->route($redirectPath) : redirect('/');
+			}
 		}
 		return $autoRedirect
 			? Redirect::to(getRedirectUrl($request, $redirectPath))
