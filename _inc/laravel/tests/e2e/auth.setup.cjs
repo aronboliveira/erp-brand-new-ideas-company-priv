@@ -18,7 +18,7 @@ async function globalSetup() {
   try {
     console.log("Navigating to login page...");
     await page.goto(`${BASE_URL}/login`, {
-      timeout: 120000,
+      timeout: 30000,
       waitUntil: "networkidle",
     });
 
@@ -31,14 +31,14 @@ async function globalSetup() {
     await emailInput.waitFor({ state: "visible", timeout: 10000 });
 
     console.log("Filling credentials...");
-    await emailInput.fill("u_68ca0ef2-8cf2-4930-9129-24da61a4874a@test.local");
-    await pwInput.fill("password");
+    await emailInput.fill("u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local");
+    await pwInput.fill("Admin@1234");
 
     console.log("Clicking login button...");
     // Wait for navigation together with click to avoid race conditions
     await Promise.all([
       page.waitForURL(url => !url.pathname.endsWith("/login"), {
-        timeout: 120000,
+        timeout: 30000,
       }),
       submitBtn.click(),
     ]);

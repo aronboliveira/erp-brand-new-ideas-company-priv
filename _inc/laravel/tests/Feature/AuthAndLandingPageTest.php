@@ -305,32 +305,12 @@ class AuthAndLandingPageTest extends TestCase
 	public static function landingPagePublicProvider(): array
 	{
 		return [
+			'about_us direct'             => ['/about_us', 'About Us (direct)'],
+			'privacy_policy direct'       => ['/privacy_policy', 'Privacy Policy (direct)'],
+			'terms_and_conditions direct' => ['/terms_and_conditions', 'Terms & Conditions (direct)'],
 			'about_us via pages'          => ['/pages/about_us', 'About Us (via pages/)'],
 			'privacy_policy via pages'    => ['/pages/privacy_policy', 'Privacy Policy (via pages/)'],
 			'terms via pages'             => ['/pages/terms_and_conditions', 'Terms (via pages/)'],
-		];
-	}
-
-	/**
-	 * Direct landing-page aliases redirect to /dashboard.
-	 * @dataProvider landingPageDirectRedirectProvider
-	 */
-	public function test_landing_page_direct_redirects(string $uri, string $label): void
-	{
-		$response = $this->get($uri);
-		$this->assertEquals(
-			302,
-			$response->getStatusCode(),
-			"Expected 302 redirect for direct LP alias [{$label}] at {$uri}, got {$response->getStatusCode()}"
-		);
-	}
-
-	public static function landingPageDirectRedirectProvider(): array
-	{
-		return [
-			'about_us direct'             => ['/about-us', 'About Us (direct)'],
-			'privacy_policy direct'       => ['/privacy-policy', 'Privacy Policy (direct)'],
-			'terms_and_conditions direct' => ['/terms-and-conditions', 'Terms & Conditions (direct)'],
 		];
 	}
 
@@ -351,12 +331,12 @@ class AuthAndLandingPageTest extends TestCase
 	public static function landingPagePublicContentProvider(): array
 	{
 		return [
-			'about_us has heading'    => ['/pages/about_us', 'About Nova Prestech', 'About Us heading'],
-			'about_us has card'       => ['/pages/about_us', 'card-body', 'About Us card wrapper'],
-			'privacy_policy heading'  => ['/pages/privacy_policy', 'Privacy Policy', 'Privacy Policy heading'],
-			'privacy_policy lgpd'     => ['/pages/privacy_policy', 'LGPD', 'Privacy Policy LGPD reference'],
-			'terms heading'           => ['/pages/terms_and_conditions', 'Terms and Conditions', 'Terms heading'],
-			'terms acceptance'        => ['/pages/terms_and_conditions', 'Acceptance of Terms', 'Terms acceptance section'],
+			'about_us has heading'    => ['/about_us', 'About Nova Prestech', 'About Us heading'],
+			'about_us has card'       => ['/about_us', 'card-body', 'About Us card wrapper'],
+			'privacy_policy heading'  => ['/privacy_policy', 'Privacy Policy', 'Privacy Policy heading'],
+			'privacy_policy lgpd'     => ['/privacy_policy', 'LGPD', 'Privacy Policy LGPD reference'],
+			'terms heading'           => ['/terms_and_conditions', 'Terms and Conditions', 'Terms heading'],
+			'terms acceptance'        => ['/terms_and_conditions', 'Acceptance of Terms', 'Terms acceptance section'],
 		];
 	}
 
@@ -518,7 +498,7 @@ class AuthAndLandingPageTest extends TestCase
 
 	public function test_about_us_page_returns_html_content_type(): void
 	{
-		$response = $this->get('/pages/about_us');
+		$response = $this->get('/about_us');
 		$this->assertStringContainsString(
 			'text/html',
 			$response->headers->get('Content-Type', ''),

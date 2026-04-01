@@ -1,73 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Mock — API Endpoint Test</title>
-  </head>
-  <body>
-    <h1>API Endpoint Mock</h1>
-    <p>Simula chamadas de API para testes de interceptação e tampering.</p>
+<head>
+  <meta charset="UTF-8">
+  <title>Mock — API Endpoint Test</title>
+</head>
+<body>
+  <h1>API Endpoint Mock</h1>
+  <p>Simula chamadas de API para testes de interceptação e tampering.</p>
 
-    <button id="btn-fetch">Fetch Invoices</button>
-    <button id="btn-post">Create Invoice</button>
-    <div id="api-output"></div>
+  <button id="btn-fetch">Fetch Invoices</button>
+  <button id="btn-post">Create Invoice</button>
+  <div id="api-output"></div>
 
-    <script>
-      var BASE = "http://127.0.0.1:8000";
+  <script>
+    var BASE = "http://127.0.0.1:8000";
 
-      // Mock fetch wrapper — expõe headers e params para interceptação
-      window.__API_LOG = [];
+    // Mock fetch wrapper — expõe headers e params para interceptação
+    window.__API_LOG = [];
 
-      window.mockFetch = function (url, opts) {
-        var log = { url: url, method: (opts && opts.method) || "GET", timestamp: Date.now() };
-        if (opts && opts.headers) log.headers = opts.headers;
-        if (opts && opts.body) log.body = opts.body;
-        window.__API_LOG.push(log);
-        return fetch(url, opts);
-      };
+    window.mockFetch = function(url, opts) {
+      var log = { url: url, method: (opts && opts.method) || "GET", timestamp: Date.now() };
+      if (opts && opts.headers) log.headers = opts.headers;
+      if (opts && opts.body) log.body = opts.body;
+      window.__API_LOG.push(log);
+      return fetch(url, opts);
+    };
 
-      document.getElementById("btn-fetch").addEventListener("click", function () {
-        mockFetch(BASE + "/invoices?search=test", {
-          headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-        })
-          .then(function (r) {
-            return r.text();
-          })
-          .then(function (t) {
-            document.getElementById("api-output").textContent = t.slice(0, 500);
-          })
-          .catch(function (e) {
-            document.getElementById("api-output").textContent = "Erro: " + e.message;
-          });
+    document.getElementById("btn-fetch").addEventListener("click", function() {
+      mockFetch(BASE + "/invoices?search=test", {
+        headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
+      })
+      .then(function(r) { return r.text(); })
+      .then(function(t) {
+        document.getElementById("api-output").textContent = t.slice(0, 500);
+      })
+      .catch(function(e) {
+        document.getElementById("api-output").textContent = "Erro: " + e.message;
       });
+    });
 
-      document.getElementById("btn-post").addEventListener("click", function () {
-        mockFetch(BASE + "/invoices", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-CSRF-TOKEN": sessionStorage.getItem("csrf_token") || "invalid",
-          },
-          body: JSON.stringify({ customer_id: 1, amount: "100.00" }),
-        })
-          .then(function (r) {
-            return r.text();
-          })
-          .then(function (t) {
-            document.getElementById("api-output").textContent = t.slice(0, 500);
-          })
-          .catch(function (e) {
-            document.getElementById("api-output").textContent = "Erro: " + e.message;
-          });
+    document.getElementById("btn-post").addEventListener("click", function() {
+      mockFetch(BASE + "/invoices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-TOKEN": sessionStorage.getItem("csrf_token") || "invalid"
+        },
+        body: JSON.stringify({ customer_id: 1, amount: "100.00" })
+      })
+      .then(function(r) { return r.text(); })
+      .then(function(t) {
+        document.getElementById("api-output").textContent = t.slice(0, 500);
+      })
+      .catch(function(e) {
+        document.getElementById("api-output").textContent = "Erro: " + e.message;
       });
+    });
 
-      // Expõe config para scripts de teste
-      window.__API_CONFIG = {
-        baseUrl: BASE,
-        csrfSource: "sessionStorage",
-        authType: "cookie",
-      };
-    </script>
-  </body>
+    // Expõe config para scripts de teste
+    window.__API_CONFIG = {
+      baseUrl: BASE,
+      csrfSource: "sessionStorage",
+      authType: "cookie"
+    };
+  </script>
+</body>
 </html>

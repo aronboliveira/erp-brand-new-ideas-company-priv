@@ -1,52 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Mock — Formulário Vulnerável</title>
-    <!-- Deliberadamente SEM CSP para testar ataques XSS -->
-  </head>
-  <body>
-    <h1>Formulário de Teste (Mock Vulnerável)</h1>
-    <p>Este formulário NÃO sanitiza inputs no client-side — usado apenas para testes de segurança.</p>
+<head>
+  <meta charset="UTF-8">
+  <title>Mock — Formulário Vulnerável</title>
+  <!-- Deliberadamente SEM CSP para testar ataques XSS -->
+</head>
+<body>
+  <h1>Formulário de Teste (Mock Vulnerável)</h1>
+  <p>Este formulário NÃO sanitiza inputs no client-side — usado apenas para testes de segurança.</p>
 
-    <form id="vuln-form" action="/mock-submit" method="POST">
-      <label for="name">Nome:</label>
-      <input type="text" id="name" name="name" placeholder="Ex: O'Brien" />
+  <form id="vuln-form" action="/mock-submit" method="POST">
+    <label for="name">Nome:</label>
+    <input type="text" id="name" name="name" placeholder="Ex: O'Brien">
 
-      <label for="email">Email:</label>
-      <input type="text" id="email" name="email" placeholder="test@test.com" />
+    <label for="email">Email:</label>
+    <input type="text" id="email" name="email" placeholder="test@test.com">
 
-      <label for="search">Busca:</label>
-      <input type="text" id="search" name="search" placeholder="' OR 1=1 --" />
+    <label for="search">Busca:</label>
+    <input type="text" id="search" name="search" placeholder="' OR 1=1 --">
 
-      <label for="comment">Comentário:</label>
-      <textarea id="comment" name="comment"></textarea>
+    <label for="comment">Comentário:</label>
+    <textarea id="comment" name="comment"></textarea>
 
-      <!-- Campo hidden sem CSRF token — intencional -->
-      <input type="hidden" name="role" value="user" />
+    <!-- Campo hidden sem CSRF token — intencional -->
+    <input type="hidden" name="role" value="user">
 
-      <button type="submit">Enviar</button>
-    </form>
+    <button type="submit">Enviar</button>
+  </form>
 
-    <!-- Output area que injeta HTML diretamente — vulnerabilidade intencional -->
-    <div id="output"></div>
+  <!-- Output area que injeta HTML diretamente — vulnerabilidade intencional -->
+  <div id="output"></div>
 
-    <script>
-      // Vulnerabilidade intencional: innerHTML sem sanitização
-      document.getElementById("vuln-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        var name = document.getElementById("name").value;
-        var comment = document.getElementById("comment").value;
-        // VULNERÁVEL: innerHTML com input do usuário
-        document.getElementById("output").innerHTML = "<p>Olá, " + name + "!</p><p>Comentário: " + comment + "</p>";
-      });
+  <script>
+    // Vulnerabilidade intencional: innerHTML sem sanitização
+    document.getElementById("vuln-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      var name = document.getElementById("name").value;
+      var comment = document.getElementById("comment").value;
+      // VULNERÁVEL: innerHTML com input do usuário
+      document.getElementById("output").innerHTML =
+        "<p>Olá, " + name + "!</p><p>Comentário: " + comment + "</p>";
+    });
 
-      // Expõe dados no window para scripts de teste
-      window.__MOCK_CONFIG = {
-        csrfEnabled: false,
-        sanitization: "none",
-        sessionCookie: "mock_session=abc123; path=/",
-      };
-    </script>
-  </body>
+    // Expõe dados no window para scripts de teste
+    window.__MOCK_CONFIG = {
+      csrfEnabled: false,
+      sanitization: "none",
+      sessionCookie: "mock_session=abc123; path=/"
+    };
+  </script>
+</body>
 </html>

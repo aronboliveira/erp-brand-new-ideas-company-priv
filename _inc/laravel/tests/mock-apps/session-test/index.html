@@ -1,47 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Mock — Session Test</title>
-  </head>
-  <body>
-    <h1>Session/Cookie Test Page</h1>
-    <p>Página mock para testar roubo de sessão, fixação, e decode de cookies.</p>
+<head>
+  <meta charset="UTF-8">
+  <title>Mock — Session Test</title>
+</head>
+<body>
+  <h1>Session/Cookie Test Page</h1>
+  <p>Página mock para testar roubo de sessão, fixação, e decode de cookies.</p>
 
-    <div id="session-info"></div>
-    <div id="storage-info"></div>
+  <div id="session-info"></div>
+  <div id="storage-info"></div>
 
-    <script>
-      // Simula dados de sessão no localStorage e sessionStorage
-      localStorage.setItem("auth_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDYwZjdjYTMtMjE2ZS00ZTZlLTkzZDctZDY4Njc1M2JlMmM4Iiwicm9sZSI6InN1cGVyLWFkbWluIiwiZXhwIjoxNzExODQ0ODAwfQ.mock_signature");
-      localStorage.setItem(
-        "user_prefs",
-        JSON.stringify({
-          theme: "dark",
-          language: "pt-BR",
-          notifications: true,
-        }),
-      );
-      sessionStorage.setItem("csrf_token", "mock_csrf_" + Math.random().toString(36).slice(2));
-      sessionStorage.setItem("last_route", "/dashboard");
+  <script>
+    // Simula dados de sessão no localStorage e sessionStorage
+    localStorage.setItem("auth_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDYwZjdjYTMtMjE2ZS00ZTZlLTkzZDctZDY4Njc1M2JlMmM4Iiwicm9sZSI6InN1cGVyLWFkbWluIiwiZXhwIjoxNzExODQ0ODAwfQ.mock_signature");
+    localStorage.setItem("user_prefs", JSON.stringify({
+      theme: "dark",
+      language: "pt-BR",
+      notifications: true
+    }));
+    sessionStorage.setItem("csrf_token", "mock_csrf_" + Math.random().toString(36).slice(2));
+    sessionStorage.setItem("last_route", "/dashboard");
 
-      // Simula cookie de sessão
-      document.cookie = "laravel_session=mock_sess_value_base64encoded; path=/; SameSite=Lax";
-      document.cookie = "XSRF-TOKEN=mock_xsrf_token_value; path=/";
+    // Simula cookie de sessão
+    document.cookie = "laravel_session=mock_sess_value_base64encoded; path=/; SameSite=Lax";
+    document.cookie = "XSRF-TOKEN=mock_xsrf_token_value; path=/";
 
-      // Exibe info de sessão na página
-      var info = document.getElementById("session-info");
-      info.innerHTML = "<pre>Cookies: " + document.cookie + "</pre>";
+    // Exibe info de sessão na página
+    var info = document.getElementById("session-info");
+    info.innerHTML = "<pre>Cookies: " + document.cookie + "</pre>";
 
-      var storageInfo = document.getElementById("storage-info");
-      storageInfo.innerHTML = "<pre>localStorage keys: " + Object.keys(localStorage).join(", ") + "\nsessionStorage keys: " + Object.keys(sessionStorage).join(", ") + "</pre>";
+    var storageInfo = document.getElementById("storage-info");
+    storageInfo.innerHTML = "<pre>localStorage keys: " +
+      Object.keys(localStorage).join(", ") +
+      "\nsessionStorage keys: " +
+      Object.keys(sessionStorage).join(", ") + "</pre>";
 
-      // Expõe config para scripts de teste
-      window.__SESSION_CONFIG = {
-        httpOnly: false,
-        secure: false,
-        sameSite: "Lax",
-      };
-    </script>
-  </body>
+    // Expõe config para scripts de teste
+    window.__SESSION_CONFIG = {
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax"
+    };
+  </script>
+</body>
 </html>
