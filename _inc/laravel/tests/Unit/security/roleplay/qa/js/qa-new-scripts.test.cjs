@@ -6,15 +6,10 @@
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(
-  __dirname,
-  "../../../../../Feature/security/roleplay/qa"
-);
+const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/qa");
 
 describe("QA — WASM Input Validator", () => {
-  const { validateInput, generateBoundaryInputs } = require(
-    path.join(SCRIPTS, "wasm/scripts/input_validator.cjs")
-  );
+  const { validateInput, generateBoundaryInputs } = require(path.join(SCRIPTS, "wasm/scripts/input_validator.cjs"));
 
   describe("validateInput", () => {
     test("aceita input limpo", () => {
@@ -69,7 +64,7 @@ describe("QA — WASM Input Validator", () => {
     test("gera inputs de texto", () => {
       const inputs = generateBoundaryInputs("text");
       expect(inputs.length).toBeGreaterThan(5);
-      expect(inputs.some((i) => i.length > 255)).toBe(true);
+      expect(inputs.some(i => i.length > 255)).toBe(true);
     });
 
     test("gera inputs numéricos", () => {
@@ -81,12 +76,12 @@ describe("QA — WASM Input Validator", () => {
 
     test("gera inputs de email", () => {
       const inputs = generateBoundaryInputs("email");
-      expect(inputs.some((i) => i.includes("@"))).toBe(true);
+      expect(inputs.some(i => i.includes("@"))).toBe(true);
     });
 
     test("gera inputs de URL", () => {
       const inputs = generateBoundaryInputs("url");
-      expect(inputs.some((i) => i.startsWith("javascript:"))).toBe(true);
+      expect(inputs.some(i => i.startsWith("javascript:"))).toBe(true);
     });
   });
 
@@ -101,9 +96,7 @@ describe("QA — WASM Input Validator", () => {
 });
 
 describe("QA — Accessibility + Security Audit", () => {
-  const { A11Y_SECURITY_CHECKS, runChecks } = require(
-    path.join(SCRIPTS, "js/scripts/accessibility_security_audit.cjs")
-  );
+  const { A11Y_SECURITY_CHECKS, runChecks } = require(path.join(SCRIPTS, "js/scripts/accessibility_security_audit.cjs"));
 
   test("A11Y_SECURITY_CHECKS contém checks", () => {
     expect(A11Y_SECURITY_CHECKS.length).toBeGreaterThanOrEqual(5);
@@ -121,7 +114,7 @@ describe("QA — Accessibility + Security Audit", () => {
   test("runChecks detecta formulário de login sem label", () => {
     const html = '<html><body><form><input type="password" name="pw"></form></body></html>';
     const results = runChecks(html);
-    const loginCheck = results.find((r) => r.name.includes("login"));
+    const loginCheck = results.find(r => r.name.includes("login"));
     if (loginCheck && loginCheck.relevant) {
       expect(loginCheck.pass).toBe(false);
     }

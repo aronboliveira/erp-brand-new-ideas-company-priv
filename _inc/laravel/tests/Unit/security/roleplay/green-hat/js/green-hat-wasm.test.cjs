@@ -6,15 +6,10 @@
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(
-  __dirname,
-  "../../../../../Feature/security/roleplay/green-hat"
-);
+const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/green-hat");
 
 describe("Green Hat — WASM Hello", () => {
-  const { WASM_HELLO, simpleXor } = require(
-    path.join(SCRIPTS, "wasm/scripts/wasm_hello.cjs")
-  );
+  const { WASM_HELLO, simpleXor } = require(path.join(SCRIPTS, "wasm/scripts/wasm_hello.cjs"));
 
   test("WASM_HELLO é Uint8Array com magic bytes", () => {
     expect(WASM_HELLO).toBeInstanceOf(Uint8Array);

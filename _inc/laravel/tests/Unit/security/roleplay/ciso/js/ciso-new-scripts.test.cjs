@@ -6,15 +6,10 @@
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(
-  __dirname,
-  "../../../../../Feature/security/roleplay/ciso"
-);
+const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/ciso");
 
 describe("CISO — Policy Hash Verifier (WASM)", () => {
-  const { SECURITY_POLICIES, hashPolicy, auditPolicy } = require(
-    path.join(SCRIPTS, "wasm/scripts/policy_hash.cjs")
-  );
+  const { SECURITY_POLICIES, hashPolicy, auditPolicy } = require(path.join(SCRIPTS, "wasm/scripts/policy_hash.cjs"));
 
   test("SECURITY_POLICIES contém todas as políticas", () => {
     expect(SECURITY_POLICIES).toHaveProperty("passwordPolicy");
@@ -64,9 +59,7 @@ describe("CISO — Policy Hash Verifier (WASM)", () => {
 });
 
 describe("CISO — TLS Certificate Audit", () => {
-  const { generateTlsReport, WEAK_CIPHERS, WEAK_PROTOCOLS } = require(
-    path.join(SCRIPTS, "js/scripts/tls_certificate_audit.cjs")
-  );
+  const { generateTlsReport, WEAK_CIPHERS, WEAK_PROTOCOLS } = require(path.join(SCRIPTS, "js/scripts/tls_certificate_audit.cjs"));
 
   test("WEAK_CIPHERS contém ciphers conhecidos fracos", () => {
     expect(WEAK_CIPHERS).toContain("RC4");

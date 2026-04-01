@@ -6,15 +6,10 @@
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(
-  __dirname,
-  "../../../../../Feature/security/roleplay/backend-dev"
-);
+const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/backend-dev");
 
 describe("Backend Dev — Hash Benchmark (WASM)", () => {
-  const { benchmarkHash, evaluateBcryptCost, ALGORITHMS } = require(
-    path.join(SCRIPTS, "wasm/scripts/hash_benchmark.cjs")
-  );
+  const { benchmarkHash, evaluateBcryptCost, ALGORITHMS } = require(path.join(SCRIPTS, "wasm/scripts/hash_benchmark.cjs"));
 
   test("ALGORITHMS contém md5, sha1, sha256, sha512", () => {
     expect(ALGORITHMS).toContain("md5");
@@ -65,13 +60,11 @@ describe("Backend Dev — Hash Benchmark (WASM)", () => {
 });
 
 describe("Backend Dev — API Rate Limit Tester", () => {
-  const { ENDPOINTS_TO_TEST, generateReport } = require(
-    path.join(SCRIPTS, "js/scripts/api_rate_limit_test.cjs")
-  );
+  const { ENDPOINTS_TO_TEST, generateReport } = require(path.join(SCRIPTS, "js/scripts/api_rate_limit_test.cjs"));
 
   test("ENDPOINTS_TO_TEST tem endpoints críticos", () => {
     expect(ENDPOINTS_TO_TEST.length).toBeGreaterThanOrEqual(5);
-    const criticalEndpoints = ENDPOINTS_TO_TEST.filter((e) => e.critical);
+    const criticalEndpoints = ENDPOINTS_TO_TEST.filter(e => e.critical);
     expect(criticalEndpoints.length).toBeGreaterThanOrEqual(2);
   });
 
