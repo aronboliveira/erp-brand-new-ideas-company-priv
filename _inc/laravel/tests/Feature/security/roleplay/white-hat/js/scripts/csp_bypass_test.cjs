@@ -103,7 +103,7 @@ function analyzeBypasses(directives) {
     } else if (values.includes("*")) {
       vulnerable = true;
       reason = "Wildcard permite qualquer origem";
-    } else if (values.some((v) => v.includes("*.") || v === "data:" || v === "blob:")) {
+    } else if (values.some(v => v.includes("*.") || v === "data:" || v === "blob:")) {
       vulnerable = true;
       reason = "Subdomain wildcard ou data:/blob: URI permitido";
     }
@@ -123,14 +123,17 @@ function analyzeBypasses(directives) {
  * @returns {Promise<string>}
  */
 function fetchCSP(targetUrl) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const opts = { ...url.parse(targetUrl), method: "GET", timeout: 5000 };
-    const req = http.request(opts, (res) => {
+    const req = http.request(opts, res => {
       const csp = res.headers["content-security-policy"] || "";
       resolve(csp);
     });
     req.on("error", () => resolve(""));
-    req.on("timeout", () => { req.destroy(); resolve(""); });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve("");
+    });
     req.end();
   });
 }
@@ -148,7 +151,7 @@ if (require.main === module) {
     console.log(`Diretivas: ${Object.keys(directives).length}`);
 
     const findings = analyzeBypasses(directives);
-    const vulnCount = findings.filter((f) => f.vulnerable).length;
+    const vulnCount = findings.filter(f => f.vulnerable).length;
 
     console.log(`\nVetores de bypass testados: ${findings.length}`);
     console.log(`Vulneráveis: ${vulnCount}`);
