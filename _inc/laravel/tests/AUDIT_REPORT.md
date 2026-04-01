@@ -241,25 +241,27 @@ done
 ## 8. Full Test Suite Audit — 2026-04-01
 
 ### Environment
+
 - PHP 8.4.5 / Laravel 10.49.0 / MySQL 8.4.7
 - PHPUnit 10.5.55 / Jest 29.7.0 / Playwright / PHPStan / ESLint / flake8 / mypy
 
 ### Results Summary
 
-| Tool | Status | Details |
-|------|--------|---------|
-| **PHPUnit** | 176 PASS / 7 FAIL / 40 WARN | 874 individual ✓, 10 ⨯. Fatal: BillProduct class redeclaration blocked Feature tests |
-| **Jest** | 28/28 suites, 652/652 tests | All passed in 16.1s |
-| **PHPStan** | ✅ 0 errors | 2GB memory limit required |
-| **TSC** | 1 error | Casing conflict in ts/dist/ (payslip vs paySlip .d.ts) |
-| **ESLint** | 77,576 errors | 99% from ts/, .backup/, public/, Modules/ — core test/util ~40 (Node globals) |
-| **Playwright** | 9 passed, 3 skipped | 3.6 min runtime |
-| **flake8** | 147 issues | Mostly style: unused imports (73), whitespace (41), long lines (5) |
-| **mypy** | 37 errors in 6 files | openpyxl overloads, None attribute access, type annotations |
-| **MySQL** | ✅ Healthy | 211 tables, 219 migrations, 1044 FKs, 101 users, 1680 permissions |
-| **HTTP Routes** | ✅ No 5xx | login/register → 200, auth routes → 302, all security headers present |
+| Tool            | Status                      | Details                                                                              |
+| --------------- | --------------------------- | ------------------------------------------------------------------------------------ |
+| **PHPUnit**     | 176 PASS / 7 FAIL / 40 WARN | 874 individual ✓, 10 ⨯. Fatal: BillProduct class redeclaration blocked Feature tests |
+| **Jest**        | 28/28 suites, 652/652 tests | All passed in 16.1s                                                                  |
+| **PHPStan**     | ✅ 0 errors                 | 2GB memory limit required                                                            |
+| **TSC**         | 1 error                     | Casing conflict in ts/dist/ (payslip vs paySlip .d.ts)                               |
+| **ESLint**      | 77,576 errors               | 99% from ts/, .backup/, public/, Modules/ — core test/util ~40 (Node globals)        |
+| **Playwright**  | 9 passed, 3 skipped         | 3.6 min runtime                                                                      |
+| **flake8**      | 147 issues                  | Mostly style: unused imports (73), whitespace (41), long lines (5)                   |
+| **mypy**        | 37 errors in 6 files        | openpyxl overloads, None attribute access, type annotations                          |
+| **MySQL**       | ✅ Healthy                  | 211 tables, 219 migrations, 1044 FKs, 101 users, 1680 permissions                    |
+| **HTTP Routes** | ✅ No 5xx                   | login/register → 200, auth routes → 302, all security headers present                |
 
 ### PHPUnit Failing Suites
+
 1. `MassAssignmentTest` — model fillable/guarded assertion
 2. `BugTest` — relation resolution (bug_status, assign_to, created_by, project)
 3. `EmailTest` — global scope ordering
@@ -269,6 +271,7 @@ done
 7. `GeneratedOfferLetterTest` — default record count
 
 ### Security Headers Verified
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
@@ -276,6 +279,7 @@ done
 - CSRF tokens active
 
 ### Known Issues
+
 - `BillProduct.php` namespace `App\Models` in `app/Models/Bills/` — causes class redeclaration on autoload
 - `MessagesController` class missing — blocks `php artisan route:list`
 - ESLint scanning `ts/`, `.backup/`, `public/`, `Modules/` — needs ignores in `eslint.config.mjs`
@@ -285,39 +289,44 @@ done
 ## 9. Security Roleplay Framework — Multi-Language Test Suite
 
 ### Overview
+
 Added a comprehensive security roleplay testing framework with 6 actor roles across 5 languages (JavaScript, Python, Bash, PHP, WASM).
 
 ### Scripts Created (by role)
 
-| Role | Total Scripts | Languages | Complexity |
-|------|--------------|-----------|------------|
-| Black Hat | 12 | JS(3), Bash(3), Python(2), PHP(1), WASM(1), PHPUnit(1), pytest(1) | Expert |
-| CISO | 10 | JS(2), Bash(2), Python(2), PHP(1), WASM(1), PHPUnit(1), pytest(1) | Advanced |
-| White Hat | 10 | JS(2), Bash(2), Python(3), PHP(2), WASM(1) | Advanced |
-| QA | 9 | JS(2), Bash(1), Python(3), PHP(2), WASM(1) | Mid-Senior |
-| Backend Dev | 7 | JS(2), Bash(2), Python(1), PHP(1), WASM(1) | Senior |
-| Green Hat | 6 | JS(1), Bash(1), Python(1), PHP(2), WASM(1) | Beginner |
+| Role        | Total Scripts | Languages                                                         | Complexity |
+| ----------- | ------------- | ----------------------------------------------------------------- | ---------- |
+| Black Hat   | 12            | JS(3), Bash(3), Python(2), PHP(1), WASM(1), PHPUnit(1), pytest(1) | Expert     |
+| CISO        | 10            | JS(2), Bash(2), Python(2), PHP(1), WASM(1), PHPUnit(1), pytest(1) | Advanced   |
+| White Hat   | 10            | JS(2), Bash(2), Python(3), PHP(2), WASM(1)                        | Advanced   |
+| QA          | 9             | JS(2), Bash(1), Python(3), PHP(2), WASM(1)                        | Mid-Senior |
+| Backend Dev | 7             | JS(2), Bash(2), Python(1), PHP(1), WASM(1)                        | Senior     |
+| Green Hat   | 6             | JS(1), Bash(1), Python(1), PHP(2), WASM(1)                        | Beginner   |
 
 ### Unit Test Results
+
 - **17 Jest test suites**: ALL PASSING (187 tests)
 - Test files in `tests/Unit/security/roleplay/{role}/js/*.test.cjs`
 
 ### Mock Applications
-| App | Purpose |
-|-----|---------|
+
+| App                | Purpose                                                  |
+| ------------------ | -------------------------------------------------------- |
 | `vulnerable-form/` | Intentionally vulnerable form (XSS, no input validation) |
-| `session-test/` | Insecure session management |
-| `api-test/` | Unprotected API endpoint |
-| `websocket-test/` | WebSocket without authentication |
-| `upload-test/` | File upload without validation |
+| `session-test/`    | Insecure session management                              |
+| `api-test/`        | Unprotected API endpoint                                 |
+| `websocket-test/`  | WebSocket without authentication                         |
+| `upload-test/`     | File upload without validation                           |
 
 ### Security Controls
+
 - `**/black-hat/` directories are git-ignored in both repos
 - No black-hat files appear in git history (verified via `git log --all --diff-filter=A`)
 - All scripts target `localhost` / `127.0.0.1` by default
 - Documentation and guidelines in each role's `guidelines/GUIDELINES.md`
 
 ### Documentation
+
 - Main README: `tests/Feature/security/roleplay/README.md`
 - Per-role guidelines: `tests/Feature/security/roleplay/{role}/guidelines/GUIDELINES.md`
 
