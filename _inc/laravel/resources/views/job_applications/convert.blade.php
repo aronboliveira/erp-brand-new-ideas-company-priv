@@ -240,7 +240,7 @@ $user = Auth::user() ?? null;
                                 <button type="button"
                                         class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }

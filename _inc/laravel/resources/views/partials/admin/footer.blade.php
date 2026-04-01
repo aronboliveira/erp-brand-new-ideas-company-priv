@@ -47,25 +47,17 @@
 <script src="{{ asset('js/custom.js') }}"></script>
 @if($message = Session::get('success'))
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            show_toastr('success', {!! json_encode($message) !!});
-        });
+        show_toastr('success', {!! json_encode($message) !!});
     </script>
 @endif
 @if($message = Session::get('error'))
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            show_toastr('error', {!! json_encode($message) !!});
-        });
+        show_toastr('error', {!! json_encode($message) !!});
     </script>
 @endif
 @if($settings['enable_cookie'] == 'on')
     @includeIf(ExtendingLayoutsConstants::CKC)
 @endif
-{{-- ERP Core Classes (before page scripts so @stack can use them) --}}
-<script src="{{ asset('assets/js/core/erp-guard.js') }}" defer></script>
-<script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
-<script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}" defer></script>
 @stack('script-page')
 @stack('old-datatable-js')
 <script defer src="{{ asset('assets/js/routes/partials/admin/footer.js') }}"></script>

@@ -115,7 +115,7 @@ $user ??= null;
                                         <td>
                                             <div class="avatar-group">
                                                 @php
-                                                    $__users = (is_object($asset) && method_exists($asset,'employees')) ? ($asset->employees ?? collect()) : collect();
+                                                    $__users = (is_object($asset) && method_exists($asset,'users')) ? ($asset->users(data_get($asset,'employee_id')) ?? collect()) : collect();
 @endphp
                                                 @forelse($__users as $usr)
                                                     <a href="#" class="avatar {{ $avatarSm ?? '' }}">

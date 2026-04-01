@@ -47,7 +47,7 @@ $user ??= null;
             <div class="section-header">
                 <h1>{{ __('Employee') }}</h1>
                 <div class="section-header-breadcrumb">
-                    <div class="{{ VC::BCI_ACT }}"><a href="{{ Route::has('dashboard') ? route('dashboard') : '/' }}">{{ __('Dashboard') }}</a></div>
+                    <div class="{{ VC::BCI_ACT }}"><a href="{{ route('home') }}">{{ __('Dashboard') }}</a></div>
                     <div class="{{ VC::BCI }}">{{ __('Employee') }}</div>
                 </div>
             </div>

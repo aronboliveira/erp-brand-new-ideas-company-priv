@@ -179,7 +179,7 @@ $user = Auth::user();
             btn.dataset.listenerAttached = 'true';
             btn.addEventListener('click', e => {
               e.preventDefault();
-              if (!confirm('{{ __("Are you sure?") }}')) return;
+              if (!confirm('Are You Sure ?')) return;
               try {
                 $.ajax({
                   url: btn.getAttribute('data-url'),
@@ -252,7 +252,7 @@ $user = Auth::user();
             btn.dataset.listenerAttached = 'true';
             btn.addEventListener('click', e => {
               e.preventDefault();
-              if (!confirm('{{ __("Are you sure?") }}')) return;
+              if (!confirm('Are You Sure ?')) return;
               try {
                 $.ajax({
                   url: btn.getAttribute('data-url'),

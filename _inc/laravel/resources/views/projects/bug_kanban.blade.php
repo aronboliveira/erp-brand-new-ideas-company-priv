@@ -122,7 +122,7 @@ $user = Auth::user();
                     toast.setAttribute("role","alert");
                     toast.setAttribute("aria-live","assertive");
                     toast.setAttribute("aria-atomic","true");
-                    toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                    toast.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                     document.body.appendChild(toast);
                     }
                     const once=()=>new bootstrap.Toast(toast).show();
@@ -226,7 +226,7 @@ $user = Auth::user();
                     });
 
                     $(document).on("click",".delete-comment",function(){
-                    if(!confirm('{{ __("Are you sure?") }}')) return;
+                    if(!confirm('Are You Sure ?')) return;
                     const $btn=$(this);
                     const url=$btn.attr("data-url");
                     if(guardRoute(url)){ showFeedback("comment_delete_unavailable"); return; }
@@ -291,7 +291,7 @@ $user = Auth::user();
                     });
 
                     $(document).on("click",".delete-comment-file",function(){
-                    if(!confirm('{{ __("Are you sure?") }}')) return;
+                    if(!confirm('Are You Sure ?')) return;
                     const $btn=$(this);
                     const url=$btn.attr("data-url");
                     if(guardRoute(url)){ showFeedback("file_delete_unavailable"); return; }

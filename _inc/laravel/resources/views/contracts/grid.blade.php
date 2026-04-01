@@ -96,7 +96,7 @@ $user = Auth::user();
                                             t.setAttribute('role','alert');
                                             t.setAttribute('aria-live','assertive');
                                             t.setAttribute('aria-atomic','true');
-                                            t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                                            t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                                             document.body.appendChild(t);
                                         }
                                         var body = t.querySelector('.toast-body');
@@ -237,7 +237,7 @@ $user = Auth::user();
                                                         t.setAttribute('role','alert');
                                                         t.setAttribute('aria-live','assertive');
                                                         t.setAttribute('aria-atomic','true');
-                                                        t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                                                        t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body"></div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                                                         document.body.appendChild(t);
                                                     }
                                                     var body = t.querySelector('.toast-body');

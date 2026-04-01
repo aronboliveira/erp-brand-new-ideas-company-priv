@@ -110,7 +110,7 @@ $user = Auth::user();
                                 <button type="button"
                                         class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }
@@ -198,7 +198,7 @@ $user = Auth::user();
                                             metadata: { custom_fields: [{ display_name: 'Email', variable_name: 'email', value: res.email }] },
                                             callback: r => window.location.href =
                                                 `{{ url('/invoices/paystack') }}/${r.reference}/{{ encrypt($invoice->id) }}?amount=${res.total_price}`,
-                                            onClose: () => alert('{{ __('Window closed') }}')
+                                            onClose: () => alert('window closed')
                                         });
                                         handler.openIframe();
                                     } else {

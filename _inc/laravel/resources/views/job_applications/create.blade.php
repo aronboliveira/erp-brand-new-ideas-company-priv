@@ -3,8 +3,9 @@
 $lang = Utility::fetchUserLang();
 
         $formId    = 'job-app-store-form';
-        $base      = 'job-application.store';
-        $routeRes  = Route::has($base) ? $base : null;
+        $base      = VW::JB_APP;
+        $baseKebab = Str::kebab($base);
+        $routeRes  = Route::has($base) ? $base : (Route::has($baseKebab) ? $baseKebab : null);
         $actionUrl = $routeRes ? route($routeRes) : '#';
         $guardMsg  = Utility::fetchLinkMessage($lang, VW::JB_APL, 'store_route_unavailable') ?? __('Job application store route is unavailable. Please contact technical support or your domain administrator.');
 

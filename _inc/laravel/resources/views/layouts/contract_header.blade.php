@@ -145,7 +145,7 @@ $data??=[];
             <div class="{{ VC::MDL_CTT }}">
                 <div class="{{ VC::MDL_HDR }}">
                     <h5 class="{{ VC::MDL_TTL }}" id="exampleModalLabel"></h5>
-                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                    <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="body">
                 </div>

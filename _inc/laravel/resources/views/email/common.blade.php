@@ -12,7 +12,7 @@ $lang = Utility::fetchUserLang();
         $company_logo = Utility::getValByName(SC::CPN_LG);
 @endphp
     <head>
-        <title>{{ __('Common Email') }}</title>
+        <title>Common Email</title>
         @include('fragments.std', [
             'meta_title' => $meta_title ?? '',
             'meta_desc' => $meta_desc ?? ''

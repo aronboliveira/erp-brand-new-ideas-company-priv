@@ -55,7 +55,7 @@ $lang               = is_callable([Utility::class, 'fetchUserLang']) ? Utility::
           },
           onClose: function(){
             /* You may add your own implementation here */
-            alert('{{ __('You closed the popup without finishing the payment') }}');
+            alert('you closed the popup without finishing the payment');
           }
         })
 

@@ -165,7 +165,7 @@ $lang ??= 'en';
                                 {!! Form::date('end_date', old('end_date'), ['class'=>VC::FM_CT]) !!}
                             </div>
                             <div class="{{ VC::FM_GCB12 }}">
-                                <input type="text" class="{{ VC::FM_CT }}" value="" data-toggle="tags" name="skill" placeholder="{{ __('Skill') }}"/>
+                                <input type="text" class="{{ VC::FM_CT }}" value="" data-toggle="tags" name="skill" placeholder="Skill"/>
                             </div>
                         </div>
                     </div>

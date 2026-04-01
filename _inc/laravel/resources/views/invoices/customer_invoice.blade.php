@@ -895,7 +895,7 @@ $invoice ??= null;
                                 <div class="{{ VC::MDL_HDR }}">
                                     <h5 class="{{ VC::MDL_TTL }}" id="paymentModalLabel">{{ __('Add Payment') }}</h5>
                                     <button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="{{ VC::CD_BGN_BX }}">
@@ -3146,7 +3146,7 @@ $invoice ??= null;
                         <button type="button"
                                 class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                 data-bs-dismiss="toast"
-                                aria-label="{{ __('Close') }}">
+                                aria-label="Close">
                         </button>
                     </div>
                 </div>
@@ -3279,7 +3279,7 @@ $invoice ??= null;
                                         <button type="button"
                                                 class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                                 data-bs-dismiss="toast"
-                                                aria-label="{{ __('Close') }}"></button>
+                                                aria-label="Close"></button>
                                     </div>`;
                                 document.body.appendChild(toast);
                             }
@@ -3369,7 +3369,7 @@ $invoice ??= null;
                                                     metadata: { custom_fields: [{ display_name: 'Email', variable_name: 'email', value: res.email }] },
                                                     callback: r => window.location.href =
                                                         `{{ url('/customers/paystack') }}/${r.reference}/{{ encrypt($invoice->id) }}?amount=${res.total_price}`,
-                                                    onClose: () => alert('{{ __('Window closed') }}')
+                                                    onClose: () => alert('window closed')
                                                 });
                                                 handler.openIframe();
                                             } else {

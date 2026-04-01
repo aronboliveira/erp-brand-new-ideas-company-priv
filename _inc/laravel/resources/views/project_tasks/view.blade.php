@@ -547,7 +547,7 @@ $user = Auth::user();
                 n.id='error-toast';
                 n.className='toast align-items-center text-bg-danger border-0';
                 n.setAttribute('role','alert'); n.setAttribute('aria-live','assertive'); n.setAttribute('aria-atomic','true');
-                n.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+                n.innerHTML=`<div class="{{ VC::DFL }}"><div class="toast-body">${text}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
                 document.body.appendChild(n);
                 }
                 new bootstrap.Toast(document.querySelector('#error-toast')).show();

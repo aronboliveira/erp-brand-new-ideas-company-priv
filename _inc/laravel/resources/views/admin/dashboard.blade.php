@@ -885,7 +885,7 @@ $user = Auth::user();
                     <div class="{{ VC::DFL }}">
                         <div class="toast-body">${msg}</div>
                         <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
-                                data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                                data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>`;
                     document.body.appendChild(toast);
                     new bootstrap.Toast(toast).show();
@@ -995,7 +995,7 @@ $user = Auth::user();
                     <div class="{{ VC::DFL }}">
                         <div class="toast-body">${msg}</div>
                         <button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                            data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>`;
                     document.body.appendChild(toast);
                     new bootstrap.Toast(toast).show();

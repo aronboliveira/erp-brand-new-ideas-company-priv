@@ -301,7 +301,7 @@ Object.keys(t).forEach(
             $(document).on('click','[data-repeater-delete]',function(){
                 const btn=this;
                 try{
-                if(window.confirm('{{ __("Are you sure you want to delete this element?") }}')){
+                if(window.confirm('Are you sure you want to delete this element?')){
                     const $el=$(btn).parent().parent();
                     const id=$el.find('.id').val();
                     $.ajax({

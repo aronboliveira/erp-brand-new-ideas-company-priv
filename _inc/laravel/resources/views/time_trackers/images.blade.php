@@ -11,7 +11,7 @@ $lang = Utility::fetchUserLang();
 		{{ $tracker->project_task ?? __('Failed to get project task for tracker') }}
 		<small>( {{ $tracker->total ?? __('No total available') }}, {{ isset($tracker->start_time) ? date('d M', strtotime($tracker->start_time)) : __('No date available') }} )</small>
 	</h5>
-	<button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+	<button type="button" class="{{ VC::BT_CL }}" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 
 <div class="modal-body p-1">

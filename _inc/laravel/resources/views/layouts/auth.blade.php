@@ -313,7 +313,7 @@ $uri??='';
                 type="button"
                 class="{{ VC::BT_CL }}"
                 data-bs-dismiss="toast"
-                aria-label="{{ __('Close') }}"
+                aria-label="Close"
                 ></button>
             </div>
             <div class="toast-body">
@@ -370,7 +370,7 @@ $uri??='';
                             data-bs-target="#navbarTogglerDemo01"
                             aria-controls="navbarTogglerDemo01"
                             aria-expanded="false"
-                            aria-label="{{ __('Toggle navigation') }}"
+                            aria-label="Toggle navigation"
                         >
                             <span class="{{ VC::NVB_TG_IC }}"></span>
                         </button>

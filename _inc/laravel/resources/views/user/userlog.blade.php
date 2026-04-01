@@ -104,7 +104,7 @@
                                             @can('delete user')
                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open(['method' => 'DELETE','route' => ['user.userlogdestroy', $user->user_id],'id' => 'delete-form-' . $user->id,]) !!}
-                                                    <a href="#" class="{{ VC::BT_SM_MX3 }} {{ VC::ALC }} bs-pass-para" data-bs-toggle="tooltip" title="" data-bs-original-title="{{ __('Delete') }}" aria-label="{{ __('Delete') }}">
+                                                    <a href="#" class="{{ VC::BT_SM_MX3 }} {{ VC::ALC }} bs-pass-para" data-bs-toggle="tooltip" title="" data-bs-original-title="Delete" aria-label="Delete">
                                                         <i class="{{ VC::TI_TRS_WT }} {{ VC::TXT_WT }}"></i>
                                                     </a>
                                                     </form>

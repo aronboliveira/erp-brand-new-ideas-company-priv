@@ -280,7 +280,7 @@ $lang = Utility::fetchUserLang();
               toast.setAttribute('role', 'alert');
               toast.setAttribute('aria-live', 'assertive');
               toast.setAttribute('aria-atomic', 'true');
-              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>`;
+              toast.innerHTML = `<div class="{{ VC::DFL }}"><div class="toast-body">${msg}</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
               container.append(toast);
               new bootstrap.Toast(toast, {autohide: true, delay: 5000}).show();
             } else {

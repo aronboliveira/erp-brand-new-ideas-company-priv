@@ -39,7 +39,7 @@ $user = Auth::user();
     <div class="{{ VC::CD_BD }}">
         <div class="{{ VC::TX_END }}">
             <a href="#" id="payslip-download" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_DWN }}"></i></a>
-            <a title="{{ __('Mail Send') }}"
+            <a title="Mail Send"
                id="payslip-mail-send"
                href="{{ $sendUrl }}"
                data-url="{{ $sendUrl }}"
@@ -353,7 +353,7 @@ $user = Auth::user();
                 t.setAttribute("role", "alert");
                 t.setAttribute("aria-live", "assertive");
                 t.setAttribute("aria-atomic", "true");
-                t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body">' + message + '</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button></div>';
+                t.innerHTML = '<div class="{{ VC::DFL }}"><div class="toast-body">' + message + '</div><button type="button" class="{{ VC::BT_CL }} btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
                 document.getElementById(wrapId).appendChild(t);
                 new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
             }

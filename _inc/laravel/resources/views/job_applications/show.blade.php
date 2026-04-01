@@ -282,11 +282,11 @@ $user = Auth::user() ?? null;
  $r = (int)($jobApplication->rating ?? 0);
 @endphp
                         <ul id="stars">
-                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Poor') }}" data-value="1"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Fair') }}" data-value="2"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Good') }}" data-value="3"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('Excellent') }}" data-value="4"><i class="fas fa-star fa-fw"></i></li>
-                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="{{ __('WOW!!!') }}" data-value="5"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[1,2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Poor" data-value="1"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[2,3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Fair" data-value="2"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[3,4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Good" data-value="3"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[4,5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="Excellent" data-value="4"><i class="fas fa-star fa-fw"></i></li>
+                            <li class="star {{ in_array($r,[5]) ? 'selected' : '' }}" data-bs-toggle="tooltip" data-bs-title="WOW!!!" data-value="5"><i class="fas fa-star fa-fw"></i></li>
                         </ul>
                     </div>
                 </div>
@@ -550,7 +550,7 @@ $user = Auth::user() ?? null;
                                 <button type="button"
                                         class="{{ VC::BT_CL }} btn-close-white me-2 m-auto"
                                         data-bs-dismiss="toast"
-                                        aria-label="{{ __('Close') }}"></button>
+                                        aria-label="Close"></button>
                             </div>`;
                         document.body.appendChild(toast);
                     }
@@ -637,7 +637,7 @@ $user = Auth::user() ?? null;
                             data: { stage: id, schedule_id: scheduleId, _token: "{{ csrf_token() }}" },
                             cache: false,
                             success: () => {
-                                show_toastr('success', '{{ __("The candidate stage successfully changed") }}', 'success');
+                                show_toastr('success', 'The candidate stage successfully changed', 'success');
                                 setTimeout(() => window.location.reload(), 1000);
                             },
                             error: () => handleErrorDisplay(el, 'stage_change_unavailable')

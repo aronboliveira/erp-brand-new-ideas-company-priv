@@ -117,7 +117,7 @@ if (isset($proposal) && !empty($proposal)) {if (!function_exists('e')) {
         <?php
         try {echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();} catch (\InvalidArgumentException $e) {Log::warning('Meta view InvalidArgument: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);} catch (\Exception $e) {Log::error('Meta view Exception: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);} catch (\Throwable $e) {Log::critical('Meta view Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);}
         ?>
-        <title>{{ __('New York') }} - {{ __('Proposal') }}</title>
+        <title>New York - Proposal</title>
         <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
         <style>
             <?php echo $themeCSS; ?>

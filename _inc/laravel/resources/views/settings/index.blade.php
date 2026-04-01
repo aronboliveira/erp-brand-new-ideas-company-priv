@@ -1567,9 +1567,9 @@ $lang = Utility::fetchUserLang();
                                     <div class="{{ VC::FM_G }}">
                                         {{ Form::label('Meta Keywords', __('Meta Keywords'), ['class' => VC::FM_LB]) }}
                                         {{ Form::text(
-                                            SettingsConstants::MT_TTL_K,
-                                            $settings[SettingsConstants::MT_TTL_K] ?? '',
-                                            ['class' => VC::FM_CT, 'placeholder' => __('Meta Title')]
+                                            SettingsConstants::MT_TTL,
+                                            $settings[SettingsConstants::MT_TTL] ?? '',
+                                            ['class' => VC::FM_CT, 'placeholder' => 'Meta Keywords']
                                         ) }}
                                     </div>
                                     <div class="{{ VC::FM_G }}">

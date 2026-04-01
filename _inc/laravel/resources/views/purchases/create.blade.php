@@ -194,7 +194,7 @@
                 } catch (_) { } }
                 },
                 hide: function (deleteElement) {
-                if (window.confirm("{{ __('Are you sure you want to delete this element?') }}")) {
+                if (window.confirm("Are you sure you want to delete this element?")) {
                     $(this).slideUp(deleteElement);
                     $(this).remove();
                     const inputs = $(".amount");
