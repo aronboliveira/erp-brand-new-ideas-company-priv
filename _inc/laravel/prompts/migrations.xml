@@ -1,0 +1,7 @@
+<instructions>
+	<migrations>
+		For each migration, leverage foreach looping for multiple FK columns creations or dropping, but not when there's just a single one;
+	</migrations>
+	<pattern>
+	</pattern>
+</instructions>
