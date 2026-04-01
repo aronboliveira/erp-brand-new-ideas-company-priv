@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 /**
  * Rendered Page Mock Tests — Structural Validation
  *

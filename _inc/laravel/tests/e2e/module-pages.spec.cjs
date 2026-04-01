@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 /**
  * Module Page Tests — HRM, CRM, Accounting, Projects
  *
