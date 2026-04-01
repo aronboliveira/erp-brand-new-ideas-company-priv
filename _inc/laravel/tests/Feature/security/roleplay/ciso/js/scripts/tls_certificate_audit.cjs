@@ -10,10 +10,7 @@ const url = require("url");
 
 const TARGET = process.env.APP_URL || "https://127.0.0.1:443";
 
-const WEAK_CIPHERS = [
-  "RC4", "DES", "3DES", "MD5", "NULL", "EXPORT", "anon",
-  "RC2", "IDEA", "SEED",
-];
+const WEAK_CIPHERS = ["RC4", "DES", "3DES", "MD5", "NULL", "EXPORT", "anon", "RC2", "IDEA", "SEED"];
 
 const WEAK_PROTOCOLS = ["SSLv2", "SSLv3", "TLSv1", "TLSv1.1"];
 
@@ -33,7 +30,7 @@ const REQUIRED_HEADERS = {
  * @returns {Promise<object>}
  */
 function checkCertificate(hostname, port = 443) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const socket = tls.connect({ host: hostname, port, rejectUnauthorized: false, timeout: 5000 }, () => {
       const cert = socket.getPeerCertificate();
       const cipher = socket.getCipher();
@@ -56,10 +53,9 @@ function checkCertificate(hostname, port = 443) {
         fingerprint: cert.fingerprint256 || cert.fingerprint,
         cipher: cipher ? cipher.name : "unknown",
         protocol,
-        weakCipher: cipher ? WEAK_CIPHERS.some((w) => cipher.name.includes(w)) : false,
+        weakCipher: cipher ? WEAK_CIPHERS.some(w => cipher.name.includes(w)) : false,
         weakProtocol: protocol ? WEAK_PROTOCOLS.includes(protocol) : false,
-        selfSigned: cert.issuer && cert.subject &&
-          JSON.stringify(cert.issuer) === JSON.stringify(cert.subject),
+        selfSigned: cert.issuer && cert.subject && JSON.stringify(cert.issuer) === JSON.stringify(cert.subject),
         san: cert.subjectaltname || "",
       };
 
@@ -67,7 +63,7 @@ function checkCertificate(hostname, port = 443) {
       resolve(result);
     });
 
-    socket.on("error", (err) => {
+    socket.on("error", err => {
       resolve({ error: err.message });
     });
 
@@ -84,9 +80,9 @@ function checkCertificate(hostname, port = 443) {
  * @returns {Promise<object>}
  */
 function checkHSTS(targetUrl) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const opts = { ...url.parse(targetUrl), method: "HEAD", rejectUnauthorized: false, timeout: 5000 };
-    const req = https.request(opts, (res) => {
+    const req = https.request(opts, res => {
       const hsts = res.headers["strict-transport-security"] || "";
       const result = {
         present: !!hsts,
@@ -104,7 +100,10 @@ function checkHSTS(targetUrl) {
       resolve(result);
     });
     req.on("error", () => resolve({ present: false, error: true }));
-    req.on("timeout", () => { req.destroy(); resolve({ present: false, error: true }); });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ present: false, error: true });
+    });
     req.end();
   });
 }
@@ -119,16 +118,46 @@ function generateTlsReport(cert, hsts) {
   let score = 100;
   const issues = [];
 
-  if (cert.error) { issues.push("Não foi possível conectar via TLS"); score -= 100; }
-  if (cert.expired) { issues.push("Certificado expirado"); score -= 50; }
-  if (cert.expiringSoon) { issues.push(`Certificado expira em ${cert.daysToExpiry} dias`); score -= 20; }
-  if (cert.selfSigned) { issues.push("Certificado auto-assinado"); score -= 30; }
-  if (cert.weakCipher) { issues.push(`Cipher fraco: ${cert.cipher}`); score -= 25; }
-  if (cert.weakProtocol) { issues.push(`Protocolo fraco: ${cert.protocol}`); score -= 25; }
-  if (!hsts.present) { issues.push("HSTS não habilitado"); score -= 15; }
-  if (hsts.present && hsts.maxAge < 31536000) { issues.push("HSTS max-age < 1 ano"); score -= 10; }
-  if (hsts.present && !hsts.includeSubDomains) { issues.push("HSTS sem includeSubDomains"); score -= 5; }
-  if (hsts.present && !hsts.preload) { issues.push("HSTS sem preload"); score -= 5; }
+  if (cert.error) {
+    issues.push("Não foi possível conectar via TLS");
+    score -= 100;
+  }
+  if (cert.expired) {
+    issues.push("Certificado expirado");
+    score -= 50;
+  }
+  if (cert.expiringSoon) {
+    issues.push(`Certificado expira em ${cert.daysToExpiry} dias`);
+    score -= 20;
+  }
+  if (cert.selfSigned) {
+    issues.push("Certificado auto-assinado");
+    score -= 30;
+  }
+  if (cert.weakCipher) {
+    issues.push(`Cipher fraco: ${cert.cipher}`);
+    score -= 25;
+  }
+  if (cert.weakProtocol) {
+    issues.push(`Protocolo fraco: ${cert.protocol}`);
+    score -= 25;
+  }
+  if (!hsts.present) {
+    issues.push("HSTS não habilitado");
+    score -= 15;
+  }
+  if (hsts.present && hsts.maxAge < 31536000) {
+    issues.push("HSTS max-age < 1 ano");
+    score -= 10;
+  }
+  if (hsts.present && !hsts.includeSubDomains) {
+    issues.push("HSTS sem includeSubDomains");
+    score -= 5;
+  }
+  if (hsts.present && !hsts.preload) {
+    issues.push("HSTS sem preload");
+    score -= 5;
+  }
 
   score = Math.max(0, score);
   const grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
@@ -166,7 +195,7 @@ if (require.main === module) {
     console.log(`\nGrade: ${report.grade} (${report.score}/100)`);
     if (report.issues.length) {
       console.log("Issues:");
-      report.issues.forEach((i) => console.log(`  - ${i}`));
+      report.issues.forEach(i => console.log(`  - ${i}`));
     }
 
     console.log("\n[CISO] TLS Audit completo");
