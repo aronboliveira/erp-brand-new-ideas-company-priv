@@ -32,7 +32,7 @@ const MIME_TYPES = {
  */
 function resolvePath(urlPath) {
   // Normalize and prevent directory traversal
-  const normalized = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, "");
+  const normalized = path.normalize(urlPath).replace(/^(\.\.[\/\\])+/, "");
 
   if (normalized.startsWith("/harness/") || normalized === "/harness") {
     // Serve from ts/tests/harness/
@@ -130,6 +130,8 @@ server.listen(PORT, () => {
   console.log(`   /harness/         -> Test pages`);
   console.log(`   /dist/            -> Compiled TypeScript output`);
   console.log(`\n   Example test pages:`);
-  console.log(`   http://localhost:${PORT}/harness/pages/attendances-delete.html`);
+  console.log(
+    `   http://localhost:${PORT}/harness/pages/attendances-delete.html`,
+  );
   console.log(`\n   Press Ctrl+C to stop\n`);
 });
