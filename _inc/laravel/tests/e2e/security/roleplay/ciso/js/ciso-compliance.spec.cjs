@@ -1,7 +1,7 @@
 // Roleplay: CISO — E2E compliance audit via Playwright
 // Foco: headers, CSRF, exposição de dados, autenticação
 // PULL REQUEST START
-// @ts-nocheck
+// @ts-check
 const { test, expect } = require("@playwright/test");
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8000";
@@ -19,13 +19,16 @@ test.describe("CISO — E2E Compliance Audit", () => {
     test("formulário de login contém CSRF token", async ({ request }) => {
       const r = await request.get(`${BASE}/login`);
       const body = await r.text();
-      const hasCsrf = body.includes("_token") || body.includes("csrf-token");
+      const hasCsrf =
+        body.includes("_token") || body.includes("csrf-token");
       expect(hasCsrf).toBe(true);
     });
   });
 
   test.describe("Security Headers", () => {
-    test("X-Frame-Options ou CSP frame-ancestors presente", async ({ request }) => {
+    test("X-Frame-Options ou CSP frame-ancestors presente", async ({
+      request,
+    }) => {
       const r = await request.get(`${BASE}/login`);
       const xfo = r.headers()["x-frame-options"];
       const csp = r.headers()["content-security-policy"] || "";

@@ -75,7 +75,7 @@ def test_bypass(url: str, technique: dict) -> dict:
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else BASE
-    print("[WHITE-HAT] Auth Bypass Probe v1.0")
+    print(f"[WHITE-HAT] Auth Bypass Probe v1.0")
     print(f"[WHITE-HAT] Alvo: {target}")
     print("═" * 50)
 

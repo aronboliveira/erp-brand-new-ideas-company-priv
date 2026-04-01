@@ -21,7 +21,7 @@ def dump_cookies(url: str) -> dict:
     """Faz GET na URL e retorna todos os cookies."""
     s = requests.Session()
     try:
-        s.get(url, timeout=10, allow_redirects=True)
+        r = s.get(url, timeout=10, allow_redirects=True)
     except requests.ConnectionError:
         print("[GREEN-HAT] Erro: servidor inacessível")
         return {}
@@ -65,7 +65,7 @@ def try_decode_jwt(value: str) -> dict | None:
 
 def main():
     url = sys.argv[1] if len(sys.argv) > 1 else f"{BASE}/login"
-    print("[GREEN-HAT] Session Dump v0.1")
+    print(f"[GREEN-HAT] Session Dump v0.1")
     print(f"[GREEN-HAT] Alvo: {url}")
     print("---")
 

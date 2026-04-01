@@ -12,8 +12,7 @@ function generateDomXssPayloads() {
   return [
     { vector: "innerHTML", payload: '<img src=x onerror="alert(1)">', sink: "innerHTML" },
     { vector: "innerHTML-svg", payload: '<svg onload="alert(1)">', sink: "innerHTML" },
-    // eslint-disable-next-line no-useless-escape
-    { vector: "document.write", payload: "<script>alert(1)<\/script>", sink: "document.write" },
+    { vector: "document.write", payload: '<script>alert(1)<\/script>', sink: "document.write" },
     { vector: "eval-injection", payload: "';alert(1);//", sink: "eval" },
     { vector: "location.hash", payload: "#<img src=x onerror=alert(1)>", sink: "location.hash" },
     { vector: "template-literal", payload: "${alert(1)}", sink: "template" },

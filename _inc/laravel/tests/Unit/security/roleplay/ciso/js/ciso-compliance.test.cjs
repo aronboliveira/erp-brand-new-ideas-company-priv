@@ -18,7 +18,11 @@ describe("CISO — Compliance Unit Checks (JS)", () => {
         const layouts = path.join(VIEWS_DIR, "layouts", name);
         if (fs.existsSync(layouts)) {
           const content = fs.readFileSync(layouts, "utf-8");
-          if (content.includes("csrf-token") || content.includes("@csrf") || content.includes("csrf_token()")) {
+          if (
+            content.includes("csrf-token") ||
+            content.includes("@csrf") ||
+            content.includes("csrf_token()")
+          ) {
             found = true;
           }
           break;
@@ -27,7 +31,9 @@ describe("CISO — Compliance Unit Checks (JS)", () => {
 
       // Também verificar diretório raiz de views
       if (!found) {
-        const viewFiles = fs.readdirSync(VIEWS_DIR).filter(f => f.endsWith(".blade.php"));
+        const viewFiles = fs.readdirSync(VIEWS_DIR).filter((f) =>
+          f.endsWith(".blade.php")
+        );
         for (const file of viewFiles) {
           const content = fs.readFileSync(path.join(VIEWS_DIR, file), "utf-8");
           if (content.includes("csrf-token") || content.includes("@csrf")) {
@@ -42,16 +48,25 @@ describe("CISO — Compliance Unit Checks (JS)", () => {
   });
 
   describe("Security header recommendations", () => {
-    const RECOMMENDED_HEADERS = ["X-Frame-Options", "X-Content-Type-Options", "X-XSS-Protection", "Content-Security-Policy", "Strict-Transport-Security"];
+    const RECOMMENDED_HEADERS = [
+      "X-Frame-Options",
+      "X-Content-Type-Options",
+      "X-XSS-Protection",
+      "Content-Security-Policy",
+      "Strict-Transport-Security",
+    ];
 
     test("lista de headers recomendados está completa", () => {
       expect(RECOMMENDED_HEADERS.length).toBeGreaterThanOrEqual(4);
     });
 
-    test.each(RECOMMENDED_HEADERS)("header '%s' está na checklist de compliance", header => {
-      expect(typeof header).toBe("string");
-      expect(header.length).toBeGreaterThan(0);
-    });
+    test.each(RECOMMENDED_HEADERS)(
+      "header '%s' está na checklist de compliance",
+      (header) => {
+        expect(typeof header).toBe("string");
+        expect(header.length).toBeGreaterThan(0);
+      }
+    );
   });
 
   describe("Política de debug", () => {

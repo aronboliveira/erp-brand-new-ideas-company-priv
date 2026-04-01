@@ -1,13 +1,16 @@
-// @ts-nocheck
 // ▓ Roleplay: QA — Script Validation Tests (Jest)
 // Valida as ferramentas de fuzzing e boundary testing do QA.
 // PULL REQUEST START
+// @ts-check
 "use strict";
 
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/qa");
+const SCRIPTS = path.resolve(
+  __dirname,
+  "../../../../../Feature/security/roleplay/qa"
+);
 const SERVER = process.env.APP_URL || "http://127.0.0.1:8000";
 
 function run(cmd, timeout = 30000) {
@@ -25,7 +28,9 @@ function run(cmd, timeout = 30000) {
 describe("QA — Script Validation", () => {
   // ─── JS: Form Fuzzer ─────────────────────────────────────
   describe("form_fuzzer.cjs", () => {
-    const { generateFuzzPayloads, FUZZ_PAYLOADS } = require(path.join(SCRIPTS, "js/scripts/form_fuzzer.cjs"));
+    const { generateFuzzPayloads, FUZZ_PAYLOADS } = require(
+      path.join(SCRIPTS, "js/scripts/form_fuzzer.cjs")
+    );
 
     test("gera payloads de fuzzing por categoria", () => {
       const payloads = generateFuzzPayloads();
@@ -46,15 +51,21 @@ describe("QA — Script Validation", () => {
     });
 
     test("payloads XSS incluem script tags", () => {
-      expect(FUZZ_PAYLOADS.xss.some(p => p.includes("<script"))).toBe(true);
+      expect(
+        FUZZ_PAYLOADS.xss.some((p) => p.includes("<script"))
+      ).toBe(true);
     });
 
     test("payloads overflow incluem strings longas", () => {
-      expect(FUZZ_PAYLOADS.overflow.some(p => p.length > 200)).toBe(true);
+      expect(
+        FUZZ_PAYLOADS.overflow.some((p) => p.length > 200)
+      ).toBe(true);
     });
 
     test("script executa via node", () => {
-      const out = run(`node "${path.join(SCRIPTS, "js/scripts/form_fuzzer.cjs")}"`);
+      const out = run(
+        `node "${path.join(SCRIPTS, "js/scripts/form_fuzzer.cjs")}"`
+      );
       expect(out).toContain("[QA] Form Fuzzer");
       expect(out).toContain("payloads de fuzz");
     });
@@ -63,7 +74,9 @@ describe("QA — Script Validation", () => {
   // ─── Python: Boundary Value Generator ────────────────────
   describe("boundary_value_gen.py", () => {
     test("script gera valores de fronteira", () => {
-      const out = run(`python3 "${path.join(SCRIPTS, "py/scripts/boundary_value_gen.py")}"`);
+      const out = run(
+        `python3 "${path.join(SCRIPTS, "py/scripts/boundary_value_gen.py")}"`
+      );
       expect(out).toContain("[QA] Boundary Value Generator");
       expect(out).toMatch(/campos|valores gerados/i);
     });
@@ -72,7 +85,10 @@ describe("QA — Script Validation", () => {
   // ─── Bash: URL Tamper ────────────────────────────────────
   describe("url_tamper.sh", () => {
     test("script testa manipulação de URL", () => {
-      const out = run(`bash "${path.join(SCRIPTS, "bash/scripts/url_tamper.sh")}"`, 60000);
+      const out = run(
+        `bash "${path.join(SCRIPTS, "bash/scripts/url_tamper.sh")}"`,
+        60000
+      );
       expect(out).toContain("[QA] URL Parameter Tamper");
       expect(out).toMatch(/IDOR|Path Traversal|CATEGORY/i);
     });

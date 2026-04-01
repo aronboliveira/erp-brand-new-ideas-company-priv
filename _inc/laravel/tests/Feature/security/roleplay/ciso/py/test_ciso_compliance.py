@@ -101,7 +101,7 @@ class TestCisoSessionSecurity:
     """Verificar configuração de cookies de sessão."""
 
     def test_session_cookie_httponly(self, session):
-        session.get(f"{BASE}/login", timeout=10)
+        r = session.get(f"{BASE}/login", timeout=10)
         for cookie in session.cookies:
             if "session" in cookie.name.lower():
                 # http.cookiejar usa lowercase para atributos não-padrão

@@ -1,7 +1,7 @@
-// @ts-nocheck
 // ▓ Roleplay: CISO — CSP Policy Analyzer
 // Auditor executivo. Analisa Content-Security-Policy do servidor.
 // PULL REQUEST START
+// @ts-check
 "use strict";
 
 const http = require("http");
@@ -140,8 +140,11 @@ function fetchCSP(targetUrl) {
   return new Promise((resolve, reject) => {
     const parsed = url.parse(targetUrl);
     const client = parsed.protocol === "https:" ? https : http;
-    const req = client.get(targetUrl, { timeout: 10000 }, res => {
-      const csp = res.headers["content-security-policy"] || res.headers["content-security-policy-report-only"] || "";
+    const req = client.get(targetUrl, { timeout: 10000 }, (res) => {
+      const csp =
+        res.headers["content-security-policy"] ||
+        res.headers["content-security-policy-report-only"] ||
+        "";
       resolve(csp);
     });
     req.on("error", reject);
@@ -181,7 +184,7 @@ if (require.main === module) {
         console.log(`  [${icon}] ${f.directive}: ${f.detail} (${f.severity})`);
       }
 
-      const critical = findings.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH").length;
+      const critical = findings.filter((f) => f.severity === "CRITICAL" || f.severity === "HIGH").length;
       console.log(`\n${"═".repeat(50)}`);
       console.log(`[CISO] ${findings.length} findings, ${critical} críticos/altos`);
     } catch (e) {

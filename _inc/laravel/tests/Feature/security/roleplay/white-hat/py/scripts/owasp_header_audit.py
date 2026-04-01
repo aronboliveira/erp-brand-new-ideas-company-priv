@@ -117,7 +117,7 @@ def audit_headers(url: str) -> list[dict]:
 
 def main():
     url = sys.argv[1] if len(sys.argv) > 1 else f"{BASE}/login"
-    print("[WHITE-HAT] OWASP Header Audit v1.0")
+    print(f"[WHITE-HAT] OWASP Header Audit v1.0")
     print(f"[WHITE-HAT] Alvo: {url}")
     print("═" * 50)
 

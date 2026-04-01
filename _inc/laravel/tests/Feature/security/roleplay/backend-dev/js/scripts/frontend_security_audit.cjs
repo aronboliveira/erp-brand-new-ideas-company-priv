@@ -1,7 +1,7 @@
-// @ts-nocheck
 // ▓ Roleplay: Backend Developer — Frontend Security Audit
 // Dev backend. Escaneia código JS/HTML para padrões inseguros no frontend.
 // PULL REQUEST START
+// @ts-check
 "use strict";
 
 const fs = require("fs");
@@ -70,7 +70,7 @@ function scanDir(dir) {
   const findings = [];
   if (!fs.existsSync(dir)) return findings;
 
-  const walk = d => {
+  const walk = (d) => {
     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
       const full = path.join(d, entry.name);
       if (entry.isDirectory()) {

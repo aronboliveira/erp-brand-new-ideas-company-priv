@@ -77,7 +77,7 @@ class TestBackendDevMassAssignment:
             f"{BASE}/users",
             data={
                 "name": "Dev Test",
-                "email": "dev-test-py@test.com",
+                "email": f"dev-test-py@test.com",
                 "password": "Password123!",
                 "is_admin": "1",
                 "role": "super-admin",

@@ -1,7 +1,7 @@
 // ▓ Roleplay: QA — Form Fuzzer
 // QA tester. Fuzzing automatizado de formulários com inputs maliciosos.
 // PULL REQUEST START
-// @ts-nocheck
+// @ts-check
 "use strict";
 
 const http = require("http");
@@ -11,11 +11,46 @@ const SERVER = process.env.APP_URL || "http://127.0.0.1:8000";
 
 /** Payloads de fuzzing por categoria. */
 const FUZZ_PAYLOADS = {
-  xss: ["<script>alert(1)</script>", '"><img src=x onerror=alert(1)>', "javascript:alert(1)", "<svg/onload=alert(1)>"],
-  sqli: ["' OR 1=1--", "1; DROP TABLE users--", "' UNION SELECT null--", "admin'--"],
-  overflow: ["A".repeat(256), "A".repeat(1024), "A".repeat(65536)],
-  special: ["", " ", "\0", "\t\n\r", "null", "undefined", "NaN", "true", "false", "-1", "0", "999999999", "1.7976931348623157e+308"],
-  format: ["%s%s%s%s%s", "${7*7}", "{{7*7}}", "#{7*7}", "../../../etc/passwd", "..\\..\\..\\windows\\system32"],
+  xss: [
+    '<script>alert(1)</script>',
+    '"><img src=x onerror=alert(1)>',
+    "javascript:alert(1)",
+    '<svg/onload=alert(1)>',
+  ],
+  sqli: [
+    "' OR 1=1--",
+    "1; DROP TABLE users--",
+    "' UNION SELECT null--",
+    "admin'--",
+  ],
+  overflow: [
+    "A".repeat(256),
+    "A".repeat(1024),
+    "A".repeat(65536),
+  ],
+  special: [
+    "",
+    " ",
+    "\0",
+    "\t\n\r",
+    "null",
+    "undefined",
+    "NaN",
+    "true",
+    "false",
+    "-1",
+    "0",
+    "999999999",
+    "1.7976931348623157e+308",
+  ],
+  format: [
+    "%s%s%s%s%s",
+    "${7*7}",
+    "{{7*7}}",
+    "#{7*7}",
+    "../../../etc/passwd",
+    "..\\..\\..\\windows\\system32",
+  ],
 };
 
 /**
@@ -39,7 +74,7 @@ function generateFuzzPayloads() {
  * @returns {Promise<{status: number, body: string}>}
  */
 function postForm(url, fields) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const data = querystring.stringify(fields);
     const parsed = new URL(url);
     const options = {
@@ -54,10 +89,12 @@ function postForm(url, fields) {
       timeout: 10000,
     };
 
-    const req = http.request(options, res => {
+    const req = http.request(options, (res) => {
       let body = "";
-      res.on("data", chunk => (body += chunk));
-      res.on("end", () => resolve({ status: res.statusCode || 0, body: body.substring(0, 500) }));
+      res.on("data", (chunk) => (body += chunk));
+      res.on("end", () =>
+        resolve({ status: res.statusCode || 0, body: body.substring(0, 500) })
+      );
     });
 
     req.on("error", () => resolve({ status: 0, body: "ERROR" }));
@@ -115,7 +152,9 @@ if (require.main === module) {
       const results = await fuzzField(ep.url, ep.field, payloads.slice(0, 10));
       for (const r of results) {
         const icon = r.error ? "✗" : r.reflected ? "!" : "✓";
-        console.log(`  [${icon}] [${r.category}] "${r.payload}" → ${r.status}${r.reflected ? " REFLETIDO" : ""}`);
+        console.log(
+          `  [${icon}] [${r.category}] "${r.payload}" → ${r.status}${r.reflected ? " REFLETIDO" : ""}`
+        );
       }
     }
 

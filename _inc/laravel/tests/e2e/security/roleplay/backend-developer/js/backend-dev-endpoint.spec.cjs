@@ -1,7 +1,7 @@
 // Roleplay: Backend Developer — Playwright E2E endpoint review
 // Foco: autenticação, CSRF, content-type, middleware
 // PULL REQUEST START
-// @ts-nocheck
+// @ts-check
 const { test, expect } = require("@playwright/test");
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8000";
@@ -20,7 +20,9 @@ test.describe("Backend Developer — E2E Endpoint Review", () => {
 
     const postRoutes = ["/users", "/invoices", "/customers"];
     for (const route of postRoutes) {
-      test(`POST ${route} sem auth retorna redirect/419`, async ({ request }) => {
+      test(`POST ${route} sem auth retorna redirect/419`, async ({
+        request,
+      }) => {
         const r = await request.post(`${BASE}${route}`, {
           form: { name: "test" },
         });
@@ -39,11 +41,17 @@ test.describe("Backend Developer — E2E Endpoint Review", () => {
   });
 
   test.describe("SQLi via search params (code review regression)", () => {
-    const payloads = ["' OR '1'='1", "1' UNION SELECT NULL--", "1'; DROP TABLE users; --"];
+    const payloads = [
+      "' OR '1'='1",
+      "1' UNION SELECT NULL--",
+      "1'; DROP TABLE users; --",
+    ];
 
     for (const p of payloads) {
       test(`search: ${p.slice(0, 25)}`, async ({ request }) => {
-        const r = await request.get(`${BASE}/invoices?search=${encodeURIComponent(p)}`);
+        const r = await request.get(
+          `${BASE}/invoices?search=${encodeURIComponent(p)}`
+        );
         expect(r.status()).not.toBe(500);
         const body = await r.text();
         expect(body.toLowerCase()).not.toContain("sqlstate");

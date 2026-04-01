@@ -43,7 +43,9 @@ describe("Backend Developer — Code Review (Unit/JS)", () => {
       }
       // Informativo — pode haver usos legítimos
       if (violations.length > 0) {
-        console.warn(`[BACKEND-DEV] {!! $var !!} encontrado em: ${violations.slice(0, 5).join(", ")}`);
+        console.warn(
+          `[BACKEND-DEV] {!! $var !!} encontrado em: ${violations.slice(0, 5).join(", ")}`
+        );
       }
       // Não falha — é informativo
       expect(true).toBe(true);
@@ -58,7 +60,9 @@ describe("Backend Developer — Code Review (Unit/JS)", () => {
         }
       }
       if (violations.length > 0) {
-        console.warn(`[BACKEND-DEV] Inline events em: ${violations.slice(0, 5).join(", ")}`);
+        console.warn(
+          `[BACKEND-DEV] Inline events em: ${violations.slice(0, 5).join(", ")}`
+        );
       }
       expect(true).toBe(true);
     });
@@ -82,7 +86,10 @@ describe("Backend Developer — Code Review (Unit/JS)", () => {
 
   describe("Config files: security settings", () => {
     test("session.php has http_only = true", () => {
-      const sessionConfig = path.resolve(VIEWS_DIR, "../../config/session.php");
+      const sessionConfig = path.resolve(
+        VIEWS_DIR,
+        "../../config/session.php"
+      );
       if (!fs.existsSync(sessionConfig)) return;
       const content = fs.readFileSync(sessionConfig, "utf-8");
       // 'http_only' => env('SESSION_HTTP_ONLY', true)

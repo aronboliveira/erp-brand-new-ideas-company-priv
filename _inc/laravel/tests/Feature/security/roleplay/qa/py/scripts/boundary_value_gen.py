@@ -7,6 +7,7 @@ Gera valores de fronteira (boundary values) para diferentes tipos de campo.
 Uso: python3 boundary_value_gen.py
 """
 import json
+import sys
 
 
 # ── Definições de campos do sistema ──────────────────────
@@ -79,9 +80,9 @@ def gen_numeric_boundaries(field: dict) -> list:
 
     values = [
         {"label": f"min ({min_val})", "value": str(min_val), "expected": "accept"},
-        {"label": "min-1", "value": str(min_val - 1), "expected": "reject"},
+        {"label": f"min-1", "value": str(min_val - 1), "expected": "reject"},
         {"label": f"max ({max_val})", "value": str(max_val), "expected": "accept"},
-        {"label": "max+1", "value": str(max_val + 1), "expected": "reject"},
+        {"label": f"max+1", "value": str(max_val + 1), "expected": "reject"},
         {"label": "zero", "value": "0", "expected": "reject" if min_val > 0 else "accept"},
         {"label": "negativo", "value": "-1", "expected": "reject" if min_val >= 0 else "accept"},
         {"label": "string", "value": "abc", "expected": "reject"},
@@ -91,7 +92,7 @@ def gen_numeric_boundaries(field: dict) -> list:
     if not is_int:
         precision = field.get("precision", 2)
         values.extend([
-            {"label": "precisão+1", "value": f"1.{'0' * precision}1", "expected": "reject"},
+            {"label": f"precisão+1", "value": f"1.{'0' * precision}1", "expected": "reject"},
             {"label": "float grande", "value": "1.7976931348623157e+308", "expected": "reject"},
         ])
 

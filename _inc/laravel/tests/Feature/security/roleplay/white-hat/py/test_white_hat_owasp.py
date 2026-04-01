@@ -63,7 +63,7 @@ class TestWhiteHatErrorBased:
         r = session.get(f"{BASE}/invoices", params={"search": payload}, timeout=10)
         body = r.text.lower()
         assert "sqlstate" not in body, f"[ERROR-BASED] SQLSTATE vazou com: {payload}"
-        assert "syntax error" not in body, "[ERROR-BASED] Syntax error exposto"
+        assert "syntax error" not in body, f"[ERROR-BASED] Syntax error exposto"
 
 
 class TestWhiteHatUnionBased:

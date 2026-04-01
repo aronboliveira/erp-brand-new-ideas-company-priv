@@ -8,7 +8,7 @@ describe("Green Hat — Smoke SQLi (Unit/JS)", () => {
   const payloads = ["' OR '1'='1", "admin'--", "1 OR 1=1"];
 
   // Verifica que payloads não passam sem escapar
-  test.each(payloads)("payload '%s' é uma string perigosa", payload => {
+  test.each(payloads)("payload '%s' é uma string perigosa", (payload) => {
     // "Se eu colocar isso num campo, deveria ser tratado"
     expect(typeof payload).toBe("string");
     expect(payload.length).toBeGreaterThan(0);
@@ -22,7 +22,7 @@ describe("Green Hat — Smoke SQLi (Unit/JS)", () => {
   });
 
   test("encodeURIComponent escapa os payloads", () => {
-    payloads.forEach(p => {
+    payloads.forEach((p) => {
       const encoded = encodeURIComponent(p);
       // "Se codificar, os espaços somem, certo?"
       expect(encoded).not.toContain(" ");

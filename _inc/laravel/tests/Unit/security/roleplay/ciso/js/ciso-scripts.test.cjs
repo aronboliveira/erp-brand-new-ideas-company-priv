@@ -1,13 +1,16 @@
-// @ts-nocheck
 // ▓ Roleplay: CISO — Script Validation Tests (Jest)
 // Valida as ferramentas de auditoria de compliance do CISO.
 // PULL REQUEST START
+// @ts-check
 "use strict";
 
 const { execSync } = require("child_process");
 const path = require("path");
 
-const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/ciso");
+const SCRIPTS = path.resolve(
+  __dirname,
+  "../../../../../Feature/security/roleplay/ciso"
+);
 const SERVER = process.env.APP_URL || "http://127.0.0.1:8000";
 
 function run(cmd, timeout = 30000) {
@@ -25,7 +28,9 @@ function run(cmd, timeout = 30000) {
 describe("CISO — Script Validation", () => {
   // ─── JS: CSP Analyzer ────────────────────────────────────
   describe("csp_analyzer.cjs", () => {
-    const { parseCSP, analyzeCSP, CSP_DIRECTIVES } = require(path.join(SCRIPTS, "js/scripts/csp_analyzer.cjs"));
+    const { parseCSP, analyzeCSP, CSP_DIRECTIVES } = require(
+      path.join(SCRIPTS, "js/scripts/csp_analyzer.cjs")
+    );
 
     test("parseCSP extrai directivas", () => {
       const csp = "default-src 'self'; script-src 'self' 'unsafe-inline'";
@@ -41,13 +46,15 @@ describe("CISO — Script Validation", () => {
 
     test("analyzeCSP detecta unsage-inline como perigoso", () => {
       const findings = analyzeCSP("script-src 'self' 'unsafe-inline'");
-      const dangerous = findings.filter(f => f.status === "DANGEROUS" && f.directive === "script-src");
+      const dangerous = findings.filter(
+        (f) => f.status === "DANGEROUS" && f.directive === "script-src"
+      );
       expect(dangerous.length).toBeGreaterThan(0);
     });
 
     test("analyzeCSP detecta directivas ausentes", () => {
       const findings = analyzeCSP("default-src 'self'");
-      const missing = findings.filter(f => f.status === "MISSING");
+      const missing = findings.filter((f) => f.status === "MISSING");
       expect(missing.length).toBeGreaterThan(0);
     });
 
@@ -66,7 +73,10 @@ describe("CISO — Script Validation", () => {
   // ─── Bash: Security Header Scan ──────────────────────────
   describe("security_header_scan.sh", () => {
     test("script audita headers de compliance", () => {
-      const out = run(`bash "${path.join(SCRIPTS, "bash/scripts/security_header_scan.sh")}"`, 60000);
+      const out = run(
+        `bash "${path.join(SCRIPTS, "bash/scripts/security_header_scan.sh")}"`,
+        60000
+      );
       expect(out).toContain("[CISO] Security Header Compliance");
       expect(out).toMatch(/compliance|Nota/i);
     });
@@ -75,7 +85,10 @@ describe("CISO — Script Validation", () => {
   // ─── Bash: Cookie Flags Audit ────────────────────────────
   describe("cookie_flags_audit.sh", () => {
     test("script audita flags de cookies", () => {
-      const out = run(`bash "${path.join(SCRIPTS, "bash/scripts/cookie_flags_audit.sh")}"`, 30000);
+      const out = run(
+        `bash "${path.join(SCRIPTS, "bash/scripts/cookie_flags_audit.sh")}"`,
+        30000
+      );
       expect(out).toContain("[CISO] Cookie Security Flags");
       expect(out).toMatch(/flags|CONFORME/i);
     });
@@ -84,7 +97,10 @@ describe("CISO — Script Validation", () => {
   // ─── Python: Compliance Audit ────────────────────────────
   describe("compliance_audit.py", () => {
     test("script executa auditoria OWASP", () => {
-      const out = run(`python3 "${path.join(SCRIPTS, "py/scripts/compliance_audit.py")}"`, 30000);
+      const out = run(
+        `python3 "${path.join(SCRIPTS, "py/scripts/compliance_audit.py")}"`,
+        30000
+      );
       expect(out).toContain("[CISO] OWASP Compliance Audit");
       expect(out).toMatch(/checks passaram|Classificação/i);
     });
@@ -93,7 +109,10 @@ describe("CISO — Script Validation", () => {
   // ─── PHP: CSRF Audit ─────────────────────────────────────
   describe("csrf_audit.php", () => {
     test("script PHP audita proteção CSRF", () => {
-      const out = run(`php "${path.join(SCRIPTS, "php/scripts/csrf_audit.php")}"`, 30000);
+      const out = run(
+        `php "${path.join(SCRIPTS, "php/scripts/csrf_audit.php")}"`,
+        30000
+      );
       expect(out).toContain("[CISO] CSRF Protection Audit");
       expect(out).toMatch(/rotas protegidas/i);
     });
