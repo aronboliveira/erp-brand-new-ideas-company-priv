@@ -6,14 +6,14 @@ Multi-language security testing framework with role-based actors simulating real
 
 Each **role** represents a security persona with different skill levels, objectives, and toolkits:
 
-| Role | Skill Level | Languages | Scripts | Focus |
-|------|------------|-----------|---------|-------|
-| **Green Hat** | Beginner | JS, Bash, Python, PHP, WASM | 6 | Cookie theft, brute force, spam |
-| **White Hat** | Advanced | JS, Bash, Python, PHP, WASM | 10 | OWASP Top 10, CSP, SSRF, crypto |
-| **Black Hat** | Expert | JS, Bash, Python, PHP, WASM | 12+ | Evasion, exfiltration, XSS chains |
-| **CISO** | Executive | JS, Bash, Python, PHP, WASM | 10 | Compliance, TLS, GDPR/LGPD, policy |
-| **Backend Dev** | Senior | JS, Bash, Python, PHP, WASM | 7 | SAST, secrets, rate limiting, hashing |
-| **QA** | Mid-Senior | JS, Bash, Python, PHP, WASM | 8 | Fuzzing, regression, a11y, validation |
+| Role            | Skill Level | Languages                   | Scripts | Focus                                 |
+| --------------- | ----------- | --------------------------- | ------- | ------------------------------------- |
+| **Green Hat**   | Beginner    | JS, Bash, Python, PHP, WASM | 6       | Cookie theft, brute force, spam       |
+| **White Hat**   | Advanced    | JS, Bash, Python, PHP, WASM | 10      | OWASP Top 10, CSP, SSRF, crypto       |
+| **Black Hat**   | Expert      | JS, Bash, Python, PHP, WASM | 12+     | Evasion, exfiltration, XSS chains     |
+| **CISO**        | Executive   | JS, Bash, Python, PHP, WASM | 10      | Compliance, TLS, GDPR/LGPD, policy    |
+| **Backend Dev** | Senior      | JS, Bash, Python, PHP, WASM | 7       | SAST, secrets, rate limiting, hashing |
+| **QA**          | Mid-Senior  | JS, Bash, Python, PHP, WASM | 8       | Fuzzing, regression, a11y, validation |
 
 ## Directory Structure
 
@@ -46,6 +46,7 @@ tests/
 ## Running Tests
 
 ### Jest (JavaScript unit tests)
+
 ```bash
 # All roleplay tests
 npx jest tests/Unit/security/roleplay --no-coverage
@@ -58,16 +59,19 @@ npx jest tests/Unit/security/roleplay/qa/js/qa-new-scripts.test.cjs
 ```
 
 ### PHPUnit (PHP tests)
+
 ```bash
 php artisan test --filter=security/roleplay
 ```
 
 ### pytest (Python tests)
+
 ```bash
 cd tests/python && python -m pytest ../Feature/security/roleplay/ -v
 ```
 
 ### Bash scripts (manual execution)
+
 ```bash
 bash tests/Feature/security/roleplay/white-hat/bash/scripts/owasp_sqli_scan.sh
 ```
