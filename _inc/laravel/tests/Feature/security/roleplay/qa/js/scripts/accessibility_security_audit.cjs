@@ -12,7 +12,7 @@ const TARGET = process.env.APP_URL || "http://127.0.0.1:8000";
 const A11Y_SECURITY_CHECKS = [
   {
     name: "CAPTCHA com alternativa acessível",
-    check: (body) => {
+    check: body => {
       const hasCaptcha = /captcha|recaptcha|hcaptcha/i.test(body);
       const hasAlt = /aria-label.*captcha|role="img".*alt=|audio.*captcha/i.test(body);
       return { relevant: hasCaptcha, pass: !hasCaptcha || hasAlt };
@@ -21,7 +21,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "Formulário de login tem labels",
-    check: (body) => {
+    check: body => {
       const hasLoginForm = /type=["']password["']/i.test(body);
       const hasLabels = /<label\b[^>]*for=/i.test(body);
       const hasAriaLabel = /aria-label/i.test(body);
@@ -31,7 +31,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "Mensagens de erro acessíveis via aria-live",
-    check: (body) => {
+    check: body => {
       const hasErrors = /error|invalid|falha|erro/i.test(body);
       const hasAriaLive = /aria-live=["'](polite|assertive)["']/i.test(body);
       const hasRole = /role=["']alert["']/i.test(body);
@@ -41,7 +41,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "Timeout de sessão com aviso acessível",
-    check: (body) => {
+    check: body => {
       const hasTimeout = /session.*timeout|sessão.*expirar/i.test(body);
       const hasWarning = /aria-live.*timeout|role="timer"/i.test(body);
       return { relevant: hasTimeout, pass: !hasTimeout || hasWarning };
@@ -50,7 +50,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "MFA com alternativas (não só visual)",
-    check: (body) => {
+    check: body => {
       const hasMfa = /mfa|2fa|two.*factor|authenticator/i.test(body);
       const hasMultiple = /sms|email|backup.*code|recovery/i.test(body);
       return { relevant: hasMfa, pass: !hasMfa || hasMultiple };
@@ -59,7 +59,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "Contraste de cor em alertas de segurança",
-    check: (body) => {
+    check: body => {
       const hasAlerts = /alert|warning|danger|error/i.test(body);
       // Não pode depender APENAS de cor
       const hasIcon = /icon|fa-|bi-|material-icons|⚠|❌|✓/i.test(body);
@@ -70,7 +70,7 @@ const A11Y_SECURITY_CHECKS = [
   },
   {
     name: "Autocompletede seguro em campos sensíveis",
-    check: (body) => {
+    check: body => {
       const hasPassword = /type=["']password["']/i.test(body);
       const hasAutocomplete = /autocomplete=["'](current-password|new-password|off)["']/i.test(body);
       return { relevant: hasPassword, pass: !hasPassword || hasAutocomplete };
@@ -85,15 +85,18 @@ const A11Y_SECURITY_CHECKS = [
  * @returns {Promise<string>}
  */
 function fetchPage(targetUrl) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const opts = { ...url.parse(targetUrl), method: "GET", timeout: 5000 };
-    const req = http.request(opts, (res) => {
+    const req = http.request(opts, res => {
       let body = "";
-      res.on("data", (d) => (body += d));
+      res.on("data", d => (body += d));
       res.on("end", () => resolve(body));
     });
     req.on("error", () => resolve(""));
-    req.on("timeout", () => { req.destroy(); resolve(""); });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve("");
+    });
     req.end();
   });
 }
@@ -104,7 +107,7 @@ function fetchPage(targetUrl) {
  * @returns {object[]}
  */
 function runChecks(html) {
-  return A11Y_SECURITY_CHECKS.map((c) => {
+  return A11Y_SECURITY_CHECKS.map(c => {
     const result = c.check(html);
     return {
       name: c.name,
