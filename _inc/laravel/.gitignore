@@ -3,6 +3,9 @@
 **/dummy__*
 dummy__*
 **/*__test.js
+
+# security roleplay — black-hat tests NEVER committed
+**/black-hat/
 !**tests.py
 _test.js
 

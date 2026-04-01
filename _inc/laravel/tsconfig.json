@@ -26,5 +26,5 @@
     }
   },
   "include": ["frontend/next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/lib/configs/obfuscate.ts", "next.config.js", "public/assets/js/routes/invoices/delete.js", "ts/src/types/**/*.d.ts", "ts/src/declarations/**/*.d.ts"],
-  "exclude": ["node_modules", "ts/dist", "**/*.test.ts", "**/*.test.js", "_test.js", "**__dummy**", "**/*.test.tsx"]
+  "exclude": ["node_modules", "ts/dist", "**/*.test.ts", "**/*.test.js", "_test.js", "**__dummy**", "**/*.test.tsx", "**/*.cjs", "**/*.spec.ts", "**/*.spec.cjs", "tests/**"]
 }

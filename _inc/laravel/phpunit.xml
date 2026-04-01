@@ -152,6 +152,41 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
+
+        <!-- ── Security ───────────────────────────────────────────── -->
+        <testsuite name="Security-Feature">
+            <directory suffix="Test.php">./tests/e2e/security/php</directory>
+            <directory suffix="Test.php">./tests/Feature/security/php</directory>
+        </testsuite>
+        <testsuite name="Security-Unit">
+            <directory suffix="Test.php">./tests/Unit/security/php</directory>
+        </testsuite>
+
+        <!-- ── Security Roleplay ─────────────────────────────────── -->
+        <testsuite name="Roleplay-GreenHat">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/green-hat/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/green-hat/php</directory>
+        </testsuite>
+        <testsuite name="Roleplay-WhiteHat">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/white-hat/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/white-hat/php</directory>
+        </testsuite>
+        <testsuite name="Roleplay-BlackHat">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/black-hat/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/black-hat/php</directory>
+        </testsuite>
+        <testsuite name="Roleplay-CISO">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/ciso/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/ciso/php</directory>
+        </testsuite>
+        <testsuite name="Roleplay-QA">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/qa/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/qa/php</directory>
+        </testsuite>
+        <testsuite name="Roleplay-BackendDev">
+            <directory suffix="Test.php">./tests/Feature/security/roleplay/backend-developer/php</directory>
+            <directory suffix="Test.php">./tests/Unit/security/roleplay/backend-developer/php</directory>
+        </testsuite>
     </testsuites>
     <!-- Coverage disabled to reduce memory; enable with: composer test-php-cov -->
     <!--
