@@ -36,11 +36,8 @@ final class RevalidateBackHistory
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
             ]);
-            $referer = $request->headers->get('referer', '');
-            $current = $request->fullUrl();
-            $wouldLoop = empty($referer) || rtrim(strtok($referer, '?'), '/') === rtrim(strtok($current, '?'), '/');
-            $target = $wouldLoop ? redirect('/') : redirect()->back();
-            return $target->with('error', !empty($msgs['internal_error']) ? $msgs['internal_error'] : 'An error occurred while processing your request.');
+            return redirect()->back()
+                ->with('error', !empty($msgs['internal_error']) ? $msgs['internal_error'] : 'An error occurred while processing your request.');
         }
 
         $headers = [

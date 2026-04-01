@@ -85,26 +85,21 @@ final class SecureHeaders
 				]);
 				$output->writeln("[{$class}] Secure headers set successfully");
 				return $response;
-			# PULL REQUEST START — Remoção do catch genérico \Throwable que mascarava exceções downstream como abort(403)
-			// } catch (\Throwable $e) {
-			// 	Log::error("{$class}::{$method} unexpected error", [
-			// 		'exception' => get_class($e),
-			// 		'message'   => $e->getMessage(),
-			// 		'uri'       => $request->getRequestUri(),
-			// 		'method'    => $request->getMethod(),
-			// 		'headers'   => array_keys(self::HEADERS),
-			// 		'next'   => $this->searchForNext($request)
-			// 	]);
-			// 	$msg = "[{$class}] Failed to apply headers: {$e->getMessage()}";
-			// 	app()->runningInConsole()
-			// 		? $output->writeln("<error> {$msg} </error>")
-			// 		: $output->writeln("## HEADERS ERROR: {$msg}");
-			// 	Log::debug("{$class} ingested a throwable. Aborting.");
-			// 	abort(403, 'Security headers middleware failed');
-			// }
-			# PULL REQUEST END
 			} catch (\Throwable $e) {
-				throw $e;
+				Log::error("{$class}::{$method} unexpected error", [
+					'exception' => get_class($e),
+					'message'   => $e->getMessage(),
+					'uri'       => $request->getRequestUri(),
+					'method'    => $request->getMethod(),
+					'headers'   => array_keys(self::HEADERS),
+					'next'   => $this->searchForNext($request)
+				]);
+				$msg = "[{$class}] Failed to apply headers: {$e->getMessage()}";
+				app()->runningInConsole()
+					? $output->writeln("<error> {$msg} </error>")
+					: $output->writeln("## HEADERS ERROR: {$msg}");
+				Log::debug("{$class} ingested a throwable. Aborting.");
+				abort(403, 'Security headers middleware failed');
 			}
 		});
 	}

@@ -14,7 +14,6 @@ use App\Http\Middleware\{
     PusherConfig,
     RecordLanding,
     RedirectIfAuthenticated,
-    RequireLocalEnvironment,
     RevalidateBackHistory,
     SecureHeaders,
     SetGuestLocale,

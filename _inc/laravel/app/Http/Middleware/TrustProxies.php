@@ -96,13 +96,19 @@ final class TrustProxies extends Middleware
                 ] + $ctx);
                 $output->writeln("[{$class}] {$method}: Suspicious host detected {$request->getHost()}, aborting");
                 abort(403, 'Host not trusted.');
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$method} error", [
+                    'exception' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'uri' => $request->getRequestUri(),
+                    'status' => $response?->getStatusCode() ?? 'n/a', // @phpstan-ignore-line
+                    'host'  => $request->getHost()
+                ] + $ctx);
+                $msg = "[{$class}] {$method}: Error trusting proxies: {$e->getMessage()}";
+                app()->runningInConsole() ? $output->writeln("<error> {$msg} </error>") : $output->writeln("## TRUST PROXIES ERROR: {$msg}");
+                Log::debug("{$class} ingested a throwable. Aborting.");
+                abort(500, 'CSRF verification failed');
             }
-            # PULL REQUEST START
-            // Removido catch genérico de \Throwable que mascarava erros
-            // de downstream (view rendering, ModelNotFoundException, etc.)
-            // convertendo tudo em abort(500, 'CSRF verification failed').
-            // Exceções devem propagar naturalmente para o Handler da aplicação.
-            # PULL REQUEST END
         }, $method);
     }
 }
