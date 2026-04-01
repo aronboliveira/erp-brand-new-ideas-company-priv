@@ -1,0 +1,22 @@
+{
+  "description": "Unified mock-app manifest for security roleplay tests",
+  "apps": {
+    "vulnerable-form": {
+      "path": "vulnerable-form/index.html",
+      "purpose": "Form with intentional client-side weaknesses for XSS/SQLi testing"
+    },
+    "session-test": {
+      "path": "session-test/index.html",
+      "purpose": "Exposes session/cookie handling for theft and fixation probes"
+    },
+    "api-test": {
+      "path": "api-test/index.html",
+      "purpose": "Simulates API calls for interception and parameter tampering"
+    }
+  },
+  "legacy-mocks": {
+    "frontend-pages": "tests/frontend/js/pages/mocks/",
+    "frontend-views": "tests/frontend/js/mocks/views/",
+    "rbac-pages": "tests/frontend/js/pages/mocks/rbac/"
+  }
+}
