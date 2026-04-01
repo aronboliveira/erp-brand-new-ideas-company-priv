@@ -150,6 +150,17 @@ cd _inc/laravel
 vendor/bin/phpstan analyse
 ```
 
+### Security roleplay (Jest)
+
+```bash
+cd _inc/laravel
+npx jest --config=jest.config.cjs --testPathPatterns="tests/Unit/security/roleplay"
+# 17 suites · 187 tests — multi-language (JS, WASM, PHP, Python, Bash)
+# Roles: black-hat, green-hat, white-hat, CISO, backend-dev, QA
+```
+
+See [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/tests/Feature/security/roleplay/README.md) for the full framework docs.
+
 ---
 
 ## Utility scripts
@@ -320,6 +331,17 @@ npm test -- --testPathPattern="erp-guard" # suite específica
 cd _inc/laravel
 vendor/bin/phpstan analyse
 ```
+
+### Roleplay de seguridad (Jest)
+
+```bash
+cd _inc/laravel
+npx jest --config=jest.config.cjs --testPathPatterns="tests/Unit/security/roleplay"
+# 17 suites · 187 tests — multi-lenguaje (JS, WASM, PHP, Python, Bash)
+# Roles: black-hat, green-hat, white-hat, CISO, backend-dev, QA
+```
+
+Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/tests/Feature/security/roleplay/README.md) para la documentación completa del framework.
 
 ---
 
@@ -502,6 +524,17 @@ npm test -- --testPathPattern="erp-guard" # suite específica
 cd _inc/laravel
 vendor/bin/phpstan analyse
 ```
+
+### Roleplay de segurança (Jest)
+
+```bash
+cd _inc/laravel
+npx jest --config=jest.config.cjs --testPathPatterns="tests/Unit/security/roleplay"
+# 17 suites · 187 testes — multi-linguagem (JS, WASM, PHP, Python, Bash)
+# Roles: black-hat, green-hat, white-hat, CISO, backend-dev, QA
+```
+
+Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/tests/Feature/security/roleplay/README.md) para a documentação completa do framework.
 
 ---
 
