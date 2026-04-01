@@ -1,6 +1,9 @@
 module.exports = {
   testEnvironment: "jsdom",
-  testMatch: ["<rootDir>/tests/Unit/frontend/js/**/*.test.cjs", "<rootDir>/tests/Unit/security/roleplay/**/js/*.test.cjs"],
+  testMatch: [
+    "<rootDir>/tests/Unit/frontend/js/**/*.test.cjs",
+    "<rootDir>/tests/Unit/security/roleplay/**/js/*.test.cjs",
+  ],
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,

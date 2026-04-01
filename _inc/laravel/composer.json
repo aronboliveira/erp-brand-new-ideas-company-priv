@@ -13,7 +13,6 @@
     "anhskohbo/no-captcha": "^3.5",
     "arkitecht/laravel-twilio": "^1.6",
     "coingate/coingate-php": "^4.1",
-    "cweagans/composer-patches": "^1.7",
     "doctrine/dbal": "^3.7",
     "guzzlehttp/guzzle": "^7.8",
     "inertiajs/inertia-laravel": "^2.0",
@@ -22,7 +21,7 @@
     "laravel/fortify": "^1.25",
     "laravel/framework": "^10.10",
     "laravel/jetstream": "^4.3",
-    "laravel/sanctum": "^3.4",
+    "laravel/sanctum": "^3.2",
     "laravel/tinker": "^2.8",
     "laravel/ui": "^4.1",
     "laravelcollective/html": "^6.4",
@@ -33,7 +32,7 @@
     "midtrans/midtrans-php": "^2.5",
     "milon/barcode": "^10.0",
     "mollie/mollie-api-php": "^2.25",
-    "munafio/chatify": "*",
+    "munafio/chatify": "1.2",
     "nwidart/laravel-modules": "9.*",
     "obydul/laraskrill": "^1.2",
     "orhanerday/open-ai": "^4.8",
@@ -477,28 +476,13 @@
   "extra": {
     "laravel": {
       "dont-discover": []
-    },
-    "patches": {
-      "laravelcollective/html": {
-        "PHP 8.4 implicit-nullable fix (FormBuilder, HtmlBuilder)": "patches/laravelcollective-html-implicit-nullable.patch"
-      },
-      "nwidart/laravel-modules": {
-        "PHP 8.4 implicit-nullable fix (Json: __construct, make, toJsonPretty)": "patches/nwidart-laravel-modules-implicit-nullable.patch"
-      },
-      "spatie/laravel-permission": {
-        "PHP 8.4 implicit-nullable fix (HasRoles: hasRole, hasAllRoles, hasExactRoles)": "patches/spatie-laravel-permission-implicit-nullable.patch"
-      }
-    },
-    "composer-exit-on-patch-failure": true
+    }
   },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
-    "process-timeout": 0,
-    "allow-plugins": {
-      "cweagans/composer-patches": true
-    }
+    "process-timeout": 0
   },
   "minimum-stability": "dev",
   "prefer-stable": true

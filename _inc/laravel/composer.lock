@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fad8c80e5c6cbb93e74a367a6d5b968a",
+    "content-hash": "d1b5ff38625134af9c0e3cf18224846f",
     "packages": [
         {
             "name": "anandsiddharth/laravel-paytm-wallet",
@@ -803,54 +803,6 @@
                 }
             ],
             "time": "2025-08-20T19:15:30+00:00"
-        },
-        {
-            "name": "cweagans/composer-patches",
-            "version": "1.7.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/cweagans/composer-patches.git",
-                "reference": "e190d4466fe2b103a55467dfa83fc2fecfcaf2db"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/cweagans/composer-patches/zipball/e190d4466fe2b103a55467dfa83fc2fecfcaf2db",
-                "reference": "e190d4466fe2b103a55467dfa83fc2fecfcaf2db",
-                "shasum": ""
-            },
-            "require": {
-                "composer-plugin-api": "^1.0 || ^2.0",
-                "php": ">=5.3.0"
-            },
-            "require-dev": {
-                "composer/composer": "~1.0 || ~2.0",
-                "phpunit/phpunit": "~4.6"
-            },
-            "type": "composer-plugin",
-            "extra": {
-                "class": "cweagans\\Composer\\Patches"
-            },
-            "autoload": {
-                "psr-4": {
-                    "cweagans\\Composer\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Cameron Eagans",
-                    "email": "me@cweagans.net"
-                }
-            ],
-            "description": "Provides a way to patch Composer packages.",
-            "support": {
-                "issues": "https://github.com/cweagans/composer-patches/issues",
-                "source": "https://github.com/cweagans/composer-patches/tree/1.7.3"
-            },
-            "time": "2022-12-20T22:53:13+00:00"
         },
         {
             "name": "dasprid/enum",
@@ -3309,16 +3261,16 @@
         },
         {
             "name": "laravel/sanctum",
-            "version": "3.x-dev",
+            "version": "v3.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/sanctum.git",
-                "reference": "202fd6eb989a19ab48635e2481f375412b0b1da7"
+                "reference": "8c104366459739f3ada0e994bcd3e6fd681ce3d5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/sanctum/zipball/202fd6eb989a19ab48635e2481f375412b0b1da7",
-                "reference": "202fd6eb989a19ab48635e2481f375412b0b1da7",
+                "url": "https://api.github.com/repos/laravel/sanctum/zipball/8c104366459739f3ada0e994bcd3e6fd681ce3d5",
+                "reference": "8c104366459739f3ada0e994bcd3e6fd681ce3d5",
                 "shasum": ""
             },
             "require": {
@@ -3371,7 +3323,7 @@
                 "issues": "https://github.com/laravel/sanctum/issues",
                 "source": "https://github.com/laravel/sanctum"
             },
-            "time": "2025-06-28T17:22:48+00:00"
+            "time": "2023-12-19T18:44:48+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -4964,20 +4916,20 @@
         },
         {
             "name": "munafio/chatify",
-            "version": "v1.6.3",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/munafio/chatify.git",
-                "reference": "559ff515fc83a822ed72cdd03ca8e36c574c5a25"
+                "reference": "5802c958e87bf972890fb9b2889f097b78f6a34e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/munafio/chatify/zipball/559ff515fc83a822ed72cdd03ca8e36c574c5a25",
-                "reference": "559ff515fc83a822ed72cdd03ca8e36c574c5a25",
+                "url": "https://api.github.com/repos/munafio/chatify/zipball/5802c958e87bf972890fb9b2889f097b78f6a34e",
+                "reference": "5802c958e87bf972890fb9b2889f097b78f6a34e",
                 "shasum": ""
             },
             "require": {
-                "pusher/pusher-php-server": "^6.0|^7.0|^7.1"
+                "pusher/pusher-php-server": "^7.0"
             },
             "type": "library",
             "extra": {
@@ -5006,11 +4958,9 @@
                 }
             ],
             "description": "A package for Laravel PHP Framework to add a complete real-time chat system.",
-            "homepage": "https://github.com/munafio/chatify",
             "keywords": [
                 "Messenger",
                 "chat",
-                "chatify",
                 "conversations",
                 "laravel",
                 "php",
@@ -5020,9 +4970,9 @@
             ],
             "support": {
                 "issues": "https://github.com/munafio/chatify/issues",
-                "source": "https://github.com/munafio/chatify/tree/v1.6.3"
+                "source": "https://github.com/munafio/chatify/tree/v1.2.0"
             },
-            "time": "2024-03-17T14:21:38+00:00"
+            "time": "2021-05-29T21:04:31+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -5730,16 +5680,16 @@
         },
         {
             "name": "paragonie/sodium_compat",
-            "version": "v2.5.0",
+            "version": "v2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/sodium_compat.git",
-                "reference": "4714da6efdc782c06690bc72ce34fae7941c2d9f"
+                "reference": "a673d5f310477027cead2e2f2b6db5d8368157cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/sodium_compat/zipball/4714da6efdc782c06690bc72ce34fae7941c2d9f",
-                "reference": "4714da6efdc782c06690bc72ce34fae7941c2d9f",
+                "url": "https://api.github.com/repos/paragonie/sodium_compat/zipball/a673d5f310477027cead2e2f2b6db5d8368157cb",
+                "reference": "a673d5f310477027cead2e2f2b6db5d8368157cb",
                 "shasum": ""
             },
             "require": {
@@ -5747,10 +5697,8 @@
                 "php-64bit": "*"
             },
             "require-dev": {
-                "infection/infection": "^0",
-                "nikic/php-fuzzer": "^0",
-                "phpunit/phpunit": "^7|^8|^9|^10|^11",
-                "vimeo/psalm": "^4|^5|^6"
+                "phpunit/phpunit": "^7|^8|^9",
+                "vimeo/psalm": "^4|^5"
             },
             "suggest": {
                 "ext-sodium": "Better performance, password hashing (Argon2i), secure memory management (memzero), and better security."
@@ -5764,10 +5712,7 @@
             "autoload": {
                 "files": [
                     "autoload.php"
-                ],
-                "psr-4": {
-                    "ParagonIE\\Sodium\\": "namespaced/"
-                }
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -5820,9 +5765,9 @@
             ],
             "support": {
                 "issues": "https://github.com/paragonie/sodium_compat/issues",
-                "source": "https://github.com/paragonie/sodium_compat/tree/v2.5.0"
+                "source": "https://github.com/paragonie/sodium_compat/tree/v2.1.0"
             },
-            "time": "2025-12-30T16:12:18+00:00"
+            "time": "2024-09-04T12:51:01+00:00"
         },
         {
             "name": "paymentwall/paymentwall-php",
