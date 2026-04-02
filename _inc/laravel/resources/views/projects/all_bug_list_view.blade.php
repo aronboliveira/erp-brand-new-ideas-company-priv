@@ -286,7 +286,7 @@ $user = Auth::user();
                                                                             src="{{ $avatarPath }}"
                                                                             alt="{{ e($assigneeName) }}"
                                                                             class="hweb"
-                                                                            onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'"
+                                                                            data-fallback-src="{{ asset('/storage/uploads/avatar/avatar.png') }}"
                                                                         >
                                                                     </a>
                                                                 @endif

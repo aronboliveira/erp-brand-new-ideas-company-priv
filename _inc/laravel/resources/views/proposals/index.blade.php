@@ -258,7 +258,7 @@
                                     </div>
                                 </div>
                                 <div class="{{ VC::C_AT }} {{ VC::FEND }} {{ VC::MS2 }} {{ VC::MT4 }}">
-                                    <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('frm_submit').submit(); return false;" data-bs-toggle="tooltip" data-original-title="{{ $applyTitle }}">
+                                    <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="frm_submit" data-bs-toggle="tooltip" data-original-title="{{ $applyTitle }}">
                                         <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                     </a>
                                     @php

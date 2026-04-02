@@ -1629,7 +1629,7 @@ $lang = Utility::fetchUserLang();
                             <h5>{{ __('Cookie Settings') }}</h5>
                             <div class="{{ VC::DFL_AIC }}">
                                 {{ Form::label('enable_cookie', __('Enable cookie'), ['class' => VC::FM_LB . ' p-0 fw-bold me-3']) }}
-                                <div class="{{ VC::CST_CTL }} custom-switch me-2" onclick="enablecookie()">
+                                <div class="{{ VC::CST_CTL }} custom-switch me-2" data-call-fn="enablecookie">
                                     <input type="checkbox" data-toggle="switchbutton" data-onstyle="primary" name="enable_cookie" class="form-check-input input-primary" id="enable_cookie" {{ ($settings['enable_cookie'] ?? 'off') === 'on' ? 'checked' : '' }}>
                                     <label class="{{ VC::CST_LB }} {{ VC::MB1 }}" for="enable_cookie"></label>
                                 </div>
@@ -1678,7 +1678,8 @@ $lang = Utility::fetchUserLang();
 
                                 <div class="{{ VC::CM6 }}">
                                     <div class="{{ VC::FM_CHK }} form-switch custom-switch-v1">
-                                        <input type="checkbox" name="necessary_cookies" class="form-check-input input-primary" id="necessary_cookies" checked onclick="return false">
+                                        <input type="checkbox" name="necessary_cookies" class="form-check-input input-primary" id="necessary_cookies" checked disabled>
+                                        <input type="hidden" name="necessary_cookies" value="on">
                                         <label class="form-check-label" for="necessary_cookies">{{ __('Strictly necessary cookies') }}</label>
                                     </div>
 

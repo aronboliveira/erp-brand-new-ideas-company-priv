@@ -44,7 +44,7 @@
                             <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                 <div class="row">
                                     <div class="{{ VC::C_AT }}">
-                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('user_userlog').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
+                                        <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="user_userlog" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                         </a>
                                         <a href="{{route('user.userlog')}}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">

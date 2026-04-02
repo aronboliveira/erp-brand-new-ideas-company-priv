@@ -87,7 +87,7 @@
                                                     @endphp
                                                     <div class="action-btn bg-danger ms-2">
                                                         {!! Form::open(['method' => 'DELETE', 'url' => $deleteUrl, 'id' => 'delete-form-' . ($wh->id ?? ''), 'data-guard-msg' => $deleteGuard]) !!}
-                                                        <a href="#" class="{{ VC::MX3 }} {{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}" onclick="event.preventDefault(); if(confirm('{{ __('Are you sure?') }}')) this.closest('form').submit();">
+                                                        <a href="#" class="{{ VC::MX3 }} {{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm-submit="{{ __('Are you sure?') }}">
                                                             <i class="ti ti-trash {{ VC::TXT_WT }}"></i>
                                                         </a>
                                                         {!! Form::close() !!}

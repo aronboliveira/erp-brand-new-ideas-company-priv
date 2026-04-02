@@ -21,7 +21,7 @@
                                         <img src="{{ $avatarSrc }}"
                                              class="wid-40 rounded-circle ml-3"
                                              alt="avatar"
-                                             onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
+                                             data-fallback-src="{{ asset('/storage/uploads/avatar/avatar.png') }}">
                                     </div>
                                     <div class="col">
                                         <h6 class="{{ VC::MB0 }} {{ VC::H6 }}">

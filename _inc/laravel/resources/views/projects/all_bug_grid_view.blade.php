@@ -568,7 +568,7 @@ $user = Auth::user();
                                                                                     width="25"
                                                                                     height="25"
                                                                                     alt="{{ e(data_get($user, 'name', __('Anonymous User'))) }}"
-                                                                                    onerror='this.src="{{ asset(Storage::url("uploads/avatar/avatar.png")) }}"'
+                                                                                    data-fallback-src="{{ asset(Storage::url('uploads/avatar/avatar.png')) }}"
                                                                                 >
                                                                             @endif
                                                                         @endforeach

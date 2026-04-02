@@ -649,7 +649,7 @@
         </div>
 
         <div class="modal-footer">
-            <input type="button" value="{{__('Cancel')}}" onclick="location.href = ' {{ route('purchase.index') }}';" class="btn btn-light">
+            <input type="button" value="{{__('Cancel')}}" data-navigate-to="{{ route('purchase.index') }}" class="btn btn-light">
             <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
         </div>
         {{ Collective\Html\FormFacade::close() }}

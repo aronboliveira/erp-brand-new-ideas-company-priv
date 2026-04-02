@@ -109,7 +109,7 @@ $profile      = Utility::getFile('uploads/avatar/');
                                         </div>
                                     </div>
                                     <div class="{{ VC::C_AT_FEND }}">
-                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('project_report_submit').submit();return false;" data-toggle="tooltip" data-original-title="{{ __('apply') }}">
+                                        <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="project_report_submit" data-toggle="tooltip" data-original-title="{{ __('apply') }}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                         </a>
                                         <a href="{{ $indexUrl }}"

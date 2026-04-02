@@ -144,7 +144,7 @@
     <div class="{{ VC::FEND }}">
         <button type="button"
                 class="{{ VC::BT_SM_PM }}"
-                onclick="saveAsPDF()"
+                data-save-pdf
                 data-bs-toggle="tooltip"
                 title="{{ __('Download') }}"
                 aria-label="{{ __('Download') }}">

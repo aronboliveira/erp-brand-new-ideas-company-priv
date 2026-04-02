@@ -778,7 +778,7 @@ $user = Auth::user();
                                                                                  alt="{{ e($userName) }}"
                                                                                  data-bs-toggle="tooltip"
                                                                                  title="{{ e($userName) }}"
-                                                                                 onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
+                                                                                 data-fallback-src="{{ asset('/storage/uploads/avatar/avatar.png') }}">
                                                                         @else
                                                                             <img src="{{ asset('/storage/uploads/avatar/avatar.png') }}"
                                                                                  alt="{{ __('No User') }}"

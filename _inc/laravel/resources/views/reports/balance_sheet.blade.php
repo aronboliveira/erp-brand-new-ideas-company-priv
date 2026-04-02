@@ -165,7 +165,7 @@ $user = Auth::user();
                                     <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                         <div class="{{ VC::RW }}">
                                             <div class="{{ VC::C_AT }}">
-                                                <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('report_bill_summary').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
+                                                <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="report_bill_summary" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
                                                 <a href="{{ $balanceSheetUrl }}"
                                                 class="{{ VC::BT_SM_DG }} balance-sheet-reset"
                                                 data-bs-toggle="tooltip"

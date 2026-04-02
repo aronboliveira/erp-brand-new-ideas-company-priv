@@ -31,7 +31,7 @@ $user = Auth::user();
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
-        <a href="#" onclick="saveAsPDF()" class="{{ VC::BT_SM_PM }} me-1" data-bs-toggle="tooltip" title="{{ __('Print') }}"
+        <a href="#" data-save-pdf class="{{ VC::BT_SM_PM }} me-1" data-bs-toggle="tooltip" title="{{ __('Print') }}"
            data-original-title="{{ __('Print') }}"><i class="ti ti-printer"></i></a>
     </div>
     <div class="{{ VC::FEND }} me-2">

@@ -181,7 +181,7 @@ $user = Auth::user();
 {{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
-        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="saveAsPDF()" data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">
+        <a href="#" class="{{ VC::BT_SM_PM }}" data-save-pdf data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
     </div>

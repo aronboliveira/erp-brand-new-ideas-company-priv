@@ -57,7 +57,7 @@ $lang = Utility::fetchUserLang();
                                 <img src="{{ $avatarSrc }}"
                                      alt="avatar"
                                      class="img-user"
-                                     onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
+                                     data-fallback-src="{{ asset('/storage/uploads/avatar/avatar.png') }}">
                             </div>
                             <div>
                                 <h5 class="m-0">{{ data_get($user, 'name', __('Unknown User')) }}</h5>

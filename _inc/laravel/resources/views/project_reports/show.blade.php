@@ -83,7 +83,7 @@ $user        = Auth::user();
 
 @section(YD::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
-        <a href="#" onclick="typeof saveAsPDF === 'function' && saveAsPDF();" class="{{ VC::BT_SM_PM }} dwn" data-toggle="tooltip" title="{{ __('Project Report Download') }}">
+        <a href="#" data-save-pdf class="{{ VC::BT_SM_PM }} dwn" data-toggle="tooltip" title="{{ __('Project Report Download') }}">
             <i class="{{ VC::TI_DWN }}"></i>
         </a>
     </div>

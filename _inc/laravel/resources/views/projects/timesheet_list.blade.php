@@ -125,7 +125,7 @@ $user = Auth::user();
                                                                     title="{{ data_get($u, 'name', 'Unknown User') }}"
                                                                     style="height:36px;width:36px;"
                                                                     alt="user avatar"
-                                                                    onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
+                                                                    data-fallback-src="{{ asset('/storage/uploads/avatar/avatar.png') }}">
                                                             </a>
                                                         @elseif($uKey >= 3)
                                                             @break
