@@ -126,7 +126,7 @@ $user ??= null;
                                             <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                                 <a href="#"
                                                    class="{{ VC::BT_SM_PM }}"
-                                                   onclick="document.getElementById('holiday_filter').submit(); return false;"
+                                                   data-submit-form="holiday_filter"
                                                    data-bs-toggle="tooltip"
                                                    title="{{ __('Apply') }}">
                                                     <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
@@ -276,3 +276,6 @@ $user ??= null;
         </div>
     @endif
 @endsection
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
+@endpush

@@ -23,6 +23,7 @@ $user = Auth::user();
 @endpush
 
 @push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/holidays/index.js') }}"></script>
 @endpush
 
@@ -116,7 +117,7 @@ $user = Auth::user();
                                     <div class="{{ VC::C_AT }}">
                                         <div class="row">
                                             <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
-                                                <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('holiday_filter').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
+                                                <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="holiday_filter" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
                                                     <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                                 </a>
                                                 @php
@@ -160,7 +161,7 @@ $user = Auth::user();
                             </div>
                             <div class="{{ VC::CL6 }}">
                                 @if (!empty($settings) && !empty($settings['google_calendar_enable']) && $settings['google_calendar_enable'] === 'on')
-                                    <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
+                                    <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float: right;width: 150px;">
                                         <option value="google_calendar">{{ __('Google calendar') }}</option>
                                         <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                     </select>

@@ -95,7 +95,8 @@ $lang = Utility::fetchUserLang();
                                     <td class="px-0">
                                     <div class="fs-6">
                                         <p class="{{ VC::MB2 }} fw-bold">{{ __('Deal : ') . $dArr['deal_name'] }}</p>
-                                        <p class="{{ VC::MB3_FWB }}">{!! $dArr['description'] !!}</p>
+                                        {{-- purify_html: deal description may contain rich-text user input --}}
+                                        <p class="{{ VC::MB3_FWB }}">{!! purify_html($dArr['description'] ?? '') !!}</p>
                                     </div>
                                     </td>
                                 </tr>

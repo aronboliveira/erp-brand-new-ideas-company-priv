@@ -1066,7 +1066,7 @@ $invoice ??= null;
                                                     @if (isset($company_payment_setting['is_payfast_enabled']) && $company_payment_setting['is_payfast_enabled'] == 'on')
                                                         <li class="{{ VC::NV_IT }} {{ VC::MB2 }}">
                                                             <a class="{{ VC::BT_OUTPM_SM }} me-1 ml-1"
-                                                                onclick=get_payfast_status() data-bs-toggle="tab"
+                                                                id="payfast-tab-trigger" data-bs-toggle="tab"
                                                                 href="#payfast-payment" role="tab"
                                                                 aria-controls="payfast"
                                                                 aria-selected="false">{{ __('PayFast') }}</a>
@@ -2343,7 +2343,6 @@ $invoice ??= null;
                                                                         min="0"
                                                                         step="0.01"
                                                                         max="{{ $due }}"
-                                                                        onchange="get_payfast_status()"
                                                                     >
                                                                 </div>
                                                             </div>
@@ -3503,6 +3502,16 @@ $invoice ??= null;
                                     }
                                 });
                             };
+
+                            // CSP-safe replacements for inline onclick/onchange
+                            const pfTabTrigger = document.getElementById('payfast-tab-trigger');
+                            if (pfTabTrigger) {
+                                pfTabTrigger.addEventListener('click', getPayFastStatus);
+                            }
+                            const pfAmountInput = document.getElementById('pay_fast_amount');
+                            if (pfAmountInput) {
+                                pfAmountInput.addEventListener('change', getPayFastStatus);
+                            }
                         @endif
 
                         // Shipping toggle

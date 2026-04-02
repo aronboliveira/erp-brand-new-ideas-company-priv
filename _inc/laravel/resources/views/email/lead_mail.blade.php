@@ -94,8 +94,9 @@ $lang = Utility::fetchUserLang();
                                 <tr>
                                     <td class="px-0">
                                     <div class="fs-6">
-                                        <p class="{{ VC::MB2 }} fw-bold">{{ __('Lead : ') }} {!! $lArr['lead_name'] !!}</p>
-                                        <p class="{{ VC::MB3_FWB }}">{!! $lArr['description'] !!}</p>
+                                        <p class="{{ VC::MB2 }} fw-bold">{{ __('Lead : ') }} {{ e($lArr['lead_name'] ?? '') }}</p>
+                                        {{-- purify_html: lead description may contain rich-text user input --}}
+                                        <p class="{{ VC::MB3_FWB }}">{!! purify_html($lArr['description'] ?? '') !!}</p>
                                     </div>
                                     </td>
                                 </tr>

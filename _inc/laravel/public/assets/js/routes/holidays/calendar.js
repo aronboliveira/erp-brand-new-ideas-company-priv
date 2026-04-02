@@ -127,6 +127,12 @@
 
     window.get_data = getData;
 
+    // CSP-safe replacement for inline onchange="get_data()"
+    const calTypeSelect = document.getElementById("calendar_type");
+    if (calTypeSelect) {
+      calTypeSelect.addEventListener("change", getData);
+    }
+
     try {
       document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
         try {
