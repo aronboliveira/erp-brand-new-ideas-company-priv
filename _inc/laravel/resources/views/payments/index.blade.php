@@ -111,7 +111,7 @@ $user = Auth::user();
                                 <div class="row">
                                     <div class="{{ VC::C_AT }}">
                                         <a href="#" class="{{ VC::BT_SM_PM }}"
-                                           onclick="document.getElementById('payment_form').submit(); return false;"
+                                           data-submit-form="payment_form"
                                            data-bs-toggle="tooltip" title="{{__('Apply')}}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                         </a>
