@@ -94,7 +94,7 @@
                             <a
                                 id="{{ $logoutLinkId }}"
                                 href="{{ $logoutRoute }}"
-                                onclick="event.preventDefault(); document.getElementById('frm-logout').submit();"
+                                data-submit-form="frm-logout"
                                 class="{{ VC::DRP_IT }}"
                                 data-url="{{ $logoutRoute }}"
                                 data-sv-localized="true"

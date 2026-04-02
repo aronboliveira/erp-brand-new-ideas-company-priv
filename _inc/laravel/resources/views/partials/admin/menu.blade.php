@@ -5570,7 +5570,7 @@
                                  alt="{{ $userName }}"
                                  class="{{ VC::W100 }} h-100"
                                  style="object-fit: cover;"
-                                 onerror="this.onerror=null;this.src='{{ asset('assets/images/user/defaults/fictional_tech_lead.webp') }}'">
+                                 data-fallback-src="{{ asset('assets/images/user/defaults/fictional_tech_lead.webp') }}">
                         </div>
                     </div>
                     <div class="flex-grow-1 min-w-0">
@@ -5803,7 +5803,7 @@
                                     title: '{{ __('User Profile') }}',
                                     html: `
                                         <div style="text-align: center;">
-                                            ${userAvatar ? `<img src="${userAvatar}" alt="${userName}" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                                            ${userAvatar ? `<img src="${userAvatar}" alt="${userName}" class="swal-profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">` : ''}
                                             <div style="margin-bottom: 0.5rem;"><strong>{{ __('Name') }}:</strong> ${userName}</div>
                                             <div style="margin-bottom: 0.5rem;"><strong>{{ __('Email') }}:</strong> ${userEmail}</div>
                                             <div style="margin-bottom: 0.5rem;"><strong>{{ __('Type') }}:</strong> ${userType}</div>
@@ -5816,6 +5816,10 @@
                                     },
                                     hideClass: {
                                         popup: 'animate__animated animate__fadeOut animate__faster'
+                                    },
+                                    didOpen: (popup) => {
+                                        const img = popup.querySelector('.swal-profile-avatar');
+                                        if (img) img.addEventListener('error', () => { img.style.display = 'none'; }, { once: true });
                                     }
                                 });
                             } catch (swalError) {

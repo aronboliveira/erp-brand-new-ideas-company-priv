@@ -274,6 +274,8 @@
         <script src="{{ asset('assets/js/core/erp-utils.js') }}" defer></script>
         <script src="{{ asset('assets/js/core/erp-bootstrap.min.js') }}" defer></script>
         <script src="{{ asset('assets/js/core/modal-autoopen.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/form-submit-delegate.js') }}" defer></script>
+        <script src="{{ asset('assets/js/core/img-fallback-delegate.js') }}" defer></script>
         <script async src="{{ asset('assets/js/routes/generics/lang/utility.js') }}"></script>
         <script defer src="{{ asset('assets/js/routes/generics/utility.js') }}"></script>
         <script>

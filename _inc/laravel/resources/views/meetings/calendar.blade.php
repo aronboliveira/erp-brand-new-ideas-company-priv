@@ -134,7 +134,7 @@ $user = Auth::user();
                                     <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                         <a href="#"
                                            class="{{ VC::BT_SM_PM }}"
-                                           onclick="document.getElementById('meeting_filter').submit(); return false;"
+                                           data-submit-form="meeting_filter"
                                            data-bs-toggle="tooltip"
                                            title="{{ $applyTitle }}">
                                             <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
