@@ -4,7 +4,6 @@
   const { getMsg } = window.ERPUtils ?? {};
 
   if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
-    
     return;
   }
 
@@ -18,32 +17,28 @@
           const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
-          const msg =
-            el.getAttribute("data-guard-msg") || getMsg("route_unavailable");
+          const msg = el.getAttribute("data-guard-msg") || getMsg("route_unavailable");
           scheduleError(msg, "click");
           el.setAttribute("data-failed-route", "true");
         } catch (_) {}
       });
     });
 
-    document
-      .querySelectorAll("form[data-guard-msg], form[data-url]")
-      .forEach(fm => {
-        if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
-        fm.setAttribute("data-submit-guarded", "true");
-        fm.addEventListener("submit", e => {
-          try {
-            const action = (fm.getAttribute("action") ?? "#").trim();
-            const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
-            if (url !== "#" && action !== "#") return;
-            e.preventDefault();
-            const msg =
-              fm.getAttribute("data-guard-msg") || getMsg("route_unavailable");
-            scheduleError(msg, "click");
-            fm.setAttribute("data-failed-route", "true");
-          } catch (_) {}
-        });
+    document.querySelectorAll("form[data-guard-msg], form[data-url]").forEach(fm => {
+      if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
+      fm.setAttribute("data-submit-guarded", "true");
+      fm.addEventListener("submit", e => {
+        try {
+          const action = (fm.getAttribute("action") ?? "#").trim();
+          const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+          if (url !== "#" && action !== "#") return;
+          e.preventDefault();
+          const msg = fm.getAttribute("data-guard-msg") || getMsg("route_unavailable");
+          scheduleError(msg, "click");
+          fm.setAttribute("data-failed-route", "true");
+        } catch (_) {}
       });
+    });
 
     const renderCalendar = events => {
       try {
@@ -92,10 +87,7 @@
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `${base}/holiday/get_holiday_data`);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        const token =
-          document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content") || "";
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
         xhr.setRequestHeader("X-CSRF-TOKEN", token);
         xhr.onreadystatechange = () => {
           try {

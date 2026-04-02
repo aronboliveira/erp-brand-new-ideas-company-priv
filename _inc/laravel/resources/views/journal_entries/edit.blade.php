@@ -263,7 +263,7 @@ $planUser ??= null;
                        class="{{ VC::BT_LG }}"
                        data-index-url="{{ $indexUrl }}"
                        data-guard-msg="{{ base64_encode($indexGuard) }}"
-                       onclick="location.href='{{ $indexUrl }}';">
+                       data-navigate-to="{{ $indexUrl }}">
                 <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
             </div>
         {{ Form::close() }}
@@ -283,6 +283,16 @@ $planUser ??= null;
     <script defer>
         (() => {
             "use strict";
+
+            /* CSP-safe handler for [data-navigate-to] */
+            document.addEventListener("click", (e) => {
+                const trigger = e.target.closest("[data-navigate-to]");
+                if (!trigger) return;
+                e.preventDefault();
+                const url = trigger.getAttribute("data-navigate-to");
+                if (url) location.href = url;
+            });
+
             try {
                 if (typeof JournalEntryRepeater !== "undefined") {
                     JournalEntryRepeater.initRepeater({

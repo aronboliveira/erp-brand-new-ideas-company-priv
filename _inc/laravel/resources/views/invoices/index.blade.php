@@ -141,7 +141,7 @@ $user = Auth::user();
                                 </div>
                                 <div class="{{ VC::C_AT_FEND }}">
                                     <a href="#" class="{{ VC::BT_SM_PM }}"
-                                    onclick="document.getElementById('customer_submit').submit(); return false;"
+                                    data-submit-form="customer_submit"
                                     data-toggle="tooltip" data-original-title="{{ __('apply') }}">
                                         <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                     </a>
@@ -398,7 +398,7 @@ $user = Auth::user();
                                                                         data-url="{{ $copyUrl }}"
                                                                         data-sv-localized="true"
                                                                         data-guard-msg="{{ base64_encode(__( Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_copy_route_unavailable') ?? '# ERROR' )) }}"
-                                                                        onclick="copyToClipboard(this)"
+                                                                        data-clipboard-copy="true"
                                                                         data-bs-toggle="tooltip"
                                                                         title="{{ __('Copy Invoice') }}"
                                                                         data-original-title="{{ __('Copy Invoice') }}"
@@ -566,6 +566,7 @@ $user = Auth::user();
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/invoices/clipboard.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/generics/dashboard.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/invoices/export.js') }}"></script>

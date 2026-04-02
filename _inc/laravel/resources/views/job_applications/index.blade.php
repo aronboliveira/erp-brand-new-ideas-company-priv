@@ -66,7 +66,7 @@ $user = Auth::user() ?? null;
                                 </div>
                             </div>
                             <div class="{{ VC::C_AT_FEND }}">
-                                <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('application_filter').submit();return false;" data-bs-toggle="tooltip" title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
+                                <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="application_filter" data-bs-toggle="tooltip" title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
                                 <a href="{{ route(VW::JB_APL.'.index') }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}"><span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span></a>
                             </div>
                         </div>
@@ -186,6 +186,7 @@ $user = Auth::user() ?? null;
 @push(ST::ADM_SCR_PG)
     {{-- <script src="{{ asset('libs/dragula/dist/dragula.min.js') }}"></script>
     <script src="{{ asset('libs/autosize/dist/autosize.min.js') }}"></script> --}}
+    <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
     <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/jobs/applications/index.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/jobs/applications/lang/index.js') }}"></script>

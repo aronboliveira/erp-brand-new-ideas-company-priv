@@ -20,3 +20,11 @@ function copyToClipboard(element) {
   const copyText = element.id;
   copy(copyText, true);
 }
+
+/* Delegated listener for [data-clipboard-copy] — CSP-safe replacement for inline onclick */
+document.addEventListener("click", (e) => {
+  const trigger = e.target.closest("[data-clipboard-copy]");
+  if (!trigger) return;
+  e.preventDefault();
+  copyToClipboard(trigger);
+});

@@ -23,7 +23,8 @@
                             <p data-v-f2a183a6="">
                                 {{-- @dd($Offerletter) --}}
                             @if(!empty($experience_certificate) && isset($experience_certificate->content))
-                                <div>{!!$experience_certificate->content!!}</div>
+                                {{-- purify_html: certificate content is rich-text user input --}}
+                                <div>{!! purify_html($experience_certificate->content) !!}</div>
                             @else
                                 <div>{{ __('No content available') }}</div>
                             @endif
