@@ -56,6 +56,21 @@ Enterprise Resource Planning system for **Nova Prestech**. This repository is th
 
 ---
 
+## Guidelines & LLM context map
+
+All conventions, architecture decisions, and agent instructions live under three guideline trees.
+See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canonical **filesystem architecture map** with the full directory layout and every path an LLM agent or developer must check.
+
+| Tree | Path | Scope |
+|---|---|---|
+| Primary guidelines | [`.notes/.llms/.guidelines/`](.notes/.llms/.guidelines/) | Architecture, backend, frontend, DB, modules, security, testing, roles |
+| Coding-style guides | [`_inc/utils/prompts/.guidelines/`](_inc/utils/prompts/.guidelines/) | Per-language rules (PHP, JS, TS, Python, CSS, React) in md/xml/yml/toml |
+| App-specific guides | [`_inc/laravel/.notes/.llms/.guidelines/`](_inc/laravel/.notes/.llms/.guidelines/) | Security roleplay profiles, test maps |
+| Agent config | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Copilot/agent behaviour |
+| LLM session context | [`_inc/utils/.llms/`](_inc/utils/.llms/) | CLI logs, agent context, working notes |
+
+---
+
 ## Tech stack
 
 | Layer | Technology | Version |
@@ -235,6 +250,21 @@ Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este
 ```
 
 > **Las carpetas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) están **git-ignored** y purgadas del historial. Permanecen en disco solo como referencia local.
+
+---
+
+## Mapa de guías y contexto LLM
+
+Todas las convenciones, decisiones arquitectónicas e instrucciones para agentes están en tres árboles de guías.
+Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para el **mapa de arquitectura del sistema de archivos** con el diseño completo y cada ruta que un agente LLM o desarrollador debe verificar.
+
+| Árbol | Ruta | Alcance |
+|---|---|---|
+| Guías primarias | `.notes/.llms/.guidelines/` | Arquitectura, backend, frontend, BD, módulos, seguridad, testing, roles |
+| Guías de estilo | `_inc/utils/prompts/.guidelines/` | Reglas por lenguaje (PHP, JS, TS, Python, CSS, React) |
+| Guías de la app | `_inc/laravel/.notes/.llms/.guidelines/` | Perfiles de roleplay de seguridad, mapas de tests |
+| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamiento del agente |
+| Contexto LLM | `_inc/utils/.llms/` | Logs de CLI, contexto de agentes, notas de trabajo |
 
 ---
 
@@ -428,6 +458,21 @@ Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este re
 ```
 
 > **As pastas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) estão **git-ignored** e purgadas do histórico. Permanecem em disco apenas como referência local.
+
+---
+
+## Mapa de guias e contexto LLM
+
+Todas as convenções, decisões arquiteturais e instruções para agentes estão em três árvores de guias.
+Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para o **mapa de arquitetura do sistema de arquivos** com o layout completo e cada caminho que um agente LLM ou desenvolvedor deve verificar.
+
+| Árvore | Caminho | Escopo |
+|---|---|---|
+| Guias primárias | `.notes/.llms/.guidelines/` | Arquitetura, backend, frontend, BD, módulos, segurança, testes, papéis |
+| Guias de estilo | `_inc/utils/prompts/.guidelines/` | Regras por linguagem (PHP, JS, TS, Python, CSS, React) |
+| Guias da app | `_inc/laravel/.notes/.llms/.guidelines/` | Perfis de roleplay de segurança, mapas de testes |
+| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamento do agente |
+| Contexto LLM | `_inc/utils/.llms/` | Logs de CLI, contexto de agentes, notas de trabalho |
 
 ---
 

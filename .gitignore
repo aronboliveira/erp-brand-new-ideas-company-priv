@@ -30,6 +30,8 @@ build/
 
 # .env
 # **/.env
+.secrets/
+.secrets/**
 
 !env/
 !env/**

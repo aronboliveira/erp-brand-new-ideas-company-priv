@@ -1,3 +1,48 @@
+## ──────────────────────────────────────────────────────────────
+## FILESYSTEM ARCHITECTURE MAP
+## ──────────────────────────────────────────────────────────────
+## Root: erp_prestech/
+##   ├── .notes/                           Durable team notes (issues, plans, work journal)
+##   │   └── .llms/
+##   │       ├── .guidelines/              ★ PRIMARY guideline tree (30+ files)
+##   │       │   ├── project.yml           Global config
+##   │       │   ├── constraints.md        Hard rules
+##   │       │   ├── backend/              PHP/Laravel (architecture, constants, controllers, models, services, middleware)
+##   │       │   ├── database/             Migrations, seeders, DB conventions
+##   │       │   ├── frontend/             Blade, JS singletons, ESM→IIFE, TS, template-literal testing
+##   │       │   ├── infrastructure/       server.toml
+##   │       │   ├── modules/              accounting, billing, crm, hrm, planning, products
+##   │       │   ├── roles/                agent-roles.md
+##   │       │   ├── security/             security-patterns.xml
+##   │       │   └── testing/              CI, test-architecture, test suites, TS harness
+##   │       └── .history/                 Resolved issues, fix logs, reports, session snapshots (outdated context)
+##   │
+##   ├── _inc/laravel/                     ⭐ Main application workspace
+##   │   └── .notes/.llms/
+##   │       ├── .guidelines/              App-specific security guidelines (roleplay profiles, test map)
+##   │       ├── .history/                 Reports, route verifications
+##   │       ├── route-view-testing-pattern.md
+##   │       ├── security-testing-audit.md
+##   │       ├── typescript-migration.md
+##   │       └── …
+##   │
+##   ├── _inc/utils/                       Developer tooling workspace
+##   │   ├── .llms/                        LLM CLI logs, agent context, session notes, scripts
+##   │   │   ├── ctx/agents/               Agent README + backend/frontend/infrastructure guides
+##   │   │   └── notes/{date}/*.md         Chronological working notes
+##   │   └── prompts/.guidelines/          ★ CODING STYLE guidelines (multi-format: md/toml/xml/yml)
+##   │       ├── general/                  coding-conventions, error-handling, markup-accessibility
+##   │       ├── css/                      styling
+##   │       ├── javascript/               coding-rules, script-tags, singletons
+##   │       ├── php/                      blade, controllers, financial, i18n, migrations, models, routes, seeders, testing, transpilation
+##   │       ├── python/                   coding-conventions, spreadsheets
+##   │       ├── react/                    components
+##   │       └── typescript/               type-safety
+##   │
+##   ├── _old/                             Legacy fork (reference only, do NOT develop)
+##   └── origin/                           Upstream ERPGo (read-only)
+## ──────────────────────────────────────────────────────────────
+
 starters:
     workspaces:
         - app: _inc/laravel/*
@@ -7,9 +52,70 @@ starters:
         - .notes/{.llms/.guidelines/*,*.md}
         - _inc/utils/{.llms/*,prompts/.guidelines/*,*.md}
     guidelines:
+        # ── MANDATORY READS ─────────────────────────────────────
+        # LLM agents and developers MUST check these paths before
+        # coding, reviewing, or issuing commands in the workspace.
+        # ────────────────────────────────────────────────────────
+        architecture-map:
+            note: "Refer to the FILESYSTEM ARCHITECTURE MAP at the top of this file for the full directory tree."
+            primary-guidelines:   .notes/.llms/.guidelines/
+            coding-style-guides:  _inc/utils/prompts/.guidelines/
+            app-specific:         _inc/laravel/.notes/.llms/.guidelines/
+            agent-context:        _inc/utils/.llms/ctx/agents/
+        agent-config:
+            - .agent.md
+            - .instructions.md
+            - AGENTS.md
+            - copilot-instructions.md
         coding-style:
-          - .editorconfig
-          - .prettierrc
+            - .editorconfig
+            - .prettierrc
+        domain-guidelines-index:
+            backend:
+                - .notes/.llms/.guidelines/backend/erp-architecture.md
+                - .notes/.llms/.guidelines/backend/naming-conventions.yml
+                - .notes/.llms/.guidelines/backend/constants_map.json
+                - .notes/.llms/.guidelines/backend/middleware_pipeline.xml
+                - .notes/.llms/.guidelines/backend/controllers/controller-patterns.md
+                - .notes/.llms/.guidelines/backend/models/model-conventions.md
+                - .notes/.llms/.guidelines/backend/services/delegation-patterns.md
+            database:
+                - .notes/.llms/.guidelines/database/database-guide.md
+            frontend:
+                - .notes/.llms/.guidelines/frontend/esm-iife-strategy.md
+                - .notes/.llms/.guidelines/frontend/template-literal-testing.md
+                - .notes/.llms/.guidelines/frontend/blade/blade-conventions.md
+                - .notes/.llms/.guidelines/frontend/assets/js-singletons.md
+                - .notes/.llms/.guidelines/frontend/typescript/typescript-guide.md
+            modules:
+                - .notes/.llms/.guidelines/modules/{accounting,billing,crm,hrm,planning,products}/*-guide.md
+            security:
+                - .notes/.llms/.guidelines/security/security-patterns.xml
+                - _inc/laravel/.notes/.llms/.guidelines/security-roleplay-guidelines.md
+                - _inc/laravel/.notes/.llms/.guidelines/security-roleplay-profiles.xml
+                - _inc/laravel/.notes/.llms/.guidelines/security-test-map.xml
+            testing:
+                - .notes/.llms/.guidelines/testing/test-architecture.json
+                - .notes/.llms/.guidelines/testing/test_suites.xml
+                - .notes/.llms/.guidelines/testing/ci.yml
+                - .notes/.llms/.guidelines/testing/typescript-test-harness.md
+                - _inc/laravel/.notes/.llms/route-view-testing-pattern.md
+            roles:
+                - .notes/.llms/.guidelines/roles/agent-roles.md
+                - .notes/.llms/.guidelines/THE_TESTER.md
+            infrastructure:
+                - .notes/.llms/.guidelines/infrastructure/server.toml
+            constraints:
+                - .notes/.llms/.guidelines/constraints.md
+                - .notes/.llms/.guidelines/project.yml
+        coding-style-guides:
+            general:     _inc/utils/prompts/.guidelines/general/*.{md,xml,yml,toml}
+            css:         _inc/utils/prompts/.guidelines/css/*.{md,xml,yml,toml}
+            javascript:  _inc/utils/prompts/.guidelines/javascript/*.{md,xml,yml,toml}
+            php:         _inc/utils/prompts/.guidelines/php/*.{md,xml,yml,toml}
+            python:      _inc/utils/prompts/.guidelines/python/*.{md,xml,yml,toml}
+            react:       _inc/utils/prompts/.guidelines/react/*.{md,xml,yml,toml}
+            typescript:  _inc/utils/prompts/.guidelines/typescript/*.{md,xml,yml,toml}
         audits:
             - commands: "Please save, as label:value (possibly prepending a comment for complex cases), uniquely (that is, if you use it twice in the same date do not write it again) used
                 - CLIs: in [_inc/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}];
@@ -18,15 +124,6 @@ starters:
                 - Find (bash program): in [_inc/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}]
         reports:
             - extension-pick: _inc/utils/REPORT_FILE_PATTERN.md
-        agents:
-            baseline:
-                - .agent.md
-                - .instructions.md
-                - AGENTS.md
-                - copilot-instructions.md
-            contextual:
-                - general: _inc/.llms/*
-                - specifics: _inc/laravel/.notes/.llms/*
     credentials:
         - sudo: .gh/sudo.yml
     note-taking:
@@ -35,6 +132,11 @@ starters:
               - .notes/*
               - _inc/laravel/.notes/*
         - notes: "Update these regularly, not only at the end of a prompt response"
+    llm-context:
+        - erp-context:   _inc/utils/.llms/ctx/erp_context.md
+        - agent-guides:  _inc/utils/.llms/ctx/agents/
+        - session-notes: _inc/utils/.llms/notes/
+        - cli-history:   _inc/utils/.llms/cli/
     scripts:
         - volatile: .tmp/scripts/*
         - durable:
