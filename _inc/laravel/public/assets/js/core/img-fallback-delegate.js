@@ -8,7 +8,7 @@
   "use strict";
   document.addEventListener(
     "error",
-    (e) => {
+    e => {
       const img = e.target;
       if (img.tagName !== "IMG") return;
       const fallback = img.getAttribute("data-fallback-src");
@@ -16,6 +16,6 @@
       img.removeAttribute("data-fallback-src");
       img.src = fallback;
     },
-    true
+    true,
   );
 })();

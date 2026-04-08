@@ -5,7 +5,7 @@
  */
 (() => {
   "use strict";
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", e => {
     /* [data-save-pdf] — calls window.saveAsPDF() */
     const pdfTrigger = e.target.closest("[data-save-pdf]");
     if (pdfTrigger) {
