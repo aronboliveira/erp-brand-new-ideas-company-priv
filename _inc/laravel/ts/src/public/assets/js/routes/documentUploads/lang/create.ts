@@ -34,6 +34,6 @@ declare global {
     ? Object.keys(imgPatch).reduce((a: Record<string, Record<string, string>>, l) => {
         a[l] = { ...(a[l] || {}), ...(imgPatch as Record<string, Record<string, string>>)[l] };
         return a;
-      }, window.translations as Record<string, Record<string, string>>)
+      }, window.translations!)
     : imgPatch;
 })();

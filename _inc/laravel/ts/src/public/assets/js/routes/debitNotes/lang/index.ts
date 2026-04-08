@@ -38,6 +38,6 @@ declare global {
     ? Object.keys(billPatch).reduce((acc: Record<string, Record<string, string>>, l) => {
         acc[l] = { ...(acc[l] || {}), ...(billPatch as Record<string, Record<string, string>>)[l] };
         return acc;
-      }, window.translations as Record<string, Record<string, string>>)
+      }, window.translations!)
     : billPatch;
 })();

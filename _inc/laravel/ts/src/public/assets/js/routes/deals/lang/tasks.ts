@@ -81,5 +81,5 @@ window.translations = Object.keys(window.translations || {}).length
   ? Object.keys(langPatch).reduce((acc: Record<string, Record<string, string>>, l) => {
       acc[l] = { ...(acc[l] || {}), ...(langPatch as Record<string, Record<string, string>>)[l] };
       return acc;
-    }, window.translations as Record<string, Record<string, string>>)
+    }, window.translations!)
   : langPatch;

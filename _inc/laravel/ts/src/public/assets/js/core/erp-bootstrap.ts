@@ -72,7 +72,7 @@ export function ensureTranslations(): Record<string, Record<string, string>> {
   if (!window.translations || typeof window.translations !== "object") {
     (window as unknown as Record<string, unknown>).translations = {};
   }
-  return window.translations as Record<string, Record<string, string>>;
+  return window.translations!;
 }
 
 /* ---------- Currency Globals -------------------------------------------- */

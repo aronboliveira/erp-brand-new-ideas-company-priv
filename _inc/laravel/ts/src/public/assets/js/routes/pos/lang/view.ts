@@ -117,7 +117,7 @@ declare global {
     window.translations![k] = { ...(window.translations![k] || {}), ...t[k] };
   });
   (function () {
-    let t = {
+    const t = {
       ar: {
         action_unavailable: "الإجراء غير متاح.",
         dashboard_unavailable: "لوحة التحكم غير متاحة.",

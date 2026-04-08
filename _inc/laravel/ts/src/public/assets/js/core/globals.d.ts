@@ -13,8 +13,6 @@
 /*  ERPGuard                                                              */
 /* ===================================================================== */
 
-type ToastType = "success" | "error" | "warning" | "info" | "primary" | "secondary" | "dark" | "light";
-
 interface ERPGuardToastOptions {
   title?: string;
   duration?: number;
@@ -86,7 +84,7 @@ interface ERPGuardInstance {
   confirm(message: string, onConfirm: () => void, onCancel?: (() => void) | null, options?: ERPGuardModalOptions): void;
 
   /* --- Error scheduling --- */
-  scheduleError(message: string, delay?: number): void;
+  scheduleError(message: string, eventType?: string): void;
   scheduleInteractiveError(message: string, options?: ERPGuardToastOptions): void;
 
   /* --- URL & CSRF --- */
@@ -114,6 +112,7 @@ interface ERPGuardInstance {
   handleAjaxError(error: unknown, options?: Record<string, unknown>): void;
 
   /* --- Lifecycle --- */
+  init?(): void;
   destroy(): void;
 }
 
@@ -179,14 +178,40 @@ interface ERPBootstrapAPI {
 }
 
 /* ===================================================================== */
+/*  Bootstrap 5 runtime types                                             */
+/* ===================================================================== */
+
+interface BootstrapModalInstance {
+  show(): void;
+  hide(): void;
+  toggle(): void;
+  dispose(): void;
+}
+
+interface BootstrapStatic {
+  Modal?: {
+    new (element: Element, options?: Record<string, unknown>): BootstrapModalInstance;
+    getInstance(element: Element): BootstrapModalInstance | null;
+    getOrCreateInstance(element: Element): BootstrapModalInstance;
+  };
+  Toast?: {
+    new (element: Element, options?: Record<string, unknown>): { show(): void; hide(): void; dispose(): void };
+    getInstance(element: Element): { show(): void; hide(): void; dispose(): void } | null;
+  };
+}
+
+/* ===================================================================== */
 /*  Global augmentation                                                   */
 /* ===================================================================== */
 
 declare global {
+  type ToastType = "success" | "error" | "warning" | "info" | "primary" | "secondary" | "dark" | "light";
+
   interface Window {
     ERPGuard: ERPGuardInstance;
     ERPUtils: ERPUtilsInstance;
     ERPBootstrap: ERPBootstrapAPI;
+    bootstrap?: BootstrapStatic;
   }
 
   // Also available as direct globals in IIFE context

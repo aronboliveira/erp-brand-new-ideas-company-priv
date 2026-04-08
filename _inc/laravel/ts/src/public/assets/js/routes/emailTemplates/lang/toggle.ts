@@ -70,6 +70,6 @@ declare global {
     ? Object.keys(mailPatch).reduce((a: Record<string, Record<string, string>>, l) => {
         a[l] = { ...(a[l] || {}), ...(mailPatch as Record<string, Record<string, string>>)[l] };
         return a;
-      }, window.translations as Record<string, Record<string, string>>)
+      }, window.translations!)
     : mailPatch;
 })();
