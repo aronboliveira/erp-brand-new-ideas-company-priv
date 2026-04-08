@@ -19,7 +19,7 @@ import type { AssertPageOptions } from "../../declarations/tests/e2e.interfaces"
  */
 
 const BASE_URL = "http://localhost:8000";
-const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
+const STORAGE_STATE = path.join(import.meta.dirname, ".auth/user.json");
 
 /* ── Global fixtures ─────────────────────────────────────────────── */
 test.use({ storageState: STORAGE_STATE });

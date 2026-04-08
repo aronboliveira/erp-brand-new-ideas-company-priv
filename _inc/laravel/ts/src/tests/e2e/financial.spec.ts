@@ -15,7 +15,7 @@ import path from "path";
  */
 
 const BASE_URL = "http://localhost:8000";
-const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
+const STORAGE_STATE = path.join(import.meta.dirname, ".auth/user.json");
 
 // Test configuration
 test.describe.configure({ mode: "serial" });

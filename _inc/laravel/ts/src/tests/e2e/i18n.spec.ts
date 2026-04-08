@@ -25,7 +25,7 @@ import fs from "fs";
  */
 
 const BASE_URL = "http://localhost:8000";
-const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
+const STORAGE_STATE = path.join(import.meta.dirname, ".auth/user.json");
 
 /* ------------------------------------------------------------------ */
 /*  Helper: expected translations for specific keys per locale        */
@@ -637,7 +637,7 @@ test.describe("All supported locales – smoke test", (): void => {
 /*  SECTION 9: Translation JSON integrity checks                      */
 /* ================================================================== */
 test.describe("Translation JSON files – integrity", (): void => {
-  const langDir = path.resolve(__dirname, "../../resources/lang");
+  const langDir = path.resolve(import.meta.dirname, "../../resources/lang");
 
   test("en.json is valid JSON with > 1000 keys", (): void => {
     const raw = fs.readFileSync(path.join(langDir, "en.json"), "utf-8");

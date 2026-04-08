@@ -8,15 +8,11 @@
 import fs from "fs";
 import path from "path";
 
-const APP_ROOT = path.resolve(__dirname, "../../../.."),
+const APP_ROOT = path.resolve(__dirname, "../../../../../.."),
   MOCKS_ROOT = path.join(APP_ROOT, "tests", "frontend", "js", "pages", "mocks"),
   ROUTES_JS_ROOT = path.join(APP_ROOT, "public", "assets", "js", "routes");
 
-function walkFiles(
-  dir: string,
-  predicate: (file: string) => boolean,
-  files: string[] = [],
-): string[] {
+function walkFiles(dir: string, predicate: (file: string) => boolean, files: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -35,10 +31,7 @@ function getMockHtmlFiles(): string[] {
 }
 
 function getRouteScriptFiles(): string[] {
-  return walkFiles(
-    ROUTES_JS_ROOT,
-    (file: string) => file.endsWith(".js") && !file.endsWith(".min.js"),
-  ).sort();
+  return walkFiles(ROUTES_JS_ROOT, (file: string) => file.endsWith(".js") && !file.endsWith(".min.js")).sort();
 }
 
 function readText(file: string): string {
@@ -78,19 +71,14 @@ function resolveLocalReference(file: string, ref: string): string | null {
   return path.resolve(path.dirname(file), cleaned);
 }
 
-function collectLineMatches(
-  files: string[],
-  predicate: (line: string, file: string) => boolean,
-): string[] {
+function collectLineMatches(files: string[], predicate: (line: string, file: string) => boolean): string[] {
   const matches: string[] = [];
 
   for (const file of files) {
     const lines = readText(file).split(/\r?\n/);
     lines.forEach((line: string, index: number) => {
       if (predicate(line, file)) {
-        matches.push(
-          `${toRepoRelative(file)}:${index + 1}: ${line.trim()}`.trim(),
-        );
+        matches.push(`${toRepoRelative(file)}:${index + 1}: ${line.trim()}`.trim());
       }
     });
   }
@@ -98,15 +86,4 @@ function collectLineMatches(
   return matches;
 }
 
-module.exports = {
-  APP_ROOT,
-  MOCKS_ROOT,
-  ROUTES_JS_ROOT,
-  collectLineMatches,
-  getHtmlLocalReferences,
-  getMockHtmlFiles,
-  getRouteScriptFiles,
-  readText,
-  resolveLocalReference,
-  toRepoRelative,
-};
+export { APP_ROOT, MOCKS_ROOT, ROUTES_JS_ROOT, collectLineMatches, getHtmlLocalReferences, getMockHtmlFiles, getRouteScriptFiles, readText, resolveLocalReference, toRepoRelative };

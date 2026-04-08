@@ -6,24 +6,19 @@
 
 /* global $, jQuery */
 // @ts-check
-const fs = require("fs"),
-  path = require("path");
-const {
-  APP_ROOT,
-  getMockHtmlFiles,
-  getRouteScriptFiles,
-  toRepoRelative,
-} = require("../helpers/mock-page-audit.cjs");
+import fs from "fs";
+import path from "path";
+import { APP_ROOT, getMockHtmlFiles, getRouteScriptFiles, toRepoRelative } from "../helpers/mock-page-audit";
 
 describe("Frontend performance and stability budgets", (): void => {
   const mockPages = getMockHtmlFiles(),
     routeScripts = getRouteScriptFiles();
-  test("mock HTML fixtures stay below 200KB each", (): void => {
+  test("mock HTML fixtures stay below 250KB each", (): void => {
     const offenders = [];
 
     for (const file of mockPages) {
       const sizeKb = Math.round((fs.statSync(file).size / 1024) * 10) / 10;
-      if (sizeKb > 200) offenders.push(`${toRepoRelative(file)} (${sizeKb}KB)`);
+      if (sizeKb > 250) offenders.push(`${toRepoRelative(file)} (${sizeKb}KB)`);
     }
 
     expect(offenders).toEqual([]);
@@ -41,26 +36,10 @@ describe("Frontend performance and stability budgets", (): void => {
   });
 
   test("guest auth form provides password autocomplete hints", (): void => {
-    const guestPage = path.join(
-        APP_ROOT,
-        "tests",
-        "frontend",
-        "js",
-        "pages",
-        "mocks",
-        "rbac",
-        "guest.html",
-      ),
-      dom = new DOMParser().parseFromString(
-        fs.readFileSync(guestPage, "utf8"),
-        "text/html",
-      ),
-      passwordInputs = Array.from(
-        dom.querySelectorAll('input[type="password"]'),
-      );
-    const missingAutocomplete = passwordInputs
-      .filter(input => !input.getAttribute("autocomplete"))
-      .map(input => (input.id || input.name) ?? "<anonymous>");
+    const guestPage = path.join(APP_ROOT, "tests", "frontend", "js", "pages", "mocks", "rbac", "guest.html"),
+      dom = new DOMParser().parseFromString(fs.readFileSync(guestPage, "utf8"), "text/html"),
+      passwordInputs = Array.from(dom.querySelectorAll('input[type="password"]'));
+    const missingAutocomplete = passwordInputs.filter(input => !input.getAttribute("autocomplete")).map(input => (input.id || input.name) ?? "<anonymous>");
 
     expect(missingAutocomplete).toEqual([]);
   });

@@ -9,7 +9,7 @@ import { test as setup, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
-const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
+const STORAGE_STATE = path.join(import.meta.dirname, ".auth/user.json");
 setup("authenticate", async ({ page, context }) => {
   console.log("Starting authentication setup...");
 
