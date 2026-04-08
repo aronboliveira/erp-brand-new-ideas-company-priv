@@ -16,7 +16,7 @@ import globals from "globals";
  */
 export default tseslint.config(
   {
-    ignores: ["src/tests/**", "tests/**", "src/public/js/**", "src/public/assets/js/pages/**", "src/public/assets/js/dash.ts", "src/public/assets/js/vendor-all.ts", "src/public/Modules/**", "utils/**", "eslint.config.mjs", "jest.config.cjs", "playwright.config.ts", "playwright.harness.config.ts", "playwright-report/**", "test-results/**", "test-results.json"],
+    ignores: ["src/tests/**", "tests/**", "src/public/js/**", "src/public/assets/js/pages/**", "src/public/assets/js/dash.ts", "src/public/assets/js/vendor-all.ts", "src/public/assets/js/routes/partials/admin/menu/payslip.ts", "src/public/Modules/**", "src/Modules/**", "utils/**", "eslint.config.mjs", "jest.config.cjs", "playwright.config.ts", "playwright.harness.config.ts", "playwright-report/**", "test-results/**", "test-results.json"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

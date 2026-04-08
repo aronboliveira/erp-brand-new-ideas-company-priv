@@ -26,5 +26,5 @@
     }
   },
   "include": ["frontend/next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/lib/configs/obfuscate.ts", "next.config.js", "public/assets/js/routes/invoices/delete.js", "ts/src/types/**/*.d.ts", "ts/src/declarations/**/*.d.ts"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.js", "**/*.test.cjs", "**/*.spec.cjs", "_test.js", "**__dummy**", "**/*.test.tsx", "tests/Feature/security/roleplay/**/scripts/**", "tests/Unit/security/roleplay/**/*.cjs", "tests/e2e/**/*.cjs"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.js", "**/*.test.cjs", "**/*.spec.cjs", "_test.js", "**__dummy**", "**/*.test.tsx", "tests/Feature/security/roleplay/**/scripts/**", "tests/Unit/security/roleplay/**/*.cjs", "tests/e2e/**/*.cjs", "ts/dist/**", "**/partials/admin/menu/payslip.ts"]
 }

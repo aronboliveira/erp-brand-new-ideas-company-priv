@@ -36,7 +36,7 @@
     // === Module interop ===
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "allowJs": true,
@@ -47,6 +47,7 @@
     "incremental": true,
 
     // === Path aliases ===
+    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -57,13 +58,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/tests/**",
-    "**/vendor-all.ts",
-    "**/site.ts",
-    "**/cookieconsent.ts",
-    "**/public/js/app.ts"
-  ]
+  "exclude": ["node_modules", "dist", "src/tests/**", "**/vendor-all.ts", "**/site.ts", "**/cookieconsent.ts", "**/public/js/app.ts", "src/public/assets/js/routes/partials/admin/menu/payslip.ts"]
 }

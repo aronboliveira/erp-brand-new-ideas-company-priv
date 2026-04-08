@@ -172,6 +172,60 @@ export default [
     },
   },
 
+  /* ── test helper scripts (.cjs, Node/CommonJS) ────────────────────── */
+  {
+    files: ["tests/**/*.cjs"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "commonjs",
+      globals: {
+        /* Node.js built-ins */
+        process: "readonly",
+        console: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        require: "readonly",
+        module: "writable",
+        exports: "writable",
+        global: "readonly",
+        setTimeout: "readonly",
+        setInterval: "readonly",
+        clearTimeout: "readonly",
+        clearInterval: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        /* Web / runtime globals available in Node ≥ 11 */
+        WebAssembly: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
+        /* Jest globals */
+        describe: "readonly",
+        test: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        jest: "readonly",
+      },
+    },
+    rules: {
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_|^e$",
+        },
+      ],
+      "no-undef": "error",
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-console": "off",
+    },
+  },
+
   /* ── global ignores ───────────────────────────────────────────────── */
   {
     ignores: [
