@@ -1,16 +1,22 @@
 'use strict';
+// PULL REQUEST START — Alteração customizada em arquivo vendor (null guards)
+// Defensiva: null guard em querySelector antes de addEventListener
+function _bindClick(selector, handler) {
+    var el = document.querySelector(selector);
+    if (el) el.addEventListener("click", handler);
+}
 
-document.querySelector(".bs-message").addEventListener("click", function () {
+_bindClick(".bs-message", function () {
     Swal.fire('Any fool can use a computer')
 });
-document.querySelector('.bs-tit-txt').addEventListener("click", function () {
+_bindClick('.bs-tit-txt', function () {
     Swal.fire(
         'The Internet?',
         'That thing is still around?',
         'question'
     )
 });
-document.querySelector('.bs-error-icon').addEventListener("click", function () {
+_bindClick('.bs-error-icon', function () {
     Swal.fire({
         icon: 'error',
         title: 'Oops...',
@@ -18,14 +24,14 @@ document.querySelector('.bs-error-icon').addEventListener("click", function () {
         footer: '<a href>Why do I have this issue?</a>'
     })
 });
-document.querySelector('.bs-long-content').addEventListener("click", function () {
+_bindClick('.bs-long-content', function () {
     Swal.fire({
         imageUrl: 'https://placeholder.pics/svg/300x1500',
         imageHeight: 1500,
         imageAlt: 'A tall image'
     })
 });
-document.querySelector('.bs-cust-html').addEventListener("click", function () {
+_bindClick('.bs-cust-html', function () {
     Swal.fire({
         title: '<strong>HTML <u>example</u></strong>',
         icon: 'info',
@@ -41,7 +47,7 @@ document.querySelector('.bs-cust-html').addEventListener("click", function () {
         cancelButtonAriaLabel: 'Thumbs down'
     })
 });
-document.querySelector('.bs-tre-button').addEventListener("click", function () {
+_bindClick('.bs-tre-button', function () {
     Swal.fire({
         title: 'Do you want to save the changes?',
         showDenyButton: true,
@@ -56,7 +62,7 @@ document.querySelector('.bs-tre-button').addEventListener("click", function () {
         }
     })
 });
-document.querySelector('.bs-cust-position').addEventListener("click", function () {
+_bindClick('.bs-cust-position', function () {
     Swal.fire({
         position: 'top-end',
         icon: 'success',
@@ -65,7 +71,7 @@ document.querySelector('.bs-cust-position').addEventListener("click", function (
         timer: 1500
     })
 });
-document.querySelector('.bs-cust-anim').addEventListener("click", function () {
+_bindClick('.bs-cust-anim', function () {
     Swal.fire({
         title: 'Custom animation with Animate.css',
         showClass: {
@@ -76,7 +82,7 @@ document.querySelector('.bs-cust-anim').addEventListener("click", function () {
         }
     })
 });
-document.querySelector('.bs-pass-para').addEventListener("click", function () {
+_bindClick('.bs-pass-para', function () {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
             confirmButton: 'btn btn-success',
@@ -110,7 +116,7 @@ document.querySelector('.bs-pass-para').addEventListener("click", function () {
         }
     })
 });
-document.querySelector('.bs-cust-img').addEventListener("click", function () {
+_bindClick('.bs-cust-img', function () {
     Swal.fire({
         title: 'Sweet!',
         text: 'Modal with a custom image.',
@@ -120,7 +126,7 @@ document.querySelector('.bs-cust-img').addEventListener("click", function () {
         imageAlt: 'Custom image',
     })
 });
-document.querySelector('.bs-cust-full').addEventListener("click", function () {
+_bindClick('.bs-cust-full', function () {
     Swal.fire({
         title: 'Custom width, padding, background.',
         width: 600,
@@ -134,7 +140,7 @@ document.querySelector('.bs-cust-full').addEventListener("click", function () {
               `
     })
 });
-document.querySelector('.bs-auto-close').addEventListener("click", function () {
+_bindClick('.bs-auto-close', function () {
     let timerInterval
     Swal.fire({
         title: 'Auto close alert!',
@@ -162,7 +168,7 @@ document.querySelector('.bs-auto-close').addEventListener("click", function () {
         }
     })
 });
-document.querySelector('.bs-rtl-lang').addEventListener("click", function () {
+_bindClick('.bs-rtl-lang', function () {
     Swal.fire({
         title: 'هل تريد الاستمرار؟',
         icon: 'question',
@@ -173,7 +179,7 @@ document.querySelector('.bs-rtl-lang').addEventListener("click", function () {
         showCloseButton: true
     })
 });
-document.querySelector('.bs-ajex-req').addEventListener("click", function () {
+_bindClick('.bs-ajex-req', function () {
     Swal.fire({
         title: 'Submit your Github username',
         input: 'text',
@@ -207,7 +213,7 @@ document.querySelector('.bs-ajex-req').addEventListener("click", function () {
         }
     })
 });
-document.querySelector('.bs-mixin-exp').addEventListener("click", function () {
+_bindClick('.bs-mixin-exp', function () {
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -224,37 +230,37 @@ document.querySelector('.bs-mixin-exp').addEventListener("click", function () {
         title: 'Signed in successfully'
     })
 });
-document.querySelector('.bs-success-ico').addEventListener("click", function () {
+_bindClick('.bs-success-ico', function () {
     Swal.fire({
         icon: "success",
         title: 'Success modal',
     })
 });
-document.querySelector('.bs-error-ico').addEventListener("click", function () {
+_bindClick('.bs-error-ico', function () {
     Swal.fire({
         icon: "error",
         title: 'Error modal',
     })
 });
-document.querySelector('.bs-warning-ico').addEventListener("click", function () {
+_bindClick('.bs-warning-ico', function () {
     Swal.fire({
         icon: "warning",
         title: 'warning modal',
     })
 });
-document.querySelector('.bs-info-ico').addEventListener("click", function () {
+_bindClick('.bs-info-ico', function () {
     Swal.fire({
         icon: "info",
         title: 'info modal',
     })
 });
-document.querySelector('.bs-question-ico').addEventListener("click", function () {
+_bindClick('.bs-question-ico', function () {
     Swal.fire({
         icon: "question",
         title: 'question modal',
     })
 });
-document.querySelector('.bs-text-input').addEventListener("click", function () {
+_bindClick('.bs-text-input', function () {
     (async () => {
         const ipAPI = '//api.ipify.org?format=json'
         const inputValue = fetch(ipAPI)
@@ -278,7 +284,7 @@ document.querySelector('.bs-text-input').addEventListener("click", function () {
         }
     })()
 });
-document.querySelector('.bs-email-input').addEventListener("click", function () {
+_bindClick('.bs-email-input', function () {
     (async () => {
         const {
             value: email
@@ -293,7 +299,7 @@ document.querySelector('.bs-email-input').addEventListener("click", function () 
         }
     })()
 });
-document.querySelector('.bs-url-input').addEventListener("click", function () {
+_bindClick('.bs-url-input', function () {
     (async () => {
         const {
             value: url
@@ -306,7 +312,7 @@ document.querySelector('.bs-url-input').addEventListener("click", function () {
         }
     })()
 });
-document.querySelector('.bs-password-input').addEventListener("click", function () {
+_bindClick('.bs-password-input', function () {
     (async () => {
         const {
             value: password
@@ -325,7 +331,7 @@ document.querySelector('.bs-password-input').addEventListener("click", function 
         }
     })()
 });
-document.querySelector('.bs-textarea-input').addEventListener("click", function () {
+_bindClick('.bs-textarea-input', function () {
     (async () => {
         const {
             value: text
@@ -342,7 +348,7 @@ document.querySelector('.bs-textarea-input').addEventListener("click", function 
         }
     })()
 });
-document.querySelector('.bs-select-input').addEventListener("click", function () {
+_bindClick('.bs-select-input', function () {
     (async () => {
         const {
             value: fruit
@@ -380,7 +386,7 @@ document.querySelector('.bs-select-input').addEventListener("click", function ()
         }
     })()
 });
-document.querySelector('.bs-radio-input').addEventListener("click", function () {
+_bindClick('.bs-radio-input', function () {
     (async () => {
         const inputOptions = new Promise((resolve) => {
             setTimeout(() => {
@@ -410,7 +416,7 @@ document.querySelector('.bs-radio-input').addEventListener("click", function () 
         }
     })()
 });
-document.querySelector('.bs-checkbox-input').addEventListener("click", function () {
+_bindClick('.bs-checkbox-input', function () {
     (async () => {
         const {
             value: accept
@@ -429,7 +435,7 @@ document.querySelector('.bs-checkbox-input').addEventListener("click", function 
         }
     })()
 });
-document.querySelector('.bs-file-input').addEventListener("click", function () {
+_bindClick('.bs-file-input', function () {
     (async () => {
         const {
             value: file
@@ -454,7 +460,7 @@ document.querySelector('.bs-file-input').addEventListener("click", function () {
         }
     })()
 });
-document.querySelector('.bs-range-input').addEventListener("click", function () {
+_bindClick('.bs-range-input', function () {
     (async () => {
         Swal.fire({
             title: 'How old are you?',
@@ -469,7 +475,7 @@ document.querySelector('.bs-range-input').addEventListener("click", function () 
         })
     })()
 });
-document.querySelector('.bs-multiple-input').addEventListener("click", function () {
+_bindClick('.bs-multiple-input', function () {
     (async () => {
         const {
             value: formValues
@@ -489,4 +495,6 @@ document.querySelector('.bs-multiple-input').addEventListener("click", function 
             Swal.fire(JSON.stringify(formValues))
         }
     })()
+});
+// PULL REQUEST END — Fim da alteração customizada
 });
