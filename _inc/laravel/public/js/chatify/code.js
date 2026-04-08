@@ -49,6 +49,58 @@ function loadingSVG(w_h = "25px", className = null) {
   );
 }
 
+// PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
+/**
+ * _sanitizeHtml — Remove vetores de XSS de HTML renderizado pelo servidor.
+ * Remove tags <script>, atributos on* (onclick, onerror, etc.) e protocolos javascript:.
+ * Preserva o markup estrutural (listas, imagens, spans, etc.) retornado pelo backend.
+ */
+function _sanitizeHtml(html) {
+  var tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  // Remove todos os <script>
+  var scripts = tmp.querySelectorAll("script");
+  for (var i = 0; i < scripts.length; i++) scripts[i].remove();
+  // Remove atributos de evento e protocolos javascript:
+  var allEls = tmp.querySelectorAll("*");
+  for (var i = 0; i < allEls.length; i++) {
+    var el = allEls[i];
+    var attrs = el.getAttributeNames();
+    for (var j = 0; j < attrs.length; j++) {
+      if (attrs[j].toLowerCase().startsWith("on")) {
+        el.removeAttribute(attrs[j]);
+      }
+    }
+    if (el.tagName === "A" || el.tagName === "AREA" || el.tagName === "FORM") {
+      var href = el.getAttribute("href") || el.getAttribute("action") || "";
+      if (href.replace(/\s/g, "").toLowerCase().startsWith("javascript:")) {
+        el.removeAttribute("href");
+        el.removeAttribute("action");
+      }
+    }
+    if (el.tagName === "IFRAME" || el.tagName === "OBJECT" || el.tagName === "EMBED") {
+      el.remove();
+    }
+  }
+  return tmp.innerHTML;
+}
+
+/**
+ * _safeCssUrl — Valida que a URL usada em background-image é segura (http(s) ou caminho relativo).
+ */
+function _safeCssUrl(rawUrl) {
+  var trimmed = (rawUrl || "").trim();
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
+    return 'url("' + trimmed.replace(/"/g, "") + '")';
+  }
+  return 'url("")';
+}
+// PULL REQUEST END — Fim da alteração customizada
+
 // loading placeholder for users list item
 function listItemLoading(items) {
   let template = "";
@@ -189,11 +241,13 @@ let app_modal = function ({
   body = null,
 }) {
   const modal = $(".app-modal[data-name=" + name + "]");
+  // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
   // header
-  header ? modal.find(".app-modal-header").html(header) : "";
+  header ? modal.find(".app-modal-header").html(_sanitizeHtml(header)) : "";
 
   // body
-  body ? modal.find(".app-modal-body").html(body) : "";
+  body ? modal.find(".app-modal-body").html(_sanitizeHtml(body)) : "";
+  // PULL REQUEST END — Fim da alteração customizada
 
   // buttons
   buttons == true
@@ -344,14 +398,16 @@ function IDinfo(id, type) {
       data: { _token: access_token, id: id, type: type },
       dataType: "JSON",
       success: data => {
-        // avatar photo
+        // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
+        // avatar photo — URL validada contra injeção CSS
         $(".messenger-infoView")
           .find(".avatar")
-          .css("background-image", 'url("' + data.user_avatar + '")');
+          .css("background-image", _safeCssUrl(data.user_avatar));
         $(".header-avatar").css(
           "background-image",
-          'url("' + data.user_avatar + '")'
+          _safeCssUrl(data.user_avatar)
         );
+        // PULL REQUEST END — Fim da alteração customizada
         // Show shared and actions
         $(".messenger-infoView-btns .delete-conversation").show();
         $(".messenger-infoView-shared").show();
@@ -359,9 +415,11 @@ function IDinfo(id, type) {
         fetchMessages(id, type);
         // focus on messaging input
         messageInput.focus();
-        // update info in view
-        $(".messenger-infoView .info-name").html(data.fetch.name);
-        $(".m-header-messaging .user-name").html(data.fetch.name);
+        // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
+        // update info in view — .text() previne XSS em nomes de usuário
+        $(".messenger-infoView .info-name").text(data.fetch.name);
+        $(".m-header-messaging .user-name").text(data.fetch.name);
+        // PULL REQUEST END — Fim da alteração customizada
         // Star status
         data.favorite > 0
           ? $(".add-to-favorite").addClass("favorite")
@@ -492,7 +550,9 @@ function fetchMessages(id, type) {
         if (messenger != 0) {
           disableOnLoad(false);
         }
-        messagesContainer.find(".messages").html(data.messages);
+        // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
+        messagesContainer.find(".messages").html(_sanitizeHtml(data.messages));
+        // PULL REQUEST END — Fim da alteração customizada
         // scroll to bottom
         scrollBottom(messagesContainer);
         // remove loading bar
@@ -745,11 +805,13 @@ function getContacts() {
     data: { _token: access_token, messenger_id: messenger.split("_")[1] },
     dataType: "JSON",
     success: data => {
+      // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
       $(".listOfContacts").html("");
-      $(".listOfContacts").html(data.contacts);
+      $(".listOfContacts").html(_sanitizeHtml(data.contacts));
 
       $(".all_members").html("");
-      $(".all_members").html(data.allUsers);
+      $(".all_members").html(_sanitizeHtml(data.allUsers));
+      // PULL REQUEST END — Fim da alteração customizada
       // update data-action required with [responsive design]
       cssMediaQueries();
     },
@@ -867,8 +929,10 @@ function getFavoritesList() {
     data: { _token: access_token },
     dataType: "JSON",
     success: data => {
+      // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
       $(".messenger-favorites").html("");
-      $(".messenger-favorites").html(data.favorites);
+      $(".messenger-favorites").html(_sanitizeHtml(data.favorites));
+      // PULL REQUEST END — Fim da alteração customizada
       // update data-action required with [responsive design]
       cssMediaQueries();
     },
@@ -902,7 +966,9 @@ function getSharedPhotos(user_id) {
     data: { _token: access_token, user_id: user_id },
     dataType: "JSON",
     success: data => {
-      $(".shared-photos-list").html(data.shared);
+      // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
+      $(".shared-photos-list").html(_sanitizeHtml(data.shared));
+      // PULL REQUEST END — Fim da alteração customizada
     },
     error: (jqXHR, textStatus, errorThrown) => {
       console.error("Server error for getting shared photos");
@@ -938,9 +1004,11 @@ function messengerSearch(input) {
     },
     success: data => {
       $(".search-records").find("svg").remove();
+      // PULL REQUEST START — Alteração customizada em arquivo vendor (correção de XSS)
       data.addData == "append"
-        ? $(".search-records").append(data.records)
-        : $(".search-records").html(data.records);
+        ? $(".search-records").append(_sanitizeHtml(data.records))
+        : $(".search-records").html(_sanitizeHtml(data.records));
+      // PULL REQUEST END — Fim da alteração customizada
       // update data-action required with [responsive design]
       cssMediaQueries();
     },
